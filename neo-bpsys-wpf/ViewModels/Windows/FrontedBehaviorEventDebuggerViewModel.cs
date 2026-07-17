@@ -34,17 +34,13 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     public FrontedBehaviorEventDebuggerViewModel(IFrontedBehaviorEventDebugService debugService)
     {
         _debugService = debugService;
+        RecordsView = CollectionViewSource.GetDefaultView(Records);
+        RecordsView.Filter = FilterRecord;
+
         IsEnabled = debugService.IsEnabled;
         IsPaused = debugService.IsPaused;
         MaxRecords = debugService.MaxRecords;
 
-        foreach (var record in debugService.Records)
-        {
-            Records.Add(new FrontedBehaviorEventDebugRecordViewModel(record));
-        }
-
-        RecordsView = CollectionViewSource.GetDefaultView(Records);
-        RecordsView.Filter = FilterRecord;
         _debugService.RecordAdded += DebugService_OnRecordAdded;
         _debugService.RecordsCleared += DebugService_OnRecordsCleared;
     }
@@ -69,7 +65,18 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     /// 当前选中的、用于复制辅助命令的负载条目。
     /// </summary>
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CopyPathCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CopyConditionPathCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CopyEqualsFilterCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CopyIfConditionCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CopyContainsFilterCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CopyValueCommand))]
     public partial FrontedBehaviorPayloadDebugEntry? SelectedPayloadEntry { get; set; }
+
+    /// <summary>
+    /// 获取一个值，指示当前是否选中了可复制的负载条目。
+    /// </summary>
+    public bool HasSelectedPayloadEntry => SelectedPayloadEntry is not null;
 
     /// <summary>
     /// 获取或设置调试器是否记录传入的行为事件。
@@ -132,61 +139,55 @@ public sealed partial class FrontedBehaviorEventDebuggerViewModel : ViewModelBas
     /// <summary>
     /// 将负载路径复制到剪贴板。
     /// </summary>
-    /// <param name="entry">要复制的负载条目。</param>
-    [RelayCommand]
-    public void CopyPath(FrontedBehaviorPayloadDebugEntry? entry)
+    [RelayCommand(CanExecute = nameof(HasSelectedPayloadEntry))]
+    public void CopyPath()
     {
-        CopyText(entry?.Path);
+        CopyText(SelectedPayloadEntry?.Path);
     }
 
     /// <summary>
     /// 复制与图条件节点兼容的负载路径。
     /// </summary>
-    /// <param name="entry">要复制的负载条目。</param>
-    [RelayCommand]
-    public void CopyConditionPath(FrontedBehaviorPayloadDebugEntry? entry)
+    [RelayCommand(CanExecute = nameof(HasSelectedPayloadEntry))]
+    public void CopyConditionPath()
     {
-        CopyText(entry?.Path);
+        CopyText(SelectedPayloadEntry?.Path);
     }
 
     /// <summary>
     /// 复制负载条目的 Equals 筛选表达式。
     /// </summary>
-    /// <param name="entry">要复制的负载条目。</param>
-    [RelayCommand]
-    public void CopyEqualsFilter(FrontedBehaviorPayloadDebugEntry? entry)
+    [RelayCommand(CanExecute = nameof(HasSelectedPayloadEntry))]
+    public void CopyEqualsFilter()
     {
-        CopyText(CreateEqualsFilter(entry));
+        CopyText(CreateEqualsFilter(SelectedPayloadEntry));
     }
 
     /// <summary>
     /// 复制负载条目的 IF 条件表达式。
     /// </summary>
-    /// <param name="entry">要复制的负载条目。</param>
-    [RelayCommand]
-    public void CopyIfCondition(FrontedBehaviorPayloadDebugEntry? entry)
+    [RelayCommand(CanExecute = nameof(HasSelectedPayloadEntry))]
+    public void CopyIfCondition()
     {
-        CopyText(CreateIfCondition(entry));
+        CopyText(CreateIfCondition(SelectedPayloadEntry));
     }
 
     /// <summary>
     /// 复制负载条目的 Contains 筛选表达式。
     /// </summary>
-    /// <param name="entry">要复制的负载条目。</param>
-    [RelayCommand]
-    public void CopyContainsFilter(FrontedBehaviorPayloadDebugEntry? entry)
+    [RelayCommand(CanExecute = nameof(HasSelectedPayloadEntry))]
+    public void CopyContainsFilter()
     {
-        CopyText(CreateContainsFilter(entry));
+        CopyText(CreateContainsFilter(SelectedPayloadEntry));
     }
 
     /// <summary>
     /// 将负载筛选值复制到剪贴板。
     /// </summary>
-    /// <param name="entry">要复制的负载条目。</param>
-    [RelayCommand]
-    public void CopyValue(FrontedBehaviorPayloadDebugEntry? entry)
+    [RelayCommand(CanExecute = nameof(HasSelectedPayloadEntry))]
+    public void CopyValue()
     {
-        CopyText(entry?.FilterText);
+        CopyText(SelectedPayloadEntry?.FilterText);
     }
 
     /// <summary>

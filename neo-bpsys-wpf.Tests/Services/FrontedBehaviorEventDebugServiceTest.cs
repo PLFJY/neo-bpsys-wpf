@@ -1,6 +1,7 @@
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
 using System.Collections.Generic;
@@ -80,5 +81,20 @@ public class FrontedBehaviorEventDebugServiceTest
         Assert.Equal("Event.Action Equals PickSur", FrontedBehaviorEventDebuggerViewModel.CreateEqualsFilter(actionEntry));
         Assert.Equal("Event.Action Equals PickSur", FrontedBehaviorEventDebuggerViewModel.CreateIfCondition(actionEntry));
         Assert.Equal("Event.IndexesText Contains 0", FrontedBehaviorEventDebuggerViewModel.CreateContainsFilter(indexesEntry));
+    }
+
+    [Fact]
+    public void DebuggerViewModel_InitializesRecordsViewBeforeSynchronizingRecords()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var bus = new FrontedEventBus();
+            using var service = new FrontedBehaviorEventDebugService(bus);
+            bus.Publish(new FrontedBehaviorEvent { EventType = "window-created" });
+            using var viewModel = new FrontedBehaviorEventDebuggerViewModel(service);
+
+            Assert.Single(viewModel.Records);
+            Assert.NotNull(viewModel.RecordsView);
+        });
     }
 }
