@@ -55,7 +55,10 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         _bootstrapBuilder = bootstrapBuilder;
         _runtimePublisher = runtimePublisher;
         if (_runtimePublisher is not null)
+        {
             _runtimePublisher.Updated += OnRuntimeUpdated;
+            _runtimePublisher.BehaviorEventPublished += OnBehaviorEventPublished;
+        }
     }
 
     /// <inheritdoc />
@@ -259,6 +262,9 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         _ = SendAsync(type, update, _stopping.Token);
     }
 
+    private void OnBehaviorEventPublished(object? sender, WebRendererBehaviorEvent behaviorEvent) =>
+        _ = SendAsync(WebRendererIpcProtocol.BehaviorEvent, behaviorEvent, _stopping.Token);
+
     private async Task ObserveOutputAsync(StreamReader reader, string streamName, CancellationToken cancellationToken)
     {
         try
@@ -315,7 +321,10 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     {
         WeakReferenceMessenger.Default.UnregisterAll(this);
         if (_runtimePublisher is not null)
+        {
             _runtimePublisher.Updated -= OnRuntimeUpdated;
+            _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished;
+        }
         _stopping.Dispose();
         _startLock.Dispose();
         _process?.Dispose();

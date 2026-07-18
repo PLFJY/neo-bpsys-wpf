@@ -63,6 +63,9 @@ public static class WebRendererIpcProtocol
     /// <summary>插件发送的运行时事件。</summary>
     public const string RuntimeEvent = "runtime.event";
 
+    /// <summary>插件转发的只读前台行为语义事件。</summary>
+    public const string BehaviorEvent = "behavior.event";
+
     /// <summary>sidecar 通知插件当前 WebSocket 客户端数量。</summary>
     public const string SidecarClientsChanged = "sidecar.clientsChanged";
 }

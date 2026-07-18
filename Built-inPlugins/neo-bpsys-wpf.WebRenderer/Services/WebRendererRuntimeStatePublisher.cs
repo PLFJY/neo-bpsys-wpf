@@ -25,6 +25,9 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     /// <summary>发生可发送的完整快照或增量更新时触发。</summary>
     public event EventHandler<WebRendererRuntimeUpdate>? Updated;
 
+    /// <summary>发布可安全发送给 Web 页面的语义行为事件。</summary>
+    public event EventHandler<WebRendererBehaviorEvent>? BehaviorEventPublished;
+
     /// <summary>创建运行时发布器。</summary>
     public WebRendererRuntimeStatePublisher(ISharedDataService sharedData, IFrontedEventBus eventBus)
     {
@@ -101,7 +104,17 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         }
     }
 
-    private void OnEventPublished(object? sender, FrontedBehaviorEvent args) => OnStateChanged();
+    private void OnEventPublished(object? sender, FrontedBehaviorEvent args)
+    {
+        lock (_gate)
+        {
+            if (_clientCount > 0)
+            {
+                BehaviorEventPublished?.Invoke(this, WebRendererBehaviorEvent.From(args));
+                RecalculateLocked(sendSnapshot: false);
+            }
+        }
+    }
     private void OnStateChanged() { lock (_gate) { if (_clientCount > 0) RecalculateLocked(sendSnapshot: false); } }
 
     private void RecalculateLocked(bool sendSnapshot)
@@ -170,6 +183,16 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
 
 /// <summary>运行时状态更新。</summary>
 public sealed record WebRendererRuntimeUpdate(bool IsSnapshot, long Generation, long Sequence, IReadOnlyDictionary<string, JsonElement> Values, IReadOnlyList<string> Diagnostics);
+
+/// <summary>经标准化后可发送到浏览器的只读行为事件。</summary>
+public sealed record WebRendererBehaviorEvent(string EventType, string? WindowId, string? WindowType, string? CanvasName,
+    DateTimeOffset Timestamp, string? Source, IReadOnlyDictionary<string, JsonElement> Payload)
+{
+    /// <summary>从宿主事件创建安全投影。</summary>
+    public static WebRendererBehaviorEvent From(FrontedBehaviorEvent value) => new(value.EventType, value.WindowId, value.WindowType,
+        value.CanvasName, value.Timestamp, value.Source, value.Payload.ToDictionary(pair => pair.Key,
+            pair => WebRendererBindingValue.Create(pair.Value, out _), StringComparer.Ordinal));
+}
 
 internal sealed class ActionSubscription(Action dispose) : IDisposable { public void Dispose() => dispose(); }
 

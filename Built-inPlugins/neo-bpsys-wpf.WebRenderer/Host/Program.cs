@@ -147,6 +147,7 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
             if (message.Type == WebRendererIpcProtocol.BootstrapReplace) { lock (_gate) { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(message.Payload.GetRawText()); } }
             if (message.Type == WebRendererIpcProtocol.RuntimeSnapshot) { lock (_gate) { _runtime?.Dispose(); _runtime = JsonDocument.Parse(message.Payload.GetRawText()); } await BroadcastAsync(new { type = "snapshot", payload = message.Payload }); }
             if (message.Type == WebRendererIpcProtocol.RuntimeBindingPatch) await BroadcastAsync(new { type = "bindingPatch", payload = message.Payload });
+            if (message.Type == WebRendererIpcProtocol.BehaviorEvent) await BroadcastAsync(new { type = "behavior.event", payload = message.Payload });
             if (message.Type == WebRendererIpcProtocol.BootstrapChanged) await BroadcastAsync(new { type = WebRendererIpcProtocol.BootstrapChanged, payload = message.Payload });
             if (message.Type == WebRendererIpcProtocol.Shutdown) Environment.Exit(0);
         }

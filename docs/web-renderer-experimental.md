@@ -17,3 +17,5 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 资源 URL 是每次 bootstrap 创建的随机 token；浏览器不会获得物理路径。插件只授权当前活动包、`local`、内置 `Resources/...` 和已知应用字体，拒绝绝对路径、跨包引用及编码路径穿越。切换包或 Designer 保存布局时会重新发送 bootstrap，页面通过 WebSocket 刷新。未知内置控件与没有 Web adapter 的 `plugin:*` 控件会显示诊断占位；纯 Binding 文本显示绑定路径占位。
 
 IPC 使用 version 3，并在 `bootstrap.replace` 中传输布局和资源表。WebSocket 首次连接会收到完整 `snapshot`，后续仅发送带 sequence 的 `bindingPatch`；布局变更会通知页面重取 bootstrap 并重新同步。只会解析当前布局实际使用且由设计器绑定目录声明的路径；未知成员、方法调用、越界索引和无法转换的对象返回 null 与诊断，不会序列化整个共享对象图。第三方 Web 控件目前只预留注册边界，不会执行或托管任意插件脚本。
+
+行为文档随 bootstrap 一并从活动包加载。Web 页面只消费 `IFrontedEventBus` 桥接出的语义事件，在本页独立执行 OneShot 和 Loop 节点图；断线、刷新、包切换和布局重载都会取消页面的 delay 与动画。Transition 文档会校验并提示 `TransitionDeferred`，但不会执行 Exit/Enter 或改变比赛状态，严格 commit 同步将在后续版本提供。当前 Web 动画支持 Opacity、Visibility、VisualOffsetX/Y、ScaleX/Y 和 Rotation；其余 WPF 属性会明确提示尚未支持。

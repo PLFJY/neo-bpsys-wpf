@@ -1,6 +1,7 @@
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
@@ -13,7 +14,8 @@ namespace neo_bpsys_wpf.WebRenderer.Services;
 public sealed class WebRendererBootstrapBuilder(
     IFrontedLayoutPackageManager packageManager,
     IFrontedLayoutService layoutService,
-    IFrontedWindowRegistry windowRegistry)
+    IFrontedWindowRegistry windowRegistry,
+    IFrontedBehaviorService behaviorService)
 {
     private static readonly IReadOnlyDictionary<string, string> PackFonts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -36,12 +38,13 @@ public sealed class WebRendererBootstrapBuilder(
             if (result.Config is null)
             {
                 diagnostics.Add(result.Error ?? "LayoutMissing");
-                windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, null, new Dictionary<string, string>(), diagnostics));
+                windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, null, null, new Dictionary<string, string>(), diagnostics));
                 continue;
             }
 
             var mapping = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var reference in EnumerateResourceReferences(result.Config))
+            var behavior = await behaviorService.LoadDocumentAsync(descriptor.FullWindowType, cancellationToken);
+            foreach (var reference in EnumerateResourceReferences(result.Config).Concat(EnumerateBehaviorResourceReferences(behavior)))
             {
                 var asset = TryCreateAsset(reference, active.PackageId, diagnostics);
                 if (asset is null)
@@ -49,11 +52,17 @@ public sealed class WebRendererBootstrapBuilder(
                 resources.TryAdd(asset.Token, asset);
                 mapping[reference] = $"/assets/{asset.Token}";
             }
-            windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, result.Config, mapping, diagnostics));
+            windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, result.Config, behavior, mapping, diagnostics));
         }
 
         return new WebRendererBootstrapSnapshot(WebRendererProtocolVersion.Value, generation, active.PackageId, windows, resources);
     }
+
+    private static IEnumerable<string> EnumerateBehaviorResourceReferences(FrontedBehaviorDocument document) =>
+        document.ControlBehaviorSets.SelectMany(set => set.AnimationParts)
+            .Select(part => part.ImagePath)
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Cast<string>();
 
     private IEnumerable<string> EnumerateResourceReferences(FrontedWindowConfig config)
     {
@@ -166,6 +175,7 @@ public sealed record WebRendererBootstrapSnapshot(int ProtocolVersion, long Gene
 
 /// <summary>单个窗口的安全布局数据。</summary>
 public sealed record WebRendererBootstrapWindow(string FullWindowType, string DisplayName, FrontedWindowConfig? Layout,
+    FrontedBehaviorDocument? BehaviorDocument,
     IReadOnlyDictionary<string, string> Resources, IReadOnlyList<string> Diagnostics);
 
 /// <summary>sidecar 专用的已授权资源。</summary>
