@@ -26,10 +26,13 @@ public sealed record WebRendererLaunchOptions(string Address, int Port, bool NoS
         var noStartText = configuration["web-no-start"];
         var noStart = bool.TryParse(noStartText, out var parsedNoStart)
             ? parsedNoStart
-            : configuration.GetSection("web-no-start").Exists();
+            : configuration.AsEnumerable().Any(pair => string.Equals(pair.Key, "web-no-start", StringComparison.OrdinalIgnoreCase));
 
         if (!IPAddress.TryParse(address, out var parsedAddress) || parsedAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
             return new(DefaultAddress, DefaultPort, noStart, "--web-host 必须是 IPv4 地址。");
+
+        if (!IPAddress.IsLoopback(parsedAddress))
+            return new(DefaultAddress, DefaultPort, noStart, "实时 Web Renderer 仅允许监听 localhost；局域网模式需要后续的鉴权支持。");
 
         var port = DefaultPort;
         if (!string.IsNullOrWhiteSpace(portText)

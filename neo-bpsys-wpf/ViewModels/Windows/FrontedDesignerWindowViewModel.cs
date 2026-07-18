@@ -1404,7 +1404,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             StatusMessage = wasBuiltInSource
                 ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "EditableLayoutSchemeCreated")
                 : I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSaved");
-            if (wasBuiltInSource)
+            if (shouldSaveLayout || wasBuiltInSource)
             {
                 WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, null));
             }

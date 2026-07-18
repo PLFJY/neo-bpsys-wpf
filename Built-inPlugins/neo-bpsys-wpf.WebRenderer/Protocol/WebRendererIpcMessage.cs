@@ -31,7 +31,7 @@ public sealed record WebRendererIpcMessage
 public static class WebRendererIpcProtocol
 {
     /// <summary>当前协议版本。</summary>
-    public const int Version = 1;
+    public const int Version = 3;
 
     /// <summary>插件发送的主机元数据消息类型。</summary>
     public const string HostHello = "host.hello";
@@ -47,4 +47,22 @@ public static class WebRendererIpcProtocol
 
     /// <summary>错误消息类型。</summary>
     public const string Error = "error";
+
+    /// <summary>插件发送的完整静态布局快照。</summary>
+    public const string BootstrapReplace = "bootstrap.replace";
+
+    /// <summary>sidecar 通知浏览器刷新布局快照。</summary>
+    public const string BootstrapChanged = "bootstrap.changed";
+
+    /// <summary>插件发送的完整运行时绑定快照。</summary>
+    public const string RuntimeSnapshot = "runtime.snapshot";
+
+    /// <summary>插件发送的增量绑定更新。</summary>
+    public const string RuntimeBindingPatch = "runtime.bindingPatch";
+
+    /// <summary>插件发送的运行时事件。</summary>
+    public const string RuntimeEvent = "runtime.event";
+
+    /// <summary>sidecar 通知插件当前 WebSocket 客户端数量。</summary>
+    public const string SidecarClientsChanged = "sidecar.clientsChanged";
 }

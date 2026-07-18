@@ -77,8 +77,11 @@ public sealed class MainWindowViewModelGameProgressSyncTest
             sharedDataService,
             new Mock<IGameGuidanceService>().Object,
             new Mock<IFilePickerService>().Object,
+            new Mock<ISettingsHostService>().Object,
+            new Mock<IContentDialogService>().Object,
             tutorialSignalService,
             CreateSmartBpAutoRecognitionGlobalControl().Object,
+            new Mock<IGlobalRestartService>().Object,
             NullLogger<MainWindowViewModel>.Instance);
 
     private static Mock<ISharedDataService> CreateSharedDataService(Game game)

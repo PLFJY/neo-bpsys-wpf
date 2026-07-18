@@ -33,10 +33,10 @@ public sealed class WebRendererInfrastructureTest
     }
 
     /// <summary>
-    /// 命令行配置应保留所有网卡地址与禁用启动开关。
+    /// 实时模式不得接受没有鉴权保护的全网卡监听地址。
     /// </summary>
     [Fact]
-    public void LaunchOptionsAcceptAllInterfacesAndNoStart()
+    public void LaunchOptionsRejectAllInterfacesAndNoStart()
     {
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
@@ -47,10 +47,10 @@ public sealed class WebRendererInfrastructureTest
 
         var options = WebRendererLaunchOptions.FromConfiguration(configuration);
 
-        Assert.Equal("0.0.0.0", options.Address);
-        Assert.Equal(23000, options.Port);
+        Assert.Equal(WebRendererLaunchOptions.DefaultAddress, options.Address);
+        Assert.Equal(WebRendererLaunchOptions.DefaultPort, options.Port);
         Assert.True(options.NoStart);
-        Assert.Null(options.ValidationError);
+        Assert.NotNull(options.ValidationError);
     }
 
     /// <summary>

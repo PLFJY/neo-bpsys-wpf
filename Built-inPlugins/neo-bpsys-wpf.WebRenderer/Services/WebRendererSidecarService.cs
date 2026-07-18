@@ -11,13 +11,15 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using Wpf.Ui.Controls;
+using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Core.Messages;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
 
 /// <summary>
 /// 管理独立 Web Renderer sidecar 进程及其命名管道连接。
 /// </summary>
-public sealed class WebRendererSidecarService : IHostedService, IDisposable
+public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRecipient<FrontedLayoutPackagesChangedMessage>
 {
     private const string RuntimeDownloadUrl = "https://dotnet.microsoft.com/en-us/download/dotnet/10.0";
     private readonly WebRendererLaunchOptions _options;
@@ -25,6 +27,8 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable
     private readonly WebRendererPlugin _plugin;
     private readonly ISnackbarService _snackbarService;
     private readonly ILogger<WebRendererSidecarService> _logger;
+    private readonly WebRendererBootstrapBuilder? _bootstrapBuilder;
+    private readonly WebRendererRuntimeStatePublisher? _runtimePublisher;
     private readonly SemaphoreSlim _startLock = new(1, 1);
     private readonly CancellationTokenSource _stopping = new();
     private Process? _process;
@@ -33,23 +37,31 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable
     private long _sequence;
     private bool _suppressedForSession;
     private string? _lastSidecarError;
+    private long _bootstrapGeneration;
 
     /// <summary>
     /// 初始化 sidecar 服务。
     /// </summary>
     public WebRendererSidecarService(WebRendererLaunchOptions options, WebRendererRuntimeDetector runtimeDetector,
-        WebRendererPlugin plugin, ISnackbarService snackbarService, ILogger<WebRendererSidecarService> logger)
+        WebRendererPlugin plugin, ISnackbarService snackbarService, ILogger<WebRendererSidecarService> logger,
+        WebRendererBootstrapBuilder? bootstrapBuilder = null,
+        WebRendererRuntimeStatePublisher? runtimePublisher = null)
     {
         _options = options;
         _runtimeDetector = runtimeDetector;
         _plugin = plugin;
         _snackbarService = snackbarService;
         _logger = logger;
+        _bootstrapBuilder = bootstrapBuilder;
+        _runtimePublisher = runtimePublisher;
+        if (_runtimePublisher is not null)
+            _runtimePublisher.Updated += OnRuntimeUpdated;
     }
 
     /// <inheritdoc />
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        WeakReferenceMessenger.Default.Register(this);
         if (_options.NoStart)
         {
             _logger.LogInformation("Web Renderer sidecar startup was disabled by --web-no-start.");
@@ -185,12 +197,19 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable
             await pipe.WaitForConnectionAsync(cancellationToken);
             _pipeWriter = new StreamWriter(pipe, new UTF8Encoding(false), leaveOpen: true) { AutoFlush = true };
             await SendAsync(WebRendererIpcProtocol.HostHello, new { hostVersion = AppConstants.AppVersion, pluginVersion = _plugin.Info.Manifest.Version }, cancellationToken);
+            await RefreshBootstrapAsync(cancellationToken);
             using var reader = new StreamReader(pipe, new UTF8Encoding(false), leaveOpen: true);
             while (!cancellationToken.IsCancellationRequested && await reader.ReadLineAsync(cancellationToken) is { } line)
             {
                 var message = JsonSerializer.Deserialize<WebRendererIpcMessage>(line);
                 if (message is not null)
+                {
                     _logger.LogDebug("Web Renderer IPC received {Type} ({Sequence})", message.Type, message.Sequence);
+                    if (message.Type == WebRendererIpcProtocol.SidecarClientsChanged
+                        && message.Payload.TryGetProperty("count", out var count)
+                        && count.TryGetInt32(out var clientCount))
+                        _runtimePublisher?.SetClientCount(clientCount);
+                }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
@@ -212,6 +231,32 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable
             Payload = JsonSerializer.SerializeToElement(payload)
         };
         await _pipeWriter.WriteLineAsync(JsonSerializer.Serialize(message).AsMemory(), cancellationToken);
+    }
+
+    /// <summary>响应布局包激活或 Designer 保存，刷新 sidecar 静态布局。</summary>
+    public void Receive(FrontedLayoutPackagesChangedMessage message) => _ = RefreshBootstrapAsync(_stopping.Token);
+
+    private async Task RefreshBootstrapAsync(CancellationToken cancellationToken)
+    {
+        if (_bootstrapBuilder is null || _pipeWriter is null)
+            return;
+        try
+        {
+            var snapshot = await _bootstrapBuilder.BuildAsync(Interlocked.Increment(ref _bootstrapGeneration), cancellationToken);
+            _runtimePublisher?.ReplaceLayout(snapshot);
+            await SendAsync(WebRendererIpcProtocol.BootstrapReplace, snapshot, cancellationToken);
+            await SendAsync(WebRendererIpcProtocol.BootstrapChanged, new { generation = snapshot.Generation }, cancellationToken);
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(ex, "Web Renderer bootstrap refresh failed.");
+        }
+    }
+
+    private void OnRuntimeUpdated(object? sender, WebRendererRuntimeUpdate update)
+    {
+        var type = update.IsSnapshot ? WebRendererIpcProtocol.RuntimeSnapshot : WebRendererIpcProtocol.RuntimeBindingPatch;
+        _ = SendAsync(type, update, _stopping.Token);
     }
 
     private async Task ObserveOutputAsync(StreamReader reader, string streamName, CancellationToken cancellationToken)
@@ -268,6 +313,9 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+        if (_runtimePublisher is not null)
+            _runtimePublisher.Updated -= OnRuntimeUpdated;
         _stopping.Dispose();
         _startLock.Dispose();
         _process?.Dispose();
