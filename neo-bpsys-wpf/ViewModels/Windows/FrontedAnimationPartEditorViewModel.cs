@@ -276,8 +276,17 @@ public sealed class FrontedAnimationPartEditorViewModel : ObservableValidator
     public FrontedVisualEffectKind EffectKind
     {
         get => _effectKind;
-        set => SetProperty(ref _effectKind, value);
+        set
+        {
+            if (SetProperty(ref _effectKind, value))
+            {
+                OnPropertyChanged(nameof(IsShadowEffect));
+            }
+        }
     }
+
+    /// <summary>获取一个值，指示当前效果是否显示投影/发光参数。</summary>
+    public bool IsShadowEffect => EffectKind is FrontedVisualEffectKind.Glow or FrontedVisualEffectKind.DropShadow;
 
     /// <summary>
     /// 获取或设置视觉效果颜色文本。

@@ -18,6 +18,16 @@ public interface IFrontedBehaviorService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 加载指定前台窗口的内置行为文档，而不受当前活动布局包影响。
+    /// </summary>
+    /// <param name="windowType">完整的窗口类型名。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>内置行为文档；内置文件不存在时返回空文档。</returns>
+    Task<FrontedBehaviorDocument> LoadBuiltInDocumentAsync(
+        string windowType,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 保存行为文档，对应其 <see cref="FrontedBehaviorDocument.WindowType" />。
     /// </summary>
     /// <param name="document">要保存的行为文档。</param>

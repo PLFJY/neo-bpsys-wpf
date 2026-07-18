@@ -21,6 +21,11 @@ public enum FrontedPropertyEditorKind
     Boolean,
 
     /// <summary>
+    /// 开关式布尔编辑器。
+    /// </summary>
+    ToggleSwitch,
+
+    /// <summary>
     /// 枚举选项编辑器。
     /// </summary>
     Enum,

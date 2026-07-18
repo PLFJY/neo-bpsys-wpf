@@ -5669,6 +5669,13 @@ public class FrontedLayoutDesignerFoundationTest
             });
         }
 
+        public Task<FrontedBehaviorDocument> LoadBuiltInDocumentAsync(
+            string windowType,
+            CancellationToken cancellationToken = default)
+        {
+            return LoadDocumentAsync(windowType, cancellationToken);
+        }
+
         public Task SaveDocumentAsync(
             FrontedBehaviorDocument document,
             CancellationToken cancellationToken = default)

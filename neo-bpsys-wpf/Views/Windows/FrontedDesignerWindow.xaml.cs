@@ -1125,6 +1125,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         ApplyPropertyEditorValue(sender);
     }
 
+    private void PropertyToggleSwitch_OnToggled(object sender, RoutedEventArgs e)
+    {
+        ApplyPropertyEditorValue(sender);
+    }
+
     private void PropertyFontComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is not ComboBox comboBox

@@ -55,4 +55,14 @@ public class FrontedControlConfigBase
     /// </summary>
     public string? BindingPath { get; set; }
 
+    /// <summary>
+    /// 获取或设置是否启用控件的静态高斯模糊。
+    /// </summary>
+    public bool IsGaussianBlurEnabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置应用于控件运行时效果宿主的静态高斯模糊半径（像素）。
+    /// </summary>
+    public double GaussianBlurRadius { get; set; }
+
 }

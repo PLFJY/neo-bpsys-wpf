@@ -238,7 +238,10 @@
                             BorderThickness="1"
                             Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}">
                             <Expander.ContextMenu>
-                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <ContextMenu
+                                    DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                                    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer">
                                     <MenuItem
                                         Command="{Binding PlacementTarget.Tag.CopyBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                         CommandParameter="{Binding}"
@@ -285,7 +288,10 @@
                                         Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         ToolTip="{lex:Loc Designer.Behaviors.MoreOptions}">
                                         <ui:Button.ContextMenu>
-                                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                            <ContextMenu
+                                                DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                                                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer">
                                                 <MenuItem
                                                     Command="{Binding PlacementTarget.Tag.CopyBehaviorCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                     CommandParameter="{Binding}"

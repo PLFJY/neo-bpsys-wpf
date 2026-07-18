@@ -298,6 +298,12 @@
   <data name="Designer.Property.Width">
     <value>宽度</value>
   </data>
+  <data name="Designer.Property.GaussianBlurRadius">
+    <value>高斯模糊半径</value>
+  </data>
+  <data name="Designer.Property.IsGaussianBlurEnabled">
+    <value>启用高斯模糊</value>
+  </data>
   <data name="Designer.Property.Height">
     <value>高度</value>
   </data>

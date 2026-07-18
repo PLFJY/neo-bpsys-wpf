@@ -85,6 +85,8 @@ public class FrontedPropertyGridBuilder
         "SizingMode",
         "CornerRadius",
         "ClipToBounds"
+        ,"GaussianBlurRadius"
+        ,"IsGaussianBlurEnabled"
     };
 
     private static readonly HashSet<string> ResourcePathPropertyNames = new(StringComparer.OrdinalIgnoreCase)
@@ -224,7 +226,8 @@ public class FrontedPropertyGridBuilder
         var properties = selectedItem.Config.GetType()
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .Where(IsSupportedProperty)
-            .OrderBy(GetPropertyOrder);
+            .OrderBy(property => GetGroupOrder(ResolveGroupName(property.Name, selectedItem.Config)))
+            .ThenBy(GetPropertyOrder);
 
         foreach (var property in properties)
         {
@@ -240,7 +243,10 @@ public class FrontedPropertyGridBuilder
             }
 
             var kind = ResolveEditorKind(property);
-            var isReadOnly = !selectedItem.IsEditableInEditor || !property.CanWrite;
+            var isReadOnly = !selectedItem.IsEditableInEditor
+                             || !property.CanWrite
+                             || property.Name == nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                             && !selectedItem.Config.IsGaussianBlurEnabled;
             var groupName = ResolveGroupName(property.Name, selectedItem.Config);
             var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
             var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -274,7 +280,9 @@ public class FrontedPropertyGridBuilder
                 PropertyName = property.Name,
                 Description = NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)),
                 PropertyType = property.PropertyType,
-                EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
+                EditorKind = isReadOnly && property.Name != nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                    ? FrontedPropertyEditorKind.ReadOnly
+                    : kind,
                 Value = value,
                 DisplayValue = GetDisplayValue(value, isReadOnly),
                 EditText = GetEditTextValue(value, kind),
@@ -341,6 +349,8 @@ public class FrontedPropertyGridBuilder
 
             AddPropertyRow(rows, selectedItem, messages, property, metadata);
         }
+
+        AddGaussianBlurRows(rows, selectedItem, messages, added);
     }
 
     private void AddMissingPluginRows(
@@ -380,6 +390,33 @@ public class FrontedPropertyGridBuilder
                 "Designer.PluginInstallGuidance",
                 "This plugin is not installed. Install guidance will be available in a future version."),
             "Plugin");
+
+        AddGaussianBlurRows(rows, selectedItem, messages, new HashSet<string>(StringComparer.Ordinal));
+    }
+
+    private void AddGaussianBlurRows(
+        ICollection<FrontedPropertyEditorItem> rows,
+        FrontedControlDesignItem selectedItem,
+        IReadOnlyList<FrontedLayoutValidationMessage> messages,
+        ISet<string> added)
+    {
+        foreach (var propertyName in new[]
+                 {
+                     nameof(FrontedControlConfigBase.IsGaussianBlurEnabled),
+                     nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                 })
+        {
+            if (!added.Add(propertyName))
+            {
+                continue;
+            }
+
+            var property = selectedItem.Config.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            if (property is not null && IsSupportedProperty(property))
+            {
+                AddPropertyRow(rows, selectedItem, messages, property, null);
+            }
+        }
     }
 
     private void AddReadOnlyInfoRow(
@@ -623,6 +660,11 @@ public class FrontedPropertyGridBuilder
         if (property.PropertyType == typeof(string) && TryGetStringOptions(property.Name, out _))
         {
             return FrontedPropertyEditorKind.Enum;
+        }
+
+        if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
         }
 
         if (type == typeof(bool))
@@ -993,10 +1035,34 @@ public class FrontedPropertyGridBuilder
             };
         }
 
+        if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
+        {
+            return 9000;
+        }
+
+        if (property.Name == nameof(FrontedControlConfigBase.GaussianBlurRadius))
+        {
+            return 9001;
+        }
+
         return property.DeclaringType == typeof(FrontedControlConfigBase)
             ? 30
             : 100 + property.MetadataToken;
     }
+
+    private static int GetGroupOrder(string groupName) => groupName switch
+    {
+        "Layout" => 10,
+        "Binding" => 20,
+        "Resource" => 30,
+        "Image" => 40,
+        "Border" => 50,
+        "Overlay" => 60,
+        "Appearance" => 70,
+        "Content" => 80,
+        "ControlSpecific" => 90,
+        _ => 100
+    };
 
     private IReadOnlyList<string> GetPropertyMessages(
         IEnumerable<FrontedLayoutValidationMessage> messages,

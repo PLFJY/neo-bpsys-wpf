@@ -1465,15 +1465,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             canvasName,
             config);
         document.IsDirty = false;
+        var behaviorDocument = await _behaviorService.LoadBuiltInDocumentAsync(windowTypeName);
 
         ControlFilterText = string.Empty;
         CurrentDocument = document;
-        ResetBehaviorDocument(new FrontedBehaviorDocument
-        {
-            Version = 1,
-            WindowType = windowTypeName,
-            CanvasName = FrontedLayoutConstants.BaseCanvasName
-        });
+        ResetBehaviorDocument(behaviorDocument);
         SelectDesignItem(null);
         ApplyValidationMessages(_validator.Validate(document));
         RequestPreviewRender(config, _selectedCatalogEntry);

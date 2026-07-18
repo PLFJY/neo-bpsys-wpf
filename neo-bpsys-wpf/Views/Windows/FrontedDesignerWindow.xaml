@@ -78,6 +78,9 @@
                                     <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
                                     <Setter Property="BorderThickness" Value="1.5" />
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </ui:TextBox.Style>
@@ -147,6 +150,13 @@
                 ItemsSource="{Binding Options}"
                 SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 SelectedValuePath="Value" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyToggleSwitchEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <ui:ToggleSwitch
+                Checked="PropertyToggleSwitch_OnToggled"
+                IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Unchecked="PropertyToggleSwitch_OnToggled" />
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyEnumEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
@@ -323,6 +333,9 @@
                 </DataTrigger>
                 <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Boolean}">
                     <Setter Property="ContentTemplate" Value="{StaticResource PropertyBooleanEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.ToggleSwitch}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyToggleSwitchEditorTemplate}" />
                 </DataTrigger>
                 <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Enum}">
                     <Setter Property="ContentTemplate" Value="{StaticResource PropertyEnumEditorTemplate}" />
@@ -1597,6 +1610,10 @@
                                                 <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.Glow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.Glow}" />
                                                 <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.DropShadow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.DropShadow}" />
                                             </ComboBox>
+                                            <StackPanel>
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding IsShadowEffect}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style>
+                                                </StackPanel.Style>
                                             <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectColor}" />
                                             <Grid Margin="0,3,0,8">
                                                 <Grid.ColumnDefinitions>
@@ -1646,6 +1663,7 @@
                                                         Text="{Binding EffectDirectionText, UpdateSourceTrigger=PropertyChanged}" />
                                                 </StackPanel>
                                             </UniformGrid>
+                                            </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>

@@ -298,6 +298,12 @@
   <data name="Designer.Property.Width">
     <value>Width</value>
   </data>
+  <data name="Designer.Property.GaussianBlurRadius">
+    <value>Gaussian Blur Radius</value>
+  </data>
+  <data name="Designer.Property.IsGaussianBlurEnabled">
+    <value>Enable Gaussian Blur</value>
+  </data>
   <data name="Designer.Property.Height">
     <value>Height</value>
   </data>

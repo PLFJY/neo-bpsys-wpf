@@ -82,6 +82,32 @@ public class FrontedBehaviorServiceTest
         }
     }
 
+    [Fact]
+    public async Task BehaviorService_LoadBuiltInDocument_LoadsBuiltInDocumentRegardlessOfActivePackage()
+    {
+        var root = CreateTempRoot();
+        try
+        {
+            var behaviorsRoot = Path.Combine(root, "Resources", "FrontedBehaviors");
+            Directory.CreateDirectory(behaviorsRoot);
+            await File.WriteAllTextAsync(
+                Path.Combine(behaviorsRoot, "BpWindow.behaviors.json"),
+                """
+                { "Version": 1, "WindowType": "BpWindow", "CanvasName": "BaseCanvas", "ControlBehaviorSets": [ { "BehaviorGuid": "a0000000-0000-0000-0000-000000000001", "Behaviors": [ { "Name": "Built-in behavior" } ] } ] }
+                """,
+                TestContext.Current.CancellationToken);
+
+            var document = await CreateService(root)
+                .LoadBuiltInDocumentAsync("BpWindow", TestContext.Current.CancellationToken);
+
+            Assert.Equal("Built-in behavior", Assert.Single(document.ControlBehaviorSets).Behaviors.Single().Name);
+        }
+        finally
+        {
+            DeleteTempRoot(root);
+        }
+    }
+
     /// <summary>
     /// 加载包含手填数值的行为文档时，不应补写数值输入单位。
     /// </summary>

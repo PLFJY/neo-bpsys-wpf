@@ -85,6 +85,8 @@ ExitGraph / EnterGraph 使用 `TransitionTrigger.EventType`，Loop 的 StartGrap
 
 属性动画必须通过已注册 adapter。新增可动画属性时，应实现或扩展 `IAnimatablePropertyAdapter`，并保证捕获基础值、设置值、动画和 reset 的语义一致。
 
+`GaussianBlurRadius` 是像素单位、最小为 0 的可动画属性。静态半径由控件外观中的 `GaussianBlurRadius` 保存；两者都只作用于既有的 `FrontedEffectHost`：语义子元素保留自己的 `Effect`，先完成子元素渲染及其 Effect，再由宿主的 WPF `BlurEffect` 应用高斯模糊。模糊不会改变 DesiredSize 或 RenderSize，但可扩展到布局边界外，并可能被父级 `ClipToBounds` 裁剪。
+
 `flow.parallel` 使用 `BranchCount` 保存并行任务数，默认值为 `3`，允许范围为 `1` 到 `20`。分支输出使用稳定端口名 `Branch1` 到 `Branch20`；运行时仅执行当前数量范围内已连接的分支，并在全部完成后从 `Out` 继续。旧图未保存 `BranchCount` 时继续按 3 个分支处理。设计器减小任务数时会移除超出新范围的分支连接，避免保存不可见连线。
 
 ## 数值事件值与运算

@@ -68,11 +68,11 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
             var element = CreateElement(part);
             ApplyLayout(element, part, host);
-            ApplyEffect(element, part.Effect);
+            var partEffectHost = FrontedEffectHostFactory.Wrap(element);
+            ApplyEffect(partEffectHost, element, part.Effect);
             MarkPart(element, host, set.DisplayName, set.BehaviorGuid, part.Name);
             RegisterGeneratedName(root, $"{set.DisplayName}__{part.Name}", element);
-            (part.Layer == FrontedAnimationPartLayer.BelowContent ? below : above).Children.Add(
-                FrontedEffectHostFactory.Wrap(element));
+            (part.Layer == FrontedAnimationPartLayer.BelowContent ? below : above).Children.Add(partEffectHost);
         }
     }
 
@@ -170,13 +170,16 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
         }
     }
 
-    private static void ApplyEffect(FrameworkElement element, FrontedVisualEffectConfig? config)
+    private static void ApplyEffect(FrontedEffectHost partEffectHost, FrameworkElement element, FrontedVisualEffectConfig? config)
     {
         if (config is null || config.Kind == FrontedVisualEffectKind.None)
         {
-            element.Effect = null;
+            partEffectHost.Effect = null;
             return;
         }
+
+        // Glow and drop shadow deliberately remain on the semantic part child.
+        partEffectHost.Effect = null;
 
         var color = Colors.Transparent;
         if (!string.IsNullOrWhiteSpace(config.Color))
@@ -197,11 +200,13 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
         {
             Color = color,
             Opacity = Math.Clamp(config.Opacity, 0D, 1D),
-            BlurRadius = Math.Max(0D, config.BlurRadius),
+            BlurRadius = NormalizeRadius(config.BlurRadius),
             ShadowDepth = config.Kind == FrontedVisualEffectKind.Glow ? 0D : Math.Max(0D, config.ShadowDepth),
             Direction = config.Direction
         };
     }
+
+    private static double NormalizeRadius(double value) => double.IsFinite(value) ? Math.Max(0D, value) : 0D;
 
     private static void MarkPart(
         FrameworkElement element,

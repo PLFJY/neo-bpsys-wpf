@@ -770,6 +770,7 @@
                                                 AcceptsExpression="False"
                                                 IsEnabled="{Binding IsManualValueEnabled}"
                                                 LargeChange="10"
+                                                Margin="2"
                                                 MaxDecimalPlaces="{Binding NumberMaxDecimalPlaces}"
                                                 Maximum="{Binding NumberMaximum}"
                                                 Minimum="{Binding NumberMinimum}"

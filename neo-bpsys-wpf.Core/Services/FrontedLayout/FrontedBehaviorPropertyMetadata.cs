@@ -38,6 +38,7 @@ public static class FrontedBehaviorPropertyMetadata
         "TintColor",
         "TintStrength",
         "TextureStrength"
+        ,"GaussianBlurRadius"
     ];
 
     /// <summary>
@@ -61,6 +62,7 @@ public static class FrontedBehaviorPropertyMetadata
         "TintColor",
         "TintStrength",
         "TextureStrength"
+        ,"GaussianBlurRadius"
     ];
 
     /// <summary>
@@ -87,6 +89,7 @@ public static class FrontedBehaviorPropertyMetadata
         "TextColor",
         "Foreground",
         "FontSize"
+        ,"GaussianBlurRadius"
     ];
 
     /// <summary>
@@ -106,6 +109,7 @@ public static class FrontedBehaviorPropertyMetadata
         "FillColor",
         "StrokeColor",
         "StrokeThickness"
+        ,"GaussianBlurRadius"
     ];
 
     /// <summary>
@@ -163,6 +167,7 @@ public static class FrontedBehaviorPropertyMetadata
             "FontSize",
             "TintStrength",
             "TextureStrength",
+            "GaussianBlurRadius",
             "DurationMs");
 
     /// <summary>
@@ -249,7 +254,7 @@ public static class FrontedBehaviorPropertyMetadata
                 return false;
             }
 
-            if (Is(propertyName, "Width", "Height", "StrokeThickness", "FontSize", "DurationMs") && number < 0D)
+            if (Is(propertyName, "Width", "Height", "StrokeThickness", "FontSize", "DurationMs", "GaussianBlurRadius") && number < 0D)
             {
                 message = $"{propertyName} must be greater than or equal to 0.";
                 return false;
@@ -292,6 +297,7 @@ public static class FrontedBehaviorPropertyMetadata
         Numeric("TintStrength", "0.0 - 1.0", "0.5", 0, 1),
         Numeric("TextureStrength", "0.0 - 1.0", "0.5", 0, 1),
         Numeric("FontSize", "e.g. 24", "24", 0)
+        ,Numeric("GaussianBlurRadius", "pixels, e.g. 12", "12", 0)
     ];
 
     private static FrontedAnimatablePropertyMetadata Numeric(

@@ -23,6 +23,14 @@ public sealed class NoopFrontedBehaviorService : IFrontedBehaviorService
     }
 
     /// <inheritdoc />
+    public Task<FrontedBehaviorDocument> LoadBuiltInDocumentAsync(
+        string windowType,
+        CancellationToken cancellationToken = default)
+    {
+        return LoadDocumentAsync(windowType, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public Task SaveDocumentAsync(
         FrontedBehaviorDocument document,
         CancellationToken cancellationToken = default)

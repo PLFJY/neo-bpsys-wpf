@@ -90,7 +90,9 @@ public class FrontedRenderer(
                         FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
                         FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
                         RegisterGeneratedName(canvas, name, placeholder);
-                        canvas.Children.Add(FrontedEffectHostFactory.Wrap(placeholder));
+                        var placeholderHost = FrontedEffectHostFactory.Wrap(placeholder);
+                        ApplyStaticGaussianBlur(placeholderHost, controlConfig.IsGaussianBlurEnabled, controlConfig.GaussianBlurRadius);
+                        canvas.Children.Add(placeholderHost);
                         renderedElements[name] = placeholder;
                         continue;
                     }
@@ -111,7 +113,9 @@ public class FrontedRenderer(
             FrontedRendererProperties.SetIsGeneratedControl(element, true);
             FrontedRendererProperties.SetBehaviorGuid(element, controlConfig.BehaviorGuid);
             RegisterGeneratedName(canvas, name, element);
-            canvas.Children.Add(FrontedEffectHostFactory.Wrap(element));
+            var effectHost = FrontedEffectHostFactory.Wrap(element);
+            ApplyStaticGaussianBlur(effectHost, controlConfig.IsGaussianBlurEnabled, controlConfig.GaussianBlurRadius);
+            canvas.Children.Add(effectHost);
             renderedElements[name] = element;
         }
 
@@ -124,6 +128,20 @@ public class FrontedRenderer(
             FrontedControlVisibility.Collapsed => Visibility.Collapsed,
             _ => Visibility.Visible
         };
+
+    private static void ApplyStaticGaussianBlur(FrontedEffectHost host, bool isEnabled, double radius)
+    {
+        if (!isEnabled || !double.IsFinite(radius) || radius <= 0D)
+        {
+            return;
+        }
+
+        host.Effect = new System.Windows.Media.Effects.BlurEffect
+        {
+            Radius = radius,
+            RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+        };
+    }
 
     private static FrameworkElement CreateMissingPluginPlaceholder(string name, FrontedControlConfigBase config)
     {

@@ -54,10 +54,26 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         CancellationToken cancellationToken = default)
     {
         var path = await ResolveLoadPathAsync(windowType, cancellationToken);
+        _currentDocument = await LoadDocumentFromPathAsync(path, windowType, cancellationToken);
+        return _currentDocument;
+    }
+
+    /// <inheritdoc />
+    public Task<FrontedBehaviorDocument> LoadBuiltInDocumentAsync(
+        string windowType,
+        CancellationToken cancellationToken = default)
+    {
+        return LoadDocumentFromPathAsync(GetBuiltInBehaviorPath(windowType), windowType, cancellationToken);
+    }
+
+    private async Task<FrontedBehaviorDocument> LoadDocumentFromPathAsync(
+        string? path,
+        string windowType,
+        CancellationToken cancellationToken)
+    {
         if (path is null || !File.Exists(path))
         {
-            _currentDocument = CreateEmptyDocument(windowType);
-            return _currentDocument;
+            return CreateEmptyDocument(windowType);
         }
 
         try
@@ -68,10 +84,10 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
             }
 
             var json = await File.ReadAllTextAsync(path, cancellationToken);
-            _currentDocument = JsonSerializer.Deserialize<FrontedBehaviorDocument>(json, _jsonSerializerOptions)
-                               ?? CreateEmptyDocument(windowType);
-            NormalizeDocument(_currentDocument, windowType);
-            return _currentDocument;
+            var document = JsonSerializer.Deserialize<FrontedBehaviorDocument>(json, _jsonSerializerOptions)
+                           ?? CreateEmptyDocument(windowType);
+            NormalizeDocument(document, windowType);
+            return document;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -81,8 +97,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
                 windowType,
                 FrontedLayoutConstants.BaseCanvasName,
                 path);
-            _currentDocument = CreateEmptyDocument(windowType);
-            return _currentDocument;
+            return CreateEmptyDocument(windowType);
         }
     }
 

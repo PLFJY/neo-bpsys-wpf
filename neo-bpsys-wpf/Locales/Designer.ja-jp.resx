@@ -298,6 +298,12 @@
   <data name="Designer.Property.Width">
     <value>幅</value>
   </data>
+  <data name="Designer.Property.GaussianBlurRadius">
+    <value>ガウスぼかし半径</value>
+  </data>
+  <data name="Designer.Property.IsGaussianBlurEnabled">
+    <value>ガウスぼかしを有効にする</value>
+  </data>
   <data name="Designer.Property.Height">
     <value>高さ</value>
   </data>

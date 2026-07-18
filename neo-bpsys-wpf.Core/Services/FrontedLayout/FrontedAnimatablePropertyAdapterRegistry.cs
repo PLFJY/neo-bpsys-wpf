@@ -14,6 +14,7 @@ public sealed class FrontedAnimatablePropertyAdapterRegistry(
             new BackgroundTintAnimatablePropertyAdapter(),
             new ShapeAnimatablePropertyAdapter(),
             new TextAnimatablePropertyAdapter(),
+            new GaussianBlurAnimatablePropertyAdapter(),
             new FrameworkElementCommonAdapter()
         ])
     {
