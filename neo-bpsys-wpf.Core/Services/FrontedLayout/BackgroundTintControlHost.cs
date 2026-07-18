@@ -19,8 +19,8 @@ public sealed class BackgroundTintControlHost : Grid
     private readonly ImageSource _source;
     private readonly string? _sourceKey;
     private readonly BackgroundTintMode _mode;
-    private readonly double _strength;
-    private readonly double _textureStrength;
+    private double _strength;
+    private double _textureStrength;
     private readonly BackgroundTintNormalizationMode _normalizationMode;
     private Rect _canvasRegion;
     private readonly double _canvasWidth;
@@ -76,6 +76,28 @@ public sealed class BackgroundTintControlHost : Grid
     {
         get => (string?)GetValue(TintColorValueProperty);
         set => SetValue(TintColorValueProperty, value);
+    }
+
+    /// <summary>获取或设置染色强度。</summary>
+    public double TintStrengthValue
+    {
+        get => _strength;
+        set
+        {
+            _strength = Math.Clamp(double.IsFinite(value) ? value : _strength, 0D, 1D);
+            RefreshTint();
+        }
+    }
+
+    /// <summary>获取或设置纹理保留强度。</summary>
+    public double TextureStrengthValue
+    {
+        get => _textureStrength;
+        set
+        {
+            _textureStrength = Math.Clamp(double.IsFinite(value) ? value : _textureStrength, 0D, 1D);
+            RefreshTint();
+        }
     }
 
     public Image TintedImage { get; }

@@ -8,6 +8,11 @@ namespace neo_bpsys_wpf.WebRenderer.Services;
 /// </summary>
 public sealed record WebRendererLaunchOptions(string Address, int Port, bool NoStart, string? ValidationError)
 {
+    /// <summary>Web Exit 确认的 fail-open 等待上限。</summary>
+    public TimeSpan ExitTimeout { get; init; } = TimeSpan.FromMilliseconds(2000);
+
+    /// <summary>Web Enter 确认的 fail-open 等待上限。</summary>
+    public TimeSpan EnterTimeout { get; init; } = TimeSpan.FromMilliseconds(2000);
     /// <summary>默认监听地址。</summary>
     public const string DefaultAddress = "127.0.0.1";
 
@@ -39,6 +44,15 @@ public sealed record WebRendererLaunchOptions(string Address, int Port, bool NoS
             && (!int.TryParse(portText, out port) || port is < 1 or > 65535))
             return new(address, DefaultPort, noStart, "--web-port 必须是 1 到 65535 之间的端口号。");
 
-        return new(address, port, noStart, null);
+        return new(address, port, noStart, null)
+        {
+            ExitTimeout = ReadTimeout(configuration["web-transition-exit-timeout-ms"]),
+            EnterTimeout = ReadTimeout(configuration["web-transition-enter-timeout-ms"])
+        };
     }
+
+    private static TimeSpan ReadTimeout(string? value) =>
+        int.TryParse(value, out var milliseconds) && milliseconds is > 0 and <= 30000
+            ? TimeSpan.FromMilliseconds(milliseconds)
+            : TimeSpan.FromMilliseconds(2000);
 }

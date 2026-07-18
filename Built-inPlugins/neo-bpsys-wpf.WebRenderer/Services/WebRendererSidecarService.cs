@@ -29,6 +29,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private readonly ILogger<WebRendererSidecarService> _logger;
     private readonly WebRendererBootstrapBuilder? _bootstrapBuilder;
     private readonly WebRendererRuntimeStatePublisher? _runtimePublisher;
+    private readonly IWebTransitionGateway? _transitionGateway;
     private readonly SemaphoreSlim _startLock = new(1, 1);
     private readonly CancellationTokenSource _stopping = new();
     private Process? _process;
@@ -45,7 +46,8 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     public WebRendererSidecarService(WebRendererLaunchOptions options, WebRendererRuntimeDetector runtimeDetector,
         WebRendererPlugin plugin, ISnackbarService snackbarService, ILogger<WebRendererSidecarService> logger,
         WebRendererBootstrapBuilder? bootstrapBuilder = null,
-        WebRendererRuntimeStatePublisher? runtimePublisher = null)
+        WebRendererRuntimeStatePublisher? runtimePublisher = null,
+        IWebTransitionGateway? transitionGateway = null)
     {
         _options = options;
         _runtimeDetector = runtimeDetector;
@@ -54,11 +56,13 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         _logger = logger;
         _bootstrapBuilder = bootstrapBuilder;
         _runtimePublisher = runtimePublisher;
+        _transitionGateway = transitionGateway;
         if (_runtimePublisher is not null)
         {
             _runtimePublisher.Updated += OnRuntimeUpdated;
             _runtimePublisher.BehaviorEventPublished += OnBehaviorEventPublished;
         }
+        if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished += OnTransitionSignalPublished;
     }
 
     /// <inheritdoc />
@@ -212,6 +216,9 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                         && message.Payload.TryGetProperty("count", out var count)
                         && count.TryGetInt32(out var clientCount))
                         _runtimePublisher?.SetClientCount(clientCount);
+                    else if ((message.Type == WebRendererIpcProtocol.TransitionExitCompleted || message.Type == WebRendererIpcProtocol.TransitionEnterCompleted)
+                             && message.Payload.TryGetProperty("correlationId", out var correlation))
+                        _transitionGateway?.Acknowledge(correlation.GetString() ?? string.Empty, message.Type == WebRendererIpcProtocol.TransitionEnterCompleted);
                 }
             }
         }
@@ -246,6 +253,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         try
         {
             var snapshot = await _bootstrapBuilder.BuildAsync(Interlocked.Increment(ref _bootstrapGeneration), cancellationToken);
+            _transitionGateway?.UpdateGeneration(snapshot.Generation);
             _runtimePublisher?.ReplaceLayout(snapshot);
             await SendAsync(WebRendererIpcProtocol.BootstrapReplace, snapshot, cancellationToken);
             await SendAsync(WebRendererIpcProtocol.BootstrapChanged, new { generation = snapshot.Generation }, cancellationToken);
@@ -264,6 +272,15 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
 
     private void OnBehaviorEventPublished(object? sender, WebRendererBehaviorEvent behaviorEvent) =>
         _ = SendAsync(WebRendererIpcProtocol.BehaviorEvent, behaviorEvent, _stopping.Token);
+
+    private void OnTransitionSignalPublished(object? sender, WebTransitionSignal signal) =>
+        _ = SendAsync(signal.Type, new
+        {
+            correlationId = signal.Session.CorrelationId,
+            generation = signal.Session.Generation,
+            requests = signal.Session.Requests,
+            reason = signal.Reason
+        }, _stopping.Token);
 
     private async Task ObserveOutputAsync(StreamReader reader, string streamName, CancellationToken cancellationToken)
     {
@@ -325,6 +342,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             _runtimePublisher.Updated -= OnRuntimeUpdated;
             _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished;
         }
+        if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished;
         _stopping.Dispose();
         _startLock.Dispose();
         _process?.Dispose();

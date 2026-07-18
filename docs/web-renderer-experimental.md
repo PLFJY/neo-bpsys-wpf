@@ -10,12 +10,16 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 --web-host <IPv4>
 --web-port <1-65535>
 --web-no-start
+--web-transition-exit-timeout-ms <1-30000>
+--web-transition-enter-timeout-ms <1-30000>
 ```
 
 实时数据仅允许 localhost 监听，`--web-host 0.0.0.0` 和其他非 loopback 地址会被拒绝；局域网访问须在未来与鉴权一并启用。sidecar 提供 `/`、`/health`、`/render/{encodedFullWindowType}`、`/api/windows`、`/api/bootstrap/{encodedFullWindowType}`、`/assets/{resourceToken}` 和 `/ws`。
 
 资源 URL 是每次 bootstrap 创建的随机 token；浏览器不会获得物理路径。插件只授权当前活动包、`local`、内置 `Resources/...` 和已知应用字体，拒绝绝对路径、跨包引用及编码路径穿越。切换包或 Designer 保存布局时会重新发送 bootstrap，页面通过 WebSocket 刷新。未知内置控件与没有 Web adapter 的 `plugin:*` 控件会显示诊断占位；纯 Binding 文本显示绑定路径占位。
 
-IPC 使用 version 3，并在 `bootstrap.replace` 中传输布局和资源表。WebSocket 首次连接会收到完整 `snapshot`，后续仅发送带 sequence 的 `bindingPatch`；布局变更会通知页面重取 bootstrap 并重新同步。只会解析当前布局实际使用且由设计器绑定目录声明的路径；未知成员、方法调用、越界索引和无法转换的对象返回 null 与诊断，不会序列化整个共享对象图。第三方 Web 控件目前只预留注册边界，不会执行或托管任意插件脚本。
+IPC 使用 version 4，并在 `bootstrap.replace` 中传输布局和资源表。WebSocket 首次连接会收到完整 `snapshot`，后续仅发送带 sequence 的 `bindingPatch`；布局变更会通知页面重取 bootstrap 并重新同步。只会解析当前布局实际使用且由设计器绑定目录声明的路径；未知成员、方法调用、越界索引和无法转换的对象返回 null 与诊断，不会序列化整个共享对象图。第三方 Web 控件目前只预留注册边界，不会执行或托管任意插件脚本。
 
-行为文档随 bootstrap 一并从活动包加载。Web 页面只消费 `IFrontedEventBus` 桥接出的语义事件，在本页独立执行 OneShot 和 Loop 节点图；断线、刷新、包切换和布局重载都会取消页面的 delay 与动画。Transition 文档会校验并提示 `TransitionDeferred`，但不会执行 Exit/Enter 或改变比赛状态，严格 commit 同步将在后续版本提供。当前 Web 动画支持 Opacity、Visibility、VisualOffsetX/Y、ScaleX/Y 和 Rotation；其余 WPF 属性会明确提示尚未支持。
+行为文档随 bootstrap 一并从活动包加载。Web 页面只消费 `IFrontedEventBus` 桥接出的语义事件，在本页独立执行 OneShot、Loop 和 Transition 节点图；断线、刷新、包切换和布局重载都会取消页面的 delay 与动画。Transition 由插件装饰原始 WPF 编排器：WPF 与 Web 先各自运行 ExitGraph，浏览器确认后才允许原始 C# `commitAsync` 执行一次；commit 后两端并行运行 EnterGraph。浏览器从不拥有业务提交能力，Web 未连接、断线、异常或超过默认 2000ms 的可配置等待上限均 fail-open。
+
+Web 动画支持全部当前公开属性：Opacity、Visibility、VisualOffsetX/Y、ClipInset、Scale、Rotation、Width、Height、Fill/Stroke/Text/Foreground 色彩、StrokeThickness、FontSize、TintColor、TintStrength、TextureStrength 与 GaussianBlurRadius。基值仅在当前页面 Runtime session 中捕获，Reset 和 Reset All 会取消对应动画并恢复捕获状态。

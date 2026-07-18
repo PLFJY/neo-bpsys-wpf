@@ -31,7 +31,7 @@ public sealed record WebRendererIpcMessage
 public static class WebRendererIpcProtocol
 {
     /// <summary>当前协议版本。</summary>
-    public const int Version = 3;
+    public const int Version = 4;
 
     /// <summary>插件发送的主机元数据消息类型。</summary>
     public const string HostHello = "host.hello";
@@ -68,4 +68,15 @@ public static class WebRendererIpcProtocol
 
     /// <summary>sidecar 通知插件当前 WebSocket 客户端数量。</summary>
     public const string SidecarClientsChanged = "sidecar.clientsChanged";
+
+    /// <summary>插件要求页面准备执行 Transition Exit 图。</summary>
+    public const string TransitionPrepare = "transition.prepare";
+    /// <summary>唯一的 C# commit 完成，页面可以执行 Enter 图。</summary>
+    public const string TransitionCommitted = "transition.committed";
+    /// <summary>取消当前页面过渡。</summary>
+    public const string TransitionCancel = "transition.cancel";
+    /// <summary>页面确认 Exit 图完成。</summary>
+    public const string TransitionExitCompleted = "transition.exitCompleted";
+    /// <summary>页面确认 Enter 图完成。</summary>
+    public const string TransitionEnterCompleted = "transition.enterCompleted";
 }

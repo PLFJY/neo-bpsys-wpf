@@ -148,6 +148,8 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
             if (message.Type == WebRendererIpcProtocol.RuntimeSnapshot) { lock (_gate) { _runtime?.Dispose(); _runtime = JsonDocument.Parse(message.Payload.GetRawText()); } await BroadcastAsync(new { type = "snapshot", payload = message.Payload }); }
             if (message.Type == WebRendererIpcProtocol.RuntimeBindingPatch) await BroadcastAsync(new { type = "bindingPatch", payload = message.Payload });
             if (message.Type == WebRendererIpcProtocol.BehaviorEvent) await BroadcastAsync(new { type = "behavior.event", payload = message.Payload });
+            if (message.Type == WebRendererIpcProtocol.TransitionPrepare || message.Type == WebRendererIpcProtocol.TransitionCommitted || message.Type == WebRendererIpcProtocol.TransitionCancel)
+                await BroadcastAsync(new { type = message.Type, payload = message.Payload });
             if (message.Type == WebRendererIpcProtocol.BootstrapChanged) await BroadcastAsync(new { type = WebRendererIpcProtocol.BootstrapChanged, payload = message.Payload });
             if (message.Type == WebRendererIpcProtocol.Shutdown) Environment.Exit(0);
         }
@@ -170,8 +172,24 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
     private static async Task SendSocketAsync(WebSocket socket, object value, CancellationToken cancellationToken) { var content = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)); await socket.SendAsync(content, WebSocketMessageType.Text, true, cancellationToken); }
     public async Task WaitForCloseAsync(WebSocket socket, CancellationToken cancellationToken)
     {
-        var buffer = new byte[16];
-        try { while (await socket.ReceiveAsync(buffer, cancellationToken) is { MessageType: not WebSocketMessageType.Close }) { } }
+        var buffer = new byte[4096];
+        try
+        {
+            while (await socket.ReceiveAsync(buffer, cancellationToken) is { MessageType: not WebSocketMessageType.Close } received)
+            {
+                if (received.MessageType != WebSocketMessageType.Text || !received.EndOfMessage) continue;
+                try
+                {
+                    using var message = JsonDocument.Parse(buffer.AsMemory(0, received.Count));
+                    var root = message.RootElement;
+                    if (!root.TryGetProperty("type", out var type) || !root.TryGetProperty("correlationId", out var id)) continue;
+                    var value = type.GetString();
+                    if (value == WebRendererIpcProtocol.TransitionExitCompleted || value == WebRendererIpcProtocol.TransitionEnterCompleted)
+                        await SendPipeAsync(_pipeWriter!, value, new { correlationId = id.GetString() }, cancellationToken);
+                }
+                catch (JsonException) { }
+            }
+        }
         finally { int count; lock (_gate) { _sockets.Remove(socket); count = _sockets.Count; } await SendPipeAsyncCurrentClientsAsync(count, CancellationToken.None); }
     }
 
