@@ -276,6 +276,8 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 
 `ExamplePlugin`（插件 ID `plfjy.ExamplePlugin`）是全功能参考插件，整合了原先的 `ExampleFrontedControls`，作为插件前台控件、插件前台窗口、Designer v3 集成和 `.bpui` 依赖管理的完整示例。该插件注册示例控件（如 `plugin:plfjy.ExamplePlugin/TeamCard`），主项目在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件全流程作者体验，不是发行功能。
 
+`top.plfjy.bpsys.WebRenderer` 是所有配置都会复制的实验性内置插件。它携带独立 framework-dependent Web sidecar，不向 WPF 宿主引入 `Microsoft.AspNetCore.App` 依赖；详见 [web-renderer-experimental.md](web-renderer-experimental.md)。
+
 Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导；导入本身仍可成功并保留缺失插件内容。安装引导会在下载 / 安装队列结束后校验所有待处理插件都已安装或暂存；失败项会显示插件 ID 和错误信息，未完成项不会被当作成功。
 
 `.bpui` 只传输布局、资源和依赖元数据，不传输插件 DLL、安装包或脚本。插件安装仍必须走现有插件系统 / 插件市场流程，并在需要时通过重启让 Host build 前的 DI 注入生效。

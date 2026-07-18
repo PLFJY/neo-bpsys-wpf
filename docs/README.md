@@ -25,6 +25,7 @@
 | [shared-data-and-state.md](shared-data-and-state.md) | 共享状态、CurrentGame、队伍、Ban、倒计时和前台绑定 |
 | [score-system-v2.md](score-system-v2.md) | Score System v2 的 `Core.Models.Game` 持有比分状态、小比分（MinorScore）计算规则、前台绑定和兼容策略 |
 | [plugin-system.md](plugin-system.md) | 插件生命周期、能力、安全边界、打包 |
+| [web-renderer-experimental.md](web-renderer-experimental.md) | 实验性 Web Renderer sidecar、runtime 前置条件和 IPC 边界 |
 | [plugin-market.md](plugin-market.md) | 插件市场、镜像、下载队列、SHA-256 校验 |
 | [settings-paths-and-data.md](settings-paths-and-data.md) | AppData、Documents 输出、设置模型 |
 | [resources-localization-and-assets.md](resources-localization-and-assets.md) | Resources、Assets、字体、resx、本地化和素材添加 |

@@ -54,6 +54,8 @@ flowchart TD
 
 当前大多数 View、ViewModel、Service 是 singleton。维护时不要随意改生命周期，因为 WPF 绑定、导航页面缓存、前台窗口状态和共享数据都依赖这种长期实例模型。
 
+实验性 Web Renderer 作为插件注册的 `IHostedService` 在主窗口建立后启动自己的 sidecar。它的异常、runtime 缺失和端口占用均为 fail-safe 状态，不影响 WPF Host 生命周期。
+
 SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`、`ISmartBpFeatureService` 和 OCR 模型路径提供器。真实 SmartBP 页面内容由模块程序集在成功加载后通过 `ISmartBpModuleEntryPoint` 创建，宿主不直接引用模块实现类型。
 
 ## 日志

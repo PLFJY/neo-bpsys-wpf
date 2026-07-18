@@ -61,7 +61,7 @@ public partial class App : AppBase
         }
 
         IAppHost.Host = Host
-            .CreateDefaultBuilder()
+            .CreateDefaultBuilder(e.Args)
             .ConfigureLogging(loggingBuilder =>
             {
                 if (!Directory.Exists(AppConstants.LogPath))

@@ -85,6 +85,7 @@ $ModuleBuildPath = Join-Path $RepoRoot "build\SmartBpModule"
 $ProjPath  = Join-Path $RepoRoot "neo-bpsys-wpf\neo-bpsys-wpf.csproj"
 $ModuleProjPath = Join-Path $RepoRoot "neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj"
 $TeamJsonMakerProjPath = Join-Path $RepoRoot "Built-inPlugins\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj"
+$WebRendererProjPath = Join-Path $RepoRoot "Built-inPlugins\neo-bpsys-wpf.WebRenderer\neo-bpsys-wpf.WebRenderer.csproj"
 $RuntimeIdentifier = "win-x64"
 $SelfContained = "false"
 
@@ -119,6 +120,12 @@ Invoke-External -FilePath "dotnet" -Arguments @(
     "-r", $RuntimeIdentifier,
     "/p:SelfContained=$SelfContained"
 ) -ErrorMessage "TeamJsonMaker plugin restore failed"
+
+Invoke-External -FilePath "dotnet" -Arguments @(
+    "restore", $WebRendererProjPath,
+    "-r", $RuntimeIdentifier,
+    "/p:SelfContained=$SelfContained"
+) -ErrorMessage "Web Renderer plugin restore failed"
 
 Invoke-External -FilePath "dotnet" -Arguments @(
     "publish", $ProjPath,

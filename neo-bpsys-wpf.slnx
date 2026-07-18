@@ -11,6 +11,12 @@
     <Project Path="Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/neo-bpsys-wpf.TeamJsonMaker.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.WebRenderer/neo-bpsys-wpf.WebRenderer.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.WebRenderer/Host/neo-bpsys-wpf.WebRenderer.Host.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
   </Folder>
   <Project Path="neo-bpsys-wpf.Core/neo-bpsys-wpf.Core.csproj">
     <Platform Solution="*|x64" Project="x64" />

@@ -73,6 +73,8 @@
 
 ## 构建与测试
 
+前端依赖管理统一使用 `pnpm`。**禁止使用 npm**（包括 `npm install`、`npm ci`、`npm run` 和提交 `package-lock.json`）；前端项目必须提交并使用 `pnpm-lock.yaml`，构建脚本应调用 `pnpm install --frozen-lockfile` 与 `pnpm run`。
+
 常用命令：
 
 ```powershell

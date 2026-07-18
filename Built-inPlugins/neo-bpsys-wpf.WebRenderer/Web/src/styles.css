@@ -1,0 +1,4 @@
+:root { color: #f5f5f5; background: #181818; font-family: "Segoe UI", sans-serif; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
+main { width: min(32rem, calc(100vw - 3rem)); padding: 2rem; border: 1px solid #3b82f6; border-radius: .75rem; background: #222; }
+h1 { margin-top: 0; font-size: 1.5rem; } dl { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; } dt { color: #a0a0a0; } dd { margin: 0; text-align: right; }

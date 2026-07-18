@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>neo_bpsys_wpf.WebRenderer.Host</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Protocol\WebRendererIpcMessage.cs" Link="Protocol\WebRendererIpcMessage.cs" />
+    <WebRendererClientSource Include="..\Web\src\**\*;..\Web\vite.config.ts;..\Web\tsconfig.json;..\Web\index.html" />
+  </ItemGroup>
+  <Target Name="BuildWebRendererClient" BeforeTargets="Build" Inputs="..\Web\package.json;..\Web\pnpm-lock.yaml;@(WebRendererClientSource)" Outputs="..\Web\dist\.web-renderer-build.stamp">
+    <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="..\Web" Condition="!Exists('..\Web\node_modules') and '$(WebRendererSkipWebBuild)' != 'true'" />
+    <Error Condition="'$(WebRendererSkipWebBuild)' == 'true' and !Exists('..\Web\dist\index.html')" Text="WebRendererSkipWebBuild=true requires an existing Web\dist\index.html." />
+    <Exec Command="pnpm run build" WorkingDirectory="..\Web" Condition="'$(WebRendererSkipWebBuild)' != 'true'" />
+    <Touch Files="..\Web\dist\.web-renderer-build.stamp" AlwaysCreate="true" />
+  </Target>
+  <Target Name="CopyWebRendererClient" AfterTargets="Build" DependsOnTargets="BuildWebRendererClient">
+    <ItemGroup>
+      <WebRendererClientFiles Include="..\Web\dist\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WebRendererClientFiles)" DestinationFiles="@(WebRendererClientFiles->'$(OutDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
