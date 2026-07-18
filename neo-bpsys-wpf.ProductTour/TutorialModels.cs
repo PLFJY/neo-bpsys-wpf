@@ -352,7 +352,8 @@ public interface ITutorialStepCancellation
     /// 强制当前可见教程步骤以子窗口交接操作完成。
     /// 如果当前没有可见步骤，则不执行任何操作。
     /// </summary>
-    void YieldCurrentStepForChildWindow();
+    /// <param name="owner">需要让出当前步骤的父级教程所有者。</param>
+    void YieldCurrentStepForChildWindow(FrameworkElement owner);
 
     /// <summary>取消当前步骤，以便调试器从指定教程包重新开始队列。</summary>
     void CancelCurrentStepForDebugNavigation()

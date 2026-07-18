@@ -162,6 +162,35 @@ public sealed class ProductTourStateTest
     }
 
     [Fact]
+    public async Task ToursInSeparateWindows_ShouldPlayConcurrently()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var coordinator = CreateCoordinator();
+            var firstStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var secondStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var first = coordinator.RunAsync(new Window(), "First", async _ =>
+            {
+                firstStarted.SetResult();
+                await release.Task;
+                return TutorialRunResult.Completed;
+            });
+            var second = coordinator.RunAsync(new Window(), "Second", async _ =>
+            {
+                secondStarted.SetResult();
+                await release.Task;
+                return TutorialRunResult.Completed;
+            });
+
+            await Task.WhenAll(firstStarted.Task, secondStarted.Task).WaitAsync(TimeSpan.FromSeconds(2));
+            release.SetResult();
+            await Task.WhenAll(first, second);
+        });
+    }
+
+    [Fact]
     public async Task DuplicateOwnerSequenceRequests_ShouldCoalesce()
     {
         await WpfTestThread.RunAsync(async () =>

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.ProductTour;
 
-/// <summary>序列化所有教程播放任务并合并所有者序列请求。</summary>
+/// <summary>按顶层窗口序列化教程播放任务并合并所有者序列请求。</summary>
 public interface ITutorialPlaybackCoordinator
 {
     /// <summary>排队或加入一个所有者序列播放任务。</summary>
@@ -20,7 +20,7 @@ public interface ITutorialPlaybackCoordinator
         Func<CancellationToken, Task<TutorialRunResult>> playbackAsync,
         CancellationToken cancellationToken = default);
 
-    /// <summary>排队一个全局序列化的播放任务。</summary>
+    /// <summary>排队一个在所属顶层窗口内序列化的播放任务。</summary>
     /// <param name="owner">教程所有者。</param>
     /// <param name="tutorialKey">用于诊断的教程或流程键。</param>
     /// <param name="playbackAsync">播放体。</param>
@@ -51,15 +51,16 @@ public interface ITutorialChildWindowSession : IDisposable
     void Complete();
 }
 
-/// <summary>默认全局教程播放协调器。</summary>
+/// <summary>默认的按窗口教程播放协调器。</summary>
 public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
 {
-    private readonly SemaphoreSlim _playbackGate = new(1, 1);
+    private static readonly object GlobalPlaybackScope = new();
+    private readonly Dictionary<object, SemaphoreSlim> _playbackGates = new();
     private readonly Dictionary<SequenceRequestKey, Task<TutorialRunResult>> _sequenceJobs = new();
     private readonly object _syncRoot = new();
     private readonly ILogger<TutorialPlaybackCoordinator> _logger;
     private readonly ITutorialStepCancellation? _stepCancellation;
-    private PlaybackExecution? _currentExecution;
+    private readonly Dictionary<object, PlaybackExecution> _currentExecutions = new();
 
     /// <summary>初始化协调器。</summary>
     /// <param name="logger">日志记录器。</param>
@@ -122,12 +123,13 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
         cancellationToken.ThrowIfCancellationRequested();
 
         ChildWindowSession? session;
+        PlaybackExecution? execution;
         lock (_syncRoot)
         {
-            var execution = _currentExecution;
-            if (execution == null
-                || execution.ChildSession != null
-                || !IsGateHolderAncestorOfChild(execution.Owner, child))
+            execution = _currentExecutions.Values.FirstOrDefault(candidate =>
+                candidate.ChildSession == null
+                && IsGateHolderAncestorOfChild(candidate.Owner, child));
+            if (execution == null)
             {
                 return Task.FromResult<ITutorialChildWindowSession?>(null);
             }
@@ -141,7 +143,7 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
         }
 
         LogLifecycle("ChildHandoffRequested", child, child.GetType().Name);
-        _stepCancellation?.YieldCurrentStepForChildWindow();
+        _stepCancellation?.YieldCurrentStepForChildWindow(execution.Owner);
         return Task.FromResult<ITutorialChildWindowSession?>(session);
     }
 
@@ -205,16 +207,31 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
         Func<CancellationToken, Task<TutorialRunResult>> playbackAsync,
         CancellationToken cancellationToken)
     {
+        var scope = ResolvePlaybackScope(owner);
+        SemaphoreSlim playbackGate;
+        lock (_syncRoot)
+        {
+            if (!_playbackGates.TryGetValue(scope, out var existingGate))
+            {
+                playbackGate = new SemaphoreSlim(1, 1);
+                _playbackGates.Add(scope, playbackGate);
+            }
+            else
+            {
+                playbackGate = existingGate;
+            }
+        }
+
         var acquired = false;
         PlaybackExecution? execution = null;
         try
         {
-            await _playbackGate.WaitAsync(cancellationToken);
+            await playbackGate.WaitAsync(cancellationToken);
             acquired = true;
             execution = new PlaybackExecution(owner);
             lock (_syncRoot)
             {
-                _currentExecution = execution;
+                _currentExecutions[scope] = execution;
             }
             LogLifecycle("Started", owner, tutorialKey);
             var result = await playbackAsync(cancellationToken);
@@ -229,14 +246,15 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
         {
             lock (_syncRoot)
             {
-                if (ReferenceEquals(_currentExecution, execution))
+                if (_currentExecutions.TryGetValue(scope, out var currentExecution)
+                    && ReferenceEquals(currentExecution, execution))
                 {
-                    _currentExecution = null;
+                    _currentExecutions.Remove(scope);
                 }
             }
             if (acquired)
             {
-                _playbackGate.Release();
+                playbackGate.Release();
             }
         }
     }
@@ -313,6 +331,11 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
 
         return IsDescendantOfWindow(gateHolder, ownerWindow);
     }
+
+    private static object ResolvePlaybackScope(FrameworkElement owner) =>
+        owner as Window
+        ?? Window.GetWindow(owner)
+        ?? GlobalPlaybackScope;
 
     private static bool IsDescendantOfWindow(DependencyObject element, DependencyObject ancestor)
     {

@@ -25,9 +25,6 @@ public partial class FrontedDesignerWindow : ITutorialOwner<FrontedDesignerWindo
         /// <summary>设计器 v3 属性面板包引用。</summary>
         public static readonly TutorialPackageRef PropertyPanelBasic = new(TutorialPackageIds.DesignerV3PropertyPanelBasic);
 
-        /// <summary>设计器 v3 包导入/导出包引用。</summary>
-        public static readonly TutorialPackageRef PackageImportExport = new(TutorialPackageIds.DesignerV3PackageImportExport);
-
         /// <summary>设计器 v3 帮助包引用。</summary>
         public static readonly TutorialPackageRef HelpBasic = new(TutorialPackageIds.DesignerV3HelpBasic);
     }
@@ -131,16 +128,6 @@ public partial class FrontedDesignerWindow : ITutorialOwner<FrontedDesignerWindo
                     .TextKey("Step.DesignerV3PropertyPanelBasic.3.Description")
                     .PreStepAction(ScrollDesignerPropertyPanelToBehaviorAreaAction())
                     .TargetName(nameof(BehaviorPanelHost))
-                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-                    .AllowMissingTarget()
-            .Package(Tours.PackageImportExport)
-                .StepKey("Step.DesignerV3PackageImportExport.0.Title")
-                    .TextKey("Step.DesignerV3PackageImportExport.0.Description")
-                    .NoTarget()
-                    .Interaction(ProductTourInteractionMode.AllowTargetOnly)
-                .StepKey("Step.DesignerV3PackageImportExport.1.Title")
-                    .TextKey("Step.DesignerV3PackageImportExport.1.Description")
-                    .TargetName(TutorialTargets.ExportLayoutPackageButton)
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .AllowMissingTarget()
             .Package(Tours.HelpBasic)

@@ -238,15 +238,10 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
             window.Owner = Application.Current?.MainWindow;
-            var playbackCoordinator = _serviceProvider.GetService<ITutorialPlaybackCoordinator>();
-            var childSession = playbackCoordinator == null
-                ? null
-                : await playbackCoordinator.BeginChildWindowSessionAsync(window);
             EventHandler? closedHandler = null;
             closedHandler = (_, _) =>
             {
                 window.Closed -= closedHandler;
-                childSession?.Complete();
                 _frontedDesignerWindow = null;
             };
             window.Closed += closedHandler;
@@ -260,7 +255,6 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             catch
             {
                 window.Closed -= closedHandler;
-                childSession?.Complete();
                 _frontedDesignerWindow = null;
                 throw;
             }

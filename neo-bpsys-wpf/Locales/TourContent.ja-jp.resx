@@ -602,19 +602,6 @@
   <data name="Step.FrontManageLayoutPackagesBasic.1.Description">
     <value>ビルトインレイアウトを変更しようとすると、自動的に新しいユーザーカスタムレイアウトに切り替わります。</value>
   </data>
-  <!-- FrontedDesignerWindow.Tutorials.cs — PackageImportExport -->
-  <data name="Step.DesignerV3PackageImportExport.0.Title">
-    <value>保存、インポート、エクスポート</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.0.Description">
-    <value>ここで現在のレイアウトを保存したり、レイアウトパッケージをインポートまたはエクスポートして、異なるデバイス間で共有できます。</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.1.Title">
-    <value>レイアウトパッケージをエクスポート</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.1.Description">
-    <value>ここをクリックすると現在のレイアウトパッケージをエクスポートし、他のデバイスに共有できます。</value>
-  </data>
   <!-- FrontedDesignerWindow.Tutorials.cs — PropertyPanelBasic step 3 -->
   <data name="Step.DesignerV3PropertyPanelBasic.3.Title">
     <value>動作とアニメーションの入口</value>

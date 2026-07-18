@@ -102,7 +102,6 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
             [
                 TutorialPackageIds.DesignerV3Overview,
                 TutorialPackageIds.DesignerV3LayoutEditBasic,
-                TutorialPackageIds.DesignerV3PackageImportExport,
                 TutorialPackageIds.DesignerV3HelpBasic
             ],
             sequenceRegistry.GetSequence(TutorialPageKeys.DesignerV3));
@@ -167,7 +166,6 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
         Assert.DoesNotContain(TutorialPackageIds.DesignerV3LayoutEditBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.DesignerV3PropertyPanelBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.DesignerV3BehaviorEditBasic, firstRun.IncludedPackageIds);
-        Assert.DoesNotContain(TutorialPackageIds.DesignerV3PackageImportExport, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.DesignerV3HelpBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.FrontManageWindowsBasic, firstRun.IncludedPackageIds);
         Assert.DoesNotContain(TutorialPackageIds.FrontManageOpenDesigner, firstRun.IncludedPackageIds);
@@ -599,18 +597,12 @@ public sealed class NeoBpsysTutorialRegistrationTest : IDisposable
     }
 
     [Fact]
-    public void DesignerBaseSequence_ShouldNotStopBeforeHelpWhenOptionalTargetsMissing()
+    public void DesignerBaseSequence_ShouldEndWithHelp()
     {
         var packages = CreateRegisteredPackages();
-        var importExport = Assert.Single(
-            packages,
-            package => package.PackageId == TutorialPackageIds.DesignerV3PackageImportExport);
         var help = Assert.Single(
             packages,
             package => package.PackageId == TutorialPackageIds.DesignerV3HelpBasic);
-
-        Assert.Contains(importExport.Steps, step => step.TargetName is null && step.TargetKind == TutorialTargetKind.None);
-        Assert.Contains(importExport.Steps, step => step.TitleKey == "Step.DesignerV3PackageImportExport.0.Title");
 
         var helpStep = Assert.Single(help.Steps);
         Assert.Equal(TutorialTargetNames.DesignerHelpButton, helpStep.TargetName);

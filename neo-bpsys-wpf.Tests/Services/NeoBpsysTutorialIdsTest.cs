@@ -68,7 +68,6 @@ public sealed class NeoBpsysTutorialIdsTest
         Assert.Equal("Window.DesignerV3.LayoutEdit.Basic", TutorialPackageIds.DesignerV3LayoutEditBasic);
         Assert.Equal("Window.DesignerV3.PropertyPanel.Basic", TutorialPackageIds.DesignerV3PropertyPanelBasic);
         Assert.Equal("Window.DesignerV3.BehaviorEdit.Basic", TutorialPackageIds.DesignerV3BehaviorEditBasic);
-        Assert.Equal("Window.DesignerV3.PackageImportExport", TutorialPackageIds.DesignerV3PackageImportExport);
         Assert.Equal("Page.SmartBp.ModuleShell", TutorialPackageIds.SmartBpModuleShell);
         Assert.Equal("Page.SmartBp.ModuleContent.Overview", TutorialPackageIds.SmartBpModuleContentOverview);
         Assert.Equal("Page.SmartBp.Capture.Basic", TutorialPackageIds.SmartBpCaptureBasic);

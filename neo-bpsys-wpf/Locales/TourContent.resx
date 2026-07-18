@@ -602,19 +602,6 @@
   <data name="Step.FrontManageLayoutPackagesBasic.1.Description">
     <value>尝试修改内置布局时会自动切换到一个新的用户自定义布局。</value>
   </data>
-  <!-- FrontedDesignerWindow.Tutorials.cs — PackageImportExport -->
-  <data name="Step.DesignerV3PackageImportExport.0.Title">
-    <value>保存、导入和导出</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.0.Description">
-    <value>在这里可以保存当前布局，也可以导入或导出布局包，方便在不同设备间共享。</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.1.Title">
-    <value>导出布局包</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.1.Description">
-    <value>点击此处可以导出当前布局包，分享给其他设备使用。</value>
-  </data>
   <!-- FrontedDesignerWindow.Tutorials.cs — PropertyPanelBasic step 3 -->
   <data name="Step.DesignerV3PropertyPanelBasic.3.Title">
     <value>行为和动画入口</value>

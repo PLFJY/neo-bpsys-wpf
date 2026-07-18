@@ -539,8 +539,9 @@ public sealed class TutorialRefactorTaskTest
         private readonly CancellationTokenSource _cts = new();
         public bool CancelCalled { get; private set; }
         public CancellationToken Token => _cts.Token;
-        public void YieldCurrentStepForChildWindow()
+        public void YieldCurrentStepForChildWindow(FrameworkElement owner)
         {
+            _ = owner;
             CancelCalled = true;
             _cts.Cancel();
         }

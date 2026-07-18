@@ -602,19 +602,6 @@
   <data name="Step.FrontManageLayoutPackagesBasic.1.Description">
     <value>When you try to modify a Built-in layout, it will automatically Switch to a new User custom layout.</value>
   </data>
-  <!-- FrontedDesignerWindow.Tutorials.cs — PackageImportExport -->
-  <data name="Step.DesignerV3PackageImportExport.0.Title">
-    <value>Save, Import, and Export</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.0.Description">
-    <value>Here you can save the current layout, and also Import or Export Layout Packages, making it easy to Share between different Devices.</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.1.Title">
-    <value>Export Layout Packages</value>
-  </data>
-  <data name="Step.DesignerV3PackageImportExport.1.Description">
-    <value>Click here to Export the current Layout Packages and Share it for use on other Devices.</value>
-  </data>
   <!-- FrontedDesignerWindow.Tutorials.cs — PropertyPanelBasic step 3 -->
   <data name="Step.DesignerV3PropertyPanelBasic.3.Title">
     <value>Behavior and Animation entry</value>

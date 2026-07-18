@@ -191,9 +191,6 @@ public static class TutorialPackageIds
     /// <summary>设计器 v3 行为编辑包 id。</summary>
     public const string DesignerV3BehaviorEditBasic = "Window.DesignerV3.BehaviorEdit.Basic";
 
-    /// <summary>设计器 v3 包导入/导出包 id。</summary>
-    public const string DesignerV3PackageImportExport = "Window.DesignerV3.PackageImportExport";
-
     /// <summary>设计器 v3 帮助包 id。</summary>
     public const string DesignerV3HelpBasic = "Window.DesignerV3.Help.Basic";
 

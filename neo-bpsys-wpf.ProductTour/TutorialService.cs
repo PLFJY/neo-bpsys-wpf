@@ -39,8 +39,8 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     private readonly ITutorialSessionSuppression _sessionSuppression;
     private readonly ILogger<TutorialService> _logger;
     private readonly ITutorialDebugService _debugService;
-    private ProductTourOverlay? _currentOverlay;
-    private DialogueOverlay? _currentDialogueOverlay;
+    private readonly Dictionary<FrameworkElement, ProductTourOverlay> _currentOverlays = [];
+    private readonly Dictionary<FrameworkElement, DialogueOverlay> _currentDialogueOverlays = [];
 
     /// <summary>
     /// 初始化 <see cref="TutorialService"/> 类的新实例。
@@ -283,14 +283,27 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
     public Task ResetStateAsync(CancellationToken cancellationToken = default) => _stateStore.ResetAsync(cancellationToken);
 
     /// <inheritdoc />
-    public void YieldCurrentStepForChildWindow() =>
-        _currentOverlay?.ForceComplete(ProductTourStepAction.ChildWindowHandoff);
+    public void YieldCurrentStepForChildWindow(FrameworkElement owner)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        if (_currentOverlays.TryGetValue(ResolveOverlayOwner(owner), out var overlay))
+        {
+            overlay.ForceComplete(ProductTourStepAction.ChildWindowHandoff);
+        }
+    }
 
     /// <inheritdoc />
     public void CancelCurrentStepForDebugNavigation()
     {
-        _currentOverlay?.ForceComplete(ProductTourStepAction.Cancel);
-        _currentDialogueOverlay?.Cancel();
+        foreach (var overlay in _currentOverlays.Values.ToArray())
+        {
+            overlay.ForceComplete(ProductTourStepAction.Cancel);
+        }
+
+        foreach (var overlay in _currentDialogueOverlays.Values.ToArray())
+        {
+            overlay.Cancel();
+        }
     }
 
     private void OnDebugJumpRequested(object? sender, TutorialDebugJumpRequestedEventArgs e) =>
@@ -506,7 +519,7 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
 
             _runObserver.OnStepShown(packageId ?? string.Empty, step.TargetName, step.Title);
             var overlay = new ProductTourOverlay(_textProvider, _options, _avatarProvider, _contentResolver, _languageService, _sessionSuppression);
-            _currentOverlay = overlay;
+            _currentOverlays[overlayOwner] = overlay;
             var context = new ProductTourStepContext
             {
                 FlowId = flowId,
@@ -554,7 +567,11 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
                 }
                 finally
                 {
-                    _currentOverlay = null;
+                    if (_currentOverlays.TryGetValue(overlayOwner, out var currentOverlay)
+                        && ReferenceEquals(currentOverlay, overlay))
+                    {
+                        _currentOverlays.Remove(overlayOwner);
+                    }
                     try
                     {
                         await overlay.FadeOutAsync();
@@ -745,14 +762,15 @@ internal sealed class TutorialService : ITutorialStateManager, ITutorialStepCanc
         host.Children.Add(overlay);
         try
         {
-            _currentDialogueOverlay = overlay;
+            _currentDialogueOverlays[overlayOwner] = overlay;
             return await overlay.ShowAsync(dialogue.Speaker, dialogue.Lines, cancellationToken, linesKey: dialogue.LinesKey);
         }
         finally
         {
-            if (ReferenceEquals(_currentDialogueOverlay, overlay))
+            if (_currentDialogueOverlays.TryGetValue(overlayOwner, out var currentDialogueOverlay)
+                && ReferenceEquals(currentDialogueOverlay, overlay))
             {
-                _currentDialogueOverlay = null;
+                _currentDialogueOverlays.Remove(overlayOwner);
             }
 
             host.Children.Remove(overlay);
