@@ -71,7 +71,8 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             ApplyEffect(element, part.Effect);
             MarkPart(element, host, set.DisplayName, set.BehaviorGuid, part.Name);
             RegisterGeneratedName(root, $"{set.DisplayName}__{part.Name}", element);
-            (part.Layer == FrontedAnimationPartLayer.BelowContent ? below : above).Children.Add(element);
+            (part.Layer == FrontedAnimationPartLayer.BelowContent ? below : above).Children.Add(
+                FrontedEffectHostFactory.Wrap(element));
         }
     }
 
@@ -220,46 +221,32 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
     private static Grid EnsureHost(FrameworkElement parent, string displayName)
     {
-        if (parent is Grid existing
+        var effectHost = FrontedEffectHostFactory.FindEffectHost(parent)
+                         ?? FrontedEffectHostFactory.Wrap(parent);
+        if (VisualTreeHelper.GetParent(effectHost) is Grid existing
+            && existing.Children.Contains(effectHost)
             && existing.Children.OfType<Canvas>().Any(item => item.Name == "PART_BehaviorAnimationAbove"))
         {
             return existing;
         }
 
-        if (VisualTreeHelper.GetParent(parent) is not Panel owner)
+        if (VisualTreeHelper.GetParent(effectHost) is not Panel owner)
         {
-            return parent as Grid ?? new Grid();
+            return new Grid();
         }
 
-        var index = owner.Children.IndexOf(parent);
+        var index = owner.Children.IndexOf(effectHost);
         if (index < 0)
         {
-            return parent as Grid ?? new Grid();
+            return new Grid();
         }
 
         var host = new Grid
         {
-            Name = string.IsNullOrWhiteSpace(displayName) ? parent.Name : displayName,
-            ClipToBounds = false,
-            Width = parent.Width,
-            Height = parent.Height,
-            MinWidth = parent.MinWidth,
-            MinHeight = parent.MinHeight,
-            MaxWidth = parent.MaxWidth,
-            MaxHeight = parent.MaxHeight,
-            Visibility = parent.Visibility,
-            Opacity = parent.Opacity,
-            RenderTransform = parent.RenderTransform,
-            RenderTransformOrigin = parent.RenderTransformOrigin
+            ClipToBounds = false
         };
 
-        Canvas.SetLeft(host, Canvas.GetLeft(parent));
-        Canvas.SetTop(host, Canvas.GetTop(parent));
-        Panel.SetZIndex(host, Panel.GetZIndex(parent));
-        FrontedRendererProperties.SetIsGeneratedControl(host, true);
-        FrontedRendererProperties.SetBehaviorGuid(host, FrontedRendererProperties.GetBehaviorGuid(parent));
-        FrontedRendererProperties.SetRegisteredName(host, FrontedRendererProperties.GetRegisteredName(parent));
-        ResetCanvasLayout(parent);
+        FrontedEffectHostFactory.TransferAttachedLayout(effectHost, host);
 
         var below = CreateLayer();
         below.Name = "PART_BehaviorAnimationBelow";
@@ -268,7 +255,7 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
         owner.Children.RemoveAt(index);
         host.Children.Add(below);
-        host.Children.Add(parent);
+        host.Children.Add(effectHost);
         host.Children.Add(above);
         owner.Children.Insert(index, host);
         return host;
@@ -333,13 +320,4 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
         nameScopeOwner.RegisterName(name, element);
     }
 
-    private static void ResetCanvasLayout(FrameworkElement content)
-    {
-        content.Name = string.Empty;
-        content.ClearValue(Canvas.LeftProperty);
-        content.ClearValue(Canvas.TopProperty);
-        content.ClearValue(Panel.ZIndexProperty);
-        content.HorizontalAlignment = HorizontalAlignment.Stretch;
-        content.VerticalAlignment = VerticalAlignment.Stretch;
-    }
 }

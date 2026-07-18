@@ -90,7 +90,7 @@ public class FrontedRenderer(
                         FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
                         FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
                         RegisterGeneratedName(canvas, name, placeholder);
-                        canvas.Children.Add(placeholder);
+                        canvas.Children.Add(FrontedEffectHostFactory.Wrap(placeholder));
                         renderedElements[name] = placeholder;
                         continue;
                     }
@@ -111,7 +111,7 @@ public class FrontedRenderer(
             FrontedRendererProperties.SetIsGeneratedControl(element, true);
             FrontedRendererProperties.SetBehaviorGuid(element, controlConfig.BehaviorGuid);
             RegisterGeneratedName(canvas, name, element);
-            canvas.Children.Add(element);
+            canvas.Children.Add(FrontedEffectHostFactory.Wrap(element));
             renderedElements[name] = element;
         }
 
@@ -159,13 +159,34 @@ public class FrontedRenderer(
     {
         for (var i = canvas.Children.Count - 1; i >= 0; i--)
         {
-            if (canvas.Children[i] is DependencyObject dependencyObject
-                && FrontedRendererProperties.GetIsGeneratedControl(dependencyObject))
+            if (canvas.Children[i] is FrameworkElement child
+                && FindGeneratedSemanticRoot(child) is { } semanticRoot)
             {
-                UnregisterGeneratedName(canvas, dependencyObject);
+                UnregisterGeneratedName(canvas, semanticRoot);
                 canvas.Children.RemoveAt(i);
             }
         }
+    }
+
+    private static FrameworkElement? FindGeneratedSemanticRoot(DependencyObject root)
+    {
+        if (root is FrameworkElement element
+            && FrontedRendererProperties.GetIsGeneratedControl(element)
+            && !FrontedRendererProperties.GetIsAnimationAuxiliaryElement(element))
+        {
+            return element;
+        }
+
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; i++)
+        {
+            if (FindGeneratedSemanticRoot(VisualTreeHelper.GetChild(root, i)) is { } result)
+            {
+                return result;
+            }
+        }
+
+        return null;
     }
 
     private static void RegisterGeneratedName(Canvas canvas, string name, FrameworkElement element)

@@ -50,8 +50,10 @@ public class FrontedRendererBehaviorGuidTest
                 IsDesignerPreview = true
             });
 
-            var element = Assert.IsType<Border>(Assert.Single(canvas.Children));
+            var host = Assert.IsType<FrontedEffectHost>(Assert.Single(canvas.Children));
+            var element = Assert.IsType<Border>(host.HostedElement);
             Assert.Equal(guid, FrontedRendererProperties.GetBehaviorGuid(element));
+            Assert.False(FrontedRendererProperties.GetIsGeneratedControl(host));
         });
     }
 

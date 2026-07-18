@@ -1245,7 +1245,8 @@ public class FrontedCanvasConfigTest
                     CanvasName = "BaseCanvas"
                 });
 
-            Assert.Same(canvas.Children[0], window.FindName("GeneratedText"));
+            var host = Assert.IsType<FrontedEffectHost>(canvas.Children[0]);
+            Assert.Same(host.HostedElement, window.FindName("GeneratedText"));
 
             renderer.RenderToCanvas(
                 canvas,
@@ -1927,8 +1928,8 @@ public class FrontedCanvasConfigTest
                     CanvasName = "BaseCanvas"
                 });
 
-            Assert.Single(canvas.Children);
-            Assert.IsType<Border>(canvas.Children[0]);
+            var host = Assert.IsType<FrontedEffectHost>(Assert.Single(canvas.Children));
+            Assert.IsType<Border>(host.HostedElement);
         });
     }
 

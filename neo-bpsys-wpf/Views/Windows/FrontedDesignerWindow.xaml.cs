@@ -2061,7 +2061,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             ApplyPreviewElementGeometry(element, item);
             if (zIndexChanged)
             {
-                Panel.SetZIndex(element, item.Config.ZIndex);
+                Panel.SetZIndex(FrontedEffectHostFactory.ResolveLayoutCarrier(element), item.Config.ZIndex);
             }
         }
 
@@ -2070,8 +2070,9 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void ApplyPreviewElementGeometry(FrameworkElement element, FrontedControlDesignItem item)
     {
-        Canvas.SetLeft(element, item.Config.Left);
-        Canvas.SetTop(element, item.Config.Top);
+        var layoutCarrier = FrontedEffectHostFactory.ResolveLayoutCarrier(element);
+        Canvas.SetLeft(layoutCarrier, item.Config.Left);
+        Canvas.SetTop(layoutCarrier, item.Config.Top);
 
         if (item.Config.Width.HasValue)
         {
@@ -2148,6 +2149,9 @@ public partial class FrontedDesignerWindow : FluentWindow
         var generatedChildren = desiredOrder
             .Select(FindPreviewElement)
             .Where(element => element is not null)
+            .Cast<FrameworkElement>()
+            .Select(FrontedEffectHostFactory.ResolveLayoutCarrier)
+            .Distinct()
             .Cast<UIElement>()
             .ToList();
 

@@ -46,6 +46,8 @@ FrontedLayoutPackages/{PackageId}/
 
 v3 目标是转向 JSON/config-driven UI：v3 layout window 不需要独立 XAML，`FrontedWindowBase` 提供配置驱动 host；传统固定 XAML window 保持原行为。`WindowSettings` 应用于窗口，`CanvasSettings` 应用于内部 `BaseCanvas`，`ControlLayout` 交给 renderer 渲染。
 
+运行时 renderer 会将每一个生成控件的语义根放入 `FrontedEffectHost`。该宿主不写入布局或行为 JSON，不是生成控件，也不会取得名称、BehaviorGuid、绑定或动画目标身份。语义根继续拥有尺寸、对齐、可见性、变换、裁剪、Effect 和 DataContext；只有 `Canvas.Left`、`Canvas.Top`、`Canvas.Right`、`Canvas.Bottom` 与 `Panel.ZIndex` 会移动到直接父面板的运行时布局载体。行为 overlay 存在时，该载体为外层 overlay Grid，`FrontedEffectHost` 仍直接包含语义根。
+
 当前维护应保持小步、可验证的改动。前台窗口会被 OBS 捕获，导播现场对稳定性要求高；修改设置加载、包激活、渲染器、行为 runtime 或 `.bpui` 导入导出时，都应同步更新测试和文档，并避免把 legacy 兼容重新放回普通运行时。
 
 ## 2. 版本体系

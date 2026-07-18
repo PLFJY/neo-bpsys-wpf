@@ -375,7 +375,7 @@ public sealed class FrontedAnimationRuntime(
         bool above,
         FrontedAnimationExecutionContext context)
     {
-        var canvas = FindAncestorOrSelf<Canvas>(controlTarget.Element);
+        var canvas = GetOrCreateOverlayLayer(controlTarget.Element, above);
         if (canvas is null)
         {
             context.Logger?.LogWarning(
@@ -406,15 +406,67 @@ public sealed class FrontedAnimationRuntime(
 
     private static void SyncOverlay(FrameworkElement target, Rectangle overlay, bool above)
     {
-        var left = Canvas.GetLeft(target);
-        var top = Canvas.GetTop(target);
-        Canvas.SetLeft(overlay, double.IsNaN(left) ? 0D : left);
-        Canvas.SetTop(overlay, double.IsNaN(top) ? 0D : top);
+        var isBehaviorLayer = overlay.Parent is Canvas layer
+                              && VisualTreeHelper.GetParent(layer) is Grid overlayHost
+                              && FrontedEffectHostFactory.FindEffectHost(target) is { } effectHost
+                              && overlayHost.Children.Contains(effectHost);
+        var carrier = FrontedEffectHostFactory.ResolveLayoutCarrier(target);
+        Canvas.SetLeft(overlay, isBehaviorLayer ? 0D : NormalizeCanvasCoordinate(Canvas.GetLeft(carrier)));
+        Canvas.SetTop(overlay, isBehaviorLayer ? 0D : NormalizeCanvasCoordinate(Canvas.GetTop(carrier)));
         overlay.Width = ResolveSize(target.Width, target.ActualWidth);
         overlay.Height = ResolveSize(target.Height, target.ActualHeight);
         overlay.Visibility = target.Visibility;
-        Panel.SetZIndex(overlay, Panel.GetZIndex(target) + (above ? 1 : -1));
+        Panel.SetZIndex(overlay, isBehaviorLayer ? 0 : Panel.GetZIndex(carrier) + (above ? 1 : -1));
     }
+
+    private static double NormalizeCanvasCoordinate(double value) => double.IsNaN(value) ? 0D : value;
+
+    private static Canvas? GetOrCreateOverlayLayer(FrameworkElement target, bool above)
+    {
+        var effectHost = FrontedEffectHostFactory.FindEffectHost(target);
+        if (effectHost is null)
+        {
+            return FindAncestorOrSelf<Canvas>(target);
+        }
+
+        if (VisualTreeHelper.GetParent(effectHost) is Grid existing
+            && existing.Children.Contains(effectHost))
+        {
+            return existing.Children.OfType<Canvas>().FirstOrDefault(item => item.Name == (above
+                ? "PART_BehaviorAnimationAbove"
+                : "PART_BehaviorAnimationBelow"));
+        }
+
+        if (VisualTreeHelper.GetParent(effectHost) is not Panel owner)
+        {
+            return null;
+        }
+
+        var index = owner.Children.IndexOf(effectHost);
+        if (index < 0)
+        {
+            return null;
+        }
+
+        var overlayHost = new Grid { ClipToBounds = false };
+        FrontedEffectHostFactory.TransferAttachedLayout(effectHost, overlayHost);
+        var below = CreateOverlayLayer("PART_BehaviorAnimationBelow");
+        var aboveLayer = CreateOverlayLayer("PART_BehaviorAnimationAbove");
+        owner.Children.RemoveAt(index);
+        overlayHost.Children.Add(below);
+        overlayHost.Children.Add(effectHost);
+        overlayHost.Children.Add(aboveLayer);
+        owner.Children.Insert(index, overlayHost);
+        return above ? aboveLayer : below;
+    }
+
+    private static Canvas CreateOverlayLayer(string name) => new()
+    {
+        Name = name,
+        HorizontalAlignment = HorizontalAlignment.Stretch,
+        VerticalAlignment = VerticalAlignment.Stretch,
+        IsHitTestVisible = false
+    };
 
     private static double ResolveSize(double configured, double actual) =>
         configured > 0D && double.IsFinite(configured)
