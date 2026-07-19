@@ -143,9 +143,11 @@ function App() {
   // Runtime connections are intentionally centralized here; controls only consume RuntimeState.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [encoded])
+  useEffect(() => {
+    behaviorRuntime.current.replace(bootstrap?.BehaviorDocument as BehaviorDocument | undefined)
+  }, [bootstrap])
   if (!encoded) return <main className="window-index"><h1>Web Renderer</h1>{windows.map(window => <a key={String(window.fullWindowType)} href={`/render/${base64(String(window.fullWindowType))}`}>{String(window.displayName)}</a>)}</main>
   if (error || !bootstrap?.Layout) return <main className="error-page"><h1>布局无法渲染</h1><p>{error ?? bootstrap?.Diagnostics.join('\n') ?? 'LayoutMissing'}</p></main>
-  useEffect(() => { behaviorRuntime.current.replace(bootstrap?.BehaviorDocument as BehaviorDocument | undefined) }, [bootstrap])
   return <Canvas bootstrap={bootstrap} runtime={runtime} />
 }
 console.info(`[Web Renderer] client build ${__WEB_RENDERER_CLIENT_BUILD_ID__}`)
