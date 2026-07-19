@@ -43,7 +43,9 @@ export class WebAnimationTargetResolver {
     const host = name ? document.querySelector<HTMLElement>(`[data-control-name="${CSS.escape(name)}"]`) : document.querySelector<HTMLElement>(`[data-behavior-guid="${CSS.escape(guid)}"]`)
     if (!host) return null
     if (part) return host.querySelector<HTMLElement>(`[data-animation-part="${CSS.escape(part)}"]`)
-    const root = host.querySelector<HTMLElement>(':scope > [data-control-root]') ?? host
+    // ControlFrame inserts a layout carrier and effect host between the stable
+    // control host and semantic root.  Behavior identities remain semantic.
+    const root = host.querySelector<HTMLElement>('[data-control-root]') ?? host
     const effective = String(layer ?? 'Auto'); if (effective === 'Content') return root.querySelector<HTMLElement>('[data-behavior-content]') ?? root
     if (effective === 'OverlayAbove') return root.querySelector<HTMLElement>('[data-overlay-above]') ?? root
     if (effective === 'OverlayBelow') return root.querySelector<HTMLElement>('[data-overlay-below]') ?? root

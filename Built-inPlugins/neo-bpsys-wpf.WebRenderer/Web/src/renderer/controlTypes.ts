@@ -1,0 +1,13 @@
+export type BaseConfig = { ControlType: string; BehaviorGuid?: string; Left?: number; Top?: number; Width?: number | null; Height?: number | null; ZIndex?: number; Visibility?: string | number; IsGaussianBlurEnabled?: boolean; GaussianBlurRadius?: number; BindingPath?: string | null }
+export type TextBinding = { Sources?: { Path?: string }[]; StringFormat?: string; JoinSeparator?: string; NullText?: string; FallbackText?: string }
+export type TextStyle = { HorizontalAlignment?: string | number; VerticalAlignment?: string | number; TextAlignment?: string | number; TextWrapping?: string | number; FontFamily?: string; FontWeight?: string; Color?: string; ColorBindingPath?: string; FontSize?: number }
+export type TextConfig = BaseConfig & TextStyle & { ControlType: 'Text'; Text?: string; TextBinding?: TextBinding }
+export type LocalizedTextConfig = BaseConfig & TextStyle & { ControlType: 'LocalizedText'; LocalizationKey?: string; FallbackText?: string; TextBinding?: TextBinding }
+export type MapNameConfig = BaseConfig & TextStyle & { ControlType: 'MapNameText'; EmptyText?: string }
+export type GameProgressConfig = BaseConfig & TextStyle & { ControlType: 'GameProgressText'; DisplayMode?: string | number; VerticalLanguageMode?: string | number; LatinVerticalMode?: string | number; VerticalDirection?: string | number; DisplayLanguage?: string | number; NumberStyle?: string | number; VerticalTextSpacing?: number; GroupSpacing?: number; ShowSeparator?: boolean; SeparatorThickness?: number; SeparatorColor?: string; BackgroundColor?: string; PaddingLeft?: number; PaddingTop?: number; PaddingRight?: number; PaddingBottom?: number }
+export type ShapeConfig = BaseConfig & { ControlType: 'Rectangle' | 'Polygon'; RadiusX?: number; RadiusY?: number; FillMode?: string | number; UseGradient?: boolean; FillColor?: string; FillBindingPath?: string; GradientEndColor?: string; GradientEndBindingPath?: string; GradientAngle?: number; StrokeColor?: string; StrokeThickness?: number; Points?: { X?: number; Y?: number }[] }
+export type UnsupportedConfig = BaseConfig & { ControlType: 'Image' | 'BorderedImage' | 'BackgroundTintRectangle' | 'BackgroundTintPolygon' | 'GlobalScoreRow' | 'TalentTraitDisplay' | 'MapV2Display' }
+export type ControlConfig = TextConfig | LocalizedTextConfig | MapNameConfig | GameProgressConfig | ShapeConfig | UnsupportedConfig
+
+export const finite = (value: unknown, fallback = 0): number => typeof value === 'number' && Number.isFinite(value) ? value : fallback
+export const text = (value: unknown): string | undefined => typeof value === 'string' ? value : undefined
