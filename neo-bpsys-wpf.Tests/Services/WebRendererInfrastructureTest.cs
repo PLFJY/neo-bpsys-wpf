@@ -9,6 +9,7 @@ using neo_bpsys_wpf.WebRenderer.Protocol;
 using neo_bpsys_wpf.WebRenderer.Services;
 using StaticClientVerifier = host::neo_bpsys_wpf.WebRenderer.Host.StaticClientVerifier;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
@@ -169,7 +170,7 @@ public sealed class WebRendererInfrastructureTest
     [Fact]
     public void SidecarWindowsAreUnavailableBeforeIpcHandshake()
     {
-        var settings = new host::SidecarSettings("test-pipe", Environment.ProcessId,
+        var settings = new host::SidecarSettings("test-pipe", Environment.ProcessId, Process.GetCurrentProcess().StartTime.ToUniversalTime().Ticks,
             System.Net.IPAddress.Loopback, 19527, "test");
         var state = new host::WebRendererHostState(settings, "test-client");
 
@@ -177,6 +178,28 @@ public sealed class WebRendererInfrastructureTest
 
         Assert.IsAssignableFrom<IStatusCodeHttpResult>(result);
         Assert.Equal(StatusCodes.Status503ServiceUnavailable, ((IStatusCodeHttpResult)result).StatusCode);
+    }
+
+    /// <summary>生命周期协调器必须串行执行重复管理命令，并在完成后恢复忙碌状态。</summary>
+    [Fact]
+    public async Task LifecycleCoordinatorSerializesOperationsAndRecoversState()
+    {
+        var coordinator = new WebRendererLifecycleOperationCoordinator();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var first = coordinator.RunAsync("Stop", TimeSpan.FromSeconds(2), async _ => { entered.SetResult(); await release.Task; });
+        await entered.Task;
+        var secondEntered = false;
+        var second = coordinator.RunAsync("Start", TimeSpan.FromSeconds(2), _ => { secondEntered = true; return Task.CompletedTask; });
+
+        Assert.True(coordinator.IsLifecycleOperationRunning);
+        Assert.False(secondEntered);
+        release.SetResult();
+        await Task.WhenAll(first, second);
+
+        Assert.True(secondEntered);
+        Assert.False(coordinator.IsLifecycleOperationRunning);
+        Assert.Null(coordinator.CurrentOperation);
     }
 
     /// <summary>

@@ -31,12 +31,15 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private readonly WebRendererBootstrapBuilder? _bootstrapBuilder;
     private readonly WebRendererRuntimeStatePublisher? _runtimePublisher;
     private readonly IWebTransitionGateway? _transitionGateway;
+    private readonly WebRendererLifecycleOperationCoordinator? _lifecycleCoordinator;
     private readonly CancellationTokenSource _stopping = new();
     private readonly SemaphoreSlim _startLock = new(1, 1);
     private readonly SemaphoreSlim _bootstrapLock = new(1, 1);
     private readonly object _gate = new();
     private Process? _process;
     private Task? _acceptLoop;
+    private CancellationTokenSource? _acceptCancellation;
+    private WebRendererSidecarJob? _sidecarJob;
     private Channel<WebRendererOutbound>? _outbound;
     private CancellationTokenSource? _sessionCancellation;
     private TaskCompletionSource<WebRendererBootstrapApplied>? _bootstrapAck;
@@ -47,9 +50,16 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private WebRendererLifecycleState _state = WebRendererLifecycleState.Stopped;
     private string? _lastError;
     private bool _manualStopped;
+    private bool _closingSession;
 
     /// <summary>服务权威状态改变时发生。</summary>
     public event EventHandler? StatusChanged;
+
+    /// <summary>获取当前是否有互斥生命周期操作在运行。</summary>
+    public bool IsLifecycleOperationRunning => _lifecycleCoordinator?.IsLifecycleOperationRunning ?? false;
+
+    /// <summary>获取当前生命周期操作名称。</summary>
+    public string? CurrentLifecycleOperation => _lifecycleCoordinator?.CurrentOperation;
 
     /// <summary>获取仅含 sidecar 已确认 bootstrap 的当前服务状态。</summary>
     public WebRendererServiceStatus Status
@@ -77,10 +87,11 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     public WebRendererSidecarService(WebRendererLaunchOptions options, WebRendererRuntimeDetector runtimeDetector,
         WebRendererPlugin plugin, ISnackbarService snackbarService, ILogger<WebRendererSidecarService> logger,
         WebRendererBootstrapBuilder? bootstrapBuilder = null, WebRendererRuntimeStatePublisher? runtimePublisher = null,
-        IWebTransitionGateway? transitionGateway = null)
+        IWebTransitionGateway? transitionGateway = null, WebRendererLifecycleOperationCoordinator? lifecycleCoordinator = null)
     {
         _options = options; _runtimeDetector = runtimeDetector; _plugin = plugin; _snackbarService = snackbarService; _logger = logger;
         _bootstrapBuilder = bootstrapBuilder; _runtimePublisher = runtimePublisher; _transitionGateway = transitionGateway;
+        _lifecycleCoordinator = lifecycleCoordinator;
         if (_runtimePublisher is not null) { _runtimePublisher.Updated += OnRuntimeUpdated; _runtimePublisher.BehaviorEventPublished += OnBehaviorEventPublished; }
         if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished += OnTransitionSignalPublished;
     }
@@ -95,29 +106,86 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     }
 
     /// <inheritdoc />
-    public async Task StopAsync(CancellationToken cancellationToken) { _stopping.Cancel(); await StopRendererAsync(cancellationToken); }
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _stopping.Cancel();
+        await StopCoreAsync(cancellationToken);
+    }
 
     /// <summary>启动 sidecar；可由管理页重复调用。</summary>
-    public Task StartRendererAsync(CancellationToken cancellationToken = default) { _manualStopped = false; return TryStartAsync(cancellationToken); }
+    public Task StartRendererAsync(CancellationToken cancellationToken = default) => RunLifecycleAsync("Start", StartCoreAsync, cancellationToken);
 
     /// <summary>停止 sidecar，但不停止主程序 HostedService。</summary>
-    public async Task StopRendererAsync(CancellationToken cancellationToken = default)
+    public Task StopRendererAsync(CancellationToken cancellationToken = default) => RunLifecycleAsync("Stop", StopCoreAsync, cancellationToken);
+
+    private async Task StopCoreAsync(CancellationToken cancellationToken)
     {
-        _manualStopped = true; SetState(WebRendererLifecycleState.Stopping, null);
-        try { await QueueAsync(WebRendererIpcProtocol.Shutdown, new { reason = "host-stopping" }, cancellationToken); } catch { }
-        CancellationTokenSource? session; Process? process;
-        lock (_gate) { session = _sessionCancellation; _sessionCancellation = null; process = _process; _process = null; _outbound?.Writer.TryComplete(); _outbound = null; }
-        session?.Cancel();
-        if (process is { HasExited: false })
+        _manualStopped = true;
+        _closingSession = true;
+        SetState(WebRendererLifecycleState.Stopping, null);
+        try
         {
-            try { await process.WaitForExitAsync(cancellationToken).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken); }
-            catch (TimeoutException) { process.Kill(true); }
+            using var shutdown = new CancellationTokenSource(TimeSpan.FromMilliseconds(750));
+            await QueueAsync(WebRendererIpcProtocol.Shutdown, new { reason = "host-stopping" }, shutdown.Token, allowWhileClosing: true);
         }
-        process?.Dispose(); SetState(WebRendererLifecycleState.Stopped, null);
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogDebug(ex, "Web Renderer shutdown IPC was unavailable.");
+        }
+
+        CancellationTokenSource? session;
+        CancellationTokenSource? accept;
+        Process? process;
+        WebRendererSidecarJob? job;
+        Task? acceptLoop;
+        lock (_gate)
+        {
+            session = _sessionCancellation; _sessionCancellation = null;
+            accept = _acceptCancellation; _acceptCancellation = null;
+            process = _process; _process = null;
+            job = _sidecarJob; _sidecarJob = null;
+            acceptLoop = _acceptLoop; _acceptLoop = null;
+            _outbound?.Writer.TryComplete(); _outbound = null;
+        }
+
+        try
+        {
+            session?.Cancel();
+            accept?.Cancel();
+            if (acceptLoop is not null)
+            {
+                try { await acceptLoop.WaitAsync(TimeSpan.FromSeconds(2), CancellationToken.None); }
+                catch (TimeoutException) { _logger.LogWarning("Web Renderer pipe accept loop did not end within its shutdown grace period."); }
+                catch (OperationCanceledException) { }
+            }
+            if (process is { HasExited: false })
+            {
+                try { await process.WaitForExitAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5), CancellationToken.None); }
+                catch (TimeoutException)
+                {
+                    _logger.LogWarning("Web Renderer sidecar did not exit gracefully; terminating process tree.");
+                    process.Kill(entireProcessTree: true);
+                    await process.WaitForExitAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+                }
+            }
+            if (process is not null && !process.HasExited)
+                throw new TimeoutException("Web Renderer sidecar did not exit after forced termination.");
+            if (!IsPortAvailable(_options.Address, _options.Port))
+                throw new TimeoutException("Web Renderer port was not released after stopping sidecar.");
+            SetState(WebRendererLifecycleState.Stopped, null);
+        }
+        finally
+        {
+            process?.Dispose();
+            job?.Dispose();
+            session?.Dispose();
+            accept?.Dispose();
+            _closingSession = false;
+        }
     }
 
     /// <summary>安全地重启 sidecar。</summary>
-    public async Task RestartRendererAsync(CancellationToken cancellationToken = default) { await StopRendererAsync(cancellationToken); await StartRendererAsync(cancellationToken); }
+    public Task RestartRendererAsync(CancellationToken cancellationToken = default) => RunLifecycleAsync("Restart", async token => { await StopCoreAsync(token); await StartCoreAsync(token); }, cancellationToken);
 
     /// <summary>应用已保存的插件设置。</summary>
     public void ApplySettings(WebRendererPluginSettings settings)
@@ -129,6 +197,11 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
 
     /// <summary>重新检测 runtime 并尝试启动。</summary>
     public Task RetryAsync(CancellationToken cancellationToken = default) => StartRendererAsync(cancellationToken);
+
+    private Task RunLifecycleAsync(string name, Func<CancellationToken, Task> operation, CancellationToken cancellationToken) =>
+        _lifecycleCoordinator is null ? operation(cancellationToken) : _lifecycleCoordinator.RunAsync(name, TimeSpan.FromSeconds(15), operation, cancellationToken);
+
+    private Task StartCoreAsync(CancellationToken cancellationToken) { _manualStopped = false; return TryStartAsync(cancellationToken); }
 
     private async Task TryStartAsync(CancellationToken cancellationToken)
     {
@@ -144,10 +217,20 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             var hostPath = Path.Combine(_plugin.Info.PluginFolderPath, "Host", "neo-bpsys-wpf.WebRenderer.Host.dll");
             if (!File.Exists(hostPath)) { SetState(WebRendererLifecycleState.Faulted, $"Web Renderer sidecar file missing: {hostPath}"); return; }
             var pipeName = $"neo-bpsys-wpf.web-renderer.{Environment.ProcessId}.{Guid.NewGuid():N}";
-            _acceptLoop = AcceptLoopAsync(pipeName, _stopping.Token);
+            _closingSession = false;
+            _acceptCancellation = CancellationTokenSource.CreateLinkedTokenSource(_stopping.Token);
+            _acceptLoop = AcceptLoopAsync(pipeName, _acceptCancellation.Token);
             var startInfo = new ProcessStartInfo(runtime.DotnetPath) { UseShellExecute = false, RedirectStandardError = true, RedirectStandardOutput = true, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(hostPath)! };
-            startInfo.ArgumentList.Add(hostPath); startInfo.ArgumentList.Add("--pipe"); startInfo.ArgumentList.Add(pipeName); startInfo.ArgumentList.Add("--parent-pid"); startInfo.ArgumentList.Add(Environment.ProcessId.ToString()); startInfo.ArgumentList.Add("--address"); startInfo.ArgumentList.Add(_options.Address); startInfo.ArgumentList.Add("--port"); startInfo.ArgumentList.Add(_options.Port.ToString()); startInfo.ArgumentList.Add("--plugin-version"); startInfo.ArgumentList.Add(_plugin.Info.Manifest.Version);
+            var parentStartTicks = Process.GetCurrentProcess().StartTime.ToUniversalTime().Ticks;
+            startInfo.ArgumentList.Add(hostPath); startInfo.ArgumentList.Add("--pipe"); startInfo.ArgumentList.Add(pipeName); startInfo.ArgumentList.Add("--parent-pid"); startInfo.ArgumentList.Add(Environment.ProcessId.ToString()); startInfo.ArgumentList.Add("--parent-start-ticks"); startInfo.ArgumentList.Add(parentStartTicks.ToString(System.Globalization.CultureInfo.InvariantCulture)); startInfo.ArgumentList.Add("--address"); startInfo.ArgumentList.Add(_options.Address); startInfo.ArgumentList.Add("--port"); startInfo.ArgumentList.Add(_options.Port.ToString()); startInfo.ArgumentList.Add("--plugin-version"); startInfo.ArgumentList.Add(_plugin.Info.Manifest.Version);
+            _sidecarJob = CreateSidecarJob();
             _process = Process.Start(startInfo) ?? throw new InvalidOperationException("Could not start Web Renderer sidecar.");
+            try { _sidecarJob?.Assign(_process); }
+            catch
+            {
+                if (_process is { HasExited: false }) _process.Kill(true);
+                throw;
+            }
             _process.EnableRaisingEvents = true; _process.Exited += OnSidecarExited;
             Observe(ObserveOutputAsync(_process.StandardOutput, "stdout", _stopping.Token)); Observe(ObserveOutputAsync(_process.StandardError, "stderr", _stopping.Token));
             _logger.LogInformation("Web Renderer sidecar process started at http://{Address}:{Port}", _options.Address, _options.Port);
@@ -250,8 +333,9 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     /// <summary>响应活动包切换或设计器保存，重新发布完整真实布局。</summary>
     public void Receive(FrontedLayoutPackagesChangedMessage message) => Observe(RefreshBootstrapAsync(_stopping.Token));
 
-    private async Task QueueAsync(string type, object payload, CancellationToken cancellationToken)
+    private async Task QueueAsync(string type, object payload, CancellationToken cancellationToken, bool allowWhileClosing = false)
     {
+        if (_closingSession && !allowWhileClosing) return;
         Channel<WebRendererOutbound>? channel; lock (_gate) channel = _outbound;
         if (channel is null) return;
         await channel.Writer.WriteAsync(new WebRendererOutbound(type, payload), cancellationToken);
@@ -284,11 +368,51 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private void NotifyStatus() => StatusChanged?.Invoke(this, EventArgs.Empty);
     private void Observe(Task task) => _ = task.ContinueWith(completed => _logger.LogWarning(completed.Exception, "Web Renderer background operation failed."), TaskContinuationOptions.OnlyOnFaulted);
     private async Task ObserveOutputAsync(StreamReader reader, string stream, CancellationToken cancellationToken) { try { while (await reader.ReadLineAsync(cancellationToken) is { } line) { if (stream == "stderr") lock (_gate) _lastError = line.Length > 2000 ? line[..2000] : line; _logger.LogInformation("Web Renderer sidecar {Stream}: {Line}", stream, line); } } catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { } }
-    private void OnSidecarExited(object? sender, EventArgs args) { if (_manualStopped || _stopping.IsCancellationRequested) return; SetState(WebRendererLifecycleState.Faulted, "Web Renderer sidecar exited unexpectedly."); Observe(RestartAfterDelayAsync()); }
-    private async Task RestartAfterDelayAsync() { await Task.Delay(TimeSpan.FromMilliseconds(250), _stopping.Token); lock (_gate) _process = null; await TryStartAsync(_stopping.Token); }
+    private void OnSidecarExited(object? sender, EventArgs args)
+    {
+        if (_manualStopped || _stopping.IsCancellationRequested) return;
+        CancellationTokenSource? accept = null;
+        WebRendererSidecarJob? job = null;
+        Process? process = null;
+        lock (_gate)
+        {
+            if (!ReferenceEquals(sender, _process)) return;
+            process = _process; _process = null;
+            job = _sidecarJob; _sidecarJob = null;
+            accept = _acceptCancellation; _acceptCancellation = null;
+            _outbound?.Writer.TryComplete(); _outbound = null;
+            _sessionCancellation?.Cancel(); _sessionCancellation = null;
+        }
+        accept?.Cancel();
+        accept?.Dispose();
+        job?.Dispose();
+        process?.Dispose();
+        SetState(WebRendererLifecycleState.Faulted, "Web Renderer sidecar exited unexpectedly.");
+        Observe(RestartAfterDelayAsync());
+    }
+
+    private async Task RestartAfterDelayAsync()
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(250), _stopping.Token);
+            await RunLifecycleAsync("Recovery", StartCoreAsync, _stopping.Token);
+        }
+        catch (OperationCanceledException) when (_stopping.IsCancellationRequested) { }
+    }
     private static bool IsPortAvailable(string address, int port) { if (!IPAddress.TryParse(address, out var ip)) return false; try { using var listener = new TcpListener(ip, port); listener.Start(); return true; } catch (SocketException) { return false; } }
     /// <inheritdoc />
-    public void Dispose() { WeakReferenceMessenger.Default.UnregisterAll(this); if (_runtimePublisher is not null) { _runtimePublisher.Updated -= OnRuntimeUpdated; _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished; } if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished; _stopping.Dispose(); _startLock.Dispose(); _bootstrapLock.Dispose(); _process?.Dispose(); }
+    private WebRendererSidecarJob? CreateSidecarJob()
+    {
+        try { return new WebRendererSidecarJob(); }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or System.ComponentModel.Win32Exception)
+        {
+            _logger.LogWarning(ex, "Web Renderer Job Object is unavailable; parent-PID monitor is active as fallback.");
+            return null;
+        }
+    }
+    /// <inheritdoc />
+    public void Dispose() { WeakReferenceMessenger.Default.UnregisterAll(this); if (_runtimePublisher is not null) { _runtimePublisher.Updated -= OnRuntimeUpdated; _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished; } if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished; _acceptCancellation?.Cancel(); _acceptCancellation?.Dispose(); _sidecarJob?.Dispose(); _stopping.Dispose(); _startLock.Dispose(); _bootstrapLock.Dispose(); _process?.Dispose(); }
     private sealed record WebRendererOutbound(string Type, object Payload);
 }
 

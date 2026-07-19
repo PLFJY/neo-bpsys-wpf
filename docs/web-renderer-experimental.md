@@ -26,9 +26,7 @@ IPC 使用 version 5，并采用显式会话状态：`Stopped`、`StartingProces
 
 `/api/windows` 和 `/api/bootstrap/{encodedFullWindowType}` 在 IPC 未连接时返回 `503 IpcUnavailable`，bootstrap 尚未确认时返回 `503 BootstrapPending`，构建或校验失败时返回结构化 `503` 错误。`/render/{...}` 在等待状态显示“正在等待主程序布局数据”；仅 Ready 后才区分 `UnknownWindow` 与 `LayoutUnavailable`。管理页仅把 sidecar 已确认的窗口作为可用 Web Runtime，不会用 registry 候选窗口伪装布局已发布。
 
-行为文档随 bootstrap 一并从活动包加载。Web 页面只消费 `IFrontedEventBus` 桥接出的语义事件，在本页独立执行 OneShot、Loop 和 Transition 节点图；断线、刷新、包切换和布局重载都会取消页面的 delay 与动画。Transition 由插件装饰原始 WPF 编排器：WPF 与 Web 先各自运行 ExitGraph，浏览器确认后才允许原始 C# `commitAsync` 执行一次；commit 后两端并行运行 EnterGraph。浏览器从不拥有业务提交能力，Web 未连接、断线、异常或超过默认 2000ms 的可配置等待上限均 fail-open。
-
-Web 动画支持全部当前公开属性：Opacity、Visibility、VisualOffsetX/Y、ClipInset、Scale、Rotation、Width、Height、Fill/Stroke/Text/Foreground 色彩、StrokeThickness、FontSize、TintColor、TintStrength、TextureStrength 与 GaussianBlurRadius。基值仅在当前页面 Runtime session 中捕获，Reset 和 Reset All 会取消对应动画并恢复捕获状态。
+行为、动画、Transition 和控件覆盖仍处于实验探索状态，本文件不将其列为已完成能力。当前验收范围仅覆盖活动 `.bpui v3` 布局的 bootstrap、受控资源、生命周期、IPC 与浏览器显示链路。
 
 ## 管理与排查
 
@@ -36,7 +34,7 @@ Web 动画支持全部当前公开属性：Opacity、Visibility、VisualOffsetX/
 
 命令行参数优先于插件设置：`--web-host`（或 `--host`）、`--web-port`（或 `--port`）、`--web-no-start` 与 `--web-log-protocol`。协议日志只记录连接和消息摘要，不记录动画逐帧数据。
 
-OBS 可添加 Browser Source 并填入本机 URL 或指定窗口的 `/render/{encodedFullWindowType}` URL；浏览器字体栅格化与 WPF 可能略有不同，但布局坐标、资源和行为语义保持一致。`plugin:*` 控件只有提供受控 Web adapter 才能渲染，否则显示诊断占位。
+OBS 可添加 Browser Source 并填入本机 URL 或指定窗口的 `/render/{encodedFullWindowType}` URL；浏览器字体栅格化与 WPF 可能略有不同。`plugin:*` 控件只有提供受控 Web adapter 才能渲染，否则显示诊断占位。
 
 ## 部署验收
 
@@ -49,6 +47,8 @@ OBS 可添加 Browser Source 并填入本机 URL 或指定窗口的 `/render/{en
 脚本会在 `build/web-renderer-deployment-validation/app/Plugins/top.plfjy.bpsys.WebRenderer/Host/wwwroot/index.html` 检查最终入口页与所有引用资源，启动该目录中的 sidecar 并验证 HTTP 响应、缓存头和 build id。随后它会临时修改并自动还原 Web 样式源文件，第二次构建后确认新的 build id、hash 文件替换和旧文件清理。
 
 常见问题：端口被占用时更换端口后保存重启；缺少 ASP.NET Core Runtime 10 (x64) 时按后台提示安装；Web 页面无法更新时确认活动包已保存并刷新页面。禁用或移除该插件后，主程序与 WPF 前台继续按原有方式运行，不依赖 sidecar 或 Node.js。
+
+停止、重启和保存后重启是互斥操作。停止会先请求 sidecar 关闭、关闭 IPC 会话并等待进程退出；超过关闭时限才终止当前会话所启动的 sidecar 进程树。sidecar 会优先加入 Windows Job Object；parent PID 及其启动时间监视是 Job 不可用时的兜底。管理页在操作期间禁用相关命令，并在成功、失败、取消或超时后恢复可操作状态。
 
 真实 IPC 与布局验收使用：
 

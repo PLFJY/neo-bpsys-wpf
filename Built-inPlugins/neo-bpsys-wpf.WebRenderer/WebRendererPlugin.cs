@@ -24,6 +24,7 @@ public sealed class WebRendererPlugin : PluginBase
         services.AddSingleton<WebRendererRuntimeStatePublisher>();
         services.AddSingleton<IWebTransitionGateway, WebTransitionGateway>();
         services.AddSingleton<IWebControlRegistry, WebControlRegistry>();
+        services.AddSingleton<WebRendererLifecycleOperationCoordinator>();
         services.AddSingleton<WebRendererSidecarService>();
         services.AddBackendPage<WebRendererManagementPage, WebRendererManagementViewModel>();
         services.AddHostedService(serviceProvider => serviceProvider.GetRequiredService<WebRendererSidecarService>());

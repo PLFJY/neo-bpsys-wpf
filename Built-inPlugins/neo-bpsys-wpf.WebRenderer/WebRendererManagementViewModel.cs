@@ -20,6 +20,7 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     private readonly WebRendererSettingsStore _settingsStore;
     private readonly IFrontedWindowRegistry _windowRegistry;
     private readonly ISettingsHostService _settingsHostService;
+    private readonly WebRendererLifecycleOperationCoordinator _lifecycleCoordinator;
     private string _host;
     private double _port;
     private bool _startWithApplication;
@@ -29,14 +30,16 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
 
     /// <summary>初始化 ViewModel。</summary>
     public WebRendererManagementViewModel(WebRendererSidecarService service, WebRendererSettingsStore settingsStore,
-        IFrontedWindowRegistry windowRegistry, ISettingsHostService settingsHostService)
+        IFrontedWindowRegistry windowRegistry, ISettingsHostService settingsHostService,
+        WebRendererLifecycleOperationCoordinator lifecycleCoordinator)
     {
         _service = service; _settingsStore = settingsStore;
-        _windowRegistry = windowRegistry; _settingsHostService = settingsHostService;
+        _windowRegistry = windowRegistry; _settingsHostService = settingsHostService; _lifecycleCoordinator = lifecycleCoordinator;
         _host = settingsStore.Settings.Host; _port = settingsStore.Settings.Port;
         _startWithApplication = settingsStore.Settings.StartWithApplication; _logProtocol = settingsStore.Settings.LogProtocol;
         _exitTimeoutMs = settingsStore.Settings.ExitTimeoutMs; _enterTimeoutMs = settingsStore.Settings.EnterTimeoutMs;
         _service.StatusChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(Refresh);
+        _lifecycleCoordinator.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(Refresh);
         Refresh();
     }
 
@@ -66,6 +69,10 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     public string Windows { get; private set; } = "-";
     /// <summary>获取最近错误。</summary>
     public string LastError { get; private set; } = string.Empty;
+    /// <summary>获取生命周期命令是否正在运行。</summary>
+    public bool IsLifecycleOperationRunning { get; private set; }
+    /// <summary>获取当前生命周期操作文本。</summary>
+    public string LifecycleOperationText { get; private set; } = string.Empty;
 
     /// <summary>可直接用于 OBS 浏览器源的 Web 前台地址列表。</summary>
     public ObservableCollection<WebRendererWindowLink> WindowLinks { get; } = [];
@@ -109,8 +116,10 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
         LanUrl = $"http://{status.Address}:{status.Port}/";
         ClientCount = status.ClientCount; ActivePackageId = status.ActivePackageId ?? "-";
         Windows = status.Windows.Count == 0 ? "-" : string.Join(", ", status.Windows); LastError = status.LastError ?? string.Empty;
+        IsLifecycleOperationRunning = _lifecycleCoordinator.IsLifecycleOperationRunning;
+        LifecycleOperationText = _lifecycleCoordinator.CurrentOperation ?? string.Empty;
         RebuildWindowLinks();
-        foreach (var name in new[] { nameof(ServiceState), nameof(LocalUrl), nameof(LanUrl), nameof(ClientCount), nameof(ActivePackageId), nameof(Windows), nameof(LastError) }) OnPropertyChanged(name);
+        foreach (var name in new[] { nameof(ServiceState), nameof(LocalUrl), nameof(LanUrl), nameof(ClientCount), nameof(ActivePackageId), nameof(Windows), nameof(LastError), nameof(IsLifecycleOperationRunning), nameof(LifecycleOperationText) }) OnPropertyChanged(name);
     }
 
     private void RebuildWindowLinks()

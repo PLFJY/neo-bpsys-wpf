@@ -21,6 +21,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.Listen(settings.Address, settings.Port));
     var app = builder.Build();
+    state.ShutdownRequested += (_, _) => app.Lifetime.StopApplication();
     app.Use(async (context, next) =>
     {
         if (context.Request.Path == "/" || context.Request.Path == "/index.html" || context.Request.Path.StartsWithSegments("/render"))
@@ -46,30 +47,41 @@ try
         await state.WaitForCloseAsync(socket, context.RequestAborted);
     });
     app.Lifetime.ApplicationStopping.Register(cancellation.Cancel);
-    _ = StopWhenParentExitsAsync(settings.ParentProcessId, app.Lifetime, cancellation.Token);
+    _ = StopWhenParentExitsAsync(settings.ParentProcessId, settings.ParentProcessStartTicks, app.Lifetime, cancellation.Token);
     await app.RunAsync(cancellation.Token);
 }
 catch (Exception ex) { Console.Error.WriteLine($"Web Renderer sidecar failed: {ex}"); Environment.ExitCode = 1; }
 
-static async Task StopWhenParentExitsAsync(int parentProcessId, IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
+static async Task StopWhenParentExitsAsync(int parentProcessId, long parentProcessStartTicks, IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
 {
-    try { using var parent = Process.GetProcessById(parentProcessId); await parent.WaitForExitAsync(cancellationToken); lifetime.StopApplication(); }
+    try
+    {
+        using var parent = Process.GetProcessById(parentProcessId);
+        if (parent.StartTime.ToUniversalTime().Ticks != parentProcessStartTicks)
+        {
+            Console.Error.WriteLine("Web Renderer parent PID identity no longer matches; stopping sidecar.");
+            lifetime.StopApplication();
+            return;
+        }
+        await parent.WaitForExitAsync(cancellationToken);
+        lifetime.StopApplication();
+    }
     catch (ArgumentException) { lifetime.StopApplication(); }
     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
 }
 
-internal sealed record SidecarSettings(string PipeName, int ParentProcessId, IPAddress Address, int Port, string PluginVersion)
+internal sealed record SidecarSettings(string PipeName, int ParentProcessId, long ParentProcessStartTicks, IPAddress Address, int Port, string PluginVersion)
 {
     public static SidecarSettings Parse(string[] args)
     {
-        string? pipe = null; var parentProcessId = 0; var address = "127.0.0.1"; var port = 19527; var pluginVersion = "unknown";
+        string? pipe = null; var parentProcessId = 0; long parentProcessStartTicks = 0; var address = "127.0.0.1"; var port = 19527; var pluginVersion = "unknown";
         for (var index = 0; index < args.Length; index++)
         {
             if (index + 1 >= args.Length) continue;
-            switch (args[index]) { case "--pipe": pipe = args[++index]; break; case "--parent-pid": parentProcessId = int.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--address": address = args[++index]; break; case "--port": port = int.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--plugin-version": pluginVersion = args[++index]; break; }
+            switch (args[index]) { case "--pipe": pipe = args[++index]; break; case "--parent-pid": parentProcessId = int.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--parent-start-ticks": parentProcessStartTicks = long.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--address": address = args[++index]; break; case "--port": port = int.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--plugin-version": pluginVersion = args[++index]; break; }
         }
-        if (string.IsNullOrWhiteSpace(pipe) || parentProcessId <= 0 || !IPAddress.TryParse(address, out var parsedAddress) || parsedAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork || port is < 1 or > 65535) throw new ArgumentException("Invalid Web Renderer sidecar arguments.");
-        return new(pipe, parentProcessId, parsedAddress, port, pluginVersion);
+        if (string.IsNullOrWhiteSpace(pipe) || parentProcessId <= 0 || parentProcessStartTicks <= 0 || !IPAddress.TryParse(address, out var parsedAddress) || parsedAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork || port is < 1 or > 65535) throw new ArgumentException("Invalid Web Renderer sidecar arguments.");
+        return new(pipe, parentProcessId, parentProcessStartTicks, parsedAddress, port, pluginVersion);
     }
 }
 
@@ -88,6 +100,9 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
     private long _generation;
     private JsonDocument? _bootstrap;
     private JsonDocument? _runtime;
+
+    /// <summary>主程序通过 IPC 请求 sidecar 完整停止时发生。</summary>
+    public event EventHandler? ShutdownRequested;
 
     public void Start(CancellationToken cancellationToken) => _ = RunConnectionLoopAsync(cancellationToken);
 
@@ -211,6 +226,7 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
                     await BroadcastAsync(new { type = message.Type, payload = message.Payload }); break;
                 case WebRendererIpcProtocol.Shutdown:
                     lock (_gate) _state = WebRendererLifecycleState.Stopping;
+                    ShutdownRequested?.Invoke(this, EventArgs.Empty);
                     return;
             }
         }
