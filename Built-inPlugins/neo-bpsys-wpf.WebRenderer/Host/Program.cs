@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.WebRenderer.Protocol;
+using neo_bpsys_wpf.WebRenderer.Host;
 using System.Net;
 using System.Net.WebSockets;
 using System.Diagnostics;
@@ -9,25 +10,26 @@ using System.Text;
 using System.Text.Json;
 
 var settings = SidecarSettings.Parse(args);
-var state = new WebRendererHostState(settings);
 var cancellation = new CancellationTokenSource();
 
 try
 {
+    var staticRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+    var client = StaticClientVerifier.Verify(staticRoot);
+    var state = new WebRendererHostState(settings, client.BuildId);
     _ = state.ConnectPipeAsync(cancellation.Token);
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.Listen(settings.Address, settings.Port));
     var app = builder.Build();
-    var staticRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
     app.Use(async (context, next) =>
     {
-        // index.html selects the hashed client bundle. It must not be served
-        // from a previous plugin build after a sidecar restart.
-        if (context.Request.Path == "/" || context.Request.Path.StartsWithSegments("/render"))
+        if (context.Request.Path == "/" || context.Request.Path == "/index.html" || context.Request.Path.StartsWithSegments("/render"))
             context.Response.Headers.CacheControl = "no-store";
+        else if (context.Request.Path.StartsWithSegments("/assets") &&
+                 (context.Request.Path.Value?.EndsWith(".js", StringComparison.OrdinalIgnoreCase) == true ||
+                  context.Request.Path.Value?.EndsWith(".css", StringComparison.OrdinalIgnoreCase) == true))
+            context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
         await next();
-        if (context.Request.Path.StartsWithSegments("/assets"))
-            context.Response.Headers.CacheControl = "no-store";
     });
     app.UseWebSockets();
     // The Web client is copied into the plugin directory after the Host project
@@ -36,18 +38,18 @@ try
     // can fall through to the controlled resource-token endpoint.
     app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(staticRoot) });
     app.MapGet("/health", () => Results.Json(state.Health()));
-    app.MapGet("/", () => Results.File(Path.Combine(app.Environment.WebRootPath!, "index.html"), "text/html"));
+    app.MapGet("/", () => Results.File(client.IndexPath, "text/html"));
     app.MapGet("/render/{encodedFullWindowType}", (string encodedFullWindowType) =>
     {
         if (!state.HasBootstrap)
             return Results.Problem("Web Renderer is still waiting for the host layout bootstrap.", statusCode: StatusCodes.Status503ServiceUnavailable);
         return state.HasWindow(encodedFullWindowType)
-            ? Results.File(Path.Combine(app.Environment.WebRootPath!, "index.html"), "text/html")
+            ? Results.File(client.IndexPath, "text/html")
             : Results.NotFound(new { error = "UnknownWindow" });
     });
     app.MapGet("/api/windows", () => Results.Json(state.Windows()));
     app.MapGet("/api/bootstrap/{encodedFullWindowType}", (string encodedFullWindowType) => state.Bootstrap(encodedFullWindowType));
-    app.MapGet("/assets/{resourceToken}", (string resourceToken) => state.Asset(resourceToken));
+    app.MapGet("/bpui-assets/{resourceToken}", (string resourceToken) => state.Asset(resourceToken));
     app.Map("/ws", async context =>
     {
         if (!context.WebSockets.IsWebSocketRequest) { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
@@ -100,7 +102,7 @@ internal sealed record SidecarSettings(string PipeName, int ParentProcessId, IPA
     }
 }
 
-internal sealed class WebRendererHostState(SidecarSettings settings)
+internal sealed class WebRendererHostState(SidecarSettings settings, string clientBuildId)
 {
     private readonly object _gate = new();
     private readonly List<WebSocket> _sockets = [];
@@ -114,7 +116,7 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
 
     public bool HasBootstrap { get { lock (_gate) return _bootstrap is not null; } }
 
-    public object Health() => new { protocolVersion = WebRendererIpcProtocol.Version, status = "running", hostVersion = _hostVersion, pluginVersion = settings.PluginVersion, ipcStatus = _ipcStatus, listenAddress = settings.Address.ToString(), port = settings.Port };
+    public object Health() => new { protocolVersion = WebRendererIpcProtocol.Version, status = "running", hostVersion = _hostVersion, pluginVersion = settings.PluginVersion, clientBuildId, ipcStatus = _ipcStatus, listenAddress = settings.Address.ToString(), port = settings.Port };
 
     public object Windows()
     {

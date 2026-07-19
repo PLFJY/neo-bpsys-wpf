@@ -94,6 +94,11 @@
             <PluginsOutDir>$(TargetDir)Plugins\</PluginsOutDir>
         </PropertyGroup>
 
+        <ItemGroup>
+            <_WebRendererBuiltinPlugin Include="@(BuiltinPlugin)" Condition="'%(BuiltinPlugin.FolderName)' == 'top.plfjy.bpsys.WebRenderer'" />
+        </ItemGroup>
+        <RemoveDir Directories="@(_WebRendererBuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
+
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
         <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
@@ -116,6 +121,11 @@
         <PropertyGroup>
             <PluginsOutDir>$(PublishDir)Plugins\</PluginsOutDir>
         </PropertyGroup>
+
+        <ItemGroup>
+            <_WebRendererBuiltinPlugin Include="@(BuiltinPlugin)" Condition="'%(BuiltinPlugin.FolderName)' == 'top.plfjy.bpsys.WebRenderer'" />
+        </ItemGroup>
+        <RemoveDir Directories="@(_WebRendererBuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 

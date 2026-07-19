@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build"
+    "build": "node ./scripts/clean-dist.mjs && tsc -b && vite build"
   },
   "dependencies": {
     "react": "^19.1.1",

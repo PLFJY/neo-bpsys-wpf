@@ -9,15 +9,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Protocol\WebRendererIpcMessage.cs" Link="Protocol\WebRendererIpcMessage.cs" />
-    <WebRendererClientSource Include="..\Web\src\**\*;..\Web\vite.config.ts;..\Web\tsconfig.json;..\Web\index.html" />
+    <WebRendererClientSource Include="..\Web\src\**\*;..\Web\scripts\**\*;..\Web\vite.config.ts;..\Web\tsconfig.json;..\Web\index.html" />
   </ItemGroup>
-  <Target Name="BuildWebRendererClient" BeforeTargets="Build" Inputs="..\Web\package.json;..\Web\pnpm-lock.yaml;@(WebRendererClientSource)" Outputs="..\Web\dist\.web-renderer-build.stamp">
-    <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="..\Web" Condition="!Exists('..\Web\node_modules') and '$(WebRendererSkipWebBuild)' != 'true'" />
-    <Error Condition="'$(WebRendererSkipWebBuild)' == 'true' and !Exists('..\Web\dist\index.html')" Text="WebRendererSkipWebBuild=true requires an existing Web\dist\index.html." />
-    <Exec Command="pnpm run build" WorkingDirectory="..\Web" Condition="'$(WebRendererSkipWebBuild)' != 'true'" />
+  <Target Name="BuildWebRendererClient" BeforeTargets="Build">
+    <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="..\Web" />
+    <Exec Command="pnpm run build" WorkingDirectory="..\Web" />
     <Touch Files="..\Web\dist\.web-renderer-build.stamp" AlwaysCreate="true" />
   </Target>
   <Target Name="CopyWebRendererClient" AfterTargets="Build" DependsOnTargets="BuildWebRendererClient">
+    <RemoveDir Directories="$(OutDir)wwwroot" />
+    <MakeDir Directories="$(OutDir)wwwroot" />
     <ItemGroup>
       <WebRendererClientFiles Include="..\Web\dist\**\*" />
     </ItemGroup>

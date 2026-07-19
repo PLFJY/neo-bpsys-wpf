@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { BehaviorDocument, WebBehaviorRuntime } from './behaviorRuntime'
 import './styles.css'
 
+declare const __WEB_RENDERER_CLIENT_BUILD_ID__: string
+
 type AnyRecord = Record<string, unknown>
 type Bootstrap = { FullWindowType: string; DisplayName: string; Layout: AnyRecord | null; BehaviorDocument?: BehaviorDocument | null; Resources: Record<string, string>; Diagnostics: string[] }
 type RuntimeMessage = { type: string; payload?: { Generation?: number; Sequence?: number; Values?: Record<string, unknown> } }
@@ -43,8 +45,8 @@ function ImageControl({ name, config, resources, runtime }: { name: string; conf
   const lockPath = text(config.LockVisibilityBindingPath); const lockValue = lockPath ? runtime.values[lockPath] : undefined; const lockVisible = config.Lockable === true && (lockPath ? (config.LockVisibleWhen === 'VisibleWhenFalse' ? lockValue === false : lockValue === true) : config.LockVisibleWhen === 'Always')
   return <div className="image-control" id={name} {...behaviorAttrs(name, config)} style={style}><div data-overlay-below />
     <div data-behavior-content>{image ? <img src={image} style={{ width: '100%', height: '100%', objectFit: fit as CSSProperties['objectFit'] }} /> : text(config.BindingPath) ? <div className="binding-image">[{text(config.BindingPath)}]</div> : null}</div>
-    {lockVisible && <img id={`${name}LockOverlay`} className="overlay" src={resource(resources, config.LockImagePath) ?? '/assets/missing'} style={{ zIndex: finite(config.LockZIndexOffset, 1) }} />}
-    {config.PickingBorderAvailable === true && <img id={text(config.PickingBorderName) ?? `${name}PickingBorder`} className="overlay picking-border" src={resource(resources, config.PickingBorderImagePath) ?? '/assets/missing'} style={{ zIndex: finite(config.PickingBorderZIndexOffset, 2) }} />}
+    {lockVisible && <img id={`${name}LockOverlay`} className="overlay" src={resource(resources, config.LockImagePath) ?? '/bpui-assets/missing'} style={{ zIndex: finite(config.LockZIndexOffset, 1) }} />}
+    {config.PickingBorderAvailable === true && <img id={text(config.PickingBorderName) ?? `${name}PickingBorder`} className="overlay picking-border" src={resource(resources, config.PickingBorderImagePath) ?? '/bpui-assets/missing'} style={{ zIndex: finite(config.PickingBorderZIndexOffset, 2) }} />}
   <div data-overlay-above /></div>
 }
 function TextControl({ name, config, localized, runtime }: { name: string; config: AnyRecord; localized: boolean; runtime: RuntimeState }) {
@@ -146,4 +148,5 @@ function App() {
   useEffect(() => { behaviorRuntime.current.replace(bootstrap?.BehaviorDocument as BehaviorDocument | undefined) }, [bootstrap])
   return <Canvas bootstrap={bootstrap} runtime={runtime} />
 }
+console.info(`[Web Renderer] client build ${__WEB_RENDERER_CLIENT_BUILD_ID__}`)
 createRoot(document.getElementById('root')!).render(<App />)

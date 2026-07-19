@@ -1,3 +1,5 @@
+extern alias host;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -5,6 +7,9 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.WebRenderer;
 using neo_bpsys_wpf.WebRenderer.Protocol;
 using neo_bpsys_wpf.WebRenderer.Services;
+using StaticClientVerifier = host::neo_bpsys_wpf.WebRenderer.Host.StaticClientVerifier;
+using System;
+using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Threading;
@@ -18,6 +23,45 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// </summary>
 public sealed class WebRendererInfrastructureTest
 {
+    /// <summary>最终 sidecar 只能接受引用完整且具有 build id 的静态入口页。</summary>
+    [Fact]
+    public void StaticClientVerifierAcceptsCompleteClient()
+    {
+        var root = CreateStaticClient("<meta name=\"web-renderer-client-build-id\" content=\"commit-20260719\" /><script type=\"module\" src=\"/assets/main-abc.js\"></script><link rel=\"stylesheet\" href=\"/assets/main-def.css\" />");
+        try
+        {
+            File.WriteAllText(Path.Combine(root, "assets", "main-abc.js"), "console.log('ok');");
+            File.WriteAllText(Path.Combine(root, "assets", "main-def.css"), "body{}");
+
+            var client = StaticClientVerifier.Verify(root);
+
+            Assert.Equal("commit-20260719", client.BuildId);
+            Assert.Equal(["/assets/main-abc.js", "/assets/main-def.css"], client.LocalResourceUrls);
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
+    /// <summary>入口页缺少引用文件、build id 或使用路径穿越时 sidecar 必须拒绝启动。</summary>
+    [Theory]
+    [InlineData("<meta name=\"web-renderer-client-build-id\" content=\"build\" /><script src=\"/assets/missing.js\"></script>")]
+    [InlineData("<script src=\"/assets/main.js\"></script>")]
+    [InlineData("<meta name=\"web-renderer-client-build-id\" content=\"build\" /><script src=\"/../outside.js\"></script>")]
+    public void StaticClientVerifierRejectsInvalidDeployment(string head)
+    {
+        var root = CreateStaticClient(head);
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => StaticClientVerifier.Verify(root));
+        }
+        finally
+        {
+            Directory.Delete(root, true);
+        }
+    }
+
     /// <summary>
     /// 未传入参数时应使用仅本机的固定默认监听地址。
     /// </summary>
@@ -119,5 +163,13 @@ public sealed class WebRendererInfrastructureTest
 
         await service.StartAsync(CancellationToken.None);
         await service.StopAsync(CancellationToken.None);
+    }
+
+    private static string CreateStaticClient(string head)
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"neo-bpsys-wpf-web-client-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(Path.Combine(root, "assets"));
+        File.WriteAllText(Path.Combine(root, "index.html"), $"<!doctype html><html><head>{head}</head><body></body></html>");
+        return root;
     }
 }

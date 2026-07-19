@@ -14,9 +14,13 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 --web-transition-enter-timeout-ms <1-30000>
 ```
 
-默认监听 localhost。实验性 LAN 模式可以使用 `--web-host 0.0.0.0`，此模式没有访问认证，同一网络中的设备可读取页面与实时展示数据；请只在受信任网络使用，并通过系统防火墙限制端口。sidecar 提供 `/`、`/health`、`/render/{encodedFullWindowType}`、`/api/windows`、`/api/bootstrap/{encodedFullWindowType}`、`/assets/{resourceToken}` 和 `/ws`。
+默认监听 localhost。实验性 LAN 模式可以使用 `--web-host 0.0.0.0`，此模式没有访问认证，同一网络中的设备可读取页面与实时展示数据；请只在受信任网络使用，并通过系统防火墙限制端口。sidecar 提供 `/`、`/health`、`/render/{encodedFullWindowType}`、`/api/windows`、`/api/bootstrap/{encodedFullWindowType}`、`/bpui-assets/{resourceToken}` 和 `/ws`。`/assets/*.js` 与 `/assets/*.css` 仅用于 Vite 生成的 Web 客户端静态文件；`.bpui` 图片、字体等授权资源仅使用 `/bpui-assets/{resourceToken}`，两者不会共用 URL 前缀。
 
 资源 URL 是每次 bootstrap 创建的随机 token；浏览器不会获得物理路径。插件只授权当前活动包、`local`、内置 `Resources/...` 和已知应用字体，拒绝绝对路径、跨包引用及编码路径穿越。切换包或 Designer 保存布局时会重新发送 bootstrap，页面通过 WebSocket 刷新。未知内置控件与没有 Web adapter 的 `plugin:*` 控件会显示诊断占位；纯 Binding 文本显示绑定路径占位。
+
+每次 Web client 构建都会写入 client build id（提交标识与构建时间）。该值同时出现在最终 `index.html` 的 meta 标签、浏览器启动日志和 `/health` 的 `clientBuildId`。sidecar 启动前会验证最终 `Host/wwwroot/index.html`、build id 以及它引用的每一个本地 script/link 文件；任何缺失或越界引用都会让 sidecar 以明确错误退出，而不会在运行期间持续请求不存在的 hash 文件。
+
+`/`、`/render/*` 和 `/index.html` 始终返回 `Cache-Control: no-store`，确保入口页不会缓存旧 bundle 引用。带内容 hash 的 `/assets/*.js` 与 `/assets/*.css` 使用 immutable 缓存策略。
 
 IPC 使用 version 4，并在 `bootstrap.replace` 中传输布局和资源表。WebSocket 首次连接会收到完整 `snapshot`，后续仅发送带 sequence 的 `bindingPatch`；布局变更会通知页面重取 bootstrap 并重新同步。只会解析当前布局实际使用且由设计器绑定目录声明的路径；未知成员、方法调用、越界索引和无法转换的对象返回 null 与诊断，不会序列化整个共享对象图。第三方 Web 控件目前只预留注册边界，不会执行或托管任意插件脚本。
 
@@ -31,5 +35,15 @@ Web 动画支持全部当前公开属性：Opacity、Visibility、VisualOffsetX/
 命令行参数优先于插件设置：`--web-host`（或 `--host`）、`--web-port`（或 `--port`）、`--web-no-start` 与 `--web-log-protocol`。协议日志只记录连接和消息摘要，不记录动画逐帧数据。
 
 OBS 可添加 Browser Source 并填入本机 URL 或指定窗口的 `/render/{encodedFullWindowType}` URL；浏览器字体栅格化与 WPF 可能略有不同，但布局坐标、资源和行为语义保持一致。`plugin:*` 控件只有提供受控 Web adapter 才能渲染，否则显示诊断占位。
+
+## 部署验收
+
+从仓库根目录运行以下命令可验证从干净构建到最终主程序插件目录的完整静态产物链路：
+
+```powershell
+.\tools\Test-WebRendererDeployment.ps1 -Configuration Release
+```
+
+脚本会在 `build/web-renderer-deployment-validation/app/Plugins/top.plfjy.bpsys.WebRenderer/Host/wwwroot/index.html` 检查最终入口页与所有引用资源，启动该目录中的 sidecar 并验证 HTTP 响应、缓存头和 build id。随后它会临时修改并自动还原 Web 样式源文件，第二次构建后确认新的 build id、hash 文件替换和旧文件清理。
 
 常见问题：端口被占用时更换端口后保存重启；缺少 ASP.NET Core Runtime 10 (x64) 时按后台提示安装；Web 页面无法更新时确认活动包已保存并刷新页面。禁用或移除该插件后，主程序与 WPF 前台继续按原有方式运行，不依赖 sidecar 或 Node.js。

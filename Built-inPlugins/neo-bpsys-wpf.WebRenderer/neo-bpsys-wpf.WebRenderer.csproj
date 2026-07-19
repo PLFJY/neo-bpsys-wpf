@@ -21,6 +21,8 @@
     <MSBuild Projects="Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Targets="Build" Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=false;WebRendererSkipWebBuild=$(WebRendererSkipWebBuild)" />
   </Target>
   <Target Name="CopyWebRendererSidecar" AfterTargets="Build">
+    <RemoveDir Directories="$(OutDir)Host" />
+    <MakeDir Directories="$(OutDir)Host" />
     <ItemGroup>
       <WebRendererHostFiles Include="Host\bin\$(Configuration)\net10.0\win-x64\**\*" />
     </ItemGroup>

@@ -50,7 +50,7 @@ public sealed class WebRendererBootstrapBuilder(
                 if (asset is null)
                     continue;
                 resources.TryAdd(asset.Token, asset);
-                mapping[reference] = $"/assets/{asset.Token}";
+                mapping[reference] = $"/bpui-assets/{asset.Token}";
             }
             windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, result.Config, behavior, mapping, diagnostics));
         }
