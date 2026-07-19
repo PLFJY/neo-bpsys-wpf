@@ -31,6 +31,9 @@ public sealed class WebRendererBootstrapBuilder(
     {
         var active = await packageManager.GetActivePackageStateAsync(cancellationToken);
         var resources = new Dictionary<string, WebRendererAsset>(StringComparer.Ordinal);
+        // 内存资源（当前为内置字体）必须按引用复用。否则每一个使用同一字体的控件都会
+        // 把相同 base64 数据再写进 bootstrap，既浪费 IPC 带宽也可能耗尽主程序内存。
+        var assetsByReference = new Dictionary<string, WebRendererAsset>(StringComparer.Ordinal);
         var windows = new List<WebRendererBootstrapWindow>();
         foreach (var descriptor in windowRegistry.GetCustomizableLayoutWindows())
         {
@@ -58,10 +61,17 @@ public sealed class WebRendererBootstrapBuilder(
             }
             foreach (var reference in EnumerateResourceReferences(result.Config).Concat(behavior is null ? [] : EnumerateBehaviorResourceReferences(behavior)))
             {
-                var asset = TryCreateAsset(reference, active.PackageId, diagnostics);
+                if (!assetsByReference.TryGetValue(reference, out var asset))
+                {
+                    asset = TryCreateAsset(reference, active.PackageId, diagnostics);
+                    if (asset is not null)
+                    {
+                        assetsByReference.Add(reference, asset);
+                        resources.Add(asset.Token, asset);
+                    }
+                }
                 if (asset is null)
                     continue;
-                resources.TryAdd(asset.Token, asset);
                 mapping[reference] = $"/bpui-assets/{asset.Token}";
             }
             windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, true, true, behaviorLoaded,

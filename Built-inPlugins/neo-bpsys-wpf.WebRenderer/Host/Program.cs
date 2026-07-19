@@ -39,6 +39,7 @@ try
     app.MapGet("/api/windows", () => state.Windows());
     app.MapGet("/api/bootstrap/{encodedFullWindowType}", (string encodedFullWindowType) => state.Bootstrap(encodedFullWindowType));
     app.MapGet("/bpui-assets/{resourceToken}", (string resourceToken) => state.Asset(resourceToken));
+    app.MapGet("/runtime-assets/{token}", (string token, HttpContext context) => state.RuntimeAsset(token, context));
     app.Map("/ws", async context =>
     {
         if (!context.WebSockets.IsWebSocketRequest) { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
@@ -161,6 +162,16 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
         if (asset.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.String) return Results.File(Convert.FromBase64String(data.GetString()!), contentType);
         var path = asset.TryGetProperty("FilePath", out var value) ? value.GetString() : null;
         return string.IsNullOrWhiteSpace(path) || !File.Exists(path) ? Results.NotFound() : Results.File(path, contentType);
+    }
+
+    /// <summary>返回由插件注册的动态图片；token 只能定位受控临时缓存。</summary>
+    public IResult RuntimeAsset(string token, HttpContext context)
+    {
+        if (token.Length != 64 || token.Any(character => !Uri.IsHexDigit(character))) return Results.NotFound();
+        var path = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf-web-runtime-assets", token.ToLowerInvariant() + ".png");
+        if (!File.Exists(path)) return Results.NotFound();
+        context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+        return Results.File(path, "image/png", enableRangeProcessing: false);
     }
 
     private async Task RunConnectionLoopAsync(CancellationToken cancellationToken)

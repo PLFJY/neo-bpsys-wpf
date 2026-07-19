@@ -81,7 +81,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     }
 
     /// <summary>获取当前会话是否已确认 bootstrap。</summary>
-    public bool HasBootstrapSnapshot { get { lock (_gate) return _state == WebRendererLifecycleState.Ready && _confirmedSnapshot is not null; } }
+    public bool HasBootstrapSnapshot { get { lock (_gate) return _confirmedSnapshot is not null; } }
 
     /// <summary>初始化 sidecar 服务。</summary>
     public WebRendererSidecarService(WebRendererLaunchOptions options, WebRendererRuntimeDetector runtimeDetector,
@@ -316,15 +316,19 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             var completion = new TaskCompletionSource<WebRendererBootstrapApplied>(TaskCreationOptions.RunContinuationsAsynchronously);
             lock (_gate) _bootstrapAck = completion;
             SetState(WebRendererLifecycleState.WaitingForBootstrapAck, null);
-            await QueueAsync(WebRendererIpcProtocol.BootstrapReplace, snapshot, cancellationToken);
-            _logger.LogInformation("Web Renderer bootstrap.replace sent for generation {Generation}.", generation);
+            await QueueAsync(WebRendererIpcProtocol.BootstrapReplace, snapshot, cancellationToken, waitForDelivery: true);
+            _logger.LogInformation("Web Renderer bootstrap.replace delivered to the pipe for generation {Generation}.", generation);
             WebRendererBootstrapApplied applied;
             try { applied = await completion.Task.WaitAsync(BootstrapAckTimeout, cancellationToken); }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested) { SetState(WebRendererLifecycleState.Faulted, $"Bootstrap acknowledgement failed: {ex.Message}"); return; }
             if (applied.Generation != generation || !string.Equals(applied.ActivePackageId, snapshot.ActivePackageId, StringComparison.Ordinal)) { SetState(WebRendererLifecycleState.Faulted, "Bootstrap acknowledgement does not match the current generation."); return; }
             lock (_gate) _confirmedSnapshot = snapshot;
-            _transitionGateway?.UpdateGeneration(snapshot.Generation); _runtimePublisher?.ReplaceLayout(snapshot); _runtimePublisher?.PublishConfirmedSnapshot();
+            _transitionGateway?.UpdateGeneration(snapshot.Generation);
+            // Runtime snapshot 必须在 Ready 后发布：OnRuntimeUpdated 会拒绝尚未就绪的消息，
+            // 否则包切换时唯一的 generation snapshot 会在 WaitingForBootstrapAck 阶段被静默丢弃。
             SetState(WebRendererLifecycleState.Ready, null);
+            _runtimePublisher?.ReplaceLayout(snapshot);
+            _runtimePublisher?.PublishConfirmedSnapshot();
             _logger.LogInformation("Web Renderer bootstrap.applied received; Web Renderer Ready ({Generation}, {WindowCount} windows).", generation, applied.WindowCount);
         }
         finally { _bootstrapLock.Release(); }
@@ -333,12 +337,17 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     /// <summary>响应活动包切换或设计器保存，重新发布完整真实布局。</summary>
     public void Receive(FrontedLayoutPackagesChangedMessage message) => Observe(RefreshBootstrapAsync(_stopping.Token));
 
-    private async Task QueueAsync(string type, object payload, CancellationToken cancellationToken, bool allowWhileClosing = false)
+    private async Task QueueAsync(string type, object payload, CancellationToken cancellationToken, bool allowWhileClosing = false,
+        bool waitForDelivery = false)
     {
         if (_closingSession && !allowWhileClosing) return;
         Channel<WebRendererOutbound>? channel; lock (_gate) channel = _outbound;
         if (channel is null) return;
-        await channel.Writer.WriteAsync(new WebRendererOutbound(type, payload), cancellationToken);
+        var delivered = waitForDelivery
+            ? new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            : null;
+        await channel.Writer.WriteAsync(new WebRendererOutbound(type, payload, delivered), cancellationToken);
+        if (delivered is not null) await delivered.Task.WaitAsync(cancellationToken);
     }
 
     private async Task WriteLoopAsync(Stream pipe, ChannelReader<WebRendererOutbound> reader, CancellationToken cancellationToken)
@@ -346,8 +355,17 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         using var writer = new StreamWriter(pipe, new UTF8Encoding(false), 1024, leaveOpen: true) { AutoFlush = true };
         await foreach (var item in reader.ReadAllAsync(cancellationToken))
         {
-            var message = new WebRendererIpcMessage { ProtocolVersion = WebRendererIpcProtocol.Version, Sequence = Interlocked.Increment(ref _sequence), Type = item.Type, Payload = JsonSerializer.SerializeToElement(item.Payload) };
-            await writer.WriteLineAsync(JsonSerializer.Serialize(message).AsMemory(), cancellationToken);
+            try
+            {
+                var message = new WebRendererIpcMessage { ProtocolVersion = WebRendererIpcProtocol.Version, Sequence = Interlocked.Increment(ref _sequence), Type = item.Type, Payload = JsonSerializer.SerializeToElement(item.Payload) };
+                await writer.WriteLineAsync(JsonSerializer.Serialize(message).AsMemory(), cancellationToken);
+                item.Delivered?.TrySetResult();
+            }
+            catch (Exception ex)
+            {
+                item.Delivered?.TrySetException(ex);
+                throw;
+            }
         }
     }
 
@@ -413,7 +431,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     }
     /// <inheritdoc />
     public void Dispose() { WeakReferenceMessenger.Default.UnregisterAll(this); if (_runtimePublisher is not null) { _runtimePublisher.Updated -= OnRuntimeUpdated; _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished; } if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished; _acceptCancellation?.Cancel(); _acceptCancellation?.Dispose(); _sidecarJob?.Dispose(); _stopping.Dispose(); _startLock.Dispose(); _bootstrapLock.Dispose(); _process?.Dispose(); }
-    private sealed record WebRendererOutbound(string Type, object Payload);
+    private sealed record WebRendererOutbound(string Type, object Payload, TaskCompletionSource? Delivered = null);
 }
 
 /// <summary>供后台管理页显示的 Web Renderer 权威状态。</summary>

@@ -24,10 +24,10 @@ public sealed class WebTransitionOrchestratorDecorator(
         var committed = false;
         try
         {
+            try { await gateway.WaitForExitAsync(session, cancellationToken).WaitAsync(options.ExitTimeout, CancellationToken.None); }
+            catch (Exception ex) when (ex is TimeoutException or OperationCanceledException) { logger.LogDebug(ex, "Web transition exit failed open."); }
             await inner.RunMultiTargetTransitionAsync(requests, async () =>
             {
-                try { await gateway.WaitForExitAsync(session, cancellationToken).WaitAsync(options.ExitTimeout, CancellationToken.None); }
-                catch (Exception ex) when (ex is TimeoutException or OperationCanceledException) { logger.LogDebug(ex, "Web transition exit failed open."); }
                 await commitAsync();
                 committed = true;
                 gateway.Commit(session);

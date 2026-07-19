@@ -919,6 +919,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
             await _packageManager.ActivatePackageAsync(activatedPackageId);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
+            WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, activatedPackageId));
             await RefreshPackagesCoreAsync(activatedPackageId);
             PackageManagerStatus = activatedIsBuiltin
                 ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedBuiltin")

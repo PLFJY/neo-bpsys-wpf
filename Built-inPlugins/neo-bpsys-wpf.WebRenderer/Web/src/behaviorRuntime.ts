@@ -40,9 +40,10 @@ export class WebAnimationTargetResolver {
     else if (text.startsWith('name:')) name = text.slice(5)
     else if (text !== 'Self' && /^[0-9a-f-]{36}$/i.test(text)) guid = text
     else if (text !== 'Self') name = text
-    const root = name ? document.querySelector<HTMLElement>(`[data-control-name="${CSS.escape(name)}"]`) : document.querySelector<HTMLElement>(`[data-behavior-guid="${CSS.escape(guid)}"]`)
-    if (!root) return null
-    if (part) return root.querySelector<HTMLElement>(`[data-animation-part="${CSS.escape(part)}"]`)
+    const host = name ? document.querySelector<HTMLElement>(`[data-control-name="${CSS.escape(name)}"]`) : document.querySelector<HTMLElement>(`[data-behavior-guid="${CSS.escape(guid)}"]`)
+    if (!host) return null
+    if (part) return host.querySelector<HTMLElement>(`[data-animation-part="${CSS.escape(part)}"]`)
+    const root = host.querySelector<HTMLElement>(':scope > [data-control-root]') ?? host
     const effective = String(layer ?? 'Auto'); if (effective === 'Content') return root.querySelector<HTMLElement>('[data-behavior-content]') ?? root
     if (effective === 'OverlayAbove') return root.querySelector<HTMLElement>('[data-overlay-above]') ?? root
     if (effective === 'OverlayBelow') return root.querySelector<HTMLElement>('[data-overlay-below]') ?? root

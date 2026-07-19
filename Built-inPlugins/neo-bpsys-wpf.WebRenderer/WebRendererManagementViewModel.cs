@@ -73,6 +73,8 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     public bool IsLifecycleOperationRunning { get; private set; }
     /// <summary>获取当前生命周期操作文本。</summary>
     public string LifecycleOperationText { get; private set; } = string.Empty;
+    /// <summary>获取是否正在等待主程序发布窗口 bootstrap。</summary>
+    public bool IsWaitingForWindows => !_service.HasBootstrapSnapshot;
 
     /// <summary>可直接用于 OBS 浏览器源的 Web 前台地址列表。</summary>
     public ObservableCollection<WebRendererWindowLink> WindowLinks { get; } = [];
@@ -119,7 +121,7 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
         IsLifecycleOperationRunning = _lifecycleCoordinator.IsLifecycleOperationRunning;
         LifecycleOperationText = _lifecycleCoordinator.CurrentOperation ?? string.Empty;
         RebuildWindowLinks();
-        foreach (var name in new[] { nameof(ServiceState), nameof(LocalUrl), nameof(LanUrl), nameof(ClientCount), nameof(ActivePackageId), nameof(Windows), nameof(LastError), nameof(IsLifecycleOperationRunning), nameof(LifecycleOperationText) }) OnPropertyChanged(name);
+        foreach (var name in new[] { nameof(ServiceState), nameof(LocalUrl), nameof(LanUrl), nameof(ClientCount), nameof(ActivePackageId), nameof(Windows), nameof(LastError), nameof(IsLifecycleOperationRunning), nameof(LifecycleOperationText), nameof(IsWaitingForWindows) }) OnPropertyChanged(name);
     }
 
     private void RebuildWindowLinks()

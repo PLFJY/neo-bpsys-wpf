@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react'
+import { CSSProperties, cloneElement, isValidElement, ReactElement, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BehaviorDocument, WebBehaviorRuntime } from './behaviorRuntime'
 import './styles.css'
@@ -7,11 +7,14 @@ declare const __WEB_RENDERER_CLIENT_BUILD_ID__: string
 
 type AnyRecord = Record<string, unknown>
 type Bootstrap = { FullWindowType: string; DisplayName: string; Layout: AnyRecord | null; BehaviorDocument?: BehaviorDocument | null; Resources: Record<string, string>; Diagnostics: string[] }
-type RuntimeMessage = { type: string; payload?: { Generation?: number; Sequence?: number; Values?: Record<string, unknown> } }
+type WebRuntimeAsset = { Kind: 'image'; Token: string; Url: string; ContentType: string; Width?: number; Height?: number; Revision: string }
+type WebRuntimeValue = { Kind: 'null' | 'string' | 'number' | 'boolean' | 'enum' | 'color' | 'asset'; Value?: unknown; SourceType?: string; Diagnostic?: string; Asset?: WebRuntimeAsset }
+type RuntimeMessage = { type: string; payload?: { SchemaVersion?: number; Generation?: number; Sequence?: number; Values?: Record<string, WebRuntimeValue> } }
 type RuntimeState = { values: Record<string, unknown>; sequence: number; generation: number }
 const finite = (value: unknown, fallback = 0) => typeof value === 'number' && Number.isFinite(value) ? value : fallback
 const text = (value: unknown) => typeof value === 'string' ? value : undefined
 const base64 = (value: string) => btoa(unescape(encodeURIComponent(value))).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '')
+const runtimeValues = (values: Record<string, WebRuntimeValue>) => Object.fromEntries(Object.entries(values).map(([path, value]) => [path, value.Kind === 'asset' ? value.Asset : value.Value]))
 
 function color(value: unknown, fallback = 'transparent') {
   const source = text(value); if (!source) return fallback
@@ -40,11 +43,11 @@ function bindingText(config: AnyRecord, runtime: RuntimeState, key = 'Text') {
 }
 function behaviorAttrs(name: string, config: AnyRecord) { return { 'data-control-name': name, 'data-behavior-guid': text(config.BehaviorGuid) ?? undefined } }
 function ImageControl({ name, config, resources, runtime }: { name: string; config: AnyRecord; resources: Record<string, string>; runtime: RuntimeState }) {
-  const path = text(config.BindingPath); const image = (path && typeof runtime.values[path] === 'string' ? String(runtime.values[path]) : undefined) ?? resource(resources, config.ImagePath); const fit = ({ Fill: 'fill', Uniform: 'contain', UniformToFill: 'cover', None: 'none' } as Record<string, string>)[text(config.Stretch) ?? ''] ?? 'fill'
+  const path = text(config.BindingPath); const bound = path ? runtime.values[path] as WebRuntimeAsset | undefined : undefined; const image = bound && typeof bound === 'object' && typeof bound.Url === 'string' ? bound.Url : (!path ? resource(resources, config.ImagePath) : undefined); const fit = ({ Fill: 'fill', Uniform: 'contain', UniformToFill: 'cover', None: 'none' } as Record<string, string>)[text(config.Stretch) ?? ''] ?? 'fill'
   const style = { ...controlStyle(config, runtime), overflow: config.ClipToBounds || finite(config.CornerRadius) > 0 ? 'hidden' : 'visible', borderRadius: finite(config.CornerRadius) || undefined }
   const lockPath = text(config.LockVisibilityBindingPath); const lockValue = lockPath ? runtime.values[lockPath] : undefined; const lockVisible = config.Lockable === true && (lockPath ? (config.LockVisibleWhen === 'VisibleWhenFalse' ? lockValue === false : lockValue === true) : config.LockVisibleWhen === 'Always')
   return <div className="image-control" id={name} {...behaviorAttrs(name, config)} style={style}><div data-overlay-below />
-    <div data-behavior-content>{image ? <img src={image} style={{ width: '100%', height: '100%', objectFit: fit as CSSProperties['objectFit'] }} /> : text(config.BindingPath) ? <div className="binding-image">[{text(config.BindingPath)}]</div> : null}</div>
+    <div data-behavior-content>{image ? <img src={image} style={{ width: '100%', height: '100%', objectFit: fit as CSSProperties['objectFit'] }} /> : null}</div>
     {lockVisible && <img id={`${name}LockOverlay`} className="overlay" src={resource(resources, config.LockImagePath) ?? '/bpui-assets/missing'} style={{ zIndex: finite(config.LockZIndexOffset, 1) }} />}
     {config.PickingBorderAvailable === true && <img id={text(config.PickingBorderName) ?? `${name}PickingBorder`} className="overlay picking-border" src={resource(resources, config.PickingBorderImagePath) ?? '/bpui-assets/missing'} style={{ zIndex: finite(config.PickingBorderZIndexOffset, 2) }} />}
   <div data-overlay-above /></div>
@@ -97,9 +100,9 @@ function GlobalScoreRow({ config, runtime }: { config: AnyRecord; runtime: Runti
   const cells = Array.isArray(config.Cells) ? config.Cells as AnyRecord[] : []
   return <div className="global-score-row" style={controlStyle(config, runtime)}>{cells.map((cell, index) => <div key={index} className="score-cell" style={{ position: 'absolute', left: finite(cell.X), top: finite(cell.Y), width: finite(cell.Width), height: finite(cell.Height) }}>-</div>)}</div>
 }
-function BehaviorParts({ guid, parts, resources }: { guid: string; parts: AnyRecord[]; resources: Record<string, string> }) {
+function BehaviorParts({ guid, parts, resources, control }: { guid: string; parts: AnyRecord[]; resources: Record<string, string>; control: AnyRecord }) {
   return <>{parts.map((part, index) => {
-    const style: CSSProperties = { position: 'absolute', left: finite(part.Left), top: finite(part.Top), width: text(part.WidthText) === '100%' ? '100%' : finite(part.Width) || undefined, height: text(part.HeightText) === '100%' ? '100%' : finite(part.Height) || undefined, opacity: finite(part.Opacity, 1), visibility: text(part.Visibility)?.toLowerCase() === 'visible' ? 'visible' : 'hidden', zIndex: finite(part.ZIndex), background: color(part.Fill, 'transparent'), border: finite(part.StrokeThickness) ? `${finite(part.StrokeThickness)}px solid ${color(part.Stroke, 'transparent')}` : undefined }
+    const style: CSSProperties = { position: 'absolute', left: finite(control.Left) + finite(part.Left), top: finite(control.Top) + finite(part.Top), width: text(part.WidthText) === '100%' ? finite(control.Width) || undefined : finite(part.Width) || undefined, height: text(part.HeightText) === '100%' ? finite(control.Height) || undefined : finite(part.Height) || undefined, opacity: finite(part.Opacity, 1), visibility: text(part.Visibility)?.toLowerCase() === 'visible' ? 'visible' : 'hidden', zIndex: finite(control.ZIndex) + finite(part.ZIndex), background: color(part.Fill, 'transparent'), border: finite(part.StrokeThickness) ? `${finite(part.StrokeThickness)}px solid ${color(part.Stroke, 'transparent')}` : undefined }
     const image = resource(resources, part.ImagePath)
     return <div key={`${guid}:${index}`} data-animation-part={text(part.Name) ?? `part${index}`} style={style}>{text(part.Kind) === 'Image' && image ? <img src={image} style={{ width: '100%', height: '100%' }} /> : null}</div>
   })}</>
@@ -111,30 +114,36 @@ function Canvas({ bootstrap, runtime }: { bootstrap: Bootstrap; runtime: Runtime
   const windowSettings = layout.WindowSettings as AnyRecord; const width = finite(canvas.CanvasWidth, 1440); const height = finite(canvas.CanvasHeight, 810); const sx = viewport.width / width; const sy = viewport.height / height; const stretch = text(windowSettings.ViewboxStretch) ?? 'Fill'; const scaleX = stretch === 'None' ? 1 : stretch === 'Fill' ? sx : stretch === 'UniformToFill' ? Math.max(sx, sy) : Math.min(sx, sy); const scaleY = stretch === 'Fill' ? sy : scaleX
   const fontFaces = Object.entries(bootstrap.Resources).filter(([key]) => key.includes('/fonts/') || key.includes('Assets/Fonts')).map(([key, url]) => `@font-face{font-family:"${fontFamily(key)}";src:url("${url}");font-display:block;}`).join('\n')
   return <><style>{fontFaces}</style><div className="viewport"><div className="canvas" style={{ width, height, transform: `scale(${scaleX}, ${scaleY})`, ['--canvas-width' as string]: `${width}px`, ['--canvas-height' as string]: `${height}px`, backgroundImage: background ? `url(${background})` : undefined }}>
-    {Object.entries(controls).map(([name, config]) => { const type = text(config.ControlType); const parts = ((bootstrap.BehaviorDocument?.ControlBehaviorSets ?? []).find(item => item.BehaviorGuid === text(config.BehaviorGuid))?.AnimationParts ?? []) as AnyRecord[]; const content = type === 'Text' ? <TextControl name={name} config={config} runtime={runtime} localized={false} /> : type === 'LocalizedText' ? <TextControl name={name} config={config} runtime={runtime} localized /> : type === 'Image' || type === 'BorderedImage' ? <ImageControl name={name} config={config} resources={bootstrap.Resources} runtime={runtime} /> : type === 'Rectangle' || type === 'Polygon' || type === 'BackgroundTintRectangle' || type === 'BackgroundTintPolygon' ? <Shape config={config} background={background} resources={bootstrap.Resources} runtime={runtime} /> : type === 'GameProgressText' ? <GameProgress config={config} runtime={runtime} /> : type === 'MapNameText' ? <MapName config={config} runtime={runtime} /> : type === 'TalentTraitDisplay' ? <TalentTrait config={config} runtime={runtime} /> : type === 'MapV2Display' ? <MapV2 config={config} runtime={runtime} resources={bootstrap.Resources} /> : type === 'GlobalScoreRow' ? <GlobalScoreRow config={config} runtime={runtime} /> : <Unknown name={name} config={config} runtime={runtime} />; return <div key={name} data-control-name={name} data-behavior-guid={text(config.BehaviorGuid)} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><div data-overlay-below />{content}<div data-overlay-above />{text(config.BehaviorGuid) ? <BehaviorParts guid={text(config.BehaviorGuid)!} parts={parts} resources={bootstrap.Resources} /> : null}</div> })}
+    {Object.entries(controls).map(([name, config]) => { const type = text(config.ControlType); const parts = ((bootstrap.BehaviorDocument?.ControlBehaviorSets ?? []).find(item => item.BehaviorGuid === text(config.BehaviorGuid))?.AnimationParts ?? []) as AnyRecord[]; const content = type === 'Text' ? <TextControl name={name} config={config} runtime={runtime} localized={false} /> : type === 'LocalizedText' ? <TextControl name={name} config={config} runtime={runtime} localized /> : type === 'Image' || type === 'BorderedImage' ? <ImageControl name={name} config={config} resources={bootstrap.Resources} runtime={runtime} /> : type === 'Rectangle' || type === 'Polygon' || type === 'BackgroundTintRectangle' || type === 'BackgroundTintPolygon' ? <Shape config={config} background={background} resources={bootstrap.Resources} runtime={runtime} /> : type === 'GameProgressText' ? <GameProgress config={config} runtime={runtime} /> : type === 'MapNameText' ? <MapName config={config} runtime={runtime} /> : type === 'TalentTraitDisplay' ? <TalentTrait config={config} runtime={runtime} /> : type === 'MapV2Display' ? <MapV2 config={config} runtime={runtime} resources={bootstrap.Resources} /> : type === 'GlobalScoreRow' ? <GlobalScoreRow config={config} runtime={runtime} /> : <Unknown name={name} config={config} runtime={runtime} />; const rooted = isValidElement(content) ? cloneElement(content as ReactElement<Record<string, unknown>>, { 'data-control-root': true }) : content; return <div key={name} data-control-name={name} data-behavior-guid={text(config.BehaviorGuid)} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><div data-overlay-below />{rooted}<div data-overlay-above />{text(config.BehaviorGuid) ? <BehaviorParts guid={text(config.BehaviorGuid)!} parts={parts} resources={bootstrap.Resources} control={config} /> : null}</div> })}
   </div></div></>
 }
 function App() {
   const encoded = location.pathname.startsWith('/render/') ? location.pathname.slice('/render/'.length) : null
   const [bootstrap, setBootstrap] = useState<Bootstrap | null>(null); const [error, setError] = useState<string | null>(null); const [windows, setWindows] = useState<AnyRecord[]>([])
-  const [runtime, setRuntime] = useState<RuntimeState>({ values: {}, sequence: 0, generation: 0 })
+  const [runtime, setRuntime] = useState<RuntimeState>({ values: {}, sequence: 0, generation: 0 }); const runtimeRef = useRef<RuntimeState>({ values: {}, sequence: 0, generation: 0 })
   const behaviorRuntime = useRef(new WebBehaviorRuntime())
   const load = () => { if (!encoded) return fetch('/api/windows').then(response => response.json()).then(setWindows).catch(() => setError('无法读取窗口列表。')); fetch(`/api/bootstrap/${encoded}`).then(async response => response.ok ? response.json() : Promise.reject(await response.json())).then(value => { if (!value || typeof value !== 'object' || !('Layout' in value)) throw new Error('Bootstrap schema is invalid.'); setBootstrap(value as Bootstrap); setError(null) }).catch(() => setError('无法加载或验证布局 bootstrap。')) }
   useEffect(() => {
     load(); const scheme = location.protocol === 'https:' ? 'wss' : 'ws'; let retry: number | undefined; let closed = false
     const connect = () => {
       const socket = new WebSocket(`${scheme}://${location.host}/ws`)
-      socket.onopen = () => socket.send(JSON.stringify({ type: 'page.attach', fullWindowType: encoded }))
+      socket.onopen = () => {
+        socket.send(JSON.stringify({ type: 'page.attach', fullWindowType: encoded }))
+        // 首次刷新可能正好落在 sidecar 重启窗口内；连接恢复后必须重新读取 bootstrap，
+        // 不能把一次 503 永久保留为“正在等待主程序布局数据”。
+        void load()
+      }
       socket.onmessage = event => { try {
         const message = JSON.parse(event.data) as RuntimeMessage
-        if (message.type === 'bootstrap.changed') { behaviorRuntime.current.dispose(); setRuntime({ values: {}, sequence: 0, generation: 0 }); load(); return }
+        if (message.type === 'bootstrap.changed') { behaviorRuntime.current.dispose(); const empty = { values: {}, sequence: 0, generation: 0 }; runtimeRef.current = empty; setRuntime(empty); load(); return }
         if (message.type === 'behavior.event' && message.payload) { behaviorRuntime.current.publish(message.payload as unknown as import('./behaviorRuntime').BehaviorEvent); return }
         if (message.type === 'transition.prepare' && message.payload) { void behaviorRuntime.current.prepareTransition(message.payload as never).then(done => { if (done) socket.send(JSON.stringify({ type: 'transition.exitCompleted', correlationId: (message.payload as AnyRecord).correlationId })) }); return }
         if (message.type === 'transition.committed' && message.payload) { const id = String((message.payload as AnyRecord).correlationId ?? ''); void behaviorRuntime.current.commitTransition(id).then(done => { if (done) socket.send(JSON.stringify({ type: 'transition.enterCompleted', correlationId: id })) }); return }
         if (message.type === 'transition.cancel' && message.payload) { behaviorRuntime.current.cancelTransition(String((message.payload as AnyRecord).correlationId ?? '')); return }
-        const payload = message.payload; if (!payload || typeof payload.Sequence !== 'number' || payload.Sequence <= runtime.sequence) return
-        if (message.type === 'snapshot') setRuntime({ values: payload.Values ?? {}, sequence: payload.Sequence, generation: payload.Generation ?? 0 })
-        if (message.type === 'bindingPatch') setRuntime(previous => payload.Sequence! <= previous.sequence ? previous : { values: { ...previous.values, ...(payload.Values ?? {}) }, sequence: payload.Sequence!, generation: payload.Generation ?? previous.generation })
+        const payload = message.payload; if (!payload || payload.SchemaVersion !== 1 || typeof payload.Sequence !== 'number') return
+        const previous = runtimeRef.current; const generation = payload.Generation ?? 0
+        if (message.type === 'snapshot') { if (generation < previous.generation || (generation === previous.generation && payload.Sequence <= previous.sequence)) return; const next = { values: runtimeValues(payload.Values ?? {}), sequence: payload.Sequence, generation }; runtimeRef.current = next; setRuntime(next) }
+        if (message.type === 'bindingPatch') { if (generation !== previous.generation || payload.Sequence <= previous.sequence) return; const next = { values: { ...previous.values, ...runtimeValues(payload.Values ?? {}) }, sequence: payload.Sequence, generation }; runtimeRef.current = next; setRuntime(next) }
       } catch { setError('收到无效的实时状态消息。') } }
       socket.onclose = () => { if (!closed) retry = window.setTimeout(connect, 1000) }
       return socket

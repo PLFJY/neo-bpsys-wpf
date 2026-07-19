@@ -25,7 +25,15 @@
                 TextWrapping="Wrap" />
 
             <Border Style="{StaticResource Card}">
-                <ItemsControl ItemsSource="{Binding WindowLinks}">
+                <Grid>
+                    <ui:ProgressRing
+                        Width="28"
+                        Height="28"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        IsIndeterminate="True"
+                        Visibility="{Binding IsWaitingForWindows, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ItemsControl ItemsSource="{Binding WindowLinks}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:WebRendererWindowLink}">
                             <Border Padding="16,12" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
@@ -56,7 +64,8 @@
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ItemsControl>
+                </Grid>
             </Border>
 
             <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
