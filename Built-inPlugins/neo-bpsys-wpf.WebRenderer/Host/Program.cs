@@ -1,8 +1,10 @@
 using neo_bpsys_wpf.WebRenderer.Protocol;
 using System.Net;
 using System.Net.WebSockets;
+using System.Diagnostics;
 using System.IO.Pipes;
 using System.Reflection;
+using Microsoft.Extensions.FileProviders;
 using System.Text;
 using System.Text.Json;
 
@@ -16,48 +18,85 @@ try
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.Listen(settings.Address, settings.Port));
     var app = builder.Build();
+    var staticRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
     app.Use(async (context, next) =>
     {
+        // index.html selects the hashed client bundle. It must not be served
+        // from a previous plugin build after a sidecar restart.
+        if (context.Request.Path == "/" || context.Request.Path.StartsWithSegments("/render"))
+            context.Response.Headers.CacheControl = "no-store";
         await next();
         if (context.Request.Path.StartsWithSegments("/assets"))
             context.Response.Headers.CacheControl = "no-store";
     });
     app.UseWebSockets();
-    app.UseStaticFiles();
+    // The Web client is copied into the plugin directory after the Host project
+    // is compiled. Use an explicit physical provider rather than the build-time
+    // static-web-assets manifest, otherwise Vite's /assets/*.js and *.css files
+    // can fall through to the controlled resource-token endpoint.
+    app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(staticRoot) });
     app.MapGet("/health", () => Results.Json(state.Health()));
     app.MapGet("/", () => Results.File(Path.Combine(app.Environment.WebRootPath!, "index.html"), "text/html"));
     app.MapGet("/render/{encodedFullWindowType}", (string encodedFullWindowType) =>
-        state.HasWindow(encodedFullWindowType)
+    {
+        if (!state.HasBootstrap)
+            return Results.Problem("Web Renderer is still waiting for the host layout bootstrap.", statusCode: StatusCodes.Status503ServiceUnavailable);
+        return state.HasWindow(encodedFullWindowType)
             ? Results.File(Path.Combine(app.Environment.WebRootPath!, "index.html"), "text/html")
-            : Results.NotFound(new { error = "UnknownWindow" }));
+            : Results.NotFound(new { error = "UnknownWindow" });
+    });
     app.MapGet("/api/windows", () => Results.Json(state.Windows()));
     app.MapGet("/api/bootstrap/{encodedFullWindowType}", (string encodedFullWindowType) => state.Bootstrap(encodedFullWindowType));
     app.MapGet("/assets/{resourceToken}", (string resourceToken) => state.Asset(resourceToken));
     app.Map("/ws", async context =>
     {
         if (!context.WebSockets.IsWebSocketRequest) { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
-        using var socket = await context.WebSockets.AcceptWebSocketAsync();
-        await state.AttachAsync(socket, context.RequestAborted);
-        await state.WaitForCloseAsync(socket, context.RequestAborted);
+        try
+        {
+            using var socket = await context.WebSockets.AcceptWebSocketAsync();
+            await state.AttachAsync(socket, context.RequestAborted);
+            await state.WaitForCloseAsync(socket, context.RequestAborted);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { }
+        catch (WebSocketException ex) { Console.Error.WriteLine($"Web Renderer WebSocket disconnected: {ex.WebSocketErrorCode}"); }
+        catch (IOException ex) { Console.Error.WriteLine($"Web Renderer WebSocket IPC unavailable: {ex.Message}"); }
+        catch (Exception ex) { Console.Error.WriteLine($"Web Renderer WebSocket session failed: {ex}"); }
     });
     app.Lifetime.ApplicationStopping.Register(cancellation.Cancel);
+    _ = StopWhenParentExitsAsync(settings.ParentProcessId, app.Lifetime, cancellation.Token);
     await app.RunAsync(cancellation.Token);
 }
 catch (Exception ex) { Console.Error.WriteLine($"Web Renderer sidecar failed: {ex}"); Environment.ExitCode = 1; }
 finally { cancellation.Cancel(); cancellation.Dispose(); }
 
-internal sealed record SidecarSettings(string PipeName, IPAddress Address, int Port, string PluginVersion)
+static async Task StopWhenParentExitsAsync(int parentProcessId, IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
+{
+    try
+    {
+        using var parent = Process.GetProcessById(parentProcessId);
+        await parent.WaitForExitAsync(cancellationToken);
+        lifetime.StopApplication();
+    }
+    catch (ArgumentException)
+    {
+        // The parent already exited before the sidecar finished starting.
+        lifetime.StopApplication();
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+}
+
+internal sealed record SidecarSettings(string PipeName, int ParentProcessId, IPAddress Address, int Port, string PluginVersion)
 {
     public static SidecarSettings Parse(string[] args)
     {
-        string? pipe = null; var address = "127.0.0.1"; var port = 19527; var pluginVersion = "unknown";
+        string? pipe = null; var parentProcessId = 0; var address = "127.0.0.1"; var port = 19527; var pluginVersion = "unknown";
         for (var index = 0; index < args.Length; index++)
         {
             if (index + 1 >= args.Length) continue;
-            switch (args[index]) { case "--pipe": pipe = args[++index]; break; case "--address": address = args[++index]; break; case "--port": port = int.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--plugin-version": pluginVersion = args[++index]; break; }
+            switch (args[index]) { case "--pipe": pipe = args[++index]; break; case "--parent-pid": parentProcessId = int.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--address": address = args[++index]; break; case "--port": port = int.Parse(args[++index], System.Globalization.CultureInfo.InvariantCulture); break; case "--plugin-version": pluginVersion = args[++index]; break; }
         }
-        if (string.IsNullOrWhiteSpace(pipe) || !IPAddress.TryParse(address, out var parsedAddress) || parsedAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork || port is < 1 or > 65535) throw new ArgumentException("Invalid Web Renderer sidecar arguments.");
-        return new(pipe, parsedAddress, port, pluginVersion);
+        if (string.IsNullOrWhiteSpace(pipe) || parentProcessId <= 0 || !IPAddress.TryParse(address, out var parsedAddress) || parsedAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork || port is < 1 or > 65535) throw new ArgumentException("Invalid Web Renderer sidecar arguments.");
+        return new(pipe, parentProcessId, parsedAddress, port, pluginVersion);
     }
 }
 
@@ -71,6 +110,9 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
     private JsonDocument? _bootstrap;
     private JsonDocument? _runtime;
     private StreamWriter? _pipeWriter;
+    private readonly SemaphoreSlim _pipeWriteLock = new(1, 1);
+
+    public bool HasBootstrap { get { lock (_gate) return _bootstrap is not null; } }
 
     public object Health() => new { protocolVersion = WebRendererIpcProtocol.Version, status = "running", hostVersion = _hostVersion, pluginVersion = settings.PluginVersion, ipcStatus = _ipcStatus, listenAddress = settings.Address.ToString(), port = settings.Port };
 
@@ -126,12 +168,14 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
     {
         try
         {
+            Console.Error.WriteLine("Web Renderer IPC connecting to host.");
             await using var pipe = new NamedPipeClientStream(".", settings.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
             await pipe.ConnectAsync(TimeSpan.FromSeconds(15), cancellationToken);
             await using var writer = new StreamWriter(pipe, new UTF8Encoding(false), 1024, leaveOpen: true) { AutoFlush = true };
             _pipeWriter = writer;
             using var reader = new StreamReader(pipe, new UTF8Encoding(false), false, 1024, leaveOpen: true);
             await SendPipeAsync(writer, WebRendererIpcProtocol.SidecarReady, new { hostVersion = _hostVersion }, cancellationToken); SetIpcStatus("connected");
+            Console.Error.WriteLine("Web Renderer IPC connected to host.");
             await ReadPipeAsync(reader, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
@@ -144,7 +188,7 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
         {
             var message = JsonSerializer.Deserialize<WebRendererIpcMessage>(line); if (message is null) continue;
             if (message.Type == WebRendererIpcProtocol.HostHello && message.Payload.TryGetProperty("hostVersion", out var version)) { _hostVersion = version.GetString() ?? _hostVersion; SetIpcStatus("connected"); }
-            if (message.Type == WebRendererIpcProtocol.BootstrapReplace) { lock (_gate) { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(message.Payload.GetRawText()); } }
+            if (message.Type == WebRendererIpcProtocol.BootstrapReplace) { lock (_gate) { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(message.Payload.GetRawText()); } Console.Error.WriteLine("Web Renderer bootstrap received."); }
             if (message.Type == WebRendererIpcProtocol.RuntimeSnapshot) { lock (_gate) { _runtime?.Dispose(); _runtime = JsonDocument.Parse(message.Payload.GetRawText()); } await BroadcastAsync(new { type = "snapshot", payload = message.Payload }); }
             if (message.Type == WebRendererIpcProtocol.RuntimeBindingPatch) await BroadcastAsync(new { type = "bindingPatch", payload = message.Payload });
             if (message.Type == WebRendererIpcProtocol.BehaviorEvent) await BroadcastAsync(new { type = "behavior.event", payload = message.Payload });
@@ -157,7 +201,15 @@ internal sealed class WebRendererHostState(SidecarSettings settings)
         SetIpcStatus("disconnected"); Environment.Exit(0);
     }
 
-    private async Task SendPipeAsync(StreamWriter writer, string type, object payload, CancellationToken cancellationToken) => await writer.WriteLineAsync(JsonSerializer.Serialize(new WebRendererIpcMessage { ProtocolVersion = WebRendererIpcProtocol.Version, Sequence = Interlocked.Increment(ref _sequence), Type = type, Payload = JsonSerializer.SerializeToElement(payload) }).AsMemory(), cancellationToken);
+    private async Task SendPipeAsync(StreamWriter writer, string type, object payload, CancellationToken cancellationToken)
+    {
+        await _pipeWriteLock.WaitAsync(cancellationToken);
+        try
+        {
+            await writer.WriteLineAsync(JsonSerializer.Serialize(new WebRendererIpcMessage { ProtocolVersion = WebRendererIpcProtocol.Version, Sequence = Interlocked.Increment(ref _sequence), Type = type, Payload = JsonSerializer.SerializeToElement(payload) }).AsMemory(), cancellationToken);
+        }
+        finally { _pipeWriteLock.Release(); }
+    }
     private void SetIpcStatus(string value) { _ipcStatus = value; _ = BroadcastAsync(new { type = "status", payload = Health() }); }
     public async Task AttachAsync(WebSocket socket, CancellationToken cancellationToken)
     {

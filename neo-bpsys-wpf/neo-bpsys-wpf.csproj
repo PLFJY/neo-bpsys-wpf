@@ -81,7 +81,7 @@
 
     <!-- 1) Build plugins before main Build. Do not restore here; callers control restore explicitly. -->
     <Target Name="BuildBuiltinPlugins" BeforeTargets="Build" Condition="@(BuiltinPlugin) != ''">
-        <MSBuild Projects="@(BuiltinPlugin)" Targets="Build" BuildInParallel="true" Properties="Configuration=$(Configuration)" />
+        <MSBuild Projects="@(BuiltinPlugin)" Targets="Build" BuildInParallel="false" Properties="Configuration=$(Configuration)" />
     </Target>
 
     <Target Name="BuildSmartBpModuleForDebug" BeforeTargets="Build" Condition="'$(Configuration)'=='Debug'">

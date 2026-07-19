@@ -140,7 +140,9 @@ public class FrontedPropertyGridBuilder
 
         var rows = new List<FrontedPropertyEditorItem>();
         AddIdentityRows(rows, selectedItem, messages);
+        var firstConfigRowIndex = rows.Count;
         AddConfigRows(rows, selectedItem, messages);
+        OrderConfigRows(rows, firstConfigRowIndex);
         MarkGroupHeaders(rows);
         return new ObservableCollection<FrontedPropertyEditorItem>(rows);
     }
@@ -446,7 +448,11 @@ public class FrontedPropertyGridBuilder
         FrontedPluginPropertyDescriptor? metadata)
     {
         var kind = metadata?.EditorKind ?? ResolveEditorKind(property);
-        var isReadOnly = !selectedItem.IsEditableInEditor || !property.CanWrite || metadata?.IsReadOnly == true;
+        var isReadOnly = !selectedItem.IsEditableInEditor
+                         || !property.CanWrite
+                         || metadata?.IsReadOnly == true
+                         || property.Name == nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                         && !selectedItem.Config.IsGaussianBlurEnabled;
         var groupName = metadata?.GroupName ?? ResolveGroupName(property.Name, selectedItem.Config);
         var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
         var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -479,7 +485,9 @@ public class FrontedPropertyGridBuilder
             PropertyName = property.Name,
             Description = ResolveMetadataText(metadata?.DescriptionKey, NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)) ?? string.Empty),
             PropertyType = property.PropertyType,
-            EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
+            EditorKind = isReadOnly && property.Name != nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                ? FrontedPropertyEditorKind.ReadOnly
+                : kind,
             Value = value,
             DisplayValue = GetDisplayValue(value, isReadOnly),
             EditText = GetEditTextValue(value, kind),
@@ -1062,6 +1070,30 @@ public class FrontedPropertyGridBuilder
         "Content" => 80,
         "ControlSpecific" => 90,
         _ => 100
+    };
+
+    private static void OrderConfigRows(List<FrontedPropertyEditorItem> rows, int firstConfigRowIndex)
+    {
+        var orderedRows = rows
+            .Skip(firstConfigRowIndex)
+            .Select((row, index) => new { Row = row, Index = index })
+            .OrderBy(item => GetGroupOrder(item.Row.GroupName))
+            .ThenBy(item => GetAppearancePropertyOrder(item.Row.PropertyName))
+            .ThenBy(item => item.Index)
+            .Select(item => item.Row)
+            .ToArray();
+
+        for (var index = 0; index < orderedRows.Length; index++)
+        {
+            rows[firstConfigRowIndex + index] = orderedRows[index];
+        }
+    }
+
+    private static int GetAppearancePropertyOrder(string propertyName) => propertyName switch
+    {
+        nameof(FrontedControlConfigBase.IsGaussianBlurEnabled) => 9000,
+        nameof(FrontedControlConfigBase.GaussianBlurRadius) => 9001,
+        _ => 0
     };
 
     private IReadOnlyList<string> GetPropertyMessages(

@@ -37,8 +37,8 @@ public static class FrontedBehaviorPropertyMetadata
         "FontSize",
         "TintColor",
         "TintStrength",
-        "TextureStrength"
-        ,"GaussianBlurRadius"
+        "TextureStrength",
+        "GaussianBlurRadius"
     ];
 
     /// <summary>
@@ -61,8 +61,8 @@ public static class FrontedBehaviorPropertyMetadata
         "Height",
         "TintColor",
         "TintStrength",
-        "TextureStrength"
-        ,"GaussianBlurRadius"
+        "TextureStrength",
+        "GaussianBlurRadius"
     ];
 
     /// <summary>
@@ -89,7 +89,6 @@ public static class FrontedBehaviorPropertyMetadata
         "TextColor",
         "Foreground",
         "FontSize"
-        ,"GaussianBlurRadius"
     ];
 
     /// <summary>
@@ -109,7 +108,6 @@ public static class FrontedBehaviorPropertyMetadata
         "FillColor",
         "StrokeColor",
         "StrokeThickness"
-        ,"GaussianBlurRadius"
     ];
 
     /// <summary>

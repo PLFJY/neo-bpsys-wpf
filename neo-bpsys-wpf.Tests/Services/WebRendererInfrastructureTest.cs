@@ -33,10 +33,10 @@ public sealed class WebRendererInfrastructureTest
     }
 
     /// <summary>
-    /// 实时模式不得接受没有鉴权保护的全网卡监听地址。
+    /// 显式 LAN 模式接受全网卡监听地址，且命令行禁用启动仍有效。
     /// </summary>
     [Fact]
-    public void LaunchOptionsRejectAllInterfacesAndNoStart()
+    public void LaunchOptionsAcceptAllInterfacesAndNoStart()
     {
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
@@ -47,10 +47,10 @@ public sealed class WebRendererInfrastructureTest
 
         var options = WebRendererLaunchOptions.FromConfiguration(configuration);
 
-        Assert.Equal(WebRendererLaunchOptions.DefaultAddress, options.Address);
-        Assert.Equal(WebRendererLaunchOptions.DefaultPort, options.Port);
+        Assert.Equal("0.0.0.0", options.Address);
+        Assert.Equal(23000, options.Port);
         Assert.True(options.NoStart);
-        Assert.NotNull(options.ValidationError);
+        Assert.Null(options.ValidationError);
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ public sealed class WebRendererInfrastructureTest
     public void LaunchOptionsAcceptBareNoStartSwitch()
     {
         var options = WebRendererLaunchOptions.FromConfiguration(new ConfigurationBuilder()
-            .AddCommandLine(["--web-no-start"])
+            .AddCommandLine(["--web-no-start=true"])
             .Build());
 
         Assert.True(options.NoStart);

@@ -6,6 +6,8 @@ using neo_bpsys_wpf.WebRenderer.Protocol;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -13,6 +15,7 @@ using System.Windows.Controls;
 using Wpf.Ui.Controls;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Core.Messages;
+using static neo_bpsys_wpf.WebRenderer.Services.WebRendererProtocolVersion;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
 
@@ -22,7 +25,8 @@ namespace neo_bpsys_wpf.WebRenderer.Services;
 public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRecipient<FrontedLayoutPackagesChangedMessage>
 {
     private const string RuntimeDownloadUrl = "https://dotnet.microsoft.com/en-us/download/dotnet/10.0";
-    private readonly WebRendererLaunchOptions _options;
+    private static readonly TimeSpan ShutdownIpcTimeout = TimeSpan.FromMilliseconds(750);
+    private WebRendererLaunchOptions _options;
     private readonly WebRendererRuntimeDetector _runtimeDetector;
     private readonly WebRendererPlugin _plugin;
     private readonly ISnackbarService _snackbarService;
@@ -31,7 +35,11 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private readonly WebRendererRuntimeStatePublisher? _runtimePublisher;
     private readonly IWebTransitionGateway? _transitionGateway;
     private readonly SemaphoreSlim _startLock = new(1, 1);
+    // StreamWriter does not permit a Dispose while WriteLineAsync is in progress.
+    // This lock owns both writes and the hand-off to shutdown disposal.
+    private readonly SemaphoreSlim _pipeWriteLock = new(1, 1);
     private readonly CancellationTokenSource _stopping = new();
+    private readonly WebRendererSidecarJob? _sidecarJob;
     private Process? _process;
     private NamedPipeServerStream? _pipe;
     private StreamWriter? _pipeWriter;
@@ -39,6 +47,34 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private bool _suppressedForSession;
     private string? _lastSidecarError;
     private long _bootstrapGeneration;
+    private WebRendererBootstrapSnapshot? _lastSnapshot;
+    private bool _manualStopped;
+
+    /// <summary>当服务状态改变时发生。</summary>
+    public event EventHandler? StatusChanged;
+
+    /// <summary>获取可安全显示的当前服务状态。</summary>
+    public WebRendererServiceStatus Status => new(
+        _process is { HasExited: false }, _process?.Id, _options.Address, _options.Port,
+        _runtimePublisher?.ClientCount ?? 0, _bootstrapGeneration, _lastSidecarError, _options.LogProtocol,
+        _lastSnapshot?.ActivePackageId, _lastSnapshot?.Windows.Select(item => item.FullWindowType).ToArray() ?? []);
+
+    /// <summary>
+    /// 获取当前 bootstrap 中已公开窗口的显示摘要。
+    /// </summary>
+    /// <returns>不包含物理路径或资源 token 的窗口摘要。</returns>
+    public IReadOnlyList<WebRendererPublishedWindow> GetPublishedWindows()
+    {
+        return _lastSnapshot?.Windows.Select(window => new WebRendererPublishedWindow(
+            window.FullWindowType,
+            window.Layout is not null,
+            window.Layout?.CanvasSettings.CanvasWidth,
+            window.Layout?.CanvasSettings.CanvasHeight,
+            window.Diagnostics)).ToArray() ?? [];
+    }
+
+    /// <summary>获取是否已成功生成并发送过当前布局 bootstrap。</summary>
+    public bool HasBootstrapSnapshot => _lastSnapshot is not null;
 
     /// <summary>
     /// 初始化 sidecar 服务。
@@ -57,6 +93,16 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         _bootstrapBuilder = bootstrapBuilder;
         _runtimePublisher = runtimePublisher;
         _transitionGateway = transitionGateway;
+        try
+        {
+            _sidecarJob = new WebRendererSidecarJob();
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or System.ComponentModel.Win32Exception)
+        {
+            // The parent-PID monitor remains as a fallback if the host itself is
+            // constrained by another Job Object or the platform lacks this API.
+            _logger.LogWarning(ex, "Web Renderer could not create its sidecar job; using parent-process monitoring only.");
+        }
         if (_runtimePublisher is not null)
         {
             _runtimePublisher.Updated += OnRuntimeUpdated;
@@ -82,25 +128,63 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             return;
         }
 
-        await TryStartAsync(cancellationToken);
+        await StartRendererAsync(cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         _stopping.Cancel();
+        await StopRendererAsync(cancellationToken);
+    }
+
+    /// <summary>启动 sidecar；可由管理页重复调用。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>异步操作。</returns>
+    public Task StartRendererAsync(CancellationToken cancellationToken = default)
+    {
+        _manualStopped = false;
+        return TryStartAsync(cancellationToken);
+    }
+
+    /// <summary>停止 sidecar，但不停止宿主 HostedService。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>异步操作。</returns>
+    public async Task StopRendererAsync(CancellationToken cancellationToken = default)
+    {
+        _manualStopped = true;
         try
         {
-            await SendAsync(WebRendererIpcProtocol.Shutdown, new { reason = "host-stopping" }, CancellationToken.None);
+            // A broken or non-reading pipe must never make a WPF management-page
+            // command wait indefinitely. Shutdown delivery is best-effort only.
+            using var shutdownCancellation = new CancellationTokenSource(ShutdownIpcTimeout);
+            await SendAsync(WebRendererIpcProtocol.Shutdown, new { reason = "host-stopping" }, shutdownCancellation.Token);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException or OperationCanceledException or ObjectDisposedException)
         {
             _logger.LogDebug(ex, "Web Renderer shutdown IPC was not delivered.");
         }
 
-        _pipeWriter?.Dispose();
-        _pipe?.Dispose();
-        if (_process is { HasExited: false } process)
+        StreamWriter? writer;
+        NamedPipeServerStream? pipe;
+        await _pipeWriteLock.WaitAsync(CancellationToken.None);
+        try
+        {
+            // Clear the shared references while holding the write lock. Subsequent
+            // publishers become no-ops, and any earlier write has completed.
+            writer = _pipeWriter;
+            pipe = _pipe;
+            _pipeWriter = null;
+            _pipe = null;
+            writer?.Dispose();
+            pipe?.Dispose();
+        }
+        finally
+        {
+            _pipeWriteLock.Release();
+        }
+        var process = _process;
+        if (process is { HasExited: false })
         {
             try
             {
@@ -112,6 +196,33 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                 process.Kill(entireProcessTree: true);
             }
         }
+        if (process is not null && process.HasExited)
+        {
+            process.Dispose();
+            if (ReferenceEquals(_process, process)) _process = null;
+        }
+        StatusChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>安全地重启 sidecar。</summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>异步操作。</returns>
+    public async Task RestartRendererAsync(CancellationToken cancellationToken = default)
+    {
+        await StopRendererAsync(cancellationToken);
+        await StartRendererAsync(cancellationToken);
+    }
+
+    /// <summary>应用管理页保存的设置；命令行覆盖仍由首次启动选项保持。</summary>
+    /// <param name="settings">已验证的插件设置。</param>
+    public void ApplySettings(WebRendererPluginSettings settings)
+    {
+        _options = new WebRendererLaunchOptions(settings.Host, settings.Port, !settings.StartWithApplication, settings.LogProtocol, null)
+        {
+            ExitTimeout = TimeSpan.FromMilliseconds(settings.ExitTimeoutMs is > 0 and <= 30000 ? settings.ExitTimeoutMs : 2000),
+            EnterTimeout = TimeSpan.FromMilliseconds(settings.EnterTimeoutMs is > 0 and <= 30000 ? settings.EnterTimeoutMs : 2000)
+        };
+        StatusChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -122,7 +233,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     public Task RetryAsync(CancellationToken cancellationToken = default)
     {
         _suppressedForSession = false;
-        return TryStartAsync(cancellationToken);
+        return StartRendererAsync(cancellationToken);
     }
 
     private async Task TryStartAsync(CancellationToken cancellationToken)
@@ -141,6 +252,16 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             {
                 _logger.LogWarning("Web Renderer is unavailable: {Reason}", runtime.ErrorMessage);
                 ShowNotification(runtime.ErrorMessage ?? "未检测到 ASP.NET Core Runtime 10 (x64)。", true);
+                return;
+            }
+
+            if (!IsPortAvailable(_options.Address, _options.Port))
+            {
+                var message = $"Web Renderer 无法启动：{_options.Address}:{_options.Port} 已被其他进程占用。请在 Web Renderer 管理页更换端口，或关闭占用该端口的旧实例。";
+                _lastSidecarError = message;
+                _logger.LogError("{Message}", message);
+                ShowNotification(message, false);
+                StatusChanged?.Invoke(this, EventArgs.Empty);
                 return;
             }
 
@@ -170,6 +291,8 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             startInfo.ArgumentList.Add(hostPath);
             startInfo.ArgumentList.Add("--pipe");
             startInfo.ArgumentList.Add(pipeName);
+            startInfo.ArgumentList.Add("--parent-pid");
+            startInfo.ArgumentList.Add(Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
             startInfo.ArgumentList.Add("--address");
             startInfo.ArgumentList.Add(_options.Address);
             startInfo.ArgumentList.Add("--port");
@@ -180,15 +303,26 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             _process = Process.Start(startInfo);
             if (_process is null)
                 throw new InvalidOperationException("无法创建 Web Renderer sidecar 进程。");
+            try
+            {
+                _sidecarJob?.Assign(_process);
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                _logger.LogWarning(ex, "Web Renderer sidecar could not be assigned to the host job.");
+            }
             _process.EnableRaisingEvents = true;
             _process.Exited += OnSidecarExited;
             _ = ObserveOutputAsync(_process.StandardError, "stderr", _stopping.Token);
             _ = ObserveOutputAsync(_process.StandardOutput, "stdout", _stopping.Token);
             _logger.LogInformation("Started Web Renderer sidecar at http://{Address}:{Port}", _options.Address, _options.Port);
+            StatusChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             _logger.LogError(ex, "Failed to start Web Renderer sidecar.");
+            _lastSidecarError = ex.Message;
+            StatusChanged?.Invoke(this, EventArgs.Empty);
             ShowNotification($"Web Renderer 启动失败：{ex.Message}", false);
         }
         finally
@@ -201,8 +335,22 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     {
         try
         {
+            _logger.LogDebug("Waiting for Web Renderer sidecar IPC connection.");
             await pipe.WaitForConnectionAsync(cancellationToken);
-            _pipeWriter = new StreamWriter(pipe, new UTF8Encoding(false), leaveOpen: true) { AutoFlush = true };
+            await _pipeWriteLock.WaitAsync(cancellationToken);
+            try
+            {
+                // StopRendererAsync may have disposed this accepted pipe while the
+                // sidecar was connecting. Never publish a writer for an old pipe.
+                if (!ReferenceEquals(_pipe, pipe) || _manualStopped)
+                    return;
+                _pipeWriter = new StreamWriter(pipe, new UTF8Encoding(false), leaveOpen: true) { AutoFlush = true };
+            }
+            finally
+            {
+                _pipeWriteLock.Release();
+            }
+            _logger.LogInformation("Web Renderer sidecar IPC connected.");
             await SendAsync(WebRendererIpcProtocol.HostHello, new { hostVersion = AppConstants.AppVersion, pluginVersion = _plugin.Info.Manifest.Version }, cancellationToken);
             await RefreshBootstrapAsync(cancellationToken);
             using var reader = new StreamReader(pipe, new UTF8Encoding(false), leaveOpen: true);
@@ -219,28 +367,44 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                     else if ((message.Type == WebRendererIpcProtocol.TransitionExitCompleted || message.Type == WebRendererIpcProtocol.TransitionEnterCompleted)
                              && message.Payload.TryGetProperty("correlationId", out var correlation))
                         _transitionGateway?.Acknowledge(correlation.GetString() ?? string.Empty, message.Type == WebRendererIpcProtocol.TransitionEnterCompleted);
+                    StatusChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (IOException ex) when (_process is { HasExited: true } || _stopping.IsCancellationRequested)
+        {
+            _logger.LogDebug(ex, "Web Renderer IPC closed after sidecar shutdown.");
+        }
         catch (Exception ex)
         {
+            _lastSidecarError = $"Web Renderer IPC connection failed: {ex.Message}";
             _logger.LogWarning(ex, "Web Renderer IPC connection ended unexpectedly.");
+            StatusChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
     private async Task SendAsync(string type, object payload, CancellationToken cancellationToken)
     {
-        if (_pipeWriter is null)
-            return;
-        var message = new WebRendererIpcMessage
+        await _pipeWriteLock.WaitAsync(cancellationToken);
+        try
         {
-            ProtocolVersion = WebRendererIpcProtocol.Version,
-            Sequence = Interlocked.Increment(ref _sequence),
-            Type = type,
-            Payload = JsonSerializer.SerializeToElement(payload)
-        };
-        await _pipeWriter.WriteLineAsync(JsonSerializer.Serialize(message).AsMemory(), cancellationToken);
+            var writer = _pipeWriter;
+            if (writer is null)
+                return;
+            var message = new WebRendererIpcMessage
+            {
+                ProtocolVersion = WebRendererIpcProtocol.Version,
+                Sequence = Interlocked.Increment(ref _sequence),
+                Type = type,
+                Payload = JsonSerializer.SerializeToElement(payload)
+            };
+            await writer.WriteLineAsync(JsonSerializer.Serialize(message).AsMemory(), cancellationToken);
+        }
+        finally
+        {
+            _pipeWriteLock.Release();
+        }
     }
 
     /// <summary>响应布局包激活或 Designer 保存，刷新 sidecar 静态布局。</summary>
@@ -253,14 +417,23 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         try
         {
             var snapshot = await _bootstrapBuilder.BuildAsync(Interlocked.Increment(ref _bootstrapGeneration), cancellationToken);
+            _lastSnapshot = snapshot;
+            _logger.LogInformation(
+                "Web Renderer bootstrap refreshed for package {PackageId}: {WindowCount} windows, {RenderableWindowCount} layouts.",
+                snapshot.ActivePackageId,
+                snapshot.Windows.Count,
+                snapshot.Windows.Count(window => window.Layout is not null));
             _transitionGateway?.UpdateGeneration(snapshot.Generation);
             _runtimePublisher?.ReplaceLayout(snapshot);
             await SendAsync(WebRendererIpcProtocol.BootstrapReplace, snapshot, cancellationToken);
             await SendAsync(WebRendererIpcProtocol.BootstrapChanged, new { generation = snapshot.Generation }, cancellationToken);
+            StatusChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
+            _lastSidecarError = $"Web Renderer bootstrap refresh failed: {ex.Message}";
             _logger.LogWarning(ex, "Web Renderer bootstrap refresh failed.");
+            StatusChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -289,7 +462,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             while (await reader.ReadLineAsync(cancellationToken) is { } line)
             {
                 if (streamName == "stderr")
-                    _lastSidecarError = line.Length > 800 ? line[..800] : line;
+                    _lastSidecarError = line.Length > 2000 ? line[..2000] : line;
                 _logger.LogInformation("Web Renderer sidecar {Stream}: {Line}", streamName, line);
             }
         }
@@ -300,12 +473,14 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     {
         if (_stopping.IsCancellationRequested || sender is not Process process)
             return;
+        if (_manualStopped) return;
         _logger.LogError("Web Renderer sidecar exited unexpectedly with code {ExitCode}. Stderr: {Stderr}", process.ExitCode, _lastSidecarError);
         var missingRuntime = _lastSidecarError?.Contains("Microsoft.AspNetCore.App", StringComparison.OrdinalIgnoreCase) == true;
         var detail = string.IsNullOrWhiteSpace(_lastSidecarError) ? "请查看应用日志。" : _lastSidecarError;
         ShowNotification(missingRuntime
             ? "Web Renderer 需要 ASP.NET Core Runtime 10 (x64)。"
             : $"Web Renderer 已意外退出（退出码 {process.ExitCode}）：{detail}", missingRuntime);
+        StatusChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void ShowNotification(string message, bool showRuntimeActions)
@@ -333,6 +508,18 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         });
     }
 
+    private static bool IsPortAvailable(string address, int port)
+    {
+        if (!IPAddress.TryParse(address, out var parsedAddress)) return false;
+        try
+        {
+            using var listener = new TcpListener(parsedAddress, port);
+            listener.Start();
+            return true;
+        }
+        catch (SocketException) { return false; }
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -345,8 +532,21 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished;
         _stopping.Dispose();
         _startLock.Dispose();
+        _pipeWriteLock.Dispose();
+        _sidecarJob?.Dispose();
         _process?.Dispose();
+        // Dispose is only reached after the Generic Host has awaited StopAsync.
+        // Do not race StreamWriter.Dispose with a pending IPC write here.
         _pipeWriter?.Dispose();
         _pipe?.Dispose();
     }
 }
+
+/// <summary>供后台管理页显示的 Web Renderer 状态。</summary>
+public sealed record WebRendererServiceStatus(bool IsRunning, int? ProcessId, string Address, int Port,
+    int ClientCount, long BootstrapGeneration, string? LastError, bool LogProtocol, string? ActivePackageId,
+    IReadOnlyList<string> Windows);
+
+/// <summary>管理页使用的已公开 Web 前台窗口摘要。</summary>
+public sealed record WebRendererPublishedWindow(string FullWindowType, bool IsLayoutAvailable,
+    double? CanvasWidth, double? CanvasHeight, IReadOnlyList<string> Diagnostics);

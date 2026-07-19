@@ -28,6 +28,9 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     /// <summary>发布可安全发送给 Web 页面的语义行为事件。</summary>
     public event EventHandler<WebRendererBehaviorEvent>? BehaviorEventPublished;
 
+    /// <summary>获取当前由 sidecar 报告的已连接客户端数量。</summary>
+    public int ClientCount => Volatile.Read(ref _clientCount);
+
     /// <summary>创建运行时发布器。</summary>
     public WebRendererRuntimeStatePublisher(ISharedDataService sharedData, IFrontedEventBus eventBus)
     {
