@@ -1,23 +1,23 @@
-using neo_bpsys_wpf.WebRenderer.Protocol;
+using Microsoft.Extensions.FileProviders;
 using neo_bpsys_wpf.WebRenderer.Host;
-using System.Net;
-using System.Net.WebSockets;
+using neo_bpsys_wpf.WebRenderer.Protocol;
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Net;
+using System.Net.WebSockets;
 using System.Reflection;
-using Microsoft.Extensions.FileProviders;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 
 var settings = SidecarSettings.Parse(args);
-var cancellation = new CancellationTokenSource();
-
+using var cancellation = new CancellationTokenSource();
 try
 {
     var staticRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
     var client = StaticClientVerifier.Verify(staticRoot);
     var state = new WebRendererHostState(settings, client.BuildId);
-    _ = state.ConnectPipeAsync(cancellation.Token);
+    state.Start(cancellation.Token);
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.Listen(settings.Address, settings.Port));
     var app = builder.Build();
@@ -26,64 +26,35 @@ try
         if (context.Request.Path == "/" || context.Request.Path == "/index.html" || context.Request.Path.StartsWithSegments("/render"))
             context.Response.Headers.CacheControl = "no-store";
         else if (context.Request.Path.StartsWithSegments("/assets") &&
-                 (context.Request.Path.Value?.EndsWith(".js", StringComparison.OrdinalIgnoreCase) == true ||
-                  context.Request.Path.Value?.EndsWith(".css", StringComparison.OrdinalIgnoreCase) == true))
+                 (context.Request.Path.Value?.EndsWith(".js", StringComparison.OrdinalIgnoreCase) == true || context.Request.Path.Value?.EndsWith(".css", StringComparison.OrdinalIgnoreCase) == true))
             context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
         await next();
     });
     app.UseWebSockets();
-    // The Web client is copied into the plugin directory after the Host project
-    // is compiled. Use an explicit physical provider rather than the build-time
-    // static-web-assets manifest, otherwise Vite's /assets/*.js and *.css files
-    // can fall through to the controlled resource-token endpoint.
     app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(staticRoot) });
     app.MapGet("/health", () => Results.Json(state.Health()));
     app.MapGet("/", () => Results.File(client.IndexPath, "text/html"));
-    app.MapGet("/render/{encodedFullWindowType}", (string encodedFullWindowType) =>
-    {
-        if (!state.HasBootstrap)
-            return Results.Problem("Web Renderer is still waiting for the host layout bootstrap.", statusCode: StatusCodes.Status503ServiceUnavailable);
-        return state.HasWindow(encodedFullWindowType)
-            ? Results.File(client.IndexPath, "text/html")
-            : Results.NotFound(new { error = "UnknownWindow" });
-    });
-    app.MapGet("/api/windows", () => Results.Json(state.Windows()));
+    app.MapGet("/render/{encodedFullWindowType}", (string encodedFullWindowType) => state.Render(encodedFullWindowType, client.IndexPath));
+    app.MapGet("/api/windows", () => state.Windows());
     app.MapGet("/api/bootstrap/{encodedFullWindowType}", (string encodedFullWindowType) => state.Bootstrap(encodedFullWindowType));
     app.MapGet("/bpui-assets/{resourceToken}", (string resourceToken) => state.Asset(resourceToken));
     app.Map("/ws", async context =>
     {
         if (!context.WebSockets.IsWebSocketRequest) { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
-        try
-        {
-            using var socket = await context.WebSockets.AcceptWebSocketAsync();
-            await state.AttachAsync(socket, context.RequestAborted);
-            await state.WaitForCloseAsync(socket, context.RequestAborted);
-        }
-        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { }
-        catch (WebSocketException ex) { Console.Error.WriteLine($"Web Renderer WebSocket disconnected: {ex.WebSocketErrorCode}"); }
-        catch (IOException ex) { Console.Error.WriteLine($"Web Renderer WebSocket IPC unavailable: {ex.Message}"); }
-        catch (Exception ex) { Console.Error.WriteLine($"Web Renderer WebSocket session failed: {ex}"); }
+        using var socket = await context.WebSockets.AcceptWebSocketAsync();
+        await state.AttachAsync(socket, context.RequestAborted);
+        await state.WaitForCloseAsync(socket, context.RequestAborted);
     });
     app.Lifetime.ApplicationStopping.Register(cancellation.Cancel);
     _ = StopWhenParentExitsAsync(settings.ParentProcessId, app.Lifetime, cancellation.Token);
     await app.RunAsync(cancellation.Token);
 }
 catch (Exception ex) { Console.Error.WriteLine($"Web Renderer sidecar failed: {ex}"); Environment.ExitCode = 1; }
-finally { cancellation.Cancel(); cancellation.Dispose(); }
 
 static async Task StopWhenParentExitsAsync(int parentProcessId, IHostApplicationLifetime lifetime, CancellationToken cancellationToken)
 {
-    try
-    {
-        using var parent = Process.GetProcessById(parentProcessId);
-        await parent.WaitForExitAsync(cancellationToken);
-        lifetime.StopApplication();
-    }
-    catch (ArgumentException)
-    {
-        // The parent already exited before the sidecar finished starting.
-        lifetime.StopApplication();
-    }
+    try { using var parent = Process.GetProcessById(parentProcessId); await parent.WaitForExitAsync(cancellationToken); lifetime.StopApplication(); }
+    catch (ArgumentException) { lifetime.StopApplication(); }
     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
 }
 
@@ -106,34 +77,60 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
 {
     private readonly object _gate = new();
     private readonly List<WebSocket> _sockets = [];
+    private readonly Channel<WebRendererOutbound> _outbound = Channel.CreateUnbounded<WebRendererOutbound>(new UnboundedChannelOptions { SingleReader = true });
     private long _sequence;
-    private string _ipcStatus = "connecting";
+    private long _lastInboundSequence;
+    private bool _connected;
+    private WebRendererLifecycleState _state = WebRendererLifecycleState.WaitingForPipe;
+    private string? _errorCode;
+    private string? _errorMessage;
     private string _hostVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
+    private long _generation;
     private JsonDocument? _bootstrap;
     private JsonDocument? _runtime;
-    private StreamWriter? _pipeWriter;
-    private readonly SemaphoreSlim _pipeWriteLock = new(1, 1);
 
-    public bool HasBootstrap { get { lock (_gate) return _bootstrap is not null; } }
+    public void Start(CancellationToken cancellationToken) => _ = RunConnectionLoopAsync(cancellationToken);
 
-    public object Health() => new { protocolVersion = WebRendererIpcProtocol.Version, status = "running", hostVersion = _hostVersion, pluginVersion = settings.PluginVersion, clientBuildId, ipcStatus = _ipcStatus, listenAddress = settings.Address.ToString(), port = settings.Port };
+    public object Health()
+    {
+        lock (_gate) return new { protocolVersion = WebRendererIpcProtocol.Version, status = _state.ToString(), ipcStatus = _connected ? "connected" : "IpcUnavailable", generation = _generation, errorCode = _errorCode, errorMessage = _errorMessage, hostVersion = _hostVersion, pluginVersion = settings.PluginVersion, clientBuildId, activePackageId = ActivePackageIdLocked(), windowCount = WindowCountLocked(), listenAddress = settings.Address.ToString(), port = settings.Port };
+    }
 
-    public object Windows()
+    public IResult Windows()
     {
         lock (_gate)
         {
-            if (_bootstrap is null) return Array.Empty<object>();
-            return _bootstrap.RootElement.GetProperty("Windows").EnumerateArray().Select(window => new { fullWindowType = window.GetProperty("FullWindowType").GetString(), displayName = window.GetProperty("DisplayName").GetString(), available = window.GetProperty("Layout").ValueKind != JsonValueKind.Null, diagnostics = window.GetProperty("Diagnostics") }).ToArray();
+            if (!_connected) return Problem("IpcUnavailable", "Named-pipe IPC is not connected.");
+            if (_state == WebRendererLifecycleState.Faulted) return Problem(_errorCode ?? "BootstrapFailed", _errorMessage ?? "Bootstrap failed.");
+            if (_state != WebRendererLifecycleState.Ready || _bootstrap is null) return Problem("BootstrapPending", "Web Renderer is waiting for the host layout bootstrap.");
+            return Results.Json(WindowsLocked());
         }
     }
 
-    public bool HasWindow(string encoded) => FindWindow(encoded) is not null;
+    public IResult Render(string encoded, string indexPath)
+    {
+        lock (_gate)
+        {
+            if (!_connected || _state != WebRendererLifecycleState.Ready || _bootstrap is null)
+                return Results.Content("<!doctype html><title>Web Renderer</title><main>正在等待主程序布局数据。</main>", "text/html", Encoding.UTF8, StatusCodes.Status503ServiceUnavailable);
+            var window = FindWindowLocked(encoded);
+            if (window is null) return Results.NotFound(new { error = "UnknownWindow" });
+            return window.Value.GetProperty("Layout").ValueKind == JsonValueKind.Null
+                ? Results.Conflict(new { error = "LayoutUnavailable" })
+                : Results.File(indexPath, "text/html");
+        }
+    }
 
     public IResult Bootstrap(string encoded)
     {
-        var window = FindWindow(encoded);
-        if (window is null) return Results.NotFound(new { error = "UnknownWindow" });
-        return Results.Json(window.Value);
+        lock (_gate)
+        {
+            if (!_connected) return Problem("IpcUnavailable", "Named-pipe IPC is not connected.");
+            if (_state == WebRendererLifecycleState.Faulted) return Problem(_errorCode ?? "BootstrapFailed", _errorMessage ?? "Bootstrap failed.");
+            if (_state != WebRendererLifecycleState.Ready || _bootstrap is null) return Problem("BootstrapPending", "Web Renderer is waiting for the host layout bootstrap.");
+            var window = FindWindowLocked(encoded);
+            return window is null ? Results.NotFound(new { error = "UnknownWindow" }) : Results.Json(window.Value);
+        }
     }
 
     public IResult Asset(string token)
@@ -146,84 +143,172 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
             asset = asset.Clone();
         }
         var contentType = asset.GetProperty("ContentType").GetString() ?? "application/octet-stream";
-        if (asset.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.String)
-            return Results.File(Convert.FromBase64String(data.GetString()!), contentType, enableRangeProcessing: false, lastModified: null, entityTag: null);
-        var path = asset.TryGetProperty("FilePath", out var pathProperty) ? pathProperty.GetString() : null;
-        return string.IsNullOrWhiteSpace(path) || !File.Exists(path) ? Results.NotFound() : Results.File(path, contentType, enableRangeProcessing: false);
+        if (asset.TryGetProperty("Data", out var data) && data.ValueKind == JsonValueKind.String) return Results.File(Convert.FromBase64String(data.GetString()!), contentType);
+        var path = asset.TryGetProperty("FilePath", out var value) ? value.GetString() : null;
+        return string.IsNullOrWhiteSpace(path) || !File.Exists(path) ? Results.NotFound() : Results.File(path, contentType);
     }
 
-    private JsonElement? FindWindow(string encoded)
+    private async Task RunConnectionLoopAsync(CancellationToken cancellationToken)
     {
-        string value;
-        try { value = Encoding.UTF8.GetString(Convert.FromBase64String(encoded.Replace('-', '+').Replace('_', '/') + new string('=', (4 - encoded.Length % 4) % 4))); }
-        catch { return null; }
-        lock (_gate)
+        var delay = TimeSpan.FromMilliseconds(250);
+        while (!cancellationToken.IsCancellationRequested)
         {
-            if (_bootstrap is null || !_bootstrap.RootElement.TryGetProperty("Windows", out var windows)) return null;
-            foreach (var window in windows.EnumerateArray())
-                if (string.Equals(window.GetProperty("FullWindowType").GetString(), value, StringComparison.Ordinal)) return window.Clone();
+            try
+            {
+                await using var pipe = new NamedPipeClientStream(".", settings.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                Console.Error.WriteLine("Web Renderer IPC connecting to host.");
+                await pipe.ConnectAsync(cancellationToken);
+                lock (_gate) { _connected = true; _lastInboundSequence = 0; }
+                Console.Error.WriteLine("Web Renderer pipe connected.");
+                using var session = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var writer = Task.Run(() => WriteLoopAsync(pipe, session.Token), session.Token);
+                await QueueAsync(WebRendererIpcProtocol.SidecarReady, new { hostVersion = _hostVersion }, cancellationToken);
+                await ReadLoopAsync(pipe, session.Token);
+                session.Cancel(); _outbound.Writer.TryWrite(WebRendererOutbound.Flush());
+                try { await writer; } catch (OperationCanceledException) { }
+                delay = TimeSpan.FromMilliseconds(250);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { break; }
+            catch (Exception ex) { Console.Error.WriteLine($"Web Renderer IPC disconnected: {ex.Message}"); }
+            lock (_gate) { _connected = false; if (_state != WebRendererLifecycleState.Stopping) _state = WebRendererLifecycleState.WaitingForPipe; }
+            await BroadcastAsync(new { type = "status", payload = Health() });
+            await Task.Delay(delay, cancellationToken);
+            delay = TimeSpan.FromMilliseconds(Math.Min(delay.TotalMilliseconds * 2, 5000));
         }
-        return null;
     }
 
-    public async Task ConnectPipeAsync(CancellationToken cancellationToken)
+    private async Task ReadLoopAsync(Stream pipe, CancellationToken cancellationToken)
     {
-        try
-        {
-            Console.Error.WriteLine("Web Renderer IPC connecting to host.");
-            await using var pipe = new NamedPipeClientStream(".", settings.PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
-            await pipe.ConnectAsync(TimeSpan.FromSeconds(15), cancellationToken);
-            await using var writer = new StreamWriter(pipe, new UTF8Encoding(false), 1024, leaveOpen: true) { AutoFlush = true };
-            _pipeWriter = writer;
-            using var reader = new StreamReader(pipe, new UTF8Encoding(false), false, 1024, leaveOpen: true);
-            await SendPipeAsync(writer, WebRendererIpcProtocol.SidecarReady, new { hostVersion = _hostVersion }, cancellationToken); SetIpcStatus("connected");
-            Console.Error.WriteLine("Web Renderer IPC connected to host.");
-            await ReadPipeAsync(reader, cancellationToken);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
-        catch (Exception ex) { Console.Error.WriteLine($"IPC connection failed: {ex.Message}"); SetIpcStatus("disconnected"); }
-    }
-
-    private async Task ReadPipeAsync(StreamReader reader, CancellationToken cancellationToken)
-    {
+        using var reader = new StreamReader(pipe, new UTF8Encoding(false), false, 1024, leaveOpen: true);
         while (await reader.ReadLineAsync(cancellationToken) is { } line)
         {
-            var message = JsonSerializer.Deserialize<WebRendererIpcMessage>(line); if (message is null) continue;
-            if (message.Type == WebRendererIpcProtocol.HostHello && message.Payload.TryGetProperty("hostVersion", out var version)) { _hostVersion = version.GetString() ?? _hostVersion; SetIpcStatus("connected"); }
-            if (message.Type == WebRendererIpcProtocol.BootstrapReplace) { lock (_gate) { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(message.Payload.GetRawText()); } Console.Error.WriteLine("Web Renderer bootstrap received."); }
-            if (message.Type == WebRendererIpcProtocol.RuntimeSnapshot) { lock (_gate) { _runtime?.Dispose(); _runtime = JsonDocument.Parse(message.Payload.GetRawText()); } await BroadcastAsync(new { type = "snapshot", payload = message.Payload }); }
-            if (message.Type == WebRendererIpcProtocol.RuntimeBindingPatch) await BroadcastAsync(new { type = "bindingPatch", payload = message.Payload });
-            if (message.Type == WebRendererIpcProtocol.BehaviorEvent) await BroadcastAsync(new { type = "behavior.event", payload = message.Payload });
-            if (message.Type == WebRendererIpcProtocol.TransitionPrepare || message.Type == WebRendererIpcProtocol.TransitionCommitted || message.Type == WebRendererIpcProtocol.TransitionCancel)
-                await BroadcastAsync(new { type = message.Type, payload = message.Payload });
-            if (message.Type == WebRendererIpcProtocol.BootstrapChanged) await BroadcastAsync(new { type = WebRendererIpcProtocol.BootstrapChanged, payload = message.Payload });
-            if (message.Type == WebRendererIpcProtocol.Shutdown) Environment.Exit(0);
+            var message = JsonSerializer.Deserialize<WebRendererIpcMessage>(line);
+            if (message is null || !AcceptInbound(message)) continue;
+            switch (message.Type)
+            {
+                case WebRendererIpcProtocol.HostHello:
+                    if (message.Payload.TryGetProperty("hostVersion", out var version)) _hostVersion = version.GetString() ?? _hostVersion;
+                    Console.Error.WriteLine("Web Renderer host.hello received.");
+                    break;
+                case WebRendererIpcProtocol.SessionState:
+                    ApplySessionState(message.Payload);
+                    break;
+                case WebRendererIpcProtocol.BootstrapReplace:
+                    await ApplyBootstrapAsync(message.Payload, cancellationToken);
+                    break;
+                case WebRendererIpcProtocol.BootstrapFailed:
+                    ApplyBootstrapFailure(message.Payload);
+                    break;
+                case WebRendererIpcProtocol.RuntimeSnapshot:
+                    lock (_gate) { _runtime?.Dispose(); _runtime = JsonDocument.Parse(message.Payload.GetRawText()); }
+                    await BroadcastAsync(new { type = "snapshot", payload = message.Payload });
+                    break;
+                case WebRendererIpcProtocol.RuntimeBindingPatch:
+                    await BroadcastAsync(new { type = "bindingPatch", payload = message.Payload }); break;
+                case WebRendererIpcProtocol.BehaviorEvent:
+                    await BroadcastAsync(new { type = "behavior.event", payload = message.Payload }); break;
+                case WebRendererIpcProtocol.TransitionPrepare or WebRendererIpcProtocol.TransitionCommitted or WebRendererIpcProtocol.TransitionCancel:
+                    await BroadcastAsync(new { type = message.Type, payload = message.Payload }); break;
+                case WebRendererIpcProtocol.Shutdown:
+                    lock (_gate) _state = WebRendererLifecycleState.Stopping;
+                    return;
+            }
         }
-        _pipeWriter = null;
-        SetIpcStatus("disconnected"); Environment.Exit(0);
     }
 
-    private async Task SendPipeAsync(StreamWriter writer, string type, object payload, CancellationToken cancellationToken)
+    private bool AcceptInbound(WebRendererIpcMessage message)
     {
-        await _pipeWriteLock.WaitAsync(cancellationToken);
+        lock (_gate)
+        {
+            if (message.ProtocolVersion != WebRendererIpcProtocol.Version || message.Sequence <= _lastInboundSequence) { Console.Error.WriteLine($"Web Renderer IPC rejected {message.Type}: protocol or sequence."); return false; }
+            _lastInboundSequence = message.Sequence;
+            return true;
+        }
+    }
+
+    private async Task ApplyBootstrapAsync(JsonElement payload, CancellationToken cancellationToken)
+    {
+        if (!TryValidateBootstrap(payload, out var failure, out var generation, out var activePackageId, out var windowCount, out var renderableCount))
+        {
+            await QueueAsync(WebRendererIpcProtocol.BootstrapRejected, failure!, cancellationToken); return;
+        }
+        lock (_gate)
+        {
+            if (generation <= _generation) { failure = new WebRendererBootstrapFailure(generation, "StaleGeneration", "Bootstrap generation is not newer than the accepted generation."); }
+            else { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(payload.GetRawText()); _generation = generation; _errorCode = null; _errorMessage = null; }
+        }
+        if (failure is not null) { await QueueAsync(WebRendererIpcProtocol.BootstrapRejected, failure, cancellationToken); return; }
+        Console.Error.WriteLine($"Web Renderer bootstrap.replace applied: generation {generation}.");
+        await QueueAsync(WebRendererIpcProtocol.BootstrapApplied, new WebRendererBootstrapApplied(generation, windowCount, renderableCount, activePackageId), cancellationToken);
+        await BroadcastAsync(new { type = WebRendererIpcProtocol.BootstrapChanged, payload = new { generation } });
+    }
+
+    private static bool TryValidateBootstrap(JsonElement payload, out WebRendererBootstrapFailure? failure, out long generation, out string activePackageId, out int windowCount, out int renderableCount)
+    {
+        failure = null; generation = 0; activePackageId = string.Empty; windowCount = 0; renderableCount = 0;
         try
         {
-            await writer.WriteLineAsync(JsonSerializer.Serialize(new WebRendererIpcMessage { ProtocolVersion = WebRendererIpcProtocol.Version, Sequence = Interlocked.Increment(ref _sequence), Type = type, Payload = JsonSerializer.SerializeToElement(payload) }).AsMemory(), cancellationToken);
+            if (!payload.TryGetProperty("ProtocolVersion", out var protocol) || protocol.GetInt32() != WebRendererIpcProtocol.Version) throw new InvalidOperationException("ProtocolVersionMismatch");
+            generation = payload.GetProperty("Generation").GetInt64(); activePackageId = payload.GetProperty("ActivePackageId").GetString() ?? string.Empty;
+            if (generation <= 0 || string.IsNullOrWhiteSpace(activePackageId)) throw new InvalidOperationException("InvalidBootstrapIdentity");
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var window in payload.GetProperty("Windows").EnumerateArray())
+            {
+                var name = window.GetProperty("FullWindowType").GetString();
+                if (string.IsNullOrWhiteSpace(name) || !names.Add(name)) throw new InvalidOperationException("InvalidWindowStructure");
+                var layout = window.GetProperty("Layout");
+                if (layout.ValueKind != JsonValueKind.Null)
+                {
+                    if (!layout.TryGetProperty("WindowSettings", out _) || !layout.TryGetProperty("CanvasSettings", out _) || !layout.TryGetProperty("ControlLayout", out _)) throw new InvalidOperationException("InvalidLayoutStructure");
+                    renderableCount++;
+                }
+                windowCount++;
+            }
+            if (!payload.TryGetProperty("Assets", out var assets) || assets.ValueKind != JsonValueKind.Object) throw new InvalidOperationException("InvalidAssets");
+            return true;
         }
-        finally { _pipeWriteLock.Release(); }
+        catch (Exception ex) { failure = new WebRendererBootstrapFailure(generation, "BootstrapValidationFailed", ex.Message); return false; }
     }
-    private void SetIpcStatus(string value) { _ipcStatus = value; _ = BroadcastAsync(new { type = "status", payload = Health() }); }
+
+    private void ApplySessionState(JsonElement payload)
+    {
+        try
+        {
+            var value = payload.Deserialize<WebRendererSessionState>();
+            if (value is null) return;
+            lock (_gate) { _state = value.State; _errorCode = value.ErrorCode; _errorMessage = value.ErrorMessage; }
+            _ = BroadcastAsync(new { type = "status", payload = Health() });
+        }
+        catch (JsonException) { }
+    }
+
+    private void ApplyBootstrapFailure(JsonElement payload)
+    {
+        try { var failure = payload.Deserialize<WebRendererBootstrapFailure>(); if (failure is not null) lock (_gate) { _errorCode = failure.Code; _errorMessage = failure.Message; _state = WebRendererLifecycleState.Faulted; } }
+        catch (JsonException) { }
+    }
+
+    private async Task QueueAsync(string type, object payload, CancellationToken cancellationToken) => await _outbound.Writer.WriteAsync(new(type, payload), cancellationToken);
+    private async Task WriteLoopAsync(Stream pipe, CancellationToken cancellationToken)
+    {
+        using var writer = new StreamWriter(pipe, new UTF8Encoding(false), 1024, leaveOpen: true) { AutoFlush = true };
+        await foreach (var item in _outbound.Reader.ReadAllAsync(cancellationToken))
+        {
+            if (item.IsFlush) continue;
+            var message = new WebRendererIpcMessage { ProtocolVersion = WebRendererIpcProtocol.Version, Sequence = Interlocked.Increment(ref _sequence), Type = item.Type!, Payload = JsonSerializer.SerializeToElement(item.Payload) };
+            await writer.WriteLineAsync(JsonSerializer.Serialize(message).AsMemory(), cancellationToken);
+        }
+    }
+
     public async Task AttachAsync(WebSocket socket, CancellationToken cancellationToken)
     {
-        JsonElement? runtime = null;
-        int count;
+        JsonElement? runtime = null; int count;
         lock (_gate) { _sockets.Add(socket); count = _sockets.Count; if (_runtime is not null) runtime = _runtime.RootElement.Clone(); }
         await SendSocketAsync(socket, new { type = "serverStatus", payload = Health() }, cancellationToken);
-        await SendPipeAsyncCurrentClientsAsync(count, cancellationToken);
+        await QueueAsync(WebRendererIpcProtocol.SidecarClientsChanged, new { count }, cancellationToken);
         if (runtime is not null) await SendSocketAsync(socket, new { type = "snapshot", payload = runtime.Value }, cancellationToken);
     }
-    private async Task BroadcastAsync(object value) { WebSocket[] sockets; lock (_gate) sockets = _sockets.Where(socket => socket.State == WebSocketState.Open).ToArray(); await Task.WhenAll(sockets.Select(socket => SendSocketAsync(socket, value, CancellationToken.None))); }
-    private static async Task SendSocketAsync(WebSocket socket, object value, CancellationToken cancellationToken) { var content = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)); await socket.SendAsync(content, WebSocketMessageType.Text, true, cancellationToken); }
+
     public async Task WaitForCloseAsync(WebSocket socket, CancellationToken cancellationToken)
     {
         var buffer = new byte[4096];
@@ -235,21 +320,37 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
                 try
                 {
                     using var message = JsonDocument.Parse(buffer.AsMemory(0, received.Count));
-                    var root = message.RootElement;
-                    if (!root.TryGetProperty("type", out var type) || !root.TryGetProperty("correlationId", out var id)) continue;
-                    var value = type.GetString();
-                    if (value == WebRendererIpcProtocol.TransitionExitCompleted || value == WebRendererIpcProtocol.TransitionEnterCompleted)
-                        await SendPipeAsync(_pipeWriter!, value, new { correlationId = id.GetString() }, cancellationToken);
+                    if (!message.RootElement.TryGetProperty("type", out var typeProperty) || !message.RootElement.TryGetProperty("correlationId", out var idProperty)) continue;
+                    var type = typeProperty.GetString(); var id = idProperty.GetString();
+                    if (type is WebRendererIpcProtocol.TransitionExitCompleted or WebRendererIpcProtocol.TransitionEnterCompleted && !string.IsNullOrWhiteSpace(id))
+                        await QueueAsync(type, new { correlationId = id }, cancellationToken);
                 }
                 catch (JsonException) { }
             }
         }
-        finally { int count; lock (_gate) { _sockets.Remove(socket); count = _sockets.Count; } await SendPipeAsyncCurrentClientsAsync(count, CancellationToken.None); }
+        finally { int count; lock (_gate) { _sockets.Remove(socket); count = _sockets.Count; } try { await QueueAsync(WebRendererIpcProtocol.SidecarClientsChanged, new { count }, CancellationToken.None); } catch { } }
     }
 
-    private Task SendPipeAsyncCurrentClientsAsync(int count, CancellationToken cancellationToken)
+    private async Task BroadcastAsync(object value)
     {
-        var writer = _pipeWriter;
-        return writer is null ? Task.CompletedTask : SendPipeAsync(writer, WebRendererIpcProtocol.SidecarClientsChanged, new { count }, cancellationToken);
+        WebSocket[] sockets; lock (_gate) sockets = _sockets.Where(socket => socket.State == WebSocketState.Open).ToArray();
+        await Task.WhenAll(sockets.Select(socket => SendSocketAsync(socket, value, CancellationToken.None)));
     }
+    private static Task SendSocketAsync(WebSocket socket, object value, CancellationToken cancellationToken) => socket.SendAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)), WebSocketMessageType.Text, true, cancellationToken);
+    private JsonElement? FindWindowLocked(string encoded)
+    {
+        try
+        {
+            var value = Encoding.UTF8.GetString(Convert.FromBase64String(encoded.Replace('-', '+').Replace('_', '/') + new string('=', (4 - encoded.Length % 4) % 4)));
+            if (_bootstrap is null) return null;
+            foreach (var window in _bootstrap.RootElement.GetProperty("Windows").EnumerateArray()) if (string.Equals(window.GetProperty("FullWindowType").GetString(), value, StringComparison.Ordinal)) return window.Clone();
+        }
+        catch (FormatException) { }
+        return null;
+    }
+    private object[] WindowsLocked() => _bootstrap!.RootElement.GetProperty("Windows").EnumerateArray().Select(window => new { fullWindowType = window.GetProperty("FullWindowType").GetString(), displayName = window.GetProperty("DisplayName").GetString(), available = window.GetProperty("Layout").ValueKind != JsonValueKind.Null, diagnostics = window.GetProperty("Diagnostics") }).Cast<object>().ToArray();
+    private string? ActivePackageIdLocked() => _bootstrap?.RootElement.TryGetProperty("ActivePackageId", out var value) == true ? value.GetString() : null;
+    private int WindowCountLocked() => _bootstrap?.RootElement.TryGetProperty("Windows", out var value) == true ? value.GetArrayLength() : 0;
+    private static IResult Problem(string code, string detail) => Results.Problem(detail, statusCode: StatusCodes.Status503ServiceUnavailable, extensions: new Dictionary<string, object?> { ["error"] = code });
+    private sealed record WebRendererOutbound(string? Type, object? Payload, bool IsFlush = false) { public static WebRendererOutbound Flush() => new(null, null, true); }
 }

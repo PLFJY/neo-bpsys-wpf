@@ -102,7 +102,9 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     private void Refresh()
     {
         var status = _service.Status;
-        ServiceState = status.IsRunning ? $"运行中 (PID {status.ProcessId})" : "未运行";
+        ServiceState = status.IsRunning
+            ? $"{status.LifecycleState} (PID {status.ProcessId})"
+            : status.LifecycleState.ToString();
         LocalUrl = $"http://127.0.0.1:{status.Port}/";
         LanUrl = $"http://{status.Address}:{status.Port}/";
         ClientCount = status.ClientCount; ActivePackageId = status.ActivePackageId ?? "-";
@@ -119,6 +121,7 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
         var settings = _settingsHostService.Settings;
         var items = _windowRegistry.GetCustomizableLayoutWindows()
             .OrderBy(window => window.DisplayOrder ?? int.MaxValue)
+            .Where(descriptor => published.ContainsKey(descriptor.FullWindowType))
             .Select(descriptor =>
             {
                 published.TryGetValue(descriptor.FullWindowType, out var snapshot);
@@ -130,7 +133,7 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
                     url,
                     snapshot?.CanvasWidth,
                     snapshot?.CanvasHeight,
-                    hasBootstrap,
+                    hasBootstrap && snapshot is not null,
                     snapshot?.IsLayoutAvailable == true,
                     snapshot?.Diagnostics.FirstOrDefault());
             });

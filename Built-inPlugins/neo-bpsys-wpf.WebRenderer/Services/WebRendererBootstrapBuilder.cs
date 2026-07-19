@@ -2,6 +2,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.WebRenderer.Protocol;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
@@ -38,13 +39,24 @@ public sealed class WebRendererBootstrapBuilder(
             if (result.Config is null)
             {
                 diagnostics.Add(result.Error ?? "LayoutMissing");
-                windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, null, null, new Dictionary<string, string>(), diagnostics));
+                windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, true, false, false, 0,
+                    null, null, new Dictionary<string, string>(), diagnostics));
                 continue;
             }
 
             var mapping = new Dictionary<string, string>(StringComparer.Ordinal);
-            var behavior = await behaviorService.LoadDocumentAsync(descriptor.FullWindowType, cancellationToken);
-            foreach (var reference in EnumerateResourceReferences(result.Config).Concat(EnumerateBehaviorResourceReferences(behavior)))
+            FrontedBehaviorDocument? behavior = null;
+            var behaviorLoaded = false;
+            try
+            {
+                behavior = await behaviorService.LoadDocumentAsync(descriptor.FullWindowType, cancellationToken);
+                behaviorLoaded = true;
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                diagnostics.Add($"BehaviorLoadFailed:{ex.Message}");
+            }
+            foreach (var reference in EnumerateResourceReferences(result.Config).Concat(behavior is null ? [] : EnumerateBehaviorResourceReferences(behavior)))
             {
                 var asset = TryCreateAsset(reference, active.PackageId, diagnostics);
                 if (asset is null)
@@ -52,10 +64,11 @@ public sealed class WebRendererBootstrapBuilder(
                 resources.TryAdd(asset.Token, asset);
                 mapping[reference] = $"/bpui-assets/{asset.Token}";
             }
-            windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, result.Config, behavior, mapping, diagnostics));
+            windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, true, true, behaviorLoaded,
+                mapping.Count, result.Config, behavior, mapping, diagnostics));
         }
 
-        return new WebRendererBootstrapSnapshot(WebRendererProtocolVersion.Value, generation, active.PackageId, windows, resources);
+        return new WebRendererBootstrapSnapshot(WebRendererIpcProtocol.Version, generation, active.PackageId, windows, resources);
     }
 
     private static IEnumerable<string> EnumerateBehaviorResourceReferences(FrontedBehaviorDocument document) =>
@@ -161,20 +174,14 @@ public sealed class WebRendererBootstrapBuilder(
     };
 }
 
-/// <summary>Web Runtime 协议版本。</summary>
-public static class WebRendererProtocolVersion
-{
-    /// <summary>当前版本。</summary>
-    public const int Value = 3;
-}
-
 /// <summary>不可变 bootstrap 快照。</summary>
 public sealed record WebRendererBootstrapSnapshot(int ProtocolVersion, long Generation, string ActivePackageId,
     IReadOnlyList<WebRendererBootstrapWindow> Windows,
     IReadOnlyDictionary<string, WebRendererAsset> Assets);
 
 /// <summary>单个窗口的安全布局数据。</summary>
-public sealed record WebRendererBootstrapWindow(string FullWindowType, string DisplayName, FrontedWindowConfig? Layout,
+public sealed record WebRendererBootstrapWindow(string FullWindowType, string DisplayName, bool DescriptorFound,
+    bool LayoutLoaded, bool BehaviorLoaded, int ResourceCount, FrontedWindowConfig? Layout,
     FrontedBehaviorDocument? BehaviorDocument,
     IReadOnlyDictionary<string, string> Resources, IReadOnlyList<string> Diagnostics);
 

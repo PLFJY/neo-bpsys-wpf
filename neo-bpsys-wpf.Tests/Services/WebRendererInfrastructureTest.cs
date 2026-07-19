@@ -14,6 +14,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -146,6 +147,36 @@ public sealed class WebRendererInfrastructureTest
         Assert.NotNull(restored);
         Assert.Equal(7, restored.Sequence);
         Assert.Equal(WebRendererIpcProtocol.Heartbeat, restored.Type);
+    }
+
+    /// <summary>IPC 协议公开确认消息和完整生命周期，避免以“已写入”误判为就绪。</summary>
+    [Fact]
+    public void IpcProtocolDefinesAcknowledgedLifecycle()
+    {
+        Assert.Equal("bootstrap.applied", WebRendererIpcProtocol.BootstrapApplied);
+        Assert.Equal("bootstrap.failed", WebRendererIpcProtocol.BootstrapFailed);
+        Assert.Equal("bootstrap.rejected", WebRendererIpcProtocol.BootstrapRejected);
+        Assert.Equal("session.state", WebRendererIpcProtocol.SessionState);
+        Assert.Equal(
+            [WebRendererLifecycleState.Stopped, WebRendererLifecycleState.StartingProcess,
+                WebRendererLifecycleState.WaitingForPipe, WebRendererLifecycleState.PipeConnected,
+                WebRendererLifecycleState.BuildingBootstrap, WebRendererLifecycleState.WaitingForBootstrapAck,
+                WebRendererLifecycleState.Ready, WebRendererLifecycleState.Stopping, WebRendererLifecycleState.Faulted],
+            Enum.GetValues<WebRendererLifecycleState>());
+    }
+
+    /// <summary>sidecar 没有 IPC/bootstrap 时，窗口 API 必须明确返回不可用而不是空成功数组。</summary>
+    [Fact]
+    public void SidecarWindowsAreUnavailableBeforeIpcHandshake()
+    {
+        var settings = new host::SidecarSettings("test-pipe", Environment.ProcessId,
+            System.Net.IPAddress.Loopback, 19527, "test");
+        var state = new host::WebRendererHostState(settings, "test-client");
+
+        var result = state.Windows();
+
+        Assert.IsAssignableFrom<IStatusCodeHttpResult>(result);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, ((IStatusCodeHttpResult)result).StatusCode);
     }
 
     /// <summary>

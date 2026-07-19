@@ -53,6 +53,22 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         }
     }
 
+    /// <summary>在 bootstrap 获得 sidecar 确认后发布当前完整运行时快照。</summary>
+    /// <remarks>此方法不依赖浏览器连接数，以保证新 IPC 会话的有序初始状态。</remarks>
+    public void PublishConfirmedSnapshot()
+    {
+        lock (_gate)
+        {
+            if (_subscriptions.Count == 0)
+            {
+                Observe(_sharedData, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
+                _eventBus.EventPublished += OnEventPublished;
+                _subscriptions.Add(new ActionSubscription(() => _eventBus.EventPublished -= OnEventPublished));
+            }
+            RecalculateLocked(sendSnapshot: true);
+        }
+    }
+
     /// <summary>更新 sidecar 当前的连接页面数量。</summary>
     public void SetClientCount(int clientCount)
     {
@@ -97,14 +113,11 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             collectionChanged.CollectionChanged += handler;
             _subscriptions.Add(new ActionSubscription(() => collectionChanged.CollectionChanged -= handler));
         }
-        if (value is IEnumerable enumerable and not string)
-            foreach (var item in enumerable) Observe(item, visited, depth + 1);
-        var type = value.GetType();
-        if (type.IsPrimitive || value is string || type.IsEnum) return;
-        foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(property => property.GetIndexParameters().Length == 0 && property.GetMethod is not null))
-        {
-            try { Observe(property.GetValue(value), visited, depth + 1); } catch { /* projection is best effort */ }
-        }
+        // Do not walk every public property of the WPF shared-data graph. Some
+        // framework and plugin getters are computed and may throw; reflection
+        // wraps those failures in TargetInvocationException and made a normal
+        // Web session noisy in the debugger. The root service notifications and
+        // explicit event bus remain sufficient for this experimental publisher.
     }
 
     private void OnEventPublished(object? sender, FrontedBehaviorEvent args)

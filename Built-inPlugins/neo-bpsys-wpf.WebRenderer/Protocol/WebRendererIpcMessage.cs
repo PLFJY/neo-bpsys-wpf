@@ -31,7 +31,10 @@ public sealed record WebRendererIpcMessage
 public static class WebRendererIpcProtocol
 {
     /// <summary>当前协议版本。</summary>
-    public const int Version = 4;
+    public const int Version = 5;
+
+    /// <summary>主程序广播的权威会话状态。</summary>
+    public const string SessionState = "session.state";
 
     /// <summary>插件发送的主机元数据消息类型。</summary>
     public const string HostHello = "host.hello";
@@ -50,6 +53,15 @@ public static class WebRendererIpcProtocol
 
     /// <summary>插件发送的完整静态布局快照。</summary>
     public const string BootstrapReplace = "bootstrap.replace";
+
+    /// <summary>sidecar 已原子应用 bootstrap 的确认消息。</summary>
+    public const string BootstrapApplied = "bootstrap.applied";
+
+    /// <summary>bootstrap 构建失败消息。</summary>
+    public const string BootstrapFailed = "bootstrap.failed";
+
+    /// <summary>sidecar 拒绝无效 bootstrap 的消息。</summary>
+    public const string BootstrapRejected = "bootstrap.rejected";
 
     /// <summary>sidecar 通知浏览器刷新布局快照。</summary>
     public const string BootstrapChanged = "bootstrap.changed";
@@ -80,3 +92,37 @@ public static class WebRendererIpcProtocol
     /// <summary>页面确认 Enter 图完成。</summary>
     public const string TransitionEnterCompleted = "transition.enterCompleted";
 }
+
+/// <summary>Web Renderer 主程序与 sidecar 共享的权威生命周期状态。</summary>
+public enum WebRendererLifecycleState
+{
+    /// <summary>未启动。</summary>
+    Stopped,
+    /// <summary>正在启动 sidecar 进程。</summary>
+    StartingProcess,
+    /// <summary>正在等待命名管道。</summary>
+    WaitingForPipe,
+    /// <summary>命名管道已经连接。</summary>
+    PipeConnected,
+    /// <summary>正在构建真实布局 bootstrap。</summary>
+    BuildingBootstrap,
+    /// <summary>正在等待 sidecar 应用确认。</summary>
+    WaitingForBootstrapAck,
+    /// <summary>sidecar 已确认当前 bootstrap。</summary>
+    Ready,
+    /// <summary>正在停止。</summary>
+    Stopping,
+    /// <summary>会话发生可诊断故障。</summary>
+    Faulted
+}
+
+/// <summary>主程序发送给 sidecar 的权威状态投影。</summary>
+public sealed record WebRendererSessionState(WebRendererLifecycleState State, long Generation,
+    string? ErrorCode = null, string? ErrorMessage = null);
+
+/// <summary>sidecar 对完整 bootstrap 的应用确认。</summary>
+public sealed record WebRendererBootstrapApplied(long Generation, int WindowCount,
+    int RenderableWindowCount, string ActivePackageId);
+
+/// <summary>bootstrap 构建或校验失败的结构化说明。</summary>
+public sealed record WebRendererBootstrapFailure(long Generation, string Code, string Message);
