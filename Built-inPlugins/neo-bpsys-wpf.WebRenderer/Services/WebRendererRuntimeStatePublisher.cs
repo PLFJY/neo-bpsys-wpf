@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
 
@@ -22,6 +23,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     private long _generation;
     private long _sequence;
     private int _clientCount;
+    private bool _recalculationQueued;
 
     /// <summary>发生可发送的完整快照或增量更新时触发。</summary>
     public event EventHandler<WebRendererRuntimeUpdate>? Updated;
@@ -74,16 +76,49 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         _values.Clear(); _assets.ReplaceReferences([]);
     }
 
-    private void OnPathChanged() { lock (_gate) if (_clientCount > 0) RecalculateLocked(false); }
+    private void OnPathChanged() => QueueRecalculation();
     private void OnAssetReady(object? sender, EventArgs args)
     {
-        var dispatcher = Application.Current?.Dispatcher;
-        if (dispatcher is null || dispatcher.CheckAccess()) OnPathChanged();
-        else _ = dispatcher.BeginInvoke(OnPathChanged);
+        QueueRecalculation();
     }
     private void OnEventPublished(object? sender, FrontedBehaviorEvent args)
     {
-        lock (_gate) if (_clientCount > 0) { BehaviorEventPublished?.Invoke(this, WebRendererBehaviorEvent.From(args)); RecalculateLocked(false); }
+        lock (_gate) if (_clientCount > 0) BehaviorEventPublished?.Invoke(this, WebRendererBehaviorEvent.From(args));
+        QueueRecalculation();
+    }
+
+    private void QueueRecalculation()
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        lock (_gate)
+        {
+            if (_clientCount == 0 || _recalculationQueued) return;
+            _recalculationQueued = true;
+        }
+
+        if (dispatcher is null)
+        {
+            FlushQueuedRecalculation();
+            return;
+        }
+
+        try
+        {
+            _ = dispatcher.BeginInvoke(DispatcherPriority.Background, FlushQueuedRecalculation);
+        }
+        catch (InvalidOperationException)
+        {
+            lock (_gate) _recalculationQueued = false;
+        }
+    }
+
+    private void FlushQueuedRecalculation()
+    {
+        lock (_gate)
+        {
+            _recalculationQueued = false;
+            if (_clientCount > 0) RecalculateLocked(false);
+        }
     }
 
     private void RecalculateLocked(bool snapshot)

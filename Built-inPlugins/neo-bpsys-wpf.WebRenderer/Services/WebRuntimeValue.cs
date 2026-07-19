@@ -49,6 +49,7 @@ public sealed class WebRuntimeAssetRegistry : IDisposable
     private readonly Dictionary<string, int> _references = new(StringComparer.Ordinal);
     private readonly Dictionary<ImageSource, WebRuntimeAsset> _ready = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<ImageSource> _pending = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<ImageSource, string> _failures = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>后台编码完成并可重新发布绑定值时发生。</summary>
     public event EventHandler? AssetReady;
@@ -61,24 +62,23 @@ public sealed class WebRuntimeAssetRegistry : IDisposable
         {
             if (_ready.TryGetValue(source, out var existing)) { asset = existing; return true; }
             if (_pending.Contains(source)) { error = "RuntimeAssetPending"; return false; }
+            if (_failures.TryGetValue(source, out var failure)) { error = failure; return false; }
             try
             {
-                // 只在 UI 线程做轻量的冻结快照；PNG 编码和文件 I/O 永不占用导播 UI 线程。
-                var snapshot = FreezeSnapshot(source);
                 _pending.Add(source);
-                _ = Task.Run(() => Encode(snapshot)).ContinueWith(task => Complete(source, task), TaskScheduler.Default);
+                // BitmapImage 的 UriSource 读取不触发解码。导入队伍信息时最常见的 Logo/
+                // 定妆照走这条路径，后续打开文件、解码、PNG 编码和磁盘写入全部在后台完成。
+                var encoding = source is BitmapImage { UriSource: { IsFile: true } uri }
+                    ? Task.Run(() => EncodeFile(uri.LocalPath))
+                    : source is BitmapSource { IsFrozen: true } bitmap
+                        ? Task.Run(() => Encode(bitmap))
+                        : Task.FromException<WebRuntimeAsset>(new InvalidOperationException("RuntimeAssetRequiresFrozenSource"));
+                _ = encoding.ContinueWith(task => Complete(source, task), TaskScheduler.Default);
                 error = "RuntimeAssetPending";
                 return false;
             }
             catch (Exception ex) { error = ex.GetType().Name; return false; }
         }
-    }
-
-    private static BitmapSource FreezeSnapshot(ImageSource source)
-    {
-        var bitmap = source as BitmapSource ?? Render(source);
-        if (bitmap.IsFrozen) return bitmap;
-        var snapshot = bitmap.CloneCurrentValue(); snapshot.Freeze(); return snapshot;
     }
 
     private static WebRuntimeAsset Encode(BitmapSource bitmap)
@@ -91,12 +91,21 @@ public sealed class WebRuntimeAssetRegistry : IDisposable
         return new("image", token, "/runtime-assets/" + token, "image/png", bitmap.PixelWidth, bitmap.PixelHeight, token);
     }
 
+    private static WebRuntimeAsset EncodeFile(string path)
+    {
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var frame = BitmapFrame.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+        frame.Freeze();
+        return Encode(frame);
+    }
+
     private void Complete(ImageSource source, Task<WebRuntimeAsset> task)
     {
         lock (_gate)
         {
             _pending.Remove(source);
             if (task.Status == TaskStatus.RanToCompletion) _ready[source] = task.Result;
+            else _failures[source] = task.Exception?.GetBaseException().GetType().Name ?? "RuntimeAssetEncodingFailed";
         }
         if (task.Status == TaskStatus.RanToCompletion) AssetReady?.Invoke(this, EventArgs.Empty);
     }
@@ -123,15 +132,6 @@ public sealed class WebRuntimeAssetRegistry : IDisposable
         return Path.Combine(CacheRoot, token.ToLowerInvariant() + ".png");
     }
 
-    private static BitmapSource Render(ImageSource source)
-    {
-        if (source.Width <= 0 || source.Height <= 0) throw new InvalidOperationException("ImageSourceSizeUnavailable");
-        var visual = new System.Windows.Controls.Image { Source = source, Width = source.Width, Height = source.Height };
-        visual.Measure(new System.Windows.Size(source.Width, source.Height)); visual.Arrange(new System.Windows.Rect(0, 0, source.Width, source.Height));
-        var rendered = new RenderTargetBitmap(Math.Max(1, (int)Math.Ceiling(source.Width)), Math.Max(1, (int)Math.Ceiling(source.Height)), 96, 96, PixelFormats.Pbgra32);
-        rendered.Render(visual); rendered.Freeze(); return rendered;
-    }
-
     /// <inheritdoc />
-    public void Dispose() { ReplaceReferences([]); lock (_gate) { _ready.Clear(); _pending.Clear(); } }
+    public void Dispose() { ReplaceReferences([]); lock (_gate) { _ready.Clear(); _pending.Clear(); _failures.Clear(); } }
 }
