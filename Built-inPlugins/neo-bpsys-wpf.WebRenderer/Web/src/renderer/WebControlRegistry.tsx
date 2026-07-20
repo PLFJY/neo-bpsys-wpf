@@ -30,9 +30,9 @@ export function WebControlRegistry({ windowType, name, config, runtime, localiza
     case 'Rectangle': control = <RectangleRenderer config={config} runtime={runtime} />; break
     case 'Polygon': control = <PolygonRenderer config={config} runtime={runtime} />; break
     case 'BackgroundTintRectangle': case 'BackgroundTintPolygon': control = <BackgroundTintRenderer config={config} runtime={runtime} context={context} />; break
-    case 'MapV2Display': semanticChild = true; control = <MapV2DisplayRenderer name={name} controlId={id} config={config} runtime={runtime} resources={resources} />; break
-    case 'Image': semanticChild = true; control = <ImageRenderer name={name} config={config} runtime={runtime} resources={resources} behaviorSet={behaviorSet} />; break
-    case 'BorderedImage': semanticChild = true; control = <BorderedImageRenderer name={name} config={config} runtime={runtime} resources={resources} behaviorSet={behaviorSet} />; break
+    case 'MapV2Display': semanticChild = true; control = <MapV2DisplayRenderer name={name} controlId={id} config={config} runtime={runtime} resources={resources} defaultPickingBorderResourceUrl={context.defaultPickingBorderResourceUrl} behaviorSet={behaviorSet} />; break
+    case 'Image': semanticChild = true; control = <ImageRenderer name={name} config={config} runtime={runtime} resources={resources} defaultPickingBorderResourceUrl={context.defaultPickingBorderResourceUrl} behaviorSet={behaviorSet} />; break
+    case 'BorderedImage': semanticChild = true; control = <BorderedImageRenderer name={name} config={config} runtime={runtime} resources={resources} defaultPickingBorderResourceUrl={context.defaultPickingBorderResourceUrl} behaviorSet={behaviorSet} />; break
     default: control = <Unsupported name={name} type={config.ControlType} />
   }
   return <ControlFrame name={name} config={config} semanticChild={semanticChild} behaviorSet={behaviorSet} resources={resources}>{control}</ControlFrame>

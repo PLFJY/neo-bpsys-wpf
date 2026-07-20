@@ -12,7 +12,7 @@ export type WebMapV2Localization = { MapKey: string; MapDisplayName: string; Cam
 export type WebLocalizedControlState = { ControlId: string; DisplayText: string }
 export type Bootstrap = {
   FullWindowType: string; DisplayName: string; Layout: Layout | null; BehaviorDocument?: BehaviorDocument | null
-  Resources: Record<string, string>; Diagnostics: string[]; Localization?: WebLocalizationSnapshot
+  Resources: Record<string, string>; Diagnostics: string[]; DefaultPickingBorderResourceUrl?: string; Localization?: WebLocalizationSnapshot
 }
 export type Layout = { WindowSettings: { ViewboxStretch?: string }; CanvasSettings: CanvasSettings; ControlLayout: { Controls: Record<string, ControlConfig> } }
 export type CanvasState = { BackgroundImage?: string; Controls?: Record<string, ControlConfig>; RequiredPlugins?: string[] }

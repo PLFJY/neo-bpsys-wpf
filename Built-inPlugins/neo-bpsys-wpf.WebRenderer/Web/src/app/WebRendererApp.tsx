@@ -6,7 +6,8 @@ import type { Bootstrap, WebLocalizationSnapshot } from '../protocol/bootstrap'
 import { RuntimeStore } from '../runtime/RuntimeStore'
 import { LocalizationStore, isWebLocalizationSnapshot } from '../runtime/LocalizationStore'
 import { waitForTransitionCommit } from '../behavior/TransitionCommitBarrier'
-import type { BehaviorEvent, RecordValue } from '../behavior/behaviorTypes'
+import { decodeBehaviorEvent } from '../behavior/behaviorProtocol'
+import type { RecordValue } from '../behavior/behaviorTypes'
 
 const base64 = (value: string) => btoa(unescape(encodeURIComponent(value))).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '')
 const decodeWindow = (encoded: string) => decodeURIComponent(escape(atob(encoded.replaceAll('-', '+').replaceAll('_', '/') + '='.repeat((4 - encoded.length % 4) % 4))))
@@ -64,7 +65,13 @@ export function WebRendererApp() {
             }
             return
           }
-          if (message.type === 'behavior.event' && message.payload) { behavior.current.publish(message.payload as unknown as BehaviorEvent); return }
+          if (message.type === 'behavior.event') {
+            const decoded = decodeBehaviorEvent(message.payload)
+            if (!decoded) { console.warn('[Web Renderer] Invalid behavior.event schema or Payload rejected.'); return }
+            console.debug(`[Web Renderer] behavior.event received EventType=${decoded.EventType} Source=${decoded.Source ?? ''}`)
+            behavior.current.publish(decoded)
+            return
+          }
           const payload = message.payload
           if (!payload || typeof payload.Sequence !== 'number') return
           if (message.type === 'snapshot' || message.type === 'bindingPatch') void store.current.enqueue(message.type, payload)

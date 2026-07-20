@@ -1,3 +1,5 @@
+const escapeSelector = (value: string): string => globalThis.CSS?.escape?.(value) ?? value.replace(/[^a-zA-Z0-9_-]/g, character => `\\${character}`)
+
 export class WebAnimationTargetResolver {
   resolve(target: unknown, self: string, layer: unknown): HTMLElement | null {
     const text = typeof target === 'string' ? target.trim() : 'Self'
@@ -14,13 +16,13 @@ export class WebAnimationTargetResolver {
     else if (text !== 'Self') name = text
 
     if (name) {
-      const named = document.querySelector<HTMLElement>(`[data-runtime-name="${CSS.escape(name)}"], [data-control-name="${CSS.escape(name)}"]`)
+      const named = document.querySelector<HTMLElement>(`[data-runtime-name="${escapeSelector(name)}"], [data-control-name="${escapeSelector(name)}"]`)
       if (named?.hasAttribute('data-control-root')) return this.layer(named, layer)
       return named
     }
-    const root = document.querySelector<HTMLElement>(`[data-control-root][data-behavior-guid="${CSS.escape(guid)}"]`)
+    const root = document.querySelector<HTMLElement>(`[data-control-root][data-behavior-guid="${escapeSelector(guid)}"]`)
     if (!root) return null
-    if (part) return root.querySelector<HTMLElement>(`[data-animation-part="${CSS.escape(part)}"]`)
+    if (part) return root.querySelector<HTMLElement>(`[data-animation-part="${escapeSelector(part)}"]`)
     return this.layer(root, layer)
   }
 

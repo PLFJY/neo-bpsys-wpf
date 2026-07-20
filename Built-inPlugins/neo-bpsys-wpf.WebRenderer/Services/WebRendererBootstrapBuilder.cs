@@ -79,7 +79,10 @@ public sealed class WebRendererBootstrapBuilder(
                 mapping[reference] = $"/bpui-assets/{asset.Token}";
             }
             windows.Add(new(descriptor.FullWindowType, localizationProvider.ResolveWindowDisplayName(descriptor, language, culture), true, true, behaviorLoaded,
-                mapping.Count, result.Config, behavior, mapping, diagnostics));
+                mapping.Count, result.Config, behavior, mapping, diagnostics)
+            {
+                DefaultPickingBorderResourceUrl = mapping.GetValueOrDefault(WebRendererResourceKeys.PickingBorder)
+            });
         }
 
         var snapshot = new WebRendererBootstrapSnapshot(WebRendererIpcProtocol.Version, generation, active.PackageId, windows, resources);
@@ -193,11 +196,12 @@ public sealed class WebRendererBootstrapBuilder(
             {
                 if (!string.IsNullOrWhiteSpace(image.ImagePath)) yield return image.ImagePath;
                 if (!string.IsNullOrWhiteSpace(image.LockImagePath)) yield return image.LockImagePath;
-                if (!string.IsNullOrWhiteSpace(image.PickingBorderImagePath)) yield return image.PickingBorderImagePath;
+                if (image.PickingBorderAvailable)
+                    yield return string.IsNullOrWhiteSpace(image.PickingBorderImagePath) ? WebRendererResourceKeys.PickingBorder : image.PickingBorderImagePath;
             }
             if (control is MapV2DisplayControlConfig map)
             {
-                if (!string.IsNullOrWhiteSpace(map.PickingBorderImagePath)) yield return map.PickingBorderImagePath;
+                yield return string.IsNullOrWhiteSpace(map.PickingBorderImagePath) ? WebRendererResourceKeys.PickingBorder : map.PickingBorderImagePath;
                 foreach (var font in new[] { map.MapNameFontFamily, map.TeamNameFontFamily, map.CampNameFontFamily })
                     if (!string.IsNullOrWhiteSpace(font) && ClassifyFontReference(font) is not WebFontReferenceKind.SystemFont) yield return font;
             }
@@ -306,6 +310,13 @@ public sealed class WebRendererBootstrapBuilder(
         is ".ttf" or ".otf" or ".woff" or ".woff2";
 }
 
+/// <summary>Web Renderer 与布局资源解析器共享的稳定资源引用。</summary>
+public static class WebRendererResourceKeys
+{
+    /// <summary>WPF Image 与 MapV2 使用的默认 PickingBorder alpha mask。</summary>
+    public const string PickingBorder = "Resources/pickingBorder.png";
+}
+
 /// <summary>Web Renderer 字体引用分类。</summary>
 public enum WebFontReferenceKind
 {
@@ -335,7 +346,11 @@ public sealed record WebRendererBootstrapSnapshot(int ProtocolVersion, long Gene
 public sealed record WebRendererBootstrapWindow(string FullWindowType, string DisplayName, bool DescriptorFound,
     bool LayoutLoaded, bool BehaviorLoaded, int ResourceCount, FrontedWindowConfig? Layout,
     FrontedBehaviorDocument? BehaviorDocument,
-    IReadOnlyDictionary<string, string> Resources, IReadOnlyList<string> Diagnostics);
+    IReadOnlyDictionary<string, string> Resources, IReadOnlyList<string> Diagnostics)
+{
+    /// <summary>主程序解析出的默认 PickingBorder mask URL。</summary>
+    public string? DefaultPickingBorderResourceUrl { get; init; }
+}
 
 /// <summary>sidecar 专用的已授权资源。</summary>
 public sealed record WebRendererAsset(string Token, string Reference, string ContentType, string? FilePath, byte[]? Data)

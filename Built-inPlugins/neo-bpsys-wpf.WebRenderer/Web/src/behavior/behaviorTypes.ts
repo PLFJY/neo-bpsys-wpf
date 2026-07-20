@@ -1,10 +1,14 @@
 export type RecordValue = Record<string, unknown>
 
 export type BehaviorEvent = {
+  SchemaVersion?: number
   EventType: string
-  WindowType?: string
-  CanvasName?: string
-  Source?: string
+  WindowId?: string | null
+  WindowType?: string | null
+  Timestamp?: string
+  CanvasName?: string | null
+  Source?: string | null
+  IsPreview?: boolean
   Payload: RecordValue
 }
 

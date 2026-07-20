@@ -491,10 +491,11 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
         JsonElement? bootstrap = null; JsonElement? localization = null; JsonElement? runtime = null; int count;
         lock (_gate) { _sockets.Add(socket); count = _sockets.Count; if (_bootstrap is not null) bootstrap = _bootstrap.RootElement.Clone(); if (_localization is not null) localization = _localization.RootElement.Clone(); if (_runtime is not null) runtime = _runtime.RootElement.Clone(); }
         await SendSocketAsync(socket, new { type = "serverStatus", payload = Health() }, cancellationToken);
-        await QueueAsync(WebRendererIpcProtocol.SidecarClientsChanged, new { count }, cancellationToken);
         if (bootstrap is not null) await SendSocketAsync(socket, new { type = WebRendererIpcProtocol.BootstrapReplace, payload = bootstrap.Value }, cancellationToken);
         if (localization is not null) await SendSocketAsync(socket, new { type = WebRendererIpcProtocol.LocalizationReplace, payload = localization.Value }, cancellationToken);
         if (runtime is not null) await SendSocketAsync(socket, new { type = "snapshot", payload = runtime.Value }, cancellationToken);
+        // 只有完整快照送达后才让主程序开始状态重放，避免行为事件先于 DOM/runtime 到达浏览器。
+        await QueueAsync(WebRendererIpcProtocol.SidecarClientsChanged, new { count }, cancellationToken);
     }
 
     public async Task WaitForCloseAsync(WebSocket socket, CancellationToken cancellationToken)

@@ -4,4 +4,5 @@ export type WebRenderContext = {
   backgroundUrl?: string
   backgroundRevision?: string
   resources: Record<string, string>
+  defaultPickingBorderResourceUrl?: string
 }

@@ -1,9 +1,9 @@
 import { WebAnimatablePropertyAdapterRegistry, supportedWebProperties } from './WebAnimatablePropertyAdapters'
 import { WebAnimationTargetResolver } from './WebAnimationTargetResolver'
+import { compare, numberValue } from './WebBehaviorComparators'
 import type { BehaviorContext, BehaviorDocument, BehaviorEdge, BehaviorEvent, BehaviorGraph, BehaviorNode, BehaviorTrigger, ControlBehaviorSet, FrontedBehavior, RecordValue } from './behaviorTypes'
 
-const numberValue = (value: unknown): number | undefined => typeof value === 'number' && Number.isFinite(value) ? value : typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value)) ? Number(value) : undefined
-const payloadKey = (path: string, payload: RecordValue): unknown => payload[path] ?? payload[`Event.${path}`]
+const payloadKey = (path: string, payload: RecordValue): unknown => Object.prototype.hasOwnProperty.call(payload, path) ? payload[path] : payload[`Event.${path}`]
 
 const resolve = (path: unknown, context: BehaviorContext): unknown => {
   if (typeof path !== 'string') return path
@@ -15,23 +15,6 @@ const resolve = (path: unknown, context: BehaviorContext): unknown => {
   if (path === 'Context.CurrentControlDisplayName') return context.display
   if (path === 'Context.BehaviorGuid') return context.guid
   return path
-}
-
-const compare = (left: unknown, op = 'Equals', right?: unknown): boolean => {
-  const a = left == null ? '' : String(left); const b = right == null ? '' : String(right)
-  const an = numberValue(a); const bn = numberValue(b); const order = an !== undefined && bn !== undefined ? an - bn : a.localeCompare(b, undefined, { sensitivity: 'accent' })
-  switch (op) {
-    case 'Equals': return a.toLowerCase() === b.toLowerCase()
-    case 'NotEquals': return a.toLowerCase() !== b.toLowerCase()
-    case 'Contains': return a.toLowerCase().includes(b.toLowerCase())
-    case 'NotContains': return !a.toLowerCase().includes(b.toLowerCase())
-    case 'GreaterThan': return order > 0
-    case 'GreaterThanOrEqual': return order >= 0
-    case 'LessThan': return order < 0
-    case 'LessThanOrEqual': return order <= 0
-    case 'Exists': return left != null
-    default: return false
-  }
 }
 
 const trigger = (descriptor: BehaviorTrigger | undefined, event: BehaviorEvent): boolean => !!descriptor && descriptor.EventType === event.EventType && (descriptor.Filters ?? []).every(filter => compare(resolve(filter.Left, { event, guid: '' }), filter.Operator, filter.Right))
@@ -95,13 +78,21 @@ export class WebBehaviorRuntime {
   }
 
   publish(event: BehaviorEvent): void {
+    console.debug(`[Web Renderer] behavior.event received EventType=${event.EventType} WindowType=${event.WindowType ?? ''}`)
     for (const set of this.document?.ControlBehaviorSets ?? []) for (const behavior of set.Behaviors ?? []) if (behavior.Enabled !== false) this.dispatch(set, behavior, event)
   }
 
   private dispatch(set: ControlBehaviorSet, behavior: FrontedBehavior, event: BehaviorEvent): void {
     if (behavior.Kind === 'Transition') { if (trigger(behavior.TransitionTrigger, event)) this.warn(`TransitionDeferred:${behavior.BehaviorId}`); return }
-    if (behavior.Kind === 'Loop') { if (trigger(behavior.StartTrigger, event)) this.startLoop(set, behavior, event); if ((behavior.StopTriggers ?? []).some(item => trigger(item, event))) this.stopLoop(set, behavior, event); return }
-    if (trigger(behavior.Trigger, event)) this.start(behavior, behavior.Graph, { event, guid: set.BehaviorGuid, display: set.DisplayName })
+    if (behavior.Kind === 'Loop') {
+      const starts = trigger(behavior.StartTrigger, event); const stops = (behavior.StopTriggers ?? []).some(item => trigger(item, event))
+      if (starts) this.startLoop(set, behavior, event); if (stops) this.stopLoop(set, behavior, event)
+      if (starts || stops) console.debug(`[Web Renderer] behavior.trigger matched EventType=${event.EventType} BehaviorId=${behavior.BehaviorId} BehaviorGuid=${set.BehaviorGuid}`)
+      return
+    }
+    const matched = trigger(behavior.Trigger, event)
+    console.debug(`[Web Renderer] behavior.trigger ${matched ? 'matched' : 'rejected'} EventType=${event.EventType} BehaviorId=${behavior.BehaviorId} BehaviorGuid=${set.BehaviorGuid}`)
+    if (matched) this.start(behavior, behavior.Graph, { event, guid: set.BehaviorGuid, display: set.DisplayName })
   }
 
   private start(behavior: FrontedBehavior, graph: BehaviorGraph | undefined, context: BehaviorContext): void {
@@ -122,6 +113,7 @@ export class WebBehaviorRuntime {
   private startLoop(set: ControlBehaviorSet, behavior: FrontedBehavior, event: BehaviorEvent): void {
     if (this.loops.has(behavior.BehaviorId)) return
     const controller = new AbortController(); this.loops.set(behavior.BehaviorId, controller)
+    console.debug(`[Web Renderer] loop started BehaviorId=${behavior.BehaviorId} BehaviorGuid=${set.BehaviorGuid}`)
     const context = { event, start: event, guid: set.BehaviorGuid, display: set.DisplayName }
     void (async () => {
       await this.execute(behavior.StartGraph, context, controller.signal)
@@ -131,12 +123,13 @@ export class WebBehaviorRuntime {
         const interval = Math.max(0, numberValue(behavior.LoopPolicy?.IntervalMs) ?? 0)
         if (interval) await this.delay(interval, controller.signal)
       }
-    })().catch(() => undefined).finally(() => this.loops.delete(behavior.BehaviorId))
+    })().catch(() => undefined).finally(() => { this.loops.delete(behavior.BehaviorId); console.debug(`[Web Renderer] loop stopped BehaviorId=${behavior.BehaviorId} BehaviorGuid=${set.BehaviorGuid}`) })
   }
 
   private stopLoop(set: ControlBehaviorSet, behavior: FrontedBehavior, event: BehaviorEvent): void {
     const controller = this.loops.get(behavior.BehaviorId); if (!controller) return
     controller.abort()
+    console.debug(`[Web Renderer] loop stop requested EventType=${event.EventType} BehaviorId=${behavior.BehaviorId} BehaviorGuid=${set.BehaviorGuid}`)
     if ((behavior.LoopPolicy?.StopMode ?? 'RunStopGraph') === 'RunStopGraph') void this.execute(behavior.StopGraph, { event, stop: event, guid: set.BehaviorGuid, display: set.DisplayName }, new AbortController().signal)
   }
 
@@ -184,7 +177,8 @@ export class WebBehaviorRuntime {
     const p = node.Properties ?? {}
     let element = this.resolver.resolve(p.Target, context.guid, p.TargetLayer)
     const property = String(p.PropertyName ?? '')
-    if (!element) { this.warn(`TargetUnavailable:${String(p.Target)}`); return }
+    if (!element) { this.warn(`TargetUnavailable:${String(p.Target)} BehaviorGuid=${context.guid}`); return }
+    console.debug(`[Web Renderer] behavior target resolved BehaviorId=${node.NodeId} BehaviorGuid=${context.guid} Target=${String(p.Target)}`)
     if (property === 'GaussianBlurRadius') element = element.closest<HTMLElement>('[data-effect-host]') ?? element
     if (kind === 'reset') { this.adapters.reset(element, property); return }
     const value = this.value(node, nodes, edges, kind === 'animate' ? 'ToInput' : 'ValueInput', kind === 'animate' ? p.To : p.Value, context, new Set())

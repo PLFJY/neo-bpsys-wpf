@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Core.Enums;
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
 
@@ -27,6 +28,8 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     private readonly IWebGameProgressProvider? _gameProgressProvider;
     private readonly ISettingsHostService? _settingsHostService;
     private readonly IWebLocalizationProvider? _localizationProvider;
+    private readonly IGameGuidanceService? _gameGuidanceService;
+    private readonly ILogger<WebRendererRuntimeStatePublisher>? _logger;
     private readonly object _gate = new();
     private readonly Dictionary<string, BindingPathObserver> _observers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WebRuntimeValue> _values = new(StringComparer.Ordinal);
@@ -47,7 +50,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     /// <summary>需要 sidecar 异步准备远程图片时发生。</summary>
     public event EventHandler<WebRemoteAssetFetch>? RemoteAssetRequested;
     /// <summary>发布可安全发送给 Web 页面的语义行为事件。</summary>
-    public event EventHandler<WebRendererBehaviorEvent>? BehaviorEventPublished;
+    public event EventHandler<WebBehaviorEventMessage>? BehaviorEventPublished;
     /// <summary>获取当前由 sidecar 报告的已连接客户端数量。</summary>
     public int ClientCount => Volatile.Read(ref _clientCount);
     /// <summary>获取最近发布的 runtime sequence。</summary>
@@ -59,13 +62,17 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         IFrontedEventBus eventBus,
         IWebGameProgressProvider? gameProgressProvider = null,
         ISettingsHostService? settingsHostService = null,
-        IWebLocalizationProvider? localizationProvider = null)
+        IWebLocalizationProvider? localizationProvider = null,
+        ILogger<WebRendererRuntimeStatePublisher>? logger = null,
+        IGameGuidanceService? gameGuidanceService = null)
     {
         _sharedData = sharedData;
         _eventBus = eventBus;
         _gameProgressProvider = gameProgressProvider;
         _settingsHostService = settingsHostService;
         _localizationProvider = localizationProvider;
+        _logger = logger;
+        _gameGuidanceService = gameGuidanceService;
         _valueFactory = new(_assets);
         _assets.AssetStateChanged += OnAssetStateChanged;
     }
@@ -142,6 +149,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             _eventBus.EventPublished += OnEventPublished;
         }
         RecalculateLocked(snapshot);
+        PublishAuthoritativeBehaviorStateLocked();
     }
 
     private void StopLocked()
@@ -161,8 +169,56 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     }
     private void OnEventPublished(object? sender, FrontedBehaviorEvent args)
     {
-        lock (_gate) if (_clientCount > 0) BehaviorEventPublished?.Invoke(this, WebRendererBehaviorEvent.From(args));
+        lock (_gate) if (_clientCount > 0)
+        {
+            var message = WebBehaviorEventMessage.From(args, diagnostic => _logger?.LogWarning("{Diagnostic}", diagnostic));
+            BehaviorEventPublished?.Invoke(this, message);
+        }
         QueueRecalculation();
+    }
+
+    private void PublishAuthoritativeBehaviorStateLocked()
+    {
+        if (_clientCount == 0) return;
+
+        foreach (var pair in _sharedData.CurrentGame.MapV2Dictionary)
+        {
+            PublishStateEvent(new FrontedBehaviorEvent
+            {
+                EventType = "MapV2.PickingBorderStateChanged",
+                Source = "WebRendererStateReplay",
+                Payload = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["MapKey"] = pair.Key,
+                    ["IsMapV2Breathing"] = _sharedData.IsMapV2Breathing,
+                    ["IsMapBanned"] = pair.Value.IsBanned,
+                    ["IsPickingBorderVisible"] = _sharedData.IsMapV2Breathing && !pair.Value.IsBanned
+                }
+            });
+        }
+
+        var guidance = _gameGuidanceService?.GetRuntimeSnapshot();
+        if (guidance is not { IsStarted: true, CurrentAction: not null }) return;
+        PublishStateEvent(new FrontedBehaviorEvent
+        {
+            EventType = "Guidance.StepChanged",
+            Source = "WebRendererStateReplay",
+            Payload = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["StepIndex"] = guidance.CurrentStepIndex,
+                ["Action"] = guidance.CurrentAction.Value,
+                ["Indexes"] = guidance.CurrentIndexes.ToArray(),
+                ["Index"] = guidance.CurrentIndexes.Count > 0 ? guidance.CurrentIndexes[0] : null,
+                ["Time"] = guidance.CurrentTime
+            }
+        });
+    }
+
+    private void PublishStateEvent(FrontedBehaviorEvent value)
+    {
+        var message = WebBehaviorEventMessage.From(value, diagnostic => _logger?.LogWarning("{Diagnostic}", diagnostic));
+        _logger?.LogDebug("behavior state replay EventType={EventType} Source={Source}", value.EventType, value.Source);
+        BehaviorEventPublished?.Invoke(this, message);
     }
 
     private void QueueRecalculation()
@@ -433,13 +489,6 @@ public sealed record WebRendererRuntimeUpdate(bool IsSnapshot, long Generation, 
     public long LocalizationRevision { get; init; }
 }
 
-
-/// <summary>经标准化后可发送到浏览器的只读行为事件。</summary>
-public sealed record WebRendererBehaviorEvent(string EventType, string? WindowId, string? WindowType, string? CanvasName, DateTimeOffset Timestamp, string? Source, IReadOnlyDictionary<string, WebRuntimeValue> Payload)
-{
-    /// <summary>从宿主事件创建安全投影。</summary>
-    public static WebRendererBehaviorEvent From(FrontedBehaviorEvent value) => new(value.EventType, value.WindowId, value.WindowType, value.CanvasName, value.Timestamp, value.Source, value.Payload.ToDictionary(pair => pair.Key, pair => new WebRuntimeValue(pair.Value is null ? "null" : "string", pair.Value?.ToString(), pair.Value?.GetType().FullName), StringComparer.Ordinal));
-}
 
 /// <summary>只订阅一个解析路径实际经过对象的观察器。</summary>
 internal sealed class BindingPathObserver(ISharedDataService root, string path, Action changed) : IDisposable
