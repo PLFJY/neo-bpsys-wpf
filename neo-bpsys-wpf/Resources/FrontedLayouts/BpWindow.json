@@ -48,7 +48,9 @@
         "Height": 38,
         "ZIndex": 5,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[15].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[15].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan14": {
         "SizingMode": "FillContainer",
@@ -78,7 +80,9 @@
         "Height": 38,
         "ZIndex": 4,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[14].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[14].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan13": {
         "SizingMode": "FillContainer",
@@ -108,7 +112,9 @@
         "Height": 38,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[13].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[13].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan12": {
         "SizingMode": "FillContainer",
@@ -138,7 +144,9 @@
         "Height": 38,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[12].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[12].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Timer": {
         "Text": null,
@@ -171,7 +179,9 @@
         "Height": null,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "MapName": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
@@ -190,7 +200,9 @@
         "Height": 30,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "GameProgress": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
@@ -224,7 +236,9 @@
         "Height": 20,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamLogo": {
         "SizingMode": "FillContainer",
@@ -253,7 +267,9 @@
         "Height": 50,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.Logo"
+        "BindingPath": "CurrentGame.SurTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamMajorPoint": {
         "Text": null,
@@ -286,7 +302,9 @@
         "Height": null,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamName": {
         "Text": null,
@@ -319,7 +337,9 @@
         "Height": null,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "GameScoresSur": {
         "Text": null,
@@ -352,7 +372,9 @@
         "Height": 30,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "GameScoresHun": {
         "Text": null,
@@ -385,7 +407,9 @@
         "Height": 30,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamName": {
         "Text": null,
@@ -418,7 +442,9 @@
         "Height": null,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamMajorPoint": {
         "Text": null,
@@ -451,7 +477,9 @@
         "Height": null,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamLogo": {
         "SizingMode": "FillContainer",
@@ -480,7 +508,9 @@
         "Height": 50,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.Logo"
+        "BindingPath": "CurrentGame.HunTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunBanCurrent0": {
         "SizingMode": "FillContainer",
@@ -509,7 +539,9 @@
         "Height": 44,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunBanCurrent1": {
         "SizingMode": "FillContainer",
@@ -538,7 +570,9 @@
         "Height": 44.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurBanCurrent0": {
         "SizingMode": "FillContainer",
@@ -567,7 +601,9 @@
         "Height": 43.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurBanCurrent1": {
         "SizingMode": "FillContainer",
@@ -596,7 +632,9 @@
         "Height": 44.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurBanCurrent2": {
         "SizingMode": "FillContainer",
@@ -625,7 +663,9 @@
         "Height": 44.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurBanCurrent3": {
         "SizingMode": "FillContainer",
@@ -654,7 +694,9 @@
         "Height": 44.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick0": {
         "ImageWidth": null,
@@ -686,7 +728,9 @@
         "Height": 161,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown"
+        "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick1": {
         "ImageWidth": null,
@@ -718,7 +762,9 @@
         "Height": 162.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown"
+        "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick2": {
         "ImageWidth": null,
@@ -750,7 +796,9 @@
         "Height": 161.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown"
+        "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick3": {
         "ImageWidth": null,
@@ -782,7 +830,9 @@
         "Height": 161.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown"
+        "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunGlobalBan0": {
         "SizingMode": "FillContainer",
@@ -811,7 +861,9 @@
         "Height": 37,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunGlobalBan1": {
         "SizingMode": "FillContainer",
@@ -840,7 +892,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunGlobalBan2": {
         "SizingMode": "FillContainer",
@@ -869,7 +923,9 @@
         "Height": 36.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan0": {
         "SizingMode": "FillContainer",
@@ -898,7 +954,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan1": {
         "SizingMode": "FillContainer",
@@ -927,7 +985,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan2": {
         "SizingMode": "FillContainer",
@@ -956,7 +1016,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan3": {
         "SizingMode": "FillContainer",
@@ -985,7 +1047,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan4": {
         "SizingMode": "FillContainer",
@@ -1014,7 +1078,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan5": {
         "SizingMode": "FillContainer",
@@ -1043,7 +1109,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan6": {
         "SizingMode": "FillContainer",
@@ -1072,7 +1140,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan7": {
         "SizingMode": "FillContainer",
@@ -1101,7 +1171,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan8": {
         "SizingMode": "FillContainer",
@@ -1130,7 +1202,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan9": {
         "SizingMode": "FillContainer",
@@ -1154,12 +1228,14 @@
         "BanLockImagePath": "Resources/GlobalBanLock.png",
         "ControlType": "Image",
         "Left": 71.5,
-        "Top": 204.5,
+        "Top": 204,
         "Width": 37.5,
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[9].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[9].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan10": {
         "SizingMode": "FillContainer",
@@ -1183,12 +1259,14 @@
         "BanLockImagePath": "Resources/GlobalBanLock.png",
         "ControlType": "Image",
         "Left": 124,
-        "Top": 204.5,
+        "Top": 204,
         "Width": 37.5,
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[10].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[10].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurGlobalBan11": {
         "SizingMode": "FillContainer",
@@ -1217,7 +1295,9 @@
         "Height": 38,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[11].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[11].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunPick": {
         "SizingMode": "Auto",
@@ -1247,7 +1327,9 @@
         "Height": 163,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunPlayer.PictureShown"
+        "BindingPath": "CurrentGame.HunPlayer.PictureShown",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId0": {
         "Text": null,
@@ -1280,7 +1362,9 @@
         "Height": 28,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId1": {
         "Text": null,
@@ -1313,7 +1397,9 @@
         "Height": 28,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId2": {
         "Text": null,
@@ -1346,7 +1432,9 @@
         "Height": 28,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId3": {
         "Text": null,
@@ -1379,7 +1467,9 @@
         "Height": 28,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunId": {
         "Text": null,
@@ -1412,7 +1502,9 @@
         "Height": 28,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunGlobalBan3": {
         "SizingMode": "FillContainer",
@@ -1442,7 +1534,9 @@
         "Height": 36.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[3].HeaderImageSingleColor"
+        "BindingPath": "CurrentGame.HunTeam.GlobalBannedHunList[3].HeaderImageSingleColor",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Map": {
         "ImageWidth": null,
@@ -1473,7 +1567,9 @@
         "Height": 194,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.PickedMapImageLarge"
+        "BindingPath": "CurrentGame.PickedMapImageLarge",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur0TeamColorBg": {
         "RadiusX": 0,
@@ -1500,7 +1596,9 @@
         "Height": 82.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur1TeamColorBg": {
         "RadiusX": 0,
@@ -1527,7 +1625,9 @@
         "Height": 82.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur2TeamColorBg": {
         "RadiusX": 0,
@@ -1554,7 +1654,9 @@
         "Height": 82.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur3TeamColorBg": {
         "RadiusX": 0,
@@ -1581,7 +1683,9 @@
         "Height": 82.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamColorBg": {
         "RadiusX": 0,
@@ -1608,7 +1712,9 @@
         "Height": 93.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       }
     }
   }

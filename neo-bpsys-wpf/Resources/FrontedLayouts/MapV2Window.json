@@ -24,18 +24,58 @@
         "MapKey": "ArmsFactory",
         "MapNameFontFamily": null,
         "MapNameFontWeight": null,
-        "MapNameColor": null,
+        "MapNameColor": "#FF000000",
         "MapNameFontSize": 0,
         "TeamNameFontFamily": null,
         "TeamNameFontWeight": null,
+        "TeamNameColor": "#FF000000",
         "TeamNameFontSize": 0,
         "CampNameFontFamily": null,
         "CampNameFontWeight": null,
+        "CampNameColor": "#FF000000",
         "CampNameFontSize": 0,
         "MapBorderNormalColor": "#FF000000",
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "07f7186f-30cb-9563-eb07-1164219dc777",
         "ControlType": "MapV2Display",
         "Left": 99,
         "Top": 19.5,
@@ -44,7 +84,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "07f7186f-30cb-9563-eb07-1164219dc777"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "The_Red_Church": {
         "MapKey": "TheRedChurch",
@@ -64,6 +105,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "588763e1-a1c8-bea8-b73f-69c1afa41ea9",
         "ControlType": "MapV2Display",
         "Left": 299,
         "Top": 20,
@@ -72,7 +151,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "588763e1-a1c8-bea8-b73f-69c1afa41ea9"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sacred_Heart_Hospital": {
         "MapKey": "SacredHeartHospital",
@@ -92,6 +172,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "827a592b-7095-2d19-ff70-c6e7edf2d8fc",
         "ControlType": "MapV2Display",
         "Left": 500.5,
         "Top": 21,
@@ -100,7 +218,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "827a592b-7095-2d19-ff70-c6e7edf2d8fc"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Leo_s_Memory": {
         "MapKey": "LeosMemory",
@@ -120,6 +239,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "84bbddef-0d27-01e1-0ca1-37a163f3e478",
         "ControlType": "MapV2Display",
         "Left": 698,
         "Top": 20,
@@ -128,7 +285,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "84bbddef-0d27-01e1-0ca1-37a163f3e478"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Moonlit_River_Park": {
         "MapKey": "MoonlitRiverPark",
@@ -148,6 +306,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "232433e6-8136-b8ca-2fb8-13dc0d4fb16b",
         "ControlType": "MapV2Display",
         "Left": 899.5,
         "Top": 20.5,
@@ -156,7 +352,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "232433e6-8136-b8ca-2fb8-13dc0d4fb16b"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Lakeside_Village": {
         "MapKey": "LakesideVillage",
@@ -176,6 +373,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "c3b02424-de72-515c-24fa-14dc4341698c",
         "ControlType": "MapV2Display",
         "Left": 1102,
         "Top": 21,
@@ -184,7 +419,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "c3b02424-de72-515c-24fa-14dc4341698c"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Eversleeping_Town": {
         "MapKey": "EversleepingTown",
@@ -204,6 +440,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0",
         "ControlType": "MapV2Display",
         "Left": 1301,
         "Top": 20.5,
@@ -212,7 +486,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "cb8d0d2b-a0bc-5127-8aee-a3954fcbc0b0"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Chinatown": {
         "MapKey": "ChinaTown",
@@ -232,6 +507,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e",
         "ControlType": "MapV2Display",
         "Left": 1504.5,
         "Top": 20,
@@ -240,7 +553,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "a4dbedb2-fb7f-27dd-bff5-ccf2cb3c726e"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Darkwoods": {
         "MapKey": "Darkwoods",
@@ -260,6 +574,44 @@
         "MapBorderBannedColor": "#FF9C3E2F",
         "PickingBorderImagePath": null,
         "PickingBorderFillColor": null,
+        "InternalParts": [
+          {
+            "Part": 0,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 69.33333333333333
+          },
+          {
+            "Part": 1,
+            "X": 5,
+            "Y": 74.33333333333333,
+            "Width": 148.5,
+            "Height": 82.44444444444444
+          },
+          {
+            "Part": 2,
+            "X": 5,
+            "Y": 136.77777777777777,
+            "Width": 148.5,
+            "Height": 20
+          },
+          {
+            "Part": 3,
+            "X": 0,
+            "Y": 161.77777777777777,
+            "Width": 158.5,
+            "Height": 46.22222222222223
+          },
+          {
+            "Part": 4,
+            "X": 0,
+            "Y": 0,
+            "Width": 158.5,
+            "Height": 208
+          }
+        ],
+        "BehaviorGuid": "5ec9d72c-fecd-e4ed-227c-3209bbb717b4",
         "ControlType": "MapV2Display",
         "Left": 1703.5,
         "Top": 21,
@@ -268,7 +620,8 @@
         "ZIndex": 0,
         "Visibility": "Visible",
         "BindingPath": null,
-        "BehaviorGuid": "5ec9d72c-fecd-e4ed-227c-3209bbb717b4"
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "GameProgressText1": {
         "FontFamily": null,
@@ -303,7 +656,9 @@
         "Height": 256,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       }
     }
   }
