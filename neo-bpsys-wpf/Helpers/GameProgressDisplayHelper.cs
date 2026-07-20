@@ -159,18 +159,7 @@ public static class GameProgressDisplayHelper
 
     private static string GetHalfText(string halfKey, CultureInfo culture)
     {
-        var halfText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, halfKey, culture);
-        if (halfText != halfKey)
-        {
-            return halfText;
-        }
-
-        return halfKey switch
-        {
-            "FirstHalf" => "FIRST HALF",
-            "SecondHalf" => "SECOND HALF",
-            _ => halfText
-        };
+        return I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, halfKey, culture);
     }
 
     private static (int gameNumber, bool isOvertime, GameProgressHalf half) GetGameInfo(

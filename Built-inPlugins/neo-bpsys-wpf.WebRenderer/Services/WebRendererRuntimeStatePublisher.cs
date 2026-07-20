@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
 
@@ -19,6 +20,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     private readonly IFrontedEventBus _eventBus;
     private readonly WebRuntimeAssetRegistry _assets = new();
     private readonly WebRuntimeValueFactory _valueFactory;
+    private readonly IWebGameProgressProvider? _gameProgressProvider;
     private readonly object _gate = new();
     private readonly Dictionary<string, BindingPathObserver> _observers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WebRuntimeValue> _values = new(StringComparer.Ordinal);
@@ -43,9 +45,9 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     public long CurrentSequence { get { lock (_gate) return _sequence; } }
 
     /// <summary>创建运行时发布器。</summary>
-    public WebRendererRuntimeStatePublisher(ISharedDataService sharedData, IFrontedEventBus eventBus)
+    public WebRendererRuntimeStatePublisher(ISharedDataService sharedData, IFrontedEventBus eventBus, IWebGameProgressProvider? gameProgressProvider = null)
     {
-        _sharedData = sharedData; _eventBus = eventBus; _valueFactory = new(_assets); _assets.AssetStateChanged += OnAssetStateChanged;
+        _sharedData = sharedData; _eventBus = eventBus; _gameProgressProvider = gameProgressProvider; _valueFactory = new(_assets); _assets.AssetStateChanged += OnAssetStateChanged;
     }
 
     /// <summary>使用新 bootstrap 重新收集所有可消费的绑定路径。</summary>
@@ -166,7 +168,9 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             var result = pair.Value.Resolve();
             if (result.Value is ImageSource image) activeImages.Add(image);
             WebRuntimeDiagnostic? conversionDiagnostic = null;
-            var value = result.Diagnostic is null ? _valueFactory.Create(result.Value, pair.Key, out conversionDiagnostic) : new WebRuntimeValue("null", null, result.SourceType, result.Diagnostic);
+            var value = result.Diagnostic is null && pair.Key == "CurrentGame.GameProgress" && result.Value is GameProgress progress && _gameProgressProvider is not null
+                ? new WebRuntimeValue("gameProgress", _gameProgressProvider.Create(progress, ResolveBo3Mode()), typeof(GameProgress).FullName)
+                : result.Diagnostic is null ? _valueFactory.Create(result.Value, pair.Key, out conversionDiagnostic) : new WebRuntimeValue("null", null, result.SourceType, result.Diagnostic);
             if (result.Diagnostic is not null) diagnostics.Add(new(pair.Key, result.Diagnostic, result.SourceType));
             else if (conversionDiagnostic is not null) diagnostics.Add(conversionDiagnostic);
             if (!_values.TryGetValue(pair.Key, out var previous) || previous != value) changed[pair.Key] = value;
@@ -189,6 +193,9 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         else if (changed.Count > 0) Updated?.Invoke(this, new(false, _generation, ++_sequence, changed, diagnostics));
         CompleteCommitBarriersLocked(isStable: true);
     }
+
+    private bool ResolveBo3Mode() => _observers.TryGetValue("IsBo3Mode", out var observer)
+        && observer.Resolve().Value is bool mode && mode;
 
     internal WebRuntimeCommitBarrier BeginCommitBarrier(
         IReadOnlyList<FrontedTransitionRequest> requests,
@@ -327,6 +334,7 @@ public sealed record WebRendererRuntimeUpdate(bool IsSnapshot, long Generation, 
     /// <summary>runtime 值 schema 版本。</summary>
     public int SchemaVersion { get; init; } = 2;
 }
+
 
 /// <summary>经标准化后可发送到浏览器的只读行为事件。</summary>
 public sealed record WebRendererBehaviorEvent(string EventType, string? WindowId, string? WindowType, string? CanvasName, DateTimeOffset Timestamp, string? Source, IReadOnlyDictionary<string, WebRuntimeValue> Payload)

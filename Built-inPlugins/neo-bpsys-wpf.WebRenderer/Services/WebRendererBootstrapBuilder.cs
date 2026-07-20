@@ -16,7 +16,8 @@ public sealed class WebRendererBootstrapBuilder(
     IFrontedLayoutPackageManager packageManager,
     IFrontedLayoutService layoutService,
     IFrontedWindowRegistry windowRegistry,
-    IFrontedBehaviorService behaviorService)
+    IFrontedBehaviorService behaviorService,
+    IWebLocalizationProvider? localizationProvider = null)
 {
     private static readonly IReadOnlyDictionary<string, string> PackFonts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -77,7 +78,22 @@ public sealed class WebRendererBootstrapBuilder(
                 mapping.Count, result.Config, behavior, mapping, diagnostics));
         }
 
-        return new WebRendererBootstrapSnapshot(WebRendererIpcProtocol.Version, generation, active.PackageId, windows, resources);
+        return new WebRendererBootstrapSnapshot(WebRendererIpcProtocol.Version, generation, active.PackageId, windows, resources)
+        {
+            Localization = localizationProvider?.Create(EnumerateLocalizationKeys(windows).ToArray())
+        };
+    }
+
+    private static IEnumerable<string> EnumerateLocalizationKeys(IEnumerable<WebRendererBootstrapWindow> windows)
+    {
+        foreach (var window in windows)
+        {
+            if (window.Layout is null) continue;
+            foreach (var control in window.Layout.ControlLayout.Controls.Values.Concat(
+                window.Layout.CanvasSettings.BoModeStates.Values.SelectMany(state => state.Controls.Values)))
+                if (control is LocalizedTextControlConfig localized && !string.IsNullOrWhiteSpace(localized.LocalizationKey))
+                    yield return localized.LocalizationKey;
+        }
     }
 
     private static IEnumerable<string> EnumerateBehaviorResourceReferences(FrontedBehaviorDocument document) =>
@@ -239,7 +255,11 @@ public enum WebFontReferenceKind
 /// <summary>不可变 bootstrap 快照。</summary>
 public sealed record WebRendererBootstrapSnapshot(int ProtocolVersion, long Generation, string ActivePackageId,
     IReadOnlyList<WebRendererBootstrapWindow> Windows,
-    IReadOnlyDictionary<string, WebRendererAsset> Assets);
+    IReadOnlyDictionary<string, WebRendererAsset> Assets)
+{
+    /// <summary>主程序当前文化下的本地化快照。</summary>
+    public WebLocalizationSnapshot? Localization { get; init; }
+}
 
 /// <summary>单个窗口的安全布局数据。</summary>
 public sealed record WebRendererBootstrapWindow(string FullWindowType, string DisplayName, bool DescriptorFound,

@@ -10,7 +10,7 @@ const partNames = ['TeamName', 'MapCard', 'MapName', 'CampName', 'PickingBorder'
 function part(config: MapV2DisplayConfig, name: string, fallback: { X: number; Y: number; Width: number; Height: number }) { const index = partNames.indexOf(name); return config.InternalParts?.find(item => item.Part === name || item.Part === index) ?? fallback }
 function style(value: MapV2Part) { return { position: 'absolute' as const, left: finite(value.X), top: finite(value.Y), width: Math.max(1, finite(value.Width, 1)), height: Math.max(1, finite(value.Height, 1)) } }
 function image(value: unknown): WebRuntimeAsset | undefined { return value && typeof value === 'object' && (value as WebRuntimeAsset).Kind === 'image' ? value as WebRuntimeAsset : undefined }
-function localized(localization: Localization | undefined, dictionary: 'Game' | 'Common', key: unknown) { return typeof key === 'string' ? localize(localization, dictionary, key, key) : '' }
+function localized(localization: Localization | undefined, dictionary: 'Game' | 'Common', key: unknown) { return typeof key === 'string' ? localize(localization, dictionary, key, '') : '' }
 
 export function MapV2DisplayRenderer({ name, config, runtime, resources, localization }: { name: string; config: MapV2DisplayConfig; runtime: RuntimeState; resources: Record<string, string>; localization?: Localization }) {
   const mapKey = config.MapKey ?? ''; const prefix = `CurrentGame.MapV2Dictionary['${mapKey}']`; const value = (suffix: string) => runtime.values[`${prefix}.${suffix}`]

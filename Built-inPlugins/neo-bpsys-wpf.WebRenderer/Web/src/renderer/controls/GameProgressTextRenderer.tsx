@@ -8,19 +8,20 @@ import { localize } from '../localization'
 
 type Parts = { free: boolean; game: string; half: string; full: string }
 const enumValue = (value: unknown, names: readonly string[], fallback: string) => typeof value === 'number' ? names[value] ?? fallback : typeof value === 'string' && names.includes(value) ? value : fallback
-const localized = (localization: Localization | undefined, key: string, fallback: string) => localize(localization, 'Game', key, fallback)
+const localized = (localization: Localization | undefined, key: string, fallback = '') => localize(localization, 'Game', key, fallback)
 const format = (template: string, ...values: string[]) => template.replace(/\{(\d+)\}/g, (_, index) => values[Number(index)] ?? '')
 const cjk = (culture?: string) => /^(zh|ja|ko)(-|$)/i.test(culture ?? '')
 function getParts(progress: unknown, isBo3: boolean, config: GameProgressConfig, localization?: Localization): Parts {
-  const names: Record<string, number> = { Free: -1, Game1FirstHalf: 0, Game1SecondHalf: 1, Game2FirstHalf: 2, Game2SecondHalf: 3, Game3FirstHalf: 4, Game3SecondHalf: 5, Game4FirstHalf: 6, Game4SecondHalf: 7, Game3OvertimeFirstHalf: 6, Game3OvertimeSecondHalf: 7, Game5FirstHalf: 8, Game5SecondHalf: 9, Game5OvertimeFirstHalf: 10, Game5OvertimeSecondHalf: 11 }
-  const value = typeof progress === 'number' ? progress : typeof progress === 'string' ? names[progress] ?? Number.NaN : Number.NaN
-  if (value === -1) return { free: true, game: '', half: '', full: localized(localization, 'GameProgressFree', 'FREE') }
-  const gameInfo = value === 0 ? [1, false, false] : value === 1 ? [1, false, true] : value === 2 ? [2, false, false] : value === 3 ? [2, false, true] : value === 4 ? [3, false, false] : value === 5 ? [3, false, true] : value === 6 ? [isBo3 ? 3 : 4, isBo3, false] : value === 7 ? [isBo3 ? 3 : 4, isBo3, true] : value === 8 ? [5, false, false] : value === 9 ? [5, false, true] : value === 10 ? [5, true, false] : value === 11 ? [5, true, true] : undefined
-  if (!gameInfo) return { free: true, game: '', half: '', full: '' }
-  const [number, overtime, second] = gameInfo as [number, boolean, boolean]; const culture = enumValue(config.DisplayLanguage, ['FollowApp', 'zh_Hans', 'en_US', 'ja_JP'], 'FollowApp') === 'FollowApp' ? localization?.Culture : enumValue(config.DisplayLanguage, ['FollowApp', 'zh_Hans', 'en_US', 'ja_JP'], 'FollowApp').replace('_', '-')
-  const style = enumValue(config.NumberStyle, ['Auto', 'Arabic', 'CjkNumeral'], 'Auto'); const numberText = style === 'CjkNumeral' || style === 'Auto' && cjk(culture) ? ['一', '二', '三', '四', '五'][number - 1] : String(number)
-  const half = localized(localization, second ? 'SecondHalf' : 'FirstHalf', second ? 'SECOND HALF' : 'FIRST HALF'); const game = format(localized(localization, overtime ? 'GameProgressGameOvertimeOnlyFormat' : 'GameProgressGameOnlyFormat', overtime ? 'GAME {0} OVERTIME' : 'GAME {0}'), numberText)
-  return { free: false, game, half, full: format(localized(localization, overtime ? 'GameProgressGameOvertimeHalfFormat' : 'GameProgressGameHalfFormat', '{0} {1}'), numberText, half) }
+  if (typeof progress === 'object' && progress !== null) {
+    const semantic = progress as { isFree?: boolean; gameText?: string; halfText?: string; fullText?: string }
+    if (typeof semantic.fullText === 'string') return {
+      free: semantic.isFree === true,
+      game: semantic.gameText ?? '',
+      half: semantic.halfText ?? '',
+      full: semantic.fullText
+    }
+  }
+  return { free: false, game: '', half: '', full: '' }
 }
 function VerticalText({ value, config, culture }: { value: string; config: GameProgressConfig; culture?: string }) {
   const selected = enumValue(config.VerticalLanguageMode, ['Auto', 'Upright', 'RotateBlock', 'StackCharacters'], 'Auto'); const mode = selected === 'Auto' ? cjk(culture) ? 'Upright' : enumValue(config.LatinVerticalMode, ['RotateBlock', 'StackCharacters'], 'RotateBlock') : selected

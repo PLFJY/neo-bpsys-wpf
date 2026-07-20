@@ -69,7 +69,7 @@ public static class I18nHelper
     /// </summary>
     /// <param name="key">资源键；为空或空白时安全返回空字符串。</param>
     /// <returns>首个命中字典中的本地化字符串；若所有字典均未命中则返回 <paramref name="key"/>。</returns>
-    internal static string GetLocalizedStringFromAnyHostDictionary(string key)
+    public static string GetLocalizedStringFromAnyHostDictionary(string key)
     {
         if (string.IsNullOrWhiteSpace(key))
         {
@@ -85,7 +85,7 @@ public static class I18nHelper
     /// <param name="key">资源键；为空或空白时安全返回空字符串。</param>
     /// <param name="culture">目标文化。</param>
     /// <returns>首个命中字典中的本地化字符串；若所有字典均未命中则返回 <paramref name="key"/>。</returns>
-    internal static string GetLocalizedStringFromAnyHostDictionary(string key, CultureInfo culture)
+    public static string GetLocalizedStringFromAnyHostDictionary(string key, CultureInfo culture)
     {
         ArgumentNullException.ThrowIfNull(culture);
         if (string.IsNullOrWhiteSpace(key))

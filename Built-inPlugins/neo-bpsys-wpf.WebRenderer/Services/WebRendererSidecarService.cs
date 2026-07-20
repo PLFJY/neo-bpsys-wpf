@@ -32,6 +32,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private readonly WebRendererRuntimeStatePublisher? _runtimePublisher;
     private readonly IWebTransitionGateway? _transitionGateway;
     private readonly WebRendererLifecycleOperationCoordinator? _lifecycleCoordinator;
+    private readonly ISettingsHostService? _settingsHostService;
     private readonly CancellationTokenSource _stopping = new();
     private readonly SemaphoreSlim _startLock = new(1, 1);
     private readonly SemaphoreSlim _bootstrapLock = new(1, 1);
@@ -87,11 +88,14 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     public WebRendererSidecarService(WebRendererLaunchOptions options, WebRendererRuntimeDetector runtimeDetector,
         WebRendererPlugin plugin, ISnackbarService snackbarService, ILogger<WebRendererSidecarService> logger,
         WebRendererBootstrapBuilder? bootstrapBuilder = null, WebRendererRuntimeStatePublisher? runtimePublisher = null,
-        IWebTransitionGateway? transitionGateway = null, WebRendererLifecycleOperationCoordinator? lifecycleCoordinator = null)
+        IWebTransitionGateway? transitionGateway = null, WebRendererLifecycleOperationCoordinator? lifecycleCoordinator = null,
+        ISettingsHostService? settingsHostService = null)
     {
         _options = options; _runtimeDetector = runtimeDetector; _plugin = plugin; _snackbarService = snackbarService; _logger = logger;
         _bootstrapBuilder = bootstrapBuilder; _runtimePublisher = runtimePublisher; _transitionGateway = transitionGateway;
         _lifecycleCoordinator = lifecycleCoordinator;
+        _settingsHostService = settingsHostService;
+        if (_settingsHostService is not null) _settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;
         if (_runtimePublisher is not null)
         {
             _runtimePublisher.Updated += OnRuntimeUpdated;
@@ -351,6 +355,12 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     /// <summary>响应活动包切换或设计器保存，重新发布完整真实布局。</summary>
     public void Receive(FrontedLayoutPackagesChangedMessage message) => Observe(RefreshBootstrapAsync(_stopping.Token));
 
+    private void OnLanguageSettingChanged(object? sender, neo_bpsys_wpf.Core.Events.LanguageChangedEventArgs args)
+    {
+        if (_options.NoStart || _bootstrapBuilder is null) return;
+        Observe(RefreshBootstrapAsync(_stopping.Token));
+    }
+
     private async Task QueueAsync(string type, object payload, CancellationToken cancellationToken, bool allowWhileClosing = false,
         bool waitForDelivery = false)
     {
@@ -449,7 +459,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         }
     }
     /// <inheritdoc />
-    public void Dispose() { WeakReferenceMessenger.Default.UnregisterAll(this); if (_runtimePublisher is not null) { _runtimePublisher.Updated -= OnRuntimeUpdated; _runtimePublisher.RemoteAssetRequested -= OnRemoteAssetRequested; _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished; } if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished; _acceptCancellation?.Cancel(); _acceptCancellation?.Dispose(); _sidecarJob?.Dispose(); _stopping.Dispose(); _startLock.Dispose(); _bootstrapLock.Dispose(); _process?.Dispose(); }
+    public void Dispose() { WeakReferenceMessenger.Default.UnregisterAll(this); if (_settingsHostService is not null) _settingsHostService.LanguageSettingChanged -= OnLanguageSettingChanged; if (_runtimePublisher is not null) { _runtimePublisher.Updated -= OnRuntimeUpdated; _runtimePublisher.RemoteAssetRequested -= OnRemoteAssetRequested; _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished; } if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished; _acceptCancellation?.Cancel(); _acceptCancellation?.Dispose(); _sidecarJob?.Dispose(); _stopping.Dispose(); _startLock.Dispose(); _bootstrapLock.Dispose(); _process?.Dispose(); }
     private sealed record WebRendererOutbound(string Type, object Payload, TaskCompletionSource? Delivered = null);
 }
 

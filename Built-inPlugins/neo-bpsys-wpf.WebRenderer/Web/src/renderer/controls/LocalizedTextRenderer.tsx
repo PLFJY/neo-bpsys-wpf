@@ -7,5 +7,5 @@ import type { LocalizedTextConfig } from '../controlTypes'
 
 export function LocalizedTextRenderer({ config, runtime, localization }: { config: LocalizedTextConfig; runtime: RuntimeState; localization?: Localization }) {
   const raw = resolveBinding(config.TextBinding, runtime)
-  return <TextVisual config={config} runtime={runtime}>{localize(localization, 'Fronted', raw ?? config.LocalizationKey ?? '', raw ?? config.FallbackText)}</TextVisual>
+  return <TextVisual config={config} runtime={runtime}>{localize(localization, 'Fronted', raw ?? config.LocalizationKey ?? '', config.FallbackText ?? '')}</TextVisual>
 }
