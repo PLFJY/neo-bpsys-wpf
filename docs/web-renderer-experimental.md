@@ -63,7 +63,9 @@ Web 文本将 WPF FontWeight 名称集中转换为 CSS 数值：Thin 100；Extra
 
 `.bpui v3` 的 Rectangle、Border、Image AnimationParts 会进入所属控件的局部 Above/Below overlay。Web 动画使用带单位的长度值，百分比 ClipInset 直接生成 `clip-path: inset(...)`，Transform 分量由同一元素状态合成。Transition 的 `transition.committed` 携带 required generation/sequence；浏览器应用到该 runtime sequence 后才启动 EnterGraph，超时、断线或 generation 变化时 fail-open，WPF 始终是唯一业务 commit 所有者。
 
-这些能力仍属于实验性 Web Renderer。当前阶段不实现 BackgroundTint，也没有重写 Runtime Publisher 的完整线程模型；图片编码、runtime patch、IPC 和 Web 动画保持异步，WPF Renderer 的既有语义不变。
+这些能力仍属于实验性 Web Renderer。BackgroundTintRectangle、BackgroundTintPolygon、MapV2Display、GameProgressText 以及 Image/BorderedImage 的 PickingBorder 已由 Web Runtime 实现；图片编码、runtime patch、IPC 和 Web 动画保持异步，WPF Renderer 的既有语义不变。
+
+BackgroundTint 使用独立 Web Worker 和 OffscreenCanvas 对当前 Canvas 背景执行与 WPF 同类的像素染色，主线程不进行逐像素处理。MapV2Display 使用持久化的 `InternalParts`、RuntimeAsset 图片和 `part:{BehaviorGuid}:PickingBorder` 行为目标。GameProgressText 使用现有枚举的模式、语言、数字和竖排规则；尚未实现的控件仍会在管理页和浏览器诊断中明确标记为 unsupported。
 
 ## 管理与排查
 

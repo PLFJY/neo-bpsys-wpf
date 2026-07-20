@@ -1,39 +1,44 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { TextVisual } from '../TextVisual'
 import type { Localization } from '../../protocol/bootstrap'
 import type { RuntimeState } from '../../protocol/runtime'
 import type { GameProgressConfig } from '../controlTypes'
 import { color } from '../colors'
 
-const modes = ['Inline', 'TwoLine', 'VerticalHalfOnly', 'VerticalGameOnly', 'VerticalGameAndHalf', 'VerticalSeparatedGameAndHalf', 'RibbonGameOnly', 'HorizontalGameOnly', 'HorizontalHalfOnly', 'Vertical', 'VerticalTwoLine']
-const diagnostics = new Set<string>()
-const enumName = (value: unknown, names: string[], fallback: string) => { const accepted = typeof value === 'number' ? names[value] : typeof value === 'string' && (names.includes(value) || value === 'FollowApp' || value === 'Arabic' || value === 'CjkNumeral' || value === 'Auto' || value === 'Upright' || value === 'RotateBlock' || value === 'StackCharacters' || value === 'FacingLeft' || value === 'FacingRight') ? value : undefined; if (!accepted && value != null) { const key = `${String(value)}:${fallback}`; if (!diagnostics.has(key)) { diagnostics.add(key); console.warn(`[Web Renderer] Unknown enum '${String(value)}'; expected ${fallback}.`) } } return accepted ?? fallback }
-const cjk = (culture?: string) => /^(zh|ja|ko)/i.test(culture ?? '')
-const numberText = (number: number, style: string, culture?: string) => (style === 'CjkNumeral' || style === 'Auto' && cjk(culture)) ? ['一', '二', '三', '四', '五'][number - 1] ?? String(number) : String(number)
-function parts(progress: unknown, bo3: boolean, config: GameProgressConfig, localization?: Localization) {
-  const index = typeof progress === 'number' ? progress : Number(progress)
-  if (index === -1) return { free: true, full: localization?.Values?.['Game:GameProgressFree'] ?? 'FREE', game: '', half: '' }
-  const table = bo3 ? [[1, false], [1, false], [2, false], [2, false], [3, false], [3, false], [3, true], [3, true], [5, false], [5, false], [5, true], [5, true]] : [[1,false],[1,false],[2,false],[2,false],[3,false],[3,false],[4,false],[4,false],[5,false],[5,false],[5,true],[5,true]]
-  const entry = table[index] as [number, boolean] | undefined; if (!entry) return { free: true, full: '', game: '', half: '' }
-  const language = enumName(config.DisplayLanguage, [], 'FollowApp'); const culture = language === 'FollowApp' ? localization?.Culture : language === 'zh_Hans' ? 'zh-CN' : language === 'ja_JP' ? 'ja-JP' : 'en-US'
-  const gameNumber = numberText(entry[0], enumName(config.NumberStyle, ['Auto','Arabic','CjkNumeral'], 'Auto'), culture)
-  const gameFormat = localization?.Values?.[entry[1] ? 'Game:GameProgressGameOvertimeOnlyFormat' : 'Game:GameProgressGameOnlyFormat'] ?? (entry[1] ? 'GAME {0} OVERTIME' : 'GAME {0}')
-  const half = localization?.Values?.[index % 2 ? 'Game:SecondHalf' : 'Game:FirstHalf'] ?? (index % 2 ? 'SECOND HALF' : 'FIRST HALF')
-  const fullFormat = localization?.Values?.[entry[1] ? 'Game:GameProgressGameOvertimeHalfFormat' : 'Game:GameProgressGameHalfFormat'] ?? '{0} {1}'
-  const game = gameFormat.replace('{0}', gameNumber); return { free: false, game, half, full: fullFormat.replace('{0}', gameNumber).replace('{1}', half) }
+type Parts = { free: boolean; game: string; half: string; full: string }
+const enumValue = (value: unknown, names: readonly string[], fallback: string) => typeof value === 'number' ? names[value] ?? fallback : typeof value === 'string' && names.includes(value) ? value : fallback
+const localized = (localization: Localization | undefined, key: string, fallback: string) => localization?.Values?.[key] ?? localization?.Values?.[`Game:${key}`] ?? fallback
+const format = (template: string, ...values: string[]) => template.replace(/\{(\d+)\}/g, (_, index) => values[Number(index)] ?? '')
+const cjk = (culture?: string) => /^(zh|ja|ko)(-|$)/i.test(culture ?? '')
+function getParts(progress: unknown, isBo3: boolean, config: GameProgressConfig, localization?: Localization): Parts {
+  const value = typeof progress === 'number' ? progress : Number(progress)
+  if (value === -1) return { free: true, game: '', half: '', full: localized(localization, 'GameProgressFree', 'FREE') }
+  const gameInfo = value === 0 ? [1, false, false] : value === 1 ? [1, false, true] : value === 2 ? [2, false, false] : value === 3 ? [2, false, true] : value === 4 ? [3, false, false] : value === 5 ? [3, false, true] : value === 6 ? [isBo3 ? 3 : 4, isBo3, false] : value === 7 ? [isBo3 ? 3 : 4, isBo3, true] : value === 8 ? [5, false, false] : value === 9 ? [5, false, true] : value === 10 ? [5, true, false] : value === 11 ? [5, true, true] : undefined
+  if (!gameInfo) return { free: true, game: '', half: '', full: '' }
+  const [number, overtime, second] = gameInfo as [number, boolean, boolean]; const culture = enumValue(config.DisplayLanguage, ['FollowApp', 'zh_Hans', 'en_US', 'ja_JP'], 'FollowApp') === 'FollowApp' ? localization?.Culture : enumValue(config.DisplayLanguage, ['FollowApp', 'zh_Hans', 'en_US', 'ja_JP'], 'FollowApp').replace('_', '-')
+  const style = enumValue(config.NumberStyle, ['Auto', 'Arabic', 'CjkNumeral'], 'Auto'); const numberText = style === 'CjkNumeral' || style === 'Auto' && cjk(culture) ? ['一', '二', '三', '四', '五'][number - 1] : String(number)
+  const half = localized(localization, second ? 'SecondHalf' : 'FirstHalf', second ? 'SECOND HALF' : 'FIRST HALF'); const game = format(localized(localization, overtime ? 'GameProgressGameOvertimeOnlyFormat' : 'GameProgressGameOnlyFormat', overtime ? 'GAME {0} OVERTIME' : 'GAME {0}'), numberText)
+  return { free: false, game, half, full: format(localized(localization, overtime ? 'GameProgressGameOvertimeHalfFormat' : 'GameProgressGameHalfFormat', '{0} {1}'), numberText, half) }
 }
-function Vertical({ value, config, mode }: { value: string; config: GameProgressConfig; mode: string }) {
-  const language = enumName(config.VerticalLanguageMode, ['Auto','Upright','RotateBlock','StackCharacters'], 'Auto')
-  const effective = language === 'Auto' ? (cjk() ? 'Upright' : 'RotateBlock') : language
-  if (effective === 'StackCharacters' || effective === 'Upright') return <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: config.VerticalTextSpacing || 0 }}>{Array.from(value).map((character, index) => <span key={index}>{character}</span>)}</span>
-  const direction = enumName(config.VerticalDirection, ['Auto','FacingLeft','FacingRight'], 'Auto')
-  return <span style={{ display: 'block', transform: `rotate(${direction === 'FacingRight' ? '90' : '-90'}deg)`, whiteSpace: 'nowrap' }}>{value}</span>
+function VerticalText({ value, config, culture }: { value: string; config: GameProgressConfig; culture?: string }) {
+  const selected = enumValue(config.VerticalLanguageMode, ['Auto', 'Upright', 'RotateBlock', 'StackCharacters'], 'Auto'); const mode = selected === 'Auto' ? cjk(culture) ? 'Upright' : enumValue(config.LatinVerticalMode, ['RotateBlock', 'StackCharacters'], 'RotateBlock') : selected
+  if (mode === 'Upright' || mode === 'StackCharacters') return <span data-game-progress-vertical={mode} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: config.VerticalTextSpacing ?? 0 }}>{Array.from(value).map((item, index) => <span key={index}>{item}</span>)}</span>
+  const direction = enumValue(config.VerticalDirection, ['Auto', 'FacingLeft', 'FacingRight'], 'Auto'); return <span data-game-progress-vertical="RotateBlock" style={{ display: 'block', transform: `rotate(${direction === 'FacingRight' ? 90 : -90}deg)`, whiteSpace: 'nowrap' }}>{value}</span>
 }
 export function GameProgressTextRenderer({ config, runtime, localization }: { config: GameProgressConfig; runtime: RuntimeState; localization?: Localization }) {
-  const mode = enumName(config.DisplayMode, modes, 'Inline'); const p = parts(runtime.values['CurrentGame.GameProgress'], runtime.values.IsBo3Mode === true, config, localization)
-  const verticalMode = mode.startsWith('Vertical') || mode === 'RibbonGameOnly'; const display = p.free ? p.full : mode.includes('HalfOnly') ? p.half : mode.includes('GameOnly') || mode === 'RibbonGameOnly' ? p.game : p.full
+  const mode = enumValue(config.DisplayMode, ['Inline', 'TwoLine', 'VerticalHalfOnly', 'VerticalGameOnly', 'VerticalGameAndHalf', 'VerticalSeparatedGameAndHalf', 'RibbonGameOnly', 'HorizontalGameOnly', 'HorizontalHalfOnly', 'Vertical', 'VerticalTwoLine'], 'Inline'); const parts = getParts(runtime.values['CurrentGame.GameProgress'], runtime.values.IsBo3Mode === true, config, localization); const culture = localization?.Culture
+  const vertical = (value: string) => <VerticalText value={value} config={config} culture={culture} />
+  let content: ReactNode = parts.full
+  if (!parts.free) {
+    if (mode === 'TwoLine') content = <>{parts.game}<br />{parts.half}</>
+    else if (mode === 'HorizontalGameOnly') content = parts.game
+    else if (mode === 'HorizontalHalfOnly') content = parts.half
+    else if (mode === 'Vertical' ) content = vertical(parts.full)
+    else if (mode === 'VerticalHalfOnly') content = vertical(parts.half)
+    else if (mode === 'VerticalGameOnly' || mode === 'RibbonGameOnly') content = vertical(parts.game)
+    else if (mode === 'VerticalGameAndHalf' || mode === 'VerticalTwoLine') content = <span data-game-progress-groups style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: config.GroupSpacing ?? 8 }}>{vertical(parts.game)}{vertical(parts.half)}</span>
+    else if (mode === 'VerticalSeparatedGameAndHalf') content = <span data-game-progress-groups style={{ display: 'grid', gridTemplateRows: 'auto auto auto', justifyItems: 'center' }}>{vertical(parts.game)}{config.ShowSeparator ? <i data-game-progress-separator style={{ width: '100%', height: config.SeparatorThickness ?? 1, margin: `${(config.GroupSpacing ?? 8) / 2}px 0`, background: color(config.SeparatorColor, '#fff') }} /> : <i style={{ height: config.GroupSpacing ?? 8 }} />}{vertical(parts.half)}</span>
+  } else if (mode.startsWith('Vertical') || mode === 'RibbonGameOnly') content = vertical(parts.full)
   const style: CSSProperties = { width: '100%', height: '100%', background: color(config.BackgroundColor), padding: `${config.PaddingTop ?? 0}px ${config.PaddingRight ?? 0}px ${config.PaddingBottom ?? 0}px ${config.PaddingLeft ?? 0}px` }
-  let content: React.ReactNode = verticalMode ? <Vertical value={display} config={config} mode={mode} /> : mode === 'TwoLine' && !p.free ? <>{p.game}<br />{p.half}</> : display
-  if ((mode === 'VerticalTwoLine' || mode === 'VerticalGameAndHalf' || mode === 'VerticalSeparatedGameAndHalf') && !p.free) content = <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: config.GroupSpacing ?? 8 }}><Vertical value={p.game} config={config} mode={mode} />{mode === 'VerticalSeparatedGameAndHalf' && config.ShowSeparator ? <i style={{ width: '100%', height: config.SeparatorThickness ?? 1, background: color(config.SeparatorColor, '#fff') }} /> : null}<Vertical value={p.half} config={config} mode={mode} /></span>
   return <TextVisual config={config} runtime={runtime} style={style}>{content}</TextVisual>
 }
