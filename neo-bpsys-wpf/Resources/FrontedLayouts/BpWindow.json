@@ -1211,7 +1211,7 @@
         "BanLockAvailable": true,
         "BanLockImagePath": "Resources/GlobalBanLock.png",
         "ControlType": "Image",
-        "Left": 124,
+        "Left": 175.5,
         "Top": 204,
         "Width": 37.5,
         "Height": 38,
