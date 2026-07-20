@@ -1,3 +1,5 @@
+import { wpfColor } from '../colors'
+
 const missingMasks = new Set<string>()
 const resolvedMasks = new Set<string>()
 
@@ -20,5 +22,5 @@ export function PickingBorderRenderer({ behaviorGuid, runtimeName, imageUrl, fil
     resolvedMasks.add(runtimeName)
     console.debug(`[Web Renderer] picking border mask resolved Target=${runtimeName}`)
   }
-  return <div data-animation-part="PickingBorder" data-runtime-name={runtimeName ?? ''} data-picking-border data-behavior-guid={behaviorGuid} style={{ position: 'absolute', inset: 0, zIndex, backgroundColor: imageUrl ? (fillColor || '#fff') : 'transparent', maskImage: imageUrl ? `url(${imageUrl})` : undefined, WebkitMaskImage: imageUrl ? `url(${imageUrl})` : undefined, maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskPosition: 'center', maskSize: '100% 100%', WebkitMaskSize: '100% 100%', maskMode: 'alpha', WebkitMaskComposite: 'source-over', opacity: 0, visibility: 'hidden', pointerEvents: 'none' }} />
+  return <div data-animation-part="PickingBorder" data-runtime-name={runtimeName ?? ''} data-picking-border data-behavior-guid={behaviorGuid} style={{ position: 'absolute', inset: 0, zIndex, backgroundColor: imageUrl ? wpfColor(fillColor, '#fff') : 'transparent', maskImage: imageUrl ? `url(${imageUrl})` : undefined, WebkitMaskImage: imageUrl ? `url(${imageUrl})` : undefined, maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat', maskPosition: 'center', WebkitMaskPosition: 'center', maskSize: '100% 100%', WebkitMaskSize: '100% 100%', maskMode: 'alpha', WebkitMaskComposite: 'source-over', opacity: 0, visibility: 'hidden', pointerEvents: 'none' }} />
 }

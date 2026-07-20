@@ -9,4 +9,11 @@ describe('PickingBorderRenderer', () => {
     expect(html).toContain('data-runtime-name="SurPickingBorder0"')
     expect(html).toContain('background-color:transparent')
   })
+
+  it('converts the WPF fill color without changing the alpha mask layer', () => {
+    const html = renderToStaticMarkup(<PickingBorderRenderer behaviorGuid="guid" runtimeName="MapCardPickingBorder" imageUrl="/pickingBorder.png" fillColor="#FF9C3E2F" zIndex={2} />)
+    expect(html).toContain('background-color:rgba(156, 62, 47, 1)')
+    expect(html).toContain('mask-image:url(/pickingBorder.png)')
+    expect(html).toContain('opacity:0')
+  })
 })
