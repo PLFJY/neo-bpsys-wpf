@@ -1,49 +1,49 @@
 {
-  "schemaVersion": 1,
-  "id": "idv-default-16x9",
-  "baseAspectRatio": "16:9",
-  "regions": {
+  "SchemaVersion": 1,
+  "Id": "idv-default-16x9",
+  "BaseAspectRatio": "16:9",
+  "Regions": {
     "phase_top": {
-      "x": 0.0,
-      "y": 0.0,
-      "width": 1.0,
-      "height": 0.46
+      "X": 0,
+      "Y": 0.170777,
+      "Width": 1,
+      "Height": 0.167316
     },
     "top_center_status": {
-      "x": 0.275,
-      "y": 0.01,
-      "width": 0.45,
-      "height": 0.14
+      "X": 0.27092099999999997,
+      "Y": 0.038605,
+      "Width": 0.45,
+      "Height": 0.14
     },
     "top_left_status": {
-      "x": 0.0,
-      "y": 0.0,
-      "width": 0.36,
-      "height": 0.11
+      "X": 0,
+      "Y": 0,
+      "Width": 0.36,
+      "Height": 0.11
     },
     "left_top": {
-      "x": 0.0,
-      "y": 0.0,
-      "width": 0.5,
-      "height": 0.46
+      "X": 0,
+      "Y": 0.344599,
+      "Width": 0.5,
+      "Height": 0.22470600000000002
     },
     "right_top": {
-      "x": 0.5,
-      "y": 0.0,
-      "width": 0.5,
-      "height": 0.46
+      "X": 0.5,
+      "Y": 0.34002899999999997,
+      "Width": 0.5,
+      "Height": 0.22327100000000002
     },
     "left_bottom": {
-      "x": 0.0,
-      "y": 0.38,
-      "width": 0.5,
-      "height": 0.62
+      "X": 0,
+      "Y": 0.649371,
+      "Width": 0.5,
+      "Height": 0.35062899999999997
     },
     "right_bottom": {
-      "x": 0.5,
-      "y": 0.38,
-      "width": 0.5,
-      "height": 0.62
+      "X": 0.5,
+      "Y": 0.66264,
+      "Width": 0.5,
+      "Height": 0.33736
     }
   }
 }
