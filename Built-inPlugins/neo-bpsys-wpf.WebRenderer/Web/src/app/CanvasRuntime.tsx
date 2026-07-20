@@ -14,6 +14,6 @@ export function CanvasRuntime({ bootstrap, runtime }: { bootstrap: Bootstrap; ru
   const context: WebRenderContext = { canvasWidth: width, canvasHeight: height, backgroundUrl: background, backgroundRevision: backgroundRef ? `${backgroundRef}:${background ?? ''}` : undefined, resources: bootstrap.Resources }
   const faces = Object.entries(bootstrap.Resources).filter(([key]) => isEmbeddedFontReference(key)).map(([key,url]) => `@font-face{font-family:"${fontFamily(key)}";src:url("${url}");font-display:block;}`).join('\n')
   return <><style>{faces}</style><div className="viewport"><div className="canvas" style={{ width, height, transform: `scale(${scale[0]},${scale[1]})`, backgroundImage: background ? `url(${background})` : undefined }}>
-    {Object.entries(controls).map(([name, config]) => <WebControlRegistry key={`${bo3}:${name}`} name={name} config={config} runtime={runtime} localization={bootstrap.Localization} resources={bootstrap.Resources} context={context} behaviorSet={bootstrap.BehaviorDocument?.ControlBehaviorSets?.find(set => set.BehaviorGuid.toLowerCase() === config.BehaviorGuid?.toLowerCase())} />)}
+    {Object.entries(controls).map(([name, config]) => <WebControlRegistry key={`${bo3}:${name}`} windowType={bootstrap.FullWindowType} name={name} config={config} runtime={runtime} localization={bootstrap.Localization} resources={bootstrap.Resources} context={context} behaviorSet={bootstrap.BehaviorDocument?.ControlBehaviorSets?.find(set => set.BehaviorGuid.toLowerCase() === config.BehaviorGuid?.toLowerCase())} />)}
   </div></div></>
 }

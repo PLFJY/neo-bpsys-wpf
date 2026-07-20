@@ -1,10 +1,18 @@
 import type { BehaviorDocument } from '../behaviorRuntime'
 import type { ControlConfig } from '../renderer/controlTypes'
 
-export type Localization = { Culture?: string; Revision?: number; Dictionaries?: Record<string, Record<string, string> | undefined>; AnyHost?: Record<string, string> }
+export type WebLocalizationSnapshot = {
+  SchemaVersion: number
+  Revision: number
+  Culture: string
+  StaticTexts: Record<string, string>
+  MapV2Texts: Record<string, WebMapV2Localization>
+}
+export type WebMapV2Localization = { MapKey: string; MapDisplayName: string; CampSurDisplayName: string; CampHunDisplayName: string }
+export type WebLocalizedControlState = { ControlId: string; DisplayText: string }
 export type Bootstrap = {
   FullWindowType: string; DisplayName: string; Layout: Layout | null; BehaviorDocument?: BehaviorDocument | null
-  Resources: Record<string, string>; Diagnostics: string[]; Localization?: Localization
+  Resources: Record<string, string>; Diagnostics: string[]; Localization?: WebLocalizationSnapshot
 }
 export type Layout = { WindowSettings: { ViewboxStretch?: string }; CanvasSettings: CanvasSettings; ControlLayout: { Controls: Record<string, ControlConfig> } }
 export type CanvasState = { BackgroundImage?: string; Controls?: Record<string, ControlConfig>; RequiredPlugins?: string[] }

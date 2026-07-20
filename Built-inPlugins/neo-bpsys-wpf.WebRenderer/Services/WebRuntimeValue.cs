@@ -17,6 +17,19 @@ namespace neo_bpsys_wpf.WebRenderer.Services;
 public sealed record WebRuntimeValue(string Kind, object? Value = null, string? SourceType = null,
     string? Diagnostic = null, WebRuntimeAsset? Asset = null, string State = WebRuntimeValueStates.Resolved);
 
+/// <summary>MapV2 控件的主程序最终显示投影。</summary>
+public sealed record WebMapV2DisplayState(
+    string MapKey,
+    string MapDisplayName,
+    string CampDisplayName,
+    string TeamName,
+    WebRuntimeAsset? TeamLogo,
+    WebRuntimeAsset? MapImage,
+    bool IsBanned,
+    bool IsPicked,
+    bool IsCampVisible,
+    string? CampKey);
+
 /// <summary>Web runtime 值的稳定解析状态。</summary>
 public static class WebRuntimeValueStates
 {

@@ -8,6 +8,7 @@ using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Channels;
 
 var settings = SidecarSettings.Parse(args);
@@ -114,7 +115,11 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
     private string _hostVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "unknown";
     private long _generation;
     private JsonDocument? _bootstrap;
+    private JsonDocument? _localization;
+    private long _localizationRevision;
     private JsonDocument? _runtime;
+    private long _runtimeGeneration;
+    private long _runtimeSequence;
 
     /// <summary>主程序通过 IPC 请求 sidecar 完整停止时发生。</summary>
     public event EventHandler? ShutdownRequested;
@@ -123,7 +128,7 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
 
     public object Health()
     {
-        lock (_gate) return new { protocolVersion = WebRendererIpcProtocol.Version, status = _state.ToString(), ipcStatus = _connected ? "connected" : "IpcUnavailable", generation = _generation, errorCode = _errorCode, errorMessage = _errorMessage, hostVersion = _hostVersion, pluginVersion = settings.PluginVersion, clientBuildId, activePackageId = ActivePackageIdLocked(), windowCount = WindowCountLocked(), listenAddress = settings.Address.ToString(), port = settings.Port };
+        lock (_gate) return new { protocolVersion = WebRendererIpcProtocol.Version, status = _state.ToString(), ipcStatus = _connected ? "connected" : "IpcUnavailable", generation = _generation, localizationRevision = _localizationRevision, errorCode = _errorCode, errorMessage = _errorMessage, hostVersion = _hostVersion, pluginVersion = settings.PluginVersion, clientBuildId, activePackageId = ActivePackageIdLocked(), windowCount = WindowCountLocked(), listenAddress = settings.Address.ToString(), port = settings.Port };
     }
 
     public IResult Windows()
@@ -159,7 +164,11 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
             if (_state == WebRendererLifecycleState.Faulted) return Problem(_errorCode ?? "BootstrapFailed", _errorMessage ?? "Bootstrap failed.");
             if (_state != WebRendererLifecycleState.Ready || _bootstrap is null) return Problem("BootstrapPending", "Web Renderer is waiting for the host layout bootstrap.");
             var window = FindWindowLocked(encoded);
-            return window is null ? Results.NotFound(new { error = "UnknownWindow" }) : Results.Json(window.Value);
+            if (window is null) return Results.NotFound(new { error = "UnknownWindow" });
+            var node = JsonNode.Parse(window.Value.GetRawText()) as JsonObject;
+            if (node is null) return Results.Problem("Bootstrap window is not an object.");
+            if (_localization is not null) node["Localization"] = JsonNode.Parse(_localization.RootElement.GetRawText());
+            return Results.Json(node);
         }
     }
 
@@ -247,14 +256,18 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
                 case WebRendererIpcProtocol.BootstrapReplace:
                     await ApplyBootstrapAsync(message.Payload, cancellationToken);
                     break;
+                case WebRendererIpcProtocol.LocalizationReplace:
+                    await ApplyLocalizationAsync(message.Payload, cancellationToken);
+                    break;
                 case WebRendererIpcProtocol.BootstrapFailed:
                     ApplyBootstrapFailure(message.Payload);
                     break;
                 case WebRendererIpcProtocol.RuntimeSnapshot:
-                    lock (_gate) { _runtime?.Dispose(); _runtime = JsonDocument.Parse(message.Payload.GetRawText()); }
+                    if (!TryApplyRuntime(message.Payload, true, out var runtimeFailure)) { Console.Error.WriteLine($"Web Renderer runtime rejected: {runtimeFailure}"); break; }
                     await BroadcastAsync(new { type = "snapshot", payload = message.Payload });
                     break;
                 case WebRendererIpcProtocol.RuntimeBindingPatch:
+                    if (!TryApplyRuntime(message.Payload, false, out runtimeFailure)) { Console.Error.WriteLine($"Web Renderer runtime rejected: {runtimeFailure}"); break; }
                     await BroadcastAsync(new { type = "bindingPatch", payload = message.Payload }); break;
                 case WebRendererIpcProtocol.RemoteAssetFetch:
                     var request = message.Payload.Deserialize<WebRemoteAssetFetch>();
@@ -291,13 +304,100 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
         lock (_gate)
         {
             if (generation <= _generation) { failure = new WebRendererBootstrapFailure(generation, "StaleGeneration", "Bootstrap generation is not newer than the accepted generation."); }
-            else { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(payload.GetRawText()); _generation = generation; _errorCode = null; _errorMessage = null; }
+            else { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(payload.GetRawText()); _generation = generation; _runtime?.Dispose(); _runtime = null; _runtimeGeneration = 0; _runtimeSequence = 0; _errorCode = null; _errorMessage = null; }
         }
         if (failure is not null) { await QueueAsync(WebRendererIpcProtocol.BootstrapRejected, failure, cancellationToken); return; }
         remoteAssets?.SetGeneration(generation);
         Console.Error.WriteLine($"Web Renderer bootstrap.replace applied: generation {generation}.");
         await QueueAsync(WebRendererIpcProtocol.BootstrapApplied, new WebRendererBootstrapApplied(generation, windowCount, renderableCount, activePackageId), cancellationToken);
-        await BroadcastAsync(new { type = WebRendererIpcProtocol.BootstrapChanged, payload = new { generation } });
+        await BroadcastAsync(new { type = WebRendererIpcProtocol.BootstrapReplace, payload });
+    }
+
+    private async Task ApplyLocalizationAsync(JsonElement payload, CancellationToken cancellationToken)
+    {
+        if (!TryValidateLocalization(payload, out var revision, out var culture, out var failure))
+        {
+            Console.Error.WriteLine($"Web Renderer localization rejected: {failure}");
+            await QueueAsync(WebRendererIpcProtocol.LocalizationRejected,
+                new WebRendererLocalizationFailure(revision, "LocalizationValidationFailed", failure), cancellationToken);
+            return;
+        }
+
+        var stale = false;
+        lock (_gate)
+        {
+            if (revision <= _localizationRevision)
+            {
+                Console.Error.WriteLine($"Web Renderer localization rejected: stale revision {revision}; current={_localizationRevision}.");
+                stale = true;
+            }
+            else
+            {
+                _localization?.Dispose();
+                _localization = JsonDocument.Parse(payload.GetRawText());
+                _localizationRevision = revision;
+            }
+        }
+        if (stale)
+        {
+            await QueueAsync(WebRendererIpcProtocol.LocalizationRejected,
+                new WebRendererLocalizationFailure(revision, "StaleLocalizationRevision", "Localization revision is not newer than the applied revision."), cancellationToken);
+            return;
+        }
+
+        Console.Error.WriteLine($"Web Renderer sidecar applied localization revision {revision}, culture {culture}.");
+        await QueueAsync(WebRendererIpcProtocol.LocalizationApplied,
+            new WebRendererLocalizationApplied(revision, culture), cancellationToken);
+        await BroadcastAsync(new { type = WebRendererIpcProtocol.LocalizationReplace, payload });
+    }
+
+    private static bool TryValidateLocalization(JsonElement payload, out long revision, out string culture, out string failure)
+    {
+        revision = 0;
+        culture = string.Empty;
+        failure = string.Empty;
+        try
+        {
+            if (!payload.TryGetProperty("SchemaVersion", out var schema) || schema.GetInt32() != 1)
+                throw new InvalidOperationException("UnknownLocalizationSchema");
+            revision = payload.GetProperty("Revision").GetInt64();
+            culture = payload.GetProperty("Culture").GetString() ?? string.Empty;
+            if (revision <= 0 || string.IsNullOrWhiteSpace(culture)) throw new InvalidOperationException("InvalidLocalizationIdentity");
+            if (payload.GetProperty("StaticTexts").ValueKind != JsonValueKind.Object || payload.GetProperty("MapV2Texts").ValueKind != JsonValueKind.Object)
+                throw new InvalidOperationException("InvalidLocalizationPayload");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            failure = ex.Message;
+            return false;
+        }
+    }
+
+    private bool TryApplyRuntime(JsonElement payload, bool isSnapshot, out string failure)
+    {
+        failure = string.Empty;
+        try
+        {
+            if (!payload.TryGetProperty("SchemaVersion", out var schema) || schema.GetInt32() != 2) throw new InvalidOperationException("UnknownRuntimeSchema");
+            var generation = payload.GetProperty("Generation").GetInt64();
+            var sequence = payload.GetProperty("Sequence").GetInt64();
+            if (generation != _generation || sequence <= 0) throw new InvalidOperationException("RuntimeIdentityMismatch");
+            lock (_gate)
+            {
+                if (generation < _runtimeGeneration || generation == _runtimeGeneration && sequence <= _runtimeSequence)
+                    throw new InvalidOperationException("StaleRuntimeRevision");
+                if (isSnapshot)
+                {
+                    _runtime?.Dispose();
+                    _runtime = JsonDocument.Parse(payload.GetRawText());
+                }
+                _runtimeGeneration = generation;
+                _runtimeSequence = sequence;
+            }
+            return true;
+        }
+        catch (Exception ex) { failure = ex.Message; return false; }
     }
 
     private static bool TryValidateBootstrap(JsonElement payload, out WebRendererBootstrapFailure? failure, out long generation, out string activePackageId, out int windowCount, out int renderableCount)
@@ -306,6 +406,7 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
         try
         {
             if (!payload.TryGetProperty("ProtocolVersion", out var protocol) || protocol.GetInt32() != WebRendererIpcProtocol.Version) throw new InvalidOperationException("ProtocolVersionMismatch");
+            if (!payload.TryGetProperty("SchemaVersion", out var schema) || schema.GetInt32() != 1) throw new InvalidOperationException("UnknownBootstrapSchema");
             generation = payload.GetProperty("Generation").GetInt64(); activePackageId = payload.GetProperty("ActivePackageId").GetString() ?? string.Empty;
             if (generation <= 0 || string.IsNullOrWhiteSpace(activePackageId)) throw new InvalidOperationException("InvalidBootstrapIdentity");
             var names = new HashSet<string>(StringComparer.Ordinal);
@@ -387,10 +488,12 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
 
     public async Task AttachAsync(WebSocket socket, CancellationToken cancellationToken)
     {
-        JsonElement? runtime = null; int count;
-        lock (_gate) { _sockets.Add(socket); count = _sockets.Count; if (_runtime is not null) runtime = _runtime.RootElement.Clone(); }
+        JsonElement? bootstrap = null; JsonElement? localization = null; JsonElement? runtime = null; int count;
+        lock (_gate) { _sockets.Add(socket); count = _sockets.Count; if (_bootstrap is not null) bootstrap = _bootstrap.RootElement.Clone(); if (_localization is not null) localization = _localization.RootElement.Clone(); if (_runtime is not null) runtime = _runtime.RootElement.Clone(); }
         await SendSocketAsync(socket, new { type = "serverStatus", payload = Health() }, cancellationToken);
         await QueueAsync(WebRendererIpcProtocol.SidecarClientsChanged, new { count }, cancellationToken);
+        if (bootstrap is not null) await SendSocketAsync(socket, new { type = WebRendererIpcProtocol.BootstrapReplace, payload = bootstrap.Value }, cancellationToken);
+        if (localization is not null) await SendSocketAsync(socket, new { type = WebRendererIpcProtocol.LocalizationReplace, payload = localization.Value }, cancellationToken);
         if (runtime is not null) await SendSocketAsync(socket, new { type = "snapshot", payload = runtime.Value }, cancellationToken);
     }
 

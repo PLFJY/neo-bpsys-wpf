@@ -2,6 +2,7 @@ using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.WebRenderer.Services;
+using neo_bpsys_wpf.WebRenderer.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ public sealed class WebTransitionCommitBarrierTest
             Mock.Of<ISharedDataService>(),
             eventBus.Object);
         publisher.ReplaceLayout(new WebRendererBootstrapSnapshot(
-            6,
+            WebRendererIpcProtocol.Version,
             7,
             "builtin",
             [],
@@ -50,7 +51,7 @@ public sealed class WebTransitionCommitBarrierTest
             Mock.Of<ISharedDataService>(),
             Mock.Of<IFrontedEventBus>());
         publisher.ReplaceLayout(new WebRendererBootstrapSnapshot(
-            6,
+            WebRendererIpcProtocol.Version,
             7,
             "builtin",
             [],

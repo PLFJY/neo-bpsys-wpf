@@ -22,7 +22,11 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 
 `/`、`/render/*` 和 `/index.html` 始终返回 `Cache-Control: no-store`，确保入口页不会缓存旧 bundle 引用。带内容 hash 的 `/assets/*.js` 与 `/assets/*.css` 使用 immutable 缓存策略。
 
-IPC 使用 version 7，runtime value schema 使用 version 2，并采用显式会话状态：`Stopped`、`StartingProcess`、`WaitingForPipe`、`PipeConnected`、`BuildingBootstrap`、`WaitingForBootstrapAck`、`Ready`、`Stopping`、`Faulted`。主程序是状态权威；sidecar 必须先发送 `sidecar.ready`，主程序才发送 `host.hello` 和真实活动包的 `bootstrap.replace`。sidecar 会原子校验协议版本、generation、窗口结构与本地资源表，成功后返回 `bootstrap.applied`；只有该确认到达，管理页、`/health` 与 `/api/windows` 才会显示 `Ready` 和已发布窗口。连接断开时 sidecar 保持 HTTP 进程并以封顶退避重连，重连后的第一组消息始终是完整 bootstrap 和 runtime snapshot。
+IPC 使用 version 8，bootstrap schema 使用 version 1，runtime value schema 使用 version 2，并采用显式会话状态：`Stopped`、`StartingProcess`、`WaitingForPipe`、`PipeConnected`、`BuildingBootstrap`、`WaitingForBootstrapAck`、`Ready`、`Stopping`、`Faulted`。主程序是状态权威；sidecar 必须先发送 `sidecar.ready`，主程序才发送 `host.hello` 和真实活动包的 `bootstrap.replace`。sidecar 会原子校验协议版本、schema、generation、窗口结构与本地资源表，成功后返回 `bootstrap.applied`；只有该确认到达，管理页、`/health` 与 `/api/windows` 才会显示 `Ready` 和已发布窗口。连接断开时 sidecar 保持 HTTP 进程并以封顶退避重连，重连后的第一组消息始终是完整 bootstrap、localization 和 runtime snapshot。
+
+Web Renderer 的本地化唯一由主程序 `WebRendererLocalizationBridge` 负责。主程序使用显式 `CultureInfo` 调用 `I18nHelper`、`MapNameDisplayHelper`、`GameProgressDisplayHelper` 和窗口显示名 Helper，生成 `WebLocalizationSnapshot`；快照只包含稳定控件 ID 与最终显示文本，不包含 resx、字典名或浏览器查找规则。`LocalizedText`、`MapNameText`、`MapV2Display` 和 `GameProgressText` 的 runtime 投影分别提供 `DisplayText`、地图/阵营最终文本或 `FullText`/`GameText`/`HalfText`。React 只负责排版，未收到匹配 `Revision` 的 localization 和 runtime 前保持业务文本为空。
+
+语言变化来自 `ISettingsHostService.LanguageSettingChanged`：后台构建新快照，按 latest-wins 丢弃过期 revision，通过 `localization.replace` 主动推送；sidecar 保存并广播完整快照，随后主程序发布带 `LocalizationRevision` 的 runtime snapshot。语言切换不重启 sidecar、刷新浏览器或重新下载图片。日志链为 `language changed` → `localization snapshot built` → `localization.replace sent` → `sidecar applied revision` → `browser applied revision`。缺失资源仅由主程序记录一次 `LocalizationMissing:{dictionary}:{key}:{culture}`，FallbackText 只在真实资源缺失时使用。
 
 `/api/windows` 和 `/api/bootstrap/{encodedFullWindowType}` 在 IPC 未连接时返回 `503 IpcUnavailable`，bootstrap 尚未确认时返回 `503 BootstrapPending`，构建或校验失败时返回结构化 `503` 错误。`/render/{...}` 在等待状态显示“正在等待主程序布局数据”；仅 Ready 后才区分 `UnknownWindow` 与 `LayoutUnavailable`。管理页仅把 sidecar 已确认的窗口作为可用 Web Runtime，不会用 registry 候选窗口伪装布局已发布。
 

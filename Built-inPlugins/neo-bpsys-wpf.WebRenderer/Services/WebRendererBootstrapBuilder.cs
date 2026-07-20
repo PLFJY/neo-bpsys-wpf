@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.IO;
+using System.Globalization;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
 
@@ -17,7 +18,8 @@ public sealed class WebRendererBootstrapBuilder(
     IFrontedLayoutService layoutService,
     IFrontedWindowRegistry windowRegistry,
     IFrontedBehaviorService behaviorService,
-    IWebLocalizationProvider? localizationProvider = null)
+    IWebLocalizationProvider localizationProvider,
+    ISettingsHostService settingsHostService)
 {
     private static readonly IReadOnlyDictionary<string, string> PackFonts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -35,6 +37,8 @@ public sealed class WebRendererBootstrapBuilder(
         // 把相同 base64 数据再写进 bootstrap，既浪费 IPC 带宽也可能耗尽主程序内存。
         var assetsByReference = new Dictionary<string, WebRendererAsset>(StringComparer.Ordinal);
         var windows = new List<WebRendererBootstrapWindow>();
+        var culture = settingsHostService.Settings.CultureInfo;
+        var language = settingsHostService.Settings.Language;
         foreach (var descriptor in windowRegistry.GetCustomizableLayoutWindows())
         {
             var result = await layoutService.LoadWindowConfigWithMetadataAsync(descriptor.FullWindowType, cancellationToken);
@@ -42,7 +46,7 @@ public sealed class WebRendererBootstrapBuilder(
             if (result.Config is null)
             {
                 diagnostics.Add(result.Error ?? "LayoutMissing");
-                windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, true, false, false, 0,
+                windows.Add(new(descriptor.FullWindowType, localizationProvider.ResolveWindowDisplayName(descriptor, language, culture), true, false, false, 0,
                     null, null, new Dictionary<string, string>(), diagnostics));
                 continue;
             }
@@ -74,27 +78,90 @@ public sealed class WebRendererBootstrapBuilder(
                     continue;
                 mapping[reference] = $"/bpui-assets/{asset.Token}";
             }
-            windows.Add(new(descriptor.FullWindowType, descriptor.DisplayName, true, true, behaviorLoaded,
+            windows.Add(new(descriptor.FullWindowType, localizationProvider.ResolveWindowDisplayName(descriptor, language, culture), true, true, behaviorLoaded,
                 mapping.Count, result.Config, behavior, mapping, diagnostics));
         }
 
-        return new WebRendererBootstrapSnapshot(WebRendererIpcProtocol.Version, generation, active.PackageId, windows, resources)
-        {
-            Localization = localizationProvider?.Create(EnumerateLocalizationKeys(windows).ToArray())
-        };
+        var snapshot = new WebRendererBootstrapSnapshot(WebRendererIpcProtocol.Version, generation, active.PackageId, windows, resources);
+        var localization = await Task.Run(
+            () => BuildLocalization(snapshot, culture, generation, language),
+            cancellationToken);
+        return snapshot with { Localization = localization };
     }
 
-    private static IEnumerable<string> EnumerateLocalizationKeys(IEnumerable<WebRendererBootstrapWindow> windows)
+    /// <summary>使用既有布局生成指定文化的独立本地化快照。</summary>
+    /// <param name="bootstrap">已构建的布局快照。</param>
+    /// <param name="culture">目标文化。</param>
+    /// <param name="revision">本地化修订号。</param>
+    /// <returns>不可变本地化快照。</returns>
+    public WebLocalizationSnapshot BuildLocalization(
+        WebRendererBootstrapSnapshot bootstrap,
+        CultureInfo culture,
+        long revision) =>
+        BuildLocalization(bootstrap, culture, revision, settingsHostService.Settings.Language);
+
+    private WebLocalizationSnapshot BuildLocalization(
+        WebRendererBootstrapSnapshot bootstrap,
+        CultureInfo culture,
+        long revision,
+        neo_bpsys_wpf.Core.Enums.LanguageKey language)
     {
-        foreach (var window in windows)
+        var requests = new List<WebLocalizationRequest>();
+        foreach (var window in bootstrap.Windows)
         {
-            if (window.Layout is null) continue;
-            foreach (var control in window.Layout.ControlLayout.Controls.Values.Concat(
-                window.Layout.CanvasSettings.BoModeStates.Values.SelectMany(state => state.Controls.Values)))
-                if (control is LocalizedTextControlConfig localized && !string.IsNullOrWhiteSpace(localized.LocalizationKey))
-                    yield return localized.LocalizationKey;
+            requests.Add(new($"window:{window.FullWindowType}", null, window.DisplayName));
+            if (window.Layout is null)
+            {
+                continue;
+            }
+
+            foreach (var pair in EnumerateControls(window.Layout))
+            {
+                if (pair.Value is not LocalizedTextControlConfig localized
+                    || localized.TextBinding?.GetActiveSources().Count > 0)
+                {
+                    continue;
+                }
+
+                requests.Add(new(
+                    GetControlId(window.FullWindowType, pair.Key),
+                    localized.LocalizationKey,
+                    localized.FallbackText));
+            }
+        }
+
+        var snapshot = localizationProvider.Create(requests, culture, revision);
+        var windowTexts = snapshot.StaticTexts.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        foreach (var descriptor in windowRegistry.GetCustomizableLayoutWindows())
+        {
+            windowTexts[$"window:{descriptor.FullWindowType}"] =
+                localizationProvider.ResolveWindowDisplayName(descriptor, language, culture);
+        }
+
+        return snapshot with { StaticTexts = windowTexts };
+    }
+
+    private static IEnumerable<KeyValuePair<string, FrontedControlConfigBase>> EnumerateControls(FrontedWindowConfig window)
+    {
+        foreach (var pair in window.ControlLayout.Controls)
+        {
+            yield return pair;
+        }
+
+        foreach (var state in window.CanvasSettings.BoModeStates.Values)
+        {
+            foreach (var pair in state.Controls)
+            {
+                yield return pair;
+            }
         }
     }
+
+    /// <summary>生成与布局和 runtime 共用的稳定控件身份。</summary>
+    /// <param name="windowType">窗口类型。</param>
+    /// <param name="controlName">布局控件名称。</param>
+    /// <returns>稳定控件 ID。</returns>
+    public static string GetControlId(string windowType, string controlName) => $"control:{windowType}:{controlName}";
 
     private static IEnumerable<string> EnumerateBehaviorResourceReferences(FrontedBehaviorDocument document) =>
         document.ControlBehaviorSets.SelectMany(set => set.AnimationParts)
@@ -257,6 +324,9 @@ public sealed record WebRendererBootstrapSnapshot(int ProtocolVersion, long Gene
     IReadOnlyList<WebRendererBootstrapWindow> Windows,
     IReadOnlyDictionary<string, WebRendererAsset> Assets)
 {
+    /// <summary>bootstrap 结构版本。</summary>
+    public int SchemaVersion { get; init; } = 1;
+
     /// <summary>主程序当前文化下的本地化快照。</summary>
     public WebLocalizationSnapshot? Localization { get; init; }
 }

@@ -84,7 +84,7 @@ try {
     foreach ($entry in '100%px', 'TargetUnavailable:') { if ($browserOutput -match [regex]::Escape($entry)) { throw "BpWindow browser output contains invalid runtime output: $entry" } }
     $logs = @((Get-Content -Raw -ErrorAction SilentlyContinue $stdout), (Get-Content -Raw -ErrorAction SilentlyContinue $stderr)) -join "`n"
     if ($logs -notmatch 'Initialize plugin:.*top\.plfjy\.bpsys\.WebRenderer') { throw 'The published application did not initialize the Web Renderer plugin.' }
-    if ($health.protocolVersion -ne 6 -or $health.status -ne 'Ready' -or $health.ipcStatus -ne 'connected') { throw 'Health did not confirm the version 6 IPC handshake.' }
+    if ($health.protocolVersion -ne 8 -or $health.status -ne 'Ready' -or $health.ipcStatus -ne 'connected' -or $health.localizationRevision -le 0) { throw 'Health did not confirm the version 8 IPC and localization handshake.' }
     Write-Host "health: $($health | ConvertTo-Json -Compress)"
     Write-Host "windows: $($windows | ConvertTo-Json -Compress)"
     Write-Host "BpWindow bootstrap: $($bootstrap | ConvertTo-Json -Depth 2 -Compress)"

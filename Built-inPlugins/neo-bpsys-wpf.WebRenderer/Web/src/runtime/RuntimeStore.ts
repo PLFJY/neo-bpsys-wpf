@@ -1,6 +1,6 @@
 import { emptyRuntime, resolvedRuntimeValue, type RuntimeState, type WebRuntimeAsset, type WebRuntimeValue } from '../protocol/runtime'
 
-type RuntimePayload = { SchemaVersion?: number; Generation?: number; Sequence?: number; Values?: Record<string, WebRuntimeValue> }
+type RuntimePayload = { SchemaVersion?: number; Generation?: number; Sequence?: number; LocalizationRevision?: number; Values?: Record<string, WebRuntimeValue> }
 type Waiter = { generation: number; sequence: number; finish: (result: boolean) => void; timer: number }
 
 const diagnosed = new Set<string>()
@@ -75,7 +75,7 @@ export class RuntimeStore {
       }
       nextValues[path] = resolvedRuntimeValue(value)
     }))
-    this.state = { values: nextValues, generation, sequence: payload.Sequence }
+    this.state = { values: nextValues, generation, sequence: payload.Sequence, localizationRevision: payload.LocalizationRevision ?? previous.localizationRevision }
     const revisions = new Set(Object.values(nextValues).map(value => value && typeof value === 'object' && 'Revision' in value ? String(value.Revision) : '').filter(Boolean))
     for (const revision of this.decoded.keys()) if (!revisions.has(revision)) this.decoded.delete(revision)
     this.notify()

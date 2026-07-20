@@ -1,25 +1,77 @@
-namespace neo_bpsys_wpf.Core.Abstractions.Services;
+using System.Globalization;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 
-/// <summary>为 Web Renderer 提供主程序当前文化下的本地化快照。</summary>
+namespace neo_bpsys_wpf.Core.Abstractions.Services;
+
+/// <summary>供主程序 Web Renderer 本地化桥接使用的布局文本请求。</summary>
+public sealed record WebLocalizationRequest(string ControlId, string? LocalizationKey, string? FallbackText);
+
+/// <summary>Web Renderer 的不可变本地化快照；所有值均为最终显示文本。</summary>
+public sealed record WebLocalizationSnapshot(
+    int SchemaVersion,
+    long Revision,
+    string Culture,
+    IReadOnlyDictionary<string, string> StaticTexts,
+    IReadOnlyDictionary<string, WebMapV2Localization> MapV2Texts);
+
+/// <summary>一个 MapV2 地图及两个阵营的最终本地化文本。</summary>
+public sealed record WebMapV2Localization(
+    string MapKey,
+    string MapDisplayName,
+    string CampSurDisplayName,
+    string CampHunDisplayName);
+
+/// <summary>动态文本控件的最终显示文本。</summary>
+public sealed record WebLocalizedControlState(string ControlId, string DisplayText);
+
+/// <summary>Web Renderer 使用的后端本地化权威接口。</summary>
 public interface IWebLocalizationProvider
 {
-    /// <summary>根据布局引用的键生成快照。</summary>
-    WebLocalizationSnapshot Create(IReadOnlyCollection<string> keys);
+    /// <summary>按指定 culture 和 revision 构建本地化快照。</summary>
+    WebLocalizationSnapshot Create(IReadOnlyCollection<WebLocalizationRequest> requests, CultureInfo culture, long revision);
+
+    /// <summary>解析 LocalizedText 的最终文本。</summary>
+    WebLocalizedControlState ResolveLocalizedControl(string controlId, string? key, string? fallbackText, CultureInfo culture);
+
+    /// <summary>解析地图名称的最终文本。</summary>
+    WebLocalizedControlState ResolveMapName(string controlId, Map? map, string? emptyText, CultureInfo culture);
+
+    /// <summary>解析阵营名称的最终文本。</summary>
+    string ResolveCamp(Camp camp, CultureInfo culture);
+
+    /// <summary>解析窗口描述符的最终显示名称。</summary>
+    string ResolveWindowDisplayName(IFrontedWindowDescriptor descriptor, LanguageKey language, CultureInfo culture);
+
+    /// <summary>生成指定对局进度和控件配置的最终显示部件。</summary>
+    WebGameProgressDisplayState CreateGameProgress(
+        GameProgress progress,
+        bool isBo3Mode,
+        LanguageKey displayLanguage,
+        GameProgressNumberStyle numberStyle,
+        CultureInfo culture);
 }
 
-/// <summary>主程序本地化字典的只读投影。</summary>
-public sealed record WebLocalizationSnapshot(string Culture, long Revision,
-    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Dictionaries,
-    IReadOnlyDictionary<string, string> AnyHost);
+/// <summary>主程序 GameProgressDisplayHelper 的不可变 Web 投影。</summary>
+public sealed record WebGameProgressDisplayState(
+    bool IsValid,
+    bool IsFree,
+    int GameNumber,
+    bool IsOvertime,
+    string? Half,
+    string FullText,
+    string GameText,
+    string HalfText,
+    bool IsCjkCulture);
 
-/// <summary>提供由 WPF helper 计算的对局进度语义。</summary>
+/// <summary>兼容旧注入点的对局进度服务接口。</summary>
 public interface IWebGameProgressProvider
 {
-    /// <summary>生成指定进度和赛制的本地化显示数据。</summary>
-    WebGameProgressSemanticState Create(GameProgress progress, bool isBo3Mode);
+    /// <summary>生成指定进度、赛制和 culture 的最终显示数据。</summary>
+    WebGameProgressDisplayState Create(
+        GameProgress progress,
+        bool isBo3Mode,
+        CultureInfo culture,
+        LanguageKey displayLanguage = LanguageKey.FollowApp,
+        GameProgressNumberStyle numberStyle = GameProgressNumberStyle.Auto);
 }
-
-/// <summary>主程序 GameProgressDisplayHelper 的不可变投影。</summary>
-public sealed record WebGameProgressSemanticState(int Ordinal, string Name, bool IsFree, int GameNumber,
-    bool IsOvertime, string? Half, string GameText, string HalfText, string FullText);

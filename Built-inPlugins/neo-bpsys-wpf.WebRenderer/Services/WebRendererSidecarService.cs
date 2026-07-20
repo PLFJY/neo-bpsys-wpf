@@ -44,9 +44,11 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private Channel<WebRendererOutbound>? _outbound;
     private CancellationTokenSource? _sessionCancellation;
     private TaskCompletionSource<WebRendererBootstrapApplied>? _bootstrapAck;
+    private TaskCompletionSource<WebRendererLocalizationApplied>? _localizationAck;
     private long _sequence;
     private long _lastInboundSequence;
     private long _bootstrapGeneration;
+    private long _localizationRevision;
     private WebRendererBootstrapSnapshot? _confirmedSnapshot;
     private WebRendererLifecycleState _state = WebRendererLifecycleState.Stopped;
     private string? _lastError;
@@ -301,6 +303,16 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                 var failure = message.Payload.Deserialize<WebRendererBootstrapFailure>();
                 _bootstrapAck?.TrySetException(new InvalidOperationException(failure?.Message ?? "Sidecar rejected bootstrap."));
             }
+            else if (message.Type == WebRendererIpcProtocol.LocalizationApplied)
+            {
+                var applied = message.Payload.Deserialize<WebRendererLocalizationApplied>();
+                if (applied is not null) _localizationAck?.TrySetResult(applied);
+            }
+            else if (message.Type == WebRendererIpcProtocol.LocalizationRejected)
+            {
+                var failure = message.Payload.Deserialize<WebRendererLocalizationFailure>();
+                _localizationAck?.TrySetException(new InvalidOperationException(failure?.Message ?? "Sidecar rejected localization."));
+            }
             else if (message.Type == WebRendererIpcProtocol.SidecarClientsChanged && message.Payload.TryGetProperty("count", out var count) && count.TryGetInt32(out var clientCount))
             {
                 _runtimePublisher?.SetClientCount(clientCount);
@@ -331,6 +343,8 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                 var failure = new WebRendererBootstrapFailure(generation, "BootstrapBuildFailed", ex.Message);
                 await QueueAsync(WebRendererIpcProtocol.BootstrapFailed, failure, cancellationToken); SetState(WebRendererLifecycleState.Faulted, failure.Message); return;
             }
+            if (snapshot.Localization is not null)
+                Interlocked.Exchange(ref _localizationRevision, Math.Max(Interlocked.Read(ref _localizationRevision), snapshot.Localization.Revision));
             var completion = new TaskCompletionSource<WebRendererBootstrapApplied>(TaskCreationOptions.RunContinuationsAsynchronously);
             lock (_gate) _bootstrapAck = completion;
             SetState(WebRendererLifecycleState.WaitingForBootstrapAck, null);
@@ -342,6 +356,22 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
             if (applied.Generation != generation || !string.Equals(applied.ActivePackageId, snapshot.ActivePackageId, StringComparison.Ordinal)) { SetState(WebRendererLifecycleState.Faulted, "Bootstrap acknowledgement does not match the current generation."); return; }
             lock (_gate) _confirmedSnapshot = snapshot;
             _transitionGateway?.UpdateGeneration(snapshot.Generation);
+            if (snapshot.Localization is not null)
+            {
+                var localizationCompletion = new TaskCompletionSource<WebRendererLocalizationApplied>(TaskCreationOptions.RunContinuationsAsynchronously);
+                lock (_gate) _localizationAck = localizationCompletion;
+                await QueueAsync(WebRendererIpcProtocol.LocalizationReplace, snapshot.Localization, cancellationToken, waitForDelivery: true);
+                var localizationApplied = await localizationCompletion.Task.WaitAsync(BootstrapAckTimeout, cancellationToken);
+                if (localizationApplied.Revision != snapshot.Localization.Revision
+                    || !string.Equals(localizationApplied.Culture, snapshot.Localization.Culture, StringComparison.OrdinalIgnoreCase))
+                {
+                    SetState(WebRendererLifecycleState.Faulted, "Localization acknowledgement does not match the current revision.");
+                    return;
+                }
+                _logger.LogInformation("Web Renderer localization snapshot built and applied ({Culture}, revision {Revision}).",
+                    snapshot.Localization.Culture, snapshot.Localization.Revision);
+                _runtimePublisher?.SetLocalizationSnapshot(snapshot.Localization);
+            }
             // Runtime snapshot 必须在 Ready 后发布：OnRuntimeUpdated 会拒绝尚未就绪的消息，
             // 否则包切换时唯一的 generation snapshot 会在 WaitingForBootstrapAck 阶段被静默丢弃。
             SetState(WebRendererLifecycleState.Ready, null);
@@ -358,7 +388,30 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     private void OnLanguageSettingChanged(object? sender, neo_bpsys_wpf.Core.Events.LanguageChangedEventArgs args)
     {
         if (_options.NoStart || _bootstrapBuilder is null) return;
-        Observe(RefreshBootstrapAsync(_stopping.Token));
+        Observe(RefreshLocalizationAsync(args.CultureInfo, _stopping.Token));
+    }
+
+    private async Task RefreshLocalizationAsync(System.Globalization.CultureInfo culture, CancellationToken cancellationToken)
+    {
+        WebRendererBootstrapSnapshot? confirmed;
+        lock (_gate) confirmed = _confirmedSnapshot;
+        if (confirmed is null || _bootstrapBuilder is null) return;
+
+        var revision = Interlocked.Increment(ref _localizationRevision);
+        var localization = await Task.Run(
+            () => _bootstrapBuilder.BuildLocalization(confirmed, culture, revision),
+            cancellationToken);
+        if (revision != Interlocked.Read(ref _localizationRevision)) return;
+
+        var completion = new TaskCompletionSource<WebRendererLocalizationApplied>(TaskCreationOptions.RunContinuationsAsynchronously);
+        lock (_gate) _localizationAck = completion;
+        await QueueAsync(WebRendererIpcProtocol.LocalizationReplace, localization, cancellationToken, waitForDelivery: true);
+        var applied = await completion.Task.WaitAsync(BootstrapAckTimeout, cancellationToken);
+        if (applied.Revision != localization.Revision) return;
+        _runtimePublisher?.SetLocalizationSnapshot(localization);
+        _runtimePublisher?.PublishConfirmedSnapshot();
+        _logger.LogInformation("Web Renderer language changed to {Culture}; localization.replace sent at revision {Revision}.",
+            localization.Culture, localization.Revision);
     }
 
     private async Task QueueAsync(string type, object payload, CancellationToken cancellationToken, bool allowWhileClosing = false,

@@ -154,10 +154,12 @@ public sealed class WebRendererInfrastructureTest
     [Fact]
     public void IpcProtocolDefinesAcknowledgedLifecycle()
     {
-        Assert.Equal(7, WebRendererIpcProtocol.Version);
+        Assert.Equal(8, WebRendererIpcProtocol.Version);
         Assert.Equal("bootstrap.applied", WebRendererIpcProtocol.BootstrapApplied);
         Assert.Equal("bootstrap.failed", WebRendererIpcProtocol.BootstrapFailed);
         Assert.Equal("bootstrap.rejected", WebRendererIpcProtocol.BootstrapRejected);
+        Assert.Equal("localization.replace", WebRendererIpcProtocol.LocalizationReplace);
+        Assert.Equal("localization.applied", WebRendererIpcProtocol.LocalizationApplied);
         Assert.Equal("session.state", WebRendererIpcProtocol.SessionState);
         Assert.Equal(
             [WebRendererLifecycleState.Stopped, WebRendererLifecycleState.StartingProcess,

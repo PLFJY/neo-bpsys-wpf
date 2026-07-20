@@ -31,7 +31,7 @@ public sealed record WebRendererIpcMessage
 public static class WebRendererIpcProtocol
 {
     /// <summary>当前协议版本。</summary>
-    public const int Version = 7;
+    public const int Version = 8;
 
     /// <summary>主程序广播的权威会话状态。</summary>
     public const string SessionState = "session.state";
@@ -62,6 +62,15 @@ public static class WebRendererIpcProtocol
 
     /// <summary>sidecar 拒绝无效 bootstrap 的消息。</summary>
     public const string BootstrapRejected = "bootstrap.rejected";
+
+    /// <summary>插件发送的完整主程序本地化快照。</summary>
+    public const string LocalizationReplace = "localization.replace";
+
+    /// <summary>sidecar 已原子应用本地化快照的确认消息。</summary>
+    public const string LocalizationApplied = "localization.applied";
+
+    /// <summary>sidecar 拒绝无效本地化快照的消息类型。</summary>
+    public const string LocalizationRejected = "localization.rejected";
 
     /// <summary>sidecar 通知浏览器刷新布局快照。</summary>
     public const string BootstrapChanged = "bootstrap.changed";
@@ -135,6 +144,12 @@ public sealed record WebRendererBootstrapApplied(long Generation, int WindowCoun
 
 /// <summary>bootstrap 构建或校验失败的结构化说明。</summary>
 public sealed record WebRendererBootstrapFailure(long Generation, string Code, string Message);
+
+/// <summary>sidecar 已应用本地化快照的确认。</summary>
+public sealed record WebRendererLocalizationApplied(long Revision, string Culture);
+
+/// <summary>本地化快照校验失败的结构化说明。</summary>
+public sealed record WebRendererLocalizationFailure(long Revision, string Code, string Message);
 
 /// <summary>远程图片下载请求；源 URI 仅通过受控 IPC 发送给 sidecar。</summary>
 /// <param name="Generation">布局 generation。</param>

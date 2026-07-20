@@ -1,6 +1,9 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.WebRenderer.Protocol;
 using System.Collections;
 using System.Collections.Specialized;
@@ -10,6 +13,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Core.Enums;
+using System.Globalization;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
 
@@ -21,15 +25,20 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     private readonly WebRuntimeAssetRegistry _assets = new();
     private readonly WebRuntimeValueFactory _valueFactory;
     private readonly IWebGameProgressProvider? _gameProgressProvider;
+    private readonly ISettingsHostService? _settingsHostService;
+    private readonly IWebLocalizationProvider? _localizationProvider;
     private readonly object _gate = new();
     private readonly Dictionary<string, BindingPathObserver> _observers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WebRuntimeValue> _values = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WebRuntimeAsset> _stableAssets = new(StringComparer.Ordinal);
     private readonly Dictionary<Guid, IReadOnlyList<string>> _pathsByBehaviorGuid = [];
+    private readonly Dictionary<string, WebControlProjection> _controlProjections = new(StringComparer.Ordinal);
     private readonly List<WebRuntimeCommitBarrier> _commitBarriers = [];
     private long _generation;
     private long _sequence;
     private long _recalculationVersion;
+    private long _localizationRevision;
+    private CultureInfo _localizationCulture = CultureInfo.InvariantCulture;
     private int _clientCount;
     private bool _recalculationQueued;
 
@@ -45,9 +54,20 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     public long CurrentSequence { get { lock (_gate) return _sequence; } }
 
     /// <summary>创建运行时发布器。</summary>
-    public WebRendererRuntimeStatePublisher(ISharedDataService sharedData, IFrontedEventBus eventBus, IWebGameProgressProvider? gameProgressProvider = null)
+    public WebRendererRuntimeStatePublisher(
+        ISharedDataService sharedData,
+        IFrontedEventBus eventBus,
+        IWebGameProgressProvider? gameProgressProvider = null,
+        ISettingsHostService? settingsHostService = null,
+        IWebLocalizationProvider? localizationProvider = null)
     {
-        _sharedData = sharedData; _eventBus = eventBus; _gameProgressProvider = gameProgressProvider; _valueFactory = new(_assets); _assets.AssetStateChanged += OnAssetStateChanged;
+        _sharedData = sharedData;
+        _eventBus = eventBus;
+        _gameProgressProvider = gameProgressProvider;
+        _settingsHostService = settingsHostService;
+        _localizationProvider = localizationProvider;
+        _valueFactory = new(_assets);
+        _assets.AssetStateChanged += OnAssetStateChanged;
     }
 
     /// <summary>使用新 bootstrap 重新收集所有可消费的绑定路径。</summary>
@@ -60,6 +80,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             // 但布局 generation 切换必须释放路径表，否则第二次保存会对相同路径重复 Add。
             _observers.Clear();
             _pathsByBehaviorGuid.Clear();
+            _controlProjections.Clear();
             _generation = snapshot.Generation;
             _assets.ResetRemoteSession();
             var paths = snapshot.Windows.Where(window => window.Layout is not null).SelectMany(window => EnumeratePaths(window.Layout!)).Where(path => !string.IsNullOrWhiteSpace(path)).ToHashSet(StringComparer.Ordinal);
@@ -72,12 +93,33 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
                 var controlPaths = EnumerateControlPaths(control).Distinct(StringComparer.Ordinal).ToArray();
                 if (controlPaths.Length > 0) _pathsByBehaviorGuid[control.BehaviorGuid] = controlPaths;
             }
+            foreach (var window in snapshot.Windows.Where(window => window.Layout is not null))
+            {
+                foreach (var pair in window.Layout!.ControlLayout.Controls)
+                    _controlProjections[WebRendererBootstrapBuilder.GetControlId(window.FullWindowType, pair.Key)] = new(window.FullWindowType, pair.Key, pair.Value);
+                foreach (var state in window.Layout.CanvasSettings.BoModeStates?.Values ?? Enumerable.Empty<FrontedCanvasStateConfig>())
+                    foreach (var pair in state.Controls ?? [])
+                        _controlProjections[WebRendererBootstrapBuilder.GetControlId(window.FullWindowType, pair.Key)] = new(window.FullWindowType, pair.Key, pair.Value);
+            }
             if (_clientCount > 0) StartLocked(true);
         }
     }
 
     /// <summary>在 bootstrap 获得 sidecar 确认后发布当前完整运行时快照。</summary>
     public void PublishConfirmedSnapshot() { lock (_gate) { StartLocked(true); } }
+
+    /// <summary>原子切换当前 runtime 使用的本地化修订与显式文化。</summary>
+    /// <param name="snapshot">已经由 sidecar 确认的本地化快照。</param>
+    public void SetLocalizationSnapshot(WebLocalizationSnapshot snapshot)
+    {
+        lock (_gate)
+        {
+            if (snapshot.Revision < _localizationRevision) return;
+            _localizationRevision = snapshot.Revision;
+            _localizationCulture = CultureInfo.GetCultureInfo(snapshot.Culture);
+        }
+        QueueRecalculation();
+    }
 
     /// <summary>应用 sidecar 返回的远程图片准备结果。</summary>
     /// <param name="result">远程图片结果。</param>
@@ -169,7 +211,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             if (result.Value is ImageSource image) activeImages.Add(image);
             WebRuntimeDiagnostic? conversionDiagnostic = null;
             var value = result.Diagnostic is null && pair.Key == "CurrentGame.GameProgress" && result.Value is GameProgress progress && _gameProgressProvider is not null
-                ? new WebRuntimeValue("gameProgress", _gameProgressProvider.Create(progress, ResolveBo3Mode()), typeof(GameProgress).FullName)
+                ? new WebRuntimeValue("gameProgress", _gameProgressProvider.Create(progress, ResolveBo3Mode(), ResolveCulture()), typeof(GameProgress).FullName)
                 : result.Diagnostic is null ? _valueFactory.Create(result.Value, pair.Key, out conversionDiagnostic) : new WebRuntimeValue("null", null, result.SourceType, result.Diagnostic);
             if (result.Diagnostic is not null) diagnostics.Add(new(pair.Key, result.Diagnostic, result.SourceType));
             else if (conversionDiagnostic is not null) diagnostics.Add(conversionDiagnostic);
@@ -186,16 +228,70 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         }
         _assets.ReplaceRemoteSources(activeImages);
         _assets.ReplaceReferences(_stableAssets.Values.Select(value => value.Token));
+        foreach (var projection in _controlProjections.Values)
+        {
+            var controlId = WebRendererBootstrapBuilder.GetControlId(projection.WindowType, projection.ControlName);
+            switch (projection.Config)
+            {
+                case LocalizedTextControlConfig localized:
+                    changed[controlId] = _values[controlId] = new("localizedControl", ResolveLocalizedText(controlId, localized), typeof(string).FullName);
+                    break;
+                case MapNameTextControlConfig mapName:
+                    var map = ResolvePath(mapName.BindingPath ?? "CurrentGame.PickedMap") is Map resolvedMap ? (Map?)resolvedMap : null;
+                    changed[controlId] = _values[controlId] = new("mapName", _localizationProvider?.ResolveMapName(controlId, map, mapName.EmptyText, _localizationCulture), typeof(Map).FullName);
+                    break;
+                case GameProgressTextControlConfig progressConfig:
+                    if (ResolvePath("CurrentGame.GameProgress") is GameProgress resolvedProgress && _localizationProvider is not null)
+                        changed[controlId] = _values[controlId] = new("gameProgressDisplay", _localizationProvider.CreateGameProgress(resolvedProgress, ResolveBo3Mode(), progressConfig.DisplayLanguage, progressConfig.NumberStyle, _localizationCulture), typeof(GameProgress).FullName);
+                    break;
+                case MapV2DisplayControlConfig mapConfig:
+                    var mapV2 = ResolvePath($"CurrentGame.MapV2Dictionary['{mapConfig.MapKey}']") as MapV2;
+                    if (mapV2 is not null && _localizationProvider is not null)
+                    {
+                        var camp = mapV2.OperationTeam?.Camp;
+                        var mapAsset = AssetFor($"CurrentGame.MapV2Dictionary['{mapConfig.MapKey}'].ImageSource");
+                        var teamAsset = AssetFor($"CurrentGame.MapV2Dictionary['{mapConfig.MapKey}'].OperationTeam.Logo");
+                        var state = new WebMapV2DisplayState(mapConfig.MapKey,
+                            _localizationProvider.ResolveMapName(controlId, mapV2.MapName, null, _localizationCulture).DisplayText,
+                            camp is null ? string.Empty : _localizationProvider.ResolveCamp(camp.Value, _localizationCulture),
+                            mapV2.OperationTeam?.Name ?? string.Empty, teamAsset, mapAsset,
+                            mapV2.IsBanned, mapV2.IsPicked, mapV2.IsCampVisible, camp?.ToString());
+                        changed[controlId] = _values[controlId] = new("mapV2Display", state, typeof(MapV2).FullName);
+                    }
+                    break;
+            }
+        }
         foreach (var descriptor in _assets.DrainRemoteRequests())
             RemoteAssetRequested?.Invoke(this,
                 new WebRemoteAssetFetch(_generation, descriptor.Token, descriptor.Revision, descriptor.NormalizedUri));
-        if (snapshot) Updated?.Invoke(this, new(true, _generation, ++_sequence, new Dictionary<string, WebRuntimeValue>(_values), diagnostics));
-        else if (changed.Count > 0) Updated?.Invoke(this, new(false, _generation, ++_sequence, changed, diagnostics));
+        if (snapshot) Updated?.Invoke(this, new WebRendererRuntimeUpdate(true, _generation, ++_sequence, new Dictionary<string, WebRuntimeValue>(_values), diagnostics) { LocalizationRevision = _localizationRevision });
+        else if (changed.Count > 0) Updated?.Invoke(this, new WebRendererRuntimeUpdate(false, _generation, ++_sequence, changed, diagnostics) { LocalizationRevision = _localizationRevision });
         CompleteCommitBarriersLocked(isStable: true);
     }
 
     private bool ResolveBo3Mode() => _observers.TryGetValue("IsBo3Mode", out var observer)
         && observer.Resolve().Value is bool mode && mode;
+
+    private CultureInfo ResolveCulture() =>
+        _settingsHostService?.Settings.CultureInfo ?? CultureInfo.InvariantCulture;
+
+    private object? ResolvePath(string path) => WebRendererBindingPathResolver.Resolve(_sharedData, path).Value;
+
+    private WebLocalizedControlState ResolveLocalizedText(string controlId, LocalizedTextControlConfig config)
+    {
+        if (_localizationProvider is null) return new(controlId, string.Empty);
+        var key = config.LocalizationKey;
+        if (config.TextBinding is not null)
+        {
+            var values = config.TextBinding.GetActiveSources().Select(source => ResolvePath(source.Path)).ToArray();
+            key = Convert.ToString(new FrontedTextMultiBindingConverter().Convert(values!, typeof(string), config.TextBinding, _localizationCulture), _localizationCulture) ?? string.Empty;
+        }
+        return _localizationProvider.ResolveLocalizedControl(controlId, key, config.FallbackText, _localizationCulture);
+    }
+
+    private WebRuntimeAsset? AssetFor(string path) => _values.TryGetValue(path, out var value) ? value.Asset : null;
+
+    private sealed record WebControlProjection(string WindowType, string ControlName, FrontedControlConfigBase Config);
 
     internal WebRuntimeCommitBarrier BeginCommitBarrier(
         IReadOnlyList<FrontedTransitionRequest> requests,
@@ -333,6 +429,8 @@ public sealed record WebRendererRuntimeUpdate(bool IsSnapshot, long Generation, 
 {
     /// <summary>runtime 值 schema 版本。</summary>
     public int SchemaVersion { get; init; } = 2;
+    /// <summary>与本次 runtime 值匹配的本地化修订。</summary>
+    public long LocalizationRevision { get; init; }
 }
 
 

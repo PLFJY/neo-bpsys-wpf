@@ -115,7 +115,7 @@ public partial class App
         services.AddSingleton<FrontedLayoutPackageLegacyConverter>();
         services.AddSingleton<ILegacyV2StartupMigrationService, LegacyV2StartupMigrationService>();
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
-        services.AddSingleton<IWebLocalizationProvider, WebLocalizationProvider>();
+        services.AddSingleton<IWebLocalizationProvider, WebRendererLocalizationBridge>();
         services.AddSingleton<IWebGameProgressProvider, WebGameProgressProvider>();
         services.AddSingleton<IFrontedImageSafetyService, FrontedImageSafetyService>();
         services.AddSingleton<IFrontedResourceResolver, FrontedResourceResolver>();
