@@ -42,6 +42,10 @@ export class WebAnimatablePropertyAdapterRegistry {
     this.cancelProperty(element, property)
     this.setInternal(element, property, from)
     const milliseconds = Math.max(0, numeric(duration))
+    if (['TintColor', 'TintStrength', 'TextureStrength'].includes(property) && milliseconds > 0) {
+      const result = await this.animateTint(element, property, from, to, milliseconds, wait, signal)
+      return result
+    }
     if (property === 'Visibility' || milliseconds === 0 || typeof element.animate !== 'function') {
       this.setInternal(element, property, to)
       return true
@@ -152,6 +156,24 @@ export class WebAnimatablePropertyAdapterRegistry {
       case 'TextureStrength': state.textureStrength = numeric(value, state.textureStrength); break
     }
     applyComposedState(element, state)
+    if (['TintColor', 'TintStrength', 'TextureStrength'].includes(property)) element.dispatchEvent(new CustomEvent('web-renderer:tint-state-changed', { bubbles: true, detail: { property, value: property === 'TintColor' ? state.tintColor : property === 'TintStrength' ? state.tintStrength : state.textureStrength } }))
+  }
+
+  private async animateTint(element: HTMLElement, property: string, from: unknown, to: unknown, duration: number, wait: boolean, signal: AbortSignal): Promise<boolean> {
+    let frame = 0; let finished = false
+    const start = performance.now()
+    const interpolateColor = (a: string, b: string, progress: number) => {
+      const parse = (value: string) => { const hex = /^#?([\da-f]{6})$/i.exec(value)?.[1] ?? '000000'; return [0, 2, 4].map(index => Number.parseInt(hex.slice(index, index + 2), 16)) }
+      const before = parse(a); const after = parse(b); return `#${before.map((value, index) => Math.round(value + (after[index] - value) * progress).toString(16).padStart(2, '0')).join('')}`
+    }
+    const done = new Promise<void>(resolve => {
+      const tick = (now: number) => { if (finished || signal.aborted) { resolve(); return }; const progress = Math.min(1, (now - start) / duration); const value = property === 'TintColor' ? interpolateColor(String(from), String(to), progress) : numeric(from) + (numeric(to) - numeric(from)) * progress; this.setInternal(element, property, value); if (progress < 1) frame = requestAnimationFrame(tick); else { finished = true; resolve() } }
+      frame = requestAnimationFrame(tick)
+    })
+    const cancel = () => { finished = true; cancelAnimationFrame(frame) }
+    signal.addEventListener('abort', cancel, { once: true })
+    if (wait) await done
+    return true
   }
 
   private lengthValue(value: unknown, fallback: WebLength): WebLength {
