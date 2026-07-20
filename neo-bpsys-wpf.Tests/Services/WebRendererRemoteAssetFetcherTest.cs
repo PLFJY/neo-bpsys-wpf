@@ -219,6 +219,13 @@ public sealed class WebRendererRemoteAssetFetcherTest
         Assert.False(ProductionAddressPolicy.IsPublicAddress(IPAddress.Parse(value)));
     }
 
+    /// <summary>Clash TUN 的 RFC2544 Fake-IP 地址应交给系统路由处理。</summary>
+    [Fact]
+    public void ProductionAddressPolicyAllowsClashFakeIpRange()
+    {
+        Assert.True(ProductionAddressPolicy.IsPublicAddress(IPAddress.Parse("198.18.3.157")));
+    }
+
     /// <summary>生产 URI 策略必须拒绝 userinfo 和非 HTTP/HTTPS scheme。</summary>
     [Theory]
     [InlineData("https://user:secret@images.example.test/photo.png")]

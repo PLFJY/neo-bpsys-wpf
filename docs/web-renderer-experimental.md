@@ -51,9 +51,9 @@ Team/Member JSON ImageUri
 
 没有选择角色时，`PictureShown` 使用 `Member.Image`；选择角色后使用 `Character.HalfImage`；清除角色后重新使用当前 Member 的在线定妆照。两个队伍 Logo、四名求生者与一名监管者都走同一套绑定和资源链路，不含控件特判。
 
-sidecar 独立异步下载在线图片，并只允许 HTTP/HTTPS 的 PNG、JPEG、WebP 和 GIF。每次下载最多跟随 5 次重定向，连接超时 5 秒、总请求超时 20 秒、单项上限 10 MiB；相同资源的并发请求合并。成功结果进入 64 MiB 内存 LRU 与 512 MiB、最长 7 天的磁盘缓存，完整写入后才通过 `/remote-assets/{token}` 提供。失败不会持久缓存，绑定仍存在时会退避重试；URL 或 generation 改变时旧任务结果会被丢弃。
+sidecar 独立异步下载在线图片，并只允许 HTTP/HTTPS 的 PNG、JPEG、WebP 和 GIF。下载使用操作系统默认代理和路由设置，因此浏览器、WPF 与 Clash TUN/Fake-IP 模式共用同一网络路径；sidecar 不强制直连，也不要求额外的受信任主机配置。每次下载最多跟随 5 次重定向，连接超时 5 秒、总请求超时 20 秒、单项上限 10 MiB；相同资源的并发请求合并。成功结果进入 64 MiB 内存 LRU 与 512 MiB、最长 7 天的磁盘缓存，完整写入后才通过 `/remote-assets/{token}` 提供。失败不会持久缓存，绑定仍存在时会退避重试；URL 或 generation 改变时旧任务结果会被丢弃。
 
-每次请求和重定向都会重新执行地址校验：拒绝 userinfo、非 HTTP/HTTPS、localhost、环回、链路本地、组播、未指定、RFC1918 和其他常见非公网保留地址。LAN 模式只用于把 Web Renderer 页面提供给受信任客户端，现有产品没有局域网图片服务器契约，因此在线图片代理仍拒绝普通 LAN 私有地址。日志只记录稳定诊断码、generation 和截短 token，不记录源 URL、查询参数或完整缓存路径。
+每次请求和重定向都会重新执行基本地址校验：拒绝 userinfo、非 HTTP/HTTPS、localhost、环回、链路本地、组播、未指定和 RFC1918 私有地址。Clash TUN 常用的 `198.18.0.0/15` 仅作为 Fake-IP 路由地址，允许交由操作系统代理/路由处理，不将其当作用户可访问的局域网图片服务器。日志只记录稳定诊断码、generation 和截短 token，不记录源 URL、查询参数或完整缓存路径。
 
 ## 字体分类
 

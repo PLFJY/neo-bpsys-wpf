@@ -24,7 +24,9 @@ try
         {
             AllowAutoRedirect = false,
             ConnectTimeout = TimeSpan.FromSeconds(5),
-            ConnectCallback = RemoteAssetAddressPolicy.ConnectPublicAsync
+            // Respect the OS proxy and routing table. This is required for Clash TUN/Fake-IP
+            // and keeps sidecar traffic consistent with browser/WPF networking.
+            UseProxy = true
         });
     builder.Services.AddSingleton<RemoteAssetFetcher>();
     var app = builder.Build();

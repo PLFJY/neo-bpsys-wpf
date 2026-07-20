@@ -41,6 +41,10 @@ internal sealed class RemoteAssetAddressPolicy : IRemoteAssetAddressPolicy
         }
         if (address.AddressFamily != AddressFamily.InterNetwork) return false;
         var value = address.GetAddressBytes();
+        // Clash TUN commonly maps public hosts into the RFC 2544 benchmark range.
+        // The request still goes through the OS proxy/routing stack, so this range
+        // must not be rejected merely because it is a Fake-IP route address.
+        if (value[0] == 198 && value[1] is 18 or 19) return true;
         return value[0] != 0
                && value[0] != 10
                && value[0] != 127
@@ -50,38 +54,11 @@ internal sealed class RemoteAssetAddressPolicy : IRemoteAssetAddressPolicy
                && !(value[0] == 192 && value[1] == 168)
                && !(value[0] == 192 && value[1] == 0)
                && !(value[0] == 192 && value[1] == 0 && value[2] == 2)
-               && !(value[0] == 198 && value[1] is 18 or 19)
                && !(value[0] == 198 && value[1] == 51 && value[2] == 100)
                && !(value[0] == 203 && value[1] == 0 && value[2] == 113)
                && value[0] < 224;
     }
 
-    internal static async ValueTask<Stream> ConnectPublicAsync(SocketsHttpConnectionContext context,
-        CancellationToken cancellationToken)
-    {
-        var addresses = await Dns.GetHostAddressesAsync(context.DnsEndPoint.Host, cancellationToken);
-        var allowed = addresses.Where(IsPublicAddress).ToArray();
-        if (allowed.Length == 0 || allowed.Length != addresses.Length)
-            throw new RemoteAssetException("RemoteAssetAddressRejected");
-
-        Exception? last = null;
-        foreach (var address in allowed)
-        {
-            var socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
-            try
-            {
-                await socket.ConnectAsync(new IPEndPoint(address, context.DnsEndPoint.Port), cancellationToken);
-                return new NetworkStream(socket, ownsSocket: true);
-            }
-            catch (Exception ex) when (ex is SocketException or OperationCanceledException)
-            {
-                socket.Dispose();
-                last = ex;
-                if (ex is OperationCanceledException) throw;
-            }
-        }
-        throw new HttpRequestException("Remote asset connection failed.", last);
-    }
 }
 
 internal sealed class RemoteAssetFetcher
