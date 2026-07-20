@@ -193,8 +193,11 @@ public sealed class WebRuntimeAssetRegistry : IDisposable
                         error = "RuntimeAssetPending";
                         return false;
                     case WebImageSourceKind.LocalFile:
+                        // BitmapImage is a WPF DependencyObject. Capture UriSource on the
+                        // registering (dispatcher) thread before entering Task.Run.
+                        var localPath = ((BitmapImage)source).UriSource.LocalPath;
                         _pending.Add(source);
-                        StartEncoding(source, Task.Run(() => EncodeFile(((BitmapImage)source).UriSource.LocalPath)));
+                        StartEncoding(source, Task.Run(() => EncodeFile(localPath)));
                         error = "RuntimeAssetPending";
                         return false;
                     case WebImageSourceKind.FrozenBitmap:

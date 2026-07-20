@@ -121,6 +121,34 @@ public sealed class WebRendererImageRuntimeTest
         Assert.DoesNotContain(Path.DirectorySeparatorChar, asset.Url);
     }
 
+    /// <summary>本地 BitmapImage 的 UriSource 必须在线程切换前读取。</summary>
+    [Fact]
+    public async Task LocalBitmapReadsUriSourceOnRegisteringThread()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"neo-bpsys-local-{Guid.NewGuid():N}.png");
+        try
+        {
+            using var registry = new WebRuntimeAssetRegistry();
+            var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            registry.AssetStateChanged += (_, _) => changed.TrySetResult();
+            WpfTestThread.Run(() =>
+            {
+                var bitmap = BitmapSource.Create(1, 1, 96, 96, PixelFormats.Bgra32, null, new byte[4], 4);
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using (var stream = File.Create(path)) encoder.Save(stream);
+                var image = new BitmapImage(new Uri(path));
+                Assert.False(registry.TryRegister(image, out _, out var pending));
+                Assert.Equal("RuntimeAssetPending", pending);
+            });
+            await changed.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            try { File.Delete(path); } catch { }
+        }
+    }
+
     /// <summary>业务 null、pending 和 failed 必须是互不混淆的显式状态。</summary>
     [Fact]
     public void RuntimeValueStatesDistinguishBusinessNullAndAssetPreparation()
