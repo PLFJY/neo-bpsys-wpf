@@ -1177,6 +1177,28 @@ public partial class FrontedDesignerWindow : FluentWindow
         e.Handled = true;
     }
 
+    /// <summary>
+    /// 处理 FontFamily 属性编辑器 Apply 按钮的点击事件。
+    /// 复用 <see cref="ApplyFontComboBoxValue"/> 提交流程，与 Enter 键提交行为一致。
+    /// </summary>
+    /// <param name="sender">事件发送者（Apply 按钮）。</param>
+    /// <param name="e">事件数据。</param>
+    private void PropertyFontApplyButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement button
+            || button.Parent is not Grid grid
+            || grid.Children.OfType<ComboBox>().FirstOrDefault() is not { } comboBox)
+        {
+            return;
+        }
+
+        var committed = ApplyFontComboBoxValue(comboBox, useSelectedOption: false);
+        if (committed)
+        {
+            FocusDesignSurface();
+        }
+    }
+
     private bool ApplyFontComboBoxValue(ComboBox comboBox, bool useSelectedOption)
     {
         if (IsPropertyEditorCommitSuppressed()

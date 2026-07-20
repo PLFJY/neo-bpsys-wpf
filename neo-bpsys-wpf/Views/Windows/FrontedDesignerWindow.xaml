@@ -222,9 +222,6 @@
                     <ui:Button.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding RequiresExplicitCommit}" Value="False">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
                                 <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
@@ -239,6 +236,7 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
@@ -300,6 +298,13 @@
                     Click="ManagePackageFontsButton_OnClick"
                     Icon="{ui:SymbolIcon Symbol=Settings24}"
                     ToolTip="{lex:Loc Designer.Editor.ManagePackageFonts}" />
+                <ui:Button
+                    Grid.Column="3"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="PropertyFontApplyButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                    ToolTip="{lex:Loc EditProperty}" />
             </Grid>
         </DataTemplate>
 

@@ -147,12 +147,12 @@ public partial class App : AppBase
     {
         CurrentLifetime = ApplicationLifetime.Stopping;
         AppStopping?.Invoke(this, EventArgs.Empty);
-        base.OnExit(e);
         var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
         logger.LogInformation("Application Closed");
         IAppHost.Host.Services.GetRequiredService<IBpuiFileActivationService>().StopListening();
         await IAppHost.Host.StopAsync();
         IAppHost.Host.Dispose();
+        base.OnExit(e);
     }
 
     /// <inheritdoc/>
