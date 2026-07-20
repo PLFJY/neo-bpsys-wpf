@@ -12,6 +12,6 @@ export function CanvasRuntime({ bootstrap, runtime }: { bootstrap: Bootstrap; ru
   const background = canvas.BackgroundImage ? bootstrap.Resources[canvas.BackgroundImage] : undefined
   const faces = Object.entries(bootstrap.Resources).filter(([key]) => key.includes('/fonts/') || key.includes('Assets/Fonts')).map(([key,url]) => `@font-face{font-family:"${fontFamily(key)}";src:url("${url}");font-display:block;}`).join('\n')
   return <><style>{faces}</style><div className="viewport"><div className="canvas" style={{ width, height, transform: `scale(${scale[0]},${scale[1]})`, backgroundImage: background ? `url(${background})` : undefined }}>
-    {Object.entries(layout.ControlLayout.Controls).map(([name, config]) => <WebControlRegistry key={name} name={name} config={config} runtime={runtime} localization={bootstrap.Localization} />)}
+    {Object.entries(layout.ControlLayout.Controls).map(([name, config]) => <WebControlRegistry key={name} name={name} config={config} runtime={runtime} localization={bootstrap.Localization} resources={bootstrap.Resources} />)}
   </div></div></>
 }

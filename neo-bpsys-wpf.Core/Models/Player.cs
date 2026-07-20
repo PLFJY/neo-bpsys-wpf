@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using System.ComponentModel;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -71,4 +72,41 @@ public partial class Player : ObservableObjectBase
     /// 显示的图片，角色存在时使用头像。
     /// </summary>
     [JsonIgnore] public ImageSource? PictureShownHeader => Character == null ? Member.Image : Character?.HeaderImage;
+
+    partial void OnMemberChanging(Member value)
+    {
+        UnsubscribeMember(Member);
+    }
+
+    partial void OnMemberChanged(Member value)
+    {
+        SubscribeMember(value);
+    }
+
+    private void SubscribeMember(Member? member)
+    {
+        if (member is not null)
+        {
+            member.PropertyChanged += OnMemberPropertyChanged;
+        }
+    }
+
+    private void UnsubscribeMember(Member? member)
+    {
+        if (member is not null)
+        {
+            member.PropertyChanged -= OnMemberPropertyChanged;
+        }
+    }
+
+    private void OnMemberPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName is nameof(Member.Image) or nameof(Member.ImageUri))
+        {
+            OnPropertyChanged(nameof(PictureShown));
+            OnPropertyChanged(nameof(PictureShownWithFullCharacter));
+            OnPropertyChanged(nameof(PictureShownHeader));
+        }
+    }
 }

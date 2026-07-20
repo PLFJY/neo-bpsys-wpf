@@ -9,6 +9,9 @@ public interface IWebTransitionGateway
 {
     /// <summary>获取当前 bootstrap generation。</summary>
     long CurrentGeneration { get; }
+    /// <summary>更新当前可确认 transition 的 Web 客户端数量。</summary>
+    /// <param name="clientCount">sidecar 当前 WebSocket 客户端数。</param>
+    void SetClientCount(int clientCount);
 
     /// <summary>更新当前 bootstrap generation 并取消旧会话。</summary>
     /// <param name="generation">新的 generation。</param>
@@ -61,9 +64,13 @@ public sealed class WebTransitionGateway : IWebTransitionGateway
 {
     private readonly ConcurrentDictionary<string, WebTransitionSession> _sessions = new(StringComparer.Ordinal);
     private long _generation;
+    private int _clientCount;
 
     /// <inheritdoc />
     public long CurrentGeneration => Interlocked.Read(ref _generation);
+
+    /// <inheritdoc />
+    public void SetClientCount(int clientCount) => Volatile.Write(ref _clientCount, Math.Max(0, clientCount));
 
     /// <summary>发生需要发送给 sidecar 的消息。</summary>
     public event EventHandler<WebTransitionSignal>? SignalPublished;
@@ -79,6 +86,12 @@ public sealed class WebTransitionGateway : IWebTransitionGateway
     public WebTransitionSession Prepare(IReadOnlyList<FrontedTransitionRequest> requests, long generation, CancellationToken cancellationToken)
     {
         var session = new WebTransitionSession(Guid.NewGuid().ToString("N"), generation, requests);
+        if (Volatile.Read(ref _clientCount) == 0 || requests.Count == 0 || generation != CurrentGeneration)
+        {
+            session.Exit.TrySetResult();
+            session.Enter.TrySetResult();
+            return session;
+        }
         _sessions[session.CorrelationId] = session;
         cancellationToken.Register(() => Cancel(session, "cancelled"));
         SignalPublished?.Invoke(this, new WebTransitionSignal(WebRendererIpcProtocol.TransitionPrepare, session, null));

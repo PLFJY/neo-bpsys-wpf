@@ -292,7 +292,11 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                 var failure = message.Payload.Deserialize<WebRendererBootstrapFailure>();
                 _bootstrapAck?.TrySetException(new InvalidOperationException(failure?.Message ?? "Sidecar rejected bootstrap."));
             }
-            else if (message.Type == WebRendererIpcProtocol.SidecarClientsChanged && message.Payload.TryGetProperty("count", out var count) && count.TryGetInt32(out var clientCount)) _runtimePublisher?.SetClientCount(clientCount);
+            else if (message.Type == WebRendererIpcProtocol.SidecarClientsChanged && message.Payload.TryGetProperty("count", out var count) && count.TryGetInt32(out var clientCount))
+            {
+                _runtimePublisher?.SetClientCount(clientCount);
+                _transitionGateway?.SetClientCount(clientCount);
+            }
             else if ((message.Type == WebRendererIpcProtocol.TransitionExitCompleted || message.Type == WebRendererIpcProtocol.TransitionEnterCompleted) && message.Payload.TryGetProperty("correlationId", out var correlation)) _transitionGateway?.Acknowledge(correlation.GetString() ?? string.Empty, message.Type == WebRendererIpcProtocol.TransitionEnterCompleted);
         }
     }
