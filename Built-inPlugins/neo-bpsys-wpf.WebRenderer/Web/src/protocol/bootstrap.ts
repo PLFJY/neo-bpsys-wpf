@@ -1,7 +1,7 @@
 import type { BehaviorDocument } from '../behaviorRuntime'
 import type { ControlConfig } from '../renderer/controlTypes'
 
-export type Localization = { Culture?: string; Values?: Record<string, string> }
+export type Localization = { Culture?: string; Revision?: number; Dictionaries?: { Common?: Record<string, string>; Game?: Record<string, string>; Fronted?: Record<string, string> } }
 export type Bootstrap = {
   FullWindowType: string; DisplayName: string; Layout: Layout | null; BehaviorDocument?: BehaviorDocument | null
   Resources: Record<string, string>; Diagnostics: string[]; Localization?: Localization

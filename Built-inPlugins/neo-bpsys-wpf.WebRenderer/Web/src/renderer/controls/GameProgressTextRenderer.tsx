@@ -4,14 +4,16 @@ import type { Localization } from '../../protocol/bootstrap'
 import type { RuntimeState } from '../../protocol/runtime'
 import type { GameProgressConfig } from '../controlTypes'
 import { color } from '../colors'
+import { localize } from '../localization'
 
 type Parts = { free: boolean; game: string; half: string; full: string }
 const enumValue = (value: unknown, names: readonly string[], fallback: string) => typeof value === 'number' ? names[value] ?? fallback : typeof value === 'string' && names.includes(value) ? value : fallback
-const localized = (localization: Localization | undefined, key: string, fallback: string) => localization?.Values?.[key] ?? localization?.Values?.[`Game:${key}`] ?? fallback
+const localized = (localization: Localization | undefined, key: string, fallback: string) => localize(localization, 'Game', key, fallback)
 const format = (template: string, ...values: string[]) => template.replace(/\{(\d+)\}/g, (_, index) => values[Number(index)] ?? '')
 const cjk = (culture?: string) => /^(zh|ja|ko)(-|$)/i.test(culture ?? '')
 function getParts(progress: unknown, isBo3: boolean, config: GameProgressConfig, localization?: Localization): Parts {
-  const value = typeof progress === 'number' ? progress : Number(progress)
+  const names: Record<string, number> = { Free: -1, Game1FirstHalf: 0, Game1SecondHalf: 1, Game2FirstHalf: 2, Game2SecondHalf: 3, Game3FirstHalf: 4, Game3SecondHalf: 5, Game4FirstHalf: 6, Game4SecondHalf: 7, Game3OvertimeFirstHalf: 6, Game3OvertimeSecondHalf: 7, Game5FirstHalf: 8, Game5SecondHalf: 9, Game5OvertimeFirstHalf: 10, Game5OvertimeSecondHalf: 11 }
+  const value = typeof progress === 'number' ? progress : typeof progress === 'string' ? names[progress] ?? Number.NaN : Number.NaN
   if (value === -1) return { free: true, game: '', half: '', full: localized(localization, 'GameProgressFree', 'FREE') }
   const gameInfo = value === 0 ? [1, false, false] : value === 1 ? [1, false, true] : value === 2 ? [2, false, false] : value === 3 ? [2, false, true] : value === 4 ? [3, false, false] : value === 5 ? [3, false, true] : value === 6 ? [isBo3 ? 3 : 4, isBo3, false] : value === 7 ? [isBo3 ? 3 : 4, isBo3, true] : value === 8 ? [5, false, false] : value === 9 ? [5, false, true] : value === 10 ? [5, true, false] : value === 11 ? [5, true, true] : undefined
   if (!gameInfo) return { free: true, game: '', half: '', full: '' }
