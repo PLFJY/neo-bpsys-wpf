@@ -2,6 +2,11 @@
 body { margin: 0; background: #111; }
 .viewport { width: 100vw; height: 100vh; overflow: hidden; display: grid; place-items: center; }
 .canvas { position: relative; transform-origin: center; background-repeat: no-repeat; background-size: 100% 100%; }
-.canvas [data-control-root], .canvas [data-effect-host] { width: 100%; height: 100%; }
+.canvas [data-control-root] { box-sizing: border-box; }
+.canvas [data-effect-host] { position: relative; width: max-content; height: max-content; }
+.canvas [data-overlay-below], .canvas [data-overlay-above] { position: absolute; inset: 0; pointer-events: none; }
+.canvas [data-overlay-below] { z-index: 0; }
+.canvas [data-overlay-above] { z-index: 2; }
+.canvas [data-behavior-content] { position: relative; z-index: 1; }
 .window-index, .error-page { margin: 3rem; color: #eee; }
 .window-index a { display: block; margin: .5rem 0; color: #60a5fa; }

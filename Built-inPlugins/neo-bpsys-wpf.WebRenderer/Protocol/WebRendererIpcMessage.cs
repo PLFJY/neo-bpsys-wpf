@@ -31,7 +31,7 @@ public sealed record WebRendererIpcMessage
 public static class WebRendererIpcProtocol
 {
     /// <summary>当前协议版本。</summary>
-    public const int Version = 5;
+    public const int Version = 6;
 
     /// <summary>主程序广播的权威会话状态。</summary>
     public const string SessionState = "session.state";

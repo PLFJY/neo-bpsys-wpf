@@ -22,11 +22,15 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 
 `/`、`/render/*` 和 `/index.html` 始终返回 `Cache-Control: no-store`，确保入口页不会缓存旧 bundle 引用。带内容 hash 的 `/assets/*.js` 与 `/assets/*.css` 使用 immutable 缓存策略。
 
-IPC 使用 version 5，并采用显式会话状态：`Stopped`、`StartingProcess`、`WaitingForPipe`、`PipeConnected`、`BuildingBootstrap`、`WaitingForBootstrapAck`、`Ready`、`Stopping`、`Faulted`。主程序是状态权威；sidecar 必须先发送 `sidecar.ready`，主程序才发送 `host.hello` 和真实活动包的 `bootstrap.replace`。sidecar 会原子校验协议版本、generation、窗口结构与本地资源表，成功后返回 `bootstrap.applied`；只有该确认到达，管理页、`/health` 与 `/api/windows` 才会显示 `Ready` 和已发布窗口。连接断开时 sidecar 保持 HTTP 进程并以封顶退避重连，重连后的第一组消息始终是完整 bootstrap 和 runtime snapshot。
+IPC 使用 version 6，runtime value schema 使用 version 2，并采用显式会话状态：`Stopped`、`StartingProcess`、`WaitingForPipe`、`PipeConnected`、`BuildingBootstrap`、`WaitingForBootstrapAck`、`Ready`、`Stopping`、`Faulted`。主程序是状态权威；sidecar 必须先发送 `sidecar.ready`，主程序才发送 `host.hello` 和真实活动包的 `bootstrap.replace`。sidecar 会原子校验协议版本、generation、窗口结构与本地资源表，成功后返回 `bootstrap.applied`；只有该确认到达，管理页、`/health` 与 `/api/windows` 才会显示 `Ready` 和已发布窗口。连接断开时 sidecar 保持 HTTP 进程并以封顶退避重连，重连后的第一组消息始终是完整 bootstrap 和 runtime snapshot。
 
 `/api/windows` 和 `/api/bootstrap/{encodedFullWindowType}` 在 IPC 未连接时返回 `503 IpcUnavailable`，bootstrap 尚未确认时返回 `503 BootstrapPending`，构建或校验失败时返回结构化 `503` 错误。`/render/{...}` 在等待状态显示“正在等待主程序布局数据”；仅 Ready 后才区分 `UnknownWindow` 与 `LayoutUnavailable`。管理页仅把 sidecar 已确认的窗口作为可用 Web Runtime，不会用 registry 候选窗口伪装布局已发布。
 
-行为、动画、Transition 和控件覆盖仍处于实验探索状态，本文件不将其列为已完成能力。当前验收范围仅覆盖活动 `.bpui v3` 布局的 bootstrap、受控资源、生命周期、IPC 与浏览器显示链路。
+Image 与 BorderedImage 按 WPF 的语义树分离外层布局、内容 viewport、Lock/PickingBorder overlay 和行为生成部件。动态图片值明确区分 `resolved`、`pending`、`null`、`failed`；runtime asset 同时携带自然 DIP、像素尺寸与 DPI。浏览器只在新图片 decode 成功后原子切换，pending/failed 保留同 generation 的上一稳定图片，业务 null 则清空。
+
+`.bpui v3` 的 Rectangle、Border、Image AnimationParts 会进入所属控件的局部 Above/Below overlay。Web 动画使用带单位的长度值，百分比 ClipInset 直接生成 `clip-path: inset(...)`，Transform 分量由同一元素状态合成。Transition 的 `transition.committed` 携带 required generation/sequence；浏览器应用到该 runtime sequence 后才启动 EnterGraph，超时、断线或 generation 变化时 fail-open，WPF 始终是唯一业务 commit 所有者。
+
+这些能力仍属于实验性 Web Renderer。当前阶段不实现 BackgroundTint，也没有重写 Runtime Publisher 的完整线程模型；图片编码、runtime patch、IPC 和 Web 动画保持异步，WPF Renderer 的既有语义不变。
 
 ## 管理与排查
 
@@ -56,4 +60,4 @@ OBS 可添加 Browser Source 并填入本机 URL 或指定窗口的 `/render/{en
 .\tools\Test-WebRendererIpc.ps1 -Configuration Debug
 ```
 
-该脚本发布并启动真实主程序，要求 sidecar 到达 `Ready`，验证 `BpWindow` 的真实 bootstrap 与 headless Edge 截图，并输出完整握手日志、health、windows 和 bootstrap 摘要。
+该脚本发布并启动真实主程序，要求 sidecar 到达 `Ready`，验证 `BpWindow` 的真实 bootstrap、AnimationParts/overlay DOM 身份与 headless Edge 截图，并输出 health、windows、bootstrap 摘要、浏览器控制台和 DOM 证据。

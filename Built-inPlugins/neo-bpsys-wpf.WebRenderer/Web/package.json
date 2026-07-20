@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "node ./scripts/clean-dist.mjs && tsc -b && vite build"
+    "build": "node ./scripts/clean-dist.mjs && tsc -b && vite build",
+    "test": "vitest run"
   },
   "dependencies": {
     "react": "^19.1.1",
@@ -14,7 +15,9 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.2",
+    "jsdom": "^29.1.1",
     "typescript": "^5.9.2",
-    "vite": "^7.1.4"
+    "vite": "^7.1.4",
+    "vitest": "^4.1.10"
   }
 }

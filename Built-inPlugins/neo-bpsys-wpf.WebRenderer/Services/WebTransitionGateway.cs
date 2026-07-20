@@ -27,7 +27,10 @@ public interface IWebTransitionGateway
     Task WaitForExitAsync(WebTransitionSession session, CancellationToken cancellationToken);
 
     /// <summary>通知 Web 已完成唯一的业务提交。</summary>
-    void Commit(WebTransitionSession session);
+    /// <param name="session">正在提交的 transition 会话。</param>
+    /// <param name="requiredGeneration">EnterGraph 所需的 runtime generation。</param>
+    /// <param name="requiredSequence">EnterGraph 所需的 runtime sequence。</param>
+    void Commit(WebTransitionSession session, long requiredGeneration, long requiredSequence);
 
     /// <summary>等待 Web Enter 完成。</summary>
     Task WaitForEnterAsync(WebTransitionSession session, CancellationToken cancellationToken);
@@ -55,6 +58,10 @@ public sealed class WebTransitionSession
     public long Generation { get; }
     /// <summary>获取过渡目标。</summary>
     public IReadOnlyList<FrontedTransitionRequest> Requests { get; }
+    /// <summary>获取 EnterGraph 所需的 runtime generation。</summary>
+    public long RequiredGeneration { get; internal set; }
+    /// <summary>获取 EnterGraph 所需的 runtime sequence。</summary>
+    public long RequiredSequence { get; internal set; }
     internal TaskCompletionSource Exit { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal TaskCompletionSource Enter { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 }
@@ -102,7 +109,13 @@ public sealed class WebTransitionGateway : IWebTransitionGateway
     public Task WaitForExitAsync(WebTransitionSession session, CancellationToken cancellationToken) => session.Exit.Task.WaitAsync(cancellationToken);
 
     /// <inheritdoc />
-    public void Commit(WebTransitionSession session) => SignalPublished?.Invoke(this, new WebTransitionSignal(WebRendererIpcProtocol.TransitionCommitted, session, null));
+    public void Commit(WebTransitionSession session, long requiredGeneration, long requiredSequence)
+    {
+        session.RequiredGeneration = requiredGeneration;
+        session.RequiredSequence = requiredSequence;
+        if (_sessions.ContainsKey(session.CorrelationId))
+            SignalPublished?.Invoke(this, new WebTransitionSignal(WebRendererIpcProtocol.TransitionCommitted, session, null));
+    }
 
     /// <inheritdoc />
     public Task WaitForEnterAsync(WebTransitionSession session, CancellationToken cancellationToken) => session.Enter.Task.WaitAsync(cancellationToken);

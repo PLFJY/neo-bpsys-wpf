@@ -8,6 +8,7 @@ namespace neo_bpsys_wpf.WebRenderer.Services;
 public sealed class WebTransitionOrchestratorDecorator(
     IFrontedTransitionOrchestrator inner,
     IWebTransitionGateway gateway,
+    WebRendererRuntimeStatePublisher runtimePublisher,
     WebRendererLaunchOptions options,
     ILogger<WebTransitionOrchestratorDecorator> logger) : IFrontedTransitionOrchestrator
 {
@@ -28,9 +29,28 @@ public sealed class WebTransitionOrchestratorDecorator(
             catch (Exception ex) when (ex is TimeoutException or OperationCanceledException) { logger.LogDebug(ex, "Web transition exit failed open."); }
             await inner.RunMultiTargetTransitionAsync(requests, async () =>
             {
-                await commitAsync();
-                committed = true;
-                gateway.Commit(session);
+                var barrier = runtimePublisher.BeginCommitBarrier(requests, session.Generation);
+                try
+                {
+                    await commitAsync();
+                    committed = true;
+                    var commitPoint = await runtimePublisher.WaitForCommitBarrierAsync(
+                        barrier,
+                        options.EnterTimeout,
+                        CancellationToken.None);
+                    logger.LogInformation(
+                        "Web transition commit barrier completed. CorrelationId={CorrelationId}, RequiredGeneration={RequiredGeneration}, RequiredSequence={RequiredSequence}, IsStable={IsStable}.",
+                        session.CorrelationId,
+                        commitPoint.Generation,
+                        commitPoint.Sequence,
+                        commitPoint.IsStable);
+                    gateway.Commit(session, commitPoint.Generation, commitPoint.Sequence);
+                }
+                catch
+                {
+                    runtimePublisher.CancelCommitBarrier(barrier);
+                    throw;
+                }
             }, cancellationToken);
             if (committed)
             {

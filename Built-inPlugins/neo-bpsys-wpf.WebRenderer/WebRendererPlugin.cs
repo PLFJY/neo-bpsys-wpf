@@ -40,6 +40,7 @@ public sealed class WebRendererPlugin : PluginBase
         services.AddSingleton<IFrontedTransitionOrchestrator>(serviceProvider => new WebTransitionOrchestratorDecorator(
             serviceProvider.GetRequiredService<FrontedTransitionOrchestrator>(),
             serviceProvider.GetRequiredService<IWebTransitionGateway>(),
+            serviceProvider.GetRequiredService<WebRendererRuntimeStatePublisher>(),
             serviceProvider.GetRequiredService<WebRendererLaunchOptions>(),
             serviceProvider.GetRequiredService<ILogger<WebTransitionOrchestratorDecorator>>()));
     }

@@ -20,8 +20,12 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     private readonly object _gate = new();
     private readonly Dictionary<string, BindingPathObserver> _observers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WebRuntimeValue> _values = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, WebRuntimeAsset> _stableAssets = new(StringComparer.Ordinal);
+    private readonly Dictionary<Guid, IReadOnlyList<string>> _pathsByBehaviorGuid = [];
+    private readonly List<WebRuntimeCommitBarrier> _commitBarriers = [];
     private long _generation;
     private long _sequence;
+    private long _recalculationVersion;
     private int _clientCount;
     private bool _recalculationQueued;
 
@@ -31,11 +35,13 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     public event EventHandler<WebRendererBehaviorEvent>? BehaviorEventPublished;
     /// <summary>获取当前由 sidecar 报告的已连接客户端数量。</summary>
     public int ClientCount => Volatile.Read(ref _clientCount);
+    /// <summary>获取最近发布的 runtime sequence。</summary>
+    public long CurrentSequence { get { lock (_gate) return _sequence; } }
 
     /// <summary>创建运行时发布器。</summary>
     public WebRendererRuntimeStatePublisher(ISharedDataService sharedData, IFrontedEventBus eventBus)
     {
-        _sharedData = sharedData; _eventBus = eventBus; _valueFactory = new(_assets); _assets.AssetReady += OnAssetReady;
+        _sharedData = sharedData; _eventBus = eventBus; _valueFactory = new(_assets); _assets.AssetStateChanged += OnAssetStateChanged;
     }
 
     /// <summary>使用新 bootstrap 重新收集所有可消费的绑定路径。</summary>
@@ -47,9 +53,18 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             // StopLocked 也用于“最后一个浏览器断开”场景，不能在那里清空 observer；
             // 但布局 generation 切换必须释放路径表，否则第二次保存会对相同路径重复 Add。
             _observers.Clear();
+            _pathsByBehaviorGuid.Clear();
             _generation = snapshot.Generation;
             var paths = snapshot.Windows.Where(window => window.Layout is not null).SelectMany(window => EnumeratePaths(window.Layout!)).Where(path => !string.IsNullOrWhiteSpace(path)).ToHashSet(StringComparer.Ordinal);
             foreach (var path in paths) _observers.Add(path, new BindingPathObserver(_sharedData, path, OnPathChanged));
+            foreach (var control in snapshot.Windows
+                         .Where(window => window.Layout is not null)
+                         .SelectMany(window => window.Layout!.ControlLayout.Controls.Values)
+                         .Where(control => control.BehaviorGuid != Guid.Empty))
+            {
+                var controlPaths = EnumerateControlPaths(control).Distinct(StringComparer.Ordinal).ToArray();
+                if (controlPaths.Length > 0) _pathsByBehaviorGuid[control.BehaviorGuid] = controlPaths;
+            }
             if (_clientCount > 0) StartLocked(true);
         }
     }
@@ -73,11 +88,14 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     {
         _eventBus.EventPublished -= OnEventPublished;
         foreach (var observer in _observers.Values) observer.Dispose();
-        _values.Clear(); _assets.ReplaceReferences([]);
+        _values.Clear();
+        _stableAssets.Clear();
+        _assets.ReplaceReferences([]);
+        CompleteCommitBarriersLocked(isStable: false);
     }
 
     private void OnPathChanged() => QueueRecalculation();
-    private void OnAssetReady(object? sender, EventArgs args)
+    private void OnAssetStateChanged(object? sender, EventArgs args)
     {
         QueueRecalculation();
     }
@@ -123,6 +141,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
 
     private void RecalculateLocked(bool snapshot)
     {
+        _recalculationVersion++;
         var changed = new Dictionary<string, WebRuntimeValue>(StringComparer.Ordinal);
         var diagnostics = new List<WebRuntimeDiagnostic>();
         foreach (var pair in _observers)
@@ -134,10 +153,101 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             else if (conversionDiagnostic is not null) diagnostics.Add(conversionDiagnostic);
             if (!_values.TryGetValue(pair.Key, out var previous) || previous != value) changed[pair.Key] = value;
             _values[pair.Key] = value;
+            if (value.State == WebRuntimeValueStates.Resolved && value.Asset is not null)
+            {
+                _stableAssets[pair.Key] = value.Asset;
+            }
+            else if (value.State == WebRuntimeValueStates.Null)
+            {
+                _stableAssets.Remove(pair.Key);
+            }
         }
-        _assets.ReplaceReferences(_values.Values.Where(value => value.Asset is not null).Select(value => value.Asset!.Token));
+        _assets.ReplaceReferences(_stableAssets.Values.Select(value => value.Token));
         if (snapshot) Updated?.Invoke(this, new(true, _generation, ++_sequence, new Dictionary<string, WebRuntimeValue>(_values), diagnostics));
         else if (changed.Count > 0) Updated?.Invoke(this, new(false, _generation, ++_sequence, changed, diagnostics));
+        CompleteCommitBarriersLocked(isStable: true);
+    }
+
+    internal WebRuntimeCommitBarrier BeginCommitBarrier(
+        IReadOnlyList<FrontedTransitionRequest> requests,
+        long generation)
+    {
+        lock (_gate)
+        {
+            var paths = requests
+                .SelectMany(request => _pathsByBehaviorGuid.GetValueOrDefault(request.TargetBehaviorGuid) ?? [])
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            var barrier = new WebRuntimeCommitBarrier(generation, _recalculationVersion, paths);
+            if (_clientCount == 0 || generation != _generation)
+            {
+                barrier.Completion.TrySetResult(new WebRuntimeCommitPoint(_generation, _sequence, false));
+            }
+            else
+            {
+                _commitBarriers.Add(barrier);
+            }
+
+            return barrier;
+        }
+    }
+
+    internal async Task<WebRuntimeCommitPoint> WaitForCommitBarrierAsync(
+        WebRuntimeCommitBarrier barrier,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        QueueRecalculation();
+        try
+        {
+            return await barrier.Completion.Task.WaitAsync(timeout, cancellationToken);
+        }
+        catch (TimeoutException)
+        {
+            lock (_gate)
+            {
+                _commitBarriers.Remove(barrier);
+                return new WebRuntimeCommitPoint(_generation, _sequence, false);
+            }
+        }
+    }
+
+    internal void CancelCommitBarrier(WebRuntimeCommitBarrier barrier)
+    {
+        lock (_gate)
+        {
+            _commitBarriers.Remove(barrier);
+            barrier.Completion.TrySetResult(new WebRuntimeCommitPoint(_generation, _sequence, false));
+        }
+    }
+
+    private void CompleteCommitBarriersLocked(bool isStable)
+    {
+        foreach (var barrier in _commitBarriers.ToArray())
+        {
+            if (!isStable || barrier.Generation != _generation)
+            {
+                _commitBarriers.Remove(barrier);
+                barrier.Completion.TrySetResult(new WebRuntimeCommitPoint(_generation, _sequence, false));
+                continue;
+            }
+
+            if (_recalculationVersion <= barrier.BaselineRecalculationVersion)
+            {
+                continue;
+            }
+
+            var pathsStable = barrier.Paths.All(path =>
+                _values.TryGetValue(path, out var value)
+                && value.State != WebRuntimeValueStates.Pending);
+            if (!pathsStable)
+            {
+                continue;
+            }
+
+            _commitBarriers.Remove(barrier);
+            barrier.Completion.TrySetResult(new WebRuntimeCommitPoint(_generation, _sequence, true));
+        }
     }
 
     private static IEnumerable<string> EnumeratePaths(FrontedWindowConfig layout)
@@ -158,16 +268,42 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             }
         }
     }
+    private static IEnumerable<string> EnumerateControlPaths(FrontedControlConfigBase control)
+    {
+        if (!string.IsNullOrWhiteSpace(control.BindingPath)) yield return control.BindingPath;
+        foreach (var property in control.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        {
+            if (property.Name.EndsWith("BindingPath", StringComparison.Ordinal)
+                && property.GetValue(control) is string path
+                && !string.IsNullOrWhiteSpace(path))
+            {
+                yield return path;
+            }
+        }
+    }
     private static IEnumerable<string> GetSpecialControlPaths(string type) => type switch { "GameProgressText" => ["CurrentGame.GameProgress", "IsBo3Mode"], "MapNameText" => ["CurrentGame.PickedMap"], "TalentTraitDisplay" => ["IsTraitVisible"], "MapV2Display" => ["IsMapV2CampVisible", "IsMapV2Breathing"], "GlobalScoreRow" => ["IsBo3Mode"], _ => [] };
     /// <inheritdoc />
-    public void Dispose() { lock (_gate) { StopLocked(); _assets.AssetReady -= OnAssetReady; _assets.Dispose(); } }
+    public void Dispose() { lock (_gate) { StopLocked(); _assets.AssetStateChanged -= OnAssetStateChanged; _assets.Dispose(); } }
 }
+
+internal sealed class WebRuntimeCommitBarrier(
+    long generation,
+    long baselineRecalculationVersion,
+    IReadOnlyList<string> paths)
+{
+    public long Generation { get; } = generation;
+    public long BaselineRecalculationVersion { get; } = baselineRecalculationVersion;
+    public IReadOnlyList<string> Paths { get; } = paths;
+    public TaskCompletionSource<WebRuntimeCommitPoint> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+}
+
+internal sealed record WebRuntimeCommitPoint(long Generation, long Sequence, bool IsStable);
 
 /// <summary>运行时状态更新。</summary>
 public sealed record WebRendererRuntimeUpdate(bool IsSnapshot, long Generation, long Sequence, IReadOnlyDictionary<string, WebRuntimeValue> Values, IReadOnlyList<WebRuntimeDiagnostic> Diagnostics)
 {
     /// <summary>runtime 值 schema 版本。</summary>
-    public int SchemaVersion { get; init; } = 1;
+    public int SchemaVersion { get; init; } = 2;
 }
 
 /// <summary>经标准化后可发送到浏览器的只读行为事件。</summary>

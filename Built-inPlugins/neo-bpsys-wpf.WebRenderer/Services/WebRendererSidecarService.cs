@@ -379,7 +379,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         Observe(QueueAsync(update.IsSnapshot ? WebRendererIpcProtocol.RuntimeSnapshot : WebRendererIpcProtocol.RuntimeBindingPatch, update, _stopping.Token));
     }
     private void OnBehaviorEventPublished(object? sender, WebRendererBehaviorEvent value) { if (Status.LifecycleState == WebRendererLifecycleState.Ready) Observe(QueueAsync(WebRendererIpcProtocol.BehaviorEvent, value, _stopping.Token)); }
-    private void OnTransitionSignalPublished(object? sender, WebTransitionSignal signal) { if (Status.LifecycleState == WebRendererLifecycleState.Ready) Observe(QueueAsync(signal.Type, new { correlationId = signal.Session.CorrelationId, generation = signal.Session.Generation, requests = signal.Session.Requests, reason = signal.Reason }, _stopping.Token)); }
+    private void OnTransitionSignalPublished(object? sender, WebTransitionSignal signal) { if (Status.LifecycleState == WebRendererLifecycleState.Ready) Observe(QueueAsync(signal.Type, new { correlationId = signal.Session.CorrelationId, generation = signal.Session.Generation, requiredGeneration = signal.Session.RequiredGeneration, requiredSequence = signal.Session.RequiredSequence, requests = signal.Session.Requests, reason = signal.Reason }, _stopping.Token)); }
 
     private void SetState(WebRendererLifecycleState state, string? error)
     {
