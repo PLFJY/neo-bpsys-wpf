@@ -13,6 +13,7 @@ import type { ControlConfig } from './controlTypes'
 import type { ControlBehaviorSet } from '../behavior/behaviorTypes'
 import type { WebRenderContext } from './WebRenderContext'
 import { BackgroundTintRenderer } from './backgroundTint/BackgroundTintRenderer'
+import { MapV2DisplayRenderer } from './controls/MapV2DisplayRenderer'
 
 const diagnosed = new Set<string>()
 function Unsupported({ name, type }: { name: string; type: string }) { const key = `${type}:${name}`; if (!diagnosed.has(key)) { diagnosed.add(key); console.warn(`[Web Renderer] ${type} is not implemented for ${name}.`) } return <div data-unsupported-control={type} /> }
@@ -27,6 +28,7 @@ export function WebControlRegistry({ name, config, runtime, localization, resour
     case 'Rectangle': control = <RectangleRenderer config={config} runtime={runtime} />; break
     case 'Polygon': control = <PolygonRenderer config={config} runtime={runtime} />; break
     case 'BackgroundTintRectangle': case 'BackgroundTintPolygon': control = <BackgroundTintRenderer config={config} runtime={runtime} context={context} />; break
+    case 'MapV2Display': semanticChild = true; control = <MapV2DisplayRenderer name={name} config={config} runtime={runtime} resources={resources} localization={localization} />; break
     case 'Image': semanticChild = true; control = <ImageRenderer name={name} config={config} runtime={runtime} resources={resources} behaviorSet={behaviorSet} />; break
     case 'BorderedImage': semanticChild = true; control = <BorderedImageRenderer name={name} config={config} runtime={runtime} resources={resources} behaviorSet={behaviorSet} />; break
     default: control = <Unsupported name={name} type={config.ControlType} />

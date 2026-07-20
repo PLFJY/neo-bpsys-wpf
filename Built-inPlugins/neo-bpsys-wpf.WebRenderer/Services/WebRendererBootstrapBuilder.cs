@@ -88,6 +88,11 @@ public sealed class WebRendererBootstrapBuilder(
 
     private IEnumerable<string> EnumerateResourceReferences(FrontedWindowConfig config)
     {
+        if (config.ControlLayout.Controls.Values.Any(control => control is MapV2DisplayControlConfig))
+        {
+            yield return "Resources/surIcon.png";
+            yield return "Resources/hunIcon.png";
+        }
         if (!string.IsNullOrWhiteSpace(config.CanvasSettings.BackgroundImage)) yield return config.CanvasSettings.BackgroundImage;
         foreach (var control in config.ControlLayout.Controls.Values)
         {
@@ -96,6 +101,12 @@ public sealed class WebRendererBootstrapBuilder(
                 if (!string.IsNullOrWhiteSpace(image.ImagePath)) yield return image.ImagePath;
                 if (!string.IsNullOrWhiteSpace(image.LockImagePath)) yield return image.LockImagePath;
                 if (!string.IsNullOrWhiteSpace(image.PickingBorderImagePath)) yield return image.PickingBorderImagePath;
+            }
+            if (control is MapV2DisplayControlConfig map)
+            {
+                if (!string.IsNullOrWhiteSpace(map.PickingBorderImagePath)) yield return map.PickingBorderImagePath;
+                foreach (var font in new[] { map.MapNameFontFamily, map.TeamNameFontFamily, map.CampNameFontFamily })
+                    if (!string.IsNullOrWhiteSpace(font) && ClassifyFontReference(font) is not WebFontReferenceKind.SystemFont) yield return font;
             }
             if (control is IFrontedTextStyleConfig text && !string.IsNullOrWhiteSpace(text.FontFamily)
                 && ClassifyFontReference(text.FontFamily) is not WebFontReferenceKind.SystemFont)

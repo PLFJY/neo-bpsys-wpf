@@ -278,7 +278,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         {
             foreach (var requiredPath in GetSpecialControlPaths(control.ControlType)) yield return requiredPath;
             if (control is MapV2DisplayControlConfig map && !string.IsNullOrWhiteSpace(map.MapKey))
-            { var prefix = $"CurrentGame.MapV2Dictionary['{map.MapKey}']"; foreach (var suffix in new[] { "MapName", "IsBanned", "IsPicked", "IsCampVisible", "OperationTeam.Name", "OperationTeam.Camp" }) yield return prefix + "." + suffix; }
+            { var prefix = $"CurrentGame.MapV2Dictionary['{map.MapKey}']"; foreach (var suffix in new[] { "MapName", "ImageSource", "IsBanned", "IsPicked", "IsCampVisible", "OperationTeam.Name", "OperationTeam.Logo", "OperationTeam.Camp" }) yield return prefix + "." + suffix; }
             if (control is TalentTraitDisplayControlConfig talent)
             { var player = talent.DisplayKind.ToString().StartsWith("Survivor", StringComparison.Ordinal) ? $"CurrentGame.SurPlayerList[{talent.PlayerIndex ?? 0}]" : "CurrentGame.HunPlayer"; foreach (var name in new[] { "BorrowedTime", "TideTurner", "FlywheelEffect", "KneeJerkReflex", "TrumpCard", "Detention", "ConfinedSpace", "Insolence" }) yield return $"{player}.Talent.{name}"; }
             if (!string.IsNullOrWhiteSpace(control.BindingPath)) yield return control.BindingPath;
