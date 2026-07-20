@@ -1,29 +1,92 @@
-import type { CSSProperties, ReactNode } from 'react'
-import { TextVisual } from '../TextVisual'
+import type { ReactNode } from 'react'
+import type { WebLocalizationSnapshot } from '../../protocol/bootstrap'
 import type { RuntimeState, WebGameProgressDisplayState } from '../../protocol/runtime'
 import type { GameProgressConfig } from '../controlTypes'
 import { color } from '../colors'
+import {
+  GameProgressHorizontalLayout,
+  GameProgressRoot,
+  GameProgressVerticalLayout,
+  resolveDisplayMode,
+  resolveVerticalDirection,
+  resolveVerticalLanguageMode,
+  RotatedLayoutBox,
+  StackedVerticalText,
+  UprightVerticalText,
+} from './GameProgressLayout'
 
-const enumValue = (value: unknown, names: readonly string[], fallback: string) => typeof value === 'number' ? names[value] ?? fallback : typeof value === 'string' && names.includes(value) ? value : fallback
-function VerticalText({ value, config, isCjkCulture }: { value: string; config: GameProgressConfig; isCjkCulture: boolean }) {
-  const selected = enumValue(config.VerticalLanguageMode, ['Auto', 'Upright', 'RotateBlock', 'StackCharacters'], 'Auto'); const mode = selected === 'Auto' ? isCjkCulture ? 'Upright' : enumValue(config.LatinVerticalMode, ['RotateBlock', 'StackCharacters'], 'RotateBlock') : selected
-  if (mode === 'Upright' || mode === 'StackCharacters') return <span data-game-progress-vertical={mode} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: config.VerticalTextSpacing ?? 0 }}>{Array.from(value).map((item, index) => <span key={index}>{item}</span>)}</span>
-  const direction = enumValue(config.VerticalDirection, ['Auto', 'FacingLeft', 'FacingRight'], 'Auto'); return <span data-game-progress-vertical="RotateBlock" style={{ display: 'block', transform: `rotate(${direction === 'FacingRight' ? 90 : -90}deg)`, whiteSpace: 'nowrap' }}>{value}</span>
+const verticalDisplayModes = new Set([
+  'Vertical',
+  'VerticalTwoLine',
+  'VerticalHalfOnly',
+  'VerticalGameOnly',
+  'VerticalGameAndHalf',
+  'VerticalSeparatedGameAndHalf',
+  'RibbonGameOnly',
+])
+
+const nonNegative = (value: unknown, fallback: number) => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback
+
+function VerticalText({ value, config, isCjkCulture, culture }: { value: string; config: GameProgressConfig; isCjkCulture: boolean; culture?: string }) {
+  const mode = resolveVerticalLanguageMode(config, isCjkCulture)
+  const characterSpacing = nonNegative(config.VerticalTextSpacing, 0)
+  if (mode === 'Upright') return <UprightVerticalText value={value} culture={culture} spacing={characterSpacing} />
+  if (mode === 'StackCharacters') return <StackedVerticalText value={value} culture={culture} spacing={characterSpacing} />
+  return <RotatedLayoutBox direction={resolveVerticalDirection(config.VerticalDirection)}><span style={{ display: 'block', whiteSpace: 'nowrap' }}>{value}</span></RotatedLayoutBox>
 }
-export function GameProgressTextRenderer({ controlId, config, runtime }: { controlId: string; config: GameProgressConfig; runtime: RuntimeState }) {
-  const mode = enumValue(config.DisplayMode, ['Inline', 'TwoLine', 'VerticalHalfOnly', 'VerticalGameOnly', 'VerticalGameAndHalf', 'VerticalSeparatedGameAndHalf', 'RibbonGameOnly', 'HorizontalGameOnly', 'HorizontalHalfOnly', 'Vertical', 'VerticalTwoLine'], 'Inline'); const parts = runtime.values[controlId] as WebGameProgressDisplayState | undefined
-  const vertical = (value: string) => <VerticalText value={value} config={config} isCjkCulture={parts?.IsCjkCulture === true} />
-  let content: ReactNode = parts?.IsValid ? parts.FullText : ''
-  if (parts?.IsValid && !parts.IsFree) {
-    if (mode === 'TwoLine') content = <>{parts.GameText}<br />{parts.HalfText}</>
-    else if (mode === 'HorizontalGameOnly') content = parts.GameText
-    else if (mode === 'HorizontalHalfOnly') content = parts.HalfText
-    else if (mode === 'Vertical') content = vertical(parts.FullText)
-    else if (mode === 'VerticalHalfOnly') content = vertical(parts.HalfText)
-    else if (mode === 'VerticalGameOnly' || mode === 'RibbonGameOnly') content = vertical(parts.GameText)
-    else if (mode === 'VerticalGameAndHalf' || mode === 'VerticalTwoLine') content = <span data-game-progress-groups style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: config.GroupSpacing ?? 8 }}>{vertical(parts.GameText)}{vertical(parts.HalfText)}</span>
-    else if (mode === 'VerticalSeparatedGameAndHalf') content = <span data-game-progress-groups style={{ display: 'grid', gridTemplateRows: 'auto auto auto', justifyItems: 'center' }}>{vertical(parts.GameText)}{config.ShowSeparator ? <i data-game-progress-separator style={{ width: '100%', height: config.SeparatorThickness ?? 1, margin: `${(config.GroupSpacing ?? 8) / 2}px 0`, background: color(config.SeparatorColor, '#fff') }} /> : <i style={{ height: config.GroupSpacing ?? 8 }} />}{vertical(parts.HalfText)}</span>
-  } else if (parts?.IsValid && parts.IsFree && (mode.startsWith('Vertical') || mode === 'RibbonGameOnly')) content = vertical(parts.FullText)
-  const style: CSSProperties = { width: '100%', height: '100%', background: color(config.BackgroundColor), padding: `${config.PaddingTop ?? 0}px ${config.PaddingRight ?? 0}px ${config.PaddingBottom ?? 0}px ${config.PaddingLeft ?? 0}px` }
-  return <TextVisual config={config} runtime={runtime} style={style}>{content}</TextVisual>
+
+function VerticalGroup({ value, config, parts, culture }: { value: string; config: GameProgressConfig; parts: WebGameProgressDisplayState; culture?: string }) {
+  return <div data-game-progress-group style={{ width: 'max-content', height: 'max-content', display: 'grid', placeItems: 'center' }}><VerticalText value={value} config={config} isCjkCulture={parts.IsCjkCulture} culture={culture} /></div>
+}
+
+function VerticalGroups({ config, parts, culture, separated }: { config: GameProgressConfig; parts: WebGameProgressDisplayState; culture?: string; separated: boolean }) {
+  const groupSpacing = nonNegative(config.GroupSpacing, 8)
+  const game = <VerticalGroup value={parts.GameText} config={config} parts={parts} culture={culture} />
+  const half = <VerticalGroup value={parts.HalfText} config={config} parts={parts} culture={culture} />
+  if (!separated) {
+    return <div data-game-progress-groups style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 'max-content', height: 'max-content', gap: groupSpacing }}>{game}{half}</div>
+  }
+  return <div data-game-progress-groups data-game-progress-separated-groups style={{ display: 'grid', gridTemplateRows: 'auto auto auto', alignItems: 'center', width: 'max-content', height: 'max-content' }}>
+    {game}
+    {config.ShowSeparator
+      ? <i data-game-progress-separator style={{ justifySelf: 'stretch', width: '100%', height: nonNegative(config.SeparatorThickness, 1), margin: `${groupSpacing / 2}px 0`, background: color(config.SeparatorColor, '#fff') }} />
+      : <i data-game-progress-spacing style={{ width: 0, height: groupSpacing }} />}
+    {half}
+  </div>
+}
+
+function horizontalContent(mode: string, parts: WebGameProgressDisplayState): ReactNode {
+  if (parts.IsFree || mode === 'Inline') return parts.FullText
+  if (mode === 'TwoLine') return <>{parts.GameText}<br />{parts.HalfText}</>
+  if (mode === 'HorizontalGameOnly') return parts.GameText
+  if (mode === 'HorizontalHalfOnly') return parts.HalfText
+  return parts.FullText
+}
+
+export function GameProgressTextRenderer({ controlId, config, runtime, localization }: { controlId: string; config: GameProgressConfig; runtime: RuntimeState; localization?: WebLocalizationSnapshot }) {
+  const mode = resolveDisplayMode(config.DisplayMode)
+  const parts = runtime.values[controlId] as WebGameProgressDisplayState | undefined
+  const validParts = parts?.IsValid === true ? parts : undefined
+  const isVertical = verticalDisplayModes.has(mode)
+  let content: ReactNode = ''
+
+  if (validParts) {
+    if (!isVertical) {
+      content = <GameProgressHorizontalLayout>{horizontalContent(mode, validParts)}</GameProgressHorizontalLayout>
+    } else if (validParts.IsFree) {
+      content = <GameProgressVerticalLayout><VerticalText value={validParts.FullText} config={config} isCjkCulture={validParts.IsCjkCulture} culture={localization?.Culture} /></GameProgressVerticalLayout>
+    } else if (mode === 'Vertical') {
+      content = <GameProgressVerticalLayout><VerticalText value={validParts.FullText} config={config} isCjkCulture={validParts.IsCjkCulture} culture={localization?.Culture} /></GameProgressVerticalLayout>
+    } else if (mode === 'VerticalHalfOnly') {
+      content = <GameProgressVerticalLayout><VerticalText value={validParts.HalfText} config={config} isCjkCulture={validParts.IsCjkCulture} culture={localization?.Culture} /></GameProgressVerticalLayout>
+    } else if (mode === 'VerticalGameOnly' || mode === 'RibbonGameOnly') {
+      content = <GameProgressVerticalLayout><VerticalText value={validParts.GameText} config={config} isCjkCulture={validParts.IsCjkCulture} culture={localization?.Culture} /></GameProgressVerticalLayout>
+    } else if (mode === 'VerticalSeparatedGameAndHalf') {
+      content = <GameProgressVerticalLayout><VerticalGroups config={config} parts={validParts} culture={localization?.Culture} separated /></GameProgressVerticalLayout>
+    } else {
+      content = <GameProgressVerticalLayout><VerticalGroups config={config} parts={validParts} culture={localization?.Culture} separated={false} /></GameProgressVerticalLayout>
+    }
+  }
+
+  return <GameProgressRoot config={config} runtime={runtime} verticalLayout={isVertical}>{content}</GameProgressRoot>
 }

@@ -26,7 +26,7 @@ export function WebControlRegistry({ windowType, name, config, runtime, localiza
     case 'Text': control = <TextRenderer config={config} runtime={runtime} />; break
     case 'LocalizedText': control = <LocalizedTextRenderer controlId={id} config={config} runtime={runtime} localization={localization} />; break
     case 'MapNameText': control = <MapNameTextRenderer controlId={id} config={config} runtime={runtime} />; break
-    case 'GameProgressText': control = <GameProgressTextRenderer controlId={id} config={config} runtime={runtime} />; break
+    case 'GameProgressText': control = <GameProgressTextRenderer controlId={id} config={config} runtime={runtime} localization={localization} />; break
     case 'Rectangle': control = <RectangleRenderer config={config} runtime={runtime} />; break
     case 'Polygon': control = <PolygonRenderer config={config} runtime={runtime} />; break
     case 'BackgroundTintRectangle': case 'BackgroundTintPolygon': control = <BackgroundTintRenderer config={config} runtime={runtime} context={context} />; break
