@@ -29,6 +29,12 @@ public partial class Settings : ObservableObjectBase
     public bool IsRecordGlobalBan { get; set; } = true;
 
     /// <summary>
+    /// 是否允许角色复选（在 Pick 选择器中允许已 Pick 的角色被再次选择）。
+    /// 已 Ban 角色的禁用规则不受此开关影响。
+    /// </summary>
+    public bool IsAllowCharacterReselect { get; set; } = false;
+
+    /// <summary>
     /// 是否启用经典模式（旧版 BP 流程）。
     /// </summary>
     public bool IsClassicMode { get; set; } = false;

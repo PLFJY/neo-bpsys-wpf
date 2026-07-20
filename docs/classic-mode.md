@@ -26,6 +26,8 @@ Classic 主窗口只保留前台管理、设置、插件等单按钮入口。不
 
 弹窗必须 single-instance。重复点击同一入口时只 `Activate()` / `Focus()` 已打开窗口，不要创建多个相同窗口。关闭弹窗时必须 detach Page content，避免 singleton Page 再次承载时出现 re-parent 异常。
 
+插件通过 `AddBackendPage<TView,TViewModel>()` 注册的后台页面会自动在"管理入口"卡片中获得动态生成的按钮。按钮通过遍历 `BackendPagesRegistryService.Registered` 并跳过主程序集内置页面生成，点击后以同样方式弹窗承载 singleton Page。插件页面的显示名通过 `I18nHelper.GetLocalizedStringFromAnyHostDictionary` 解析，未命中本地化时显示 `BackendPageInfo.Name` 原始字符串。
+
 ## UI 间距
 
 Classic UI 使用共享 margin resources 维护基本节奏：

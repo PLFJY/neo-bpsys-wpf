@@ -45,6 +45,38 @@ public class CharaSelectViewModelBaseDisabledKeysTest
     }
 
     /// <summary>
+    /// 用于测试「允许角色复选」开关的 VM 子类。
+    /// 通过构造参数控制 <see cref="CharaSelectViewModelBase.IsPickSelector"/> 与
+    /// <see cref="CharaSelectViewModelBase.IsAllowCharacterReselect"/> 两个属性，
+    /// 从而覆盖 Pick/Ban 两种选择器在开关 ON/OFF 下的行为。
+    /// </summary>
+    internal class TestReselectCharaSelectViewModel : CharaSelectViewModelBase
+    {
+        private readonly bool _isPickSelector;
+        private readonly bool _allowReselect;
+
+        public TestReselectCharaSelectViewModel(
+            ISharedDataService sharedDataService,
+            Camp camp,
+            bool isPickSelector,
+            bool allowReselect,
+            int index = 0)
+            : base(sharedDataService, camp, index)
+        {
+            _isPickSelector = isPickSelector;
+            _allowReselect = allowReselect;
+        }
+
+        protected override bool IsPickSelector => _isPickSelector;
+        protected override bool IsAllowCharacterReselect => _allowReselect;
+
+        protected override Task SyncCharaToSourceAsync() => Task.CompletedTask;
+        protected override void SyncCharaFromSourceAsync() { }
+        protected override void SyncIsEnabled() { }
+        protected override bool IsActionNameCorrect(GameAction? action) => false;
+    }
+
+    /// <summary>
     /// 创建测试用的 Character（带指定名称）
     /// </summary>
     private static Character CreateChara(string name, Camp camp = Camp.Sur)
@@ -596,6 +628,101 @@ public class CharaSelectViewModelBaseDisabledKeysTest
         // Pick 换位
         ctx.Game.SwapCharactersInPlayers(0, 1);
         Assert.Contains("园丁", vm.DisabledKeys);
+    }
+
+    #endregion
+
+    #region 允许角色复选开关
+
+    /// <summary>
+    /// Pick 选择器在开关关闭时，已 Pick 角色应出现在 DisabledKeys 中（保持既有行为）。
+    /// </summary>
+    [Fact]
+    public void DisabledKeys_PickSelector_ReselectOff_IncludesPickedChara()
+    {
+        var ctx = CreateContext();
+        var vm = new TestReselectCharaSelectViewModel(
+            ctx.SharedDataService, Camp.Sur, isPickSelector: true, allowReselect: false);
+
+        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
+
+        Assert.Contains("园丁", vm.DisabledKeys);
+    }
+
+    /// <summary>
+    /// Pick 选择器在开关打开时，已 Pick 角色不应出现在 DisabledKeys 中（允许复选）。
+    /// </summary>
+    [Fact]
+    public void DisabledKeys_PickSelector_ReselectOn_ExcludesPickedChara()
+    {
+        var ctx = CreateContext();
+        var vm = new TestReselectCharaSelectViewModel(
+            ctx.SharedDataService, Camp.Sur, isPickSelector: true, allowReselect: true);
+
+        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
+        ctx.Game.SurPlayerList[1].Character = CreateChara("医生");
+
+        Assert.DoesNotContain("园丁", vm.DisabledKeys);
+        Assert.DoesNotContain("医生", vm.DisabledKeys);
+    }
+
+    /// <summary>
+    /// Pick 选择器在开关打开时，已 Ban 角色仍应出现在 DisabledKeys 中（开关不影响 Ban 规则）。
+    /// </summary>
+    [Fact]
+    public void DisabledKeys_PickSelector_ReselectOn_BannedStillDisabled()
+    {
+        var ctx = CreateContext();
+        var vm = new TestReselectCharaSelectViewModel(
+            ctx.SharedDataService, Camp.Sur, isPickSelector: true, allowReselect: true);
+
+        // 当局 Ban 一个角色
+        ctx.Game.CurrentSurBannedList[0] = CreateChara("律师");
+        // Pick 一个角色
+        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
+
+        // Ban 的角色仍禁用
+        Assert.Contains("律师", vm.DisabledKeys);
+        // Pick 的角色可复选（不在 DisabledKeys）
+        Assert.DoesNotContain("园丁", vm.DisabledKeys);
+    }
+
+    /// <summary>
+    /// Ban 类选择器无论开关状态如何，已 Pick 角色始终出现在 DisabledKeys 中。
+    /// 验证 <see cref="CharaSelectViewModelBase.IsPickSelector"/> 为 false 时，
+    /// 即使 <see cref="CharaSelectViewModelBase.IsAllowCharacterReselect"/> 为 true，
+    /// 也不会跳过已 Pick 角色的禁用（保护 Ban 页面行为不变）。
+    /// </summary>
+    [Fact]
+    public void DisabledKeys_BanSelector_ReselectOnOrOff_AlwaysIncludesPickedChara()
+    {
+        var ctx = CreateContext();
+
+        // Ban 选择器 + 开关 ON（异常配置，模拟设置已开启但 Ban VM 不应响应）
+        var vmReselectOn = new TestReselectCharaSelectViewModel(
+            ctx.SharedDataService, Camp.Sur, isPickSelector: false, allowReselect: true);
+        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
+        Assert.Contains("园丁", vmReselectOn.DisabledKeys);
+
+        // Ban 选择器 + 开关 OFF（正常默认）
+        var vmReselectOff = new TestReselectCharaSelectViewModel(
+            ctx.SharedDataService, Camp.Sur, isPickSelector: false, allowReselect: false);
+        Assert.Contains("园丁", vmReselectOff.DisabledKeys);
+    }
+
+    /// <summary>
+    /// 监管者侧 Pick 选择器在开关打开时也应跳过已 Pick 角色。
+    /// </summary>
+    [Fact]
+    public void DisabledKeys_HunterPickSelector_ReselectOn_ExcludesPickedChara()
+    {
+        var ctx = CreateContext();
+        var vm = new TestReselectCharaSelectViewModel(
+            ctx.SharedDataService, Camp.Hun, isPickSelector: true, allowReselect: true);
+
+        ctx.Game.HunPlayer.Character = CreateChara("杰克", Camp.Hun);
+
+        Assert.DoesNotContain("杰克", vm.DisabledKeys);
     }
 
     #endregion

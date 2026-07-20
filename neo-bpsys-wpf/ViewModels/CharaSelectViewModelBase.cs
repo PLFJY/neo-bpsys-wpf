@@ -97,6 +97,21 @@ public abstract partial class CharaSelectViewModelBase :
     [property: FrontedBindingIgnore]
     private ISet<string> _disabledKeys = new HashSet<string>();
 
+    /// <summary>
+    /// 当前选择器是否为 Pick 类型（而非 Ban 类型）。
+    /// 仅 Pick 类型选择器在 <see cref="IsAllowCharacterReselect"/> 为 <c>true</c> 时
+    /// 跳过已 Pick 角色的禁用，从而允许角色复选。
+    /// 默认 <c>false</c>，由 Pick 类派生 VM 重写为 <c>true</c>。
+    /// </summary>
+    protected virtual bool IsPickSelector => false;
+
+    /// <summary>
+    /// 是否允许角色复选。由派生类（通常是 Pick 类型）从设置服务读取。
+    /// 默认 <c>false</c>，保持 Ban 类选择器和测试桩的既有行为。
+    /// 已 Ban 角色的禁用规则不受此属性影响。
+    /// </summary>
+    protected virtual bool IsAllowCharacterReselect => false;
+
     #endregion
 
     #region Constructors
@@ -269,10 +284,17 @@ public abstract partial class CharaSelectViewModelBase :
     /// 全局 Ban 以当前生效的 GlobalBannedList 为权威源，暂存 RecordList 不参与计算
     /// 同时忽略未启用的 Ban 位（CanXxxBannedList[i] == false）
     /// </summary>
+    /// <remarks>
+    /// 当 <see cref="IsPickSelector"/> 与 <see cref="IsAllowCharacterReselect"/> 均为 <c>true</c> 时，
+    /// 跳过已 Pick 角色的添加，从而允许已 Pick 角色在 Pick 选择器中被再次选择（角色复选）。
+    /// 已 Ban 角色始终进入禁用集合，与开关状态无关。
+    /// </remarks>
     private void UpdateDisabledKeys()
     {
         var game = SharedDataService.CurrentGame;
         var result = new HashSet<string>();
+        // Pick 选择器开启复选时，不将已 Pick 角色计入禁用集合
+        var skipPicked = IsPickSelector && IsAllowCharacterReselect;
 
         if (_camp == Camp.Sur)
         {
@@ -294,9 +316,12 @@ public abstract partial class CharaSelectViewModelBase :
                     AddNameIfValid(result, game.SurTeam.GlobalBannedSurList[i]);
                 }
             }
-            // 已 Pick 的求生者
-            foreach (var p in game.SurPlayerList)
-                AddNameIfValid(result, p.Character);
+            // 已 Pick 的求生者：仅在未开启复选时计入禁用
+            if (!skipPicked)
+            {
+                foreach (var p in game.SurPlayerList)
+                    AddNameIfValid(result, p.Character);
+            }
         }
         else
         {
@@ -317,12 +342,22 @@ public abstract partial class CharaSelectViewModelBase :
                     AddNameIfValid(result, game.HunTeam.GlobalBannedHunList[i]);
                 }
             }
-            // 已 Pick 的监管者
-            AddNameIfValid(result, game.HunPlayer.Character);
+            // 已 Pick 的监管者：仅在未开启复选时计入禁用
+            if (!skipPicked)
+            {
+                AddNameIfValid(result, game.HunPlayer.Character);
+            }
         }
 
         DisabledKeys = result;
     }
+
+    /// <summary>
+    /// 显式触发 <see cref="DisabledKeys"/> 的重新计算。
+    /// 供外部（如 <see cref="Pages.PickPageViewModel"/>）在「允许角色复选」开关切换后调用，
+    /// 因为开关切换本身不会触发 Ban/Pick 集合变更事件。
+    /// </summary>
+    internal void RefreshDisabledKeys() => UpdateDisabledKeys();
 
     /// <summary>
     /// 如果角色的 Name 非空，则添加到结果集中

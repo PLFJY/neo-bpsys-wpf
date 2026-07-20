@@ -72,8 +72,8 @@
 
     <Grid
         x:Name="ClassicRoot"
-        Background="{DynamicResource ApplicationBackgroundBrush}"
         modernScroll:GuidanceAutoScrollScope.IsEnabled="True"
+        Background="{DynamicResource ApplicationBackgroundBrush}"
         PreviewMouseLeftButtonDown="ClassicRoot_PreviewMouseLeftButtonDown">
         <ui:InfoBar
             x:Name="InfoBar"
@@ -83,7 +83,8 @@
             Panel.ZIndex="1" />
         <ui:ContentDialogHost
             x:Name="ContentDialogHost"
-            Panel.ZIndex="2" />
+            Panel.ZIndex="2"
+            d:Visibility="Collapsed" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -119,10 +120,10 @@
                         </StackPanel>
                         <ui:Button
                             Margin="8,8,8,8"
+                            modernScroll:GuidanceScrollTarget.Action="PickCamp"
                             Command="{Binding SwapCommand}"
                             Content="{lex:Loc Swap}"
-                            Icon="{ui:SymbolIcon Symbol=ArrowSwap24}"
-                            modernScroll:GuidanceScrollTarget.Action="PickCamp">
+                            Icon="{ui:SymbolIcon Symbol=ArrowSwap24}">
                             <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="true">
                                     <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedButton}" />
@@ -248,10 +249,10 @@
                             Content="{lex:Loc NextStep}"
                             Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
                         <ui:Button
+                            modernScroll:GuidanceScrollTarget.Action="EndGuidance"
                             Command="{Binding StopNavigationCommand}"
                             Content="{lex:Loc EndGameGuidance}"
                             Icon="{ui:SymbolIcon Symbol=Stop24}"
-                            modernScroll:GuidanceScrollTarget.Action="EndGuidance"
                             Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
                             <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="true">
@@ -304,7 +305,7 @@
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ClassicManagementEntries}" />
-                                <WrapPanel Margin="{StaticResource ClassicSectionSpacing}">
+                                <WrapPanel x:Name="ManagementButtonsPanel" Margin="{StaticResource ClassicSectionSpacing}">
                                     <ui:Button
                                         Click="OpenFrontendManagement_Click"
                                         Content="{lex:Loc OpenFrontendManagement}"
@@ -424,8 +425,8 @@
                                 </ComboBox>
                                 <ItemsControl
                                     Margin="0,8,0,0"
-                                    ItemsSource="{Binding BannedMap}"
-                                    modernScroll:GuidanceScrollTarget.Action="BanMap">
+                                    modernScroll:GuidanceScrollTarget.Action="BanMap"
+                                    ItemsSource="{Binding BannedMap}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel Orientation="Horizontal" />
@@ -691,8 +692,8 @@
                                     Text="{lex:Loc PickSurvivor}" />
                                 <ItemsControl
                                     Margin="0,10,0,0"
-                                    ItemsSource="{Binding SurPickViewModelList}"
-                                    modernScroll:GuidanceScrollTarget.Action="PickSur">
+                                    modernScroll:GuidanceScrollTarget.Action="PickSur"
+                                    ItemsSource="{Binding SurPickViewModelList}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <WrapPanel />
@@ -715,11 +716,11 @@
                                                     ItemsSource="{Binding CharaDict}"
                                                     SelectedValue="{Binding SelectedChara}" />
                                                 <cc:CharacterChanger
+                                                    modernScroll:GuidanceScrollTarget.Action="DistributeChara"
+                                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                                     Command="{Binding SwapCharacterInPlayersCommand}"
                                                     Index="{Binding Index}"
-                                                    IsHighlighted="{Binding IsCharaChangerHighlighted}"
-                                                    modernScroll:GuidanceScrollTarget.Action="DistributeChara"
-                                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}" />
+                                                    IsHighlighted="{Binding IsCharaChangerHighlighted}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -731,13 +732,13 @@
                                     Text="{lex:Loc PickHunter}" />
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
+                                    modernScroll:GuidanceScrollTarget.Action="PickHun"
                                     Command="{Binding HunPickVm.ConfirmCommand}"
                                     DisabledKeys="{Binding HunPickVm.DisabledKeys}"
                                     ImageSource="{Binding HunPickVm.PreviewImage}"
                                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
                                     ItemsSource="{Binding HunPickVm.CharaDict}"
-                                    SelectedValue="{Binding HunPickVm.SelectedChara}"
-                                    modernScroll:GuidanceScrollTarget.Action="PickHun" />
+                                    SelectedValue="{Binding HunPickVm.SelectedChara}" />
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -769,6 +770,8 @@
                                             <Setter Property="HorizontalAlignment" Value="Center" />
                                             <Setter Property="IsImageVisible" Value="False" />
                                             <Setter Property="TagNameFontSize" Value="12" />
+                                            <Setter Property="Width" Value="80" />
+                                            <Setter Property="Height" Value="40" />
                                         </Style>
                                         <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
                                             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -777,12 +780,14 @@
                                             <Setter Property="HorizontalAlignment" Value="Center" />
                                         </Style>
                                     </Grid.Resources>
-                                    <StackPanel Grid.Column="0">
+                                    <StackPanel>
                                         <controls:ToggleStyledRadioButton
                                             GroupName="ClassicCurrentHalfScoreResult"
                                             IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape4}, Mode=TwoWay}"
                                             TagName="{lex:Loc FourEscape}" />
                                         <controls:ToggleStyledRadioButton
+                                            Grid.Column="0"
+                                            Margin="0,10,0,0"
                                             GroupName="ClassicCurrentHalfScoreResult"
                                             IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape3}, Mode=TwoWay}"
                                             TagName="{lex:Loc ThreeEscape}" />
@@ -799,6 +804,8 @@
                                             IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out4}, Mode=TwoWay}"
                                             TagName="{lex:Loc FourEliminate}" />
                                         <controls:ToggleStyledRadioButton
+                                            Grid.Column="0"
+                                            Margin="0,10,0,0"
                                             GroupName="ClassicCurrentHalfScoreResult"
                                             IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out3}, Mode=TwoWay}"
                                             TagName="{lex:Loc ThreeEliminate}" />
@@ -806,7 +813,8 @@
                                     <StackPanel
                                         Grid.Row="1"
                                         Grid.ColumnSpan="3"
-                                        HorizontalAlignment="Left"
+                                        Margin="0,10,0,0"
+                                        HorizontalAlignment="Center"
                                         Orientation="Horizontal">
                                         <Button
                                             Margin="0,0,0,0"
@@ -867,9 +875,7 @@
                                 Style="{StaticResource Card}">
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SurvivorTalent}" />
-                                    <WrapPanel
-                                        Margin="0,10,0,0"
-                                        modernScroll:GuidanceScrollTarget.Action="PickSurTalent">
+                                    <WrapPanel Margin="0,10,0,0" modernScroll:GuidanceScrollTarget.Action="PickSurTalent">
                                         <controls:TalentPicker
                                             Margin="0,0,10,10"
                                             CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
@@ -898,11 +904,11 @@
                                     <controls:TalentPicker
                                         Margin="0,10,0,10"
                                         HorizontalAlignment="Left"
+                                        modernScroll:GuidanceScrollTarget.Action="PickHunTalent"
                                         CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
                                         IsHighlighted="{Binding IsHunTalentHighlighted}"
                                         IsTypeHun="True"
-                                        Player="{Binding CurrentGame.HunPlayer}"
-                                        modernScroll:GuidanceScrollTarget.Action="PickHunTalent" />
+                                        Player="{Binding CurrentGame.HunPlayer}" />
                                     <TextBlock
                                         Margin="0,12,0,0"
                                         Style="{StaticResource Title}"
@@ -1020,6 +1026,11 @@
                                         Margin="0,10,0,0"
                                         Content="{lex:Loc AutoRecord}"
                                         IsChecked="{Binding IsGlobalBanAutoRecord}" />
+                                    <ui:ToggleSwitch
+                                        Margin="0,10,0,0"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                        Content="{lex:Loc AllowCharacterReselect}"
+                                        IsChecked="{Binding IsAllowCharacterReselect}" />
                                     <TextBlock Margin="0,12,0,0">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0}: {1}">

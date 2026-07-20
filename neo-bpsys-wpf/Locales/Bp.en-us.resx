@@ -109,6 +109,9 @@
   <data name="AutoRecord">
     <value>Auto Record</value>
   </data>
+  <data name="AllowCharacterReselect">
+    <value>Allow reselect</value>
+  </data>
   <data name="ShowPickingBorder">
     <value>Show picking border</value>
   </data>

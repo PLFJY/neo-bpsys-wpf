@@ -109,6 +109,9 @@
   <data name="AutoRecord">
     <value>自動記録</value>
   </data>
+  <data name="AllowCharacterReselect">
+    <value>再選択を許可</value>
+  </data>
   <data name="ShowPickingBorder">
     <value>ピック枠を表示</value>
   </data>

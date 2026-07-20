@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Attributes;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -66,6 +68,8 @@ public partial class ClassicBackendWindow : FluentWindow
         {
             Application.Current.MainWindow = this;
         }
+
+        BuildPluginPageEntries();
     }
 
     private void OpenFrontendManagement_Click(object sender, RoutedEventArgs e)
@@ -107,7 +111,8 @@ public partial class ClassicBackendWindow : FluentWindow
         var page = _serviceProvider.GetRequiredService<TPage>();
         DetachPageFromCurrentParent(page);
 
-        var window = new ClassicPageHostWindow(dictionary, titleKey, page)
+        var title = I18nHelper.GetLocalizedString(dictionary, titleKey);
+        var window = new ClassicPageHostWindow(title, page)
         {
             Owner = this
         };
@@ -115,6 +120,56 @@ public partial class ClassicBackendWindow : FluentWindow
         _pageHostWindows[pageType] = window;
         window.Show();
         window.Activate();
+    }
+
+    /// <summary>
+    /// 打开插件注册的后台页面弹窗。
+    /// </summary>
+    /// <param name="info">页面注册信息。</param>
+    private void OpenPluginPageHost(BackendPageInfo info)
+    {
+        var pageType = info.PageType!;
+        if (_pageHostWindows.TryGetValue(pageType, out var existingWindow))
+        {
+            existingWindow.Activate();
+            existingWindow.Focus();
+            return;
+        }
+
+        var page = (Page)_serviceProvider.GetRequiredService(pageType);
+        DetachPageFromCurrentParent(page);
+
+        var title = I18nHelper.GetLocalizedStringFromAnyHostDictionary(info.Name);
+        var window = new ClassicPageHostWindow(title, page)
+        {
+            Owner = this
+        };
+        window.Closed += (_, _) => _pageHostWindows.Remove(pageType);
+        _pageHostWindows[pageType] = window;
+        window.Show();
+        window.Activate();
+    }
+
+    /// <summary>
+    /// 为插件注册的后台页面动态生成入口按钮。
+    /// 仅处理非主程序集（插件）注册的页面，内置页面已通过硬编码按钮或内联区域处理。
+    /// </summary>
+    private void BuildPluginPageEntries()
+    {
+        foreach (var info in BackendPagesRegistryService.Registered)
+        {
+            if (info.PageType is null) continue;
+            if (info.PageType.Assembly == typeof(ClassicBackendWindow).Assembly) continue;
+
+            var button = new Wpf.Ui.Controls.Button
+            {
+                Content = I18nHelper.GetLocalizedStringFromAnyHostDictionary(info.Name),
+                Icon = new SymbolIcon { Symbol = info.Icon },
+            };
+            var capturedInfo = info;
+            button.Click += (_, _) => OpenPluginPageHost(capturedInfo);
+            ManagementButtonsPanel.Children.Add(button);
+        }
     }
 
     private static void DetachPageFromCurrentParent(Page page)

@@ -1,4 +1,3 @@
-using neo_bpsys_wpf.Helpers;
 using System.Windows.Controls;
 using Wpf.Ui.Controls;
 
@@ -9,10 +8,15 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// </summary>
 public partial class ClassicPageHostWindow : FluentWindow
 {
-    public ClassicPageHostWindow(string dictionary, string titleKey, Page page)
+    /// <summary>
+    /// 初始化 <see cref="ClassicPageHostWindow"/> 类的新实例。
+    /// </summary>
+    /// <param name="title">已解析的窗口标题。</param>
+    /// <param name="page">要承载的后台页面。</param>
+    public ClassicPageHostWindow(string title, Page page)
     {
         InitializeComponent();
-        Title = I18nHelper.GetLocalizedString(dictionary, titleKey);
+        Title = title;
         PageHost.Navigate(page);
     }
 

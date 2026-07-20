@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
@@ -89,6 +89,26 @@ public partial class PickPageViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 获取或设置是否允许角色复选。设置时持久化并立即刷新所有 Pick 选择器的禁用集合。
+    /// 已 Ban 角色的禁用规则不受此开关影响。
+    /// </summary>
+    public bool IsAllowCharacterReselect
+    {
+        get => _settingsHostService.Settings.IsAllowCharacterReselect;
+
+        set
+        {
+            if (_settingsHostService.Settings.IsAllowCharacterReselect == value) return;
+            _settingsHostService.Settings.IsAllowCharacterReselect = value;
+            _ = _settingsHostService.SaveConfigAsync();
+            // 开关切换不会触发 Ban/Pick 集合变更事件，需显式刷新所有 Pick VM 的禁用集合
+            foreach (var vm in SurPickViewModelList)
+                vm.RefreshDisabledKeys();
+            HunPickVm.RefreshDisabledKeys();
+        }
+    }
+
     /// <summary>主队数据。</summary>
     public Team HomeTeam => _sharedDataService.HomeTeam;
     /// <summary>客队数据。</summary>
@@ -133,8 +153,8 @@ public partial class PickPageViewModel : ViewModelBase
         public Player ThisPlayer => SharedDataService.CurrentGame.SurPlayerList[Index];
 
         public SurPickViewModel(ISharedDataService sharedDataService,
-            ICharacterSelectionService characterSelectionService, 
-            ISettingsHostService settingsHostService, 
+            ICharacterSelectionService characterSelectionService,
+            ISettingsHostService settingsHostService,
             int index = 0) :
             base(sharedDataService, Camp.Sur, index)
         {
@@ -154,6 +174,20 @@ public partial class PickPageViewModel : ViewModelBase
                 SyncCharaFromSourceAsync();
             };
         }
+
+        /// <summary>
+        /// 标记当前选择器为 Pick 类型，使其在 <see cref="IsAllowCharacterReselect"/> 开启时跳过已 Pick 角色的禁用。
+        /// </summary>
+        protected override bool IsPickSelector => true;
+
+        /// <summary>
+        /// 从设置服务读取是否允许角色复选。
+        /// 注意：基类构造函数会在派生类字段赋值前调用 <c>UpdateDisabledKeys</c>，
+        /// 因此此处必须对 <c>_settingsHostService</c> 做空安全处理，构造期间返回 <c>false</c>
+        /// （与开关关闭等价，保持改动前行为）。构造完成后由事件触发的重新计算会读取真实值。
+        /// </summary>
+        protected override bool IsAllowCharacterReselect =>
+            _settingsHostService?.Settings?.IsAllowCharacterReselect ?? false;
 
         protected override async Task SyncCharaToSourceAsync()
         {
@@ -226,6 +260,20 @@ public partial class PickPageViewModel : ViewModelBase
                 }
             };
         }
+
+        /// <summary>
+        /// 标记当前选择器为 Pick 类型，使其在 <see cref="IsAllowCharacterReselect"/> 开启时跳过已 Pick 角色的禁用。
+        /// </summary>
+        protected override bool IsPickSelector => true;
+
+        /// <summary>
+        /// 从设置服务读取是否允许角色复选。
+        /// 注意：基类构造函数会在派生类字段赋值前调用 <c>UpdateDisabledKeys</c>，
+        /// 因此此处必须对 <c>_settingsHostService</c> 做空安全处理，构造期间返回 <c>false</c>
+        /// （与开关关闭等价，保持改动前行为）。构造完成后由事件触发的重新计算会读取真实值。
+        /// </summary>
+        protected override bool IsAllowCharacterReselect =>
+            _settingsHostService?.Settings?.IsAllowCharacterReselect ?? false;
 
         protected override async Task SyncCharaToSourceAsync()
         {

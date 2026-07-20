@@ -110,6 +110,9 @@
   <data name="AutoRecord">
     <value>是否自动记录</value>
   </data>
+  <data name="AllowCharacterReselect">
+    <value>允许角色复选</value>
+  </data>
   <data name="ShowPickingBorder">
     <value>待选框开关</value>
   </data>
