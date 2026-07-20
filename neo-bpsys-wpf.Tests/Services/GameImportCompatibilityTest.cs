@@ -49,8 +49,8 @@ public class GameImportCompatibilityTest
                 importedScore.Games.Single(game => game.Key == new ScoreGameKey(5, ScoreGameKind.Normal))
                     .SecondHalf.Result);
 
-            Assert.Equal("3", importedScore.CurrentSurTeamPreHalfMinorScoreText);
-            Assert.Equal("1", importedScore.CurrentHunTeamPreHalfMinorScoreText);
+            Assert.Equal("5", importedScore.CurrentSurTeamMinorScoreText);
+            Assert.Equal("0", importedScore.CurrentHunTeamMinorScoreText);
 
             Assert.Same(importedScore, matchScoreService.Current);
         }

@@ -18,9 +18,9 @@
 | BpWindow | BaseCanvas | SurTeamLogo | BpWindow | SurTeamLogo | Image | CurrentGame.SurTeam.Logo | - | - | Mapped | Exact | Team logo image. |
 | BpWindow | BaseCanvas | SurTeamMajorPoint | BpWindow | SurTeamMajorPoint | Text | CurrentGame.MatchScore.CurrentSurTeamMajorText | BpWindow.MajorPoints | - | Mapped | Exact | Composite major score text. |
 | BpWindow | BaseCanvas | SurTeamName | BpWindow | SurTeamName | Text | CurrentGame.SurTeam.Name | BpWindow.TeamName | - | Mapped | Exact | WrapWithOverflow. |
-| BpWindow | BaseCanvas | GameScoresSur | BpWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText | BpWindow.GameScores | - | Mapped | Exact | Minor score text. |
+| BpWindow | BaseCanvas | GameScoresSur | BpWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamMinorScoreText | BpWindow.GameScores | - | Mapped | Exact | Minor score text. |
 | BpWindow | BaseCanvas | Timer | BpWindow | Timer | Text | RemainingSeconds | BpWindow.Timer | - | Mapped | Exact | BP countdown. |
-| BpWindow | BaseCanvas | GameScoresHun | BpWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText | BpWindow.GameScores | - | Mapped | Exact | Minor score text. |
+| BpWindow | BaseCanvas | GameScoresHun | BpWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamMinorScoreText | BpWindow.GameScores | - | Mapped | Exact | Minor score text. |
 | BpWindow | BaseCanvas | HunTeamName | BpWindow | HunTeamName | Text | CurrentGame.HunTeam.Name | BpWindow.TeamName | - | Mapped | Exact | WrapWithOverflow. |
 | BpWindow | BaseCanvas | HunTeamMajorPoint | BpWindow | HunTeamMajorPoint | Text | CurrentGame.MatchScore.CurrentHunTeamMajorText | BpWindow.MajorPoints | - | Mapped | Exact | Composite major score text. |
 | BpWindow | BaseCanvas | HunTeamLogo | BpWindow | HunTeamLogo | Image | CurrentGame.HunTeam.Logo | - | - | Mapped | Exact | Team logo image. |
@@ -114,12 +114,12 @@
 | GameDataWindow | BaseCanvas | SurTeamLogo | GameDataWindow | SurTeamLogo | Image | CurrentGame.SurTeam.Logo | - | - | Mapped | Exact | Team logo image. |
 | GameDataWindow | BaseCanvas | SurTeamMajorPoint | GameDataWindow | SurTeamMajorPoint | Text | CurrentGame.MatchScore.CurrentSurTeamMajorText | GameDataWindow.MajorPoints | - | Mapped | Exact | Composite major score text. |
 | GameDataWindow | BaseCanvas | SurTeamName | GameDataWindow | SurTeamName | Text | CurrentGame.SurTeam.Name | GameDataWindow.TeamName | - | Mapped | Exact | Team name. |
-| GameDataWindow | BaseCanvas | GameScoresSur | GameDataWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText | GameDataWindow.GameScores | - | Mapped | Exact | Minor score text. |
+| GameDataWindow | BaseCanvas | GameScoresSur | GameDataWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamMinorScoreText | GameDataWindow.GameScores | - | Mapped | Exact | Minor score text. |
 | GameDataWindow | BaseCanvas | Map | GameDataWindow | Map | BorderedImage | CurrentGame.PickedMapImage | - | - | Mapped | Exact | Picked map image. |
 | GameDataWindow | BaseCanvas | MapName | GameDataWindow | MapName | MapNameText | CurrentGame.PickedMap | GameDataWindow.MapName | - | Mapped | Exact | Business map name control. |
 | GameDataWindow | BaseCanvas | PickedMapName | GameDataWindow | MapName | MapNameText | CurrentGame.PickedMap | GameDataWindow.MapName | - | Folded | Folded | Folded into MapName business control. |
 | GameDataWindow | BaseCanvas | GameProgress | GameDataWindow | GameProgress | GameProgressText | CurrentGame progress text | GameDataWindow.GameProgress | - | Mapped | Exact | Business game progress control. |
-| GameDataWindow | BaseCanvas | GameScoresHun | GameDataWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText | GameDataWindow.GameScores | - | Mapped | Exact | Minor score text. |
+| GameDataWindow | BaseCanvas | GameScoresHun | GameDataWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamMinorScoreText | GameDataWindow.GameScores | - | Mapped | Exact | Minor score text. |
 | GameDataWindow | BaseCanvas | HunTeamName | GameDataWindow | HunTeamName | Text | CurrentGame.HunTeam.Name | GameDataWindow.TeamName | - | Mapped | Exact | Team name. |
 | GameDataWindow | BaseCanvas | HunTeamMajorPoint | GameDataWindow | HunTeamMajorPoint | Text | CurrentGame.MatchScore.CurrentHunTeamMajorText | GameDataWindow.MajorPoints | - | Mapped | Exact | Composite major score text. |
 | GameDataWindow | BaseCanvas | HunTeamLogo | GameDataWindow | HunTeamLogo | Image | CurrentGame.HunTeam.Logo | - | - | Mapped | Exact | Team logo image. |
@@ -219,12 +219,12 @@
 | ScoreHunWindow | BaseCanvas | HunTeamLogo | ScoreHunWindow | HunTeamLogo | Image | CurrentGame.HunTeam.Logo | - | - | Mapped | Exact | Team logo image. |
 | ScoreHunWindow | BaseCanvas | HunTeamName | ScoreHunWindow | HunTeamName | Text | CurrentGame.HunTeam.Name | ScoreWindow.TeamName | - | Mapped | Exact | Team name. |
 | ScoreHunWindow | BaseCanvas | HunTeamMajorPoint | ScoreHunWindow | HunTeamMajorPoint | Text | CurrentGame.MatchScore.CurrentHunTeamMajorText | ScoreWindow.MajorPoints | - | Mapped | Exact | Composite major score text. |
-| ScoreHunWindow | BaseCanvas | GameScoresHun | ScoreHunWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText | ScoreWindow.GameScores | - | Mapped | Exact | Minor score text. |
+| ScoreHunWindow | BaseCanvas | GameScoresHun | ScoreHunWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamMinorScoreText | ScoreWindow.GameScores | - | Mapped | Exact | Minor score text. |
 | ScoreSurWindow | BaseCanvas | BaseCanvas | ScoreSurWindow | BaseCanvas | CanvasSettings | - | - | BackgroundImage | RemovedWithReason | UnsupportedWithReason | Legacy Canvas is represented by window-centric BaseCanvas host. |
 | ScoreSurWindow | BaseCanvas | SurTeamLogo | ScoreSurWindow | SurTeamLogo | Image | CurrentGame.SurTeam.Logo | - | - | Mapped | Exact | Team logo image. |
 | ScoreSurWindow | BaseCanvas | SurTeamName | ScoreSurWindow | SurTeamName | Text | CurrentGame.SurTeam.Name | ScoreWindow.TeamName | - | Mapped | Exact | Team name. |
 | ScoreSurWindow | BaseCanvas | SurTeamMajorPoint | ScoreSurWindow | SurTeamMajorPoint | Text | CurrentGame.MatchScore.CurrentSurTeamMajorText | ScoreWindow.MajorPoints | - | Mapped | Exact | Composite major score text. |
-| ScoreSurWindow | BaseCanvas | GameScoresSur | ScoreSurWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText | ScoreWindow.GameScores | - | Mapped | Exact | Minor score text. |
+| ScoreSurWindow | BaseCanvas | GameScoresSur | ScoreSurWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamMinorScoreText | ScoreWindow.GameScores | - | Mapped | Exact | Minor score text. |
 | WidgetsWindow | MapBpCanvas | MapBpCanvas | - | - | - | - | - | MapBpBgUri | Unsupported | UnsupportedWithReason | Legacy MapBpCanvas / MapBpV1 is not supported by Designer v3 converter and was skipped. |
 | WidgetsWindow | MapBpCanvas | PickedMap | - | - | - | - | - | MapBpBgUri | Unsupported | UnsupportedWithReason | Legacy MapBpCanvas / MapBpV1 is not supported by Designer v3 converter and was skipped. |
 | WidgetsWindow | MapBpCanvas | PickedMapName | - | - | - | - | - | MapBpBgUri | Unsupported | UnsupportedWithReason | Legacy MapBpCanvas / MapBpV1 is not supported by Designer v3 converter and was skipped. |
@@ -257,9 +257,9 @@
 | WidgetsWindow | BpOverViewCanvas | SurPick2 | BpOverviewWindow | SurPick2 | BorderedImage | CurrentGame.SurPlayerList[2].Character.HalfImage | - | MapBpV2PickingBorderImageUri | Mapped | Exact | Survivor half image. |
 | WidgetsWindow | BpOverViewCanvas | SurPick3 | BpOverviewWindow | SurPick3 | BorderedImage | CurrentGame.SurPlayerList[3].Character.HalfImage | - | MapBpV2PickingBorderImageUri | Mapped | Exact | Survivor half image. |
 | WidgetsWindow | BpOverViewCanvas | GameProgress | BpOverviewWindow | GameProgress | GameProgressText | CurrentGame progress text | WidgetsWindow.BpOverview_GameProgress | - | Mapped | Exact | Business game progress control. |
-| WidgetsWindow | BpOverViewCanvas | GameScoresSur | BpOverviewWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText | WidgetsWindow.BpOverview_GameScores | - | Mapped | Exact | Minor score text. |
+| WidgetsWindow | BpOverViewCanvas | GameScoresSur | BpOverviewWindow | GameScoresSur | Text | CurrentGame.MatchScore.CurrentSurTeamMinorScoreText | WidgetsWindow.BpOverview_GameScores | - | Mapped | Exact | Minor score text. |
 | WidgetsWindow | BpOverViewCanvas | RatioChar | BpOverviewWindow | RatioChar | Text | Static: : | WidgetsWindow.BpOverview_GameScores | - | Mapped | Exact | Static score separator. |
-| WidgetsWindow | BpOverViewCanvas | GameScoresHun | BpOverviewWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText | WidgetsWindow.BpOverview_GameScores | - | Mapped | Exact | Minor score text. |
+| WidgetsWindow | BpOverViewCanvas | GameScoresHun | BpOverviewWindow | GameScoresHun | Text | CurrentGame.MatchScore.CurrentHunTeamMinorScoreText | WidgetsWindow.BpOverview_GameScores | - | Mapped | Exact | Minor score text. |
 | WidgetsWindow | BpOverViewCanvas | HunPick | BpOverviewWindow | HunPick | BorderedImage | CurrentGame.HunPlayer.Character.HalfImage | - | MapBpV2PickingBorderImageUri | Mapped | Exact | Hunter half image. |
 | WidgetsWindow | MapV2Canvas | MapV2Canvas | MapV2Window | BaseCanvas | CanvasSettings | - | - | MapBpV2BgUri | RemovedWithReason | UnsupportedWithReason | Legacy MapV2 Canvas is split into MapV2Window/BaseCanvas. |
 | WidgetsWindow | MapV2Canvas | Arms_Factory | MapV2Window | Arms_Factory | MapV2Display | MapKey ArmsFactory | WidgetsWindow.MapV2_* | MapBpV2PickingBorderImageUri | Mapped | Exact | Explicit map key. |

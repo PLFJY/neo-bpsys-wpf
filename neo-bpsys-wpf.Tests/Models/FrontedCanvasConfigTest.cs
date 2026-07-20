@@ -378,7 +378,7 @@ public class FrontedCanvasConfigTest
         Assert.Equal(ImageSizingMode.FillContainer, logo.SizingMode);
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
         AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
-        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText");
     }
 
     [Fact]
@@ -398,7 +398,7 @@ public class FrontedCanvasConfigTest
         Assert.Equal(ImageSizingMode.FillContainer, logo.SizingMode);
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
         AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
-        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText");
     }
 
     [Fact]
@@ -914,8 +914,8 @@ public class FrontedCanvasConfigTest
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
         AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
         AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
-        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
-        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText");
+        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText");
         AssertTextBinding(config, "HunId", "CurrentGame.HunPlayer.Member.Name");
         AssertTextBinding(config, "HunMachineLeft", "CurrentGame.HunPlayer.Data.RemainingCipher");
         AssertTextBinding(config, "HunPalletBroken", "CurrentGame.HunPlayer.Data.PalletsDestroyed");
@@ -996,8 +996,8 @@ public class FrontedCanvasConfigTest
             Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
         }
 
-        AssertTextBinding(bpOverViewCanvas, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
-        AssertTextBinding(bpOverViewCanvas, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
+        AssertTextBinding(bpOverViewCanvas, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText");
+        AssertTextBinding(bpOverViewCanvas, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText");
 
         var bpOverViewCanvasText = File.ReadAllText(GetBuiltInLayoutPath("BpOverviewWindow"));
         Assert.DoesNotContain("Team.Score", bpOverViewCanvasText);
@@ -1086,8 +1086,8 @@ public class FrontedCanvasConfigTest
 
         AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
         AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
-        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
-        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText");
+        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText");
         AssertTextBinding(config, "Timer", "RemainingSeconds");
 
         var surLogo = AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");

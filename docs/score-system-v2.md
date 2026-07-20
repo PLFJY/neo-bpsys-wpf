@@ -81,8 +81,8 @@ MatchScoreState
   ├─ AwayMajorText
   ├─ HomeTotalMinorScore
   ├─ AwayTotalMinorScore
-  ├─ CurrentSurTeamPreHalfMinorScoreText
-  ├─ CurrentHunTeamPreHalfMinorScoreText
+  ├─ CurrentSurTeamMinorScoreText
+  ├─ CurrentHunTeamMinorScoreText
   ├─ CurrentSurTeamMajorText
   └─ CurrentHunTeamMajorText
 ```
@@ -201,7 +201,7 @@ ScorePageViewModel
 | 大比分计算 | 不参与大比分计算。 |
 | 全局比分格 | 显示 `-`。 |
 | 全局比分格阵营图标 | 隐藏。 |
-| 局内第一半预分 | 显示 `0 / 0`。 |
+| 局内小比分 | 当前半场无结果时显示 `0`。 |
 
 空结果不等价于平局，也不等价于 0:0 已记录结果。
 
@@ -274,8 +274,8 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 | `AwayMajorWin` / `AwayMajorTie` | 客队大比分胜/平。 |
 | `HomeMajorText` / `AwayMajorText` | 前台大比分文本，建议保持当前 `W{Win}  D{Tie}` 风格。 |
 | `HomeTotalMinorScore` / `AwayTotalMinorScore` | 所有已记录半场的主客小比分合计。 |
-| `CurrentSurTeamPreHalfMinorScoreText` | 当前求生者队伍在当前半场窗口中应显示的上一半小比分文本。 |
-| `CurrentHunTeamPreHalfMinorScoreText` | 当前监管者队伍在当前半场窗口中应显示的上一半小比分文本。 |
+| `CurrentSurTeamMinorScoreText` | 当前求生者队伍在当前半场窗口中应显示的当前半场实时小比分文本。 |
+| `CurrentHunTeamMinorScoreText` | 当前监管者队伍在当前半场窗口中应显示的当前半场实时小比分文本。 |
 | `CurrentSurTeamMajorText` | 当前求生者队伍对应的大比分文本。 |
 | `CurrentHunTeamMajorText` | 当前监管者队伍对应的大比分文本。 |
 
@@ -285,17 +285,17 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 
 | 窗口 | 旧绑定 | 当前默认绑定 |
 | --- | --- | --- |
-| `ScoreSurWindow` | `CurrentGame.SurTeam.Score.MajorPointsOnFront`、`CurrentGame.SurTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentSurTeamMajorText`、`CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText` |
-| `ScoreHunWindow` | `CurrentGame.HunTeam.Score.MajorPointsOnFront`、`CurrentGame.HunTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentHunTeamMajorText`、`CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText` |
+| `ScoreSurWindow` | `CurrentGame.SurTeam.Score.MajorPointsOnFront`、`CurrentGame.SurTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentSurTeamMajorText`、`CurrentGame.MatchScore.CurrentSurTeamMinorScoreText` |
+| `ScoreHunWindow` | `CurrentGame.HunTeam.Score.MajorPointsOnFront`、`CurrentGame.HunTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentHunTeamMajorText`、`CurrentGame.MatchScore.CurrentHunTeamMinorScoreText` |
 
 局内比分窗口显示规则：
 
 | 当前半场 | 显示小比分 |
 | --- | --- |
-| 第一半 | 求生者/监管者都显示 `0 / 0` 对应的本侧值。 |
-| 第二半 | 显示同一 `ScoreGame` 第一半已经记录的 MinorScore。 |
+| 当前半场已记录结果 | 显示当前半场已记录的 MinorScore（按当前阵营映射）。 |
+| 当前半场未记录结果 / `Free` 进度 | 显示 `0`。 |
 
-第二半显示值必须映射到“当前求生者队伍/当前监管者队伍”，不能盲目复制“第一半求生者小比分/第一半监管者小比分”。如果第一半主队是求生者、第二半换边后主队变成监管者，第二半的求生者窗口应显示当前求生者队伍在第一半对应的历史得分。
+当前半场实时小比分按当前阵营映射。`ScoreHalf.HomeMinorScore` / `AwayMinorScore` 由记录时阵营派生，再按当前阵营映射到求生者/监管者窗口；记录后发生换边时，历史得分归属仍正确（与全局比分格的阵营映射方式一致）。
 
 ## 7. 后台 ScorePage 行为
 

@@ -28,8 +28,8 @@ public partial class MatchScoreState : ObservableObjectBase
     private string _awayMajorText = "W0  D0";
     private int _homeTotalMinorScore;
     private int _awayTotalMinorScore;
-    private string _currentSurTeamPreHalfMinorScoreText = "0";
-    private string _currentHunTeamPreHalfMinorScoreText = "0";
+    private string _currentSurTeamMinorScoreText = "0";
+    private string _currentHunTeamMinorScoreText = "0";
     private string _currentSurTeamMajorText = "W0  D0";
     private string _currentHunTeamMajorText = "W0  D0";
     private int _currentSurTeamMajorWin;
@@ -154,23 +154,23 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
-    /// 当前求生者队伍在局内比分窗口应显示的上一半小比分。
+    /// 当前求生者队伍在局内比分窗口应显示的当前半场实时小比分。
     /// </summary>
     [JsonIgnore]
-    public string CurrentSurTeamPreHalfMinorScoreText
+    public string CurrentSurTeamMinorScoreText
     {
-        get => _currentSurTeamPreHalfMinorScoreText;
-        private set => SetProperty(ref _currentSurTeamPreHalfMinorScoreText, value);
+        get => _currentSurTeamMinorScoreText;
+        private set => SetProperty(ref _currentSurTeamMinorScoreText, value);
     }
 
     /// <summary>
-    /// 当前监管者队伍在局内比分窗口应显示的上一半小比分。
+    /// 当前监管者队伍在局内比分窗口应显示的当前半场实时小比分。
     /// </summary>
     [JsonIgnore]
-    public string CurrentHunTeamPreHalfMinorScoreText
+    public string CurrentHunTeamMinorScoreText
     {
-        get => _currentHunTeamPreHalfMinorScoreText;
-        private set => SetProperty(ref _currentHunTeamPreHalfMinorScoreText, value);
+        get => _currentHunTeamMinorScoreText;
+        private set => SetProperty(ref _currentHunTeamMinorScoreText, value);
     }
 
     /// <summary>
@@ -387,18 +387,18 @@ public partial class MatchScoreState : ObservableObjectBase
         CurrentHunTeamMajorWin = hunWin;
         CurrentHunTeamMajorTie = hunTie;
 
-        var currentGame = GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode);
-        if (currentGame == null || ResolveHalfKind(_currentDisplayProgress) != ScoreHalfKind.SecondHalf)
+        var currentHalf = GetHalf(_currentDisplayProgress, _currentDisplayIsBo3Mode);
+        if (currentHalf == null || currentHalf.Result == null)
         {
-            CurrentSurTeamPreHalfMinorScoreText = "0";
-            CurrentHunTeamPreHalfMinorScoreText = "0";
+            CurrentSurTeamMinorScoreText = "0";
+            CurrentHunTeamMinorScoreText = "0";
             return;
         }
 
-        CurrentSurTeamPreHalfMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, _currentDisplaySurTeamType, fallbackToZero: true));
-        CurrentHunTeamPreHalfMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, _currentDisplayHunTeamType, fallbackToZero: true));
+        CurrentSurTeamMinorScoreText =
+            FormatMinorScore(GetTeamMinorScore(currentHalf, _currentDisplaySurTeamType, fallbackToZero: true));
+        CurrentHunTeamMinorScoreText =
+            FormatMinorScore(GetTeamMinorScore(currentHalf, _currentDisplayHunTeamType, fallbackToZero: true));
     }
 
     private static ScoreHalf CloneHalf(ScoreHalf half) =>

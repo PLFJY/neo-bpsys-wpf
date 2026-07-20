@@ -175,30 +175,47 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
-    public void FirstHalfPreScoreDisplaysZeroForBothCamps()
+    public void FirstHalfCurrentScoreDisplaysZeroBeforeResult()
     {
         var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
 
         service.RefreshCurrentProgress();
 
-        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText);
-        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
     }
 
     [Fact]
-    public void SecondHalfPreScoreUsesFirstHalfMinorScoreForSameMapping()
+    public void FirstHalfCurrentScoreDisplaysLiveMinorScoreAfterResult()
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+
+        service.SetCurrentHalfResult(GameResult.Escape3);
+
+        Assert.Equal("3", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("1", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+    }
+
+    [Fact]
+    public void SecondHalfCurrentScoreDisplaysCurrentHalfResult()
     {
         var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
 
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
 
-        Assert.Equal("3", currentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText);
-        Assert.Equal("1", currentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText);
+        // 当前半场=第二半，未记录结果 → 显示 0（旧逻辑会显示第一半的 3/1）
+        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+
+        // 第二半记录 Out4 → 实时显示当前半场结果
+        service.SetCurrentHalfResult(GameResult.Out4);
+        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("5", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
     }
 
     [Fact]
-    public void SecondHalfPreScoreMapsFirstHalfMinorScoreToCurrentCampsAfterSwap()
+    public void SecondHalfCurrentScoreMapsToCurrentCampsAfterSwap()
     {
         var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
@@ -206,8 +223,14 @@ public class MatchScoreServiceTest
         currentGame.Swap();
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
 
-        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText);
-        Assert.Equal("3", currentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText);
+        // 当前半场（第二半）尚未记录结果，显示 0（而非旧逻辑下第一半映射后的小比分）
+        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+
+        // 第二半记录 Out4（当前 Sur=Away），验证按当前阵营映射
+        service.SetCurrentHalfResult(GameResult.Out4);
+        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("5", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
     }
 
     [Fact]

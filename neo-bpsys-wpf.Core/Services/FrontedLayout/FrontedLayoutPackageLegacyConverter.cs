@@ -1605,9 +1605,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 615, 670, 50, 50, cornerRadius: 8, stretch: "Fill"),
             Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "BpWindow.MajorPoints", 607, 776),
             Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "BpWindow.TeamName", 580, 720, 120, null, textWrapping: "WrapWithOverflow"),
-            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "BpWindow.GameScores", 622, 746, 36, 30),
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText", "BpWindow.GameScores", 622, 746, 36, 30),
             Text("Timer", "Text", "RemainingSeconds", "BpWindow.Timer", 671, 672, 100, null, zIndex: 1),
-            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "BpWindow.GameScores", 784, 746, 36, 30),
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText", "BpWindow.GameScores", 784, 746, 36, 30),
             Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "BpWindow.TeamName", 742, 720, 120, null, textWrapping: "WrapWithOverflow"),
             Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "BpWindow.MajorPoints", 770, 776),
             Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 776, 670, 50, 50, cornerRadius: 8, stretch: "Fill"),
@@ -1709,12 +1709,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 96, 177, 85, 85, cornerRadius: 8, stretch: "Fill"),
             Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "GameDataWindow.MajorPoints", 285, 229),
             Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "GameDataWindow.TeamName", 186, 176, 290, null, textWrapping: "WrapWithOverflow"),
-            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "GameDataWindow.GameScores", 476, 182, 52, 81),
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText", "GameDataWindow.GameScores", 476, 182, 52, 81),
             Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 556, 151, 328, 132, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "UniformToFill"),
             Text("MapName", "MapNameText", "CurrentGame.PickedMap", "GameDataWindow.MapName", 556, 220, 328, 30, zIndex: 1),
             Folded("PickedMapName", "MapName", "Folded into the MapName business control, which renders the picked map name."),
             Text("GameProgress", "GameProgressText", null, "GameDataWindow.GameProgress", 556, 253, 328, 30, zIndex: 1),
-            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "GameDataWindow.GameScores", 919, 182, 52, 81),
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText", "GameDataWindow.GameScores", 919, 182, 52, 81),
             Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "GameDataWindow.TeamName", 976, 177, 302, null, textWrapping: "WrapWithOverflow"),
             Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "GameDataWindow.MajorPoints", 1081, 236),
             Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 1278, 176, 85, 86, cornerRadius: 8, stretch: "Fill"),
@@ -1773,7 +1773,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 22, 18, 115, 114, cornerRadius: 8, stretch: "Fill"),
             Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "ScoreWindow.TeamName", 153, 34, 231, null),
             Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "ScoreWindow.MajorPoints", 209, 86),
-            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "ScoreWindow.GameScores", 389, 11, 64, 130)
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText", "ScoreWindow.GameScores", 389, 11, 64, 130)
         ]);
 
         AddBlueprints(result, "ScoreHunWindow", "BaseCanvas",
@@ -1782,7 +1782,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 352, 18, 116, 114, cornerRadius: 8, stretch: "Fill"),
             Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "ScoreWindow.TeamName", 99, 33, 231, null),
             Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "ScoreWindow.MajorPoints", 167, 85),
-            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "ScoreWindow.GameScores", 21, 10, 64, 130)
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText", "ScoreWindow.GameScores", 21, 10, 64, 130)
         ]);
 
         AddBlueprints(result, "ScoreGlobalWindow", "BaseCanvas",
@@ -1820,9 +1820,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Image("SurPick2", "BorderedImage", "CurrentGame.SurPlayerList[2].Character.HalfImage", 340, 65, 72, 110, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
             Image("SurPick3", "BorderedImage", "CurrentGame.SurPlayerList[3].Character.HalfImage", 416, 65, 68, 110, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true),
             Text("GameProgress", "GameProgressText", null, "WidgetsWindow.BpOverview_GameProgress", 471, 0, 178, 50, zIndex: 1),
-            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", "WidgetsWindow.BpOverview_GameScores", 495, 94, 52, 62),
+            Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText", "WidgetsWindow.BpOverview_GameScores", 495, 94, 52, 62),
             Text("RatioChar", "Text", null, "WidgetsWindow.BpOverview_GameScores", 552, 89, 25, 62, staticText: ":"),
-            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", "WidgetsWindow.BpOverview_GameScores", 583, 94, 52, 62),
+            Text("GameScoresHun", "Text", "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText", "WidgetsWindow.BpOverview_GameScores", 583, 94, 52, 62),
             Image("HunPick", "BorderedImage", "CurrentGame.HunPlayer.Character.HalfImage", 644, 45, 291, 130, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true)
         ]);
 

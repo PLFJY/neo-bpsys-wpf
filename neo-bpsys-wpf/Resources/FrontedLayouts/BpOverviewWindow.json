@@ -299,7 +299,7 @@
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText",
+              "Path": "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText",
               "DisplayName": null,
               "Format": null
             }
@@ -353,7 +353,7 @@
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText",
+              "Path": "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText",
               "DisplayName": null,
               "Format": null
             }
