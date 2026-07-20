@@ -7,4 +7,5 @@ export type Bootstrap = {
   Resources: Record<string, string>; Diagnostics: string[]; Localization?: Localization
 }
 export type Layout = { WindowSettings: { ViewboxStretch?: string }; CanvasSettings: CanvasSettings; ControlLayout: { Controls: Record<string, ControlConfig> } }
-export type CanvasSettings = { CanvasWidth?: number; CanvasHeight?: number; BackgroundImage?: string }
+export type CanvasState = { BackgroundImage?: string; Controls?: Record<string, ControlConfig>; RequiredPlugins?: string[] }
+export type CanvasSettings = { CanvasWidth?: number; CanvasHeight?: number; BackgroundImage?: string; EnableBoModeStates?: boolean; BoModeStates?: Record<string, CanvasState> }

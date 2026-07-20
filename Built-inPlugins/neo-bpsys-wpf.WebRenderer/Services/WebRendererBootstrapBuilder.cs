@@ -88,13 +88,23 @@ public sealed class WebRendererBootstrapBuilder(
 
     private IEnumerable<string> EnumerateResourceReferences(FrontedWindowConfig config)
     {
-        if (config.ControlLayout.Controls.Values.Any(control => control is MapV2DisplayControlConfig))
+        if (!string.IsNullOrWhiteSpace(config.CanvasSettings.BackgroundImage)) yield return config.CanvasSettings.BackgroundImage;
+        foreach (var state in config.CanvasSettings.BoModeStates.Values)
+        {
+            if (!string.IsNullOrWhiteSpace(state.BackgroundImage)) yield return state.BackgroundImage;
+            foreach (var reference in EnumerateResourceReferences(state.Controls)) yield return reference;
+        }
+        foreach (var reference in EnumerateResourceReferences(config.ControlLayout.Controls)) yield return reference;
+    }
+
+    private IEnumerable<string> EnumerateResourceReferences(IReadOnlyDictionary<string, FrontedControlConfigBase> controls)
+    {
+        if (controls.Values.Any(control => control is MapV2DisplayControlConfig))
         {
             yield return "Resources/surIcon.png";
             yield return "Resources/hunIcon.png";
         }
-        if (!string.IsNullOrWhiteSpace(config.CanvasSettings.BackgroundImage)) yield return config.CanvasSettings.BackgroundImage;
-        foreach (var control in config.ControlLayout.Controls.Values)
+        foreach (var control in controls.Values)
         {
             if (control is ImageFrontedControlConfig image)
             {
