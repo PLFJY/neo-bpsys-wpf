@@ -45,10 +45,18 @@ describe('GameProgress layout semantics', () => {
   it('centers CJK characters and applies spacing only between characters', () => {
     const html = renderToStaticMarkup(<GameProgressTextRenderer controlId="progress" config={config({ DisplayMode: 'Vertical', VerticalLanguageMode: 'Upright', VerticalTextSpacing: 6, FontFamily: undefined })} runtime={runtime({ FullText: '自由对局', GameText: '自由', HalfText: '对局', IsCjkCulture: true })} />)
     expect(html).toContain('data-game-progress-root')
-    expect(html).toContain('place-items:center')
+    expect(html).toContain('data-game-progress-content-slot')
+    expect(html).toContain('position:absolute;inset:0')
+    expect(html).toContain('display:flex;align-items:center;justify-content:center;width:100%;height:100%')
     expect(html).toContain('font-family:system-ui, &quot;Segoe UI&quot;, sans-serif')
     expect(html.match(/margin-bottom:6px/g)).toHaveLength(3)
     expect(html).toContain('margin-bottom:0')
+  })
+
+  it('keeps the vertical layout in the full content slot while the character column stays intrinsic', () => {
+    const html = renderToStaticMarkup(<GameProgressTextRenderer controlId="progress" config={config({ DisplayMode: 'Vertical', VerticalLanguageMode: 'Upright' })} runtime={runtime({ FullText: '自由对局', IsCjkCulture: true })} />)
+    expect(html).toContain('data-game-progress-vertical-layout="true" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-width:0;min-height:0"')
+    expect(html).toContain('data-game-progress-vertical="Upright" style="display:flex;flex-direction:column;align-items:center;width:max-content;height:max-content"')
   })
 
   it('builds final-size groups and separator from the vertical layout', () => {

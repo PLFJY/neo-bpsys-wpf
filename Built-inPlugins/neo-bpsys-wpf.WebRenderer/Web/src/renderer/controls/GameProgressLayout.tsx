@@ -70,18 +70,10 @@ export function rotatedLayoutSize(width: number, height: number): { width: numbe
 
 export function GameProgressRoot({ config, runtime, verticalLayout, children }: { config: GameProgressConfig; runtime: RuntimeState; verticalLayout: boolean; children: ReactNode }) {
   const boundColor = config.ColorBindingPath ? runtime.values[config.ColorBindingPath] : undefined
-  const style: CSSProperties = {
+  const rootStyle: CSSProperties = {
+    position: 'absolute',
+    inset: 0,
     boxSizing: 'border-box',
-    display: verticalLayout ? 'grid' : 'flex',
-    placeItems: verticalLayout ? 'center' : undefined,
-    justifyContent: verticalLayout ? undefined : horizontal(config.HorizontalAlignment),
-    alignItems: verticalLayout ? undefined : vertical(config.VerticalAlignment),
-    textAlign: verticalLayout ? undefined : textAlign(config.TextAlignment),
-    whiteSpace: verticalLayout ? undefined : wrapping(config.TextWrapping),
-    width: '100%',
-    height: '100%',
-    minWidth: 0,
-    minHeight: 0,
     overflow: 'visible',
     color: color(boundColor ?? config.Color, '#fff'),
     background: color(config.BackgroundColor),
@@ -91,7 +83,18 @@ export function GameProgressRoot({ config, runtime, verticalLayout, children }: 
     lineHeight: 'normal',
     padding: `${finite(config.PaddingTop)}px ${finite(config.PaddingRight)}px ${finite(config.PaddingBottom)}px ${finite(config.PaddingLeft)}px`,
   }
-  return <div data-game-progress-root data-behavior-content style={style}>{children}</div>
+  const contentSlotStyle: CSSProperties = {
+    display: 'flex',
+    alignItems: verticalLayout ? 'center' : vertical(config.VerticalAlignment),
+    justifyContent: verticalLayout ? 'center' : horizontal(config.HorizontalAlignment),
+    textAlign: verticalLayout ? undefined : textAlign(config.TextAlignment),
+    whiteSpace: verticalLayout ? undefined : wrapping(config.TextWrapping),
+    width: '100%',
+    height: '100%',
+    minWidth: 0,
+    minHeight: 0,
+  }
+  return <div data-game-progress-root data-behavior-content style={rootStyle}><div data-game-progress-content-slot style={contentSlotStyle}>{children}</div></div>
 }
 
 export function GameProgressHorizontalLayout({ children }: { children: ReactNode }) {
@@ -99,7 +102,7 @@ export function GameProgressHorizontalLayout({ children }: { children: ReactNode
 }
 
 export function GameProgressVerticalLayout({ children }: { children: ReactNode }) {
-  return <div data-game-progress-vertical-layout style={{ display: 'grid', placeItems: 'center', width: 'max-content', height: 'max-content' }}>{children}</div>
+  return <div data-game-progress-vertical-layout style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', minWidth: 0, minHeight: 0 }}>{children}</div>
 }
 
 function CharacterColumn({ value, culture, spacing, kind }: { value: string; culture?: string; spacing: number; kind: 'Upright' | 'StackCharacters' }) {
