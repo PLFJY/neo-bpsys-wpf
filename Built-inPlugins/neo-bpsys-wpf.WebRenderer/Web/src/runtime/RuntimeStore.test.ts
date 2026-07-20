@@ -5,7 +5,7 @@ beforeEach(() => {
   vi.stubGlobal('Image', class { src = ''; decode() { return Promise.resolve() } })
 })
 
-const asset = (revision: string) => ({ Kind: 'image' as const, Token: revision, Url: `/runtime-assets/${revision}`, ContentType: 'image/png', Revision: revision, NaturalWidthDip: 100, NaturalHeightDip: 200 })
+const asset = (revision: string) => ({ Kind: 'image' as const, SourceKind: 'local' as const, Token: revision, Url: `/runtime-assets/${revision}`, ContentType: 'image/png', Revision: revision, NaturalWidthDip: 100, NaturalHeightDip: 200 })
 
 describe('RuntimeStore', () => {
   it('retains resolved assets for pending/failed and clears explicit null', async () => {
@@ -25,6 +25,25 @@ describe('RuntimeStore', () => {
     await store.enqueue('snapshot', { SchemaVersion: 2, Generation: 2, Sequence: 2, Values: { other: { Kind: 'string', Value: 'next' } } })
     expect(store.state.values.picture).toBeUndefined()
     expect(store.state.generation).toBe(2)
+  })
+
+  it('retains the stable image when decoding a replacement fails', async () => {
+    const store = new RuntimeStore()
+    await store.enqueue('snapshot', { SchemaVersion: 2, Generation: 1, Sequence: 1, Values: { picture: { Kind: 'asset', Asset: asset('stable') } } })
+    vi.stubGlobal('Image', class { src = ''; decode() { return Promise.reject(new Error('decode failed')) } })
+
+    await store.enqueue('bindingPatch', { SchemaVersion: 2, Generation: 1, Sequence: 2, Values: { picture: { Kind: 'asset', Asset: asset('replacement') } } })
+
+    expect(store.state.values.picture).toEqual(asset('stable'))
+  })
+
+  it('applies the latest URL and ignores obsolete sequences', async () => {
+    const store = new RuntimeStore()
+    await store.enqueue('snapshot', { SchemaVersion: 2, Generation: 1, Sequence: 1, Values: { picture: { Kind: 'asset', Asset: asset('first') } } })
+    await store.enqueue('bindingPatch', { SchemaVersion: 2, Generation: 1, Sequence: 3, Values: { picture: { Kind: 'asset', Asset: asset('latest') } } })
+    await store.enqueue('bindingPatch', { SchemaVersion: 2, Generation: 1, Sequence: 2, Values: { picture: { Kind: 'asset', Asset: asset('obsolete') } } })
+
+    expect(store.state.values.picture).toEqual(asset('latest'))
   })
 
   it('waits for a required sequence and fails open on a newer generation', async () => {

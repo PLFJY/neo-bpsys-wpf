@@ -56,18 +56,35 @@ public partial class Member : ObservableObjectBase
             _image = new BitmapImage(new Uri(ImageUri));
             return _image;
         }
-        set => SetPropertyWithAction(ref _image, value, _ =>
+        set
         {
-            ImageUri = null;
+            if (!SetProperty(ref _image, value)) return;
+            if (_imageUri is not null)
+            {
+                _imageUri = null;
+                OnPropertyChanged(nameof(ImageUri));
+            }
             OnPropertyChanged(nameof(IsImageValid));
-        });
+        }
     }
+
+    private string? _imageUri;
 
     /// <summary>
     /// 选手定妆照的图片 Uri
     /// </summary>
     [FrontedBindingIgnore]
-    public string? ImageUri { get; set; }
+    public string? ImageUri
+    {
+        get => _imageUri;
+        set
+        {
+            if (!SetProperty(ref _imageUri, value)) return;
+            _image = null;
+            OnPropertyChanged(nameof(Image));
+            OnPropertyChanged(nameof(IsImageValid));
+        }
+    }
 
     /// <summary>
     /// 选手是否上场

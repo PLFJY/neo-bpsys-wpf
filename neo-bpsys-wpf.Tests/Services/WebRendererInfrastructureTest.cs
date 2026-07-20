@@ -154,6 +154,7 @@ public sealed class WebRendererInfrastructureTest
     [Fact]
     public void IpcProtocolDefinesAcknowledgedLifecycle()
     {
+        Assert.Equal(7, WebRendererIpcProtocol.Version);
         Assert.Equal("bootstrap.applied", WebRendererIpcProtocol.BootstrapApplied);
         Assert.Equal("bootstrap.failed", WebRendererIpcProtocol.BootstrapFailed);
         Assert.Equal("bootstrap.rejected", WebRendererIpcProtocol.BootstrapRejected);
@@ -164,6 +165,23 @@ public sealed class WebRendererInfrastructureTest
                 WebRendererLifecycleState.BuildingBootstrap, WebRendererLifecycleState.WaitingForBootstrapAck,
                 WebRendererLifecycleState.Ready, WebRendererLifecycleState.Stopping, WebRendererLifecycleState.Faulted],
             Enum.GetValues<WebRendererLifecycleState>());
+    }
+
+    /// <summary>系统字体与显式 pack/package 字体必须按引用形式分类。</summary>
+    [Theory]
+    [InlineData("Arial", WebFontReferenceKind.SystemFont)]
+    [InlineData("Segoe UI", WebFontReferenceKind.SystemFont)]
+    [InlineData("Microsoft YaHei", WebFontReferenceKind.SystemFont)]
+    [InlineData("Times New Roman", WebFontReferenceKind.SystemFont)]
+    [InlineData("sans-serif", WebFontReferenceKind.SystemFont)]
+    [InlineData("serif", WebFontReferenceKind.SystemFont)]
+    [InlineData("monospace", WebFontReferenceKind.SystemFont)]
+    [InlineData("pack://application:,,,/Assets/Fonts/#Noto Sans", WebFontReferenceKind.ApplicationPack)]
+    [InlineData("bpui://package/Resources/fonts/custom.ttf#Custom", WebFontReferenceKind.PackageFont)]
+    [InlineData("Resources/fonts/custom.woff2#Custom", WebFontReferenceKind.PackageFont)]
+    public void FontReferencesAreClassifiedBySyntax(string value, WebFontReferenceKind expected)
+    {
+        Assert.Equal(expected, WebRendererBootstrapBuilder.ClassifyFontReference(value));
     }
 
     /// <summary>sidecar 没有 IPC/bootstrap 时，窗口 API 必须明确返回不可用而不是空成功数组。</summary>

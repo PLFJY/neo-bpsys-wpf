@@ -31,7 +31,7 @@ public sealed record WebRendererIpcMessage
 public static class WebRendererIpcProtocol
 {
     /// <summary>当前协议版本。</summary>
-    public const int Version = 6;
+    public const int Version = 7;
 
     /// <summary>主程序广播的权威会话状态。</summary>
     public const string SessionState = "session.state";
@@ -74,6 +74,15 @@ public static class WebRendererIpcProtocol
 
     /// <summary>插件发送的运行时事件。</summary>
     public const string RuntimeEvent = "runtime.event";
+
+    /// <summary>主程序请求 sidecar 准备远程图片。</summary>
+    public const string RemoteAssetFetch = "remoteAsset.fetch";
+
+    /// <summary>sidecar 已准备好远程图片。</summary>
+    public const string RemoteAssetResolved = "remoteAsset.resolved";
+
+    /// <summary>sidecar 准备远程图片失败。</summary>
+    public const string RemoteAssetFailed = "remoteAsset.failed";
 
     /// <summary>插件转发的只读前台行为语义事件。</summary>
     public const string BehaviorEvent = "behavior.event";
@@ -126,3 +135,19 @@ public sealed record WebRendererBootstrapApplied(long Generation, int WindowCoun
 
 /// <summary>bootstrap 构建或校验失败的结构化说明。</summary>
 public sealed record WebRendererBootstrapFailure(long Generation, string Code, string Message);
+
+/// <summary>远程图片下载请求；源 URI 仅通过受控 IPC 发送给 sidecar。</summary>
+/// <param name="Generation">布局 generation。</param>
+/// <param name="Token">浏览器代理资源令牌。</param>
+/// <param name="Revision">规范化资源修订。</param>
+/// <param name="NormalizedUri">规范化 HTTP/HTTPS URI。</param>
+public sealed record WebRemoteAssetFetch(long Generation, string Token, string Revision, string NormalizedUri);
+
+/// <summary>远程图片下载结果。</summary>
+/// <param name="Generation">布局 generation。</param>
+/// <param name="Token">浏览器代理资源令牌。</param>
+/// <param name="Revision">规范化资源修订。</param>
+/// <param name="ContentType">成功时的图片 MIME 类型。</param>
+/// <param name="Diagnostic">失败时不含 URI 的诊断代码。</param>
+public sealed record WebRemoteAssetResult(long Generation, string Token, string Revision,
+    string? ContentType = null, string? Diagnostic = null);

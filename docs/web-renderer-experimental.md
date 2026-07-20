@@ -14,7 +14,7 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 --web-transition-enter-timeout-ms <1-30000>
 ```
 
-默认监听 localhost。实验性 LAN 模式可以使用 `--web-host 0.0.0.0`，此模式没有访问认证，同一网络中的设备可读取页面与实时展示数据；请只在受信任网络使用，并通过系统防火墙限制端口。sidecar 提供 `/`、`/health`、`/render/{encodedFullWindowType}`、`/api/windows`、`/api/bootstrap/{encodedFullWindowType}`、`/bpui-assets/{resourceToken}` 和 `/ws`。`/assets/*.js` 与 `/assets/*.css` 仅用于 Vite 生成的 Web 客户端静态文件；`.bpui` 图片、字体等授权资源仅使用 `/bpui-assets/{resourceToken}`，两者不会共用 URL 前缀。
+默认监听 localhost。实验性 LAN 模式可以使用 `--web-host 0.0.0.0`，此模式没有访问认证，同一网络中的设备可读取页面与实时展示数据；请只在受信任网络使用，并通过系统防火墙限制端口。sidecar 提供 `/`、`/health`、`/render/{encodedFullWindowType}`、`/api/windows`、`/api/bootstrap/{encodedFullWindowType}`、`/bpui-assets/{resourceToken}`、`/remote-assets/{token}` 和 `/ws`。`/assets/*.js` 与 `/assets/*.css` 仅用于 Vite 生成的 Web 客户端静态文件；`.bpui` 图片、字体等授权资源仅使用 `/bpui-assets/{resourceToken}`，在线图片仅使用 `/remote-assets/{token}`，这些 URL 前缀互不复用。
 
 资源 URL 是每次 bootstrap 创建的随机 token；浏览器不会获得物理路径。插件只授权当前活动包、`local`、内置 `Resources/...` 和已知应用字体，拒绝绝对路径、跨包引用及编码路径穿越。切换包或 Designer 保存布局时会重新发送 bootstrap，页面通过 WebSocket 刷新。未知内置控件与没有 Web adapter 的 `plugin:*` 控件会显示诊断占位；纯 Binding 文本显示绑定路径占位。
 
@@ -22,11 +22,44 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 
 `/`、`/render/*` 和 `/index.html` 始终返回 `Cache-Control: no-store`，确保入口页不会缓存旧 bundle 引用。带内容 hash 的 `/assets/*.js` 与 `/assets/*.css` 使用 immutable 缓存策略。
 
-IPC 使用 version 6，runtime value schema 使用 version 2，并采用显式会话状态：`Stopped`、`StartingProcess`、`WaitingForPipe`、`PipeConnected`、`BuildingBootstrap`、`WaitingForBootstrapAck`、`Ready`、`Stopping`、`Faulted`。主程序是状态权威；sidecar 必须先发送 `sidecar.ready`，主程序才发送 `host.hello` 和真实活动包的 `bootstrap.replace`。sidecar 会原子校验协议版本、generation、窗口结构与本地资源表，成功后返回 `bootstrap.applied`；只有该确认到达，管理页、`/health` 与 `/api/windows` 才会显示 `Ready` 和已发布窗口。连接断开时 sidecar 保持 HTTP 进程并以封顶退避重连，重连后的第一组消息始终是完整 bootstrap 和 runtime snapshot。
+IPC 使用 version 7，runtime value schema 使用 version 2，并采用显式会话状态：`Stopped`、`StartingProcess`、`WaitingForPipe`、`PipeConnected`、`BuildingBootstrap`、`WaitingForBootstrapAck`、`Ready`、`Stopping`、`Faulted`。主程序是状态权威；sidecar 必须先发送 `sidecar.ready`，主程序才发送 `host.hello` 和真实活动包的 `bootstrap.replace`。sidecar 会原子校验协议版本、generation、窗口结构与本地资源表，成功后返回 `bootstrap.applied`；只有该确认到达，管理页、`/health` 与 `/api/windows` 才会显示 `Ready` 和已发布窗口。连接断开时 sidecar 保持 HTTP 进程并以封顶退避重连，重连后的第一组消息始终是完整 bootstrap 和 runtime snapshot。
 
 `/api/windows` 和 `/api/bootstrap/{encodedFullWindowType}` 在 IPC 未连接时返回 `503 IpcUnavailable`，bootstrap 尚未确认时返回 `503 BootstrapPending`，构建或校验失败时返回结构化 `503` 错误。`/render/{...}` 在等待状态显示“正在等待主程序布局数据”；仅 Ready 后才区分 `UnknownWindow` 与 `LayoutUnavailable`。管理页仅把 sidecar 已确认的窗口作为可用 Web Runtime，不会用 registry 候选窗口伪装布局已发布。
 
 Image 与 BorderedImage 按 WPF 的语义树分离外层布局、内容 viewport、Lock/PickingBorder overlay 和行为生成部件。动态图片值明确区分 `resolved`、`pending`、`null`、`failed`；runtime asset 同时携带自然 DIP、像素尺寸与 DPI。浏览器只在新图片 decode 成功后原子切换，pending/failed 保留同 generation 的上一稳定图片，业务 null 则清空。
+
+## 在线队伍图片
+
+队伍 JSON 中的 HTTP/HTTPS Logo 与选手定妆照保留为 URI。WPF 继续通过 `BitmapImage.UriSource` 加载；主程序只发布规范化 URI 的不可变描述符，不下载图片、不读取图片字节，也不在 UI 线程等待网络。真实链路为：
+
+```text
+Team/Member JSON ImageUri
+→ BitmapImage.UriSource
+→ CurrentGame.SurTeam.Logo / CurrentGame.HunTeam.Logo
+  或 CurrentGame.SurPlayerList[0..3].PictureShown / CurrentGame.HunPlayer.PictureShown
+→ BindingPathObserver
+→ WebRuntimeValueFactory
+→ WebRuntimeAssetRegistry
+→ remoteAsset.fetch IPC
+→ sidecar RemoteAssetFetcher/cache
+→ remoteAsset.resolved/failed IPC
+→ runtime snapshot/bindingPatch IPC
+→ RuntimeStore
+→ ImageRenderer
+→ DynamicImage
+```
+
+没有选择角色时，`PictureShown` 使用 `Member.Image`；选择角色后使用 `Character.HalfImage`；清除角色后重新使用当前 Member 的在线定妆照。两个队伍 Logo、四名求生者与一名监管者都走同一套绑定和资源链路，不含控件特判。
+
+sidecar 独立异步下载在线图片，并只允许 HTTP/HTTPS 的 PNG、JPEG、WebP 和 GIF。每次下载最多跟随 5 次重定向，连接超时 5 秒、总请求超时 20 秒、单项上限 10 MiB；相同资源的并发请求合并。成功结果进入 64 MiB 内存 LRU 与 512 MiB、最长 7 天的磁盘缓存，完整写入后才通过 `/remote-assets/{token}` 提供。失败不会持久缓存，绑定仍存在时会退避重试；URL 或 generation 改变时旧任务结果会被丢弃。
+
+每次请求和重定向都会重新执行地址校验：拒绝 userinfo、非 HTTP/HTTPS、localhost、环回、链路本地、组播、未指定、RFC1918 和其他常见非公网保留地址。LAN 模式只用于把 Web Renderer 页面提供给受信任客户端，现有产品没有局域网图片服务器契约，因此在线图片代理仍拒绝普通 LAN 私有地址。日志只记录稳定诊断码、generation 和截短 token，不记录源 URL、查询参数或完整缓存路径。
+
+## 字体分类
+
+普通字体名称（例如 Arial、Segoe UI、Microsoft YaHei、Times New Roman、sans-serif、serif、monospace）直接交给浏览器解析，不进入 bootstrap resources、不生成 `@font-face`、不发起字体资源请求，也不会映射为 Noto Sans。只有 `pack://...#Family`、`bpui://...#Family` 和明确指向 `.ttf`、`.otf`、`.woff`、`.woff2` 的 `Resources/...` 引用才作为嵌入或包字体处理。
+
+Web 文本将 WPF FontWeight 名称集中转换为 CSS 数值：Thin 100；ExtraLight/UltraLight 200；Light 300；Normal/Regular 400；Medium 500；DemiBold/SemiBold 600；Bold 700；ExtraBold/UltraBold 800；Black/Heavy 900；ExtraBlack 950。未知或空值不直接写入 CSS，由浏览器继承。
 
 `.bpui v3` 的 Rectangle、Border、Image AnimationParts 会进入所属控件的局部 Above/Below overlay。Web 动画使用带单位的长度值，百分比 ClipInset 直接生成 `clip-path: inset(...)`，Transform 分量由同一元素状态合成。Transition 的 `transition.committed` 携带 required generation/sequence；浏览器应用到该 runtime sequence 后才启动 EnterGraph，超时、断线或 generation 变化时 fail-open，WPF 始终是唯一业务 commit 所有者。
 

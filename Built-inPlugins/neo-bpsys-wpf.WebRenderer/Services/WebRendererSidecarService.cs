@@ -92,7 +92,12 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         _options = options; _runtimeDetector = runtimeDetector; _plugin = plugin; _snackbarService = snackbarService; _logger = logger;
         _bootstrapBuilder = bootstrapBuilder; _runtimePublisher = runtimePublisher; _transitionGateway = transitionGateway;
         _lifecycleCoordinator = lifecycleCoordinator;
-        if (_runtimePublisher is not null) { _runtimePublisher.Updated += OnRuntimeUpdated; _runtimePublisher.BehaviorEventPublished += OnBehaviorEventPublished; }
+        if (_runtimePublisher is not null)
+        {
+            _runtimePublisher.Updated += OnRuntimeUpdated;
+            _runtimePublisher.RemoteAssetRequested += OnRemoteAssetRequested;
+            _runtimePublisher.BehaviorEventPublished += OnBehaviorEventPublished;
+        }
         if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished += OnTransitionSignalPublished;
     }
 
@@ -297,6 +302,11 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                 _runtimePublisher?.SetClientCount(clientCount);
                 _transitionGateway?.SetClientCount(clientCount);
             }
+            else if (message.Type is WebRendererIpcProtocol.RemoteAssetResolved or WebRendererIpcProtocol.RemoteAssetFailed)
+            {
+                var result = message.Payload.Deserialize<WebRemoteAssetResult>();
+                if (result is not null) _runtimePublisher?.ApplyRemoteAssetResult(result);
+            }
             else if ((message.Type == WebRendererIpcProtocol.TransitionExitCompleted || message.Type == WebRendererIpcProtocol.TransitionEnterCompleted) && message.Payload.TryGetProperty("correlationId", out var correlation)) _transitionGateway?.Acknowledge(correlation.GetString() ?? string.Empty, message.Type == WebRendererIpcProtocol.TransitionEnterCompleted);
         }
     }
@@ -378,6 +388,11 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         if (Status.LifecycleState != WebRendererLifecycleState.Ready || update.Generation != Status.BootstrapGeneration) return;
         Observe(QueueAsync(update.IsSnapshot ? WebRendererIpcProtocol.RuntimeSnapshot : WebRendererIpcProtocol.RuntimeBindingPatch, update, _stopping.Token));
     }
+    private void OnRemoteAssetRequested(object? sender, WebRemoteAssetFetch request)
+    {
+        if (Status.LifecycleState == WebRendererLifecycleState.Ready)
+            Observe(QueueAsync(WebRendererIpcProtocol.RemoteAssetFetch, request, _stopping.Token));
+    }
     private void OnBehaviorEventPublished(object? sender, WebRendererBehaviorEvent value) { if (Status.LifecycleState == WebRendererLifecycleState.Ready) Observe(QueueAsync(WebRendererIpcProtocol.BehaviorEvent, value, _stopping.Token)); }
     private void OnTransitionSignalPublished(object? sender, WebTransitionSignal signal) { if (Status.LifecycleState == WebRendererLifecycleState.Ready) Observe(QueueAsync(signal.Type, new { correlationId = signal.Session.CorrelationId, generation = signal.Session.Generation, requiredGeneration = signal.Session.RequiredGeneration, requiredSequence = signal.Session.RequiredSequence, requests = signal.Session.Requests, reason = signal.Reason }, _stopping.Token)); }
 
@@ -434,7 +449,7 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         }
     }
     /// <inheritdoc />
-    public void Dispose() { WeakReferenceMessenger.Default.UnregisterAll(this); if (_runtimePublisher is not null) { _runtimePublisher.Updated -= OnRuntimeUpdated; _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished; } if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished; _acceptCancellation?.Cancel(); _acceptCancellation?.Dispose(); _sidecarJob?.Dispose(); _stopping.Dispose(); _startLock.Dispose(); _bootstrapLock.Dispose(); _process?.Dispose(); }
+    public void Dispose() { WeakReferenceMessenger.Default.UnregisterAll(this); if (_runtimePublisher is not null) { _runtimePublisher.Updated -= OnRuntimeUpdated; _runtimePublisher.RemoteAssetRequested -= OnRemoteAssetRequested; _runtimePublisher.BehaviorEventPublished -= OnBehaviorEventPublished; } if (_transitionGateway is WebTransitionGateway gateway) gateway.SignalPublished -= OnTransitionSignalPublished; _acceptCancellation?.Cancel(); _acceptCancellation?.Dispose(); _sidecarJob?.Dispose(); _stopping.Dispose(); _startLock.Dispose(); _bootstrapLock.Dispose(); _process?.Dispose(); }
     private sealed record WebRendererOutbound(string Type, object Payload, TaskCompletionSource? Delivered = null);
 }
 

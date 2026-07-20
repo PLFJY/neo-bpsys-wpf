@@ -22,8 +22,7 @@ public sealed class WebRendererBootstrapBuilder(
     {
         ["Noto Sans"] = "NotoSans-Regular.ttf",
         ["华康POP1体W5"] = "华康POP1体W5-简体.ttf",
-        ["汉仪第五人格体简"] = "汉仪第五人格体.ttf",
-        ["Arial"] = "NotoSans-Regular.ttf"
+        ["汉仪第五人格体简"] = "汉仪第五人格体.ttf"
     };
 
     /// <summary>创建当前活动包的完整快照。</summary>
@@ -98,9 +97,25 @@ public sealed class WebRendererBootstrapBuilder(
                 if (!string.IsNullOrWhiteSpace(image.LockImagePath)) yield return image.LockImagePath;
                 if (!string.IsNullOrWhiteSpace(image.PickingBorderImagePath)) yield return image.PickingBorderImagePath;
             }
-            if (control is IFrontedTextStyleConfig text && !string.IsNullOrWhiteSpace(text.FontFamily))
+            if (control is IFrontedTextStyleConfig text && !string.IsNullOrWhiteSpace(text.FontFamily)
+                && ClassifyFontReference(text.FontFamily) is not WebFontReferenceKind.SystemFont)
                 yield return text.FontFamily;
         }
+    }
+
+    /// <summary>仅按字体引用形式分类，不探测系统字体或文件。</summary>
+    /// <param name="reference">字体族或字体资源引用。</param>
+    /// <returns>字体引用分类。</returns>
+    public static WebFontReferenceKind ClassifyFontReference(string? reference)
+    {
+        if (string.IsNullOrWhiteSpace(reference)) return WebFontReferenceKind.Invalid;
+        if (reference.StartsWith("pack://", StringComparison.OrdinalIgnoreCase))
+            return reference.Contains('#') ? WebFontReferenceKind.ApplicationPack : WebFontReferenceKind.Invalid;
+        if (reference.StartsWith("bpui://", StringComparison.OrdinalIgnoreCase))
+            return IsFontFile(reference.Split('#')[0]) ? WebFontReferenceKind.PackageFont : WebFontReferenceKind.Invalid;
+        if (reference.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
+            return IsFontFile(reference.Split('#')[0]) ? WebFontReferenceKind.PackageFont : WebFontReferenceKind.Invalid;
+        return WebFontReferenceKind.SystemFont;
     }
 
     private WebRendererAsset? TryCreateAsset(string reference, string activePackageId, List<string> diagnostics)
@@ -144,7 +159,7 @@ public sealed class WebRendererBootstrapBuilder(
     {
         if (Path.IsPathRooted(value) || value.Contains('\\')) return null;
         if (value.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
-            return CombineInside(Path.Combine(AppConstants.ResourcesPath, "bpui"), value["Resources/".Length..]);
+            return CombineInside(Path.Combine(AppConstants.ResourcesPath, "bpui"), value["Resources/".Length..].Split('#')[0]);
         if (!value.StartsWith("bpui://", StringComparison.OrdinalIgnoreCase)) return null;
 
         var raw = value["bpui://".Length..];
@@ -182,6 +197,22 @@ public sealed class WebRendererBootstrapBuilder(
         ".png" => "image/png", ".jpg" or ".jpeg" => "image/jpeg", ".webp" => "image/webp", ".gif" => "image/gif",
         ".ttf" => "font/ttf", ".otf" => "font/otf", ".woff" => "font/woff", ".woff2" => "font/woff2", _ => "application/octet-stream"
     };
+
+    private static bool IsFontFile(string reference) => Path.GetExtension(reference).ToLowerInvariant()
+        is ".ttf" or ".otf" or ".woff" or ".woff2";
+}
+
+/// <summary>Web Renderer 字体引用分类。</summary>
+public enum WebFontReferenceKind
+{
+    /// <summary>由浏览器和操作系统解析的普通字体族。</summary>
+    SystemFont,
+    /// <summary>应用 pack 内嵌字体。</summary>
+    ApplicationPack,
+    /// <summary>活动包或内置 Resources 中的字体文件。</summary>
+    PackageFont,
+    /// <summary>格式无效的资源式字体引用。</summary>
+    Invalid
 }
 
 /// <summary>不可变 bootstrap 快照。</summary>

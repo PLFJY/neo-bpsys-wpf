@@ -12,6 +12,70 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// <summary>Web Renderer 动态图片协议测试。</summary>
 public sealed class WebRendererImageRuntimeTest
 {
+    /// <summary>HTTP 与 HTTPS BitmapImage 必须被识别为远程资源，其他网络 scheme 必须拒绝。</summary>
+    [Theory]
+    [InlineData("http://images.example.test/team.png", WebImageSourceKind.RemoteHttp)]
+    [InlineData("https://images.example.test/player.png", WebImageSourceKind.RemoteHttp)]
+    [InlineData("file:///C:/team.png", WebImageSourceKind.LocalFile)]
+    [InlineData("ftp://images.example.test/player.png", WebImageSourceKind.Invalid)]
+    [InlineData("https://user:secret@images.example.test/player.png", WebImageSourceKind.Invalid)]
+    public void BitmapImageUriClassificationIsSchemeBased(string value, WebImageSourceKind expected)
+    {
+        WpfTestThread.Run(() =>
+        {
+            var image = CreateDeferredBitmap(value);
+            Assert.Equal(expected, WebRuntimeAssetRegistry.Classify(image));
+        });
+    }
+
+    /// <summary>远程图片只发布描述符；sidecar 确认后才变为 resolved proxy asset。</summary>
+    [Fact]
+    public void RemoteBitmapTransitionsFromPendingToResolvedProxyAsset()
+    {
+        WpfTestThread.Run(() =>
+        {
+            using var registry = new WebRuntimeAssetRegistry();
+            var image = CreateDeferredBitmap("https://images.example.test/player.png");
+
+            Assert.False(registry.TryRegister(image, out _, out var pending));
+            Assert.Equal("RuntimeAssetPending", pending);
+            var request = Assert.Single(registry.DrainRemoteRequests());
+            Assert.DoesNotContain("images.example.test", request.Token);
+
+            registry.CompleteRemote(request.Token, request.Revision, "image/png", null);
+
+            Assert.True(registry.TryRegister(image, out var asset, out var error));
+            Assert.Null(error);
+            Assert.Equal("remote", asset.SourceKind);
+            Assert.Equal($"/remote-assets/{request.Token}", asset.Url);
+        });
+    }
+
+    /// <summary>URL 更新后旧 token 的结果必须被丢弃，只有当前图片可以解析。</summary>
+    [Fact]
+    public void RemoteBitmapUrlUpdateIsLatestWins()
+    {
+        WpfTestThread.Run(() =>
+        {
+            using var registry = new WebRuntimeAssetRegistry();
+            var previous = CreateDeferredBitmap("https://images.example.test/player-v1.png");
+            var current = CreateDeferredBitmap("https://images.example.test/player-v2.png");
+            Assert.False(registry.TryRegister(previous, out _, out _));
+            var previousRequest = Assert.Single(registry.DrainRemoteRequests());
+            Assert.False(registry.TryRegister(current, out _, out _));
+            var currentRequest = Assert.Single(registry.DrainRemoteRequests());
+
+            registry.ReplaceRemoteSources([current]);
+            registry.CompleteRemote(previousRequest.Token, previousRequest.Revision, "image/png", null);
+            Assert.False(registry.TryRegister(current, out _, out var pending));
+            Assert.Equal("RuntimeAssetPending", pending);
+
+            registry.CompleteRemote(currentRequest.Token, currentRequest.Revision, "image/png", null);
+            Assert.True(registry.TryRegister(current, out var asset, out _));
+            Assert.Equal(currentRequest.Token, asset.Token);
+        });
+    }
+
     /// <summary>资源协议应同时保存 WPF DIP、像素尺寸和源 DPI。</summary>
     [Fact]
     public async Task FrozenBitmapPublishesNaturalDipPixelAndDpiDimensions()
@@ -70,5 +134,15 @@ public sealed class WebRendererImageRuntimeTest
         Assert.Null(diagnostic);
         Assert.Equal("pending", WebRuntimeValueStates.Pending);
         Assert.Equal("failed", WebRuntimeValueStates.Failed);
+    }
+
+    private static BitmapImage CreateDeferredBitmap(string uri)
+    {
+        var image = new BitmapImage();
+        image.BeginInit();
+        image.CreateOptions = BitmapCreateOptions.DelayCreation;
+        image.UriSource = new Uri(uri, UriKind.Absolute);
+        image.EndInit();
+        return image;
     }
 }

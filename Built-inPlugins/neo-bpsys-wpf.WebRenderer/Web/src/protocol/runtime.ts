@@ -1,5 +1,6 @@
 export type WebRuntimeAsset = {
   Kind: 'image'
+  SourceKind: 'local' | 'remote' | 'frozen'
   Token: string
   Url: string
   ContentType: string

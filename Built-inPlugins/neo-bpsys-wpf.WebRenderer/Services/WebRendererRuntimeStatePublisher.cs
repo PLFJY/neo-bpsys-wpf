@@ -1,11 +1,13 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.WebRenderer.Protocol;
 using System.Collections;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.WebRenderer.Services;
@@ -31,6 +33,8 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
 
     /// <summary>发生可发送的完整快照或增量更新时触发。</summary>
     public event EventHandler<WebRendererRuntimeUpdate>? Updated;
+    /// <summary>需要 sidecar 异步准备远程图片时发生。</summary>
+    public event EventHandler<WebRemoteAssetFetch>? RemoteAssetRequested;
     /// <summary>发布可安全发送给 Web 页面的语义行为事件。</summary>
     public event EventHandler<WebRendererBehaviorEvent>? BehaviorEventPublished;
     /// <summary>获取当前由 sidecar 报告的已连接客户端数量。</summary>
@@ -55,6 +59,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             _observers.Clear();
             _pathsByBehaviorGuid.Clear();
             _generation = snapshot.Generation;
+            _assets.ResetRemoteSession();
             var paths = snapshot.Windows.Where(window => window.Layout is not null).SelectMany(window => EnumeratePaths(window.Layout!)).Where(path => !string.IsNullOrWhiteSpace(path)).ToHashSet(StringComparer.Ordinal);
             foreach (var path in paths) _observers.Add(path, new BindingPathObserver(_sharedData, path, OnPathChanged));
             foreach (var control in snapshot.Windows
@@ -71,6 +76,17 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
 
     /// <summary>在 bootstrap 获得 sidecar 确认后发布当前完整运行时快照。</summary>
     public void PublishConfirmedSnapshot() { lock (_gate) { StartLocked(true); } }
+
+    /// <summary>应用 sidecar 返回的远程图片准备结果。</summary>
+    /// <param name="result">远程图片结果。</param>
+    public void ApplyRemoteAssetResult(WebRemoteAssetResult result)
+    {
+        lock (_gate)
+        {
+            if (result.Generation != _generation) return;
+            _assets.CompleteRemote(result.Token, result.Revision, result.ContentType, result.Diagnostic);
+        }
+    }
     /// <summary>更新 sidecar 当前的连接页面数量。</summary>
     public void SetClientCount(int clientCount) { lock (_gate) { _clientCount = Math.Max(0, clientCount); if (_clientCount == 0) StopLocked(); else StartLocked(true); } }
 
@@ -144,9 +160,11 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         _recalculationVersion++;
         var changed = new Dictionary<string, WebRuntimeValue>(StringComparer.Ordinal);
         var diagnostics = new List<WebRuntimeDiagnostic>();
+        var activeImages = new HashSet<ImageSource>(ReferenceEqualityComparer.Instance);
         foreach (var pair in _observers)
         {
             var result = pair.Value.Resolve();
+            if (result.Value is ImageSource image) activeImages.Add(image);
             WebRuntimeDiagnostic? conversionDiagnostic = null;
             var value = result.Diagnostic is null ? _valueFactory.Create(result.Value, pair.Key, out conversionDiagnostic) : new WebRuntimeValue("null", null, result.SourceType, result.Diagnostic);
             if (result.Diagnostic is not null) diagnostics.Add(new(pair.Key, result.Diagnostic, result.SourceType));
@@ -162,7 +180,11 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
                 _stableAssets.Remove(pair.Key);
             }
         }
+        _assets.ReplaceRemoteSources(activeImages);
         _assets.ReplaceReferences(_stableAssets.Values.Select(value => value.Token));
+        foreach (var descriptor in _assets.DrainRemoteRequests())
+            RemoteAssetRequested?.Invoke(this,
+                new WebRemoteAssetFetch(_generation, descriptor.Token, descriptor.Revision, descriptor.NormalizedUri));
         if (snapshot) Updated?.Invoke(this, new(true, _generation, ++_sequence, new Dictionary<string, WebRuntimeValue>(_values), diagnostics));
         else if (changed.Count > 0) Updated?.Invoke(this, new(false, _generation, ++_sequence, changed, diagnostics));
         CompleteCommitBarriersLocked(isStable: true);

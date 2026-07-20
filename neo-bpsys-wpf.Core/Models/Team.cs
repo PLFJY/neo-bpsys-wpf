@@ -70,15 +70,42 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 队伍LOGO
     /// </summary>
-    [ObservableProperty]
     [JsonIgnore]
-    public partial ImageSource? Logo { get; set; }
+    public ImageSource? Logo
+    {
+        get
+        {
+            if (_logo is not null || string.IsNullOrWhiteSpace(ImageUri)) return _logo;
+            _logo = new BitmapImage(new Uri(ImageUri));
+            return _logo;
+        }
+        set
+        {
+            if (!SetProperty(ref _logo, value)) return;
+            if (string.IsNullOrEmpty(_imageUri)) return;
+            _imageUri = string.Empty;
+            OnPropertyChanged(nameof(ImageUri));
+        }
+    }
+
+    private ImageSource? _logo;
+    private string _imageUri = string.Empty;
 
     /// <summary>
     /// 队伍LOGO的Uri
     /// </summary>
     [FrontedBindingIgnore]
-    public string ImageUri { get; set; } = string.Empty;
+    public string ImageUri
+    {
+        get => _imageUri;
+        set
+        {
+            value ??= string.Empty;
+            if (!SetProperty(ref _imageUri, value)) return;
+            _logo = null;
+            OnPropertyChanged(nameof(Logo));
+        }
+    }
 
     private string _colorHex = DefaultHomeColorHex;
 
@@ -305,11 +332,18 @@ public partial class Team : ObservableObjectBase
     {
         Name = newTeam.Name;
         ColorHex = newTeam.ColorHex;
-        Logo = null;
-        if (!string.IsNullOrEmpty(newTeam.ImageUri) && newTeam.ImageUri != "null")
+        var importedImageUri = string.Equals(newTeam.ImageUri, "null", StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : newTeam.ImageUri;
+        var hadCachedLogo = _logo is not null;
+        _logo = null;
+        if (string.Equals(_imageUri, importedImageUri, StringComparison.Ordinal))
         {
-            ImageUri = newTeam.ImageUri;
-            Logo = new BitmapImage(new Uri(ImageUri));
+            if (hadCachedLogo) OnPropertyChanged(nameof(Logo));
+        }
+        else
+        {
+            ImageUri = importedImageUri;
         }
 
         foreach (var member in SurMemberList)

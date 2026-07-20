@@ -16,11 +16,21 @@ try
 {
     var staticRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
     var client = StaticClientVerifier.Verify(staticRoot);
-    var state = new WebRendererHostState(settings, client.BuildId);
-    state.Start(cancellation.Token);
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.Listen(settings.Address, settings.Port));
+    builder.Services.AddSingleton<RemoteAssetAddressPolicy>();
+    builder.Services.AddHttpClient("RemoteAssets", client => client.Timeout = Timeout.InfiniteTimeSpan)
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            AllowAutoRedirect = false,
+            ConnectTimeout = TimeSpan.FromSeconds(5),
+            ConnectCallback = RemoteAssetAddressPolicy.ConnectPublicAsync
+        });
+    builder.Services.AddSingleton<RemoteAssetFetcher>();
     var app = builder.Build();
+    var state = new WebRendererHostState(settings, client.BuildId,
+        app.Services.GetRequiredService<RemoteAssetFetcher>());
+    state.Start(cancellation.Token);
     state.ShutdownRequested += (_, _) => app.Lifetime.StopApplication();
     app.Use(async (context, next) =>
     {
@@ -40,6 +50,7 @@ try
     app.MapGet("/api/bootstrap/{encodedFullWindowType}", (string encodedFullWindowType) => state.Bootstrap(encodedFullWindowType));
     app.MapGet("/bpui-assets/{resourceToken}", (string resourceToken) => state.Asset(resourceToken));
     app.MapGet("/runtime-assets/{token}", (string token, HttpContext context) => state.RuntimeAsset(token, context));
+    app.MapGet("/remote-assets/{token}", (string token, HttpContext context) => state.RemoteAsset(token, context));
     app.Map("/ws", async context =>
     {
         if (!context.WebSockets.IsWebSocketRequest) { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
@@ -86,7 +97,8 @@ internal sealed record SidecarSettings(string PipeName, int ParentProcessId, lon
     }
 }
 
-internal sealed class WebRendererHostState(SidecarSettings settings, string clientBuildId)
+internal sealed class WebRendererHostState(SidecarSettings settings, string clientBuildId,
+    RemoteAssetFetcher? remoteAssets = null)
 {
     private readonly object _gate = new();
     private readonly List<WebSocket> _sockets = [];
@@ -174,6 +186,17 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
         return Results.File(path, "image/png", enableRangeProcessing: false);
     }
 
+    /// <summary>返回当前 generation 已授权并完成缓存的远程图片。</summary>
+    public IResult RemoteAsset(string token, HttpContext context)
+    {
+        long generation;
+        lock (_gate) generation = _generation;
+        if (remoteAssets is null || !remoteAssets.TryGet(token, generation, out var entry))
+            return Results.NotFound();
+        context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+        return Results.File(entry.Bytes, entry.ContentType, enableRangeProcessing: false);
+    }
+
     private async Task RunConnectionLoopAsync(CancellationToken cancellationToken)
     {
         var delay = TimeSpan.FromMilliseconds(250);
@@ -231,6 +254,10 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
                     break;
                 case WebRendererIpcProtocol.RuntimeBindingPatch:
                     await BroadcastAsync(new { type = "bindingPatch", payload = message.Payload }); break;
+                case WebRendererIpcProtocol.RemoteAssetFetch:
+                    var request = message.Payload.Deserialize<WebRemoteAssetFetch>();
+                    if (request is not null) _ = HandleRemoteAssetFetchAsync(request, cancellationToken);
+                    break;
                 case WebRendererIpcProtocol.BehaviorEvent:
                     await BroadcastAsync(new { type = "behavior.event", payload = message.Payload }); break;
                 case WebRendererIpcProtocol.TransitionPrepare or WebRendererIpcProtocol.TransitionCommitted or WebRendererIpcProtocol.TransitionCancel:
@@ -265,6 +292,7 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
             else { _bootstrap?.Dispose(); _bootstrap = JsonDocument.Parse(payload.GetRawText()); _generation = generation; _errorCode = null; _errorMessage = null; }
         }
         if (failure is not null) { await QueueAsync(WebRendererIpcProtocol.BootstrapRejected, failure, cancellationToken); return; }
+        remoteAssets?.SetGeneration(generation);
         Console.Error.WriteLine($"Web Renderer bootstrap.replace applied: generation {generation}.");
         await QueueAsync(WebRendererIpcProtocol.BootstrapApplied, new WebRendererBootstrapApplied(generation, windowCount, renderableCount, activePackageId), cancellationToken);
         await BroadcastAsync(new { type = WebRendererIpcProtocol.BootstrapChanged, payload = new { generation } });
@@ -307,6 +335,34 @@ internal sealed class WebRendererHostState(SidecarSettings settings, string clie
             _ = BroadcastAsync(new { type = "status", payload = Health() });
         }
         catch (JsonException) { }
+    }
+
+    private async Task HandleRemoteAssetFetchAsync(WebRemoteAssetFetch request, CancellationToken cancellationToken)
+    {
+        if (remoteAssets is null) return;
+        try
+        {
+            var entry = await remoteAssets.FetchAsync(request, cancellationToken);
+            await QueueAsync(WebRendererIpcProtocol.RemoteAssetResolved,
+                new WebRemoteAssetResult(request.Generation, request.Token, request.Revision, entry.ContentType),
+                cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            var diagnostic = ex is RemoteAssetException remote
+                ? remote.Diagnostic
+                : ex is OperationCanceledException ? "RemoteAssetRequestTimeout" : "RemoteAssetDownloadFailed";
+            var tokenSummary = request.Token.Length <= 8 ? request.Token : request.Token[..8];
+            Console.Error.WriteLine($"Web Renderer remote asset failed: {diagnostic}; generation={request.Generation}; token={tokenSummary}.");
+            try
+            {
+                await QueueAsync(WebRendererIpcProtocol.RemoteAssetFailed,
+                    new WebRemoteAssetResult(request.Generation, request.Token, request.Revision, Diagnostic: diagnostic),
+                    cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        }
     }
 
     private void ApplyBootstrapFailure(JsonElement payload)
