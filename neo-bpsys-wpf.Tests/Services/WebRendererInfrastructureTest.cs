@@ -66,6 +66,8 @@ public sealed class WebRendererInfrastructureTest
 
     /// <summary>
     /// 未传入参数时应使用仅本机的固定默认监听地址。
+    /// 默认 <see cref="WebRendererPluginSettings.StartWithApplication"/> 为 <see langword="false"/>，
+    /// 因此默认 <c>NoStart</c> 为 <see langword="true"/>（sidecar 不随应用启动）。
     /// </summary>
     [Fact]
     public void LaunchOptionsUseLocalhostDefaults()
@@ -74,7 +76,7 @@ public sealed class WebRendererInfrastructureTest
 
         Assert.Equal("127.0.0.1", options.Address);
         Assert.Equal(19527, options.Port);
-        Assert.False(options.NoStart);
+        Assert.True(options.NoStart);
         Assert.Null(options.ValidationError);
     }
 

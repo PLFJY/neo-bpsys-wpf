@@ -150,7 +150,7 @@ dotnet-gcdump collect -p $mainPid -o after-layout-switch.gcdump
 
 ### 复现步骤
 
-1. 启动应用（默认 `StartWithApplication = true`，sidecar 自动启动）。
+1. 启动应用（默认 `StartWithApplication = false`，sidecar 不自动启动；用户可在管理页手动启动或开启随应用启动）。
 2. 记录主进程 PID 和 sidecar PID。
 3. 分别记录两个进程的内存。
 4. 切换多个布局包，观察 `_ready` 等集合是否无限增长。
@@ -185,7 +185,7 @@ dotnet-gcdump collect -p $sidecarPid -o sidecar-baseline.gcdump
    - `_ready`、`_pending`、`_failures`、`_remote` 四个集合。
    - `ReplaceRemoteSources` 只清理远程资源，本地文件和 Frozen Bitmap 不会随 active snapshot 清除。
 2. 异步编码竞态：布局切换后旧编码任务完成可能把图片插回 `_ready`。
-3. `StartWithApplication` 默认为 `true`，实验性插件默认启动 sidecar 进程。
+3. `StartWithApplication` 默认为 `false`（阶段 5 修复），新安装不自动启动 sidecar 进程；已有 `Settings.json` 的旧用户保留原值。
 
 ## 引用链优先级排序
 
@@ -211,7 +211,7 @@ dotnet-gcdump collect -p $sidecarPid -o sidecar-baseline.gcdump
 
 ### 优先级 5：子进程常驻
 
-- **WebRenderer sidecar**：默认 `StartWithApplication = true`，主程序启动即产生 sidecar 进程。
+- **WebRenderer sidecar**：默认 `StartWithApplication = false`（阶段 5 修复），新安装不自动启动 sidecar 进程；已有 `Settings.json` 的旧用户保留原值。
 
 ## 验证原则
 

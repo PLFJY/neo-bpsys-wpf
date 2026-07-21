@@ -11,7 +11,13 @@ public sealed class WebRendererPluginSettings
     /// <summary>获取或设置监听端口。</summary>
     public int Port { get; set; } = WebRendererLaunchOptions.DefaultPort;
     /// <summary>获取或设置是否随应用启动。</summary>
-    public bool StartWithApplication { get; set; } = true;
+    /// <remarks>
+    /// 默认值为 <see langword="false"/>：sidecar 进程不随应用启动自动运行，
+    /// 避免未使用 Web Renderer 时产生常驻子进程内存占用。
+    /// 用户可在管理页手动启动，或将此属性设为 <see langword="true"/> 恢复自动启动。
+    /// 已有 <c>Settings.json</c> 的旧用户升级后保留原值，行为不变。
+    /// </remarks>
+    public bool StartWithApplication { get; set; }
     /// <summary>获取或设置 Exit fail-open 超时（毫秒）。</summary>
     public int ExitTimeoutMs { get; set; } = 2000;
     /// <summary>获取或设置 Enter fail-open 超时（毫秒）。</summary>
