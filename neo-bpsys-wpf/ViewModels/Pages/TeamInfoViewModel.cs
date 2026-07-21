@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Media;
@@ -194,7 +195,7 @@ public partial class TeamInfoPageViewModel
                 var validation = _imageSafetyService.ValidateFile(fileName, FrontedImagePurpose.UiElement);
                 if (!validation.IsValid)
                 {
-                    _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "LogoFileIsNotValid"));
+                    _ = MessageBoxHelper.ShowErrorAsync(BuildImageValidationFailureMessage(validation, "LogoFileIsNotValid"));
                     return;
                 }
 
@@ -523,6 +524,13 @@ public partial class TeamInfoPageViewModel
 
             try
             {
+                var validation = _imageSafetyService.ValidateFile(imagePath, FrontedImagePurpose.UiElement);
+                if (!validation.IsValid)
+                {
+                    _ = MessageBoxHelper.ShowErrorAsync(BuildImageValidationFailureMessage(validation, "ImageMaybeDamagedOrUnsupported"));
+                    return;
+                }
+
                 member.Image = new BitmapImage(new Uri(imagePath));
                 ClearMemberImageCommand.NotifyCanExecuteChanged();
             }
@@ -543,5 +551,53 @@ public partial class TeamInfoPageViewModel
         }
 
         private static bool CanClearMemberImage(Member? member) => member?.IsImageValid == true;
+
+        /// <summary>
+        /// 根据图片校验结果构建弹窗消息。当文件大小超限时返回包含实际大小与最大允许大小的友好提示；
+        /// 其他校验失败则回退到 <paramref name="fallbackKey"/> 对应的本地化文本。
+        /// </summary>
+        /// <param name="validation">图片校验结果。</param>
+        /// <param name="fallbackKey">非文件大小超限类错误使用的本地化资源键。</param>
+        /// <returns>用于错误弹窗的本地化消息。</returns>
+        private static string BuildImageValidationFailureMessage(FrontedImageValidationResult validation, string fallbackKey)
+        {
+            if (validation is { IsValid: false, ErrorCode: "ImageTooLarge" })
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageFileTooLarge"),
+                    FormatFileSize(validation.FileBytes),
+                    FormatFileSize(FrontedLayoutLimits.MaxUiImageBytes));
+            }
+
+            return I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, fallbackKey);
+        }
+
+        /// <summary>
+        /// 将字节数格式化为带二进制单位（B / KiB / MiB）的可读字符串，
+        /// 整数字节数省略小数部分。
+        /// </summary>
+        /// <param name="bytes">字节数。</param>
+        /// <returns>带单位的可读大小字符串。</returns>
+        private static string FormatFileSize(long bytes)
+        {
+            if (bytes >= 1024 * 1024)
+            {
+                var mib = bytes / (1024.0 * 1024);
+                return Math.Abs(mib - Math.Floor(mib)) < double.Epsilon
+                    ? $"{(long)mib} MiB"
+                    : $"{mib:F2} MiB";
+            }
+
+            if (bytes >= 1024)
+            {
+                var kib = bytes / 1024.0;
+                return Math.Abs(kib - Math.Floor(kib)) < double.Epsilon
+                    ? $"{(long)kib} KiB"
+                    : $"{kib:F2} KiB";
+            }
+
+            return $"{bytes} B";
+        }
     }
 }

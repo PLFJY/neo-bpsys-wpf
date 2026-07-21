@@ -103,6 +103,9 @@
   <data name="LogoFileIsNotValid">
     <value>Logo 文件不合法</value>
   </data>
+  <data name="ImageFileTooLarge">
+    <value>图片文件过大（{0}），最大支持 {1}。请压缩图片或更换更小的文件后重试。</value>
+  </data>
   <data name="HexColor">
     <value>十六进制颜色</value>
   </data>

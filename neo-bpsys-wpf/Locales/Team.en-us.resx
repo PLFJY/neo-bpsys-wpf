@@ -103,6 +103,9 @@
   <data name="LogoFileIsNotValid">
     <value>Logo file is not valid</value>
   </data>
+  <data name="ImageFileTooLarge">
+    <value>The image file is too large ({0}). The maximum supported size is {1}. Please compress the image or choose a smaller file.</value>
+  </data>
   <data name="HexColor">
     <value>Hex Color</value>
   </data>
