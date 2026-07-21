@@ -59,6 +59,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     // 缓存“最近一帧”；外部通过 GetCurrentFrame() 读取。
     private BitmapSource? _currentFrame;
 
+    // 复用的 staging 纹理和像素缓冲区：尺寸不变时跨帧复用，避免每帧分配约 8 MiB（1080p BGRA）。
+    // 仅在 OnFrameArrived（捕获线程）中访问，无需跨线程同步。
+    private Texture2D? _stagingTexture;
+    private byte[]? _stagingBuffer;
+    private int _stagingWidth;
+    private int _stagingHeight;
+
     // 预览窗口相关状态。
     private Window? _previewWindow;
     private Image? _previewImage;
@@ -374,6 +381,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         _framePool = null;
 
         _captureItem = null;
+
+        // 释放复用的 staging 资源，避免停止捕获后仍持有 D3D 纹理和大缓冲区。
+        _stagingTexture?.Dispose();
+        _stagingTexture = null;
+        _stagingBuffer = null;
+        _stagingWidth = 0;
+        _stagingHeight = 0;
 
         IsCapturing = false;
     }
@@ -765,9 +779,19 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
 
             // 将 WinRT surface 包装为 SharpDX texture，便于执行 Direct3D 复制。
             using var sourceTexture = Direct3D11Helper.CreateSharpDXTexture2D(frame.Surface);
-            // 创建 CPU 可读 staging 纹理，后续通过 MapSubresource 读取像素。
-            using var stagingTexture =
-                CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
+            // 复用 staging 纹理：尺寸不变时跨帧复用，避免每帧分配新的 D3D staging 资源。
+            // 尺寸变化时释放旧纹理并重建。
+            if (_stagingTexture is null
+                || _stagingWidth != contentSize.Width
+                || _stagingHeight != contentSize.Height)
+            {
+                _stagingTexture?.Dispose();
+                _stagingTexture = CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
+                _stagingWidth = contentSize.Width;
+                _stagingHeight = contentSize.Height;
+            }
+
+            var stagingTexture = _stagingTexture;
 
             // 先把帧数据复制到 staging 资源。
             _d3dDevice.ImmediateContext.CopyResource(sourceTexture, stagingTexture);
@@ -860,7 +884,14 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         {
             // BGRA8 每像素 4 字节。
             var stride = width * 4;
-            var pixels = new byte[stride * height];
+            var requiredSize = stride * height;
+            // 复用像素缓冲区：尺寸不变时跨帧复用，避免每帧在 LOH 分配约 8 MiB（1080p BGRA）。
+            // BitmapSource.Create 会复制传入的像素数据，复用 buffer 是安全的。
+            if (_stagingBuffer is null || _stagingBuffer.Length < requiredSize)
+            {
+                _stagingBuffer = new byte[requiredSize];
+            }
+            var pixels = _stagingBuffer;
 
             for (var y = 0; y < height; y++)
             {
