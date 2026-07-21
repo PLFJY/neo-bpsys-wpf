@@ -201,6 +201,13 @@ public partial class SettingPageViewModel : ViewModelBase
     public partial bool IsTestingLatency { get; set; }
 
     /// <summary>
+    /// 连通性测试使用的 Chrome 浏览器 User-Agent，避免部分 ghproxy 镜像拦截无 UA 请求。
+    /// </summary>
+    private const string MirrorLatencyTestUserAgent =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
+
+    /// <summary>
     /// 测试所有镜像的延迟。
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanTestMirrorLatency))]
@@ -218,6 +225,7 @@ public partial class SettingPageViewModel : ViewModelBase
             }
 
             using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(MirrorLatencyTestUserAgent);
 
             var tasks = MirrorList.Select(async item =>
             {
