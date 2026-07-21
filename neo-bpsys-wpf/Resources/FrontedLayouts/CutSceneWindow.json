@@ -51,7 +51,9 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "W1": {
         "Text": "W",
@@ -78,7 +80,9 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "D1": {
         "Text": "D",
@@ -105,7 +109,9 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurWin": {
         "Text": null,
@@ -138,7 +144,9 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamName": {
         "Text": null,
@@ -171,7 +179,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamMajorPoint": {
         "Text": null,
@@ -204,26 +214,30 @@
         "Height": null,
         "ZIndex": 3,
         "Visibility": "Collapsed",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "MapName": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
         "ColorBindingPath": null,
-        "FontSize": 24,
+        "FontSize": 22,
         "TextAlignment": "Center",
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
         "EmptyText": null,
         "ControlType": "MapNameText",
-        "Left": 550,
-        "Top": 58.5,
-        "Width": 340,
+        "Left": 552.5,
+        "Top": 40,
+        "Width": 339,
         "Height": 27,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId0": {
         "Text": null,
@@ -256,7 +270,9 @@
         "Height": 39,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId1": {
         "Text": null,
@@ -289,7 +305,9 @@
         "Height": 38,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId2": {
         "Text": null,
@@ -322,7 +340,9 @@
         "Height": 38,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId3": {
         "Text": null,
@@ -355,7 +375,9 @@
         "Height": 32,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunId": {
         "Text": null,
@@ -388,7 +410,9 @@
         "Height": 51.5,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTalent0": {
         "DisplayKind": "SurvivorTalent",
@@ -405,7 +429,9 @@
         "Height": 36,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTalent1": {
         "DisplayKind": "SurvivorTalent",
@@ -422,7 +448,9 @@
         "Height": 38.5,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTalent2": {
         "DisplayKind": "SurvivorTalent",
@@ -439,7 +467,9 @@
         "Height": 37,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTalent3": {
         "DisplayKind": "SurvivorTalent",
@@ -456,7 +486,9 @@
         "Height": 37,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTalent": {
         "DisplayKind": "HunterTalent",
@@ -473,7 +505,9 @@
         "Height": 52,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Trait": {
         "DisplayKind": "HunterTrait",
@@ -490,7 +524,9 @@
         "Height": 56,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamLogo": {
         "SizingMode": "Auto",
@@ -519,7 +555,9 @@
         "Height": 85,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.Logo"
+        "BindingPath": "CurrentGame.SurTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamLogo": {
         "SizingMode": "Auto",
@@ -548,18 +586,20 @@
         "Height": 85,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.Logo"
+        "BindingPath": "CurrentGame.HunTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
-      "GameProgress": {
+      "GameProgress_Game": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
         "FontWeight": "Normal",
         "Color": "#FFFFFFFF",
         "ColorBindingPath": null,
-        "FontSize": 22,
+        "FontSize": 14,
         "TextAlignment": "Center",
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center",
-        "DisplayMode": 0,
+        "DisplayMode": 7,
         "VerticalLanguageMode": 0,
         "LatinVerticalMode": 0,
         "VerticalDirection": 0,
@@ -576,13 +616,15 @@
         "PaddingRight": 0,
         "PaddingBottom": 0,
         "ControlType": "GameProgressText",
-        "Left": 549,
-        "Top": 84.5,
-        "Width": 342.5,
+        "Left": 552,
+        "Top": 44.5,
+        "Width": 94,
         "Height": 27.5,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick0": {
         "ImageWidth": 556.5,
@@ -613,7 +655,9 @@
         "Height": 310,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[0].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[0].Character.BigImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick1": {
         "ImageWidth": 556.5,
@@ -644,7 +688,9 @@
         "Height": 310,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[1].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[1].Character.BigImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick2": {
         "ImageWidth": 556.5,
@@ -675,7 +721,9 @@
         "Height": 313,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[2].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[2].Character.BigImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurPick3": {
         "ImageWidth": 556.5,
@@ -706,7 +754,9 @@
         "Height": 313.5,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[3].Character.BigImage"
+        "BindingPath": "CurrentGame.SurPlayerList[3].Character.BigImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunPick": {
         "ImageWidth": null,
@@ -737,7 +787,9 @@
         "Height": 645,
         "ZIndex": 0,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunPlayer.Character.BigImage"
+        "BindingPath": "CurrentGame.HunPlayer.Character.BigImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur1TeamColorBg": {
         "RadiusX": 0,
@@ -763,7 +815,9 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur2TeamColorBg": {
         "RadiusX": 0,
@@ -789,7 +843,9 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur3TeamColorBg": {
         "RadiusX": 0,
@@ -815,7 +871,9 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur4TeamColorBg": {
         "RadiusX": 0,
@@ -841,7 +899,9 @@
         "Height": 160,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamColorBg": {
         "RadiusX": 0,
@@ -867,7 +927,9 @@
         "Height": 235.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Map": {
         "ImageWidth": null,
@@ -898,7 +960,9 @@
         "Height": 110,
         "ZIndex": -2,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.PickedMapImage"
+        "BindingPath": "CurrentGame.PickedMapImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunWin": {
         "Text": null,
@@ -931,7 +995,9 @@
         "Height": null,
         "ZIndex": 4,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTie": {
         "Text": null,
@@ -964,7 +1030,9 @@
         "Height": null,
         "ZIndex": 5,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "W2": {
         "Text": "W",
@@ -991,7 +1059,9 @@
         "Height": null,
         "ZIndex": 6,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "D2": {
         "Text": "D",
@@ -1018,7 +1088,9 @@
         "Height": null,
         "ZIndex": 7,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "BackgroundTintSur": {
         "RadiusX": 0,
@@ -1036,7 +1108,9 @@
         "Height": 109.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "BackgroundTintHun": {
         "RadiusX": 0,
@@ -1054,7 +1128,9 @@
         "Height": 110.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamName": {
         "Text": null,
@@ -1088,7 +1164,46 @@
         "Height": null,
         "ZIndex": 8,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
+      },
+      "GameProgress_Half": {
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FFFFFFFF",
+        "ColorBindingPath": null,
+        "FontSize": 14,
+        "TextAlignment": "Center",
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "DisplayMode": 8,
+        "VerticalLanguageMode": 0,
+        "LatinVerticalMode": 0,
+        "VerticalDirection": 0,
+        "DisplayLanguage": "FollowApp",
+        "NumberStyle": 0,
+        "VerticalTextSpacing": 0,
+        "GroupSpacing": 8,
+        "ShowSeparator": false,
+        "SeparatorThickness": 1,
+        "SeparatorColor": null,
+        "BackgroundColor": null,
+        "PaddingLeft": 0,
+        "PaddingTop": 0,
+        "PaddingRight": 0,
+        "PaddingBottom": 0,
+        "BehaviorGuid": "019f8356-1617-7932-992e-48ce2bf378ae",
+        "ControlType": "GameProgressText",
+        "Left": 801,
+        "Top": 42,
+        "Width": 89,
+        "Height": 27.5,
+        "ZIndex": 9,
+        "Visibility": "Visible",
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       }
     }
   }

@@ -47,7 +47,9 @@
         "Height": 85,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.Logo"
+        "BindingPath": "CurrentGame.SurTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamMajorPoint": {
         "Text": null,
@@ -80,7 +82,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurTeamName": {
         "Text": null,
@@ -113,7 +117,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "GameScoresSur": {
         "Text": null,
@@ -146,7 +152,9 @@
         "Height": 81,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Map": {
         "ImageWidth": null,
@@ -177,7 +185,9 @@
         "Height": 132,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.PickedMapImage"
+        "BindingPath": "CurrentGame.PickedMapImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "MapName": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
@@ -196,7 +206,9 @@
         "Height": 30,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "GameProgress": {
         "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
@@ -230,7 +242,9 @@
         "Height": 30,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "GameScoresHun": {
         "Text": null,
@@ -263,7 +277,9 @@
         "Height": 81,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamName": {
         "Text": null,
@@ -296,7 +312,9 @@
         "Height": 44,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamMajorPoint": {
         "Text": null,
@@ -329,7 +347,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamLogo": {
         "SizingMode": "FillContainer",
@@ -358,7 +378,9 @@
         "Height": 86,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.Logo"
+        "BindingPath": "CurrentGame.HunTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_Character": {
         "LocalizationKey": "Character",
@@ -380,7 +402,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_ID": {
         "LocalizationKey": "PlayerID",
@@ -402,7 +426,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_DecodingProgress": {
         "LocalizationKey": "DecodingProgress",
@@ -424,7 +450,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_PalletStrikes": {
         "LocalizationKey": "PalletStrikes",
@@ -440,13 +468,15 @@
         "VerticalAlignment": "Center",
         "TextWrapping": null,
         "ControlType": "LocalizedText",
-        "Left": 485,
+        "Left": 482.5,
         "Top": 307,
         "Width": 150,
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_Rescues": {
         "LocalizationKey": "Rescues",
@@ -468,7 +498,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_Heals": {
         "LocalizationKey": "Heals",
@@ -490,7 +522,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_ContainmentTime": {
         "LocalizationKey": "ContainmentTime",
@@ -512,7 +546,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Player0Header": {
         "SizingMode": "Auto",
@@ -541,7 +577,9 @@
         "Height": 50,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[0].Character.HeaderImage"
+        "BindingPath": "CurrentGame.SurPlayerList[0].Character.HeaderImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Player1Header": {
         "SizingMode": "Auto",
@@ -570,7 +608,9 @@
         "Height": 50,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[1].Character.HeaderImage"
+        "BindingPath": "CurrentGame.SurPlayerList[1].Character.HeaderImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Player2Header": {
         "SizingMode": "Auto",
@@ -599,7 +639,9 @@
         "Height": 50,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[2].Character.HeaderImage"
+        "BindingPath": "CurrentGame.SurPlayerList[2].Character.HeaderImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Player3Header": {
         "SizingMode": "Auto",
@@ -628,7 +670,9 @@
         "Height": 50,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurPlayerList[3].Character.HeaderImage"
+        "BindingPath": "CurrentGame.SurPlayerList[3].Character.HeaderImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId0": {
         "Text": null,
@@ -661,7 +705,9 @@
         "Height": 49,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId1": {
         "Text": null,
@@ -694,7 +740,9 @@
         "Height": 49,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId2": {
         "Text": null,
@@ -727,7 +775,9 @@
         "Height": 49,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "SurId3": {
         "Text": null,
@@ -760,7 +810,9 @@
         "Height": 49,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur0MachineDecoded": {
         "Text": null,
@@ -787,13 +839,15 @@
         "ColorBindingPath": null,
         "FontSize": 22,
         "ControlType": "Text",
-        "Left": 377,
+        "Left": 371.5,
         "Top": 348,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur1MachineDecoded": {
         "Text": null,
@@ -820,13 +874,15 @@
         "ColorBindingPath": null,
         "FontSize": 22,
         "ControlType": "Text",
-        "Left": 377,
-        "Top": 405,
+        "Left": 371.5,
+        "Top": 404.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur2MachineDecoded": {
         "Text": null,
@@ -853,13 +909,15 @@
         "ColorBindingPath": null,
         "FontSize": 22,
         "ControlType": "Text",
-        "Left": 377,
-        "Top": 460,
+        "Left": 371.5,
+        "Top": 459.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur3MachineDecoded": {
         "Text": null,
@@ -886,13 +944,15 @@
         "ColorBindingPath": null,
         "FontSize": 22,
         "ControlType": "Text",
-        "Left": 377,
+        "Left": 371.5,
         "Top": 516,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur0PalletStunTimes": {
         "Text": null,
@@ -922,10 +982,12 @@
         "Left": 530,
         "Top": 348,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur1PalletStunTimes": {
         "Text": null,
@@ -953,12 +1015,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 530,
-        "Top": 405,
+        "Top": 404.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur2PalletStunTimes": {
         "Text": null,
@@ -986,12 +1050,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 530,
-        "Top": 460,
+        "Top": 459.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur3PalletStunTimes": {
         "Text": null,
@@ -1021,10 +1087,12 @@
         "Left": 530,
         "Top": 516,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur0RescueTimes": {
         "Text": null,
@@ -1052,12 +1120,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 666,
-        "Top": 348.5,
+        "Top": 348,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur1RescueTimes": {
         "Text": null,
@@ -1085,12 +1155,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 666,
-        "Top": 406,
+        "Top": 404.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur2RescueTimes": {
         "Text": null,
@@ -1117,13 +1189,15 @@
         "ColorBindingPath": null,
         "FontSize": 22,
         "ControlType": "Text",
-        "Left": 666,
+        "Left": 666.5,
         "Top": 459.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur3RescueTimes": {
         "Text": null,
@@ -1151,12 +1225,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 666,
-        "Top": 515.5,
+        "Top": 516,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur0HealedTimes": {
         "Text": null,
@@ -1186,10 +1262,12 @@
         "Left": 803,
         "Top": 348,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur1HealedTimes": {
         "Text": null,
@@ -1217,12 +1295,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 803,
-        "Top": 405,
+        "Top": 404.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur2HealedTimes": {
         "Text": null,
@@ -1250,12 +1330,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 803,
-        "Top": 459,
+        "Top": 459.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur3HealedTimes": {
         "Text": null,
@@ -1285,10 +1367,12 @@
         "Left": 803,
         "Top": 516,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur0KiteTime": {
         "Text": null,
@@ -1318,10 +1402,12 @@
         "Left": 947,
         "Top": 348,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur1KiteTime": {
         "Text": null,
@@ -1349,12 +1435,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 947,
-        "Top": 405,
+        "Top": 404.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur2KiteTime": {
         "Text": null,
@@ -1384,10 +1472,12 @@
         "Left": 947,
         "Top": 459.5,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Sur3KiteTime": {
         "Text": null,
@@ -1415,12 +1505,14 @@
         "FontSize": 22,
         "ControlType": "Text",
         "Left": 947,
-        "Top": 515.5,
+        "Top": 516,
         "Width": 55,
-        "Height": 49,
+        "Height": 50,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunImage": {
         "ImageWidth": null,
@@ -1451,7 +1543,9 @@
         "Height": 96,
         "ZIndex": 1,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunPlayer.Character.HalfImage"
+        "BindingPath": "CurrentGame.HunPlayer.Character.HalfImage",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunId": {
         "Text": null,
@@ -1484,7 +1578,9 @@
         "Height": 35,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_RemainingCiphers": {
         "LocalizationKey": "RemainingCiphers",
@@ -1506,7 +1602,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_PalletsDestroyed": {
         "LocalizationKey": "PalletsDestroyed",
@@ -1528,7 +1626,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_SurvivorHits": {
         "LocalizationKey": "SurvivorHits",
@@ -1550,7 +1650,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_TerrorShocks": {
         "LocalizationKey": "TerrorShocks",
@@ -1572,7 +1674,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "Header_Knockdowns": {
         "LocalizationKey": "Knockdowns",
@@ -1594,7 +1698,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunMachineLeft": {
         "Text": null,
@@ -1627,7 +1733,9 @@
         "Height": 25,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunPalletBroken": {
         "Text": null,
@@ -1660,7 +1768,9 @@
         "Height": 25,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunHitTimes": {
         "Text": null,
@@ -1693,7 +1803,9 @@
         "Height": 25,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTerrorShockTimes": {
         "Text": null,
@@ -1726,7 +1838,9 @@
         "Height": 25,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunDownTimes": {
         "Text": null,
@@ -1759,7 +1873,9 @@
         "Height": 25,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "BackgroundTintSur": {
         "Points": [
@@ -1826,7 +1942,9 @@
         "Height": 131.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "BackgroundTintHun": {
         "Points": [
@@ -1901,7 +2019,9 @@
         "Height": 132,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       }
     }
   }
