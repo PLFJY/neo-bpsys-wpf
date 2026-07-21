@@ -20,7 +20,7 @@
     <value>请使用独立前台编辑器调整布局；布局包可在 Layout Packages 中导入、导出和切换。</value>
   </data>
   <data name="OpenFrontedDesigner">
-    <value>打开前台 v3 设计器</value>
+    <value>打开 v3 前台设计器</value>
   </data>
   <data name="UserLayout">
     <value>用户布局</value>

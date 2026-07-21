@@ -114,7 +114,7 @@
             "Height": 40,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": "CurrentGame.SurTeam.Logo"
+            "BindingPath": "MainTeam.Logo"
           },
           "HomeScoreTotal": {
             "Text": null,
@@ -149,7 +149,7 @@
             "Visibility": "Visible",
             "BindingPath": null
           },
-          "HunTeamLogo": {
+          "AwayTeamLogo": {
             "SizingMode": "FillContainer",
             "ImagePath": null,
             "Stretch": "Fill",
@@ -177,7 +177,7 @@
             "Height": 40,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": "CurrentGame.HunTeam.Logo"
+            "BindingPath": "AwayTeam.Logo"
           },
           "AwayScoreTotal": {
             "Text": null,
@@ -842,7 +842,7 @@
         "Visibility": "Visible",
         "BindingPath": null
       },
-      "SurTeamLogo": {
+      "HomeTeamLogo": {
         "SizingMode": "FillContainer",
         "ImagePath": null,
         "Stretch": "Fill",
@@ -870,7 +870,7 @@
         "Height": 40,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.SurTeam.Logo"
+        "BindingPath": "HomeTeam.Logo"
       },
       "HomeScoreTotal": {
         "Text": null,
