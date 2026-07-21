@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernFrame="clr-namespace:neo_bpsys_wpf.Controls.Modern.Frame"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Width="1000"
     Height="760"
@@ -37,14 +38,9 @@
             Grid.Row="0"
             Icon="/Assets/icon.png"
             IsThemeChangeVisible="False" />
-        <ScrollViewer
+        <modernFrame:ModernFrame
+            x:Name="PageHost"
             Grid.Row="1"
-            HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto">
-            <Frame
-                x:Name="PageHost"
-                JournalOwnership="OwnsJournal"
-                NavigationUIVisibility="Hidden" />
-        </ScrollViewer>
+            IsAnimationEnabled="False" />
     </Grid>
 </ui:FluentWindow>

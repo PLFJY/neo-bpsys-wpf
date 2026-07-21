@@ -1,4 +1,5 @@
 using System.Windows.Controls;
+using neo_bpsys_wpf.Controls.Modern.Frame;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Windows;
@@ -8,6 +9,8 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// </summary>
 public partial class ClassicPageHostWindow : FluentWindow
 {
+    private readonly Page _page;
+
     /// <summary>
     /// 初始化 <see cref="ClassicPageHostWindow"/> 类的新实例。
     /// </summary>
@@ -17,14 +20,18 @@ public partial class ClassicPageHostWindow : FluentWindow
     {
         InitializeComponent();
         Title = title;
-        PageHost.Navigate(page);
+        _page = page;
+        PageHost.Navigate(page, new SuppressNavigationTransitionInfo());
     }
 
     protected override void OnClosed(EventArgs e)
     {
-        PageHost.Content = null;
-        while (PageHost.RemoveBackEntry() is not null)
+        PageHost.ClearJournal();
+        // 释放 Page 与内部 ModernFramePageHost（Frame）的父子关系，
+        // 避免 singleton Page 再次承载时触发 re-parent 异常。
+        if (_page.Parent is ContentControl contentControl)
         {
+            contentControl.Content = null;
         }
 
         base.OnClosed(e);
