@@ -282,7 +282,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
                 _stableAssets.Remove(pair.Key);
             }
         }
-        _assets.ReplaceRemoteSources(activeImages);
+        _assets.ReplaceActiveSources(activeImages);
         _assets.ReplaceReferences(_stableAssets.Values.Select(value => value.Token));
         foreach (var projection in _controlProjections.Values)
         {

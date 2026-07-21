@@ -55,7 +55,7 @@ public interface ITutorialChildWindowSession : IDisposable
 public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
 {
     private static readonly object GlobalPlaybackScope = new();
-    private readonly Dictionary<object, SemaphoreSlim> _playbackGates = new();
+    private readonly ConditionalWeakTable<object, SemaphoreSlim> _playbackGates = new();
     private readonly Dictionary<SequenceRequestKey, Task<TutorialRunResult>> _sequenceJobs = new();
     private readonly object _syncRoot = new();
     private readonly ILogger<TutorialPlaybackCoordinator> _logger;
@@ -211,15 +211,7 @@ public sealed class TutorialPlaybackCoordinator : ITutorialPlaybackCoordinator
         SemaphoreSlim playbackGate;
         lock (_syncRoot)
         {
-            if (!_playbackGates.TryGetValue(scope, out var existingGate))
-            {
-                playbackGate = new SemaphoreSlim(1, 1);
-                _playbackGates.Add(scope, playbackGate);
-            }
-            else
-            {
-                playbackGate = existingGate;
-            }
+            playbackGate = _playbackGates.GetValue(scope, static _ => new SemaphoreSlim(1, 1));
         }
 
         var acquired = false;

@@ -41,6 +41,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly FrontedPackageFontManagerWindowViewModel? _packageFontManagerViewModel;
     private readonly ITutorialRunner? _tutorialRunner;
     private readonly ILogger<FrontedDesignerWindow>? _logger;
+    private readonly ISettingsHostService? _settingsHostService;
     private DispatcherTimer? _propertyAutoCommitTimer;
     private FrameworkElement? _pendingAutoCommitEditor;
     private bool _isLoaded;
@@ -133,6 +134,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _packageFontManagerViewModel = packageFontManagerViewModel;
         _tutorialRunner = tutorialRunner;
         _logger = logger;
+        _settingsHostService = settingsHostService;
 
         InitializeComponent();
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
@@ -192,6 +194,14 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        // Unsubscribe from the Singleton ISettingsHostService first so a closed window
+        // is never retained by the long-lived language-setting event. This must happen
+        // even if subsequent cleanup throws.
+        if (_settingsHostService is not null)
+        {
+            _settingsHostService.LanguageSettingChanged -= OnLanguageSettingChanged;
+        }
+
         _isLoaded = false;
         _tutorialLifetime.Cancel();
         _pendingPreviewRenderArgs = null;

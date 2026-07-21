@@ -10,9 +10,13 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 public class BackgroundImageTintProcessor
 {
     private const int MaxCacheEntries = 32;
+    /// <summary>染色缓存解码后像素字节上限。与 <see cref="MaxCacheEntries"/> 共同限制缓存规模，先触发的先驱逐。</summary>
+    private const long MaxCacheBytes = 64L * 1024 * 1024;
     private readonly object _cacheLock = new();
     private readonly Dictionary<TintCacheKey, BitmapSource> _cache = [];
-    private readonly Queue<TintCacheKey> _cacheOrder = [];
+    private readonly LinkedList<TintCacheKey> _cacheOrder = new();
+    private readonly Dictionary<TintCacheKey, LinkedListNode<TintCacheKey>> _cacheNodes = new();
+    private long _currentCacheBytes;
 
     public BitmapSource? CreateTinted(
         ImageSource source,
@@ -86,6 +90,13 @@ public class BackgroundImageTintProcessor
         {
             if (_cache.TryGetValue(key, out var cached))
             {
+                // LRU: 命中时把条目移动到链表末尾（最近使用），保证稳定帧不会被中间动画帧驱逐。
+                if (_cacheNodes.TryGetValue(key, out var node))
+                {
+                    _cacheOrder.Remove(node);
+                    _cacheOrder.AddLast(node);
+                }
+
                 return cached;
             }
         }
@@ -187,18 +198,96 @@ public class BackgroundImageTintProcessor
     {
         lock (_cacheLock)
         {
-            if (_cache.ContainsKey(key))
+            if (_cache.TryGetValue(key, out var existing))
             {
-                return;
+                // 已存在的条目被覆盖：先扣除旧值字节数，再更新 LRU 位置。
+                _currentCacheBytes -= EstimateBitmapBytes(existing);
+                _cache[key] = value;
+                _currentCacheBytes += EstimateBitmapBytes(value);
+                if (_cacheNodes.TryGetValue(key, out var node))
+                {
+                    _cacheOrder.Remove(node);
+                    _cacheOrder.AddLast(node);
+                }
+            }
+            else
+            {
+                _cache[key] = value;
+                _currentCacheBytes += EstimateBitmapBytes(value);
+                var node = _cacheOrder.AddLast(key);
+                _cacheNodes[key] = node;
             }
 
-            _cache[key] = value;
-            _cacheOrder.Enqueue(key);
-            while (_cache.Count > MaxCacheEntries && _cacheOrder.TryDequeue(out var oldest))
+            // 双限制驱逐：条目数或字节预算任一超限，从链表头部（最久未使用）开始驱逐。
+            while ((_cache.Count > MaxCacheEntries || _currentCacheBytes > MaxCacheBytes)
+                   && _cacheOrder.First is { } firstNode)
             {
-                _cache.Remove(oldest);
+                var oldestKey = firstNode.Value;
+                var oldestBitmap = _cache[oldestKey];
+                _currentCacheBytes -= EstimateBitmapBytes(oldestBitmap);
+                _cache.Remove(oldestKey);
+                _cacheNodes.Remove(oldestKey);
+                _cacheOrder.RemoveFirst();
+            }
+
+            // 字节估算可能因 PixelFormat 差异产生小量偏差，防止长期漂移导致负数。
+            if (_currentCacheBytes < 0)
+            {
+                _currentCacheBytes = 0;
             }
         }
+    }
+
+    /// <summary>获取当前染色缓存条目数。仅供诊断使用，不改变生产生命周期。</summary>
+    /// <returns>当前缓存中的条目数量。</returns>
+    /// <remarks>该属性在已有锁下读取，不会反向持有任何缓存对象。</remarks>
+    internal int CachedEntryCount
+    {
+        get
+        {
+            lock (_cacheLock)
+            {
+                return _cache.Count;
+            }
+        }
+    }
+
+    /// <summary>估算当前染色缓存占用的解码字节数。仅供诊断使用。</summary>
+    /// <returns>缓存中所有染色位图的像素字节总和；无法识别格式的条目按 0 计算。</returns>
+    /// <remarks>
+    /// 估算公式为 <c>PixelWidth * PixelHeight * ceil(BitsPerPixel / 8)</c>。
+    /// 该属性在已有锁下读取，使用 <see cref="long"/> 避免溢出，不改变生产生命周期。
+    /// </remarks>
+    internal long EstimatedCachedBytes
+    {
+        get
+        {
+            lock (_cacheLock)
+            {
+                long total = 0;
+                foreach (var bitmap in _cache.Values)
+                {
+                    total += EstimateBitmapBytes(bitmap);
+                }
+                return total;
+            }
+        }
+    }
+
+    private static long EstimateBitmapBytes(BitmapSource? bitmap)
+    {
+        if (bitmap is null || bitmap.PixelWidth <= 0 || bitmap.PixelHeight <= 0)
+        {
+            return 0;
+        }
+
+        var bitsPerPixel = bitmap.Format.BitsPerPixel;
+        if (bitsPerPixel <= 0)
+        {
+            bitsPerPixel = 32;
+        }
+
+        return (long)bitmap.PixelWidth * bitmap.PixelHeight * ((bitsPerPixel + 7) / 8);
     }
 
     private static byte Multiply(byte left, byte right) =>

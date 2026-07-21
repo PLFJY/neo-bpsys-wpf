@@ -310,6 +310,98 @@ public sealed class WebRuntimeAssetRegistry : IDisposable
         }
     }
 
+    /// <summary>
+    /// 根据当前绑定快照清理所有类型（远程、本地文件、冻结位图）中不再被引用的资源。
+    /// 与 <see cref="ReplaceRemoteSources"/> 不同，此方法同时清理本地文件和冻结位图类型的资源，
+    /// 防止布局切换后旧图片永久累积在 <c>_ready</c>/<c>_pending</c>/<c>_failures</c> 中。
+    /// </summary>
+    /// <param name="sources">当前绑定快照中的图片对象。</param>
+    public void ReplaceActiveSources(IEnumerable<ImageSource> sources)
+    {
+        var current = new HashSet<ImageSource>(sources, ReferenceEqualityComparer.Instance);
+        lock (_gate)
+        {
+            // 收集所有已知 source（从全部集合中），清理不在当前快照中的条目。
+            // 同一 source 可能同时存在于多个集合中，但 Remove 是幂等的，无需去重。
+            var allSources = _ready.Keys
+                .Concat(_pending)
+                .Concat(_failures.Keys)
+                .Concat(_remote.Keys);
+            foreach (var source in allSources.Where(s => !current.Contains(s)).ToArray())
+            {
+                _remote.Remove(source);
+                _ready.Remove(source);
+                _pending.Remove(source);
+                _failures.Remove(source);
+            }
+        }
+    }
+
+    /// <summary>获取当前已就绪资源条目数。仅供诊断使用，不改变生产生命周期。</summary>
+    /// <returns>已编码完成并可供 sidecar 使用的资源数量。</returns>
+    internal int ReadyAssetCount
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _ready.Count;
+            }
+        }
+    }
+
+    /// <summary>获取当前等待编码或下载的资源条目数。仅供诊断使用。</summary>
+    /// <returns>仍在后台准备的资源数量。</returns>
+    internal int PendingAssetCount
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _pending.Count;
+            }
+        }
+    }
+
+    /// <summary>获取当前失败资源条目数。仅供诊断使用。</summary>
+    /// <returns>编码或下载失败的资源数量。</returns>
+    internal int FailureAssetCount
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _failures.Count;
+            }
+        }
+    }
+
+    /// <summary>获取当前远程资源条目数。仅供诊断使用。</summary>
+    /// <returns>通过远程 HTTP/HTTPS 引用的资源数量。</returns>
+    internal int RemoteAssetCount
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _remote.Count;
+            }
+        }
+    }
+
+    /// <summary>获取当前引用计数条目数。仅供诊断使用。</summary>
+    /// <returns>sidecar 缓存目录中仍被引用的 token 数量。</returns>
+    internal int ReferenceCount
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _references.Count;
+            }
+        }
+    }
+
     private static bool IsRemoteUriAllowed(Uri uri) => uri.IsAbsoluteUri
         && uri.Scheme is "http" or "https"
         && string.IsNullOrEmpty(uri.UserInfo)
@@ -357,7 +449,13 @@ public sealed class WebRuntimeAssetRegistry : IDisposable
     {
         lock (_gate)
         {
-            _pending.Remove(source);
+            // 验证 source 仍然 active（仍在 _pending 中）。
+            // 布局切换后 source 可能已被 ReplaceActiveSources 从 _pending 移除，
+            // 此时不应把过期的编码结果写回缓存，否则会强引用已不再使用的 ImageSource。
+            if (!_pending.Remove(source))
+            {
+                return;
+            }
             if (task.Status == TaskStatus.RanToCompletion) _ready[source] = task.Result;
             else _failures[source] = task.Exception?.GetBaseException().GetType().Name ?? "RuntimeAssetEncodingFailed";
         }
