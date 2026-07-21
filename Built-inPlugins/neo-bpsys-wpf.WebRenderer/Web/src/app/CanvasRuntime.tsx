@@ -13,7 +13,10 @@ export function CanvasRuntime({ bootstrap, runtime }: { bootstrap: Bootstrap; ru
   const background = backgroundRef ? bootstrap.Resources[backgroundRef] : undefined
   const context: WebRenderContext = { canvasWidth: width, canvasHeight: height, backgroundUrl: background, backgroundRevision: backgroundRef ? `${backgroundRef}:${background ?? ''}` : undefined, resources: bootstrap.Resources, defaultPickingBorderResourceUrl: bootstrap.DefaultPickingBorderResourceUrl }
   const faces = Object.entries(bootstrap.Resources).filter(([key]) => isEmbeddedFontReference(key)).map(([key,url]) => `@font-face{font-family:"${fontFamily(key)}";src:url("${url}");font-display:block;}`).join('\n')
-  return <><style>{faces}</style><div className="viewport"><div className="canvas" style={{ width, height, transform: `scale(${scale[0]},${scale[1]})`, backgroundImage: background ? `url(${background})` : undefined }}>
-    {Object.entries(controls).map(([name, config]) => <WebControlRegistry key={`${bo3}:${name}`} windowType={bootstrap.FullWindowType} name={name} config={config} runtime={runtime} localization={bootstrap.Localization} resources={bootstrap.Resources} context={context} behaviorSet={bootstrap.BehaviorDocument?.ControlBehaviorSets?.find(set => set.BehaviorGuid.toLowerCase() === config.BehaviorGuid?.toLowerCase())} />)}
+  return <><style>{faces}</style><div className="viewport"><div className="canvas" style={{ width, height, transform: `scale(${scale[0]},${scale[1]})` }}>
+    <div className="background-layer" data-background-layer style={{ backgroundImage: background ? `url(${background})` : undefined }} />
+    <div className="control-layers" data-control-layers>
+      {Object.entries(controls).map(([name, config]) => <WebControlRegistry key={`${bo3}:${name}`} windowType={bootstrap.FullWindowType} name={name} config={config} runtime={runtime} localization={bootstrap.Localization} resources={bootstrap.Resources} context={context} behaviorSet={bootstrap.BehaviorDocument?.ControlBehaviorSets?.find(set => set.BehaviorGuid.toLowerCase() === config.BehaviorGuid?.toLowerCase())} />)}
+    </div>
   </div></div></>
 }

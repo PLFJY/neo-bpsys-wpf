@@ -1,6 +1,6 @@
 export type BaseConfig = { ControlType: string; BehaviorGuid?: string; Left?: number; Top?: number; Width?: number | null; Height?: number | null; ZIndex?: number; Visibility?: string | number; IsGaussianBlurEnabled?: boolean; GaussianBlurRadius?: number; BindingPath?: string | null }
 export type TextBinding = { Sources?: { Path?: string }[]; StringFormat?: string; JoinSeparator?: string; NullText?: string; FallbackText?: string }
-export type TextStyle = { HorizontalAlignment?: string | number; VerticalAlignment?: string | number; TextAlignment?: string | number; TextWrapping?: string | number; FontFamily?: string; FontWeight?: string; Color?: string; ColorBindingPath?: string; FontSize?: number }
+export type TextStyle = { Width?: number | null; Height?: number | null; HorizontalAlignment?: string | number; VerticalAlignment?: string | number; TextAlignment?: string | number; TextWrapping?: string | number; FontFamily?: string; FontWeight?: string; Color?: string; ColorBindingPath?: string; FontSize?: number }
 export type TextConfig = BaseConfig & TextStyle & { ControlType: 'Text'; Text?: string; TextBinding?: TextBinding }
 export type LocalizedTextConfig = BaseConfig & TextStyle & { ControlType: 'LocalizedText' }
 export type MapNameConfig = BaseConfig & TextStyle & { ControlType: 'MapNameText'; EmptyText?: string }
