@@ -676,7 +676,9 @@
                                                                         PreviewMouseRightButtonDown="LayerItem_OnPreviewMouseRightButtonDown"
                                                                         Tag="{Binding}">
                                                                         <Border.ContextMenu>
-                                                                            <ContextMenu>
+                                                                            <ContextMenu
+                                                                                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer">
                                                                                 <MenuItem Click="LayerControlDeleteMenuItem_OnClick" Header="{lex:Loc DeleteControl}" />
                                                                             </ContextMenu>
                                                                         </Border.ContextMenu>
