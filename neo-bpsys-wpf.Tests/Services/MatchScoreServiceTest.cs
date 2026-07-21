@@ -197,25 +197,47 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
-    public void SecondHalfCurrentScoreDisplaysCurrentHalfResult()
+    public void SecondHalfAccumulatesWithFirstHalf()
     {
         var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
 
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
 
-        // 当前半场=第二半，未记录结果 → 显示 0（旧逻辑会显示第一半的 3/1）
-        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
-        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+        // 第二半未记录 → 继承第一半累计：第一半 Escape3 → Sur=3, Hun=1
+        Assert.Equal("3", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("1", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
 
-        // 第二半记录 Out4 → 实时显示当前半场结果
+        // 第二半记录 Out4 → 累计：第一半 3:1 + 第二半 0:5 = Sur 3+0=3, Hun 1+5=6
         service.SetCurrentHalfResult(GameResult.Out4);
-        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
-        Assert.Equal("5", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+        Assert.Equal("3", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("6", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
     }
 
     [Fact]
-    public void SecondHalfCurrentScoreMapsToCurrentCampsAfterSwap()
+    public void SecondHalfAccumulatesTieWithFirstHalfEscape4()
+    {
+        // 用户场景：第一半 5:0、第二半录入平局 2:2 → 应显示 7:2
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape4);
+
+        Assert.Equal("5", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+
+        // 第二半未记录 → 继承第一半累计 5:0
+        Assert.Equal("5", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+
+        // 第二半记录 Tie → 累计 5+2=7, 0+2=2
+        service.SetCurrentHalfResult(GameResult.Tie);
+        Assert.Equal("7", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("2", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+    }
+
+    [Fact]
+    public void SecondHalfAccumulatesWithFirstHalfAfterSwap()
     {
         var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
@@ -223,14 +245,16 @@ public class MatchScoreServiceTest
         currentGame.Swap();
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
 
-        // 当前半场（第二半）尚未记录结果，显示 0（而非旧逻辑下第一半映射后的小比分）
-        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
-        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+        // 换边后 Sur=Away, Hun=Home。第一半 Escape3 → Home=3, Away=1
+        // 第二半未记录 → 累计只含第一半，按当前阵营映射：Sur=Away→1, Hun=Home→3
+        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("3", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
 
-        // 第二半记录 Out4（当前 Sur=Away），验证按当前阵营映射
+        // 第二半记录 Out4（当前 Sur=Away → Home=Hun=5, Away=Sur=0）
+        // 累计：Home=3+5=8, Away=1+0=1 → Sur=Away→1, Hun=Home→8
         service.SetCurrentHalfResult(GameResult.Out4);
-        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
-        Assert.Equal("5", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("8", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
     }
 
     [Fact]

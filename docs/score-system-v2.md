@@ -201,7 +201,7 @@ ScorePageViewModel
 | 大比分计算 | 不参与大比分计算。 |
 | 全局比分格 | 显示 `-`。 |
 | 全局比分格阵营图标 | 隐藏。 |
-| 局内小比分 | 当前半场无结果时显示 `0`。 |
+| 局内小比分 | 当前半场所在 Game 的所有已记录半场（含当前半场）小比分累计；当前半场无结果时仅累计之前已记录的半场；当前半场为第一半且未记录时显示 `0`。 |
 
 空结果不等价于平局，也不等价于 0:0 已记录结果。
 
@@ -274,8 +274,8 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 | `AwayMajorWin` / `AwayMajorTie` | 客队大比分胜/平。 |
 | `HomeMajorText` / `AwayMajorText` | 前台大比分文本，建议保持当前 `W{Win}  D{Tie}` 风格。 |
 | `HomeTotalMinorScore` / `AwayTotalMinorScore` | 所有已记录半场的主客小比分合计。 |
-| `CurrentSurTeamMinorScoreText` | 当前求生者队伍在当前半场窗口中应显示的当前半场实时小比分文本。 |
-| `CurrentHunTeamMinorScoreText` | 当前监管者队伍在当前半场窗口中应显示的当前半场实时小比分文本。 |
+| `CurrentSurTeamMinorScoreText` | 当前求生者队伍在当前半场窗口中应显示的累计小比分文本（同 Game 内从第一半到当前半场已记录小比分之和）。 |
+| `CurrentHunTeamMinorScoreText` | 当前监管者队伍在当前半场窗口中应显示的累计小比分文本（同 Game 内从第一半到当前半场已记录小比分之和）。 |
 | `CurrentSurTeamMajorText` | 当前求生者队伍对应的大比分文本。 |
 | `CurrentHunTeamMajorText` | 当前监管者队伍对应的大比分文本。 |
 
@@ -292,10 +292,13 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 
 | 当前半场 | 显示小比分 |
 | --- | --- |
-| 当前半场已记录结果 | 显示当前半场已记录的 MinorScore（按当前阵营映射）。 |
-| 当前半场未记录结果 / `Free` 进度 | 显示 `0`。 |
+| 当前半场为第一半 | 显示第一半已记录的 MinorScore（按当前阵营映射）；未记录显示 `0`。 |
+| 当前半场为第二半 | 显示同 Game 内第一半 + 第二半已记录 MinorScore 之和（按当前阵营映射）；第二半未记录时只累计第一半。 |
+| `Free` 进度 / 无对应 Game | 显示 `0`。 |
 
-当前半场实时小比分按当前阵营映射。`ScoreHalf.HomeMinorScore` / `AwayMinorScore` 由记录时阵营派生，再按当前阵营映射到求生者/监管者窗口；记录后发生换边时，历史得分归属仍正确（与全局比分格的阵营映射方式一致）。
+累计小比分按当前阵营映射。每个 `ScoreHalf` 的 `HomeMinorScore` / `AwayMinorScore` 由记录时阵营派生，多半场累加以 Home/Away 为稳定身份，再按当前阵营映射到求生者/监管者窗口；记录后发生换边时，历史得分归属仍正确（与全局比分格的阵营映射方式一致）。
+
+例：第一半录入 `Escape4`（5:0），切到第二半未录入时显示 `5:0`；第二半录入 `Tie`（2:2）后显示 `7:2`。
 
 ## 7. 后台 ScorePage 行为
 

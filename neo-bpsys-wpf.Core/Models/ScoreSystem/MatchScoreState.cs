@@ -154,7 +154,7 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
-    /// 当前求生者队伍在局内比分窗口应显示的当前半场实时小比分。
+    /// 当前求生者队伍在局内比分窗口应显示的当前半场累计小比分（同 Game 内从第一半到当前半场已记录小比分之和）。
     /// </summary>
     [JsonIgnore]
     public string CurrentSurTeamMinorScoreText
@@ -164,7 +164,7 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
-    /// 当前监管者队伍在局内比分窗口应显示的当前半场实时小比分。
+    /// 当前监管者队伍在局内比分窗口应显示的当前半场累计小比分（同 Game 内从第一半到当前半场已记录小比分之和）。
     /// </summary>
     [JsonIgnore]
     public string CurrentHunTeamMinorScoreText
@@ -387,18 +387,37 @@ public partial class MatchScoreState : ObservableObjectBase
         CurrentHunTeamMajorWin = hunWin;
         CurrentHunTeamMajorTie = hunTie;
 
-        var currentHalf = GetHalf(_currentDisplayProgress, _currentDisplayIsBo3Mode);
-        if (currentHalf == null || currentHalf.Result == null)
+        var currentGame = GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode);
+        var currentHalfKind = ResolveHalfKind(_currentDisplayProgress);
+        if (currentGame == null || currentHalfKind == null)
         {
             CurrentSurTeamMinorScoreText = "0";
             CurrentHunTeamMinorScoreText = "0";
             return;
         }
 
+        // 累计当前 Game 内从第一半到当前半场（含）的所有已记录半场小比分，按当前阵营映射。
+        // 例：第一半 5:0、第二半录入平局 2:2 → 第二半显示 7:2；第二半未录入则显示 5:0。
+        var halvesToAccumulate = currentHalfKind == ScoreHalfKind.SecondHalf
+            ? currentGame.Halves
+            : currentGame.Halves.Take(1);
+
         CurrentSurTeamMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentHalf, _currentDisplaySurTeamType, fallbackToZero: true));
+            FormatMinorScore(SumTeamMinorScore(halvesToAccumulate, _currentDisplaySurTeamType));
         CurrentHunTeamMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentHalf, _currentDisplayHunTeamType, fallbackToZero: true));
+            FormatMinorScore(SumTeamMinorScore(halvesToAccumulate, _currentDisplayHunTeamType));
+    }
+
+    private static int SumTeamMinorScore(IEnumerable<ScoreHalf> halves, TeamType teamType)
+    {
+        var sum = 0;
+        foreach (var half in halves)
+        {
+            var score = GetTeamMinorScore(half, teamType, fallbackToZero: true);
+            if (score.HasValue)
+                sum += score.Value;
+        }
+        return sum;
     }
 
     private static ScoreHalf CloneHalf(ScoreHalf half) =>
