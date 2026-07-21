@@ -19,6 +19,11 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
+using Wpf.Ui.Controls;
+using neo_bpsys_wpf.Controls;
+using Image = System.Windows.Controls.Image;
+using TextBlock = System.Windows.Controls.TextBlock;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -34,7 +39,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     /// <summary>
     /// 用于设计时预览的无参构造函数。
     /// </summary>
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public MapBpPageViewModel()
 #pragma warning restore CS8618 
 
@@ -217,6 +222,37 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     [RelayCommand]
     private async Task OpenGlobalDisableMapDialogAsync()
     {
+        FluentWindow window = new()
+        {
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "GlobalDisableMap"),
+            Height = 650,
+            Width = 650,
+            MinWidth = 650,
+            MinHeight = 250,
+            MaxWidth = 750,
+            MaxHeight = 750,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Owner = App.Current.MainWindow,
+            Icon = App.Current.MainWindow?.Icon
+        };
+
+        var baseGrid = new Grid();
+        var rowDef1 = new RowDefinition
+        {
+            Height = GridLength.Auto
+        };
+        var rowDef2 = new RowDefinition();
+        baseGrid.RowDefinitions.Add(rowDef1);
+        baseGrid.RowDefinitions.Add(rowDef2);
+
+        var titleBar = new CustomTitleBar
+        {
+            IsThemeChangeVisible = false,
+            IsTopMostVisible = false,
+            IsMaximizeVisible = false,
+        };
+        Grid.SetRow(titleBar, 0);
+
         var itemsControl = new ItemsControl
         {
             ItemsSource = BannedMap,
@@ -228,21 +264,18 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         var scrollViewer = new ScrollViewer
         {
             Content = itemsControl,
-            MaxHeight = 450,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            Margin = new(10, 10, 10, 10)
         };
+        Grid.SetRow(scrollViewer, 1);
 
-        var messageBox = new MessageBox
-        {
-            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "GlobalDisableMap"),
-            Content = scrollViewer,
-            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Close"),
-            CloseButtonIcon = new Wpf.Ui.Controls.SymbolIcon() { Symbol = Wpf.Ui.Controls.SymbolRegular.Dismiss24 },
-            MaxWidth = 700,
-        };
+        baseGrid.Children.Add(titleBar);
+        baseGrid.Children.Add(scrollViewer);
 
-        await messageBox.ShowDialogAsync();
+        window.Content = baseGrid;
+
+        window.ShowDialog();
     }
 
     /// <summary>

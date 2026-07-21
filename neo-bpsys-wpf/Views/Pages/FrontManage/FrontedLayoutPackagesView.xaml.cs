@@ -68,10 +68,15 @@ public partial class FrontedLayoutPackagesView : UserControl
 
     private async Task<TutorialRunResult> RunTutorialWhenVisibleAsync()
     {
+        // Snapshot the token: _tutorialLifetime may be replaced by
+        // RecreateTutorialLifetimeIfNeeded between the InvokeAsync call and the
+        // catch filter, which would otherwise let the OperationCanceledException
+        // escape and surface as an unobserved task exception.
+        var token = _tutorialLifetime.Token;
         try
         {
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, token);
             if (!IsLoaded || !IsVisible || Window.GetWindow(this) is not { IsVisible: true })
             {
                 return TutorialRunResult.NotReady;
@@ -80,9 +85,9 @@ public partial class FrontedLayoutPackagesView : UserControl
             var runner = IAppHost.Host?.Services.GetService<ITutorialRunner>();
             return runner == null
                 ? TutorialRunResult.NotReady
-                : await runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+                : await runner.RunSequenceAsync(this, TutorialPageKey, token);
         }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             return TutorialRunResult.Canceled;
         }

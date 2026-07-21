@@ -90,17 +90,18 @@ public partial class RegionEditorWindow : FluentWindow
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        var token = _tutorialLifetime.Token;
         try
         {
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, token);
             var runner = IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
             if (runner != null)
             {
-                await runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+                await runner.RunSequenceAsync(this, TutorialPageKey, token);
             }
         }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
         }
     }

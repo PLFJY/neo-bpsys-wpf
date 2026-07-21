@@ -23,6 +23,8 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Wpf.Ui.Appearance;
 using WPFLocalizeExtension.Engine;
+using Wpf.Ui;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf;
 
@@ -140,6 +142,8 @@ public partial class App : AppBase
         {
             _ = bpuiFileActivationService.OpenPackageAsync(initialPackagePath);
         }
+
+        MainWindow = (FluentWindow)IAppHost.Host.Services.GetRequiredService<INavigationWindow>();
 
         AppStarted?.Invoke(this, EventArgs.Empty);
 

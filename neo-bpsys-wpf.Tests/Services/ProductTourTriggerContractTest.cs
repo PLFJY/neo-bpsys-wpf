@@ -18,7 +18,12 @@ public sealed class ProductTourTriggerContractTest
         Assert.Contains("DispatcherPriority.ContextIdle", source);
         Assert.Contains("DispatcherPriority.Render", source);
         Assert.Contains("Window.GetWindow(this) is not { IsVisible: true }", source);
-        Assert.Contains("RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token)", source);
+        // The token must be captured into a local before awaiting so the catch
+        // filter checks the same token that was handed to the awaited operations,
+        // not a potentially-replaced _tutorialLifetime field. See the comment in
+        // RunTutorialWhenVisibleAsync for the race condition this prevents.
+        Assert.Contains("var token = _tutorialLifetime.Token", source);
+        Assert.Contains("RunSequenceAsync(this, TutorialPageKey, token)", source);
         Assert.Contains("_tutorialTask is { IsCompleted: false }", source);
     }
 

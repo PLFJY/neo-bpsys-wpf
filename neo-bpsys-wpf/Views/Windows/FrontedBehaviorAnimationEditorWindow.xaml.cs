@@ -50,11 +50,12 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
 
         Loaded += async (_, _) =>
         {
+            var token = _tutorialLifetime.Token;
             try
             {
                 AnimationTabs.SelectFirstItemIfNoneSelected();
-                await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-                await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+                await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, token);
+                await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, token);
                 if (!IsVisible || AnimationTabs.SelectedItem == null)
                 {
                     return;
@@ -64,10 +65,10 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
                     ?? IAppHost.Host?.Services.GetService(typeof(ITutorialRunner)) as ITutorialRunner;
                 if (runner != null)
                 {
-                    await runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+                    await runner.RunSequenceAsync(this, TutorialPageKey, token);
                 }
             }
-            catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
             }
         };

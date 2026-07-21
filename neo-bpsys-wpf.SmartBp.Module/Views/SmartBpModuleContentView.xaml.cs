@@ -36,10 +36,17 @@ public partial class SmartBpModuleContentView : UserControl
             _tutorialLifetime = new CancellationTokenSource();
         }
 
+        // Capture the token into a local before awaiting. _tutorialLifetime may be
+        // replaced (see above) between the InvokeAsync call and the catch filter;
+        // checking the field in the filter would then read a fresh, uncanceled CTS
+        // and let the OperationCanceledException escape this async void method,
+        // crashing the Dispatcher. The local snapshot always matches the token that
+        // was actually handed to the awaited operations.
+        var token = _tutorialLifetime.Token;
         try
         {
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, token);
             var runner = _tutorialRunner;
             if (runner == null)
             {
@@ -48,12 +55,12 @@ public partial class SmartBpModuleContentView : UserControl
 
             if (_tutorialRun is not { IsCompleted: false })
             {
-                _tutorialRun = runner.RunSequenceAsync(this, TutorialPageKey, _tutorialLifetime.Token);
+                _tutorialRun = runner.RunSequenceAsync(this, TutorialPageKey, token);
             }
 
             await _tutorialRun;
         }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
         }
     }

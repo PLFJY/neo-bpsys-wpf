@@ -176,6 +176,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        var token = _tutorialLifetime.Token;
         try
         {
             _isLoaded = true;
@@ -187,7 +188,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             QueueDesignerTutorial();
             await _designerTutorialTask!;
         }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
         }
     }
@@ -244,11 +245,12 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private async Task<TutorialRunResult> RunDesignerTutorialAsync()
     {
+        var token = _tutorialLifetime.Token;
         try
         {
-            await _initialPreviewReady.Task.WaitAsync(_tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            await _initialPreviewReady.Task.WaitAsync(token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, token);
             if (!IsLoaded || !IsVisible)
             {
                 return TutorialRunResult.NotReady;
@@ -262,11 +264,11 @@ public partial class FrontedDesignerWindow : FluentWindow
             }
 
             _logger?.LogInformation("Designer sequence started.");
-            var result = await runner.RunSequenceAsync(this, TutorialPageKeys.DesignerV3, _tutorialLifetime.Token);
+            var result = await runner.RunSequenceAsync(this, TutorialPageKeys.DesignerV3, token);
             _logger?.LogInformation("Designer sequence result. Result={Result}", result);
             return result;
         }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             return TutorialRunResult.Canceled;
         }
@@ -290,11 +292,12 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private async Task<TutorialRunResult> RunPropertyPanelTutorialAsync()
     {
+        var token = _tutorialLifetime.Token;
         try
         {
-            await WaitForPropertyGridReadyAsync(_tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            await WaitForPropertyGridReadyAsync(token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, token);
             if (_viewModel?.SelectedDesignItem == null || !IsVisible)
             {
                 return TutorialRunResult.NotReady;
@@ -307,9 +310,9 @@ public partial class FrontedDesignerWindow : FluentWindow
                 return TutorialRunResult.NotReady;
             }
 
-            return await runner.RunPackageAsync(this, Tours.PropertyPanelBasic, _tutorialLifetime.Token);
+            return await runner.RunPackageAsync(this, Tours.PropertyPanelBasic, token);
         }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             return TutorialRunResult.Canceled;
         }
@@ -1554,10 +1557,11 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private async Task<TutorialRunResult> RunBehaviorPanelTutorialAsync()
     {
+        var token = _tutorialLifetime.Token;
         try
         {
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, _tutorialLifetime.Token);
-            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, _tutorialLifetime.Token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.ContextIdle, token);
+            await Dispatcher.InvokeAsync(static () => { }, DispatcherPriority.Render, token);
             if (!CanRunBehaviorPanelTutorial())
             {
                 return TutorialRunResult.NotReady;
@@ -1570,9 +1574,9 @@ public partial class FrontedDesignerWindow : FluentWindow
                 : await runner.RunSequenceAsync(
                     BehaviorPanelHost,
                     neo_bpsys_wpf.Views.FrontedDesigner.BehaviorPanelView.TutorialPageKey,
-                    _tutorialLifetime.Token);
+                    token);
         }
-        catch (OperationCanceledException) when (_tutorialLifetime.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             return TutorialRunResult.Canceled;
         }
