@@ -544,6 +544,9 @@
   <data name="OpenBehaviorEventDebugger">
     <value>打开行为事件调试器</value>
   </data>
+  <data name="ProductTourDebugger">
+    <value>产品导览调试器</value>
+  </data>
   <data name="SmartBpAiRecognitionTitle">
     <value>AI BP 识别 / Qwen + llama.cpp</value>
   </data>

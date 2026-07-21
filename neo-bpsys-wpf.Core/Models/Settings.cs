@@ -86,6 +86,17 @@ public partial class Settings : ObservableObjectBase
     [ObservableProperty]
     public partial AppLogLevel LogLevel { get; set; } = AppLogLevel.Warning;
 
+    /// <summary>
+    /// 是否启用产品导览调试队列窗口。DEBUG 构建默认开启，其余构建默认关闭，用户可在设置调试区切换。
+    /// 运行期以持久化值（或缺省值）为准。
+    /// </summary>
+    public bool IsProductTourDebugEnabled { get; set; } =
+#if DEBUG
+        true;
+#else
+        false;
+#endif
+
     private LanguageKey _language = LanguageKey.System;
 
     private CultureInfo _cultureInfo = SystemCulture;

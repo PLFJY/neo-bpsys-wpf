@@ -544,6 +544,9 @@
   <data name="OpenBehaviorEventDebugger">
     <value>Open Behavior Event Debugger</value>
   </data>
+  <data name="ProductTourDebugger">
+    <value>Product Tour Debugger</value>
+  </data>
   <data name="SmartBpAiRecognitionTitle">
     <value>AI BP Recognition / Qwen + llama.cpp</value>
   </data>

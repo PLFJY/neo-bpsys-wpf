@@ -5,9 +5,11 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Logging;
+using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.Tutorial;
@@ -99,6 +101,8 @@ public partial class App : AppBase
             .GetRequiredService<IBpuiFileAssociationService>()
             .EnsureAssociationState(settingsHostService.Settings.AssociateBpuiFiles);
         ApplyLogLevel(settingsHostService.Settings.LogLevel);
+        SyncProductTourDebugState(settingsHostService.Settings);
+        settingsHostService.SettingsChanged += (_, settings) => SyncProductTourDebugState(settings);
         IAppHost.Host.Services.GetRequiredService<FrontedSharedDataBehaviorEventBridge>().Start();
         _ = IAppHost.Host.Services.GetRequiredService<IFrontedBehaviorEventDebugService>();
 
@@ -207,6 +211,17 @@ public partial class App : AppBase
     public static void ApplyLogLevel(AppLogLevel logLevel)
     {
         FileLoggerProvider.SetLevel(GetEffectiveLogLevel(logLevel));
+    }
+
+    /// <summary>
+    /// 将 <see cref="Settings.IsProductTourDebugEnabled"/> 同步到运行期的 <see cref="ProductTourOptions.IsDebugWindowEnabled"/>。
+    /// 设置加载完成或用户在设置页切换后均调用此方法，使产品导览调试窗口的启停以 Settings 为准。
+    /// </summary>
+    /// <param name="settings">当前生效的应用设置。</param>
+    public static void SyncProductTourDebugState(Settings settings)
+    {
+        IAppHost.Host?.Services.GetService<ProductTourOptions>()?.IsDebugWindowEnabled =
+            settings.IsProductTourDebugEnabled;
     }
 
     /// <summary>

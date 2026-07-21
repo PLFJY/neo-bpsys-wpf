@@ -323,6 +323,27 @@ public partial class SettingPageViewModel : ViewModelBase
     };
 
     /// <summary>
+    /// 获取或设置是否启用产品导览调试队列窗口。DEBUG 构建默认开启，其余构建默认关闭。
+    /// 切换后立即生效，无需重启。
+    /// </summary>
+    public bool IsProductTourDebugEnabled
+    {
+        get => _settingsHostService.Settings.IsProductTourDebugEnabled;
+        set
+        {
+            if (_settingsHostService.Settings.IsProductTourDebugEnabled == value)
+            {
+                return;
+            }
+
+            _settingsHostService.Settings.IsProductTourDebugEnabled = value;
+            App.SyncProductTourDebugState(_settingsHostService.Settings);
+            OnPropertyChanged();
+            _ = _settingsHostService.SaveConfigAsync();
+        }
+    }
+
+    /// <summary>
     /// 获取当前构建是否允许用户调整日志级别。
     /// </summary>
     public bool IsLogLevelConfigurable => App.IsLogLevelUserConfigurable;

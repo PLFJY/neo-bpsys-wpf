@@ -544,6 +544,9 @@
   <data name="OpenBehaviorEventDebugger">
     <value>動作イベントデバッガーを開く</value>
   </data>
+  <data name="ProductTourDebugger">
+    <value>プロダクトツアーデバッガー</value>
+  </data>
   <data name="SmartBpCurrentQwenModelFormat">
     <value>Current Business AI model: {0}</value>
   </data>

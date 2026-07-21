@@ -32,12 +32,7 @@ public partial class App
     private static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
     {
         services.AddNavigationViewPageProvider();
-        services.AddProductTour(options =>
-        {
-#if DEBUG
-            options.IsDebugWindowEnabled = true;
-#endif
-        });
+        services.AddProductTour();
         services.AddSingleton<ITutorialLanguageService, NeoBpsysTutorialLanguageService>();
         services.AddSingleton<ITutorialTextProvider, NeoBpsysTutorialTextProvider>();
         services.AddSingleton<ITutorialAvatarProvider, AliceTutorialAvatarProvider>();
