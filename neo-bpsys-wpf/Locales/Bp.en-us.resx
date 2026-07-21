@@ -37,6 +37,9 @@
   <data name="BanMap">
     <value>Ban map</value>
   </data>
+  <data name="GlobalDisableMap">
+    <value>Global disable map</value>
+  </data>
   <data name="PickSurvivor">
     <value>Pick survivor</value>
   </data>

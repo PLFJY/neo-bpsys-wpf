@@ -37,6 +37,9 @@
   <data name="BanMap">
     <value>マップBAN</value>
   </data>
+  <data name="GlobalDisableMap">
+    <value>マップ全体無効化</value>
+  </data>
   <data name="PickSurvivor">
     <value>サバイバー選択</value>
   </data>

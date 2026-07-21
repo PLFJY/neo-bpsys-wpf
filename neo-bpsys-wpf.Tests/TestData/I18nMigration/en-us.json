@@ -9284,12 +9284,6 @@
       "xmlSpacePreserve": false
     },
     {
-      "key": "NoBans",
-      "value": "No Bans",
-      "comment": null,
-      "xmlSpacePreserve": false
-    },
-    {
       "key": "No",
       "value": "No",
       "comment": null,

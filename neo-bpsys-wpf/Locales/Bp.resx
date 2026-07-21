@@ -37,6 +37,9 @@
   <data name="BanMap">
     <value>地图禁用</value>
   </data>
+  <data name="GlobalDisableMap">
+    <value>全局禁用地图</value>
+  </data>
   <data name="PickSurvivor">
     <value>选择求生者</value>
   </data>

@@ -8,8 +8,6 @@ namespace neo_bpsys_wpf.Core.Enums;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Map
 {
-    /// <summary>无Ban</summary>
-    NoBans,
     /// <summary>军工厂</summary>
     ArmsFactory,
     /// <summary>红教堂</summary>

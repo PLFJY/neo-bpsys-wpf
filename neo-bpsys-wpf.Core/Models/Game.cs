@@ -266,11 +266,6 @@ public partial class Game : ObservableObjectBase
         set => SetPropertyWithAction(ref _bannedMap, value,
             _ =>
             {
-                if(_bannedMap == Map.NoBans)
-                {
-                    BannedMapImage = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
-                    return;
-                }
                 var imageSource = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, _bannedMap.ToString())?.ToGrayKeepAlpha();
                 var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
                 if (banMark != null)
@@ -349,6 +344,7 @@ public partial class Game : ObservableObjectBase
             map.Value.IsPicked = false;
             map.Value.OperationTeam = null;
             map.Value.IsBanned = false;
+            map.Value.IsGloballyDisabled = false;
         }
     }
 

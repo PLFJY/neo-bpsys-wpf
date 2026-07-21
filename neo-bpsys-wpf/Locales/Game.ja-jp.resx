@@ -97,9 +97,6 @@
   <data name="GameProgressBinding">
     <value>ゲーム進行バインド</value>
   </data>
-  <data name="NoBans">
-    <value>BANなし</value>
-  </data>
   <data name="ArmsFactory">
     <value>軍需工場</value>
   </data>

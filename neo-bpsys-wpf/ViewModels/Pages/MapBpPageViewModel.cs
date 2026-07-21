@@ -11,8 +11,14 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Core.Extensions;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
+using System.Windows.Markup;
 using System.Windows.Media;
 using Team = neo_bpsys_wpf.Core.Models.Team;
+using MessageBox = Wpf.Ui.Controls.MessageBox;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -62,7 +68,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         PickMapTeam = MapSelectTeamsList[0];
         BanMapTeam = MapSelectTeamsList[1];
         PickedMapSelections.Add(new MapSelection());
-        foreach (var mapV2 in sharedDataService.CurrentGame.MapV2Dictionary.Values.Where(x => x.MapName != Map.NoBans))
+        foreach (var mapV2 in sharedDataService.CurrentGame.MapV2Dictionary.Values)
         {
             PickedMapSelections.Add(new MapSelection(mapV2));
         }
@@ -181,6 +187,129 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 
     private readonly List<Map?> _bannedMapSequence = [];
 
+    /// <summary>
+    /// 全局禁用/取消全局禁用地图。操作方为 null，不显示队伍名称和阵营标识。
+    /// </summary>
+    /// <param name="map">地图</param>
+    [RelayCommand]
+    private void GlobalDisableMap(Map? map = null)
+    {
+        if (map == null) return;
+        if (CurrentGame.MapV2Dictionary.TryGetValue(map.ToString()!, out var mapV2) && mapV2 is { IsGloballyDisabled: true })
+        {
+            // ToggleButton.IsChecked 已先一步把 IsGloballyDisabled 改成 true，走到这里说明是新增全局禁用
+            // 若该地图此前被某队伍 Ban，清除常规 Ban 状态
+            if (mapV2.IsBanned)
+            {
+                mapV2.IsBanned = false;
+                _bannedMapSequence.Remove(map);
+                _sharedDataService.CurrentGame.BannedMap = _bannedMapSequence.Count > 0 ? _bannedMapSequence.Last() : null;
+            }
+            mapV2.OperationTeam = null;
+        }
+        // 取消全局禁用时无需额外操作，OperationTeam 已为 null
+    }
+
+    /// <summary>
+    /// 打开全局禁用地图弹窗。
+    /// </summary>
+    /// <returns>表示异步操作的任务。</returns>
+    [RelayCommand]
+    private async Task OpenGlobalDisableMapDialogAsync()
+    {
+        var itemsControl = new ItemsControl
+        {
+            ItemsSource = BannedMap,
+            ItemsPanel = CreateWrapPanelItemsPanelTemplate(),
+            ItemTemplate = CreateGlobalDisableMapItemTemplate(),
+            DataContext = this,
+        };
+
+        var scrollViewer = new ScrollViewer
+        {
+            Content = itemsControl,
+            MaxHeight = 450,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+        };
+
+        var messageBox = new MessageBox
+        {
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Bp, "GlobalDisableMap"),
+            Content = scrollViewer,
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Close"),
+            CloseButtonIcon = new Wpf.Ui.Controls.SymbolIcon() { Symbol = Wpf.Ui.Controls.SymbolRegular.Dismiss24 },
+            MaxWidth = 700,
+        };
+
+        await messageBox.ShowDialogAsync();
+    }
+
+    /// <summary>
+    /// 创建 WrapPanel 的 ItemsPanel 模板。
+    /// </summary>
+    /// <returns>ItemsPanel 模板。</returns>
+    private static ItemsPanelTemplate CreateWrapPanelItemsPanelTemplate()
+    {
+        var factory = new FrameworkElementFactory(typeof(WrapPanel));
+        factory.SetValue(WrapPanel.OrientationProperty, Orientation.Horizontal);
+        return new ItemsPanelTemplate(factory);
+    }
+
+    /// <summary>
+    /// 创建全局禁用地图弹窗中每个地图项的 DataTemplate。
+    /// </summary>
+    /// <returns>地图项 DataTemplate。</returns>
+    private DataTemplate CreateGlobalDisableMapItemTemplate()
+    {
+        var toggleFactory = new FrameworkElementFactory(typeof(ToggleButton));
+        toggleFactory.SetValue(ToggleButton.MarginProperty, new Thickness(0, 0, 10, 10));
+        toggleFactory.SetBinding(ToggleButton.IsCheckedProperty,
+            new Binding("Map.IsGloballyDisabled") { Mode = BindingMode.TwoWay });
+        toggleFactory.SetBinding(ToggleButton.IsEnabledProperty,
+            new Binding("Map.CanBeGloballyDisabled"));
+        toggleFactory.SetBinding(ToggleButton.CommandProperty,
+            new Binding("DataContext.GlobalDisableMapCommand")
+            {
+                RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(ItemsControl), 1)
+            });
+        toggleFactory.SetBinding(ToggleButton.CommandParameterProperty,
+            new Binding("Map.MapName"));
+
+        var stackFactory = new FrameworkElementFactory(typeof(StackPanel));
+
+        var imageFactory = new FrameworkElementFactory(typeof(Image));
+        imageFactory.SetValue(Image.WidthProperty, 276.0);
+        imageFactory.SetValue(Image.HeightProperty, 73.0);
+        imageFactory.SetValue(Image.MarginProperty, new Thickness(0, 0, 0, 5));
+        imageFactory.SetValue(Image.StretchProperty, Stretch.UniformToFill);
+        imageFactory.SetBinding(Image.SourceProperty, new Binding("ImageSource"));
+        stackFactory.AppendChild(imageFactory);
+
+        var textFactory = new FrameworkElementFactory(typeof(TextBlock));
+        textFactory.SetValue(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        textFactory.SetValue(TextBlock.FontSizeProperty, 14.0);
+        textFactory.SetBinding(TextBlock.TextProperty, new Binding("DisplayName"));
+
+        var textStyle = new Style(typeof(TextBlock));
+        var disabledTrigger = new DataTrigger
+        {
+            Binding = new Binding("IsEnabled")
+            {
+                RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(ToggleButton), 1)
+            },
+            Value = false
+        };
+        disabledTrigger.Setters.Add(new Setter(TextBlock.ForegroundProperty, Brushes.Gray));
+        textStyle.Triggers.Add(disabledTrigger);
+        textFactory.SetValue(TextBlock.StyleProperty, textStyle);
+
+        stackFactory.AppendChild(textFactory);
+        toggleFactory.AppendChild(stackFactory);
+
+        return new DataTemplate { VisualTree = toggleFactory };
+    }
+
     [RelayCommand]
     private async Task ResetMapBpAsync()
     {
@@ -264,20 +393,21 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
             {
                 if (_imageSource == null)
                 {
-                    if (Map.MapName == Core.Enums.Map.NoBans)
-                    {
-                        _imageSource = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
-                    }
-                    else
-                    {
-                        _imageSource ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, Map.MapName.ToString())?.ToGrayKeepAlpha();
-                        var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
-                        if (banMark != null)
-                            _imageSource = _imageSource?.Overlay(banMark);
-                    }
+                    _imageSource ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, Map.MapName.ToString())?.ToGrayKeepAlpha();
+                    var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                    if (banMark != null)
+                        _imageSource = _imageSource?.Overlay(banMark);
                 }
                 return _imageSource;
             }
         }
+
+        /// <summary>
+        /// 获取地图的本地化显示名称。
+        /// </summary>
+        public string DisplayName =>
+            Map.MapName.HasValue
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, Map.MapName.Value.ToString())
+                : string.Empty;
     }
 }

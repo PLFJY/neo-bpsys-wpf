@@ -258,6 +258,7 @@ public partial class SharedDataService : ISharedDataService
 
                 pair.Value.IsPicked = importedMapV2.IsPicked;
                 pair.Value.IsBanned = importedMapV2.IsBanned;
+                pair.Value.IsGloballyDisabled = importedMapV2.IsGloballyDisabled;
                 pair.Value.IsCampVisible = importedMapV2.IsCampVisible;
                 pair.Value.IsBreathing = importedMapV2.IsBreathing;
                 pair.Value.OperationTeam = importedMapV2.OperationTeam;
@@ -332,7 +333,7 @@ public partial class SharedDataService : ISharedDataService
 
     private void OnMapV2PropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == nameof(MapV2.IsBanned))
+        if (args.PropertyName == nameof(MapV2.IsBanned) || args.PropertyName == nameof(MapV2.IsGloballyDisabled))
         {
             MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
             if (sender is MapV2 mapV2)
@@ -365,7 +366,7 @@ public partial class SharedDataService : ISharedDataService
             new MapV2PickingBorderStateChangedEventArgs(
                 mapKey,
                 IsMapV2Breathing,
-                mapV2.IsBanned));
+                mapV2.IsVisuallyBanned));
     }
 
     private static bool IsMapV2BannedChanged(Game oldGame, Game newGame)
@@ -388,6 +389,11 @@ public partial class SharedDataService : ISharedDataService
             }
 
             if (oldMapV2.IsBanned != newMapV2.IsBanned)
+            {
+                return true;
+            }
+
+            if (oldMapV2.IsGloballyDisabled != newMapV2.IsGloballyDisabled)
             {
                 return true;
             }

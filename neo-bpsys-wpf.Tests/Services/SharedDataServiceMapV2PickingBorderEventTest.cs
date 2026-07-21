@@ -108,7 +108,7 @@ public sealed class SharedDataServiceMapV2PickingBorderEventTest
     }
 
     private static string GetFirstMapKey(SharedDataService service) =>
-        service.CurrentGame.MapV2Dictionary.Keys.First(key => !string.Equals(key, "NoBans", StringComparison.Ordinal));
+        service.CurrentGame.MapV2Dictionary.Keys.First();
 
     private static SharedDataService CreateSharedDataService()
     {

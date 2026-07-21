@@ -79,7 +79,7 @@
             CornerRadius="8">
             <Border.BorderBrush>
                 <MultiBinding Converter="{StaticResource MapV2BorderBrushConverter}">
-                    <Binding ElementName="Root" Path="Map.IsBanned" />
+                    <Binding ElementName="Root" Path="Map.IsVisuallyBanned" />
                     <Binding ElementName="Root" Path="MapBorderNormalBrush" />
                     <Binding ElementName="Root" Path="MapBorderBannedBrush" />
                 </MultiBinding>

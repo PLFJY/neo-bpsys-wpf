@@ -9308,12 +9308,6 @@
       "xmlSpacePreserve": false
     },
     {
-      "key": "NoBans",
-      "value": "无禁用",
-      "comment": null,
-      "xmlSpacePreserve": false
-    },
-    {
       "key": "No",
       "value": "否",
       "comment": null,

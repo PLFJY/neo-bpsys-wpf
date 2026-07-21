@@ -8822,12 +8822,6 @@
       "xmlSpacePreserve": false
     },
     {
-      "key": "NoBans",
-      "value": "BANなし",
-      "comment": null,
-      "xmlSpacePreserve": false
-    },
-    {
       "key": "No",
       "value": "いいえ",
       "comment": null,

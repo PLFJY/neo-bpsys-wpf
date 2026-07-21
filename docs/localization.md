@@ -54,7 +54,7 @@
 
 动态 key（通过 `.ToString()`、变量拼接等方式生成的 key）需要枚举完整可能 key 集合并分配归属字典。已知动态模式：
 
-- `MapNameDisplayHelper`：`Map` 枚举名（NoBans、ArmsFactory、TheRedChurch 等）→ `Locales.Game`
+- `MapNameDisplayHelper`：`Map` 枚举名（ArmsFactory、TheRedChurch 等）→ `Locales.Game`
 - `GameProgressDisplayHelper`：`FirstHalf` / `SecondHalf` → `Locales.Game`
 - 前台布局 `LocalizedText` 控件：`LocalizationKey` 来自布局 JSON，可指向任意域 → 使用 `GetLocalizedStringFromAnyHostDictionary` 全量查找
 

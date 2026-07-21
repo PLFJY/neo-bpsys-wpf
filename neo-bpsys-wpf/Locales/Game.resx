@@ -97,9 +97,6 @@
   <data name="GameProgressBinding">
     <value>对局进度绑定</value>
   </data>
-  <data name="NoBans">
-    <value>无禁用</value>
-  </data>
   <data name="ArmsFactory">
     <value>军工厂</value>
   </data>

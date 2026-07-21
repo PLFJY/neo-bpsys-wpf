@@ -97,9 +97,6 @@
   <data name="GameProgressBinding">
     <value>GameProgress binding</value>
   </data>
-  <data name="NoBans">
-    <value>No Bans</value>
-  </data>
   <data name="ArmsFactory">
     <value>Arms Factory</value>
   </data>
