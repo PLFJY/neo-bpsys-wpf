@@ -16,23 +16,24 @@
 ## 工作规则
 
 1. 改代码前先读现有实现，不要发明架构。
-1. 保持 WPF + Generic Host + DI 设计，页面、窗口、服务优先通过现有扩展注册。
-1. 后台页面使用 `AddBackendPage<TView,TViewModel>()`，XAML 前台窗口使用 `AddFrontedWindow<TView,TViewModel>()`。当前 built-in 前台窗口由 v3 descriptor (`GetBuiltInV3Windows()`) 注册，通过 `FrontedWindowBase` + v3 layout host 创建，不再保留旧 XAML 文件。每个 v3 layout window 内部固定一个 `BaseCanvas`，外部不再注册或选择 Canvas。
-1. WPF `Page` 只能作为 `Window`、`Frame` 或导航宿主的内容；严禁把 `Page` 直接放入 `ContentControl`、`Border`、`Grid`、`TabItem`、插件/模块内容 host 等嵌入容器。需要嵌入的页面片段必须用 `UserControl` 或普通 `Control`，否则会触发 `InvalidOperationException: Page can have only Window or Frame as parent.`
-1. 不要把 FrontedWindow 理解成 Web 前端，也不要引入 Web 前端假设。
-1. 不要随意大规模重构服务、ViewModel 或资源结构。
-1. **默认保持既有行为与数据契约自然可运行，不要用读取期补字段、转换器、运行时猜测或 fallback 来掩盖新旧语义冲突。** 新功能应以增量方式加入：旧字段、旧字面量、旧流程继续按原有语义处理；只有实际使用新接入点、新字段或新模式时才启用新规则。除非开发者明确指定迁移或兼容策略，不得为了让旧数据通过新校验而手动补默认值、重写持久化内容，或把缺失字段猜成某个含义。需要区分模式时，应通过显式连接、明确字段或版本契约表达，并让校验在新能力被实际使用时给出准确错误。
-1. 用户可见文本要考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`，避免随手硬编码。
-1. 插件安装/更新通常需要重启，因为插件在 Host build 前注入 DI。
-1. 插件是全信任模型；安全边界依赖市场审核、微步云扫描、人工审查和小生态，不是沙箱。
-1. 大部分按钮都需要有 `WPF-UI` 的图标。
-1. 所有的公共属性和公共方法都需要写XML注释，包括参数、返回值、异常等。
-1. **禁止在面向用户的 UI 文本中使用开发阶段占位表达**（如 "Phase 3"、"Phase 13E"、"Phase 9D" 等）。已实现功能的描述必须写实际行为；未实现功能的占位文本应写「将在后续版本中提供」而非内部阶段代号。真实 Placeholder（如 overlay 标签 `[Text]`）不在此限制内。
-1. `IsActive` 只保留给框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。布局、包、设置、业务状态、可见性、绑定 payload 和 behavior payload 不得使用泛名 `IsActive`，应使用 `IsActivePackage`、`IsVisible`、`IsEnabled`、`IsSelected` 等明确名称。`Visibility` 绑定不得直接绑定泛名 `IsActive`。
-1. WPF/Dispatcher 测试必须使用 `neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread`，不要复制手写 `new Thread(...)`、裸 `thread.Join()` 或 `new Thread(async () => ...)`；相关超时规律见 `docs/testing-guidelines.md`。
-1. **禁止新增样式/布局宽高类测试**：不要断言视觉样式、坐标、窗口宽高、Canvas 宽高、控件位置、Margin/Padding、精确行列结构等展示细节。唯一例外是为了验证 WPF/XAML 语法或运行时必需命名部件是否正确。已有此类测试失败时，应删除或改成行为/契约测试，不得为了测试回滚布局。
-1. **禁止未经用户明确同意执行有副作用的 Git 命令**：包括但不限于 `git stash`、`git stash pop`、`git stash drop`、`git checkout .`、`git restore .`、`git reset`、`git clean`、`git switch`、`git checkout <branch>`、`git merge`、`git rebase`。本仓库可能处于无 initial commit 的状态，此时 `git stash` 会把大量未跟踪文件异常处理，导致工作区状态被搅乱、用户修改丢失。需要对比"改动前/后"行为时，应改用：直接读文件内容对比、用 `git diff`（只读）、或先询问用户如何验证。只允许执行只读类 git 命令（`git status`、`git diff`、`git log`、`git show` 等）。
-1. **Diff 校验保护开发者修改**：在执行 `git diff --check`、`git diff --stat` 或阅读 diff 时，如发现本任务之外、但看起来合理且有业务逻辑的修改，应视为开发者正在进行的工作；不得擅自修改、格式化、回退或删除。如确实阻碍当前任务，应先向用户说明冲突并请求处理方向。
+2. 保持 WPF + Generic Host + DI 设计，页面、窗口、服务优先通过现有扩展注册。
+3. 后台页面使用 `AddBackendPage<TView,TViewModel>()`，XAML 前台窗口使用 `AddFrontedWindow<TView,TViewModel>()`。当前 built-in 前台窗口由 v3 descriptor (`GetBuiltInV3Windows()`) 注册，通过 `FrontedWindowBase` + v3 layout host 创建，不再保留旧 XAML 文件。每个 v3 layout window 内部固定一个 `BaseCanvas`，外部不再注册或选择 Canvas。
+4. WPF `Page` 只能作为 `Window`、`Frame` 或导航宿主的内容；严禁把 `Page` 直接放入 `ContentControl`、`Border`、`Grid`、`TabItem`、插件/模块内容 host 等嵌入容器。需要嵌入的页面片段必须用 `UserControl` 或普通 `Control`，否则会触发 `InvalidOperationException: Page can have only Window or Frame as parent.`
+5. 不要把 FrontedWindow 理解成 Web 前端，也不要引入 Web 前端假设。
+6. 不要随意大规模重构服务、ViewModel 或资源结构。
+7. **默认保持既有行为与数据契约自然可运行，不要用读取期补字段、转换器、运行时猜测或 fallback 来掩盖新旧语义冲突。** 新功能应以增量方式加入：旧字段、旧字面量、旧流程继续按原有语义处理；只有实际使用新接入点、新字段或新模式时才启用新规则。除非开发者明确指定迁移或兼容策略，不得为了让旧数据通过新校验而手动补默认值、重写持久化内容，或把缺失字段猜成某个含义。需要区分模式时，应通过显式连接、明确字段或版本契约表达，并让校验在新能力被实际使用时给出准确错误。
+8. 用户可见文本要考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`，避免随手硬编码。
+9. 插件安装/更新通常需要重启，因为插件在 Host build 前注入 DI。
+10. 插件是全信任模型；安全边界依赖市场审核、微步云扫描、人工审查和小生态，不是沙箱。
+11. 大部分按钮都需要有 `WPF-UI` 的图标。
+12. 所有的公共属性和公共方法都需要写XML注释，包括参数、返回值、异常等。
+13. **禁止在面向用户的 UI 文本中使用开发阶段占位表达**（如 "Phase 3"、"Phase 13E"、"Phase 9D" 等）。已实现功能的描述必须写实际行为；未实现功能的占位文本应写「将在后续版本中提供」而非内部阶段代号。真实 Placeholder（如 overlay 标签 `[Text]`）不在此限制内。
+14. `IsActive` 只保留给框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。布局、包、设置、业务状态、可见性、绑定 payload 和 behavior payload 不得使用泛名 `IsActive`，应使用 `IsActivePackage`、`IsVisible`、`IsEnabled`、`IsSelected` 等明确名称。`Visibility` 绑定不得直接绑定泛名 `IsActive`。
+15. WPF/Dispatcher 测试必须使用 `neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread`，不要复制手写 `new Thread(...)`、裸 `thread.Join()` 或 `new Thread(async () => ...)`；相关超时规律见 `docs/testing-guidelines.md`。
+16. **禁止新增样式/布局宽高类测试**：不要断言视觉样式、坐标、窗口宽高、Canvas 宽高、控件位置、Margin/Padding、精确行列结构等展示细节。唯一例外是为了验证 WPF/XAML 语法或运行时必需命名部件是否正确。已有此类测试失败时，应删除或改成行为/契约测试，不得为了测试回滚布局。
+17. **禁止未经用户明确同意执行有副作用的 Git 命令**：包括但不限于 `git stash`、`git stash pop`、`git stash drop`、`git checkout .`、`git restore .`、`git reset`、`git clean`、`git switch`、`git checkout <branch>`、`git merge`、`git rebase`。本仓库可能处于无 initial commit 的状态，此时 `git stash` 会把大量未跟踪文件异常处理，导致工作区状态被搅乱、用户修改丢失。需要对比"改动前/后"行为时，应改用：直接读文件内容对比、用 `git diff`（只读）、或先询问用户如何验证。只允许执行只读类 git 命令（`git status`、`git diff`、`git log`、`git show` 等）。
+18. **Diff 校验保护开发者修改**：在执行 `git diff --check`、`git diff --stat` 或阅读 diff 时，如发现本任务之外、但看起来合理且有业务逻辑的修改，应视为开发者正在进行的工作；不得擅自修改、格式化、回退或删除。如确实阻碍当前任务，应先向用户说明冲突并请求处理方向。
+19. 禁止在 Page 的 Child 上使用 ScrollViewer，ModernFrame 已自带 ScrollViewer
 
 ## 命名规则：请勿使用通用的 IsActive
 
