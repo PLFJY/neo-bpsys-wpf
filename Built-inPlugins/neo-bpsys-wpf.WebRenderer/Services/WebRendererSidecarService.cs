@@ -344,7 +344,21 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
                 await QueueAsync(WebRendererIpcProtocol.BootstrapFailed, failure, cancellationToken); SetState(WebRendererLifecycleState.Faulted, failure.Message); return;
             }
             if (snapshot.Localization is not null)
-                Interlocked.Exchange(ref _localizationRevision, Math.Max(Interlocked.Read(ref _localizationRevision), snapshot.Localization.Revision));
+            {
+                // bootstrap builder 把 localization.Revision 绑定到 generation，但 _localizationRevision
+                // 可能已通过 RefreshLocalizationAsync（如切换语言）单独推进到更高值。若直接发送，
+                // sidecar 会因 revision <= current 拒绝（"stale revision"）。这里始终自增
+                // _localizationRevision 取得严格更新的 revision，并覆盖快照中的 revision；本地化内容
+                // 无需重建，因为 builder 已用当前 settings 构建。
+                var requiredRevision = Interlocked.Increment(ref _localizationRevision);
+                if (snapshot.Localization.Revision != requiredRevision)
+                {
+                    snapshot = snapshot with
+                    {
+                        Localization = snapshot.Localization with { Revision = requiredRevision }
+                    };
+                }
+            }
             var completion = new TaskCompletionSource<WebRendererBootstrapApplied>(TaskCreationOptions.RunContinuationsAsynchronously);
             lock (_gate) _bootstrapAck = completion;
             SetState(WebRendererLifecycleState.WaitingForBootstrapAck, null);
