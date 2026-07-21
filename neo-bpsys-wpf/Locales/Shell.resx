@@ -402,7 +402,7 @@
     <value>提示</value>
   </data>
   <data name="AfterUpdateTip">
-    <value>如果遇到前台界面错乱，请重置布局和自定义设置</value>
+    <value>更新后如遇到布局错乱，切换到内置布局即可解决</value>
   </data>
   <data name="DontRemindMeAgainUntilTheNextUpdate">
     <value>在下次更新前不再提醒我</value>

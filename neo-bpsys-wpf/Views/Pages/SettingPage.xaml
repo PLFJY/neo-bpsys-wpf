@@ -658,7 +658,7 @@
                     <ui:Button
                         Margin="0,0,10,10"
                         Command="{Binding OpenTipCommand}"
-                        Content="打开启动时无作者UI提示" />
+                        Content="打开启动时 SnackBar 提示" />
                     <ui:Button
                         Margin="0,0,10,10"
                         Command="{Binding HopToLogDirCommand}"

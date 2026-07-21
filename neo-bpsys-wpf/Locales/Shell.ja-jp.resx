@@ -401,7 +401,7 @@
     <value>通知</value>
   </data>
   <data name="AfterUpdateTip">
-    <value>フロントエンドの表示が乱れる場合は、レイアウトとカスタム設定をリセットしてください</value>
+    <value>更新後にレイアウトの乱れが発生した場合は、内蔵レイアウトに切り替えることで解決できます</value>
   </data>
   <data name="DontRemindMeAgainUntilTheNextUpdate">
     <value>次回の更新まで通知しない</value>

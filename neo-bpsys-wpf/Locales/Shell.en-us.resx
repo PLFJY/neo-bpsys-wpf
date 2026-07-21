@@ -398,7 +398,7 @@
     <value>Notification</value>
   </data>
   <data name="AfterUpdateTip">
-    <value>If the fronted windows become disordered, please reset the layout and custom settings.</value>
+    <value>If layouts appear broken after an update, switching to the built-in layout will fix it.</value>
   </data>
   <data name="DontRemindMeAgainUntilTheNextUpdate">
     <value>Don’t remind me again until the next update</value>
