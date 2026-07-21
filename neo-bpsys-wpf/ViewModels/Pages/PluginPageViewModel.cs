@@ -116,7 +116,7 @@ public partial class PluginPageViewModel : ViewModelBase
 
 
     [RelayCommand]
-    private void InstallPluginFromFile()
+    private async Task InstallPluginFromFileAsync()
     {
         //准备插件压缩包路径
         var pluginFile = _filePickerService.PickPluginPackageFile();
@@ -130,7 +130,7 @@ public partial class PluginPageViewModel : ViewModelBase
 
         try
         {
-            var result = _pluginInstallService.InstallFromArchive(pluginFile, tempFolderPath);
+            var result = await _pluginInstallService.InstallFromArchiveAsync(pluginFile, tempFolderPath);
             UpdateLocalPluginState(result);
         }
         catch (Exception e)

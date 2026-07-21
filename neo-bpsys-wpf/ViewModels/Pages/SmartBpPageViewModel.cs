@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.Archives;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.SmartBpModule;
@@ -113,6 +114,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
     public partial bool IsProgressVisible { get; set; }
 
     /// <summary>
+    /// 获取或设置进度条是否为不确定模式。不确定模式下显示滚动动画，不显示具体百分比；确定模式下绑定 <see cref="ProgressValue"/> 显示真实进度。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsProgressIndeterminate { get; set; } = true;
+
+    /// <summary>
     /// 获取或设置 SmartBP 模块版本显示文本。
     /// </summary>
     [ObservableProperty]
@@ -167,6 +174,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private async Task InitializeAsync()
     {
         IsProgressVisible = true;
+        IsProgressIndeterminate = true;
         try
         {
             if (await _moduleManager.TryLoadPersistedModuleAsync())
@@ -214,6 +222,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private async Task PrimaryActionAsync()
     {
         IsProgressVisible = true;
+        IsProgressIndeterminate = false;
         ProgressValue = 0;
         if (await _moduleManager.LoadModuleFromDirectoryAsync(SelectedModulePath))
         {
@@ -231,9 +240,17 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         if (!IsPreviewMode)
         {
+            // 解压阶段映射到 80→98，98→100 由后续验证安装补齐。
+            // Progress<double> 的 5/70/80/100 报告点保持不变。
+            var extractionProgress = new Progress<ArchiveProgress>(p =>
+            {
+                ProgressValue = 80 + p.Percentage * 0.18;
+                OverlayMessage = string.Format(L("SmartBpModuleArchiveExtractingFormat"), p.Percentage);
+            });
             var installed = await _moduleManager.DownloadAndInstallCurrentModuleAsync(
                 SelectedModulePath,
-                new Progress<double>(value => ProgressValue = value));
+                new Progress<double>(value => ProgressValue = value),
+                extractionProgress);
             IsProgressVisible = false;
             if (installed)
             {
@@ -245,6 +262,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
                 return;
             }
+
+            OverlayMessage = L("SmartBpModuleDownloadInstallFailed");
         }
 
         IsProgressVisible = false;
@@ -285,8 +304,15 @@ public partial class SmartBpPageViewModel : ViewModelBase
             return;
 
         IsProgressVisible = true;
-        ProgressValue = 20;
-        if (await _moduleManager.ImportArchiveAsync(archivePath, SelectedModulePath))
+        IsProgressIndeterminate = false;
+        ProgressValue = 0;
+        // 解压阶段映射到 5→98，98→100 由后续逻辑补齐。
+        var extractionProgress = new Progress<ArchiveProgress>(p =>
+        {
+            ProgressValue = 5 + p.Percentage * 0.93;
+            OverlayMessage = string.Format(L("SmartBpModuleArchiveExtractingFormat"), p.Percentage);
+        });
+        if (await _moduleManager.ImportArchiveAsync(archivePath, SelectedModulePath, extractionProgress))
         {
             if (_moduleManager.IsRestartRequiredForPendingModuleImport)
             {

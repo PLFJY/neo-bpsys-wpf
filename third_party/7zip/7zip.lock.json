@@ -1,0 +1,19 @@
+{
+    "version":  "26.02",
+    "tag":  "26.02",
+    "architecture":  "x64",
+    "installerAsset":  {
+                           "name":  "7z2602-x64.exe",
+                           "url":  "https://github.com/ip7z/7zip/releases/download/26.02/7z2602-x64.exe",
+                           "sha256":  "6745fa76dc2ea031596d8678f6f6b99c3c1b435b4164a63485adbbc7b8d82ef0"
+                       },
+    "bootstrapAsset":  {
+                           "name":  "7zr.exe",
+                           "url":  "https://github.com/ip7z/7zip/releases/download/26.02/7zr.exe",
+                           "sha256":  "56b8cc9f4971cef253644fafe54063ed7fdca551d4dee0f8c6baa81b855acd72"
+                       },
+    "files":  {
+                  "7z.exe":  "83967f1b02b43c4efeda302795722c809e0e81b8307de73558d10484d5676a7d",
+                  "7z.dll":  "69fd4df057985c40e510e2fac182881c7f85e90aa13ec703f763a8fdb2ce61f8"
+              }
+}

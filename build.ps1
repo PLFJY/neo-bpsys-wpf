@@ -23,12 +23,25 @@ function Invoke-External {
     param(
         [Parameter(Mandatory)] [string] $FilePath,
         [Parameter()] [string[]] $Arguments = @(),
+        [Parameter()] [string] $WorkingDirectory,
         [Parameter()] [string] $ErrorMessage = "External command failed."
     )
 
-    & $FilePath @Arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw "$ErrorMessage (ExitCode=$LASTEXITCODE): $FilePath $($Arguments -join ' ')"
+    $oldLocation = $null
+    if ($WorkingDirectory) {
+        $oldLocation = Get-Location
+        Set-Location -LiteralPath $WorkingDirectory
+    }
+    try {
+        & $FilePath @Arguments
+        if ($LASTEXITCODE -ne 0) {
+            throw "$ErrorMessage (ExitCode=$LASTEXITCODE): $FilePath $($Arguments -join ' ')"
+        }
+    }
+    finally {
+        if ($null -ne $oldLocation) {
+            Set-Location -LiteralPath $oldLocation
+        }
     }
 }
 
@@ -219,13 +232,93 @@ $ModuleArchive = Join-Path $RepoRoot "build\SmartBpModule.7z"
 if (Test-Path -LiteralPath $ModuleArchive) {
     Remove-Item -LiteralPath $ModuleArchive -Force
 }
-$ModulePackTool = Join-Path $RepoRoot "tools\PackSmartBpModule.cs"
-Invoke-External -FilePath "dotnet" -Arguments @(
-    "run", $ModulePackTool,
-    "--",
-    $ModuleBuildPath,
-    $ModuleArchive
-) -ErrorMessage "SmartBP module 7z packaging failed"
+
+$SevenZipExe = Join-Path $RepoRoot "third_party\7zip\win-x64\7z.exe"
+if (-not (Test-Path -LiteralPath $SevenZipExe)) {
+    throw "Official 7-Zip x64 binary missing. Run tools\Fetch-SevenZip.ps1 -Update first. Expected: $SevenZipExe"
+}
+
+$ListFile = Join-Path $RepoRoot "build\smartbp-module-filelist.txt"
+try {
+    # 枚举 staging 内全部文件，生成排序后的 UTF-8 无 BOM list file（相对路径，/ 分隔）
+    # 使用 StringComparer.Ordinal 做序号排序，保证跨环境排序一致。
+    # 注:Sort-Object -Ordinal 仅 PowerShell 7.4+ 支持，这里改用 [Array]::Sort 以兼容 PS 5.1+。
+    $moduleFiles = @(
+        Get-ChildItem -LiteralPath $ModuleBuildPath -Recurse -File |
+            ForEach-Object {
+                $relativePath = Get-RelativePathCompat -BasePath $ModuleBuildPath -TargetPath $_.FullName
+                $relativePath -replace '\\', '/'
+            }
+    )
+    if ($moduleFiles.Count -eq 0) {
+        throw "SmartBP module staging directory is empty: $ModuleBuildPath"
+    }
+    $moduleFilesArray = [string[]]$moduleFiles
+    [Array]::Sort($moduleFilesArray, [System.StringComparer]::Ordinal)
+    $moduleFiles = $moduleFilesArray
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllLines($ListFile, $moduleFiles, $utf8NoBom)
+
+    Invoke-External -FilePath $SevenZipExe `
+        -Arguments @(
+            "a",
+            "-t7z",
+            $ModuleArchive,
+            "@$ListFile",
+            "-m0=lzma2",
+            "-mx=9",
+            "-mmt=on",
+            "-y",
+            "-bso1",
+            "-bse2",
+            "-bsp1",
+            "-bb1",
+            "-scsUTF-8"
+        ) `
+        -WorkingDirectory $ModuleBuildPath `
+        -ErrorMessage "SmartBP module 7z packaging failed"
+}
+catch {
+    if (Test-Path -LiteralPath $ModuleArchive) {
+        Remove-Item -LiteralPath $ModuleArchive -Force
+    }
+    throw
+}
+finally {
+    if (Test-Path -LiteralPath $ListFile) {
+        Remove-Item -LiteralPath $ListFile -Force
+    }
+}
+
+# 打包后验证：7z t 完整性测试
+Invoke-External -FilePath $SevenZipExe `
+    -Arguments @("t", $ModuleArchive, "-bso0", "-bse2", "-bsp0") `
+    -ErrorMessage "SmartBP module archive integrity test (7z t) failed"
+
+# 列表内容校验
+# 使用 -slt -ba:输出结构化的条目块(每个条目含 Path = 字段),-ba 抑制归档级头部。
+# 相比默认表格输出,结构化字段更稳定,正则匹配 Path = 不受列宽/对齐影响。
+# 注:PowerShell 捕获外部命令输出得到的是字符串数组(每行一个元素),-notmatch 对数组
+# 操作会返回"不匹配的元素列表"(非空即真),语义错误。这里先 join 成单个字符串,
+# 再用 (?m) 多行模式匹配,确保 -notmatch 在单字符串上正确返回布尔值。
+$listOutput = & $SevenZipExe l $ModuleArchive -slt -ba -sccUTF-8
+if ($LASTEXITCODE -ne 0) {
+    throw "SmartBP module archive list verification failed (exit code $LASTEXITCODE)"
+}
+$listText = ($listOutput -join "`n")
+if ($listText -notmatch '(?m)^Path\s*=\s*component\.json\s*$') {
+    throw "SmartBP module archive missing component.json"
+}
+if ($listText -match '(?m)^Path\s*=\s*SmartBpModule[/\\]') {
+    throw "SmartBP module archive has unexpected SmartBpModule/ top-level directory"
+}
+if ($listText -match '(?m)^Path\s*=\s*SmartBpModule\.7z') {
+    throw "SmartBP module archive contains its own output archive"
+}
+if ($listText -match '(?m)^Path\s*=\s*smartbp-module-filelist\.txt') {
+    throw "SmartBP module archive contains the list file"
+}
+
 $ModuleArchiveHash = Get-Sha256Hash -LiteralPath $ModuleArchive
 $ModuleArchiveSize = (Get-Item -LiteralPath $ModuleArchive).Length
 $ModuleManifestPath = Join-Path $RepoRoot "build\SmartBpModuleManifest.json"

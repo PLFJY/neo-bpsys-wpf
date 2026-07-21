@@ -13,7 +13,6 @@
     <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
-    <PackageReference Include="SharpCompress" Version="0.50.0" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -27,6 +26,17 @@
     <ProjectReference Include="..\neo-bpsys-wpf.ExamplePlugin\neo-bpsys-wpf.ExamplePlugin.csproj" />
     <ProjectReference Include="..\Built-inPlugins\neo-bpsys-wpf.WebRenderer\neo-bpsys-wpf.WebRenderer.csproj" />
     <ProjectReference Include="..\Built-inPlugins\neo-bpsys-wpf.WebRenderer\Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Aliases="host" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\third_party\7zip\win-x64\7z.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Tools\7Zip\7z.exe</Link>
+    </Content>
+    <Content Include="..\third_party\7zip\win-x64\7z.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Tools\7Zip\7z.dll</Link>
+    </Content>
   </ItemGroup>
   
 </Project>

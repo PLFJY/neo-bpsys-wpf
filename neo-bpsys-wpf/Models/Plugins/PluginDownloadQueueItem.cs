@@ -45,7 +45,9 @@ public partial class PluginDownloadQueueItem : ObservableObjectBase
     /// 当前任务是否仍处于进行中。
     /// </summary>
     public bool IsInProgress =>
-        Status is PluginDownloadQueueStatus.QueuePending or PluginDownloadQueueStatus.QueueDownloading;
+        Status is PluginDownloadQueueStatus.QueuePending
+            or PluginDownloadQueueStatus.QueueDownloading
+            or PluginDownloadQueueStatus.QueueExtracting;
 
     /// <summary>
     /// 当前下载进度，范围 0-100。

@@ -48,7 +48,7 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 11. 按 `win-x64`、`SelfContained=false` 执行 SmartBP 模块项目 `dotnet restore`。
 12. 按同一 RID 和 self-contained 配置执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
 13. 用本次 tag 写入模块 staging 的 `component.json`。
-14. 用 .NET 10 + SharpCompress 从同一 staging 目录生成 `SmartBpModule.7z` 和 `SmartBpModuleManifest.json`。
+14. 用仓库内官方 x64 7-Zip（`third_party/7zip/win-x64/7z.exe`）从同一 staging 目录生成 `SmartBpModule.7z` 和 `SmartBpModuleManifest.json`。
 15. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
 16. 计算 `neo-bpsys-wpf_Installer_full.exe.sha256`。
 
@@ -71,7 +71,7 @@ SmartBP 模块通过在线下载、设置页导入或 SmartBP 页面手动导入
 
 `SmartBpModuleManifest.json` 中的 `ModuleVersion` 和下载 URL 使用本次构建确定的 release tag，也就是主程序 `ProductVersion`。正式 GitHub Actions 发布时同样读取安装包 `ProductVersion` 并作为 `tag_name`，因此 manifest 内不再保留 `{tag}` 占位。full 安装器写入的 `SmartBpModuleState.ModuleVersion` 也使用同一个 `ProductVersion`。
 
-SmartBP 模块打包不得使用 PowerShell `Compress-Archive`、外部 `7z.exe` 或 `7z.dll`，构建机器也不需要安装 7-Zip。运行时解压由 SharpCompress 完成，用户不需要 7-Zip、`7z.exe` 或 `7z.dll`。
+SmartBP 模块打包使用仓库内官方 x64 7-Zip（`third_party/7zip/win-x64/7z.exe`），构建机器不需要安装 7-Zip。运行时解压由随应用发布的官方 7-Zip 完成（位于 `<AppBase>/Tools/7Zip/`），用户不需要单独安装 7-Zip。应用仅发布 `win-x64`。
 
 插件包可以是 `.zip` 或 `.7z`，安装时同样由运行时归档服务探测并解压。`.bpui` / Designer v3 布局包导入导出行为不随 SmartBP/插件归档支持变化，仍按 BPUI 文档描述处理。
 

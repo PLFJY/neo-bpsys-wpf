@@ -148,6 +148,9 @@
   <data name="SmartBpModuleArchiveImporting">
     <value>正在导入 SmartBP 模块包...</value>
   </data>
+  <data name="SmartBpModuleArchiveExtractingFormat">
+    <value>正在解压：{0}%</value>
+  </data>
   <data name="SmartBpModuleArchiveImportSucceeded">
     <value>SmartBP 模块包已导入并加载。</value>
   </data>

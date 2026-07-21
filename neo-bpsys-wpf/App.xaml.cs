@@ -38,6 +38,12 @@ public partial class App : AppBase
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        if (!Environment.Is64BitProcess)
+        {
+            throw new PlatformNotSupportedException(
+                "neo-bpsys-wpf requires an x64 process. The current process is not 64-bit.");
+        }
+
         //Log编码修正
         Console.OutputEncoding = Encoding.UTF8;
 

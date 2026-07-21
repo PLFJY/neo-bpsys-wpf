@@ -143,7 +143,7 @@ Release 构建不会查询 GitHub latest release，而是通过 `gh-releases.plf
 
 远程版本检查只作为更新提示，不阻塞本地模块加载：ABI 兼容性由 `component.json` 的 `RuntimeAbiVersion` 硬性校验保证，本地模块只要通过目录、RID、ABI 和入口程序集校验就立即加载显示。加载成功后异步拉取远端 manifest，仅在本地版本低于要求版本时通过 `ModuleVersionOutdated` 事件触发 `IInfoBarService` 警告提示用户更新；拉取失败或网络不可达时静默跳过，不影响已加载模块使用。Preview 构建不进行在线检查，主要支持选择本地模块目录或导入 `SmartBpModule.7z` / 旧 `SmartBpModule.zip`。
 
-SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档格式通过文件内容探测，不只依赖扩展名。运行时解压使用 SharpCompress，用户不需要安装 7-Zip，也不需要 `7z.exe` 或 `7z.dll`。这只影响 SmartBP 模块包；`.bpui` / Designer v3 布局包导入导出行为不变。
+SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档格式通过文件内容探测，不只依赖扩展名。运行时解压使用随应用发布的官方 x64 7-Zip（位于 `<AppBase>/Tools/7Zip/`），用户不需要单独安装 7-Zip。这只影响 SmartBP 模块包；`.bpui` / Designer v3 布局包导入导出行为不变。
 
 ## SmartBpService 赛后数据流程
 

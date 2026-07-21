@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -16,8 +17,6 @@ using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using neo_bpsys_wpf.Core.Services.Archives;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.Tests.Infrastructure;
-using SharpCompress.Common;
-using SharpCompress.Writers;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -249,7 +248,7 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             provider,
             NullLogger<SmartBpModuleManager>.Instance,
             provider.GetRequiredService<ISettingsHostService>(),
-            new SharpCompressArchiveService());
+            new SevenZipArchiveService());
     }
 
     private void CreateModuleArchive(
@@ -270,16 +269,25 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             return;
         }
 
-        using var output = File.Create(archivePath);
-        using var writer = WriterFactory.OpenWriter(
-            output,
-            ArchiveType.SevenZip,
-            new WriterOptions(CompressionType.LZMA));
-        foreach (var file in files)
+        var sevenZipExe = Path.Combine(AppContext.BaseDirectory, "Tools", "7Zip", "7z.exe");
+        if (!File.Exists(sevenZipExe))
+            throw new FileNotFoundException("Test requires 7z.exe at: " + sevenZipExe, sevenZipExe);
+
+        var psi = new ProcessStartInfo(sevenZipExe)
         {
-            var entryName = Path.GetRelativePath(moduleRoot, file).Replace('\\', '/');
-            writer.Write(entryName, file);
-        }
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WorkingDirectory = moduleRoot
+        };
+        psi.ArgumentList.Add("a");
+        psi.ArgumentList.Add("-t7z");
+        psi.ArgumentList.Add(archivePath);
+        psi.ArgumentList.Add(".");
+        psi.ArgumentList.Add("-y");
+        var process = Process.Start(psi) ?? throw new InvalidOperationException("Failed to start 7z.exe");
+        process.WaitForExit();
+        if (process.ExitCode != 0)
+            throw new InvalidOperationException($"7z.exe packing failed with exit code {process.ExitCode}");
     }
 
     private string CreateTestModuleDirectory(string moduleVersion, bool includePackagedAssetDirectories)

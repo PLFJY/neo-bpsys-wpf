@@ -93,7 +93,7 @@ public partial class App
         //Tool Services
         services.AddSingleton<IFilePickerService, FilePickerService>();
         services.AddSingleton<IGitHubDownloadUrlResolver, GitHubDownloadUrlResolver>();
-        services.AddSingleton<IArchiveService, SharpCompressArchiveService>();
+        services.AddSingleton<IArchiveService, SevenZipArchiveService>();
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
         services.AddSingleton<IContentDialogService, ContentDialogService>();

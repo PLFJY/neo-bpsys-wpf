@@ -148,6 +148,9 @@
   <data name="SmartBpModuleArchiveImporting">
     <value>Importing SmartBP module package...</value>
   </data>
+  <data name="SmartBpModuleArchiveExtractingFormat">
+    <value>Extracting: {0}%</value>
+  </data>
   <data name="SmartBpModuleArchiveImportSucceeded">
     <value>SmartBP module package imported and loaded.</value>
   </data>

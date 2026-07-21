@@ -148,6 +148,9 @@
   <data name="SmartBpModuleArchiveImporting">
     <value>SmartBP モジュールパッケージをインポートしています...</value>
   </data>
+  <data name="SmartBpModuleArchiveExtractingFormat">
+    <value>展開中: {0}%</value>
+  </data>
   <data name="SmartBpModuleArchiveImportSucceeded">
     <value>SmartBP モジュールパッケージをインポートして読み込みました。</value>
   </data>

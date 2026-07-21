@@ -28,6 +28,10 @@
     <PackageReference Include="Tesseract" Version="5.2.0" />
     <PackageReference Include="WPF-UI" Version="4.3.0" ExcludeAssets="runtime" />
     <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" ExcludeAssets="runtime" />
+    <!-- SharpCompress 是 Sdcb.PaddleOCR.Models.Online 的传递依赖,本模块不使用其 API:
+         模型下载用 Downloader 包,解压用 System.IO.Compression.TarFile(.NET 内置)。
+         显式排除以避免 SharpCompress.dll 被打包进 SmartBpModule.7z。 -->
+    <PackageReference Include="SharpCompress" Version="0.48.1" ExcludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

@@ -104,14 +104,23 @@
                         Command="{Binding ImportModuleZipCommand}"
                         Content="{lex:Loc SmartBpModuleSelectArchive}"
                         Icon="{ui:SymbolIcon Symbol=Archive24}" />
-                    <ui:ProgressRing
-                        Width="28"
-                        Height="28"
+                    <ProgressBar
+                        Width="280"
+                        Height="8"
                         Margin="0,18,0,0"
                         HorizontalAlignment="Center"
-                        IsIndeterminate="True"
-                        Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    </ui:ProgressRing>
+                        IsIndeterminate="{Binding IsProgressIndeterminate}"
+                        Maximum="100"
+                        Minimum="0"
+                        Value="{Binding ProgressValue, Mode=OneWay}"
+                        Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        HorizontalAlignment="Center"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding ProgressValue, StringFormat={}{0:0}%, Mode=OneWay}"
+                        Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </Grid>
         </Border>

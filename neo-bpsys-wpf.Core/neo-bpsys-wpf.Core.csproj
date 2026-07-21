@@ -27,7 +27,6 @@
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.10" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
         <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
-        <PackageReference Include="SharpCompress" Version="0.50.0" />
         <PackageReference Include="WPF-UI" Version="4.3.0" />
     </ItemGroup>
 

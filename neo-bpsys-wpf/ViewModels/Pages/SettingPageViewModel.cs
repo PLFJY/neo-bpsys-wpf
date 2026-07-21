@@ -475,7 +475,7 @@ public partial class SettingPageViewModel : ViewModelBase
             new() { Name = "WpfGorgeousThemeSwitch", Url = "https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch" },
             new() { Name = "WPFLocalizeExtension", Url = "https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" },
             new() { Name = "XamlBehaviors for WPF", Url = "https://github.com/microsoft/XamlBehaviorsWpf" },
-            new() { Name = "SharpCompress", Url = "https://github.com/adamhathcock/sharpcompress" },
+            new() { Name = "7-Zip", Url = "https://github.com/ip7z/7zip" },
         };
         repos.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
         return repos;

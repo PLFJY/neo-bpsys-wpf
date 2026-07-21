@@ -19,7 +19,16 @@ public sealed class PluginInstallService(
     /// <inheritdoc />
     public PluginInstallResult InstallFromArchive(string archivePath, string extractedDirectoryPath)
     {
-        archiveService.ExtractToDirectoryAsync(archivePath, extractedDirectoryPath).GetAwaiter().GetResult();
+        return InstallFromArchiveAsync(archivePath, extractedDirectoryPath).GetAwaiter().GetResult();
+    }
+
+    /// <inheritdoc />
+    public async Task<PluginInstallResult> InstallFromArchiveAsync(
+        string archivePath,
+        string extractedDirectoryPath,
+        CancellationToken cancellationToken = default)
+    {
+        await archiveService.ExtractToDirectoryAsync(archivePath, extractedDirectoryPath, cancellationToken: cancellationToken);
         return InstallFromExtractedDirectory(extractedDirectoryPath);
     }
 

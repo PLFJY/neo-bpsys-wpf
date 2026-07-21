@@ -51,7 +51,7 @@ Release 中还会发布：
 | `SmartBpModuleManifest.json` | SmartBP 模块兼容性、版本、大小和 SHA-256 信息 |
 
 `SmartBpModuleManifest.json` 只用于 SmartBP 模块安装/加载，不参与主 installer 的 SHA-256 校验。
-manifest 中的 `Asset.Name`、`Asset.Url`、`Asset.Size` 和 `Asset.Sha256` 指向同次构建生成的 `SmartBpModule.7z`。运行时仍接受旧 `SmartBpModule.zip` 包，用户不需要安装 7-Zip，也不需要 `7z.exe` 或 `7z.dll`。
+manifest 中的 `Asset.Name`、`Asset.Url`、`Asset.Size` 和 `Asset.Sha256` 指向同次构建生成的 `SmartBpModule.7z`。运行时仍接受旧 `SmartBpModule.zip` 包，用户不需要单独安装 7-Zip；应用随包携带官方 x64 `7z.exe` 和 `7z.dll`（位于 `<AppBase>/Tools/7Zip/`）。
 
 下载位置在系统临时目录：
 

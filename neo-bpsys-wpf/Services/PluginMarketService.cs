@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using System.Windows;
-using SharpCompress.Common;
+using neo_bpsys_wpf.Core.Models.Archives;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -546,7 +546,30 @@ public class PluginMarketService : IPluginMarketService
             ValidateDownloadedPackageHash(context.Request.Item, context.TempArchivePath);
 
             Directory.CreateDirectory(context.ExtractPath);
-            await _archiveService.ExtractToDirectoryAsync(context.TempArchivePath, context.ExtractPath, cancellationToken);
+
+            UpdateQueueItem(context.Request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueExtracting;
+                queueItem.Progress = 100;
+                queueItem.ProgressText = "100.00%";
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = string.Empty;
+            });
+
+            var extractionProgress = new Progress<ArchiveProgress>(p =>
+            {
+                UpdateQueueItem(context.Request.QueueItem, queueItem =>
+                {
+                    queueItem.Progress = p.Percentage;
+                    queueItem.ProgressText = $"{p.Percentage:0.00}%";
+                });
+            });
+
+            await _archiveService.ExtractToDirectoryAsync(
+                context.TempArchivePath,
+                context.ExtractPath,
+                extractionProgress,
+                cancellationToken);
 
             var result = new PluginPackageDownloadResult
             {
@@ -675,9 +698,6 @@ public class PluginMarketService : IPluginMarketService
                 {
                 }
                 catch (InvalidDataException)
-                {
-                }
-                catch (SharpCompressException)
                 {
                 }
             }

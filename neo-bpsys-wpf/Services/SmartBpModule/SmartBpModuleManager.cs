@@ -11,6 +11,7 @@ using Microsoft.Win32;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models.Archives;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using neo_bpsys_wpf.ProductTour;
 
@@ -583,11 +584,13 @@ public sealed class SmartBpModuleManager
     /// </summary>
     /// <param name="targetRoot">最终目标根目录。</param>
     /// <param name="progress">可选的进度报告器，范围 0 到 100。</param>
+    /// <param name="extractionProgress">可选的解压阶段进度报告器，用于细化下载流程中解压包时的进度反馈。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>成功下载并安装，或已暂存并等待重启时返回 <see langword="true"/>。</returns>
     public async Task<bool> DownloadAndInstallCurrentModuleAsync(
         string targetRoot,
         IProgress<double>? progress,
+        IProgress<ArchiveProgress>? extractionProgress = null,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting SmartBP module download and install. TargetRoot={TargetRoot}", targetRoot);
@@ -641,7 +644,7 @@ public sealed class SmartBpModuleManager
             }
 
             progress?.Report(80);
-            var installed = await ImportArchiveAsync(archivePath, targetRoot, "LiteDownload");
+            var installed = await ImportArchiveAsync(archivePath, targetRoot, "LiteDownload", extractionProgress);
             _logger.LogInformation("SmartBP module download install completed. Installed={Installed}", installed);
             progress?.Report(installed ? 100 : 80);
             return installed;
@@ -666,7 +669,22 @@ public sealed class SmartBpModuleManager
     /// <returns>成功导入并加载，或已暂存并等待重启时返回 <see langword="true"/>。</returns>
     public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot)
     {
-        return await ImportArchiveAsync(archivePath, targetRoot, "PreviewArchiveImport");
+        return await ImportArchiveAsync(archivePath, targetRoot, "PreviewArchiveImport", progress: null);
+    }
+
+    /// <summary>
+    /// 通过暂存目录导入模块压缩包，并在解压过程中报告进度。
+    /// </summary>
+    /// <param name="archivePath">压缩包路径。</param>
+    /// <param name="targetRoot">最终目标根目录。</param>
+    /// <param name="progress">解压阶段进度报告器。</param>
+    /// <returns>成功导入并加载，或已暂存并等待重启时返回 <see langword="true"/>。</returns>
+    public async Task<bool> ImportArchiveAsync(
+        string archivePath,
+        string targetRoot,
+        IProgress<ArchiveProgress>? progress)
+    {
+        return await ImportArchiveAsync(archivePath, targetRoot, "PreviewArchiveImport", progress);
     }
 
     /// <summary>
@@ -675,8 +693,13 @@ public sealed class SmartBpModuleManager
     /// <param name="archivePath">压缩包路径。</param>
     /// <param name="targetRoot">最终目标根目录。</param>
     /// <param name="installKind">写入模块状态的安装来源标签。</param>
+    /// <param name="progress">可选的解压阶段进度报告器。</param>
     /// <returns>成功导入并加载，或已暂存并等待重启时返回 <see langword="true"/>。</returns>
-    public async Task<bool> ImportArchiveAsync(string archivePath, string targetRoot, string installKind)
+    public async Task<bool> ImportArchiveAsync(
+        string archivePath,
+        string targetRoot,
+        string installKind,
+        IProgress<ArchiveProgress>? progress = null)
     {
         IsRestartRequiredForPendingModuleImport = false;
         if (string.IsNullOrWhiteSpace(targetRoot))
@@ -701,7 +724,7 @@ public sealed class SmartBpModuleManager
         Directory.CreateDirectory(staging);
         try
         {
-            await _archiveService.ExtractToDirectoryAsync(archivePath, staging);
+            await _archiveService.ExtractToDirectoryAsync(archivePath, staging, progress);
             var candidateRoot = File.Exists(Path.Combine(staging, "component.json"))
                 ? staging
                 : Directory.EnumerateDirectories(staging).FirstOrDefault() ?? staging;

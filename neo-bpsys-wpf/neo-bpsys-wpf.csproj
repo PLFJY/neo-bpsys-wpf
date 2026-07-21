@@ -210,7 +210,6 @@
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
-        <PackageReference Include="SharpCompress" Version="0.50.0" />
         <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
         <PackageReference Include="WPF-UI.DependencyInjection" Version="4.3.0" />
         <PackageReference Include="WPF-UI.Markdown" Version="4.0.2" />
@@ -222,6 +221,21 @@
         <None Include="Resources\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\third_party\7zip\win-x64\7z.exe">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>Tools\7Zip\7z.exe</Link>
+        </Content>
+        <Content Include="..\third_party\7zip\win-x64\7z.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>Tools\7Zip\7z.dll</Link>
+        </Content>
+        <Content Include="..\third_party\7zip\win-x64\License.txt">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>Tools\7Zip\License.txt</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>

@@ -940,6 +940,15 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             return InstallFromExtractedDirectory(extractedDirectoryPath);
         }
 
+        public Task<PluginInstallResult> InstallFromArchiveAsync(
+            string archivePath,
+            string extractedDirectoryPath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(InstallFromArchive(archivePath, extractedDirectoryPath));
+        }
+
         public PluginInstallResult InstallFromExtractedDirectory(string extractedDirectoryPath)
         {
             if (exception is not null)
