@@ -1,11 +1,13 @@
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Tutorial;
 using System.Collections;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Controls;
 
@@ -145,7 +147,20 @@ public class CharacterSelector : Control
     /// <see cref="SelectedItem"/> 依赖属性的标识符。
     /// </summary>
     public static readonly DependencyProperty SelectedItemProperty =
-        DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedItemChanged));
+
+    /// <summary>
+    /// 当 <see cref="SelectedItem"/> 变化时，将 <see cref="Text"/> 同步为选中项的 Key（角色名）。
+    /// 这修复了 ComboBox 在 IsEditable 模式下通过 SelectedValue 间接设置 SelectedItem 时，
+    /// TextBox 退化为显示 SelectedItem.ToString()（即 "[守墓人, neo_bpsys_wpf.Core.Models.Character]"）的问题。
+    /// 使用 <see cref="Dispatcher.BeginInvoke"/> 延迟到 ComboBox 内部文本更新之后执行，
+    /// 确保覆盖 ComboBox 在初始化时序中可能用 ToString() 设置的 TextBox 文本。
+    /// </summary>
+    private static void OnSelectedItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not CharacterSelector selector) return;
+        selector.ScheduleTextSync();
+    }
 
     /// <summary>
     /// 获取或设置当前选中的值。
@@ -217,6 +232,45 @@ public class CharacterSelector : Control
         // 注册TextBox的OnTextBoxTextChanged事件处理程序，借助事件冒泡实现搜索
         AddHandler(TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnTextBoxTextChanged), true);
         AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnTemplateButtonClick), true);
+    }
+
+    /// <summary>
+    /// 模板应用后重新同步 <see cref="Text"/>。
+    /// 页面第一次加载时，ComboBox 模板可能晚于 <see cref="SelectedItem"/> 的设置，
+    /// 模板应用后 ComboBox 会用 <c>SelectedItem.ToString()</c> 覆盖 TextBox，
+    /// 导致显示 <c>[守墓人, neo_bpsys_wpf.Core.Models.Character]</c>。
+    /// 延迟到 DataBind 优先级之后重新同步，确保显示角色名。
+    /// </summary>
+    public override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+        ScheduleTextSync();
+    }
+
+    /// <summary>
+    /// 延迟同步 <see cref="Text"/> 为 <see cref="SelectedItem"/> 的 Key（角色名），
+    /// 确保在 ComboBox 内部文本更新之后执行，覆盖 ToString() 退化。
+    /// </summary>
+    private void ScheduleTextSync()
+    {
+        Dispatcher.BeginInvoke(SyncTextFromSelectedItem, DispatcherPriority.DataBind);
+    }
+
+    /// <summary>
+    /// 将 <see cref="Text"/> 同步为当前 <see cref="SelectedItem"/> 的 Key（角色名）。
+    /// 与按空格搜索时手动设置 <c>Text = Key</c> 的既有逻辑保持一致。
+    /// </summary>
+    private void SyncTextFromSelectedItem()
+    {
+        switch (SelectedItem)
+        {
+            case KeyValuePair<string, Character> kvp:
+                Text = kvp.Key;
+                break;
+            case null:
+                Text = string.Empty;
+                break;
+        }
     }
 
     private void OnTextBoxTextChanged(object sender, TextChangedEventArgs e)
