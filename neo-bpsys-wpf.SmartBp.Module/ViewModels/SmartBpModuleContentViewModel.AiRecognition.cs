@@ -1,6 +1,8 @@
 using System.Text;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Shell;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Threading;
@@ -13,6 +15,7 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 using neo_bpsys_wpf.Views.Windows;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -547,8 +550,94 @@ public partial class SmartBpModuleContentViewModel
             await _aiRegionProfileService.ResetUserOverrideAsync();
             await LoadAiRegionProfileAsync();
             AiCropDebugInfo = ResolveLocalizedOrRaw("SmartBpAiRegionProfileReset");
+            await MessageBoxHelper.ShowInfoAsync(
+                ResolveLocalizedOrRaw("SmartBpAiRegionProfileReset"),
+                ResolveLocalizedOrRaw("SmartBpNotification"),
+                ResolveLocalizedOrRaw("SmartBpClose"));
         }
         catch (Exception ex) { AiLastError = ex.Message; }
+    }
+
+    /// <summary>
+    /// 打开 BP 自动识别区域调整示例图示，图片宽度与主窗口一致并按原始比例自适应高度。
+    /// </summary>
+    /// <returns>展示流程完成后的任务。</returns>
+    [RelayCommand]
+    private async Task ShowBpRecognitionRegionExampleAsync()
+    {
+        try
+        {
+            var mainWindow = Application.Current?.MainWindow;
+            if (mainWindow == null)
+                return;
+
+            var imagePath = Path.Combine(_smartBpModuleStorage.ModuleRoot, "Resources", "SmartBp", "BpRecognitionRegionExample.png");
+            if (!File.Exists(imagePath))
+            {
+                AiLastError = imagePath;
+                await MessageBoxHelper.ShowErrorAsync(FormatLocalizedDetail("SmartBpOperationFailedFormat", imagePath));
+                return;
+            }
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(imagePath);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            var windowWidth = mainWindow.ActualWidth > 0 ? mainWindow.ActualWidth : mainWindow.Width;
+            var imageHeight = bitmap.PixelWidth > 0
+                ? windowWidth * bitmap.PixelHeight / bitmap.PixelWidth
+                : windowWidth * 9.0 / 16.0;
+
+            var window = new FluentWindow
+            {
+                Title = ResolveLocalizedOrRaw("SmartBpBpRecognitionRegionExampleDialogTitle"),
+                Width = windowWidth,
+                Height = imageHeight + 35,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = mainWindow,
+                Icon = mainWindow.Icon,
+                ExtendsContentIntoTitleBar = true,
+                ResizeMode = ResizeMode.CanMinimize
+            };
+            WindowChrome.SetWindowChrome(window, new WindowChrome
+            {
+                CaptionHeight = 35,
+                CornerRadius = new CornerRadius(0),
+                GlassFrameThickness = new Thickness(0),
+                ResizeBorderThickness = new Thickness(0),
+                UseAeroCaptionButtons = false
+            });
+
+            var baseGrid = new Grid();
+            baseGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            baseGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var titleBar = new TitleBar();
+            Grid.SetRow(titleBar, 0);
+
+            var image = new System.Windows.Controls.Image
+            {
+                Source = bitmap,
+                Stretch = System.Windows.Media.Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Top
+            };
+            Grid.SetRow(image, 1);
+
+            baseGrid.Children.Add(titleBar);
+            baseGrid.Children.Add(image);
+
+            window.Content = baseGrid;
+            window.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            AiLastError = ex.Message;
+            await MessageBoxHelper.ShowErrorAsync(FormatLocalizedDetail("SmartBpOperationFailedFormat", ex.Message));
+        }
     }
 
     /// <summary>

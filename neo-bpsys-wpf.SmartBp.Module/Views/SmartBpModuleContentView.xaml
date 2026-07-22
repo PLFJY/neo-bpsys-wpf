@@ -375,6 +375,18 @@
                         Command="{Binding OpenAiRecognitionRegionEditorCommand}"
                         Content="{lex:Loc SmartBpOpenBpRecognitionRegionEditor}"
                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                    <ui:Button
+                        x:Name="SmartBpResetBpRecognitionRegionButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding ResetAiRecognitionLayoutProfileCommand}"
+                        Content="{lex:Loc SmartBpResetBpRecognitionRegionConfig}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    <ui:Button
+                        x:Name="SmartBpShowRegionExampleButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding ShowBpRecognitionRegionExampleCommand}"
+                        Content="{lex:Loc SmartBpShowBpRecognitionRegionExample}"
+                        Icon="{ui:SymbolIcon Symbol=Image24}" />
                 </WrapPanel>
             </StackPanel>
         </Border>

@@ -223,6 +223,21 @@
   <data name="SmartBpOpenBpRecognitionRegionEditor">
     <value>Edit BP recognition regions</value>
   </data>
+  <data name="SmartBpResetBpRecognitionRegionConfig">
+    <value>Reset to built-in</value>
+  </data>
+  <data name="SmartBpShowBpRecognitionRegionExample">
+    <value>Show region adjustment example</value>
+  </data>
+  <data name="SmartBpBpRecognitionRegionExampleDialogTitle">
+    <value>Region adjustment example</value>
+  </data>
+  <data name="SmartBpNotification">
+    <value>Notification</value>
+  </data>
+  <data name="SmartBpClose">
+    <value>Close</value>
+  </data>
   <data name="SmartBpEditGameDataRegionConfig">
     <value>Edit post-game data region</value>
   </data>
