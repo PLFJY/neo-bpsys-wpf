@@ -59,8 +59,8 @@ Source: "..\build\neo-bpsys-wpf\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignor
 Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
-; Wine/no-dependency build: intentionally do not include InnoDependencyInstaller.
-; #include "InnoDependencyInstaller\CodeDependencies.iss"
+; Dependency installer is included; InitializeSetup skips it only under Wine.
+#include "InnoDependencyInstaller\CodeDependencies.iss"
 
 [Code]
 
@@ -87,7 +87,12 @@ end;
 
 function InitializeSetup: Boolean;
 begin
-  Log('Dependency installer disabled in this Wine/no-dependency build.');
+  if IsWine then
+    Log('Wine environment detected: skipping dependency installation.')
+  else begin
+    Dependency_AddDotNet100Desktop;
+    Log('Dependency installation enabled (.NET Desktop Runtime 10.0).');
+  end;
   Result := True;
 end;
 
