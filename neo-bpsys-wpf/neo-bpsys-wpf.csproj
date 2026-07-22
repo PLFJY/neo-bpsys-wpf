@@ -99,6 +99,18 @@
         </ItemGroup>
         <RemoveDir Directories="@(_WebRendererBuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
+        <!-- 检测 WebRenderer 前端是否构建成功（Host wwwroot 是否存在）；缺失则跳过整个插件，避免打包残缺插件 -->
+        <PropertyGroup Condition="@(_WebRendererBuiltinPlugin) != ''">
+            <_WebRendererPluginRoot>$([System.IO.Path]::GetDirectoryName('%(_WebRendererBuiltinPlugin.FullPath)'))</_WebRendererPluginRoot>
+            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' != ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\Host\wwwroot</_WebRendererHostWwwroot>
+            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' == ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\Host\wwwroot</_WebRendererHostWwwroot>
+            <_WebRendererFrontendReady Condition="Exists('$(_WebRendererHostWwwroot)')">true</_WebRendererFrontendReady>
+        </PropertyGroup>
+        <Warning Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'" Text="WebRenderer 前端未构建（pnpm 不可用或构建失败），跳过复制 WebRenderer 插件到主程序输出目录。主程序构建继续。" />
+        <ItemGroup Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'">
+            <BuiltinPlugin Remove="@(_WebRendererBuiltinPlugin)" />
+        </ItemGroup>
+
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
         <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
@@ -126,6 +138,18 @@
             <_WebRendererBuiltinPlugin Include="@(BuiltinPlugin)" Condition="'%(BuiltinPlugin.FolderName)' == 'top.plfjy.bpsys.WebRenderer'" />
         </ItemGroup>
         <RemoveDir Directories="@(_WebRendererBuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
+
+        <!-- 检测 WebRenderer 前端是否构建成功（Host wwwroot 是否存在）；缺失则跳过整个插件，避免打包残缺插件 -->
+        <PropertyGroup Condition="@(_WebRendererBuiltinPlugin) != ''">
+            <_WebRendererPluginRoot>$([System.IO.Path]::GetDirectoryName('%(_WebRendererBuiltinPlugin.FullPath)'))</_WebRendererPluginRoot>
+            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' != ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\Host\wwwroot</_WebRendererHostWwwroot>
+            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' == ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\Host\wwwroot</_WebRendererHostWwwroot>
+            <_WebRendererFrontendReady Condition="Exists('$(_WebRendererHostWwwroot)')">true</_WebRendererFrontendReady>
+        </PropertyGroup>
+        <Warning Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'" Text="WebRenderer 前端未构建（pnpm 不可用或构建失败），跳过复制 WebRenderer 插件到主程序输出目录。主程序构建继续。" />
+        <ItemGroup Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'">
+            <BuiltinPlugin Remove="@(_WebRendererBuiltinPlugin)" />
+        </ItemGroup>
 
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 

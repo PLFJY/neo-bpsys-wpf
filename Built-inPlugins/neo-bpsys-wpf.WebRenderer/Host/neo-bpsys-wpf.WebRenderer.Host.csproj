@@ -12,16 +12,25 @@
     <WebRendererClientSource Include="..\Web\src\**\*;..\Web\scripts\**\*;..\Web\vite.config.ts;..\Web\tsconfig.json;..\Web\index.html" />
   </ItemGroup>
   <Target Name="BuildWebRendererClient" BeforeTargets="Build">
-    <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="..\Web" />
-    <Exec Command="pnpm run build" WorkingDirectory="..\Web" />
-    <Touch Files="..\Web\dist\.web-renderer-build.stamp" AlwaysCreate="true" />
+    <Exec Command="pnpm install --frozen-lockfile" WorkingDirectory="..\Web" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="_PnpmInstallExitCode" />
+    </Exec>
+    <Exec Command="pnpm run build" WorkingDirectory="..\Web" Condition="'$(_PnpmInstallExitCode)' == '0'" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="_PnpmBuildExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <_WebRendererClientBuildSucceeded Condition="'$(_PnpmInstallExitCode)' == '0' And '$(_PnpmBuildExitCode)' == '0'">true</_WebRendererClientBuildSucceeded>
+    </PropertyGroup>
+    <Touch Files="..\Web\dist\.web-renderer-build.stamp" AlwaysCreate="true" Condition="'$(_WebRendererClientBuildSucceeded)' == 'true'" />
+    <Warning Condition="'$(_WebRendererClientBuildSucceeded)' != 'true'" Text="WebRenderer 前端构建被跳过（pnpm 不可用或构建失败）。Host 仍会编译，但不包含前端产物；主程序将不打包此插件。" />
   </Target>
   <Target Name="CopyWebRendererClient" AfterTargets="Build" DependsOnTargets="BuildWebRendererClient">
+    <!-- 始终清理旧 wwwroot，避免上一次成功构建的残留被误判为「前端就绪」 -->
     <RemoveDir Directories="$(OutDir)wwwroot" />
-    <MakeDir Directories="$(OutDir)wwwroot" />
-    <ItemGroup>
+    <MakeDir Directories="$(OutDir)wwwroot" Condition="'$(_WebRendererClientBuildSucceeded)' == 'true'" />
+    <ItemGroup Condition="'$(_WebRendererClientBuildSucceeded)' == 'true'">
       <WebRendererClientFiles Include="..\Web\dist\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(WebRendererClientFiles)" DestinationFiles="@(WebRendererClientFiles->'$(OutDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(WebRendererClientFiles)" DestinationFiles="@(WebRendererClientFiles->'$(OutDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" Condition="'$(_WebRendererClientBuildSucceeded)' == 'true'" />
   </Target>
 </Project>

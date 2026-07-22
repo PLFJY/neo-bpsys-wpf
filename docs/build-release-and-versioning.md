@@ -22,6 +22,12 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 
 主项目 csproj 会在 Build/Publish 后构建并复制内置插件到输出目录的 `Plugins\...`。
 
+## WebRenderer 前端构建
+
+WebRenderer 插件的前端由 Host sidecar 的 MSBuild target 调用 `pnpm` 构建（`pnpm install --frozen-lockfile` + `pnpm run build`），构建机需要 pnpm + Node.js。
+
+该步骤为非致命：若构建机未安装 pnpm/Node.js 或前端构建失败，MSBuild 不会中断主程序构建，而是发出警告并跳过该插件的打包——不复制到 `Plugins\`，Host sidecar 仍正常编译但不包含 `wwwroot`。主程序及其它内置插件照常构建。主程序运行时本就不依赖 WebRenderer sidecar / Node.js，因此构建期跳过该插件是安全的优雅降级。
+
 ## 构建脚本
 
 根目录脚本：

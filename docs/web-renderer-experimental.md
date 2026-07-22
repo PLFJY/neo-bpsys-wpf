@@ -2,7 +2,17 @@
 
 Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当前活动 `.bpui v3` 包的 Window-centric 布局发送给 Kestrel sidecar，并在浏览器中还原固定设计画布。它不替代现有 WPF 前台窗口；WPF 与网页会并行运行，比赛状态仍只由 WPF 的 `ISharedDataService` 权威维护。
 
-插件本体不引用 ASP.NET Core；它会先检测 x64 的 `Microsoft.AspNetCore.App 10.*`，然后启动同目录 `Host` 下 framework-dependent 的 `net10.0` sidecar。缺少 runtime、进程启动错误、端口占用或 IPC 断开只会记录日志和显示非模态提示，不会中止主 WPF 应用。请安装 [ASP.NET Core Runtime 10 (x64)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) 后点击“重新检测”。
+插件本体不引用 ASP.NET Core；它会先检测 x64 的 `Microsoft.AspNetCore.App 10.*`，然后启动同目录 `Host` 下 framework-dependent 的 `net10.0` sidecar。缺少 runtime、进程启动错误、端口占用或 IPC 断开只会记录日志和显示非模态提示，不会中止主 WPF 应用。请安装 [ASP.NET Core Runtime 10 (x64)](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) 后点击"重新检测"。
+
+当 runtime 缺失时，管理页顶部会显示引导区域，支持一键下载并安装官方 ASP.NET Core Runtime 10 x64 installer：
+
+- **版本发现**：`WebRendererRuntimeReleaseFeed` 在线查询 Microsoft 官方 release metadata（`https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json`），解析最新 10.0.x 版本号、win-x64 installer 直链与 SHA-512。网络失败时回退到插件内置常量 `WebRendererRuntimeReleaseFeed.KnownFallbackVersion`（当前 `10.0.10`）与稳定 CDN URL pattern `https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/{version}/aspnetcore-runtime-{version}-win-x64.exe`。发布新版本后应同步更新该常量。
+- **下载**：`WebRendererRuntimeSetupService` 用 `Downloader` 包并行分片下载 installer 到 `%TEMP%\neo-bpsys-wpf_WebRenderer\`，实时回传进度。
+- **校验**：若 release metadata 提供 SHA-512，下载后用 `SHA512.HashDataAsync` 校验；hash 缺失则跳过校验并记录 warning。
+- **安装**：以 `/quiet /norestart` 参数、`Verb=runas`（UAC 提升）唤起 installer 静默安装；用户拒绝 UAC 或 installer 退出码非 0 时回退为"打开官方下载页"手动安装引导。
+- **重启**：安装完成并重新检测通过后，设置 `IGlobalRestartService.IsRestartRequired = true`，应用标题栏出现"需要重启"按钮，用户点击后 `App.Current.Restart()` 重启主程序；重启后 sidecar 重新检测 runtime 并正常启动。安装完成与重启之间不自动关闭应用，避免丢失用户未保存的后台状态。
+
+安装流程状态机：`Idle` → `FetchingRelease` → `Downloading` → `Verifying` → `Installing` → `AwaitingRestart`（或 `Failed`）。任何阶段的错误都会回写到管理页引导区域，不会中止主 WPF 应用。
 
 默认地址为 `http://127.0.0.1:19527`，可使用：
 
@@ -90,6 +100,8 @@ OBS 可添加 Browser Source 并填入本机 URL 或指定窗口的 `/render/{en
 脚本会在 `build/web-renderer-deployment-validation/app/Plugins/top.plfjy.bpsys.WebRenderer/Host/wwwroot/index.html` 检查最终入口页与所有引用资源，启动该目录中的 sidecar 并验证 HTTP 响应、缓存头和 build id。随后它会临时修改并自动还原 Web 样式源文件，第二次构建后确认新的 build id、hash 文件替换和旧文件清理。
 
 常见问题：端口被占用时更换端口后保存重启；缺少 ASP.NET Core Runtime 10 (x64) 时按后台提示安装；Web 页面无法更新时确认活动包已保存并刷新页面。禁用或移除该插件后，主程序与 WPF 前台继续按原有方式运行，不依赖 sidecar 或 Node.js。
+
+构建期同样不依赖 Node.js：WebRenderer 前端由 Host sidecar 的 MSBuild target 调用 `pnpm` 构建，需要 pnpm + Node.js。若构建机未安装 pnpm/Node.js 或前端构建失败，MSBuild 不会中断主程序构建，而是发出警告并跳过该插件的打包（不复制到 `Plugins\`），主程序及其它内置插件照常构建。这与运行期「主程序不依赖 sidecar 或 Node.js」保持一致。
 
 停止、重启和保存后重启是互斥操作。停止会先请求 sidecar 关闭、关闭 IPC 会话并等待进程退出；超过关闭时限才终止当前会话所启动的 sidecar 进程树。sidecar 会优先加入 Windows Job Object；parent PID 及其启动时间监视是 Job 不可用时的兜底。管理页在操作期间禁用相关命令，并在成功、失败、取消或超时后恢复可操作状态。
 
