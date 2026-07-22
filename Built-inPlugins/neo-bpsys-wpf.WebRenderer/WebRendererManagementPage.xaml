@@ -21,6 +21,70 @@
                 Severity="Attention"
                 Value="实验性" />
         </StackPanel>
+
+        <Border
+            Margin="0,12,0,16"
+            Padding="16"
+            BorderThickness="1"
+            CornerRadius="4"
+            Visibility="{Binding IsRuntimeMissing, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        Symbol="Warning24" />
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Text="未检测到 ASP.NET Core Runtime 10 (x64)" />
+                </StackPanel>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    Text="Web 前台需要 ASP.NET Core 10 运行时才能运行。点击下方按钮自动下载并安装，安装完成后请重启应用。"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    Text="{Binding RuntimeSetupMessage}"
+                    TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RuntimeSetupMessage}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding RuntimeSetupMessage}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <ProgressBar
+                    Margin="0,8,0,0"
+                    Maximum="100"
+                    Visibility="{Binding IsRuntimeSetupBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Value="{Binding RuntimeDownloadProgress, Mode=OneWay}" />
+                <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                    <ui:Button
+                        Command="{Binding DownloadAndInstallRuntimeCommand}"
+                        Content="下载并安装"
+                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Command="{Binding RecheckRuntimeCommand}"
+                        Content="重新检测"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Command="{Binding OpenRuntimeDownloadPageCommand}"
+                        Content="打开官方下载页"
+                        Icon="{ui:SymbolIcon Symbol=Open24}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
         <TextBlock
             Margin="0,8,0,16"
             Text="将下列地址复制到 OBS 的浏览器源。Web 前台与现有 WPF 前台可同时使用。"
@@ -64,7 +128,6 @@
                                             TextWrapping="Wrap" />
                                         <TextBlock
                                             Margin="0,3,0,0"
-                                            Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
                                             Text="{Binding Diagnostic}"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
@@ -167,7 +230,6 @@
                 </StackPanel>
                 <TextBlock
                     Margin="0,12,0,0"
-                    Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
                     Text="{Binding LastError}"
                     TextWrapping="Wrap" />
             </StackPanel>

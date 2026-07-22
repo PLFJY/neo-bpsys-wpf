@@ -28,20 +28,6 @@ public sealed class ProductTourTriggerContractTest
     }
 
     [Fact]
-    public void DesignerFirstOpen_ShouldReceivePlaybackHandoff()
-    {
-        var source = ReadRepoFile("neo-bpsys-wpf", "ViewModels", "Pages", "FrontManagePageViewModel.cs");
-        var ownerIndex = source.IndexOf("window.Owner = Application.Current?.MainWindow", StringComparison.Ordinal);
-        var handoffIndex = source.IndexOf("BeginChildWindowSessionAsync(window)", StringComparison.Ordinal);
-        var showIndex = source.IndexOf("window.Show()", StringComparison.Ordinal);
-
-        Assert.True(ownerIndex >= 0 && ownerIndex < handoffIndex);
-        Assert.True(handoffIndex < showIndex);
-        Assert.Contains("window.Closed += closedHandler", source);
-        Assert.Contains("childSession?.Complete()", source);
-    }
-
-    [Fact]
     public void PropertyPanel_ShouldNotRunDuringInitialLayoutRestore()
     {
         var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml.cs");

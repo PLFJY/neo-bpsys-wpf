@@ -21,6 +21,9 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     private readonly IFrontedWindowRegistry _windowRegistry;
     private readonly ISettingsHostService _settingsHostService;
     private readonly WebRendererLifecycleOperationCoordinator _lifecycleCoordinator;
+    private readonly WebRendererRuntimeSetupService _runtimeSetupService;
+    private readonly IGlobalRestartService _globalRestartService;
+    private readonly WebRendererRuntimeDetector _runtimeDetector;
     private string _host;
     private double _port;
     private bool _startWithApplication;
@@ -31,16 +34,21 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     /// <summary>初始化 ViewModel。</summary>
     public WebRendererManagementViewModel(WebRendererSidecarService service, WebRendererSettingsStore settingsStore,
         IFrontedWindowRegistry windowRegistry, ISettingsHostService settingsHostService,
-        WebRendererLifecycleOperationCoordinator lifecycleCoordinator)
+        WebRendererLifecycleOperationCoordinator lifecycleCoordinator,
+        WebRendererRuntimeSetupService runtimeSetupService, IGlobalRestartService globalRestartService,
+        WebRendererRuntimeDetector runtimeDetector)
     {
         _service = service; _settingsStore = settingsStore;
         _windowRegistry = windowRegistry; _settingsHostService = settingsHostService; _lifecycleCoordinator = lifecycleCoordinator;
+        _runtimeSetupService = runtimeSetupService; _globalRestartService = globalRestartService; _runtimeDetector = runtimeDetector;
         _host = settingsStore.Settings.Host; _port = settingsStore.Settings.Port;
         _startWithApplication = settingsStore.Settings.StartWithApplication; _logProtocol = settingsStore.Settings.LogProtocol;
         _exitTimeoutMs = settingsStore.Settings.ExitTimeoutMs; _enterTimeoutMs = settingsStore.Settings.EnterTimeoutMs;
         _service.StatusChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(Refresh);
         _lifecycleCoordinator.StateChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(Refresh);
+        _runtimeSetupService.StatusChanged += (_, _) => Application.Current?.Dispatcher.BeginInvoke(RefreshRuntimeSetup);
         Refresh();
+        _ = DetectRuntimeAsync();
     }
 
     /// <summary>获取或设置监听地址。</summary>
@@ -76,6 +84,24 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     /// <summary>获取是否正在等待主程序发布窗口 bootstrap。</summary>
     public bool IsWaitingForWindows => !_service.HasBootstrapSnapshot;
 
+    /// <summary>获取是否检测到 ASP.NET Core Runtime 缺失，决定引导区域是否可见。</summary>
+    public bool IsRuntimeMissing { get; private set; }
+
+    /// <summary>获取 runtime 安装引导流程是否忙。</summary>
+    public bool IsRuntimeSetupBusy { get; private set; }
+
+    /// <summary>获取 runtime 安装引导流程当前阶段。</summary>
+    public WebRendererRuntimeSetupState RuntimeSetupState { get; private set; }
+
+    /// <summary>获取 runtime installer 下载进度（0-100）。</summary>
+    public double RuntimeDownloadProgress { get; private set; }
+
+    /// <summary>获取 runtime 安装引导流程的当前状态文案。</summary>
+    public string? RuntimeSetupMessage { get; private set; }
+
+    /// <summary>获取是否已安装完成并等待重启。</summary>
+    public bool IsRuntimeAwaitingRestart { get; private set; }
+
     /// <summary>可直接用于 OBS 浏览器源的 Web 前台地址列表。</summary>
     public ObservableCollection<WebRendererWindowLink> WindowLinks { get; } = [];
 
@@ -89,6 +115,13 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
             Clipboard.SetText(window.Url);
     }
     [RelayCommand] private void OpenUrl() => Process.Start(new ProcessStartInfo(LocalUrl) { UseShellExecute = true });
+    [RelayCommand(CanExecute = nameof(CanStartRuntimeSetup))]
+    private async Task DownloadAndInstallRuntimeAsync() => await _runtimeSetupService.RunSetupAsync(CancellationToken.None);
+    [RelayCommand] private void OpenRuntimeDownloadPage() => Process.Start(new ProcessStartInfo("https://dotnet.microsoft.com/download/dotnet/10.0") { UseShellExecute = true });
+    [RelayCommand(CanExecute = nameof(CanStartRuntimeSetup))]
+    private async Task RecheckRuntimeAsync() => await DetectRuntimeAsync();
+
+    private bool CanStartRuntimeSetup() => !IsRuntimeSetupBusy;
     [RelayCommand] private void ExportDiagnostics()
     {
         var dialog = new SaveFileDialog { Filter = "JSON 文件 (*.json)|*.json", DefaultExt = ".json", FileName = "web-renderer-diagnostics" };
@@ -122,6 +155,52 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
         LifecycleOperationText = _lifecycleCoordinator.CurrentOperation ?? string.Empty;
         RebuildWindowLinks();
         foreach (var name in new[] { nameof(ServiceState), nameof(LocalUrl), nameof(LanUrl), nameof(ClientCount), nameof(ActivePackageId), nameof(Windows), nameof(LastError), nameof(IsLifecycleOperationRunning), nameof(LifecycleOperationText), nameof(IsWaitingForWindows) }) OnPropertyChanged(name);
+    }
+
+    private void RefreshRuntimeSetup()
+    {
+        var setupStatus = _runtimeSetupService.Status;
+        RuntimeSetupState = setupStatus.State;
+        RuntimeDownloadProgress = setupStatus.DownloadProgress;
+        IsRuntimeSetupBusy = setupStatus.IsBusy;
+        IsRuntimeAwaitingRestart = setupStatus.State == WebRendererRuntimeSetupState.AwaitingRestart;
+        RuntimeSetupMessage = BuildRuntimeSetupMessage(setupStatus);
+        foreach (var name in new[] { nameof(RuntimeSetupState), nameof(RuntimeDownloadProgress), nameof(IsRuntimeSetupBusy), nameof(IsRuntimeAwaitingRestart), nameof(RuntimeSetupMessage) })
+            OnPropertyChanged(name);
+        DownloadAndInstallRuntimeCommand.NotifyCanExecuteChanged();
+        RecheckRuntimeCommand.NotifyCanExecuteChanged();
+    }
+
+    private static string? BuildRuntimeSetupMessage(WebRendererRuntimeSetupStatus status) => status.State switch
+    {
+        WebRendererRuntimeSetupState.Idle => null,
+        WebRendererRuntimeSetupState.FetchingRelease => "正在查询最新版本...",
+        WebRendererRuntimeSetupState.Downloading => $"正在下载 ASP.NET Core Runtime {status.PendingVersion}... {status.DownloadProgress:0}%",
+        WebRendererRuntimeSetupState.Verifying => "正在校验 installer 完整性...",
+        WebRendererRuntimeSetupState.Installing => "正在安装（请在 UAC 弹窗中确认）...",
+        WebRendererRuntimeSetupState.AwaitingRestart => "安装完成。请点击应用右上角的重启按钮以启动 Web 前台。",
+        WebRendererRuntimeSetupState.Failed => status.ErrorMessage,
+        _ => null
+    };
+
+    private async Task DetectRuntimeAsync()
+    {
+        try
+        {
+            var result = await _runtimeDetector.DetectAsync().ConfigureAwait(false);
+            Application.Current?.Dispatcher.BeginInvoke(() =>
+            {
+                // 安装完成等待重启时不覆盖 IsRuntimeMissing，引导区域继续显示"等待重启"文案
+                if (RuntimeSetupState == WebRendererRuntimeSetupState.AwaitingRestart)
+                    return;
+                IsRuntimeMissing = !result.IsAvailable;
+                OnPropertyChanged(nameof(IsRuntimeMissing));
+            });
+        }
+        catch (Exception)
+        {
+            // 检测失败保持当前状态，避免误报
+        }
     }
 
     private void RebuildWindowLinks()

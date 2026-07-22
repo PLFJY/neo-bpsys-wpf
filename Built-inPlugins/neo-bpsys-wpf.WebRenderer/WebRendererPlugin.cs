@@ -20,6 +20,8 @@ public sealed class WebRendererPlugin : PluginBase
         services.AddSingleton<WebRendererSettingsStore>();
         services.AddSingleton(serviceProvider => WebRendererLaunchOptions.FromConfiguration(context.Configuration, serviceProvider.GetRequiredService<WebRendererSettingsStore>().Settings));
         services.AddSingleton<WebRendererRuntimeDetector>();
+        services.AddSingleton<WebRendererRuntimeReleaseFeed>();
+        services.AddSingleton<WebRendererRuntimeSetupService>();
         services.AddSingleton<WebRendererBootstrapBuilder>();
         services.AddSingleton<WebRendererRuntimeStatePublisher>();
         services.AddSingleton<IWebTransitionGateway, WebTransitionGateway>();
