@@ -1,130 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype">text/microsoft-resx</resheader>
-  <resheader name="version">2.0</resheader>
-  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="Stop">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Stop" xml:space="preserve">
     <value>停止</value>
   </data>
-  <data name="Black">
+  <data name="Black" xml:space="preserve">
     <value>黑色</value>
   </data>
-  <data name="White">
+  <data name="White" xml:space="preserve">
     <value>白色</value>
   </data>
-  <data name="Distance">
+  <data name="Distance" xml:space="preserve">
     <value>单位距离</value>
   </data>
-  <data name="Confirm">
+  <data name="Confirm" xml:space="preserve">
     <value>确认</value>
   </data>
-  <data name="Yes">
+  <data name="Yes" xml:space="preserve">
     <value>是</value>
   </data>
-  <data name="Save">
+  <data name="Save" xml:space="preserve">
     <value>保存</value>
   </data>
-  <data name="Close">
+  <data name="Close" xml:space="preserve">
     <value>关闭</value>
   </data>
-  <data name="Delete">
+  <data name="Delete" xml:space="preserve">
     <value>删除</value>
   </data>
-  <data name="Start">
+  <data name="Start" xml:space="preserve">
     <value>开始</value>
   </data>
-  <data name="Warning">
+  <data name="Warning" xml:space="preserve">
     <value>警告</value>
   </data>
-  <data name="Cancel">
+  <data name="Cancel" xml:space="preserve">
     <value>取消</value>
   </data>
-  <data name="No">
+  <data name="No" xml:space="preserve">
     <value>否</value>
   </data>
-  <data name="Enable">
+  <data name="Enable" xml:space="preserve">
     <value>启用</value>
   </data>
-  <data name="Error">
+  <data name="Error" xml:space="preserve">
     <value>错误</value>
   </data>
-  <data name="Refresh">
+  <data name="Refresh" xml:space="preserve">
     <value>刷新</value>
   </data>
-  <data name="ApplyColor">
+  <data name="ApplyColor" xml:space="preserve">
     <value>应用颜色</value>
   </data>
-  <data name="ResetToBuiltIn">
+  <data name="ResetToBuiltIn" xml:space="preserve">
     <value>重置为内置</value>
   </data>
-  <data name="PreviewColon">
+  <data name="PreviewColon" xml:space="preserve">
     <value>预览：</value>
   </data>
-  <data name="HomeTeam">
+  <data name="HomeTeam" xml:space="preserve">
     <value>主队</value>
   </data>
-  <data name="AwayTeam">
+  <data name="AwayTeam" xml:space="preserve">
     <value>客队</value>
   </data>
-  <data name="Hunter">
+  <data name="Hunter" xml:space="preserve">
     <value>监管者</value>
   </data>
-  <data name="Survivor">
+  <data name="Survivor" xml:space="preserve">
     <value>求生者</value>
   </data>
-  <data name="Settings">
+  <data name="Settings" xml:space="preserve">
     <value>设置</value>
   </data>
-  <data name="FollowSystem">
+  <data name="FollowSystem" xml:space="preserve">
     <value>跟随系统</value>
   </data>
-  <data name="zh_Hans">
+  <data name="zh_Hans" xml:space="preserve">
     <value>简体中文</value>
     <comment>此处en-US空着为正常现象</comment>
   </data>
-  <data name="en_US">
+  <data name="en_US" xml:space="preserve">
     <value>English (United States)</value>
+    <comment>en-US栏、ja-JP栏空着为正常现象</comment>
   </data>
-  <data name="ja_JP">
+  <data name="ja_JP" xml:space="preserve">
     <value>日本語（正確性は100%保証されません）</value>
     <comment>en-US栏空着为正常现象</comment>
   </data>
-  <data name="Source">
+  <data name="Source" xml:space="preserve">
     <value>来源</value>
   </data>
-  <data name="Type">
+  <data name="Type" xml:space="preserve">
     <value>类型</value>
   </data>
-  <data name="Key">
+  <data name="Key" xml:space="preserve">
     <value>键</value>
   </data>
-  <data name="Path">
+  <data name="Path" xml:space="preserve">
     <value>路径</value>
   </data>
-  <data name="Time">
+  <data name="Time" xml:space="preserve">
     <value>时间</value>
   </data>
-  <data name="Clear">
+  <data name="Clear" xml:space="preserve">
     <value>清空</value>
   </data>
-  <data name="PluginMarketDirectConnectionNoProxy">
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
     <value>直接连接（不使用代理）</value>
   </data>
-  <data name="InputTruncated">
+  <data name="InputTruncated" xml:space="preserve">
     <value>输入已按长度上限截断</value>
   </data>
-  <data name="ResourcePathTooLong">
+  <data name="ResourcePathTooLong" xml:space="preserve">
     <value>资源路径过长</value>
   </data>
-  <data name="Tips">
+  <data name="Tips" xml:space="preserve">
     <value>提示</value>
   </data>
-  <data name="Sur">
+  <data name="Sur" xml:space="preserve">
     <value>求生者</value>
     <comment>简写</comment>
   </data>
-  <data name="Hun">
+  <data name="Hun" xml:space="preserve">
     <value>监管者</value>
     <comment>简写</comment>
   </data>
