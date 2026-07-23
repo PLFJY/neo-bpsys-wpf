@@ -219,6 +219,9 @@
   <data name="Clear" xml:space="preserve">
     <value>クリア</value>
   </data>
+  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve">
+    <value>選択したテスト画像全体を認識</value>
+  </data>
   <data name="SmartBpAiEnableAutoApply" xml:space="preserve">
     <value>認識結果を自動適用</value>
   </data>
@@ -265,10 +268,10 @@
     <value>前処理バリアントの最大数</value>
   </data>
   <data name="Download" xml:space="preserve">
-    <value>Download</value>
+    <value>ダウンロード</value>
   </data>
   <data name="Switch" xml:space="preserve">
-    <value>Switch</value>
+    <value>切り替え</value>
   </data>
   <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve">
     <value>全プロセス BP 自動識別</value>
@@ -322,7 +325,7 @@
     <value>高度なパラメーター</value>
   </data>
   <data name="SmartBpDebugOptions" xml:space="preserve">
-    <value>Debug options</value>
+    <value>デバッグオプション</value>
   </data>
   <data name="SmartBpGameDataRecognitionDebug" xml:space="preserve">
     <value>試合後認識 DEBUG</value>
@@ -367,7 +370,7 @@
     <value>現在のフェーズを認識</value>
   </data>
   <data name="SmartBpDebugTools" xml:space="preserve">
-    <value>Debug tools</value>
+    <value>デバッグツール</value>
   </data>
   <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve">
     <value>選択したテスト画像のフェーズを認識</value>
@@ -376,13 +379,13 @@
     <value>現在のフェーズを認識</value>
   </data>
   <data name="SmartBpDebugStrategySummary" xml:space="preserve">
-    <value>Strategy</value>
+    <value>戦略</value>
   </data>
   <data name="SmartBpDebugPhaseScene" xml:space="preserve">
-    <value>Phase / scene</value>
+    <value>フェーズ / シーン</value>
   </data>
   <data name="SmartBpDebugCandidateOperations" xml:space="preserve">
-    <value>Candidate operations</value>
+    <value>候補操作</value>
   </data>
   <data name="SmartBpTesseractDownloadData" xml:space="preserve">
     <value>選択した言語データをダウンロード</value>
@@ -394,10 +397,10 @@
     <value>試合後データ認識はまだ AI 認識に対応していません。Paddle OCR または Tesseract OCR に切り替えてください。</value>
   </data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
-    <value>Enable automatic GameGuidance sync</value>
+    <value>GameGuidance 自動同期を有効化</value>
   </data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
-    <value>Follow page navigation when sync moves step</value>
+    <value>同期でステップ移動時にページナビゲーションに追従</value>
   </data>
   <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
     <value>進行状況を診断して自動同期</value>
@@ -421,49 +424,49 @@
     <value>SmartBP はすでに実行中です。重複して起動しないでください。</value>
   </data>
   <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
-    <value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value>
+    <value>自由フル同期は実験的機能であり、ワークフローコンテキストなしで認識スロットに書き込む可能性があります。ガイドワークフローの使用を推奨します。</value>
   </data>
   <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
     <value>自動認識中はウィンドウキャプチャを維持します。キャプチャを停止する前に自動認識を停止してください。</value>
   </data>
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
-    <value>Start automatic recognition</value>
+    <value>自動認識を開始</value>
   </data>
   <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
     <value>現在のキャプチャ全体を認識</value>
   </data>
   <data name="SmartBpTooltipContactSheet" xml:space="preserve">
-    <value>Combines recognition regions into one OCR input.</value>
+    <value>認識領域を1つの OCR 入力に結合します。通常は呼び出しオーバーヘッドを削減できます。オフにすると領域ごとに認識しマッピング問題を特定しやすくなりますが、1回のティックは遅くなります。通常ユーザーはオンを推奨します。文字が他の領域に誤分類される場合はオフにしてください。</value>
   </data>
   <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
-    <value>Minimum delay between automatic recognition runs in milliseconds.</value>
+    <value>OCR 自動認識の 2 回のスクリーンショット間の間隔を制御します。実際の処理時間より短い間隔は結果遅延と UI カクつきの原因になります。先に「認識速度テスト」を実行してください。最小値は実測最大時間 + 250ms に設定されます。</value>
   </data>
   <data name="SmartBpTooltipFieldStale" xml:space="preserve">
-    <value>Refresh a field after it has remained stale for this duration.</value>
+    <value>フィールドがこの時間以上更新されない場合に再 OCR します。短すぎると重複認識で CPU 負荷が増え、長すぎると古い結果が残る可能性があります。1000〜3000ms を推奨。単回 OCR 時間より長くしてください。</value>
   </data>
   <data name="SmartBpTooltipBackfill" xml:space="preserve">
-    <value>Number of workflow steps eligible for late backfill.</value>
+    <value>振り返り補記できるワークフローステップ数。値を大きくすると早いペースの見落としを補いやすくなりますが、古い画像をより早いステップに誤割り当てするリスクも増えます。通常は 1〜3 を推奨。安定している場合は 2 を維持してください。</value>
   </data>
   <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
-    <value>Outputs OCR region and text-position diagnostics.</value>
+    <value>OCR 領域、テキスト枠、マッチングデバッグ情報を出力し、認識問題の特定に役立てます。ディスク書き込みとわずかな処理オーバーヘッドが増えます。日常使用ではオフを推奨し、トラブルシューティング時に一時的にオンにしてください。</value>
   </data>
   <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve">
-    <value>Tesseract language expression, for example chi_sim+eng.</value>
+    <value>Tesseract が読み込む言語を制御します（例：chi_sim+eng）。対応する traineddata がないと認識失敗になります。多すぎる言語は速度低下と誤認識増加の原因になります。中国語試合では chi_sim+eng を推奨。</value>
   </data>
   <data name="SmartBpTooltipTesseractPsm" xml:space="preserve">
-    <value>Tesseract page segmentation mode.</value>
+    <value>Tesseract のページ分割モードを制御します。誤ったモードは文字欠落や複数行の結合を引き起こします。SmartBP の既定値 6 は統一テキストブロックに適しています。デバッグ画像で異なるレイアウトを確認しない限り 6 を維持してください。</value>
   </data>
   <data name="SmartBpTooltipTesseractVariants" xml:space="preserve">
-    <value>Number of preprocessed image variants tried per region.</value>
+    <value>領域ごとに試す前処理バリアント数。バリアントを増やすと複雑な背景での認識率が向上する可能性がありますが、所要時間はほぼ比例して増加します。安全範囲は 1〜3。自動認識が重い場合は減らしてください。</value>
   </data>
   <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
-    <value>Test recognition speed</value>
+    <value>認識速度テスト</value>
   </data>
   <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
-    <value>Guided workflow (recommended)</value>
+    <value>ガイドワークフロー（推奨）</value>
   </data>
   <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
-    <value>Free full sync (experimental)</value>
+    <value>自由フル同期（実験的）</value>
   </data>
   <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
     <value>自動認識間隔</value>
@@ -607,10 +610,10 @@
     <value>左上のBP終了後ステータス領域</value>
   </data>
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
-    <value>Please confirm that the current game progress and half are set correctly. Incorrect settings may write recognition results to the wrong game.</value>
+    <value>現在の試合進行とハーフが正しく設定されていることを確認してください。誤った設定は認識結果を別の試合に書き込む可能性があります。</value>
   </data>
   <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve">
-    <value>Start automatic recognition</value>
+    <value>自動認識を開始</value>
   </data>
   <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
     <value>Bitblt</value>
@@ -625,7 +628,7 @@
     <value>現在のOCRモデル：{0}</value>
   </data>
   <data name="SmartBpDownloadCancelled" xml:space="preserve">
-    <value>Download cancelled</value>
+    <value>ダウンロードはキャンセルされました</value>
   </data>
   <data name="SmartBpDownloadFailedSimple" xml:space="preserve">
     <value>ダウンロードに失敗しました</value>
@@ -925,13 +928,13 @@
     <value>自動認識が実行中です。先に自動認識を停止してからウィンドウキャプチャを停止してください。</value>
   </data>
   <data name="SmartBpTesseractDataDownloading" xml:space="preserve">
-    <value>Downloading Tesseract language data</value>
+    <value>Tesseract 言語データをダウンロード中</value>
   </data>
   <data name="SmartBpTesseractDataInstalled" xml:space="preserve">
-    <value>Tesseract language data installed</value>
+    <value>Tesseract 言語データがインストール済み</value>
   </data>
   <data name="SmartBpTesseractDataMissing" xml:space="preserve">
-    <value>Tesseract language data missing</value>
+    <value>Tesseract 言語データが不足しています</value>
   </data>
   <data name="SmartBpTesseractLanguageChineseSimplified" xml:space="preserve">
     <value>簡体字中国語（chi_sim）</value>

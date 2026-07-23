@@ -941,7 +941,7 @@
     <value>強制インポートで削除されたプラグインコントロール</value>
   </data>
   <data name="ExamplePlugin.TeamCard.DisplayName">
-    <value>Example Team Card</value>
+    <value>サンプルチームカード</value>
   </data>
   <data name="ExamplePlugin.TeamCard.Description">
     <value>共有データのバインディングからチーム名とロゴを表示する DEBUG 用サンプルプラグインコントロール。</value>
@@ -996,6 +996,9 @@
   </data>
   <data name="WidgetsWindow">
     <value>ウィジェットウィンドウ</value>
+  </data>
+<data name="ExecutableFiles">
+    <value>実行可能ファイル</value>
   </data>
   <data name="SmartBp">
     <value>スマート BP</value>

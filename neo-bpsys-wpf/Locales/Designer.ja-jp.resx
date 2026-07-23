@@ -926,73 +926,73 @@
     <value>ヒントとトラブルシューティング</value>
   </data>
   <data name="Designer.Help.Shortcut.Save">
-    <value>Ctrl+S: Save layout</value>
+    <value>Ctrl+S：レイアウトを保存</value>
   </data>
   <data name="Designer.Help.Shortcut.Copy">
-    <value>Ctrl+C: Copy selected control</value>
+    <value>Ctrl+C：選択中のコントロールをコピー</value>
   </data>
   <data name="Designer.Help.Shortcut.Paste">
-    <value>Ctrl+V: Paste copied control</value>
+    <value>Ctrl+V：コピーしたコントロールを貼り付け</value>
   </data>
   <data name="Designer.Help.Shortcut.Delete">
-    <value>Delete: Delete selected control</value>
+    <value>Delete：選択中のコントロールを削除</value>
   </data>
   <data name="Designer.Help.Shortcut.Undo">
-    <value>Ctrl+Z: Undo</value>
+    <value>Ctrl+Z：元に戻す</value>
   </data>
   <data name="Designer.Help.Shortcut.Redo">
-    <value>Ctrl+Y / Ctrl+Shift+Z: Redo</value>
+    <value>Ctrl+Y / Ctrl+Shift+Z：やり直し</value>
   </data>
   <data name="Designer.Help.Shortcut.Zoom">
-    <value>Ctrl+Mouse Wheel: Zoom</value>
+    <value>Ctrl+マウスホイール：ズーム</value>
   </data>
   <data name="Designer.Help.Shortcut.PanSpace">
-    <value>Space+Left Drag: Pan canvas</value>
+    <value>Space+左ドラッグ：キャンバスをパン</value>
   </data>
   <data name="Designer.Help.Shortcut.PanRight">
-    <value>Right Drag: Pan canvas</value>
+    <value>右ドラッグ：キャンバスをパン</value>
   </data>
   <data name="Designer.Help.Shortcut.SnapShift">
-    <value>Shift: Temporary snap</value>
+    <value>Shift：一時的にスナップを有効化</value>
   </data>
   <data name="Designer.Help.BasicWorkflow.Content">
-    <value>Choose window and canvas from top selectors;\nAdd built-in or plugin controls from Add Control;\nSelect controls from canvas or layer panel;\nEdit properties from PropertyGrid;\nSave layout;\nValidate layout;\nReset/reload layout.</value>
+    <value>上部のセレクターからウィンドウとキャンバスを選択；\n「コントロールを追加」ボタンから組み込みまたはプラグインコントロールを追加；\nキャンバスまたはレイヤーパネルからコントロールを選択；\nプロパティグリッドからプロパティを編集；\nレイアウトを保存；\nレイアウトを検証；\nレイアウトをリセット/再読み込み。</value>
   </data>
   <data name="Designer.Help.CanvasNavigation.Content">
-    <value>Mouse wheel / scrollbars to navigate;\nRight mouse drag pans the canvas;\nHold Space + left mouse drag pans the canvas;\nCtrl + mouse wheel zooms;\nBottom Zoom ComboBox accepts 100, 100%, 1x, 1.25x;\nSlider changes zoom;\nFit button fits canvas to current viewport.</value>
+    <value>マウスホイールまたはスクロールバーでキャンバスを操作；\n右ドラッグでキャンバスをパン；\nSpace + 左ドラッグでキャンバスをパン；\nCtrl + マウスホイールでズーム；\n下部のズームコンボボックスは 100、100%、1x、1.25x などの入力に対応；\nスライダーでズーム倍率を調整；\n「合わせる」ボタンでキャンバスを現在のビューポートにフィット。</value>
   </data>
   <data name="Designer.Help.Selection.Content">
-    <value>Click control on canvas to select;\nClick item in layer panel to select;\nDrag selected control on canvas to move;\nResize with handles;\nSelected control name label appears above selection;\nTransparent/empty controls may be selected through hitbox or layer panel.</value>
+    <value>キャンバス上のコントロールをクリックして選択；\nレイヤーパネルの項目をクリックして選択；\n選択中のコントロールをドラッグして移動；\nハンドルをドラッグしてサイズ変更；\n選択中のコントロール名ラベルが選択枠の上部に表示；\n透過/空のコントロールはヒットボックスまたはレイヤーパネルから選択可能。</value>
   </data>
   <data name="Designer.Help.Snapping.Content">
-    <value>Snap switch enables grid and object alignment snapping;\nHolding Shift temporarily enables snapping without toggling the switch;\nMoving or resizing near canvas edges, centers, or other control edges/centers shows alignment guide lines;\nSnap does not directly change stored values unless operation is committed.</value>
+    <value>スナップスイッチでグリッドおよびオブジェクト整列スナップを有効化；\nShift を押している間はスイッチを切り替えずに一時的にスナップを有効化；\n移動またはリサイズ時に、キャンバスの端、中心線、他のコントロールの端/中心に近づくと整列ガイドラインが表示；\n操作がコミットされるまで、スナップは保存値を直接変更しない。</value>
   </data>
   <data name="Designer.Help.LayerPanel.Content">
-    <value>Controls are grouped by ZIndex;\nHigher ZIndex is visually above lower ZIndex;\nDrag within same layer to change same-ZIndex order;\nDrag into another layer to change ZIndex;\nDrag to top edge to create new top layer;\nDrag to bottom edge to create new bottom layer;\nNear top/bottom edge auto-scrolls;\nFiltering disables layer reorder; clear filter to reorder;\nLinked overlay controls are not independently editable or draggable.</value>
+    <value>コントロールは ZIndex ごとにグループ化；\nZIndex が大きいほど視覚的に上位に表示；\n同じレイヤー内でドラッグして同 ZIndex 間の順序を変更；\n別のレイヤーへドラッグして ZIndex を変更；\n上端にドラッグして新しい最前面レイヤーを作成；\n下端にドラッグして新しい最背面レイヤーを作成；\n上端/下端付近で自動スクロール；\n絞り込み中はレイヤー並べ替えが無効、絞り込み解除で再び並べ替え可能；\nリンクされたオーバーレイコントロールは個別に編集/ドラッグできない。</value>
   </data>
   <data name="Designer.Help.PropertyGrid.Content">
-    <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
+    <value>名前と BindingPath は Enter キーまたは適用ボタンでコミット；\n無効な値はテキストを保持し赤い枠線を表示；\nColorPicker は Hex テキストを更新、適用ボタンでコミット；\nComboBox プロパティはローカライズ名を表示しつつ生の値をコミット；\nバインドブラウザーで適切な BindingPath を選択可能；\nリソースブラウザーで bpui/リソース URI を選択可能；\nBorderedImage は Border/Image プロパティが独立；\nBorderedImage のリサイズ対象は外枠と内側画像を切り替え可能。</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content">
     <value>Text|通常のテキストコントロール。TextBinding は順序付きの複数ソースを結合し、ソースがない場合は静的 Text を表示します。|ソース順は {0}/{1} に対応し、StringFormat が空なら JoinSeparator で結合します。\nLocalizedText|ローカライズテキストコントロール。静的モードは LocalizationKey、TextBinding モードは動的テキストを結合してからローカライズを試みます。|動的結果がリソース key でない場合は元のテキストを表示します。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は DisplayMode を TwoLine に設定します。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行の複合コントロール。親フレーム内の Cells が各ハーフスコアセルを定義し、MatchScore からテキストと陣営アイコンを表示します。|通常は ScoreGlobalWindow で使います。親は行全体、子セルは個別スコア位置の編集に使います。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|MapV2Window のレイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content">
-    <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nGenerated overlays or non-editable controls may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
+    <value>「コントロールを追加」で組み込み/プラグインコントロールを挿入；\nコピーしたコントロールは貼り付け時に一意の番号付き名前を取得；\n貼り付け時に新しいコントロールの位置をオフセット；\n生成されたオーバーレイや編集不可コントロールはコピー/削除できない場合あり；\n元に戻す/やり直しで追加、削除、貼り付け、並べ替え操作を復元可能。</value>
   </data>
   <data name="Designer.Help.CanvasWindowSettings.Content">
-    <value>Canvas Width/Height edit canvas design size;\nBackground image supports bpui resource URI;\nAllowTransparency is a window-level option; created fronted windows silently restart their instance;\nNever-created windows apply the latest setting on next show.</value>
+    <value>キャンバス幅/高さでキャンバスのデザインサイズを編集；\n背景画像は bpui リソース URI をサポート；\nAllowTransparency はウィンドウレベルのオプションで、作成済みのフロントウィンドウはサイレントにインスタンスを再起動；\n未作成のウィンドウは次回表示時に最新設定を適用。</value>
   </data>
   <data name="Designer.Help.Validation.Content">
-    <value>Status button opens validation details;\nErrors may block saving/import/export where appropriate;\nWarnings do not always block but should be reviewed;\nMissing plugin controls are shown as warnings in Designer.</value>
+    <value>ステータスボタンで検証詳細を開く；\nエラーは保存/インポート/エクスポートをブロックする場合あり；\n警告は必ずしもブロックしないが確認すべき；\n欠落したプラグインコントロールはデザイナーで警告として表示。</value>
   </data>
   <data name="Designer.Help.PluginControls.Content">
-    <value>Plugin controls appear in Add Control when plugin is installed;\nPlugin controls behave like built-in controls in Designer;\nMissing plugin controls show placeholder in Designer;\nRuntime skips missing plugin controls instead of crashing;\n.bpui packages declare required plugins;\nImporting a package with missing plugins will guide install/update or allow force import that removes missing controls.</value>
+    <value>プラグインをインストールすると、「コントロールを追加」にプラグインコントロールが表示；\nプラグインコントロールはデザイナー内で組み込みコントロールと同様に動作；\n欠落したプラグインコントロールはデザイナーでプレースホルダーを表示；\n実行時は欠落したプラグインコントロールをクラッシュせずスキップ；\n.bpui パッケージは必要なプラグインを宣言；\n欠落プラグインを含むパッケージのインポート時は、インストール/更新を案内するか、強制インポートで欠落コントロールを削除可能。</value>
   </data>
   <data name="Designer.Help.LayoutPackages.Content">
-    <value>Export writes layout package;\n.bpui does not include plugin binaries;\nImport checks plugin dependencies;\nForce import removes controls that depend on missing plugins;\nOriginal package file remains unchanged.</value>
+    <value>エクスポートでレイアウトパッケージを書き出し；\n.bpui にはプラグインバイナリを含まない；\nインポート時にプラグイン依存関係をチェック；\n強制インポートは欠落プラグインに依存するコントロールを削除；\n元のパッケージファイルは変更されない。</value>
   </data>
   <data name="Designer.Help.Troubleshooting.Content">
-    <value>If a control cannot be selected visually, use the layer panel;\nIf drag reorder is unavailable, clear search filter;\nIf a property appears invalid, check validation details;\nIf plugin control is missing, install/enable the plugin and restart if required;\nIf Fit makes labels too small, selected label should still stay readable after recent polish.</value>
+    <value>キャンバス上で視覚的にコントロールを選択できない場合はレイヤーパネルを使用；\nドラッグでの並べ替えができない場合は検索絞り込みを解除；\nプロパティが無効に見える場合は検証詳細を確認；\nプラグインコントロールが欠落している場合はプラグインをインストール/有効化し、必要に応じて再起動；\n「合わせる」でラベルが小さくなりすぎる場合は、選択ラベルも最近の調整後は読みやすさを保つ。</value>
   </data>
   <data name="Designer.Property.MapNameFontFamily">
     <value>マップ名フォント</value>

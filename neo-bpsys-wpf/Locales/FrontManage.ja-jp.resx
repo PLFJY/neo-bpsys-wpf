@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
@@ -216,6 +216,105 @@
   </data>
   <data name="LegacyPackageDefaultDescription">
     <value>旧形式 .bpui から変換されました。安全に対応付けできない旧フィールドは無視されます。</value>
+  </data>
+  <data name="LegacyConvert.FrontElementsFolderMissing">
+    <value>旧パッケージに FrontElementsConfig フォルダーが見つからないため、フロントウィンドウレイアウトを読み込めません。</value>
+  </data>
+  <data name="LegacyConvert.UnknownLayoutFileSkipped">
+    <value>認識できない旧レイアウトファイルが見つかりました。スキップしました：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.MapBpV1Skipped">
+    <value>旧「マップ BP V1」ウィンドウは Designer v3 で削除されたため変換されません。その他の対応ウィンドウは変換を続行します。</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileTooLargeSkipped">
+    <value>旧レイアウトファイルが大きすぎるためスキップしました：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileReadFailed">
+    <value>旧レイアウトファイルの読み取りに失敗しました。スキップしました：{FileName}。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.NoBlueprintForLayout">
+    <value>現在のバージョンにはこの旧ウィンドウの変換マッピングがまだないためスキップしました：{SourceWindow}/{SourceCanvas}</value>
+  </data>
+  <data name="LegacyConvert.ControlCreateFailed">
+    <value>旧コントロールから対応する新コントロールを作成できませんでした：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlNotInBlueprintMap">
+    <value>旧コントロールは明示的な変換マッピング表に存在しません：{SourceWindow}/{SourceCanvas}/{ControlName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutValidationError">
+    <value>変換後のレイアウトに検証エラーがあります：{TargetWindow}/{CanvasName}。詳細：{Details}</value>
+  </data>
+  <data name="LegacyConvert.OvertimeScoreCellsAggregated">
+    <value>旧延長戦スコアセルは新スコア行コントロールに統合されました。</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayFolded">
+    <value>旧ロックオーバーレイは新ロック可能画像コントロールに統合されました：{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayTargetMissing">
+    <value>旧ロックオーバーレイは認識されましたが、対象画像コントロールが存在しません：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.BpOverviewOutOfBounds">
+    <value>旧 BP 概要ウィンドウに元の領域を超えるコンテンツがあり、変換後に切り取られる可能性があります。</value>
+  </data>
+  <data name="LegacyConvert.ResourceMissing">
+    <value>旧リソースが見つからないため、既定リソースを保持しました：{Field} = {Value}</value>
+  </data>
+  <data name="LegacyConvert.Bo3GlobalScoreBackgroundMapped">
+    <value>旧 BO3 総スコア背景は新 BO3 キャンバス状態背景に変換されました。</value>
+  </data>
+  <data name="LegacyConvert.LockImageMapped">
+    <value>旧ロック画像は新画像コントロールのロックレイヤーに統合されました：{Key}</value>
+  </data>
+  <data name="LegacyConvert.PickingBorderImageMapped">
+    <value>旧選択枠画像は新画像コントロールの選択枠に統合されました：{Key}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsApplied">
+    <value>旧テキスト設定を適用しました：{SourceWindow}/{SourceCanvas}/{ControlName} &lt;- {TextStyleKey}</value>
+  </data>
+  <data name="LegacyConvert.MapV2PickingBorderMapped">
+    <value>旧 MapV2 選択枠は新コントロールにマッピングされました。</value>
+  </data>
+  <data name="LegacyConvert.ResourceCopied">
+    <value>旧リソースをコピーしました：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.GlobalScoreCellsAggregated">
+    <value>旧グローバルスコアセルを集約しました：{Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.IrregularCellSpacingApproximated">
+    <value>旧セルの間隔が不規則なため、中央値で近似計算しました：{Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlGeometryFuzzyMatched">
+    <value>旧コントロールのジオメトリを新コントロールに曖昧マッチングしました。</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayGeometryConsumed">
+    <value>旧ロックオーバーレイのジオメトリを統合しました：{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlConsumed">
+    <value>旧折りたたみコントロールを統合しました：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlNoTarget">
+    <value>旧折りたたみコントロールに対応する新ターゲットコントロールがありません：{SourceWindow}/{SourceCanvas}/{LegacyName}</value>
+  </data>
+  <data name="LegacyConvert.LegacyFieldIgnored">
+    <value>旧フィールドを無視しました：{Field}</value>
+  </data>
+  <data name="LegacyConvert.WindowSizeDiffersFromCanvas">
+    <value>旧ウィンドウサイズが変換器キャンバスの既定値と一致しません：{TargetWindow} ウィンドウ={WindowSize}、キャンバス={CanvasSize}</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonTooLarge">
+    <value>旧 Config.json ファイルが大きすぎるためスキップしました。</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonReadFailed">
+    <value>旧 Config.json ファイルの読み取りに失敗しました。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsReadFailed">
+    <value>旧 Config.json のテキスト設定を読み取れません。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.WindowSettingsInspectFailed">
+    <value>旧 Config.json のウィンドウ設定を検査できません。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.FoldedGeometryNotRepresentable">
+    <value>旧折りたたみコントロールのジオメトリは新コントロールのメタデータで表現されるため、独立して表現できません。</value>
   </data>
   <data name="MissingPluginImportTitle">
     <value>不足しているプラグインコントロール</value>

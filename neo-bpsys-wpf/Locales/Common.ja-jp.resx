@@ -79,6 +79,12 @@
   <data name="FollowSystem">
     <value>システムに従う</value>
   </data>
+  <data name="zh_Hans" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="ja_JP" xml:space="preserve">
+    <value>日本語（正確性は100%保証されません）</value>
+  </data>
 <data name="Source">
     <value>ソース</value>
   </data>
