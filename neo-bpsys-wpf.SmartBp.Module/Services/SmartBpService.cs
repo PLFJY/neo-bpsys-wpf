@@ -68,13 +68,6 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
     /// <inheritdoc />
     public void StartSmartBp()
     {
-        if (IsGameDataAiRecognitionSelected())
-        {
-            IsSmartBpRunning = false;
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("SmartBpGameDataAiRecognitionNotImplemented"));
-            return;
-        }
-
         if (!IsOcrReady())
         {
             IsSmartBpRunning = false;
@@ -108,12 +101,6 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
     {
         try
         {
-            if (IsGameDataAiRecognitionSelected())
-            {
-                await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("SmartBpGameDataAiRecognitionNotImplemented"));
-                return;
-            }
-
             if (!IsOcrReady())
             {
                 _logger.LogDebug("SmartBp AutoFill skipped: OCR model is not ready.");
@@ -257,9 +244,6 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
     }
 
     private bool IsOcrReady() => _ocrService.GetProviderStatus(_ocrService.SelectedProvider).IsReady;
-
-    private bool IsGameDataAiRecognitionSelected() =>
-        _recognitionSettingsService.Settings.RecognitionEngine == SmartBpRecognitionEngine.AiQwen;
 
     private static PlayerData ToHunterData(IReadOnlyList<string> values) => new()
     {

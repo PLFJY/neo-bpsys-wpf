@@ -35,13 +35,13 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly IOcrService _ocrService = null!;
     private readonly ILogger<SmartBpModuleContentViewModel> _logger;
     private readonly ISmartBpRecognitionSettingsService _recognitionSettingsService = null!;
-    private readonly ISmartBpDebugLog _aiDebugLog = null!;
+    private readonly ISmartBpDebugLog _debugLog = null!;
     private readonly ISmartBpAutoRecognitionCoordinator _autoRecognitionCoordinator = null!;
     private readonly IGameGuidanceService _gameGuidanceService = null!;
     private readonly ISmartBpCharacterResolver _smartBpCharacterResolver = null!;
     private readonly ISmartBpRecognitionRegionProfileService _aiRegionProfileService = null!;
-    private readonly ISmartBpRecognitionLedger _aiRecognitionLedger = null!;
-    private readonly ISmartBpRecognitionStateStore _aiRecognitionStateStore = null!;
+    private readonly ISmartBpRecognitionLedger _recognitionLedger = null!;
+    private readonly ISmartBpRecognitionStateStore _recognitionStateStore = null!;
     private readonly ISmartBpGameStateSyncService _gameStateSyncService = null!;
     private readonly IInfoBarService _infoBarService = null!;
     private readonly ITesseractDataAssetManager _tesseractDataAssetManager = null!;
@@ -96,13 +96,13 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _windowCaptureService = windowCaptureService;
         _ocrService = ocrService;
         _recognitionSettingsService = recognitionSettingsService;
-        _aiDebugLog = aiDebugLog;
+        _debugLog = aiDebugLog;
         _autoRecognitionCoordinator = autoRecognitionCoordinator;
         _gameGuidanceService = gameGuidanceService;
         _smartBpCharacterResolver = smartBpCharacterResolver;
         _aiRegionProfileService = aiRegionProfileService;
-        _aiRecognitionLedger = aiRecognitionLedger;
-        _aiRecognitionStateStore = aiRecognitionStateStore;
+        _recognitionLedger = aiRecognitionLedger;
+        _recognitionStateStore = aiRecognitionStateStore;
         _gameStateSyncService = gameStateSyncService;
         _infoBarService = infoBarService;
         _tesseractDataAssetManager = tesseractDataAssetManager;
@@ -113,7 +113,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _gameDataRecognitionDebugState = gameDataRecognitionDebugState;
         _gameDataRecognitionDebugState.SnapshotChanged += (_, _) => BeginOnUiThread(RefreshGameDataRecognitionDebugText);
         RefreshGameDataRecognitionDebugText();
-        InitializeAiRecognition();
+        InitializeRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         _ocrService.ModelLoadStateChanged += OcrService_ModelLoadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。
@@ -296,7 +296,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanCaptureStopped))]
     private void StopCapture()
     {
-        if (IsAiPreviewLoopRunning || IsAiRecognizing)
+        if (IsPreviewLoopRunning || IsRecognizing)
         {
             _ = MessageBoxHelper.ShowInfoAsync(ResolveLocalizedOrRaw("SmartBpStopCaptureWhileRecognizing"));
             return;
@@ -453,7 +453,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
             : SelectedWindow is not null;
 
     private bool CanCaptureStopped() =>
-        _windowCaptureService is { IsCapturing: true } && !IsAiPreviewLoopRunning && !IsAiRecognizing;
+        _windowCaptureService is { IsCapturing: true } && !IsPreviewLoopRunning && !IsRecognizing;
 
     private bool CanOpenPreviewWindow() => _windowCaptureService is { IsCapturing: true };
 

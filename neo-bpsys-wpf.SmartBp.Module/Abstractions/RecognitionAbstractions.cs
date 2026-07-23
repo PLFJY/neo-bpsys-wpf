@@ -30,29 +30,6 @@ public interface ITesseractDataAssetManager
     void Cancel();
 }
 
-/// <summary>读取托管 AI 运行时可选的 NVIDIA GPU 遥测信息。</summary>
-public interface ISmartBpAiPerformanceMonitor
-{
-    /// <summary>获取最新的 GPU 与 llama-server 进程快照。</summary>
-    /// <param name="processId">托管 llama-server 进程标识。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>当前性能快照。</returns>
-    Task<SmartBpAiPerformanceSnapshot> GetSnapshotAsync(int? processId, CancellationToken cancellationToken = default);
-}
-
-/// <summary>加载内置 Qwen 元数据。</summary>
-public interface IQwenModelManifestProvider { /// <summary>加载并校验清单。</summary>
-    Task<QwenModelManifest> LoadAsync(CancellationToken cancellationToken = default); }
-
-/// <summary>加载内置本地视觉模型元数据。</summary>
-public interface ILocalVisionModelManifestProvider
-{
-    /// <summary>加载并校验清单。</summary>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>本地视觉模型清单。</returns>
-    Task<LocalVisionModelManifest> LoadAsync(CancellationToken cancellationToken = default);
-}
-
 /// <summary>加载内置 RapidOCR 模型元数据。</summary>
 public interface IRapidOcrModelManifestProvider
 {
@@ -101,56 +78,7 @@ public interface IRapidOcrModelAssetManager
     /// <returns>安装路径。</returns>
     Task<RapidOcrInstalledPaths> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
 }
-/// <summary>安装和移除 Qwen 模型资产。</summary>
-public interface IQwenModelAssetManager
-{
-    /// <summary>下载状态变化时触发。</summary>
-    event EventHandler<QwenDownloadState>? StateChanged;
-    /// <summary>获取当前下载状态。</summary>
-    QwenDownloadState State { get; }
-    /// <summary>获取已选配置档。</summary>
-    Task<QwenModelProfile> GetProfileAsync(CancellationToken cancellationToken = default);
-    /// <summary>获取指定本地视觉模型配置档。</summary>
-    /// <param name="modelId">模型配置档标识。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>匹配的配置档。</returns>
-    Task<QwenModelProfile> GetProfileAsync(string modelId, CancellationToken cancellationToken = default);
-    /// <summary>获取所有可选 Qwen 模型配置档。</summary>
-    Task<IReadOnlyList<QwenModelProfile>> GetProfilesAsync(CancellationToken cancellationToken = default);
-    /// <summary>检查已安装资产，包括哈希校验。</summary>
-    Task<bool> IsInstalledAsync(CancellationToken cancellationToken = default);
-    /// <summary>检查指定 Qwen 模型配置档的已安装资产，包括哈希校验。</summary>
-    /// <param name="modelId">Qwen 模型配置档标识。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>已选模型文件已安装且有效时返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
-    Task<bool> IsInstalledAsync(string modelId, CancellationToken cancellationToken = default);
-    /// <summary>下载缺失资产。</summary>
-    Task InstallAsync(CancellationToken cancellationToken = default);
-    /// <summary>下载指定 Qwen 模型配置档的缺失资产。</summary>
-    /// <param name="modelId">Qwen 模型配置档标识。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>表示下载操作的任务。</returns>
-    Task InstallAsync(string modelId, CancellationToken cancellationToken = default);
-    /// <summary>取消当前下载。</summary>
-    void Cancel();
-    /// <summary>删除已安装资产，不阻塞调用线程。</summary>
-    Task DeleteAsync(CancellationToken cancellationToken = default);
-    /// <summary>删除指定 Qwen 模型配置档的已安装资产，不阻塞调用线程。</summary>
-    /// <param name="modelId">Qwen 模型配置档标识。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>表示删除操作的任务。</returns>
-    Task DeleteAsync(string modelId, CancellationToken cancellationToken = default);
-    /// <summary>获取已安装模型和投影器路径。</summary>
-    Task<QwenInstalledPaths> GetInstalledPathsAsync(CancellationToken cancellationToken = default);
-    /// <summary>获取指定本地视觉模型配置档的已安装模型和投影器路径。</summary>
-    /// <param name="modelId">模型配置档标识。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>校验后的安装路径。</returns>
-    Task<QwenInstalledPaths> GetInstalledPathsAsync(string modelId, CancellationToken cancellationToken = default);
-}
 
-/// <summary>安装和移除托管本地视觉模型资产。</summary>
-public interface ILocalVisionModelAssetManager : IQwenModelAssetManager;
 /// <summary>持久化识别设置。</summary>
 public interface ISmartBpRecognitionSettingsService
 {
@@ -270,26 +198,6 @@ public interface ISmartBpSnapshotDeltaRecognitionService
         long frameSequence,
         CancellationToken cancellationToken = default);
 }
-/// <summary>使用独立 AI 请求识别 BP 阶段和单个字段快照。</summary>
-public interface ISmartBpAiFieldSnapshotRecognitionService
-{
-    /// <summary>仅识别阶段裁剪图，不产生业务字段更新。</summary>
-    /// <param name="frame">源画面帧。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>仅阶段识别结果。</returns>
-    Task<SmartBpAiPhaseOnlyResult> RecognizePhaseOnlyAsync(BitmapSource frame, CancellationToken cancellationToken = default);
-    /// <summary>从裁剪区域识别一个业务字段当前可见快照。</summary>
-    /// <param name="frame">源画面帧。</param>
-    /// <param name="region">拥有该字段的粗粒度裁剪区域。</param>
-    /// <param name="field">业务字段标识（banned_sur、banned_hun、picked_sur、picked_hun）。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>字段快照识别结果。</returns>
-    Task<SmartBpAiFieldSnapshotResult> RecognizeFieldAsync(
-        BitmapSource frame,
-        SmartBpRecognitionRegion region,
-        string field,
-        CancellationToken cancellationToken = default);
-}
 /// <summary>存储本地合并后的 SmartBP 增量识别状态。</summary>
 public interface ISmartBpRecognitionStateStore
 {
@@ -360,9 +268,6 @@ public interface ISmartBpPlayerIdentityMatcher
     /// <returns>匹配结果，包含内部索引、匹配名称、分数、是否安全及原因。</returns>
     SmartBpPlayerIdentityMatchResult MatchSurvivorPlayer(string? rawPlayerId);
 }
-/// <summary>运行并归一化一次识别请求。</summary>
-public interface ISmartBpAiRecognitionService { /// <summary>识别一帧画面。</summary>
-    Task<SmartBpRecognitionPreview> RecognizeAsync(BitmapSource frame, SmartBpRecognitionTask task, CancellationToken cancellationToken = default); }
 
 /// <summary>为 SmartBP AI 流水线发布有界且用户可见的诊断信息。</summary>
 public interface ISmartBpDebugLog

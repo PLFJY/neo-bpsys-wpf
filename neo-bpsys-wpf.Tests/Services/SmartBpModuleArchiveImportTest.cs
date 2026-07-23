@@ -113,21 +113,13 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             CreateModuleArchive(updateArchivePath, ArchiveFormat.SevenZip, "2.0.0", includePackagedAssetDirectories: true);
             CopyTestDirectory(CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false), targetRoot);
             var paddleModel = Path.Combine(targetRoot, "OCRModels", "zh-cn-v5-mobile", "det", "inference.pdiparams");
-            var qwenModel = Path.Combine(targetRoot, "AI", "QwenModels", "qwen-test", "model.gguf");
-            var runtimeFile = Path.Combine(targetRoot, "AI", "LlamaCpp", "Runtimes", "cuda", "current", "llama-server.exe");
             Directory.CreateDirectory(Path.GetDirectoryName(paddleModel)!);
-            Directory.CreateDirectory(Path.GetDirectoryName(qwenModel)!);
-            Directory.CreateDirectory(Path.GetDirectoryName(runtimeFile)!);
             await File.WriteAllTextAsync(paddleModel, "downloaded-paddle");
-            await File.WriteAllTextAsync(qwenModel, "downloaded-qwen");
-            await File.WriteAllTextAsync(runtimeFile, "downloaded-runtime");
 
             Assert.True(await CreateManager().ImportArchiveAsync(updateArchivePath, targetRoot));
 
             Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
             Assert.Equal("downloaded-paddle", await File.ReadAllTextAsync(paddleModel));
-            Assert.Equal("downloaded-qwen", await File.ReadAllTextAsync(qwenModel));
-            Assert.Equal("downloaded-runtime", await File.ReadAllTextAsync(runtimeFile));
         }, TimeSpan.FromSeconds(30));
     }
 
@@ -141,11 +133,8 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             CopyTestDirectory(CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false), targetRoot);
             CopyTestDirectory(CreateTestModuleDirectory("2.0.0", includePackagedAssetDirectories: true), preparedRoot);
             var tesseractData = Path.Combine(targetRoot, "OCRModels", "Tesseract", "tessdata", "chi_sim.traineddata");
-            var qwenModel = Path.Combine(targetRoot, "AI", "QwenModels", "qwen-test", "model.gguf");
             Directory.CreateDirectory(Path.GetDirectoryName(tesseractData)!);
-            Directory.CreateDirectory(Path.GetDirectoryName(qwenModel)!);
             await File.WriteAllTextAsync(tesseractData, "downloaded-tesseract");
-            await File.WriteAllTextAsync(qwenModel, "downloaded-qwen");
             Directory.CreateDirectory(AppConstants.AppDataPath);
             await File.WriteAllTextAsync(
                 SmartBpModuleManager.StateFilePath,
@@ -169,7 +158,6 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
 
             Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
             Assert.Equal("downloaded-tesseract", await File.ReadAllTextAsync(tesseractData));
-            Assert.Equal("downloaded-qwen", await File.ReadAllTextAsync(qwenModel));
             Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
         }, TimeSpan.FromSeconds(30));
     }
@@ -303,11 +291,8 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         if (includePackagedAssetDirectories)
         {
             var packagedOcrAsset = Path.Combine(moduleRoot, "OCRModels", "packaged", "model.txt");
-            var packagedAiAsset = Path.Combine(moduleRoot, "AI", "QwenModels", "packaged", "model.gguf");
             Directory.CreateDirectory(Path.GetDirectoryName(packagedOcrAsset)!);
-            Directory.CreateDirectory(Path.GetDirectoryName(packagedAiAsset)!);
             File.WriteAllText(packagedOcrAsset, "packaged-ocr");
-            File.WriteAllText(packagedAiAsset, "packaged-ai");
         }
 
         File.WriteAllText(

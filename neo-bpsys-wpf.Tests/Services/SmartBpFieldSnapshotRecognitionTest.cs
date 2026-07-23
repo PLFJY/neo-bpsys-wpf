@@ -12,7 +12,6 @@ using neo_bpsys_wpf.Core.Models;
 using Xunit;
 using SmartBpAutomaticParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticParser;
 using SmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionStateStore;
-using AiStructuredOutputMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.AiStructuredOutputMode;
 using SmartBpRecognitionPath = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionPath;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
 using SmartBpSnapshotFieldUpdate = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotFieldUpdate;
@@ -258,12 +257,5 @@ public sealed class SmartBpFieldSnapshotRecognitionTest
         Assert.True(Enum.IsDefined(typeof(SmartBpRecognitionPath), "FieldSnapshot"));
         Assert.True(Enum.IsDefined(typeof(SmartBpRecognitionPath), "FullFieldSnapshot"));
         Assert.True(Enum.IsDefined(typeof(SmartBpRecognitionPath), "LegacyDelta"));
-    }
-
-    [Fact]
-    public void AiStructuredOutputMode_Enum_HasTwoValues()
-    {
-        Assert.True(Enum.IsDefined(typeof(AiStructuredOutputMode), "JsonSchemaStrict"));
-        Assert.True(Enum.IsDefined(typeof(AiStructuredOutputMode), "JsonPromptAndRepair"));
     }
 }

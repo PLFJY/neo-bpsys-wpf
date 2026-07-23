@@ -180,10 +180,7 @@ public sealed class TesseractDataAssetManagerTest
         public string OcrModelsRoot => Directory.GetParent(Directory.GetParent(tesseractDataRoot)!.FullName)!.FullName;
         public string TesseractDataRoot => tesseractDataRoot;
         public string RapidOcrModelsRoot => System.IO.Path.Combine(OcrModelsRoot, "RapidOCR", "Models");
-        public string AiRoot => System.IO.Path.Combine(ModuleRoot, "AI");
-        public string QwenModelsRoot => System.IO.Path.Combine(AiRoot, "QwenModels");
-        public string LlamaCppRoot => System.IO.Path.Combine(AiRoot, "LlamaCpp");
-        public string RecognitionLogsRoot => System.IO.Path.Combine(AiRoot, "RecognitionLogs");
+        public string RecognitionLogsRoot => System.IO.Path.Combine(ModuleRoot, "RecognitionLogs");
     }
 
     private sealed class TemporaryDirectory : IDisposable

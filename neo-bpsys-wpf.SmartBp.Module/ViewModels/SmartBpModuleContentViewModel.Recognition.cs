@@ -21,7 +21,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class SmartBpModuleContentViewModel
 {
-    private readonly DispatcherTimer _aiPreviewTimer = new();
+    private readonly DispatcherTimer _previewTimer = new();
     private int _recognitionBusy;
     private bool _isAutomaticRecognitionStopPendingAfterQueueDrain;
     private int _automaticRecognitionUnavailableFrameCount;
@@ -29,7 +29,7 @@ public partial class SmartBpModuleContentViewModel
     public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
 
     /// <summary>获取可用的内置测试帧。</summary>
-    public IReadOnlyList<SmartBpTestFrame> AiTestFrames { get; } =
+    public IReadOnlyList<SmartBpTestFrame> TestFrames { get; } =
     [
         new("ban-sur-16x9", "ban-sur-16x9.png", SmartBpRecognitionTask.BanSur),
         new("ban-hun-16x9", "ban-hun-16x9.png", SmartBpRecognitionTask.BanHun),
@@ -38,34 +38,34 @@ public partial class SmartBpModuleContentViewModel
         new("character-distribution-16x9", "character-distribution-16x9.png", SmartBpRecognitionTask.CharacterDistribution)
     ];
     [ObservableProperty]
-    public partial SmartBpTestFrame? SelectedAiTestFrame { get; set; }
+    public partial SmartBpTestFrame? SelectedTestFrame { get; set; }
 
     // 已移除的本地视觉模型设置保留在历史配置兼容层中，不再暴露为 SmartBP 页面状态。
-    [NotifyCanExecuteChangedFor(nameof(StartAiPreviewLoopCommand))]
-    [NotifyCanExecuteChangedFor(nameof(StopAiPreviewLoopCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartPreviewLoopCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StopPreviewLoopCommand))]
     [ObservableProperty]
-    public partial bool IsAiRecognizing { get; set; }
+    public partial bool IsRecognizing { get; set; }
 
     [ObservableProperty]
-    public partial bool IsAiPreviewLoopRunning { get; set; }
+    public partial bool IsPreviewLoopRunning { get; set; }
 
     [ObservableProperty]
-    public partial string AiRawResponse { get; set; } = "";
+    public partial string RawResponse { get; set; } = "";
 
     [ObservableProperty]
-    public partial string AiNormalizedResult { get; set; } = "";
+    public partial string NormalizedResult { get; set; } = "";
 
     [ObservableProperty]
-    public partial long AiElapsedMilliseconds { get; set; }
+    public partial long ElapsedMilliseconds { get; set; }
 
     [ObservableProperty]
-    public partial int AiRecommendedIntervalMilliseconds { get; set; }
+    public partial int RecommendedIntervalMilliseconds { get; set; }
 
     [ObservableProperty]
-    public partial string AiLastError { get; set; } = "";
+    public partial string LastError { get; set; } = "";
 
     [ObservableProperty]
-    public partial string AiDebugLogText { get; set; } = "";
+    public partial string DebugLogText { get; set; } = "";
 
     [ObservableProperty]
     public partial bool IsDebugLogEnabled { get; set; } = true;
@@ -89,22 +89,10 @@ public partial class SmartBpModuleContentViewModel
     public partial SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; }
 
     [ObservableProperty]
-    public partial bool AiOneStepDelayedMode { get; set; } = true;
-
-    [ObservableProperty]
-    public partial int AiUnknownPhaseTalentInferenceFrames { get; set; } = 2;
-
-    [ObservableProperty]
     public partial bool PlayBackfillAnimations { get; set; }
 
     [ObservableProperty]
     public partial bool UseMultiImageSnapshotRequest { get; set; }
-
-    [ObservableProperty]
-    public partial IReadOnlyList<RecognitionStrategySelection> RecognitionStrategies { get; set; } = [];
-
-    [ObservableProperty]
-    public partial RecognitionStrategySelection? SelectedRecognitionStrategy { get; set; }
 
     [ObservableProperty]
     public partial bool IsOcrRecognitionEngine { get; set; } = true;
@@ -277,30 +265,26 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial int RecognitionVisualBufferMilliseconds { get; set; }
 
-    // 已移除 llama.cpp 运行时调优入口。
     [ObservableProperty]
-    public partial string AiStageDetectionResult { get; set; } = "-";
+    public partial string StageDetectionResult { get; set; } = "-";
 
     [ObservableProperty]
-    public partial string AiGuidanceSnapshot { get; set; } = "-";
+    public partial string GuidanceSnapshot { get; set; } = "-";
 
     [ObservableProperty]
-    public partial string AiCandidateOperations { get; set; } = "-";
+    public partial string CandidateOperations { get; set; } = "-";
 
     [ObservableProperty]
-    public partial BitmapSource? AiPhaseCropPreview { get; set; }
+    public partial BitmapSource? PhaseCropPreview { get; set; }
 
     [ObservableProperty]
-    public partial BitmapSource? AiFocusedCropPreview { get; set; }
+    public partial BitmapSource? FocusedCropPreview { get; set; }
 
     [ObservableProperty]
-    public partial string AiCropDebugInfo { get; set; } = "-";
+    public partial string CropDebugInfo { get; set; } = "-";
 
     [ObservableProperty]
     public partial string RecognitionSpeedTestStatus { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string CurrentRecognitionEngineText { get; set; } = "-";
 
     [ObservableProperty]
     public partial int CurrentRecognitionIntervalMs { get; set; }
@@ -312,10 +296,10 @@ public partial class SmartBpModuleContentViewModel
     public partial string RecognitionIntervalEditHint { get; set; } = "-";
 
     [ObservableProperty]
-    public partial string AiSceneDiagnostics { get; set; } = "-";
+    public partial string SceneDiagnostics { get; set; } = "-";
 
     [ObservableProperty]
-    public partial string AiRequestMetrics { get; set; } = "-";
+    public partial string RequestMetrics { get; set; } = "-";
 
     [ObservableProperty]
     public partial bool IsRecognitionSpeedTesting { get; set; }
@@ -324,17 +308,17 @@ public partial class SmartBpModuleContentViewModel
     public partial bool IsRecognitionIntervalEditable { get; set; }
 
     [ObservableProperty]
-    public partial string AiGpuName { get; set; } = "not available";
+    public partial string GpuName { get; set; } = "not available";
 
     [ObservableProperty]
-    public partial string AiGpuUtilization { get; set; } = "not available";
+    public partial string GpuUtilization { get; set; } = "not available";
 
     [ObservableProperty]
-    public partial string AiVramUsage { get; set; } = "not available";
+    public partial string VramUsage { get; set; } = "not available";
 
 
     [ObservableProperty]
-    public partial string AiPerformanceUpdatedAt { get; set; } = "-";
+    public partial string PerformanceUpdatedAt { get; set; } = "-";
 
     [ObservableProperty]
     public partial string DebugStrategySummary { get; set; } = "-";
@@ -344,9 +328,6 @@ public partial class SmartBpModuleContentViewModel
 
     [ObservableProperty]
     public partial string DebugFinalBusinessState { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial string DebugFusionSummary { get; set; } = "-";
 
     [ObservableProperty]
     public partial string DebugPhaseScene { get; set; } = "-";
@@ -365,9 +346,6 @@ public partial class SmartBpModuleContentViewModel
     public partial string DebugCandidateOperations { get; set; } = "-";
 
     [ObservableProperty]
-    public partial string DebugServerStatus { get; set; } = "-";
-
-    [ObservableProperty]
     public partial string DebugTiming { get; set; } = "-";
 
     [ObservableProperty]
@@ -377,7 +355,7 @@ public partial class SmartBpModuleContentViewModel
     public partial bool IsRecognitionDebugLogAutoScrollEnabled { get; set; } = true;
 
     // 已移除本地视觉模型服务状态展示。
-    private SmartBpRecognitionLayoutProfile? _aiRegionProfile;
+    private SmartBpRecognitionLayoutProfile? _regionProfile;
 
     /// <summary>是否显示 Tesseract 语言数据下载详情。</summary>
     public bool HasTesseractDownloadDetail => !string.IsNullOrWhiteSpace(TesseractDownloadDetail);
@@ -388,23 +366,15 @@ public partial class SmartBpModuleContentViewModel
     /// <summary>
     /// 初始化 AI/BP 自动识别页面状态、下载事件、调试日志缓冲和后台刷新计时器。
     /// </summary>
-    private void InitializeAiRecognition()
+    private void InitializeRecognition()
     {
-        SelectedAiTestFrame = AiTestFrames[0];
-        RecognitionStrategies =
-        [
-            new(SmartBpRecognitionStrategy.PureOcr, "SmartBpRecognitionStrategyPureOcr")
-        ];
-        SelectedRecognitionStrategy = RecognitionStrategies.FirstOrDefault(x => x.Strategy == _recognitionSettingsService.Settings.RecognitionStrategy)
-                                      ?? RecognitionStrategies.FirstOrDefault();
+        SelectedTestFrame = TestFrames[0];
         RefreshRecognitionEngineVisibility();
         EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         EnableAutoGuidancePageNavigation = _recognitionSettingsService.Settings.EnableAutoGuidancePageNavigation;
         EnableSmartBpProgressAutoCorrection = _recognitionSettingsService.Settings.EnableSmartBpProgressAutoCorrection;
         RecognitionApplyMode = _recognitionSettingsService.Settings.RecognitionApplyMode;
-        AiOneStepDelayedMode = _recognitionSettingsService.Settings.AiOneStepDelayedMode;
-        AiUnknownPhaseTalentInferenceFrames = _recognitionSettingsService.Settings.AiUnknownPhaseTalentInferenceFrames;
         PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
         EnableOcrBpRecognition = _recognitionSettingsService.Settings.EnableOcrBpRecognition;
@@ -455,7 +425,7 @@ public partial class SmartBpModuleContentViewModel
         RefreshRecognitionTimerInterval();
         RefreshRecognitionSpeedTestValidity();
         // 自动循环 Tick 只负责调度当前帧识别，具体阶段门禁和写回保护在 coordinator 内完成。
-        _aiPreviewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
+        _previewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
         _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsRapidOcrDownloading = state.IsDownloading;
@@ -463,10 +433,10 @@ public partial class SmartBpModuleContentViewModel
             RapidOcrDownloadDetail = state.IsDownloading || !string.IsNullOrWhiteSpace(state.ErrorMessage)
                 ? FormatDownloadState(state)
                 : string.Empty;
-            if (!string.IsNullOrWhiteSpace(state.ErrorMessage)) AiLastError = RapidOcrDownloadDetail;
+            if (!string.IsNullOrWhiteSpace(state.ErrorMessage)) LastError = RapidOcrDownloadDetail;
             if (!state.IsDownloading) _ = RefreshRapidOcrStatusAsync();
         });
-        _aiDebugLog.MessageWritten += (_, message) =>
+        _debugLog.MessageWritten += (_, message) =>
         {
             lock (_debugLogBufferLock)
                 _debugLogBuffer.AppendFormat("[{0:HH:mm:ss.fff}] [{1}] {2}{3}",
@@ -475,30 +445,30 @@ public partial class SmartBpModuleContentViewModel
         _debugLogFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
         _debugLogFlushTimer.Tick += (_, _) => FlushDebugLogBuffer();
         _debugLogFlushTimer.Start();
-        _aiDebugLog.Write("SmartBP", "AI recognition diagnostics initialized.");
+        _debugLog.Write("SmartBP", "Recognition diagnostics initialized.");
         _tesseractDataAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsTesseractDataDownloading = state.IsDownloading;
             TesseractDownloadProgress = state.Progress ?? 0;
             TesseractDownloadDetail = FormatDownloadState(state);
             if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
-                AiLastError = TesseractDownloadDetail;
+                LastError = TesseractDownloadDetail;
             if (!state.IsDownloading) _ = RefreshTesseractDataStatusAsync();
         });
-        _ = LoadAiRegionProfileAsync();
+        _ = LoadRegionProfileAsync();
     }
 
     /// <summary>
     /// 从配置服务加载 BP 自动识别区域配置档。
     /// </summary>
     /// <returns>加载任务。</returns>
-    private async Task LoadAiRegionProfileAsync()
+    private async Task LoadRegionProfileAsync()
     {
         try
         {
-            _aiRegionProfile = await _aiRegionProfileService.LoadAsync();
+            _regionProfile = await _aiRegionProfileService.LoadAsync();
         }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        catch (Exception ex) { LastError = ex.Message; }
     }
 
     /// <summary>
@@ -506,17 +476,17 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     /// <returns>编辑流程完成后的任务。</returns>
     [RelayCommand]
-    private async Task OpenAiRecognitionRegionEditorAsync()
+    private async Task OpenRecognitionRegionEditorAsync()
     {
         try
         {
-            _aiRegionProfile ??= await _aiRegionProfileService.LoadAsync();
+            _regionProfile ??= await _aiRegionProfileService.LoadAsync();
 
             var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: false);
             if (frame == null)
                 return;
 
-            var editor = new RegionEditorWindow(frame, BuildAiRegionEditorLayout(_aiRegionProfile))
+            var editor = new RegionEditorWindow(frame, BuildRegionEditorLayout(_regionProfile))
             {
                 Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(window => window.IsActive)
                         ?? Application.Current?.MainWindow
@@ -524,14 +494,14 @@ public partial class SmartBpModuleContentViewModel
             if (editor.ShowDialog() != true || editor.ResultLayout == null)
                 return;
 
-            ApplyAiRegionEditorLayout(_aiRegionProfile, editor.ResultLayout);
-            await _aiRegionProfileService.SaveUserOverrideAsync(_aiRegionProfile);
-            await LoadAiRegionProfileAsync();
-            AiCropDebugInfo = ResolveLocalizedOrRaw("SmartBpAiRegionProfileSaved");
+            ApplyRegionEditorLayout(_regionProfile, editor.ResultLayout);
+            await _aiRegionProfileService.SaveUserOverrideAsync(_regionProfile);
+            await LoadRegionProfileAsync();
+            CropDebugInfo = ResolveLocalizedOrRaw("SmartBpRegionProfileSaved");
         }
         catch (Exception ex)
         {
-            AiLastError = ex.Message;
+            LastError = ex.Message;
             await MessageBoxHelper.ShowErrorAsync(FormatLocalizedDetail("SmartBpOperationFailedFormat", ex.Message));
         }
     }
@@ -541,19 +511,19 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     /// <returns>重置流程完成后的任务。</returns>
     [RelayCommand]
-    private async Task ResetAiRecognitionLayoutProfileAsync()
+    private async Task ResetRecognitionLayoutProfileAsync()
     {
         try
         {
             await _aiRegionProfileService.ResetUserOverrideAsync();
-            await LoadAiRegionProfileAsync();
-            AiCropDebugInfo = ResolveLocalizedOrRaw("SmartBpAiRegionProfileReset");
+            await LoadRegionProfileAsync();
+            CropDebugInfo = ResolveLocalizedOrRaw("SmartBpRegionProfileReset");
             await MessageBoxHelper.ShowInfoAsync(
-                ResolveLocalizedOrRaw("SmartBpAiRegionProfileReset"),
+                ResolveLocalizedOrRaw("SmartBpRegionProfileReset"),
                 ResolveLocalizedOrRaw("SmartBpNotification"),
                 ResolveLocalizedOrRaw("SmartBpClose"));
         }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        catch (Exception ex) { LastError = ex.Message; }
     }
 
     /// <summary>
@@ -572,7 +542,7 @@ public partial class SmartBpModuleContentViewModel
             var imagePath = Path.Combine(_smartBpModuleStorage.ModuleRoot, "Resources", "SmartBp", "BpRecognitionRegionExample.png");
             if (!File.Exists(imagePath))
             {
-                AiLastError = imagePath;
+                LastError = imagePath;
                 await MessageBoxHelper.ShowErrorAsync(FormatLocalizedDetail("SmartBpOperationFailedFormat", imagePath));
                 return;
             }
@@ -633,7 +603,7 @@ public partial class SmartBpModuleContentViewModel
         }
         catch (Exception ex)
         {
-            AiLastError = ex.Message;
+            LastError = ex.Message;
             await MessageBoxHelper.ShowErrorAsync(FormatLocalizedDetail("SmartBpOperationFailedFormat", ex.Message));
         }
     }
@@ -643,10 +613,10 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     /// <param name="profile">BP 自动识别区域配置档。</param>
     /// <returns>区域编辑器布局。</returns>
-    private RegionLayoutDefinition BuildAiRegionEditorLayout(SmartBpRecognitionLayoutProfile profile)
+    private RegionLayoutDefinition BuildRegionEditorLayout(SmartBpRecognitionLayoutProfile profile)
     {
-        var layout = RegionLayoutDefinition.Builder(ResolveLocalizedOrRaw("SmartBpAiRegionEditor"));
-        foreach (var (id, labelKey) in AiRegionEditorNodes)
+        var layout = RegionLayoutDefinition.Builder(ResolveLocalizedOrRaw("SmartBpRegionEditor"));
+        foreach (var (id, labelKey) in RegionEditorNodes)
         {
             if (!profile.Regions.TryGetValue(id, out var rect))
                 throw new InvalidDataException($"Missing SmartBP AI recognition region: {id}.");
@@ -669,12 +639,12 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     /// <param name="profile">待更新的 BP 自动识别区域配置档。</param>
     /// <param name="editedLayout">区域编辑器输出布局。</param>
-    private static void ApplyAiRegionEditorLayout(
+    private static void ApplyRegionEditorLayout(
         SmartBpRecognitionLayoutProfile profile,
         RegionLayoutDefinition editedLayout)
     {
         var nodes = editedLayout.Roots.ToDictionary(node => node.Id, StringComparer.Ordinal);
-        foreach (var (id, _) in AiRegionEditorNodes)
+        foreach (var (id, _) in RegionEditorNodes)
         {
             if (!nodes.TryGetValue(id, out var node))
                 throw new InvalidDataException($"Edited SmartBP AI recognition layout is missing region: {id}.");
@@ -692,27 +662,27 @@ public partial class SmartBpModuleContentViewModel
     /// <summary>
     /// BP 自动识别区域编辑器中暴露给用户调整的区域节点。
     /// </summary>
-    private static readonly (string Id, string LabelKey)[] AiRegionEditorNodes =
+    private static readonly (string Id, string LabelKey)[] RegionEditorNodes =
     [
-        ("phase_top", "SmartBpAiRegionPhaseTop"),
-        ("top_center_status", "SmartBpAiRegionTopCenterStatus"),
-        ("top_left_status", "SmartBpAiRegionTopLeftStatus"),
-        ("left_top", "SmartBpAiRegionLeftTop"),
-        ("right_top", "SmartBpAiRegionRightTop"),
-        ("left_bottom", "SmartBpAiRegionLeftBottom"),
-        ("right_bottom", "SmartBpAiRegionRightBottom")
+        ("phase_top", "SmartBpRegionPhaseTop"),
+        ("top_center_status", "SmartBpRegionTopCenterStatus"),
+        ("top_left_status", "SmartBpRegionTopLeftStatus"),
+        ("left_top", "SmartBpRegionLeftTop"),
+        ("right_top", "SmartBpRegionRightTop"),
+        ("left_bottom", "SmartBpRegionLeftBottom"),
+        ("right_bottom", "SmartBpRegionRightBottom")
     ];
 
     // 本模块仅提供 OCR 识别；下列本地视觉模型管理实现已停止注册。
     [RelayCommand]
-    private void ClearAiDebugLog()
+    private void ClearDebugLog()
     {
         lock (_debugLogBufferLock)
             _debugLogBuffer.Clear();
-        AiDebugLogText = "";
+        DebugLogText = "";
     }
 
-    /// <summary>将缓冲的日志消息写入 <see cref="AiDebugLogText"/> 并清空缓冲区。</summary>
+    /// <summary>将缓冲的日志消息写入 <see cref="DebugLogText"/> 并清空缓冲区。</summary>
     private void FlushDebugLogBuffer()
     {
         string batch;
@@ -724,18 +694,18 @@ public partial class SmartBpModuleContentViewModel
         }
 
         const int maximumCharacters = 60000;
-        var newText = AiDebugLogText + batch;
+        var newText = DebugLogText + batch;
         if (newText.Length > maximumCharacters)
         {
             var firstLineBreak = newText.IndexOf(Environment.NewLine, newText.Length - maximumCharacters, StringComparison.Ordinal);
             newText = firstLineBreak >= 0 ? newText[(firstLineBreak + Environment.NewLine.Length)..] : newText[^maximumCharacters..];
         }
-        AiDebugLogText = newText;
+        DebugLogText = newText;
     }
 
     partial void OnIsDebugLogEnabledChanged(bool value)
     {
-        _aiDebugLog.IsEnabled = value;
+        _debugLog.IsEnabled = value;
     }
 
     private void RefreshRecognitionEngineVisibility()
@@ -750,7 +720,7 @@ public partial class SmartBpModuleContentViewModel
     private void RefreshRecognitionTimerInterval()
     {
         var interval = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
-        _aiPreviewTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(interval, 100, 5000));
+        _previewTimer.Interval = TimeSpan.FromMilliseconds(Math.Clamp(interval, 100, 5000));
     }
 
     [RelayCommand]
@@ -761,7 +731,7 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var elapsed = new List<long>();
-            var testFrame = SelectedAiTestFrame ?? AiTestFrames.FirstOrDefault();
+            var testFrame = SelectedTestFrame ?? TestFrames.FirstOrDefault();
             if (testFrame == null) throw new InvalidOperationException("No SmartBP recognition test frame is available.");
             var frame = LoadTestFrame(testFrame);
             var watch = Stopwatch.StartNew();
@@ -791,7 +761,7 @@ public partial class SmartBpModuleContentViewModel
     private string GetRecognitionSpeedFingerprint()
     {
         var s = _recognitionSettingsService.Settings;
-        return $"{s.RecognitionStrategy}|{s.SelectedOcrProviderMode}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.SelectedRapidOcrModelId}|{s.RapidOcrPadding}|{s.RapidOcrMaxSideLen}|{s.RapidOcrBoxScoreThreshold}|{s.RapidOcrBoxThreshold}|{s.RapidOcrUnclipRatio}|{s.RapidOcrUseAngleClassifier}|{s.RapidOcrUsePreprocessingVariants}";
+        return $"{s.SelectedOcrProviderMode}|{s.UseOcrContactSheet}|{s.TesseractLanguages}|{s.TesseractDefaultPsm}|{s.TesseractMaxPreprocessVariants}|{s.SelectedRapidOcrModelId}|{s.RapidOcrPadding}|{s.RapidOcrMaxSideLen}|{s.RapidOcrBoxScoreThreshold}|{s.RapidOcrBoxThreshold}|{s.RapidOcrUnclipRatio}|{s.RapidOcrUseAngleClassifier}|{s.RapidOcrUsePreprocessingVariants}";
     }
 
     private void RefreshRecognitionSpeedTestValidity()
@@ -800,7 +770,6 @@ public partial class SmartBpModuleContentViewModel
         IsRecognitionIntervalEditable = string.Equals(
             settings.LastRecognitionSpeedTestConfigurationHash,
             GetRecognitionSpeedFingerprint(), StringComparison.Ordinal);
-        CurrentRecognitionEngineText = settings.RecognitionStrategy.ToString();
         CurrentRecognitionIntervalMs = settings.OcrRecognitionIntervalMs;
         MinimumRecognitionIntervalMs = settings.MinimumOcrRecognitionIntervalMs;
         RecognitionIntervalEditHint = IsRecognitionIntervalEditable
@@ -809,13 +778,13 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private async Task RecognizeSelectedTestFrameAsync()
     {
-        if (SelectedAiTestFrame == null) return;
+        if (SelectedTestFrame == null) return;
         try
         {
-            var frame = LoadTestFrame(SelectedAiTestFrame);
+            var frame = LoadTestFrame(SelectedTestFrame);
             await RunFullStrategyRecognitionCoreAsync(frame);
         }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        catch (Exception ex) { LastError = ex.Message; }
     }
     [RelayCommand] private Task RecognizeCurrentCaptureFrameAsync() => RecognizeCurrentFrameCoreAsync();
     [RelayCommand]
@@ -825,7 +794,7 @@ public partial class SmartBpModuleContentViewModel
         if (frame == null) return;
         try
         {
-            IsAiRecognizing = true;
+            IsRecognizing = true;
             var snapshot = await _autoRecognitionCoordinator.RecognizeFullBpSnapshotAsync(frame, mergeIntoStateStore: true);
             if (snapshot.BusinessState == null)
             {
@@ -838,8 +807,8 @@ public partial class SmartBpModuleContentViewModel
             var result = await _gameStateSyncService.ForceSyncAsync(snapshot.BusinessState);
             ApplyRegionGatedResult(snapshot);
             LastSmartBpProgressDiagnosis = FormatGameStateSyncResult(result);
-            AiCandidateOperations = string.Join(Environment.NewLine, result.Diagnostics);
-            AiNormalizedResult = AiCandidateOperations;
+            CandidateOperations = string.Join(Environment.NewLine, result.Diagnostics);
+            NormalizedResult = CandidateOperations;
             ShowForceSyncGameStateInfoBar(result);
         }
         catch (OperationCanceledException)
@@ -850,22 +819,22 @@ public partial class SmartBpModuleContentViewModel
         }
         catch (Exception ex)
         {
-            AiLastError = ex.ToString();
+            LastError = ex.ToString();
             var message = FormatLocalizedDetail("SmartBpProgressForceSyncFailedFormat", ex.Message);
             LastSmartBpProgressDiagnosis = message;
             _infoBarService.ShowErrorInfoBar(message);
         }
         finally
         {
-            IsAiRecognizing = false;
+            IsRecognizing = false;
         }
     }
 
     [RelayCommand] private async Task RecognizeIncrementalSelectedTestFrameAsync()
     {
-        if (SelectedAiTestFrame == null) return;
-        try { await RunIncrementalRecognitionCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        if (SelectedTestFrame == null) return;
+        try { await RunIncrementalRecognitionCoreAsync(LoadTestFrame(SelectedTestFrame)); }
+        catch (Exception ex) { LastError = ex.Message; }
     }
     [RelayCommand] private async Task RecognizeIncrementalCurrentCaptureFrameAsync()
     {
@@ -875,9 +844,9 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private async Task DetectStageFromSelectedTestFrameAsync()
     {
-        if (SelectedAiTestFrame == null) return;
-        try { await RunPhaseOnlyRecognitionCoreAsync(LoadTestFrame(SelectedAiTestFrame)); }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        if (SelectedTestFrame == null) return;
+        try { await RunPhaseOnlyRecognitionCoreAsync(LoadTestFrame(SelectedTestFrame)); }
+        catch (Exception ex) { LastError = ex.Message; }
     }
     [RelayCommand] private async Task DetectStageFromCurrentCaptureFrameAsync()
     {
@@ -887,11 +856,11 @@ public partial class SmartBpModuleContentViewModel
     }
     [RelayCommand] private Task RunAutomaticOneTickAsync() => RunAutomaticCurrentFrameCoreAsync();
     /// <summary>
-    /// 启动自动识别循环，并在需要时启动对应 llama.cpp 服务。
+    /// 启动自动识别循环。
     /// </summary>
     /// <returns>启动流程完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanStartAutomaticRecognition))]
-    private async Task StartAiPreviewLoopAsync()
+    private async Task StartPreviewLoopAsync()
     {
         var frame = await GetValidatedCurrentFrameAsync(requireOcrReady: true);
         if (frame == null) { NotifyAutomaticRecognitionCommands(); return; }
@@ -906,16 +875,16 @@ public partial class SmartBpModuleContentViewModel
             await _autoRecognitionCoordinator.StartAsync();
             _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
             _automaticRecognitionUnavailableFrameCount = 0;
-            IsAiPreviewLoopRunning = true;
-            _aiPreviewTimer.Start();
-            _autoRecognitionGlobalControl.Update(true, _ => StopAiPreviewLoopAsync());
+            IsPreviewLoopRunning = true;
+            _previewTimer.Start();
+            _autoRecognitionGlobalControl.Update(true, _ => StopPreviewLoopAsync());
         }
         catch (Exception ex)
         {
-            _aiPreviewTimer.Stop();
-            IsAiPreviewLoopRunning = false;
+            _previewTimer.Stop();
+            IsPreviewLoopRunning = false;
             _autoRecognitionGlobalControl.Update(false);
-            AiLastError = ex.ToString();
+            LastError = ex.ToString();
         }
         finally
         {
@@ -928,13 +897,13 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     /// <returns>停止流程完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanStopAutomaticRecognition))]
-    private async Task StopAiPreviewLoopAsync()
+    private async Task StopPreviewLoopAsync()
     {
         _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
         _automaticRecognitionUnavailableFrameCount = 0;
-        _aiPreviewTimer.Stop();
+        _previewTimer.Stop();
         await _autoRecognitionCoordinator.StopAsync();
-        IsAiPreviewLoopRunning = false;
+        IsPreviewLoopRunning = false;
         _autoRecognitionGlobalControl.Update(false);
         NotifyAutomaticRecognitionCommands();
     }
@@ -942,20 +911,20 @@ public partial class SmartBpModuleContentViewModel
     /// <summary>
     /// 判断当前是否允许启动自动识别循环。
     /// </summary>
-    private bool CanStartAutomaticRecognition() => !IsAiPreviewLoopRunning && !IsAiRecognizing;
+    private bool CanStartAutomaticRecognition() => !IsPreviewLoopRunning && !IsRecognizing;
 
     /// <summary>
     /// 判断当前是否允许停止自动识别循环。
     /// </summary>
-    private bool CanStopAutomaticRecognition() => IsAiPreviewLoopRunning || IsAiRecognizing;
+    private bool CanStopAutomaticRecognition() => IsPreviewLoopRunning || IsRecognizing;
 
     /// <summary>
     /// 刷新自动识别启动/停止命令状态。
     /// </summary>
     private void NotifyAutomaticRecognitionCommands()
     {
-        StartAiPreviewLoopCommand.NotifyCanExecuteChanged();
-        StopAiPreviewLoopCommand.NotifyCanExecuteChanged();
+        StartPreviewLoopCommand.NotifyCanExecuteChanged();
+        StopPreviewLoopCommand.NotifyCanExecuteChanged();
         StopCaptureCommand.NotifyCanExecuteChanged();
     }
 
@@ -969,12 +938,12 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var languages = GetSelectedTesseractLanguages();
-            if (languages.Length == 0) { AiLastError = ResolveLocalizedOrRaw("SmartBpTesseractNoLanguageSelected"); return; }
+            if (languages.Length == 0) { LastError = ResolveLocalizedOrRaw("SmartBpTesseractNoLanguageSelected"); return; }
             TesseractLanguages = string.Join('+', languages);
             await _tesseractDataAssetManager.InstallLanguagesAsync(languages);
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { AiLastError = ex.ToString(); }
+        catch (Exception ex) { LastError = ex.ToString(); }
     }
 
     /// <summary>
@@ -996,7 +965,7 @@ public partial class SmartBpModuleContentViewModel
         }
         catch (Exception ex)
         {
-            AiLastError = ex.ToString();
+            LastError = ex.ToString();
             TesseractDownloadDetail = ex.ToString();
         }
     }
@@ -1011,11 +980,11 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var languages = GetSelectedTesseractLanguages();
-            if (languages.Length == 0) { AiLastError = ResolveLocalizedOrRaw("SmartBpTesseractNoLanguageSelected"); return; }
+            if (languages.Length == 0) { LastError = ResolveLocalizedOrRaw("SmartBpTesseractNoLanguageSelected"); return; }
             await _tesseractDataAssetManager.DeleteAsync(languages);
             await RefreshTesseractDataStatusAsync();
         }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        catch (Exception ex) { LastError = ex.Message; }
     }
 
     /// <summary>
@@ -1065,7 +1034,7 @@ public partial class SmartBpModuleContentViewModel
             await RefreshRapidOcrStatusAsync();
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        catch (Exception ex) { LastError = ex.Message; }
     }
 
     /// <summary>
@@ -1087,7 +1056,7 @@ public partial class SmartBpModuleContentViewModel
             await _rapidOcrModelAssetManager.DeleteAsync(SelectedRapidOcrModelProfile.Id);
             await RefreshRapidOcrStatusAsync();
         }
-        catch (Exception ex) { AiLastError = ex.Message; }
+        catch (Exception ex) { LastError = ex.Message; }
     }
 
     /// <summary>
@@ -1187,7 +1156,7 @@ public partial class SmartBpModuleContentViewModel
         catch (Exception ex)
         {
             RapidOcrDownloadDetail = ex.Message;
-            AiLastError = ex.Message;
+            LastError = ex.Message;
         }
         finally
         {
@@ -1232,34 +1201,34 @@ public partial class SmartBpModuleContentViewModel
 
         _automaticRecognitionUnavailableFrameCount = 0;
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
-        IsAiRecognizing = true; AiLastError = "";
+        IsRecognizing = true; LastError = "";
         try
         {
             var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
             ApplyRegionGatedResult(result);
-            if (result.SceneGate?.ShouldPauseAutomaticRecognition == true && IsAiPreviewLoopRunning)
+            if (result.SceneGate?.ShouldPauseAutomaticRecognition == true && IsPreviewLoopRunning)
             {
                 await RequestStopAutomaticRecognitionAfterQueueDrainedAsync(result);
             }
         }
         catch (OperationCanceledException) { }
-        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+        finally { IsRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
     private async Task StopAutomaticRecognitionForCaptureIssueAsync(string messageKey)
     {
         var message = ResolveLocalizedOrRaw(messageKey);
-        _aiPreviewTimer.Stop();
+        _previewTimer.Stop();
         await _autoRecognitionCoordinator.StopAsync();
-        IsAiPreviewLoopRunning = false;
-        IsAiRecognizing = false;
+        IsPreviewLoopRunning = false;
+        IsRecognizing = false;
         _autoRecognitionGlobalControl.Update(false);
         _automaticRecognitionUnavailableFrameCount = 0;
-        AiLastError = message;
-        AiSceneDiagnostics = string.IsNullOrWhiteSpace(AiSceneDiagnostics)
+        LastError = message;
+        SceneDiagnostics = string.IsNullOrWhiteSpace(SceneDiagnostics)
             ? message
-            : AiSceneDiagnostics + Environment.NewLine + message;
-        _aiDebugLog.Write("recognition", message);
+            : SceneDiagnostics + Environment.NewLine + message;
+        _debugLog.Write("recognition", message);
         NotifyAutomaticRecognitionCommands();
         await MessageBoxHelper.ShowInfoAsync(message);
     }
@@ -1270,7 +1239,7 @@ public partial class SmartBpModuleContentViewModel
             return;
 
         _isAutomaticRecognitionStopPendingAfterQueueDrain = true;
-        _aiPreviewTimer.Stop();
+        _previewTimer.Stop();
         var phase = result.PhaseResult?.Phase ?? result.BusinessState?.Phase ?? "未知";
         var scene = result.SceneGate?.Scene.ToString() ?? "Unknown";
         var pendingMessage =
@@ -1278,10 +1247,10 @@ public partial class SmartBpModuleContentViewModel
             "Character BP has ended; no new recognition ticks will be scheduled." + Environment.NewLine +
             "Automatic recognition stop is queued after pending operations drain." + Environment.NewLine +
             "Skipped content field recognition because BP ended.";
-        AiSceneDiagnostics = string.IsNullOrWhiteSpace(AiSceneDiagnostics)
+        SceneDiagnostics = string.IsNullOrWhiteSpace(SceneDiagnostics)
             ? pendingMessage
-            : AiSceneDiagnostics + Environment.NewLine + pendingMessage;
-        _aiDebugLog.Write("recognition", pendingMessage);
+            : SceneDiagnostics + Environment.NewLine + pendingMessage;
+        _debugLog.Write("recognition", pendingMessage);
 
         await CompleteAutomaticRecognitionAfterQueueDrainedAsync("SmartBpCharacterBpEnded");
     }
@@ -1290,76 +1259,76 @@ public partial class SmartBpModuleContentViewModel
     {
         await _autoRecognitionCoordinator.CompleteAsync();
         _gameGuidanceService.CompleteGuidance(reason);
-        IsAiPreviewLoopRunning = false;
+        IsPreviewLoopRunning = false;
         _autoRecognitionGlobalControl.Update(false);
         _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
         var completedMessage =
             $"Pending BP operation queue drained.{Environment.NewLine}" +
             $"Automatic recognition stopped.{Environment.NewLine}" +
             $"GameGuidance completed with reason={reason}.";
-        AiSceneDiagnostics = string.IsNullOrWhiteSpace(AiSceneDiagnostics)
+        SceneDiagnostics = string.IsNullOrWhiteSpace(SceneDiagnostics)
             ? completedMessage
-            : AiSceneDiagnostics + Environment.NewLine + completedMessage;
-        _aiDebugLog.Write("recognition", completedMessage);
-        AiLastError = ResolveLocalizedOrRaw("SmartBpRecognitionPausedBpEnded");
+            : SceneDiagnostics + Environment.NewLine + completedMessage;
+        _debugLog.Write("recognition", completedMessage);
+        LastError = ResolveLocalizedOrRaw("SmartBpRecognitionPausedBpEnded");
         NotifyAutomaticRecognitionCommands();
     }
 
     private async Task RunRegionGatedFrameCoreAsync(BitmapSource frame)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
-        IsAiRecognizing = true; AiLastError = "";
+        IsRecognizing = true; LastError = "";
         try
         {
             var result = await _autoRecognitionCoordinator.RunOneTickAsync(frame);
             ApplyRegionGatedResult(result);
         }
-        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+        finally { IsRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
     private async Task RunFullStrategyRecognitionCoreAsync(BitmapSource frame)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
-        IsAiRecognizing = true; AiLastError = "";
+        IsRecognizing = true; LastError = "";
         try
         {
             DebugModeSummary = "FullImage";
             var result = await _autoRecognitionCoordinator.RunFullRecognitionDebugAsync(frame);
             ApplyRegionGatedResult(result);
         }
-        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+        finally { IsRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
     private async Task RunPhaseOnlyRecognitionCoreAsync(BitmapSource frame)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
-        IsAiRecognizing = true; AiLastError = "";
+        IsRecognizing = true; LastError = "";
         try
         {
             DebugModeSummary = "PhaseOnly";
             var result = await _autoRecognitionCoordinator.RunPhaseOnlyDebugAsync(frame);
             ApplyRegionGatedResult(result);
         }
-        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+        finally { IsRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
     private async Task RunIncrementalRecognitionCoreAsync(BitmapSource frame)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
-        IsAiRecognizing = true; AiLastError = "";
+        IsRecognizing = true; LastError = "";
         try
         {
             DebugModeSummary = "CurrentStageIncremental";
             var result = await _autoRecognitionCoordinator.RunIncrementalRecognitionDebugAsync(frame);
             ApplyRegionGatedResult(result);
         }
-        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+        finally { IsRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
     private async Task RunOcrSelectedTestFrameCoreAsync(BitmapSource frame, SmartBpRecognitionTask task)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
-        IsAiRecognizing = true; AiLastError = "";
+        IsRecognizing = true; LastError = "";
         try
         {
             var watch = Stopwatch.StartNew();
@@ -1367,39 +1336,39 @@ public partial class SmartBpModuleContentViewModel
             var result = await _ocrBpRecognitionService.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(regions));
             watch.Stop();
 
-            AiRawResponse = FormatOcrRawLines(result);
-            AiStageDetectionResult = FormatBusinessState(result.BusinessState);
-            AiGuidanceSnapshot = FormatGuidance(_gameGuidanceService.GetRuntimeSnapshot(), "OCR selected test frame uses direct OCR regions.");
-            AiCandidateOperations = string.Join(Environment.NewLine, result.Diagnostics);
-            AiParsedVisualResult = AiStageDetectionResult;
-            AiNormalizedResult = AiCandidateOperations;
-            AiPhaseCropPreview = null;
-            AiFocusedCropPreview = null;
-            AiCropDebugInfo = $"OCR selected test frame task={task}; regions=[{string.Join(", ", regions.Select(GetRecognitionRegionId))}]";
-            AiSceneDiagnostics = "OCR selected test frame bypasses automatic scene gating.";
-            AiRequestMetrics = $"OCR request elapsed: {watch.ElapsedMilliseconds}ms; regions=[{string.Join(", ", regions.Select(GetRecognitionRegionId))}]";
-            AiLastError = "";
+            RawResponse = FormatOcrRawLines(result);
+            StageDetectionResult = FormatBusinessState(result.BusinessState);
+            GuidanceSnapshot = FormatGuidance(_gameGuidanceService.GetRuntimeSnapshot(), "OCR selected test frame uses direct OCR regions.");
+            CandidateOperations = string.Join(Environment.NewLine, result.Diagnostics);
+            ParsedVisualResult = StageDetectionResult;
+            NormalizedResult = CandidateOperations;
+            PhaseCropPreview = null;
+            FocusedCropPreview = null;
+            CropDebugInfo = $"OCR selected test frame task={task}; regions=[{string.Join(", ", regions.Select(GetRecognitionRegionId))}]";
+            SceneDiagnostics = "OCR selected test frame bypasses automatic scene gating.";
+            RequestMetrics = $"OCR request elapsed: {watch.ElapsedMilliseconds}ms; regions=[{string.Join(", ", regions.Select(GetRecognitionRegionId))}]";
+            LastError = "";
         }
-        finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
+        finally { IsRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
     private void ApplyRegionGatedResult(SmartBpAutoRecognitionTickResult result)
     {
         RefreshStrategyDebugSections(result);
-        AiRawResponse = result.RawJson;
-        AiStageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
-        AiGuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
-        AiCandidateOperations = FormatAutomaticOperations(result);
+        RawResponse = result.RawJson;
+        StageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
+        GuidanceSnapshot = FormatGuidance(result.GuidanceSnapshot, result.GuidanceSync?.Reason);
+        CandidateOperations = FormatAutomaticOperations(result);
         LastSmartBpProgressDiagnosis = FormatProgressDiagnosis(result);
-        AiParsedVisualResult = AiStageDetectionResult;
-        AiNormalizedResult = AiCandidateOperations;
-        AiPhaseCropPreview = result.PhaseCrop?.Image;
-        AiFocusedCropPreview = result.ContentCrops?.LastOrDefault()?.Image ?? result.FocusedCrop?.Image;
-        AiCropDebugInfo = FormatCropDebugInfo(result);
-        AiSceneDiagnostics = result.SceneGate == null ? "-" :
+        ParsedVisualResult = StageDetectionResult;
+        NormalizedResult = CandidateOperations;
+        PhaseCropPreview = result.PhaseCrop?.Image;
+        FocusedCropPreview = result.ContentCrops?.LastOrDefault()?.Image ?? result.FocusedCrop?.Image;
+        CropDebugInfo = FormatCropDebugInfo(result);
+        SceneDiagnostics = result.SceneGate == null ? "-" :
             $"Scene: {result.SceneGate.Scene}{Environment.NewLine}BP recognition allowed: {result.SceneGate.IsBpRecognitionAllowed}{Environment.NewLine}Character operations allowed: {result.SceneGate.IsCharacterOperationAllowed}{Environment.NewLine}Action: {(result.SceneGate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}{Environment.NewLine}Reason: {result.SceneGate.Reason}";
-        AiRequestMetrics = FormatRecognitionTiming();
-        AiLastError = result.Error ?? "";
+        RequestMetrics = FormatRecognitionTiming();
+        LastError = result.Error ?? "";
         RefreshRecognitionDebugLogText();
     }
 
@@ -1490,7 +1459,6 @@ public partial class SmartBpModuleContentViewModel
     {
         DebugStrategySummary = "-";
         DebugFinalBusinessState = "Recognition failed before final business state was produced.";
-        DebugFusionSummary = "-";
         DebugPhaseScene = "-";
         DebugOcrRawLines = "-";
         DebugParsedState = "-";
@@ -1502,8 +1470,7 @@ public partial class SmartBpModuleContentViewModel
 
     private void RefreshStrategyDebugSections(SmartBpAutoRecognitionTickResult result)
     {
-        var strategy = _recognitionSettingsService.Settings.RecognitionStrategy;
-        DebugStrategySummary = $"debug_mode={DebugModeSummary}{Environment.NewLine}{FormatStrategySummary(strategy)}";
+        DebugStrategySummary = $"debug_mode={DebugModeSummary}{Environment.NewLine}ocr_provider={_recognitionSettingsService.Settings.SelectedOcrProviderMode}";
         DebugPhaseScene = result.SceneGate == null
             ? $"phase={result.PhaseResult?.Phase ?? "unknown"}"
             : $"phase={result.PhaseResult?.Phase ?? "unknown"}{Environment.NewLine}scene={result.SceneGate.Scene}{Environment.NewLine}bp_allowed={result.SceneGate.IsBpRecognitionAllowed}{Environment.NewLine}character_operations_allowed={result.SceneGate.IsCharacterOperationAllowed}{Environment.NewLine}reason={result.SceneGate.Reason}";
@@ -1511,10 +1478,8 @@ public partial class SmartBpModuleContentViewModel
         DebugFinalBusinessState = result.BusinessState == null
                 ? "Recognition failed before final business state was produced."
                 : DebugParsedState;
-        DebugFusionSummary = "No hybrid fusion was used.";
         DebugCandidateOperations = FormatAutomaticOperations(result);
         DebugTiming = FormatRecognitionTiming();
-        DebugServerStatus = "-";
         DebugMergeLog = string.Join(Environment.NewLine, result.CandidateMessages.Where(message =>
             message.Contains("Applied ", StringComparison.OrdinalIgnoreCase) ||
             message.Contains("merge", StringComparison.OrdinalIgnoreCase) ||
@@ -1590,22 +1555,14 @@ public partial class SmartBpModuleContentViewModel
 {DebugTiming}
 
 === Runtime Log ===
-{AiDebugLogText}
+{DebugLogText}
 
 === Last Error ===
-{AiLastError}
+{LastError}
 """;
     }
 
-    partial void OnAiDebugLogTextChanged(string value) => RefreshRecognitionDebugLogText();
-
-    private string FormatStrategySummary(SmartBpRecognitionStrategy strategy) =>
-        strategy switch
-        {
-            SmartBpRecognitionStrategy.PureOcr =>
-                $"strategy=PureOcr{Environment.NewLine}ocr_provider={_recognitionSettingsService.Settings.SelectedOcrProviderMode}",
-            _ => $"strategy={strategy}"
-        };
+    partial void OnDebugLogTextChanged(string value) => RefreshRecognitionDebugLogText();
 
     private string FormatRecognitionTiming()
         => $"OCR interval: {CurrentRecognitionIntervalMs}ms; minimum measured interval: {MinimumRecognitionIntervalMs}ms.";
@@ -1750,12 +1707,12 @@ public partial class SmartBpModuleContentViewModel
         $"task={value.Task}; region={value.OperationRegion}; targetCamp={value.TargetCamp}{Environment.NewLine}" +
         string.Join(Environment.NewLine, value.Slots.Select(x => $"slot[{x.SlotIndex}] state={x.SlotState} character={x.CharacterName ?? "null"} playerId={x.PlayerId ?? "null"} banned={x.IsBannedOrUnavailable} confidence={x.Confidence:0.00} raw={x.RawVisibleText ?? "null"}"));
 
-    private void RefreshGuidanceSnapshot() => AiGuidanceSnapshot = FormatGuidance(_gameGuidanceService.GetRuntimeSnapshot());
+    private void RefreshGuidanceSnapshot() => GuidanceSnapshot = FormatGuidance(_gameGuidanceService.GetRuntimeSnapshot());
     private async Task RecognizeCoreAsync(BitmapSource frame, SmartBpRecognitionTask task)
         => await RunOcrSelectedTestFrameCoreAsync(frame, task);
 
     [ObservableProperty]
-    public partial string AiParsedVisualResult { get; set; } = "";
+    public partial string ParsedVisualResult { get; set; } = "";
 
     // 本模块仅提供 OCR 识别；下列本地视觉模型切换实现已停止注册。
     partial void OnEnableAutoGuidanceSyncChanged(bool value)
@@ -1788,26 +1745,14 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
-    partial void OnIsAiRecognizingChanged(bool value)
+    partial void OnIsRecognizingChanged(bool value)
     {
         StopCaptureCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnIsAiPreviewLoopRunningChanged(bool value)
+    partial void OnIsPreviewLoopRunningChanged(bool value)
     {
         StopCaptureCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnAiOneStepDelayedModeChanged(bool value)
-    {
-        _recognitionSettingsService.Settings.AiOneStepDelayedMode = value;
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnAiUnknownPhaseTalentInferenceFramesChanged(int value)
-    {
-        _recognitionSettingsService.Settings.AiUnknownPhaseTalentInferenceFrames = Math.Clamp(value, 1, 30);
-        _ = _recognitionSettingsService.SaveAsync();
     }
 
     partial void OnPlayBackfillAnimationsChanged(bool value)
@@ -1842,26 +1787,13 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
-    // 已移除 llama.cpp 运行时调优设置。
     [RelayCommand]
-    private void ResetAiRecognitionLedger()
+    private void ResetRecognitionLedger()
     {
-        _aiRecognitionLedger.ResetForCurrentGame();
-        _aiRecognitionStateStore.Reset();
-        AiCandidateOperations = ResolveLocalizedOrRaw("SmartBpAiLedgerResetCompleted");
-        _aiDebugLog.Write("Recognition", "Recognition ledger and local snapshot state reset for the current game.");
-    }
-
-    partial void OnSelectedRecognitionStrategyChanged(RecognitionStrategySelection? value)
-    {
-        if (value == null)
-            return;
-
-        _recognitionSettingsService.Settings.RecognitionStrategy = value.Strategy;
-        RefreshRecognitionEngineVisibility();
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-        _aiDebugLog.Write("Recognition", $"Recognition strategy switched to {value.Strategy}.");
+        _recognitionLedger.ResetForCurrentGame();
+        _recognitionStateStore.Reset();
+        CandidateOperations = ResolveLocalizedOrRaw("SmartBpLedgerResetCompleted");
+        _debugLog.Write("Recognition", "Recognition ledger and local snapshot state reset for the current game.");
     }
 
     partial void OnEnableOcrBpRecognitionChanged(bool value)
@@ -1881,7 +1813,7 @@ public partial class SmartBpModuleContentViewModel
 
     partial void OnRecognitionIntervalMsChanged(int value)
     {
-        var minimum = Math.Max(100, _recognitionSettingsService.Settings.MinimumAiRecognitionIntervalMs);
+        var minimum = Math.Max(100, _recognitionSettingsService.Settings.MinimumRecognitionIntervalMs);
         _recognitionSettingsService.Settings.RecognitionIntervalMs = Math.Clamp(value, minimum, 300000);
         RefreshRecognitionTimerInterval();
         RefreshRecognitionSpeedTestValidity();
@@ -2121,13 +2053,6 @@ public partial class SmartBpModuleContentViewModel
         while (value >= 1024 && index < units.Length - 1) { value /= 1024; index++; }
         return $"{value:0.##} {units[index]}";
     }
-
-    /// <summary>
-    /// 识别策略下拉框选项。
-    /// </summary>
-    /// <param name="Strategy">识别策略值。</param>
-    /// <param name="DisplayNameKey">本地化显示名称资源键。</param>
-    public sealed record RecognitionStrategySelection(SmartBpRecognitionStrategy Strategy, string DisplayNameKey);
 
     /// <summary>一个可选择的 OCR Provider选项。</summary>
     /// <param name="Mode">持久化使用的Provider模式。</param>

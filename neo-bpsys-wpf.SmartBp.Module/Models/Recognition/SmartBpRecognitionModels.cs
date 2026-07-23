@@ -10,51 +10,6 @@ namespace neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 /// <summary>支持的 AI 识别任务。</summary>
 public enum SmartBpRecognitionTask { DetectStage, BanSur, BanHun, PickSur, PickHun, CharacterDistribution, FullBpScan }
 
-/// <summary>支持的 SmartBP BP 识别引擎。</summary>
-public enum SmartBpRecognitionEngine { Ocr, AiQwen }
-
-/// <summary>协调器和 UI 选择的一等 SmartBP 识别策略。</summary>
-public enum SmartBpRecognitionStrategy
-{
-    /// <summary>只使用已选本地 OCR Provider。</summary>
-    PureOcr
-}
-
-/// <summary>托管本地视觉模型系列。</summary>
-public enum LocalVisionModelFamily
-{
-    /// <summary>Qwen 3.5 视觉语言模型。</summary>
-    Qwen35,
-    /// <summary>GLM OCR 模型。</summary>
-    GlmOcr,
-    /// <summary>PaddleOCR-VL 模型。</summary>
-    PaddleOcrVl,
-    /// <summary>自定义或未知本地视觉模型系列。</summary>
-    Custom
-}
-
-/// <summary>本地视觉模型预期承担的角色。</summary>
-public enum LocalVisionModelRole
-{
-    /// <summary>用于场景、阶段和 BP 状态识别的业务 VLM。</summary>
-    BusinessVlm,
-    /// <summary>AI OCR 文本提取器，不负责 BP 业务解释。</summary>
-    AiOcrTextExtractor,
-    /// <summary>模型可同时用于业务识别和 AI OCR 提取。</summary>
-    Both,
-    /// <summary>角色未知。</summary>
-    Unknown
-}
-
-/// <summary>标识 Qwen 模型配置档使用的下载来源。</summary>
-public enum QwenModelSourceType { DirectUrl, HuggingFace }
-
-/// <summary>描述 Qwen 视觉投影器的提供方式。</summary>
-public enum QwenMmprojMode { Separate, Embedded, None }
-
-/// <summary>描述本地视觉投影器的提供方式。</summary>
-public enum VisionProjectorMode { Separate, Embedded, None }
-
 /// <summary>用于门控 BP 识别的第五人格细粒度场景。</summary>
 public enum SmartBpRecognitionScene
 {
@@ -157,15 +112,6 @@ public enum SmartBpRecognitionRegion
 /// <summary>控制单次快照识别多少个 BP 内容区域。</summary>
 public enum SmartBpRegionSnapshotRecognitionMode { FullAllRegions, PendingAndCurrentRegions }
 
-/// <summary>控制 AI 客户端如何向 llama-server 请求结构化 JSON 输出。</summary>
-public enum AiStructuredOutputMode
-{
-    /// <summary>发送 <c>response_format=json_schema</c> 并依赖服务器强制执行 schema。</summary>
-    JsonSchemaStrict,
-    /// <summary>不发送 <c>response_format</c>，在提示词中要求原始 JSON，并在本地修复 Markdown 围栏。</summary>
-    JsonPromptAndRepair
-}
-
 /// <summary>标识协调器在一个 tick 中使用的识别路径。</summary>
 public enum SmartBpRecognitionPath
 {
@@ -232,15 +178,6 @@ public sealed class SmartBpPhaseRecognitionResult
     [JsonPropertyName("phase")] public string Phase { get; set; } = "未知";
 }
 
-/// <summary>Qwen 清单根对象。</summary>
-public sealed class QwenModelManifest
-{
-    /// <summary>获取或设置 schema 版本。</summary>
-    public int SchemaVersion { get; set; }
-    /// <summary>获取或设置模型配置档集合。</summary>
-    public List<QwenModelProfile> Models { get; set; } = [];
-}
-
 /// <summary>角色 BP 结束后状态检测的归一化结果。</summary>
 public sealed class SmartBpPostBpStatusResult
 {
@@ -260,113 +197,6 @@ public sealed class SmartBpPostBpStatusResult
     public string NormalizedText { get; init; } = "";
     /// <summary>获取状态裁剪图中发现的辅助证据标签。</summary>
     public IReadOnlyList<string> AuxiliaryEvidence { get; init; } = [];
-}
-
-/// <summary>本地视觉模型清单根对象。</summary>
-public sealed class LocalVisionModelManifest
-{
-    /// <summary>获取或设置 schema 版本。</summary>
-    public int SchemaVersion { get; set; }
-    /// <summary>获取或设置模型配置档集合。</summary>
-    public List<LocalVisionModelProfile> Models { get; set; } = [];
-}
-
-/// <summary>一个 Qwen 模型及其匹配的视觉投影器。</summary>
-public sealed class QwenModelProfile
-{
-    /// <summary>获取或设置配置档标识。</summary>
-    public string Id { get; set; } = "";
-    /// <summary>获取或设置显示名称。</summary>
-    public string DisplayName { get; set; } = "";
-    /// <summary>获取或设置模型系列。</summary>
-    public LocalVisionModelFamily Family { get; set; } = LocalVisionModelFamily.Custom;
-    /// <summary>获取或设置预期模型角色。</summary>
-    public LocalVisionModelRole Role { get; set; } = LocalVisionModelRole.Unknown;
-    /// <summary>获取或设置模型来源类型。</summary>
-    public QwenModelSourceType SourceType { get; set; } = QwenModelSourceType.DirectUrl;
-    /// <summary>获取或设置直链配置档的模型 URL。</summary>
-    public string ModelUrl { get; set; } = "";
-    /// <summary>获取或设置模型文件名。</summary>
-    public string ModelFileName { get; set; } = "";
-    /// <summary>获取或设置投影器 URL。</summary>
-    public string? MmprojUrl { get; set; }
-    /// <summary>获取或设置投影器文件名。</summary>
-    public string? MmprojFileName { get; set; }
-    /// <summary>获取或设置 HuggingFace 仓库标识。</summary>
-    public string? HuggingFaceRepoId { get; set; }
-    /// <summary>获取或设置 HuggingFace 修订版本。</summary>
-    public string HuggingFaceRevision { get; set; } = "main";
-    /// <summary>获取或设置视觉投影器的提供方式。</summary>
-    public QwenMmprojMode MmprojMode { get; set; } = QwenMmprojMode.Separate;
-    /// <summary>获取或设置使用通用本地视觉术语表达的视觉投影器提供方式。</summary>
-    public VisionProjectorMode ProjectorMode
-    {
-        get => MmprojMode switch
-        {
-            QwenMmprojMode.Separate => VisionProjectorMode.Separate,
-            QwenMmprojMode.Embedded => VisionProjectorMode.Embedded,
-            QwenMmprojMode.None => VisionProjectorMode.None,
-            _ => VisionProjectorMode.Separate
-        };
-        set => MmprojMode = value switch
-        {
-            VisionProjectorMode.Separate => QwenMmprojMode.Separate,
-            VisionProjectorMode.Embedded => QwenMmprojMode.Embedded,
-            VisionProjectorMode.None => QwenMmprojMode.None,
-            _ => QwenMmprojMode.Separate
-        };
-    }
-    /// <summary>获取或设置中文 UI 是否优先使用 HuggingFace 镜像。</summary>
-    public bool UseHuggingFaceMirrorForChineseUi { get; set; } = true;
-    /// <summary>获取或设置可选模型哈希。</summary>
-    public string? Sha256 { get; set; }
-    /// <summary>获取或设置可选投影器哈希。</summary>
-    public string? MmprojSha256 { get; set; }
-    /// <summary>获取或设置该配置档是否为其角色的推荐默认项。</summary>
-    public bool Recommended { get; set; }
-    /// <summary>获取或设置该配置档是否为实验性配置档。</summary>
-    public bool Experimental { get; set; }
-    /// <summary>获取或设置该模型的默认结构化输出模式。</summary>
-    public AiStructuredOutputMode DefaultStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
-}
-
-/// <summary>一个本地视觉模型及其匹配的视觉投影器。</summary>
-public sealed class LocalVisionModelProfile
-{
-    /// <summary>获取或设置配置档标识。</summary>
-    public string Id { get; set; } = "";
-    /// <summary>获取或设置显示名称。</summary>
-    public string DisplayName { get; set; } = "";
-    /// <summary>获取或设置模型系列。</summary>
-    public LocalVisionModelFamily Family { get; set; } = LocalVisionModelFamily.Custom;
-    /// <summary>获取或设置预期模型角色。</summary>
-    public LocalVisionModelRole Role { get; set; } = LocalVisionModelRole.Unknown;
-    /// <summary>获取或设置模型来源类型。</summary>
-    public QwenModelSourceType SourceType { get; set; } = QwenModelSourceType.DirectUrl;
-    /// <summary>获取或设置直链配置档的模型 URL。</summary>
-    public string ModelUrl { get; set; } = "";
-    /// <summary>获取或设置模型文件名。</summary>
-    public string ModelFileName { get; set; } = "";
-    /// <summary>获取或设置投影器 URL。</summary>
-    public string? MmprojUrl { get; set; }
-    /// <summary>获取或设置投影器文件名。</summary>
-    public string? MmprojFileName { get; set; }
-    /// <summary>获取或设置 HuggingFace 仓库标识。</summary>
-    public string? HuggingFaceRepoId { get; set; }
-    /// <summary>获取或设置 HuggingFace 修订版本。</summary>
-    public string HuggingFaceRevision { get; set; } = "main";
-    /// <summary>获取或设置视觉投影器的提供方式。</summary>
-    public VisionProjectorMode ProjectorMode { get; set; } = VisionProjectorMode.Separate;
-    /// <summary>获取或设置可选模型哈希。</summary>
-    public string? Sha256 { get; set; }
-    /// <summary>获取或设置可选投影器哈希。</summary>
-    public string? MmprojSha256 { get; set; }
-    /// <summary>获取或设置该配置档是否为其角色的推荐默认项。</summary>
-    public bool Recommended { get; set; }
-    /// <summary>获取或设置该配置档是否为实验性配置档。</summary>
-    public bool Experimental { get; set; }
-    /// <summary>获取或设置该模型的默认结构化输出模式。</summary>
-    public AiStructuredOutputMode DefaultStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
 }
 
 /// <summary>托管 RapidOCR 模型配置档的根文档。</summary>
@@ -494,10 +324,6 @@ public sealed class SmartBpRecognitionSettings
     public bool EnableAutoApplyRecognition { get; set; } = true;
     /// <summary>获取或设置识别结果应用策略。</summary>
     public SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; } = SmartBpRecognitionApplyMode.GuidedWorkflow;
-    /// <summary>获取或设置 AI 是否在移动引导前先完成前一步。</summary>
-    public bool AiOneStepDelayedMode { get; set; } = true;
-    /// <summary>获取或设置推断监管者天赋阶段所需的连续未知阶段帧数。</summary>
-    public int AiUnknownPhaseTalentInferenceFrames { get; set; } = 2;
     /// <summary>获取或设置最小阶段置信度。</summary>
     public double StageConfidenceThreshold { get; set; } = 0.80;
     /// <summary>获取或设置引导对齐向前查找步数。</summary>
@@ -520,18 +346,14 @@ public sealed class SmartBpRecognitionSettings
     public bool UseMultiImageSnapshotRequest { get; set; } = true;
     /// <summary>获取或设置是否使用旧版模型侧快照增量识别替代字段快照。</summary>
     public bool UseLegacySnapshotDeltaRecognition { get; set; }
-    /// <summary>获取或设置已选 BP 识别引擎。</summary>
-    public SmartBpRecognitionEngine RecognitionEngine { get; set; } = SmartBpRecognitionEngine.Ocr;
-    /// <summary>获取或设置已选 SmartBP 识别策略。</summary>
-    public SmartBpRecognitionStrategy RecognitionStrategy { get; set; } = SmartBpRecognitionStrategy.PureOcr;
     /// <summary>获取或设置是否启用 OCR BP 识别。</summary>
     public bool EnableOcrBpRecognition { get; set; } = true;
     /// <summary>获取或设置 OCR BP 循环间隔。</summary>
     public int OcrRecognitionIntervalMs { get; set; } = 3000;
     /// <summary>获取或设置实测最小 OCR 间隔。</summary>
     public int MinimumOcrRecognitionIntervalMs { get; set; }
-    /// <summary>获取或设置实测最小 AI 间隔。</summary>
-    public int MinimumAiRecognitionIntervalMs { get; set; }
+    /// <summary>获取或设置实测最小识别间隔。</summary>
+    public int MinimumRecognitionIntervalMs { get; set; }
     /// <summary>获取或设置最近一次识别速度测量时间。</summary>
     public DateTimeOffset? LastRecognitionSpeedTestAt { get; set; }
     /// <summary>获取或设置最近一次速度测试使用的引擎标签。</summary>
@@ -753,40 +575,6 @@ public sealed class SmartBpSnapshotFieldUpdate
     [JsonPropertyName("slots")] public List<SmartBpSnapshotDeltaSlot>? Slots { get; set; }
     /// <summary>字段为 picked_hun 时，获取或设置监管者选择槽位。</summary>
     [JsonPropertyName("picked_hun")] public SmartBpSnapshotDeltaSlot? PickedHun { get; set; }
-}
-
-/// <summary>仅阶段识别路径产出的 AI 识别结果。</summary>
-public sealed class SmartBpAiPhaseOnlyResult
-{
-    /// <summary>获取识别到的阶段。</summary>
-    public SmartBpPhaseRecognitionResult Phase { get; init; } = new();
-    /// <summary>获取模型使用的阶段裁剪图。</summary>
-    public SmartBpCroppedFrame Crop { get; init; } = default!;
-    /// <summary>获取模型使用的绝对左上角全局状态裁剪图。</summary>
-    public SmartBpCroppedFrame TopLeftStatusCrop { get; init; } = default!;
-    /// <summary>获取模型原始 JSON 响应。</summary>
-    public string RawJson { get; init; } = "";
-    /// <summary>获取识别诊断信息。</summary>
-    public IReadOnlyList<string> Diagnostics { get; init; } = [];
-}
-
-/// <summary>一个字段级 AI 快照识别结果。</summary>
-public sealed class SmartBpAiFieldSnapshotResult
-{
-    /// <summary>获取业务字段标识（banned_sur、banned_hun、picked_sur、picked_hun）。</summary>
-    public string Field { get; init; } = "";
-    /// <summary>获取带 slot_state 证据的已解析字段快照槽位。</summary>
-    public IReadOnlyList<SmartBpSnapshotDeltaSlot> Slots { get; init; } = [];
-    /// <summary>字段为 picked_hun 时获取监管者选择槽位。</summary>
-    public SmartBpSnapshotDeltaSlot? PickedHun { get; init; }
-    /// <summary>获取从可见快照派生出的聚焦业务提取结果。</summary>
-    public SmartBpFocusedBusinessExtractionResult FocusedResult { get; init; } = new();
-    /// <summary>获取模型使用的内容裁剪图。</summary>
-    public SmartBpCroppedFrame Crop { get; init; } = default!;
-    /// <summary>获取模型原始 JSON 响应。</summary>
-    public string RawJson { get; init; } = "";
-    /// <summary>获取识别诊断信息。</summary>
-    public IReadOnlyList<string> Diagnostics { get; init; } = [];
 }
 
 /// <summary>内存中的 SmartBP 本地合并识别状态。</summary>
@@ -1072,17 +860,6 @@ public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecogn
     SmartBpProgressAlignmentResult? ProgressAlignment = null,
     SmartBpProgressSyncResult? ProgressSync = null);
 
-/// <summary>一次 llama.cpp 响应返回的性能信息。</summary>
-public sealed record LlamaCppResponseMetrics(
-    int? PromptTokens,
-    int? CompletionTokens,
-    int? TotalTokens,
-    double? TokensPerSecond,
-    long ElapsedMilliseconds);
-
-/// <summary>一个 Qwen 模型配置档的校验后安装路径。</summary>
-public sealed record QwenInstalledPaths(string ModelPath, string? MmprojPath, QwenMmprojMode MmprojMode);
-
 /// <summary>步骤提交调度器返回的结果。</summary>
 public sealed record SmartBpStepCommitResult(SmartBpBusinessStateRecognitionResult Snapshot,
     SmartBpWorkflowBackfillPlan Plan,
@@ -1120,39 +897,6 @@ public sealed class SmartBpOcrRecognitionResult
     public SmartBpPostBpStatusResult? PostBpStatus { get; init; }
     /// <summary>获取有界识别诊断信息。</summary>
     public IReadOnlyList<string> Diagnostics { get; init; } = [];
-}
-
-/// <summary>从 AI OCR 模型响应中提取出的一行技术文本。</summary>
-public sealed class SmartBpAiOcrTranscriptLine
-{
-    /// <summary>获取或设置为传输和调试提取出的可见文本。</summary>
-    public string Text { get; set; } = "";
-}
-
-/// <summary>AI OCR 转写识别结果。</summary>
-public sealed class SmartBpAiOcrTranscriptResult
-{
-    /// <summary>获取未进行业务解释的技术转写行。</summary>
-    public IReadOnlyList<SmartBpAiOcrTranscriptLine> Lines { get; init; } = [];
-    /// <summary>获取 AI OCR 模型返回的原始输出。</summary>
-    public string RawJson { get; init; } = "";
-    /// <summary>获取有界诊断信息。</summary>
-    public IReadOnlyList<string> Diagnostics { get; init; } = [];
-}
-
-/// <summary>单个粗粒度 BP 业务区域的 AI OCR 转写证据。</summary>
-public sealed class SmartBpAiOcrTranscriptRegionEvidence
-{
-    /// <summary>获取来源 SmartBP 粗粒度区域。</summary>
-    public SmartBpRecognitionRegion Region { get; init; }
-    /// <summary>获取该区域代表的 SmartBP 业务字段。</summary>
-    public string Field { get; init; } = "";
-    /// <summary>获取产生该证据的 AI OCR 模型标识。</summary>
-    public string AiOcrModel { get; init; } = "";
-    /// <summary>获取 AI OCR 模型返回的原始输出。</summary>
-    public string RawOutput { get; init; } = "";
-    /// <summary>获取未经语义清理的技术转写行。</summary>
-    public IReadOnlyList<string> TechnicalLines { get; init; } = [];
 }
 
 /// <summary>单个 OCR 粗粒度区域的详细本地解析结果。</summary>
@@ -1278,79 +1022,8 @@ public sealed record TesseractLanguageAsset(string Language, string DisplayNameK
 public sealed record TesseractDataStatus(bool IsInstalled, string DataPath,
     IReadOnlyList<string> MissingLanguages, IReadOnlyList<string> InstalledLanguages);
 
-/// <summary>一个可选 AI 运行时性能采样。</summary>
-/// <param name="GpuName">GPU 显示名称。</param>
-/// <param name="GpuUtilizationPercent">GPU 利用率百分比。</param>
-/// <param name="VramUsedBytes">已用显存。</param>
-/// <param name="VramTotalBytes">总显存。</param>
-/// <param name="ProcessId">托管 llama-server 进程标识。</param>
-/// <param name="UpdatedAt">采样时间戳。</param>
-/// <param name="IsAvailable">NVML 遥测是否可用。</param>
-public sealed record SmartBpAiPerformanceSnapshot(string GpuName, uint? GpuUtilizationPercent,
-    ulong? VramUsedBytes, ulong? VramTotalBytes, int? ProcessId, DateTimeOffset UpdatedAt, bool IsAvailable);
-
-/// <summary>暴露给 UI 的 Qwen 下载状态。</summary>
-public sealed record QwenDownloadState(bool IsDownloading, double? Progress, string Status,
-    string? CurrentFileName = null,
-    long? BytesReceived = null,
-    long? TotalBytes = null,
-    double? BytesPerSecond = null,
-    TimeSpan? Eta = null,
-    string? ErrorMessage = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta, ErrorMessage);
-
 /// <summary>一个内置识别提示词配置档。</summary>
 public sealed record SmartBpPromptProfile(string Id, string DisplayName, string SystemPrompt);
-
-/// <summary>llama.cpp 运行时清单根对象。</summary>
-public sealed class LlamaCppRuntimeManifest
-{
-    /// <summary>获取或设置 schema 版本。</summary>
-    public int SchemaVersion { get; set; }
-    /// <summary>获取或设置上游运行时版本。</summary>
-    public string RuntimeVersion { get; set; } = "";
-    /// <summary>获取或设置发布页。</summary>
-    public string ReleasePage { get; set; } = "";
-    /// <summary>获取或设置运行时资产集合。</summary>
-    public List<LlamaCppRuntimeAsset> Assets { get; set; } = [];
-    /// <summary>获取或设置清单中声明的可选检查间隔。</summary>
-    public int? CheckIntervalHours { get; set; }
-}
-
-/// <summary>一个可安装 llama.cpp 运行时压缩包。</summary>
-public sealed class LlamaCppRuntimeAsset
-{
-    /// <summary>获取或设置资产标识。</summary>
-    public string Id { get; set; } = "";
-    /// <summary>获取或设置显示名称。</summary>
-    public string DisplayName { get; set; } = "";
-    /// <summary>获取或设置 CPU 架构。</summary>
-    public string Architecture { get; set; } = "";
-    /// <summary>获取或设置后端。</summary>
-    public string Backend { get; set; } = "";
-    /// <summary>获取或设置压缩包 URL。</summary>
-    public string Url { get; set; } = "";
-    /// <summary>获取或设置可选 SHA256。</summary>
-    public string? Sha256 { get; set; }
-    /// <summary>获取或设置可执行文件名。</summary>
-    public string? EntryExe { get; set; }
-    /// <summary>获取或设置必需的额外资产标识。</summary>
-    public List<string> RequiredExtraAssets { get; set; } = [];
-    /// <summary>获取或设置 URL 是否已经指向最终可下载文件。</summary>
-    public bool UrlIsDirectDownload { get; set; }
-}
-
-/// <summary>托管 llama.cpp 运行时安装状态。</summary>
-public sealed record LlamaCppRuntimeInstallState(bool IsDownloading, double? Progress, string Status,
-    string? CurrentFileName = null,
-    long? BytesReceived = null,
-    long? TotalBytes = null,
-    double? BytesPerSecond = null,
-    TimeSpan? Eta = null,
-    string? ErrorMessage = null) : SmartBpDownloadState(IsDownloading, Progress, Status, CurrentFileName, BytesReceived, TotalBytes, BytesPerSecond, Eta, ErrorMessage);
-
-/// <summary>llama.cpp 运行时更新检查结果。</summary>
-public sealed record LlamaCppRuntimeUpdateCheckResult(bool Checked, bool HasUpdate, string CurrentVersion,
-    string? LatestVersion, IReadOnlyList<LlamaCppRuntimeAsset> LatestAssets, string Message);
 
 /// <summary>模型返回的视觉提取结果。</summary>
 public sealed class SmartBpVisionExtractionResult

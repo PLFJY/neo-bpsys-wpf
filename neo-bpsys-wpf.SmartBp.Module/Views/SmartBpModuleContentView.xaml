@@ -101,7 +101,7 @@
                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                     Text="{lex:Loc SmartBpCaptureStopDisabledWhileRecognizing}"
                     TextWrapping="Wrap"
-                    Visibility="{Binding IsAiPreviewLoopRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding IsPreviewLoopRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
 
@@ -126,7 +126,7 @@
                     ToolTip="{lex:Loc SmartBpProgressAutoCorrectionDescription}" />
                 <ui:ToggleSwitch
                     Margin="0,8,0,0"
-                    Content="{lex:Loc SmartBpAiEnableAutoApply}"
+                    Content="{lex:Loc SmartBpEnableAutoApply}"
                     IsChecked="{Binding EnableAutoApplyRecognition}" />
                 <ComboBox
                     Margin="0,8,0,0"
@@ -159,12 +159,12 @@
                     <ui:Button
                         x:Name="SmartBpStartFullBpFlowButton"
                         Margin="0,0,8,0"
-                        Command="{Binding StartAiPreviewLoopCommand}"
+                        Command="{Binding StartPreviewLoopCommand}"
                         Content="{lex:Loc SmartBpStartAutomaticRecognition}"
                         Icon="{ui:SymbolIcon Symbol=Play24}" />
                     <ui:Button
                         Margin="0,0,8,0"
-                        Command="{Binding StopAiPreviewLoopCommand}"
+                        Command="{Binding StopPreviewLoopCommand}"
                         Content="{lex:Loc SmartBpStopAutomaticRecognition}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}" />
                     <ui:Button
@@ -181,7 +181,7 @@
                 <TextBlock
                     Margin="0,4,0,0"
                     Text="{lex:Loc SmartBpRecognizing}"
-                    Visibility="{Binding IsAiRecognizing, Converter={StaticResource BooleanToHiddenVisibilityConverter}}" />
+                    Visibility="{Binding IsRecognizing, Converter={StaticResource BooleanToHiddenVisibilityConverter}}" />
             </StackPanel>
         </Border>
 
@@ -372,13 +372,13 @@
                     <ui:Button
                         x:Name="SmartBpRegionEditorButton"
                         Margin="0,0,8,8"
-                        Command="{Binding OpenAiRecognitionRegionEditorCommand}"
+                        Command="{Binding OpenRecognitionRegionEditorCommand}"
                         Content="{lex:Loc SmartBpOpenBpRecognitionRegionEditor}"
                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                     <ui:Button
                         x:Name="SmartBpResetBpRecognitionRegionButton"
                         Margin="0,0,8,8"
-                        Command="{Binding ResetAiRecognitionLayoutProfileCommand}"
+                        Command="{Binding ResetRecognitionLayoutProfileCommand}"
                         Content="{lex:Loc SmartBpResetBpRecognitionRegionConfig}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                     <ui:Button
@@ -406,11 +406,6 @@
                     Text="{Binding RecognitionSpeedTestStatus}"
                     TextWrapping="Wrap" />
                 <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpAutomaticRecognitionInterval}" />
-                <WrapPanel>
-                    <TextBlock Text="{lex:Loc SmartBpCurrentEngine}" />
-                    <TextBlock Text=": " />
-                    <TextBlock Text="{Binding CurrentRecognitionEngineText}" />
-                </WrapPanel>
                 <WrapPanel>
                     <TextBlock Text="{lex:Loc SmartBpCurrentInterval}" />
                     <TextBlock Text=": " />
@@ -572,8 +567,8 @@
                 <ComboBox
                     Margin="0,10,0,0"
                     DisplayMemberPath="Id"
-                    ItemsSource="{Binding AiTestFrames}"
-                    SelectedItem="{Binding SelectedAiTestFrame}" />
+                    ItemsSource="{Binding TestFrames}"
+                    SelectedItem="{Binding SelectedTestFrame}" />
                 <TextBlock
                     Margin="0,8,0,0"
                     FontWeight="SemiBold"
@@ -582,12 +577,12 @@
                     <ui:Button
                         Margin="0,0,8,8"
                         Command="{Binding RecognizeSelectedTestFrameCommand}"
-                        Content="{lex:Loc SmartBpAiRecognizeTestFrame}"
+                        Content="{lex:Loc SmartBpRecognizeTestFrame}"
                         Icon="{ui:SymbolIcon Symbol=Scan24}" />
                     <ui:Button
                         Margin="0,0,8,8"
                         Command="{Binding RecognizeCurrentCaptureFrameCommand}"
-                        Content="{lex:Loc SmartBpAiRecognizeCurrentFrame}"
+                        Content="{lex:Loc SmartBpRecognizeCurrentFrame}"
                         Icon="{ui:SymbolIcon Symbol=Camera24}" />
                 </WrapPanel>
                 <TextBlock
@@ -614,12 +609,12 @@
                     <ui:Button
                         Margin="0,0,8,8"
                         Command="{Binding DetectStageFromSelectedTestFrameCommand}"
-                        Content="{lex:Loc SmartBpAiRecognizeSelectedPhase}"
+                        Content="{lex:Loc SmartBpRecognizeSelectedPhase}"
                         Icon="{ui:SymbolIcon Symbol=EyeTracking24}" />
                     <ui:Button
                         Margin="0,0,8,8"
                         Command="{Binding DetectStageFromCurrentCaptureFrameCommand}"
-                        Content="{lex:Loc SmartBpAiRecognizeCurrentPhase}"
+                        Content="{lex:Loc SmartBpRecognizeCurrentPhase}"
                         Icon="{ui:SymbolIcon Symbol=CameraSwitch24}" />
                 </WrapPanel>
                 <TextBlock
@@ -629,8 +624,8 @@
                 <WrapPanel Margin="0,8,0,0">
                     <ui:Button
                         Margin="0,0,8,8"
-                        Command="{Binding ResetAiRecognitionLedgerCommand}"
-                        Content="{lex:Loc SmartBpAiResetLedger}"
+                        Command="{Binding ResetRecognitionLedgerCommand}"
+                        Content="{lex:Loc SmartBpResetLedger}"
                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 </WrapPanel>
                 <TextBlock

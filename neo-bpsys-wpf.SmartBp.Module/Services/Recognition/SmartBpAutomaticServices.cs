@@ -186,14 +186,14 @@ internal static class SmartBpAutomaticMapping
 }
 
 /// <summary>
-/// 解析并校验 AI 返回的完整 BP 业务状态 JSON。
+/// 解析并校验 OCR 返回的完整 BP 业务状态 JSON。
 /// </summary>
 internal static class SmartBpBusinessStateParser
 {
     /// <summary>
     /// 解析完整业务状态 JSON。
     /// </summary>
-    /// <param name="raw">AI 原始 JSON 文本。</param>
+    /// <param name="raw">OCR 原始 JSON 文本。</param>
     /// <returns>规范化后的业务状态。</returns>
     /// <exception cref="InvalidDataException">JSON 为空或字段不符合契约时抛出。</exception>
     public static SmartBpBusinessStateRecognitionResult Parse(string raw)
@@ -338,14 +338,14 @@ internal static class SmartBpBusinessStateFormatter
 }
 
 /// <summary>
-/// 解析 SmartBP 自动识别 AI 输出的严格 JSON 结构。
+/// 解析 SmartBP 自动识别 OCR 输出的严格 JSON 结构。
 /// </summary>
 internal static class SmartBpAutomaticParser
 {
     /// <summary>
     /// 解析只包含阶段字段的 JSON。
     /// </summary>
-    /// <param name="raw">AI 原始 JSON 文本。</param>
+    /// <param name="raw">OCR 原始 JSON 文本。</param>
     /// <returns>阶段识别结果。</returns>
     /// <exception cref="InvalidDataException">JSON 结构或阶段值非法时抛出。</exception>
     public static SmartBpPhaseRecognitionResult ParsePhase(string raw)
@@ -364,7 +364,7 @@ internal static class SmartBpAutomaticParser
     {
         var unexpected = value.Select(property => property.Key).FirstOrDefault(name => !allowed.Contains(name));
         if (unexpected != null)
-            throw new InvalidDataException($"Business AI fusion output rejected: {context} contained unexpected property {unexpected}.");
+            throw new InvalidDataException($"Business OCR fusion output rejected: {context} contained unexpected property {unexpected}.");
     }
 
     private static void NormalizeLegacyDeltaSlotStates(List<SmartBpSnapshotDeltaSlot>? slots, JsonElement rawUpdate, string propertyName)
@@ -1865,7 +1865,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         var state = stateStore.Snapshot;
         var phase = new SmartBpPhaseRecognitionResult { Phase = state.Phase };
         var gate = new SmartBpSceneGateResult(SmartBpRecognitionScene.Unknown, false, false, false, reason);
-        messages.Add("content_recognition_allowed=False; no BP OCR, AI OCR, Business AI fusion, field merge, or candidate operation generation was run.");
+        messages.Add("content_recognition_allowed=False; no BP OCR, Business OCR fusion, field merge, or candidate operation generation was run.");
         return new(state, phase, null, null, null, null, guidance.GetRuntimeSnapshot(), [], messages.ToArray(),
             new SmartBpOperationApplyResult(0, 0, []), raw, null, null, null, [], gate);
     }
@@ -2128,8 +2128,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     /// <summary>
     /// 解析协调器在当前 tick 中应使用的识别路径。
-    /// OCR 引擎和旧版增量标志始终使用旧版增量路径；未启用旧版标志的 AI 引擎在没有请求字段时使用仅阶段路径，
-    /// 请求一个或多个字段时使用字段快照路径，请求四个字段时使用完整字段快照路径。
+    /// 没有请求字段时使用仅阶段路径；请求一个或多个字段时使用字段快照路径。
     /// </summary>
     /// <param name="request">规划器构建的识别请求。</param>
     /// <returns>识别路径枚举值。</returns>

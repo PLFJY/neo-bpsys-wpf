@@ -71,17 +71,6 @@ public partial class SmartBpModuleContentView : UserControl
     }
 
     /// <summary>
-    /// AI 调试控制台文本变化时自动滚动到末尾。
-    /// </summary>
-    /// <param name="sender">触发事件的文本框。</param>
-    /// <param name="e">文本变化事件参数。</param>
-    private void AiDebugConsoleTextBox_OnTextChanged(object sender, TextChangedEventArgs e)
-    {
-        if (sender is TextBox textBox)
-            textBox.ScrollToEnd();
-    }
-
-    /// <summary>
     /// 在调试文本框内部消费可滚动方向的鼠标滚轮事件，避免外层滚动容器抢先滚动。
     /// </summary>
     /// <param name="sender">触发滚轮事件的文本框。</param>

@@ -219,13 +219,13 @@
   <data name="Clear" xml:space="preserve">
     <value>Clear</value>
   </data>
-  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve">
+  <data name="SmartBpRecognizeTestFrame" xml:space="preserve">
     <value>Recognize selected test image (full)</value>
   </data>
-  <data name="SmartBpAiEnableAutoApply" xml:space="preserve">
+  <data name="SmartBpEnableAutoApply" xml:space="preserve">
     <value>Automatically apply recognition results</value>
   </data>
-  <data name="SmartBpAiResetLedger" xml:space="preserve">
+  <data name="SmartBpResetLedger" xml:space="preserve">
     <value>Reset SmartBP recognition ledger</value>
   </data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve">
@@ -372,10 +372,10 @@
   <data name="SmartBpDebugTools" xml:space="preserve">
     <value>Debug tools</value>
   </data>
-  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve">
+  <data name="SmartBpRecognizeSelectedPhase" xml:space="preserve">
     <value>Recognize selected test-image phase</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve">
+  <data name="SmartBpRecognizeCurrentPhase" xml:space="preserve">
     <value>Recognize current phase</value>
   </data>
   <data name="SmartBpDebugStrategySummary" xml:space="preserve">
@@ -392,9 +392,6 @@
   </data>
   <data name="SmartBpTesseractDeleteData" xml:space="preserve">
     <value>Delete selected language data</value>
-  </data>
-  <data name="SmartBpGameDataAiRecognitionNotImplemented" xml:space="preserve">
-    <value>Post-game data recognition does not support AI recognition yet. Please switch to Paddle OCR or Tesseract OCR.</value>
   </data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
     <value>Enable automatic GameGuidance sync</value>
@@ -432,7 +429,7 @@
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
     <value>Start automatic recognition</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
+  <data name="SmartBpRecognizeCurrentFrame" xml:space="preserve">
     <value>Recognize current capture (full)</value>
   </data>
   <data name="SmartBpTooltipContactSheet" xml:space="preserve">
@@ -473,9 +470,6 @@
   </data>
   <data name="SmartBpRecognizing" xml:space="preserve">
     <value>Recognizing…</value>
-  </data>
-  <data name="SmartBpCurrentEngine" xml:space="preserve">
-    <value>Current engine</value>
   </data>
   <data name="SmartBpCurrentInterval" xml:space="preserve">
     <value>Current interval</value>
@@ -534,12 +528,6 @@
   <data name="SmartBpDebugFinalBusinessState" xml:space="preserve">
     <value>Final business state</value>
   </data>
-  <data name="SmartBpDebugFusionSummary" xml:space="preserve">
-    <value>Fusion summary</value>
-  </data>
-  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve">
-    <value>Timing and server summary</value>
-  </data>
   <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
     <value>Open recognition log window</value>
   </data>
@@ -576,37 +564,37 @@
   <data name="SaveSuccessfullyTo" xml:space="preserve">
     <value>Save successfully to</value>
   </data>
-  <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve">
+  <data name="SmartBpLedgerResetCompleted" xml:space="preserve">
     <value>The SmartBP AI recognition ledger was reset for the current game.</value>
   </data>
-  <data name="SmartBpAiRegionEditor" xml:space="preserve">
+  <data name="SmartBpRegionEditor" xml:space="preserve">
     <value>SmartBP OCR recognition region editor</value>
   </data>
-  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve">
+  <data name="SmartBpRegionLeftBottom" xml:space="preserve">
     <value>Lower left: survivor pick and assignment</value>
   </data>
-  <data name="SmartBpAiRegionLeftTop" xml:space="preserve">
+  <data name="SmartBpRegionLeftTop" xml:space="preserve">
     <value>Upper left: ban hunters</value>
   </data>
-  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve">
+  <data name="SmartBpRegionPhaseTop" xml:space="preserve">
     <value>Top phase recognition area</value>
   </data>
-  <data name="SmartBpAiRegionProfileReset" xml:space="preserve">
+  <data name="SmartBpRegionProfileReset" xml:space="preserve">
     <value>The SmartBP OCR recognition regions were reset to the bundled defaults.</value>
   </data>
-  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve">
+  <data name="SmartBpRegionProfileSaved" xml:space="preserve">
     <value>The SmartBP OCR recognition region profile was saved.</value>
   </data>
-  <data name="SmartBpAiRegionRightBottom" xml:space="preserve">
+  <data name="SmartBpRegionRightBottom" xml:space="preserve">
     <value>Lower right: hunter pick</value>
   </data>
-  <data name="SmartBpAiRegionRightTop" xml:space="preserve">
+  <data name="SmartBpRegionRightTop" xml:space="preserve">
     <value>Upper right: ban survivors</value>
   </data>
-  <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve">
+  <data name="SmartBpRegionTopCenterStatus" xml:space="preserve">
     <value>Top-center BP lifecycle status area</value>
   </data>
-  <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve">
+  <data name="SmartBpRegionTopLeftStatus" xml:space="preserve">
     <value>Top-left post-BP status area</value>
   </data>
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
@@ -771,9 +759,6 @@
   <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve">
     <value>Unknown (legacy install)</value>
   </data>
-  <data name="SmartBpRecognitionEngine" xml:space="preserve">
-    <value>Recognition engine</value>
-  </data>
   <data name="SmartBpRecognitionIntervalReady" xml:space="preserve">
     <value>The speed test matches the current configuration; the interval can be edited.</value>
   </data>
@@ -788,9 +773,6 @@
   </data>
   <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve">
     <value>The current capture frame could not be obtained, so automatic recognition has been paused.</value>
-  </data>
-  <data name="SmartBpRecognitionStrategyPureOcr" xml:space="preserve">
-    <value>Pure OCR</value>
   </data>
   <data name="SmartBpRecommendedProviderFormat" xml:space="preserve">
     <value>{0} (Recommended)</value>

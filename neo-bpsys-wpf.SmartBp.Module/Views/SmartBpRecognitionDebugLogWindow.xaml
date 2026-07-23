@@ -33,7 +33,7 @@
                 Icon="{ui:SymbolIcon Symbol=Copy24}" />
             <ui:Button
                 Margin="0,0,8,0"
-                Command="{Binding ClearAiDebugLogCommand}"
+                Command="{Binding ClearDebugLogCommand}"
                 Content="{lex:Loc Clear}"
                 Icon="{ui:SymbolIcon Symbol=Delete24}" />
             <ui:Button
@@ -58,17 +58,13 @@
                     <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugStrategySummary}" TextWrapping="Wrap" />
                     <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugPhaseScene}" />
                     <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugPhaseScene}" TextWrapping="Wrap" />
-                    <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugFusionSummary}" />
-                    <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugFusionSummary}" TextWrapping="Wrap" />
                     <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugCandidateOperations}" />
                     <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugCandidateOperations}" TextWrapping="Wrap" />
-                    <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugTimingServerSummary}" />
-                    <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugServerStatus}" TextWrapping="Wrap" />
                     <ui:TextBox Margin="0,6,0,0" AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugTiming}" TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,8,0,0"
                         Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                        Text="{Binding AiLastError}"
+                        Text="{Binding LastError}"
                         TextWrapping="Wrap" />
                 </StackPanel>
             </ui:DynamicScrollViewer>

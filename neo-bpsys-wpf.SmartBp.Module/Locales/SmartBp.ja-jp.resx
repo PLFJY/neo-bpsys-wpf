@@ -219,13 +219,13 @@
   <data name="Clear" xml:space="preserve">
     <value>クリア</value>
   </data>
-  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve">
+  <data name="SmartBpRecognizeTestFrame" xml:space="preserve">
     <value>選択したテスト画像全体を認識</value>
   </data>
-  <data name="SmartBpAiEnableAutoApply" xml:space="preserve">
+  <data name="SmartBpEnableAutoApply" xml:space="preserve">
     <value>認識結果を自動適用</value>
   </data>
-  <data name="SmartBpAiResetLedger" xml:space="preserve">
+  <data name="SmartBpResetLedger" xml:space="preserve">
     <value>SmartBP 認識履歴をリセット</value>
   </data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve">
@@ -372,10 +372,10 @@
   <data name="SmartBpDebugTools" xml:space="preserve">
     <value>デバッグツール</value>
   </data>
-  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve">
+  <data name="SmartBpRecognizeSelectedPhase" xml:space="preserve">
     <value>選択したテスト画像のフェーズを認識</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve">
+  <data name="SmartBpRecognizeCurrentPhase" xml:space="preserve">
     <value>現在のフェーズを認識</value>
   </data>
   <data name="SmartBpDebugStrategySummary" xml:space="preserve">
@@ -392,9 +392,6 @@
   </data>
   <data name="SmartBpTesseractDeleteData" xml:space="preserve">
     <value>選択した言語データを削除</value>
-  </data>
-  <data name="SmartBpGameDataAiRecognitionNotImplemented" xml:space="preserve">
-    <value>試合後データ認識はまだ AI 認識に対応していません。Paddle OCR または Tesseract OCR に切り替えてください。</value>
   </data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
     <value>GameGuidance 自動同期を有効化</value>
@@ -432,7 +429,7 @@
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
     <value>自動認識を開始</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
+  <data name="SmartBpRecognizeCurrentFrame" xml:space="preserve">
     <value>現在のキャプチャ全体を認識</value>
   </data>
   <data name="SmartBpTooltipContactSheet" xml:space="preserve">
@@ -473,9 +470,6 @@
   </data>
   <data name="SmartBpRecognizing" xml:space="preserve">
     <value>認識中…</value>
-  </data>
-  <data name="SmartBpCurrentEngine" xml:space="preserve">
-    <value>現在のエンジン</value>
   </data>
   <data name="SmartBpCurrentInterval" xml:space="preserve">
     <value>現在の間隔</value>
@@ -534,12 +528,6 @@
   <data name="SmartBpDebugFinalBusinessState" xml:space="preserve">
     <value>最終ビジネス状態</value>
   </data>
-  <data name="SmartBpDebugFusionSummary" xml:space="preserve">
-    <value>融合サマリー</value>
-  </data>
-  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve">
-    <value>時間とサーバーのサマリー</value>
-  </data>
   <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
     <value>認識ログウィンドウを開く</value>
   </data>
@@ -576,37 +564,37 @@
   <data name="SaveSuccessfullyTo" xml:space="preserve">
     <value>保存に成功しました：</value>
   </data>
-  <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve">
+  <data name="SmartBpLedgerResetCompleted" xml:space="preserve">
     <value>現在の試合の SmartBP AI 認識履歴をリセットしました。</value>
   </data>
-  <data name="SmartBpAiRegionEditor" xml:space="preserve">
+  <data name="SmartBpRegionEditor" xml:space="preserve">
     <value>SmartBP OCR 認識領域エディター</value>
   </data>
-  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve">
+  <data name="SmartBpRegionLeftBottom" xml:space="preserve">
     <value>左下：サバイバー選択・割り当て</value>
   </data>
-  <data name="SmartBpAiRegionLeftTop" xml:space="preserve">
+  <data name="SmartBpRegionLeftTop" xml:space="preserve">
     <value>左上：ハンターBAN</value>
   </data>
-  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve">
+  <data name="SmartBpRegionPhaseTop" xml:space="preserve">
     <value>上部フェーズ認識領域</value>
   </data>
-  <data name="SmartBpAiRegionProfileReset" xml:space="preserve">
+  <data name="SmartBpRegionProfileReset" xml:space="preserve">
     <value>SmartBP OCR 認識領域を組み込みの既定値に戻しました。</value>
   </data>
-  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve">
+  <data name="SmartBpRegionProfileSaved" xml:space="preserve">
     <value>SmartBP OCR 認識領域設定を保存しました。</value>
   </data>
-  <data name="SmartBpAiRegionRightBottom" xml:space="preserve">
+  <data name="SmartBpRegionRightBottom" xml:space="preserve">
     <value>右下：ハンター選択</value>
   </data>
-  <data name="SmartBpAiRegionRightTop" xml:space="preserve">
+  <data name="SmartBpRegionRightTop" xml:space="preserve">
     <value>右上：サバイバーBAN</value>
   </data>
-  <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve">
+  <data name="SmartBpRegionTopCenterStatus" xml:space="preserve">
     <value>上部中央のBPライフサイクル状態領域</value>
   </data>
-  <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve">
+  <data name="SmartBpRegionTopLeftStatus" xml:space="preserve">
     <value>左上のBP終了後ステータス領域</value>
   </data>
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
@@ -770,9 +758,6 @@
   </data>
   <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve">
     <value>不明（旧形式）</value>
-  </data>
-  <data name="SmartBpRecognitionEngine" xml:space="preserve">
-    <value>認識エンジン</value>
   </data>
   <data name="SmartBpRecognitionIntervalReady" xml:space="preserve">
     <value>速度テストは現在の設定と一致しています。間隔を編集できます。</value>

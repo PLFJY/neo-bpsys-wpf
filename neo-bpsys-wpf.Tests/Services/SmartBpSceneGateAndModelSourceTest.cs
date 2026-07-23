@@ -17,11 +17,9 @@ using Xunit;
 using SmartBpParallelDownload = smartbp::neo_bpsys_wpf.Services.SmartBpParallelDownload;
 using SmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpSceneGateService;
 using SmartBpRecognitionScene = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionScene;
-using SmartBpRecognitionStrategy = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionStrategy;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
 using SmartBpPhaseRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpPhaseRecognitionResult;
 using SmartBpBusinessStateRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpBusinessStateRecognitionResult;
-using SmartBpAiPhaseOnlyResult = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpAiPhaseOnlyResult;
 using SmartBpCroppedFrame = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpCroppedFrame;
 using SmartBpOcrRecognitionRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrRecognitionRequest;
 using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaRequest;
@@ -44,7 +42,6 @@ using ISmartBpWorkflowBackfillService = smartbp::neo_bpsys_wpf.SmartBp.Module.Ab
 using ISmartBpDetectedOperationApplier = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDetectedOperationApplier;
 using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpCharacterResolver;
 using ISmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSceneGateService;
-using ISmartBpAiFieldSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiFieldSnapshotRecognitionService;
 using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDebugLog;
 using ISmartBpOcrBpRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpOcrBpRecognitionService;
 
@@ -136,7 +133,6 @@ public sealed class SmartBpSceneGateAndModelSourceTest
             var recognitionSettings = new Mock<ISmartBpRecognitionSettingsService>();
             recognitionSettings.SetupGet(service => service.Settings).Returns(new SmartBpRecognitionSettings
             {
-                RecognitionStrategy = SmartBpRecognitionStrategy.PureOcr
             });
             var guidance = new Mock<IGameGuidanceService>();
             guidance.Setup(service => service.GetRuntimeSnapshot()).Returns(new GameGuidanceRuntimeSnapshot(true, 0, null, [], null, []));
@@ -173,7 +169,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
     }
 
     [Fact]
-    public async Task AiWithOcrAutomatic_LocalPostBpOverridesStaleAiPhaseBeforeContentOcr()
+    public async Task OcrAutomatic_LocalPostBpOverridesStalePhaseBeforeContentOcr()
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -190,7 +186,6 @@ public sealed class SmartBpSceneGateAndModelSourceTest
             var recognitionSettings = new Mock<ISmartBpRecognitionSettingsService>();
             recognitionSettings.SetupGet(service => service.Settings).Returns(new SmartBpRecognitionSettings
             {
-                RecognitionStrategy = SmartBpRecognitionStrategy.PureOcr,
                 EnableAutoApplyRecognition = true,
                 EnableAutoGuidanceSync = true
             });

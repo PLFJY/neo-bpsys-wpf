@@ -174,7 +174,7 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写
 6. 本地解析四个粗区域：`right_top -> banned_sur`、`left_top -> banned_hun`、`left_bottom -> picked_sur`、`right_bottom -> picked_hun`。
 7. 角色名只从 `ISharedDataService.SurCharaDict` / `HunCharaDict` 匹配；无法明确解析的 OCR 文本只进入诊断，不会应用为角色。
 
-`UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置。旧配置中的 AI 策略值会在加载时回退为 `PureOcr`。
+`UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置。
 
 自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入。区域选择、等待开始、加载和对局内会阻断当前帧的内容识别与新操作生成，并停止调度后续 tick；已经排队或正在应用的角色 BP 操作会继续完成，队列排空后才以 `SmartBpCharacterBpEnded` 正常完成 GameGuidance 和自动识别，不触发取消事件。区域选择不属于 MapBP 或角色 BP 识别范围。用户手动停止仍会立即取消当前识别。
 
@@ -275,7 +275,7 @@ RapidOCR 与其他 OCR Provider 没有依赖关系。SmartBP 自动识别只使�
 
 ### 旧 AI 字段兼容
 
-SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和 AI OCR transcript 方案。这些路径及其对应的 Llama 服务器、Qwen 模型、融合模式、结构化输出、运行时更新检查等设置字段已从 `SmartBpRecognitionSettings` 中删除。仅保留 `RecognitionEngine` 枚举（含 `Ocr` 与 `AiQwen` 哨兵值）和 `RecognitionStrategy` 枚举（仅 `PureOcr`）用于读取历史配置 JSON：旧配置中的 AI 策略值会在加载时归一化为 `PureOcr`，若用户历史配置选中了 `AiQwen`，`SmartBpService` 的 `IsGameDataAiRecognitionSelected()` 守卫会显示"未实现"错误并阻止识别启动。UI 不再暴露任何 AI 模式、模型或服务器状态。
+SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和 AI OCR transcript 方案。这些路径及其对应的 Llama 服务器、Qwen 模型、融合模式、结构化输出、运行时更新检查等设置字段、相关枚举（`SmartBpRecognitionEngine` / `SmartBpRecognitionStrategy` / `AiStructuredOutputMode` / `SmartBpHybridFusionMode` 等）、守卫方法（`IsGameDataAiRecognitionSelected()`）和 UI 文本（`SmartBpGameDataAiRecognitionNotImplemented` 等）已彻底从代码库中删除。开发阶段无需向后兼容，不再保留任何旧配置 JSON 兼容代码。
 
 ### 识别设置总览
 
@@ -283,8 +283,6 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 
 | 配置组 | 关键字段 | 默认值 |
 | --- | --- | --- |
-| 识别策略 | `RecognitionStrategy` | `PureOcr` |
-| 兼容引擎字段 | `RecognitionEngine` | `Ocr` |
 | OCR BP | `EnableOcrBpRecognition`, `UseOcrContactSheet`, `OcrRecognitionIntervalMs` | true / true / 300ms |
 | OCR Provider | `SelectedOcrProviderMode`, `OcrProviderMode` | `Paddle` |
 | Tesseract | `EnableTesseractOcr`, `TesseractLanguages`, `TesseractDefaultPsm` | true / "chi_sim+eng" / 6 |

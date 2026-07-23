@@ -218,10 +218,7 @@ public sealed class RapidOcrIntegrationTest : IDisposable
         public string OcrModelsRoot => Path.Combine(root, "OCRModels");
         public string TesseractDataRoot => Path.Combine(OcrModelsRoot, "Tesseract", "tessdata");
         public string RapidOcrModelsRoot => Path.Combine(OcrModelsRoot, "RapidOCR", "Models");
-        public string AiRoot => Path.Combine(root, "AI");
-        public string QwenModelsRoot => Path.Combine(AiRoot, "QwenModels");
-        public string LlamaCppRoot => Path.Combine(AiRoot, "LlamaCpp");
-        public string RecognitionLogsRoot => Path.Combine(AiRoot, "RecognitionLogs");
+        public string RecognitionLogsRoot => Path.Combine(root, "RecognitionLogs");
     }
 
     private sealed class FakeRapidAssetManager(
