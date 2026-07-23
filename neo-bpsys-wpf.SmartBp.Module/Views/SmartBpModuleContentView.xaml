@@ -106,6 +106,86 @@
         </Border>
 
         <Border
+            x:Name="SmartBpStartFullBpFlowBorder"
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpAutomaticRecognitionAndApply}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpEnableAutoGuidanceSync}"
+                    IsChecked="{Binding EnableAutoGuidanceSync}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpEnableAutoGuidancePageNavigation}"
+                    IsChecked="{Binding EnableAutoGuidancePageNavigation}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpProgressAutoCorrection}"
+                    IsChecked="{Binding EnableSmartBpProgressAutoCorrection}"
+                    ToolTip="{lex:Loc SmartBpProgressAutoCorrectionDescription}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpAiEnableAutoApply}"
+                    IsChecked="{Binding EnableAutoApplyRecognition}" />
+                <ComboBox
+                    Margin="0,8,0,0"
+                    SelectedValue="{Binding RecognitionApplyMode}"
+                    SelectedValuePath="Tag">
+                    <ComboBoxItem Content="{lex:Loc SmartBpGuidedWorkflowRecommended}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.GuidedWorkflow}" />
+                    <ComboBoxItem Content="{lex:Loc SmartBpFreeFullSyncExperimental}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}" />
+                </ComboBox>
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                    Text="{lex:Loc SmartBpFreeFullSyncWarning}"
+                    TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RecognitionApplyMode}" Value="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:ToggleSwitch
+                        Margin="0,0,12,8"
+                        Content="{lex:Loc SmartBpEnableDebugLog}"
+                        IsChecked="{Binding IsDebugLogEnabled}" />
+                    <ui:Button
+                        x:Name="SmartBpStartFullBpFlowButton"
+                        Margin="0,0,8,0"
+                        Command="{Binding StartAiPreviewLoopCommand}"
+                        Content="{lex:Loc SmartBpStartAutomaticRecognition}"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
+                    <ui:Button
+                        Margin="0,0,8,0"
+                        Command="{Binding StopAiPreviewLoopCommand}"
+                        Content="{lex:Loc SmartBpStopAutomaticRecognition}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button
+                        Command="{Binding ForceSyncGameStateCommand}"
+                        Content="{lex:Loc SmartBpForceSyncGameState}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
+                        ToolTip="{lex:Loc SmartBpForceSyncGameStateDescription}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding LastSmartBpProgressDiagnosis}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Text="{lex:Loc SmartBpRecognizing}"
+                    Visibility="{Binding IsAiRecognizing, Converter={StaticResource BooleanToHiddenVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Border
             x:Name="SmartBpOcrModelManagementCard"
             Margin="0,0,0,10"
             Style="{StaticResource Card}"
@@ -275,86 +355,6 @@
                         <TextBlock Text="{Binding TesseractDownloadDetail}" TextWrapping="Wrap" />
                     </StackPanel>
                 </StackPanel>
-            </StackPanel>
-        </Border>
-
-        <Border
-            x:Name="SmartBpStartFullBpFlowBorder"
-            Margin="0,0,0,10"
-            Style="{StaticResource Card}">
-            <StackPanel>
-                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpAutomaticRecognitionAndApply}" />
-                <ui:ToggleSwitch
-                    Margin="0,8,0,0"
-                    Content="{lex:Loc SmartBpEnableAutoGuidanceSync}"
-                    IsChecked="{Binding EnableAutoGuidanceSync}" />
-                <ui:ToggleSwitch
-                    Margin="0,8,0,0"
-                    Content="{lex:Loc SmartBpEnableAutoGuidancePageNavigation}"
-                    IsChecked="{Binding EnableAutoGuidancePageNavigation}" />
-                <ui:ToggleSwitch
-                    Margin="0,8,0,0"
-                    Content="{lex:Loc SmartBpProgressAutoCorrection}"
-                    IsChecked="{Binding EnableSmartBpProgressAutoCorrection}"
-                    ToolTip="{lex:Loc SmartBpProgressAutoCorrectionDescription}" />
-                <ui:ToggleSwitch
-                    Margin="0,8,0,0"
-                    Content="{lex:Loc SmartBpAiEnableAutoApply}"
-                    IsChecked="{Binding EnableAutoApplyRecognition}" />
-                <ComboBox
-                    Margin="0,8,0,0"
-                    SelectedValue="{Binding RecognitionApplyMode}"
-                    SelectedValuePath="Tag">
-                    <ComboBoxItem Content="{lex:Loc SmartBpGuidedWorkflowRecommended}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.GuidedWorkflow}" />
-                    <ComboBoxItem Content="{lex:Loc SmartBpFreeFullSyncExperimental}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}" />
-                </ComboBox>
-                <TextBlock
-                    Margin="0,6,0,0"
-                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                    Text="{lex:Loc SmartBpFreeFullSyncWarning}"
-                    TextWrapping="Wrap">
-                    <TextBlock.Style>
-                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RecognitionApplyMode}" Value="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-                <WrapPanel Margin="0,8,0,0">
-                    <ui:ToggleSwitch
-                        Margin="0,0,12,8"
-                        Content="{lex:Loc SmartBpEnableDebugLog}"
-                        IsChecked="{Binding IsDebugLogEnabled}" />
-                    <ui:Button
-                        x:Name="SmartBpStartFullBpFlowButton"
-                        Margin="0,0,8,0"
-                        Command="{Binding StartAiPreviewLoopCommand}"
-                        Content="{lex:Loc SmartBpStartAutomaticRecognition}"
-                        Icon="{ui:SymbolIcon Symbol=Play24}" />
-                    <ui:Button
-                        Margin="0,0,8,0"
-                        Command="{Binding StopAiPreviewLoopCommand}"
-                        Content="{lex:Loc SmartBpStopAutomaticRecognition}"
-                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                    <ui:Button
-                        Command="{Binding ForceSyncGameStateCommand}"
-                        Content="{lex:Loc SmartBpForceSyncGameState}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
-                        ToolTip="{lex:Loc SmartBpForceSyncGameStateDescription}" />
-                </WrapPanel>
-                <TextBlock
-                    Margin="0,4,0,0"
-                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                    Text="{Binding LastSmartBpProgressDiagnosis}"
-                    TextWrapping="Wrap" />
-                <TextBlock
-                    Margin="0,4,0,0"
-                    Text="{lex:Loc SmartBpRecognizing}"
-                    Visibility="{Binding IsAiRecognizing, Converter={StaticResource BooleanToHiddenVisibilityConverter}}" />
             </StackPanel>
         </Border>
 

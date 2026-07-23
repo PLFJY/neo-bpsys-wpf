@@ -274,7 +274,7 @@
     <value>切换</value>
   </data>
   <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve">
-    <value>自动识别与应用</value>
+    <value>全流程 BP 自动识别</value>
   </data>
   <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve">
     <value>识别区域配置</value>

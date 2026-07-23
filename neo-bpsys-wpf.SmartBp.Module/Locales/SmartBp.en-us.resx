@@ -1,442 +1,555 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype">text/microsoft-resx</resheader>
-  <resheader name="version">2.0</resheader>
-  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="SmartBpWindowCaptureSettings">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SmartBpWindowCaptureSettings" xml:space="preserve">
     <value>Window Capture Settings</value>
   </data>
-  <data name="SmartBpOpenWindowPickerOnlyWgc">
+  <data name="SmartBpOpenWindowPickerOnlyWgc" xml:space="preserve">
     <value>Open Window Picker (WGC only)</value>
   </data>
-  <data name="SmartBpCancelDownload">
+  <data name="SmartBpCancelDownload" xml:space="preserve">
     <value>Cancel Download</value>
   </data>
-  <data name="SmartBpOcrModelDownloadFailed">
+  <data name="SmartBpOcrModelDownloadFailed" xml:space="preserve">
     <value>Failed to download OCR model: {0}</value>
   </data>
-  <data name="SmartBpDeleteOcrModelConfirmFormat">
+  <data name="SmartBpDeleteOcrModelConfirmFormat" xml:space="preserve">
     <value>Are you sure you want to delete OCR model: {0}?</value>
   </data>
-  <data name="SmartBpDeleteOcrModelTitle">
+  <data name="SmartBpDeleteOcrModelTitle" xml:space="preserve">
     <value>Delete Model</value>
   </data>
-  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel">
+  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
     <value>OCR is not ready. Please download and switch an OCR model before using this feature.</value>
   </data>
-  <data name="SmartBpValidationCaptureNotRunning">
+  <data name="SmartBpValidationCaptureNotRunning" xml:space="preserve">
     <value>Start window capture before starting recognition.</value>
   </data>
-  <data name="SmartBpValidationCaptureFrameUnavailable">
+  <data name="SmartBpValidationCaptureFrameUnavailable" xml:space="preserve">
     <value>No capture frame is available. Confirm that the captured window still exists.</value>
   </data>
-  <data name="SmartBpValidationRegionProfileInvalid">
+  <data name="SmartBpValidationRegionProfileInvalid" xml:space="preserve">
     <value>The post-game data recognition region profile is invalid. Reset to the built-in default or import a valid profile.</value>
   </data>
-  <data name="SmartBpValidationGameDataRecognitionNoResult">
+  <data name="SmartBpValidationGameDataRecognitionNoResult" xml:space="preserve">
     <value>No post-game data could be recognized from the current capture frame. Check the image and region profile.</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidCellCountFormat">
+  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
     <value>Invalid config: row {0} must contain 6 child regions.</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidBigRectFormat">
+  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
     <value>Invalid config: row {0} parent rect is out of range.</value>
   </data>
-  <data name="SmartBpRegionConfigResetFailedFormat">
+  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
     <value>Reset failed: {0}</value>
   </data>
-  <data name="SmartBpRegionEditorWindowTitle">
+  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
     <value>Region Editor</value>
   </data>
-  <data name="SmartBpRegionEditorTemplateNotInGroup">
+  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
     <value>Current node is not in a template group.</value>
   </data>
-  <data name="SmartBpRegionEditorApplyTemplate">
+  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
     <value>Apply to Same Template</value>
   </data>
-  <data name="SmartBpRegionEditorOperationHelp">
+  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
     <value>How to use: 1. Drag inside region to move 2. Drag 8 handles to resize 3. Child regions are constrained inside parent 4. Preview is frozen on current frame</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidCellRectFormat">
+  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
     <value>Invalid config: row {0} cell {1} is out of parent range.</value>
   </data>
-  <data name="SmartBpRegionConfigSaveFailedFormat">
+  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
     <value>Failed to save config: {0}</value>
   </data>
-  <data name="SmartBpRegionEditorCurrentRect">
+  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
     <value>Current Relative Rect</value>
   </data>
-  <data name="SmartBpRegionEditorNodeSelection">
+  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
     <value>Node Selection</value>
   </data>
-  <data name="SmartBpRegionEditorRuleDefault">
+  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
     <value>Current rule: 1 parent region + 6 child regions per row</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidScene">
+  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
     <value>Invalid config: scene must be GameData.</value>
   </data>
-  <data name="SmartBpRegionConfigImportFileNotFound">
+  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
     <value>Import failed: config file does not exist.</value>
   </data>
-  <data name="SmartBpRegionConfigImportFailedFormat">
+  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
     <value>Import failed: {0}</value>
   </data>
-  <data name="SmartBpRegionConfigInvalidRowCount">
+  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
     <value>Invalid config: exactly 5 parent regions are required.</value>
   </data>
-  <data name="SmartBpImportGameDataRegionConfig">
+  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
     <value>Import post-game region config</value>
   </data>
-  <data name="SmartBpRegionConfigImportEmpty">
+  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
     <value>Import failed: config content is empty.</value>
   </data>
-  <data name="SmartBpRegionConfigExportFailedFormat">
+  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
     <value>Failed to export config: {0}</value>
   </data>
-  <data name="SmartBpExportGameDataRegionConfig">
+  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
     <value>Export post-game region config</value>
   </data>
-  <data name="SmartBpRegionConfigExportPathEmpty">
+  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
     <value>Export failed: target path cannot be empty.</value>
   </data>
-  <data name="Preview">
+  <data name="Preview" xml:space="preserve">
     <value>Preview</value>
   </data>
-  <data name="Clear">
+  <data name="Clear" xml:space="preserve">
     <value>Clear</value>
   </data>
-  <data name="SmartBpAiRecognizeTestFrame">
+  <data name="SmartBpAiRecognizeTestFrame" xml:space="preserve">
     <value>Recognize selected test image (full)</value>
   </data>
-  <data name="SmartBpAiEnableAutoApply">
+  <data name="SmartBpAiEnableAutoApply" xml:space="preserve">
     <value>Automatically apply recognition results</value>
   </data>
-  <data name="SmartBpAiResetLedger">
+  <data name="SmartBpAiResetLedger" xml:space="preserve">
     <value>Reset SmartBP recognition ledger</value>
   </data>
-  <data name="SmartBpEnableDebugLog">
+  <data name="SmartBpEnableDebugLog" xml:space="preserve">
     <value>Enable debug log</value>
   </data>
-  <data name="SmartBpOcrUseContactSheet">
+  <data name="SmartBpOcrUseContactSheet" xml:space="preserve">
     <value>Use OCR contact sheet</value>
   </data>
-  <data name="SmartBpOcrDebugOverlay">
+  <data name="SmartBpOcrDebugOverlay" xml:space="preserve">
     <value>Enable OCR debug overlay</value>
   </data>
-  <data name="SmartBpOcrIntervalMilliseconds">
+  <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve">
     <value>OCR interval milliseconds</value>
   </data>
-  <data name="SmartBpOcrFieldStaleMilliseconds">
+  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve">
     <value>OCR field stale refresh milliseconds</value>
   </data>
-  <data name="SmartBpOcrBackfillLookBehindSteps">
+  <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve">
     <value>OCR workflow look-behind steps</value>
   </data>
-  <data name="SmartBpTransitionReplayWindow">
+  <data name="SmartBpTransitionReplayWindow" xml:space="preserve">
     <value>Transition replay window (ms)</value>
   </data>
-  <data name="SmartBpTransitionReplayMinimumConfidence">
+  <data name="SmartBpTransitionReplayMinimumConfidence" xml:space="preserve">
     <value>Transition replay correction minimum confidence</value>
   </data>
-  <data name="SmartBpOcrProviderSection">
+  <data name="SmartBpOcrProviderSection" xml:space="preserve">
     <value>OCR provider</value>
   </data>
-  <data name="SmartBpOcrTesseractLanguages">
+  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve">
     <value>Tesseract languages</value>
   </data>
-  <data name="SmartBpOcrOpenTessdataFolder">
+  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve">
     <value>Open tessdata folder</value>
   </data>
-  <data name="SmartBpOcrTesseractPsm">
+  <data name="SmartBpOcrTesseractPsm" xml:space="preserve">
     <value>Tesseract page segmentation mode (PSM)</value>
   </data>
-  <data name="SmartBpOcrTesseractVariants">
+  <data name="SmartBpOcrTesseractVariants" xml:space="preserve">
     <value>Maximum preprocessing variants</value>
   </data>
-  <data name="Download">
+  <data name="Download" xml:space="preserve">
     <value>Download</value>
   </data>
-  <data name="Switch">
+  <data name="Switch" xml:space="preserve">
     <value>Switch</value>
   </data>
-  <data name="SmartBpAutomaticRecognitionAndApply">
-    <value>Automatic Recognition and Apply</value>
+  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve">
+    <value>Full-process BP auto recognition</value>
   </data>
-  <data name="SmartBpRecognitionAreaConfiguration">
+  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve">
     <value>Recognition Area Configuration</value>
   </data>
-  <data name="SmartBpBpRecognitionRegions">
+  <data name="SmartBpBpRecognitionRegions" xml:space="preserve">
     <value>BP automatic recognition regions</value>
   </data>
-  <data name="SmartBpGameDataRecognitionRegions">
+  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve">
     <value>Post-game data recognition regions</value>
   </data>
-  <data name="SmartBpOpenBpRecognitionRegionEditor">
+  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve">
     <value>Edit BP recognition regions</value>
   </data>
-  <data name="SmartBpResetBpRecognitionRegionConfig">
+  <data name="SmartBpResetBpRecognitionRegionConfig" xml:space="preserve">
     <value>Reset to built-in</value>
   </data>
-  <data name="SmartBpShowBpRecognitionRegionExample">
+  <data name="SmartBpShowBpRecognitionRegionExample" xml:space="preserve">
     <value>Show region adjustment example</value>
   </data>
-  <data name="SmartBpBpRecognitionRegionExampleDialogTitle">
+  <data name="SmartBpBpRecognitionRegionExampleDialogTitle" xml:space="preserve">
     <value>Region adjustment example</value>
   </data>
-  <data name="SmartBpNotification">
+  <data name="SmartBpNotification" xml:space="preserve">
     <value>Notification</value>
   </data>
-  <data name="SmartBpClose">
+  <data name="SmartBpClose" xml:space="preserve">
     <value>Close</value>
   </data>
-  <data name="SmartBpEditGameDataRegionConfig">
+  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve">
     <value>Edit post-game data region</value>
   </data>
-  <data name="SmartBpResetGameDataRegionConfig">
+  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve">
     <value>Reset to built-in 16:9 default</value>
   </data>
-  <data name="SmartBpRegionConfigCurrentPath">
+  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve">
     <value>Current config path</value>
   </data>
-  <data name="SmartBpRegionConfigConfiguredAspectRatio">
+  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve">
     <value>Configured aspect ratio</value>
   </data>
-  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio">
+  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve">
     <value>Current capture aspect ratio</value>
   </data>
-  <data name="SmartBpRegionConfigAspectStatus">
+  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve">
     <value>Aspect status</value>
   </data>
-  <data name="SmartBpAdvancedParameters">
+  <data name="SmartBpAdvancedParameters" xml:space="preserve">
     <value>Advanced Parameters</value>
   </data>
-  <data name="SmartBpDebugOptions">
+  <data name="SmartBpDebugOptions" xml:space="preserve">
     <value>Debug options</value>
   </data>
-  <data name="SmartBpGameDataRecognitionDebug">
+  <data name="SmartBpGameDataRecognitionDebug" xml:space="preserve">
     <value>Post-game recognition debug</value>
   </data>
-  <data name="SmartBpGameDataRecognitionDebugDescription">
+  <data name="SmartBpGameDataRecognitionDebugDescription" xml:space="preserve">
     <value>Shows the latest reconstructed OCR table, extracted character text, and resolved character.</value>
   </data>
-  <data name="SmartBpGameDataDebugOcrLineCountFormat">
+  <data name="SmartBpGameDataDebugOcrLineCountFormat" xml:space="preserve">
     <value>OCR text lines: {0}</value>
   </data>
-  <data name="SmartBpGameDataDebugTableHeader">
+  <data name="SmartBpGameDataDebugTableHeader" xml:space="preserve">
     <value>Row	Player ID	Extracted character	Resolved character	Data columns</value>
   </data>
-  <data name="SmartBpGameDataDebugRowFormat">
+  <data name="SmartBpGameDataDebugRowFormat" xml:space="preserve">
     <value>{0}	{1}	{2}	{3}	{4}</value>
   </data>
-  <data name="SmartBpGameDataDebugUnresolved">
+  <data name="SmartBpGameDataDebugUnresolved" xml:space="preserve">
     <value>Unresolved</value>
   </data>
-  <data name="SmartBpGameDataDebugNoRows">
+  <data name="SmartBpGameDataDebugNoRows" xml:space="preserve">
     <value>No player (character) row was reconstructed.</value>
   </data>
-  <data name="SmartBpGameDataDebugDiagnostics">
+  <data name="SmartBpGameDataDebugDiagnostics" xml:space="preserve">
     <value>Parse diagnostics:</value>
   </data>
-  <data name="SmartBpGameDataDebugColumnRow">
+  <data name="SmartBpGameDataDebugColumnRow" xml:space="preserve">
     <value>Row</value>
   </data>
-  <data name="SmartBpGameDataDebugColumnPlayerName">
+  <data name="SmartBpGameDataDebugColumnPlayerName" xml:space="preserve">
     <value>Player ID</value>
   </data>
-  <data name="SmartBpGameDataDebugColumnExtractedCharacter">
+  <data name="SmartBpGameDataDebugColumnExtractedCharacter" xml:space="preserve">
     <value>Extracted character</value>
   </data>
-  <data name="SmartBpGameDataDebugColumnResolvedCharacter">
+  <data name="SmartBpGameDataDebugColumnResolvedCharacter" xml:space="preserve">
     <value>Resolved character</value>
   </data>
-  <data name="SmartBpFullRecognitionTest">
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve">
     <value>Recognize full image</value>
   </data>
-  <data name="SmartBpPhaseSceneOnlyTest">
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve">
     <value>Recognize current phase</value>
   </data>
-  <data name="SmartBpDebugTools">
+  <data name="SmartBpDebugTools" xml:space="preserve">
     <value>Debug tools</value>
   </data>
-  <data name="SmartBpAiRecognizeSelectedPhase">
+  <data name="SmartBpAiRecognizeSelectedPhase" xml:space="preserve">
     <value>Recognize selected test-image phase</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentPhase">
+  <data name="SmartBpAiRecognizeCurrentPhase" xml:space="preserve">
     <value>Recognize current phase</value>
   </data>
-  <data name="SmartBpDebugStrategySummary">
+  <data name="SmartBpDebugStrategySummary" xml:space="preserve">
     <value>Strategy</value>
   </data>
-  <data name="SmartBpDebugPhaseScene">
+  <data name="SmartBpDebugPhaseScene" xml:space="preserve">
     <value>Phase / scene</value>
   </data>
-  <data name="SmartBpDebugCandidateOperations">
+  <data name="SmartBpDebugCandidateOperations" xml:space="preserve">
     <value>Candidate operations</value>
   </data>
-  <data name="SmartBpTesseractDownloadData">
+  <data name="SmartBpTesseractDownloadData" xml:space="preserve">
     <value>Download selected language data</value>
   </data>
-  <data name="SmartBpTesseractDeleteData">
+  <data name="SmartBpTesseractDeleteData" xml:space="preserve">
     <value>Delete selected language data</value>
   </data>
-  <data name="SmartBpGameDataAiRecognitionNotImplemented">
+  <data name="SmartBpGameDataAiRecognitionNotImplemented" xml:space="preserve">
     <value>Post-game data recognition does not support AI recognition yet. Please switch to Paddle OCR or Tesseract OCR.</value>
   </data>
-  <data name="SmartBpEnableAutoGuidanceSync">
+  <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
     <value>Enable automatic GameGuidance sync</value>
   </data>
-  <data name="SmartBpEnableAutoGuidancePageNavigation">
+  <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
     <value>Follow page navigation when sync moves step</value>
   </data>
-  <data name="SmartBpProgressAutoCorrection">
+  <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
     <value>Diagnose and auto-sync progress</value>
   </data>
-  <data name="SmartBpProgressAutoCorrectionDescription">
+  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve">
     <value>When automatic recognition finds that GameGuidance clearly differs from the screen, confirm with full OCR and sync forward.</value>
   </data>
-  <data name="SmartBpForceSyncGameState">
+  <data name="SmartBpForceSyncGameState" xml:space="preserve">
     <value>Force sync game state</value>
   </data>
-  <data name="SmartBpForceSyncGameStateDescription">
+  <data name="SmartBpForceSyncGameStateDescription" xml:space="preserve">
     <value>Sync game progress, banned characters, selected characters, and survivor character assignments from the current screen.</value>
   </data>
-  <data name="SmartBpGameStateSyncAppliedFormat">
+  <data name="SmartBpGameStateSyncAppliedFormat" xml:space="preserve">
     <value>{2} Applied {0}; skipped {1}.</value>
   </data>
-  <data name="SmartBpOperationFailedFormat">
+  <data name="SmartBpOperationFailedFormat" xml:space="preserve">
     <value>Operation failed: {0}</value>
   </data>
-  <data name="SmartBpAlreadyRunning">
+  <data name="SmartBpAlreadyRunning" xml:space="preserve">
     <value>SmartBP is already running. Do not start it again.</value>
   </data>
-  <data name="SmartBpFreeFullSyncWarning">
+  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
     <value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value>
   </data>
-  <data name="SmartBpCaptureStopDisabledWhileRecognizing">
+  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
     <value>Window capture is kept running while automatic recognition is active. Stop automatic recognition before stopping capture.</value>
   </data>
-  <data name="SmartBpStartAutomaticRecognition">
+  <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
     <value>Start automatic recognition</value>
   </data>
-  <data name="SmartBpAiRecognizeCurrentFrame">
+  <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
     <value>Recognize current capture (full)</value>
   </data>
-  <data name="SmartBpTooltipContactSheet">
+  <data name="SmartBpTooltipContactSheet" xml:space="preserve">
     <value>Combines recognition regions into one OCR input.</value>
   </data>
-  <data name="SmartBpTooltipRecognitionInterval">
+  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
     <value>Minimum delay between automatic recognition runs in milliseconds.</value>
   </data>
-  <data name="SmartBpTooltipFieldStale">
+  <data name="SmartBpTooltipFieldStale" xml:space="preserve">
     <value>Refresh a field after it has remained stale for this duration.</value>
   </data>
-  <data name="SmartBpTooltipBackfill">
+  <data name="SmartBpTooltipBackfill" xml:space="preserve">
     <value>Number of workflow steps eligible for late backfill.</value>
   </data>
-  <data name="SmartBpTooltipDebugOverlay">
+  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
     <value>Outputs OCR region and text-position diagnostics.</value>
   </data>
-  <data name="SmartBpTooltipTesseractLanguages">
+  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve">
     <value>Tesseract language expression, for example chi_sim+eng.</value>
   </data>
-  <data name="SmartBpTooltipTesseractPsm">
+  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve">
     <value>Tesseract page segmentation mode.</value>
   </data>
-  <data name="SmartBpTooltipTesseractVariants">
+  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve">
     <value>Number of preprocessed image variants tried per region.</value>
   </data>
-  <data name="SmartBpTestRecognitionSpeed">
+  <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
     <value>Test recognition speed</value>
   </data>
-  <data name="SmartBpGuidedWorkflowRecommended">
+  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
     <value>Guided workflow (recommended)</value>
   </data>
-  <data name="SmartBpFreeFullSyncExperimental">
+  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
     <value>Free full sync (experimental)</value>
   </data>
-  <data name="SmartBpAutomaticRecognitionInterval">
+  <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
     <value>Automatic recognition interval</value>
   </data>
-  <data name="SmartBpRecognizing">
+  <data name="SmartBpRecognizing" xml:space="preserve">
     <value>Recognizing…</value>
   </data>
-  <data name="SmartBpCurrentEngine">
+  <data name="SmartBpCurrentEngine" xml:space="preserve">
     <value>Current engine</value>
   </data>
-  <data name="SmartBpCurrentInterval">
+  <data name="SmartBpCurrentInterval" xml:space="preserve">
     <value>Current interval</value>
   </data>
-  <data name="SmartBpMinimumInterval">
+  <data name="SmartBpMinimumInterval" xml:space="preserve">
     <value>Minimum interval from speed test</value>
   </data>
-  <data name="SmartBpRapidOcrModelManagement">
+  <data name="SmartBpRapidOcrModelManagement" xml:space="preserve">
     <value>RapidOCR Chinese model</value>
   </data>
-  <data name="SmartBpRapidOcrMaxSideLen">
+  <data name="SmartBpRapidOcrMaxSideLen" xml:space="preserve">
     <value>Maximum image side</value>
   </data>
-  <data name="SmartBpRapidOcrPadding">
+  <data name="SmartBpRapidOcrPadding" xml:space="preserve">
     <value>Detection padding</value>
   </data>
-  <data name="SmartBpRapidOcrBoxScoreThreshold">
+  <data name="SmartBpRapidOcrBoxScoreThreshold" xml:space="preserve">
     <value>Text box score threshold</value>
   </data>
-  <data name="SmartBpRapidOcrBoxThreshold">
+  <data name="SmartBpRapidOcrBoxThreshold" xml:space="preserve">
     <value>Text box detection threshold</value>
   </data>
-  <data name="SmartBpRapidOcrUnclipRatio">
+  <data name="SmartBpRapidOcrUnclipRatio" xml:space="preserve">
     <value>Text box expansion ratio</value>
   </data>
-  <data name="SmartBpRapidOcrAngleClassifier">
+  <data name="SmartBpRapidOcrAngleClassifier" xml:space="preserve">
     <value>Enable text angle classifier</value>
   </data>
-  <data name="SmartBpRapidOcrPreprocessingVariants">
+  <data name="SmartBpRapidOcrPreprocessingVariants" xml:space="preserve">
     <value>Try a contrast-enhanced variant</value>
   </data>
-  <data name="SmartBpTooltipRapidOcrMaxSideLen">
+  <data name="SmartBpTooltipRapidOcrMaxSideLen" xml:space="preserve">
     <value>A larger side may improve small text at the cost of memory and speed. Keep 1024 unless tuning.</value>
   </data>
-  <data name="SmartBpTooltipRapidOcrThresholds">
+  <data name="SmartBpTooltipRapidOcrThresholds" xml:space="preserve">
     <value>Higher thresholds reduce false positives but can miss weak or small text.</value>
   </data>
-  <data name="SmartBpRapidOcrCheckUpdate">
+  <data name="SmartBpRapidOcrCheckUpdate" xml:space="preserve">
     <value>Check model updates</value>
   </data>
-  <data name="SmartBpRapidOcrInstalledVersion">
+  <data name="SmartBpRapidOcrInstalledVersion" xml:space="preserve">
     <value>Installed: </value>
   </data>
-  <data name="SmartBpRapidOcrLatestVersion">
+  <data name="SmartBpRapidOcrLatestVersion" xml:space="preserve">
     <value>Manifest: </value>
   </data>
-  <data name="SmartBpIncrementalRecognitionTest">
+  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve">
     <value>Recognize current-stage incremental</value>
   </data>
-  <data name="SmartBpRecognizeSelectedIncremental">
+  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve">
     <value>Recognize test-frame incremental</value>
   </data>
-  <data name="SmartBpRecognizeCurrentIncremental">
+  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve">
     <value>Recognize current-frame incremental</value>
   </data>
-  <data name="SmartBpDebugFinalBusinessState">
+  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve">
     <value>Final business state</value>
   </data>
-  <data name="SmartBpDebugFusionSummary">
+  <data name="SmartBpDebugFusionSummary" xml:space="preserve">
     <value>Fusion summary</value>
   </data>
-  <data name="SmartBpDebugTimingServerSummary">
+  <data name="SmartBpDebugTimingServerSummary" xml:space="preserve">
     <value>Timing and server summary</value>
   </data>
-  <data name="SmartBpOpenRecognitionDebugLogWindow">
+  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
     <value>Open recognition log window</value>
   </data>
-  <data name="SmartBpRecognitionDebugLogWindowTitle">
+  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
     <value>SmartBP Recognition Debug Log</value>
   </data>
-  <data name="SmartBpRecognitionDebugLogAutoScroll">
+  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve">
     <value>Auto-scroll</value>
   </data>
-  <data name="SmartBpCopyRecognitionDebugLog">
+  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve">
     <value>Copy log</value>
   </data>
   <data name="Refresh" xml:space="preserve">
@@ -463,397 +576,397 @@
   <data name="SaveSuccessfullyTo" xml:space="preserve">
     <value>Save successfully to</value>
   </data>
-  <data name="SmartBpAiLedgerResetCompleted">
+  <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve">
     <value>The SmartBP AI recognition ledger was reset for the current game.</value>
   </data>
-  <data name="SmartBpAiRegionEditor">
+  <data name="SmartBpAiRegionEditor" xml:space="preserve">
     <value>SmartBP OCR recognition region editor</value>
   </data>
-  <data name="SmartBpAiRegionLeftBottom">
+  <data name="SmartBpAiRegionLeftBottom" xml:space="preserve">
     <value>Lower left: survivor pick and assignment</value>
   </data>
-  <data name="SmartBpAiRegionLeftTop">
+  <data name="SmartBpAiRegionLeftTop" xml:space="preserve">
     <value>Upper left: ban hunters</value>
   </data>
-  <data name="SmartBpAiRegionPhaseTop">
+  <data name="SmartBpAiRegionPhaseTop" xml:space="preserve">
     <value>Top phase recognition area</value>
   </data>
-  <data name="SmartBpAiRegionProfileReset">
+  <data name="SmartBpAiRegionProfileReset" xml:space="preserve">
     <value>The SmartBP OCR recognition regions were reset to the bundled defaults.</value>
   </data>
-  <data name="SmartBpAiRegionProfileSaved">
+  <data name="SmartBpAiRegionProfileSaved" xml:space="preserve">
     <value>The SmartBP OCR recognition region profile was saved.</value>
   </data>
-  <data name="SmartBpAiRegionRightBottom">
+  <data name="SmartBpAiRegionRightBottom" xml:space="preserve">
     <value>Lower right: hunter pick</value>
   </data>
-  <data name="SmartBpAiRegionRightTop">
+  <data name="SmartBpAiRegionRightTop" xml:space="preserve">
     <value>Upper right: ban survivors</value>
   </data>
-  <data name="SmartBpAiRegionTopCenterStatus">
+  <data name="SmartBpAiRegionTopCenterStatus" xml:space="preserve">
     <value>Top-center BP lifecycle status area</value>
   </data>
-  <data name="SmartBpAiRegionTopLeftStatus">
+  <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve">
     <value>Top-left post-BP status area</value>
   </data>
-  <data name="SmartBpAutoRecognitionStartConfirm">
+  <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
     <value>Please confirm that the current game progress and half are set correctly. Incorrect settings may write recognition results to the wrong game.</value>
   </data>
-  <data name="SmartBpAutoRecognitionStartTitle">
+  <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve">
     <value>Start automatic recognition</value>
   </data>
-  <data name="SmartBpCaptureMethodBitblt">
+  <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
     <value>Bitblt</value>
   </data>
-  <data name="SmartBpCaptureMethodWgc">
+  <data name="SmartBpCaptureMethodWgc" xml:space="preserve">
     <value>Windows Graphics Capture (Windows 10 1903 or later)</value>
   </data>
-  <data name="SmartBpCurrentOcrModelDisabled">
+  <data name="SmartBpCurrentOcrModelDisabled" xml:space="preserve">
     <value>Current OCR model: Not enabled</value>
   </data>
-  <data name="SmartBpCurrentOcrModelFormat">
+  <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
     <value>Current OCR model: {0}</value>
   </data>
-  <data name="SmartBpDownloadCancelled">
+  <data name="SmartBpDownloadCancelled" xml:space="preserve">
     <value>Download cancelled</value>
   </data>
-  <data name="SmartBpDownloadFailedSimple">
+  <data name="SmartBpDownloadFailedSimple" xml:space="preserve">
     <value>Download failed</value>
   </data>
-  <data name="SmartBpOcrArchiveMissingModelFilesFormat">
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
     <value>No usable model files were found in the model archive (expected inference.pdmodel or inference.json, with inference.pdiparams). Sample files: {0}</value>
   </data>
-  <data name="SmartBpOcrClsModelMetadataEmpty">
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
     <value>OCR classification model metadata is empty.</value>
   </data>
-  <data name="SmartBpOcrContactSheet">
+  <data name="SmartBpOcrContactSheet" xml:space="preserve">
     <value>Contact sheet</value>
   </data>
-  <data name="SmartBpOcrDeleteBlockedByDownloading">
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
     <value>Cannot delete model while download is in progress.</value>
   </data>
-  <data name="SmartBpOcrDeleteFailedFormat">
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
     <value>Failed to delete OCR model: {0}</value>
   </data>
-  <data name="SmartBpOcrDetModelMetadataEmpty">
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
     <value>OCR detection model metadata is empty.</value>
   </data>
-  <data name="SmartBpOcrDictNameEmpty">
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
     <value>OCR dictionary name is empty.</value>
   </data>
-  <data name="SmartBpOcrDownloadAlreadyInProgress">
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
     <value>An OCR model download is already in progress.</value>
   </data>
-  <data name="SmartBpOcrDownloadCanceled">
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
     <value>Download canceled.</value>
   </data>
-  <data name="SmartBpOcrDownloadCompleted">
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
     <value>OCR model download completed.</value>
   </data>
-  <data name="SmartBpOcrDownloadFailedSimple">
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
     <value>Download failed.</value>
   </data>
-  <data name="SmartBpOcrDownloadPreparing">
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
     <value>Preparing to download OCR model...</value>
   </data>
-  <data name="SmartBpOcrDownloadStageCls">
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
     <value>Downloading orientation classification model...</value>
   </data>
-  <data name="SmartBpOcrDownloadStageDet">
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
     <value>Downloading detection model...</value>
   </data>
-  <data name="SmartBpOcrDownloadStageRec">
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
     <value>Downloading recognition model...</value>
   </data>
-  <data name="SmartBpOcrLoadFailedFormat">
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
     <value>Failed to load OCR model: {0}</value>
   </data>
-  <data name="SmartBpOcrModelEnV4MobileDescription">
+  <data name="SmartBpOcrModelEnV4MobileDescription" xml:space="preserve">
     <value>Optimized for English scenes, suitable for English and numeric recognition. Recommended for English UI.</value>
   </data>
-  <data name="SmartBpOcrModelEnV4MobileDisplayName">
+  <data name="SmartBpOcrModelEnV4MobileDisplayName" xml:space="preserve">
     <value>English V4 Mobile (Recommended)</value>
   </data>
-  <data name="SmartBpOcrModelFilesIncomplete">
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
     <value>Model files are incomplete. Please download the model first.</value>
   </data>
-  <data name="SmartBpOcrModelJaV4MobileDescription">
+  <data name="SmartBpOcrModelJaV4MobileDescription" xml:space="preserve">
     <value>Optimized for Japanese scenes, suitable for Japanese and numeric recognition.</value>
   </data>
-  <data name="SmartBpOcrModelJaV4MobileDisplayName">
+  <data name="SmartBpOcrModelJaV4MobileDisplayName" xml:space="preserve">
     <value>Japanese V4 Mobile</value>
   </data>
-  <data name="SmartBpOcrModelZhCnV3SlimDescription">
+  <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
     <value>Smaller size, suitable for low-spec devices.</value>
   </data>
-  <data name="SmartBpOcrModelZhCnV3SlimDisplayName">
+  <data name="SmartBpOcrModelZhCnV3SlimDisplayName" xml:space="preserve">
     <value>Chinese V3 Slim (Lightweight)</value>
   </data>
-  <data name="SmartBpOcrModelZhCnV4Description">
+  <data name="SmartBpOcrModelZhCnV4Description" xml:space="preserve">
     <value>Stable compatibility with moderate deployment size.</value>
   </data>
-  <data name="SmartBpOcrModelZhCnV4DisplayName">
+  <data name="SmartBpOcrModelZhCnV4DisplayName" xml:space="preserve">
     <value>Chinese V4</value>
   </data>
-  <data name="SmartBpOcrModelZhCnV5MobileDescription">
+  <data name="SmartBpOcrModelZhCnV5MobileDescription" xml:space="preserve">
     <value>Balanced accuracy and speed.</value>
   </data>
-  <data name="SmartBpOcrModelZhCnV5MobileDisplayName">
+  <data name="SmartBpOcrModelZhCnV5MobileDisplayName" xml:space="preserve">
     <value>Chinese V5 Mobile</value>
   </data>
-  <data name="SmartBpOcrRecModelMetadataEmpty">
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
     <value>OCR recognition model metadata is empty.</value>
   </data>
-  <data name="SmartBpOcrStatusInstalled">
+  <data name="SmartBpOcrStatusInstalled" xml:space="preserve">
     <value>Installed</value>
   </data>
-  <data name="SmartBpOcrStatusMissing">
+  <data name="SmartBpOcrStatusMissing" xml:space="preserve">
     <value>Missing</value>
   </data>
-  <data name="SmartBpOcrUnsupportedModelFormat">
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
     <value>Unsupported OCR model: {0}</value>
   </data>
-  <data name="SmartBpProgressDiagnosisAligned">
+  <data name="SmartBpProgressDiagnosisAligned" xml:space="preserve">
     <value>Last progress diagnosis: aligned</value>
   </data>
-  <data name="SmartBpProgressDiagnosisInsufficient">
+  <data name="SmartBpProgressDiagnosisInsufficient" xml:space="preserve">
     <value>Last progress diagnosis: insufficient evidence</value>
   </data>
-  <data name="SmartBpProgressDiagnosisMisalignedFormat">
+  <data name="SmartBpProgressDiagnosisMisalignedFormat" xml:space="preserve">
     <value>Last progress diagnosis: current Step {0} {1}[{2}], screen fits Step {3} {4}[{5}] better</value>
   </data>
-  <data name="SmartBpProgressDiagnosisSyncedFormat">
+  <data name="SmartBpProgressDiagnosisSyncedFormat" xml:space="preserve">
     <value>Last progress diagnosis: synced to Step {0} {1}[{2}]</value>
   </data>
-  <data name="SmartBpProgressForceSyncFailedFormat">
+  <data name="SmartBpProgressForceSyncFailedFormat" xml:space="preserve">
     <value>Failed to force sync game progress: {0}</value>
   </data>
-  <data name="SmartBpProgressForceSyncForwardOnly">
+  <data name="SmartBpProgressForceSyncForwardOnly" xml:space="preserve">
     <value>Automatic progress sync only moves forward, so this sync was skipped.</value>
   </data>
-  <data name="SmartBpProgressForceSyncGuidanceStartFailed">
+  <data name="SmartBpProgressForceSyncGuidanceStartFailed" xml:space="preserve">
     <value>Game guidance could not be started, so game progress was not synchronized.</value>
   </data>
-  <data name="SmartBpProgressForceSyncNoSnapshot">
+  <data name="SmartBpProgressForceSyncNoSnapshot" xml:space="preserve">
     <value>Could not recognize a full BP snapshot, so game progress was not synchronized.</value>
   </data>
-  <data name="SmartBpProgressForceSyncRecognitionBusy">
+  <data name="SmartBpProgressForceSyncRecognitionBusy" xml:space="preserve">
     <value>The current recognition task has not finished yet, so a full BP snapshot cannot be captured. Please try again shortly.</value>
   </data>
-  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat">
+  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve">
     <value>The official model manifest is newer (bundled {0}, official {1}). Update the SmartBP module before installing models.</value>
   </data>
-  <data name="SmartBpRapidOcrDownloading">
+  <data name="SmartBpRapidOcrDownloading" xml:space="preserve">
     <value>Downloading RapidOCR model</value>
   </data>
-  <data name="SmartBpRapidOcrUpdate">
+  <data name="SmartBpRapidOcrUpdate" xml:space="preserve">
     <value>Update model</value>
   </data>
-  <data name="SmartBpRapidOcrUpdateAvailableFormat">
+  <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve">
     <value>RapidOCR model update available: {0} → {1}</value>
   </data>
-  <data name="SmartBpRapidOcrUpToDateFormat">
+  <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve">
     <value>RapidOCR model is up to date ({0})</value>
   </data>
-  <data name="SmartBpRapidOcrVersionUnknown">
+  <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve">
     <value>Unknown (legacy install)</value>
   </data>
-  <data name="SmartBpRecognitionEngine">
+  <data name="SmartBpRecognitionEngine" xml:space="preserve">
     <value>Recognition engine</value>
   </data>
-  <data name="SmartBpRecognitionIntervalReady">
+  <data name="SmartBpRecognitionIntervalReady" xml:space="preserve">
     <value>The speed test matches the current configuration; the interval can be edited.</value>
   </data>
-  <data name="SmartBpRecognitionIntervalRequiresSpeedTest">
+  <data name="SmartBpRecognitionIntervalRequiresSpeedTest" xml:space="preserve">
     <value>Run the recognition speed test first. The minimum interval will be measured maximum elapsed + 250ms.</value>
   </data>
-  <data name="SmartBpRecognitionPausedBpEnded">
+  <data name="SmartBpRecognitionPausedBpEnded" xml:space="preserve">
     <value>SmartBP automatic recognition paused because BP ended or area selection began.</value>
   </data>
-  <data name="SmartBpRecognitionPausedCaptureStopped">
+  <data name="SmartBpRecognitionPausedCaptureStopped" xml:space="preserve">
     <value>Window capture stopped, so automatic recognition has been paused.</value>
   </data>
-  <data name="SmartBpRecognitionPausedFrameUnavailable">
+  <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve">
     <value>The current capture frame could not be obtained, so automatic recognition has been paused.</value>
   </data>
-  <data name="SmartBpRecognitionStrategyPureOcr">
+  <data name="SmartBpRecognitionStrategyPureOcr" xml:space="preserve">
     <value>Pure OCR</value>
   </data>
-  <data name="SmartBpRecommendedProviderFormat">
+  <data name="SmartBpRecommendedProviderFormat" xml:space="preserve">
     <value>{0} (Recommended)</value>
   </data>
-  <data name="SmartBpRefreshStatus">
+  <data name="SmartBpRefreshStatus" xml:space="preserve">
     <value>Refresh Status</value>
   </data>
-  <data name="SmartBpRegionAspectHintMatched">
+  <data name="SmartBpRegionAspectHintMatched" xml:space="preserve">
     <value>Aspect ratio matched. Ready to use.</value>
   </data>
-  <data name="SmartBpRegionAspectHintMismatched">
+  <data name="SmartBpRegionAspectHintMismatched" xml:space="preserve">
     <value>Capture aspect ratio differs from config. Open "Edit Regions (GameData)" and adjust manually.</value>
   </data>
-  <data name="SmartBpRegionAspectHintNotStarted">
+  <data name="SmartBpRegionAspectHintNotStarted" xml:space="preserve">
     <value>Start capture first, then check aspect ratio.</value>
   </data>
-  <data name="SmartBpRegionAspectHintWaitingFirstFrame">
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame" xml:space="preserve">
     <value>Capture started. Waiting for first frame to evaluate aspect ratio.</value>
   </data>
-  <data name="SmartBpRegionAspectStatusMatched">
+  <data name="SmartBpRegionAspectStatusMatched" xml:space="preserve">
     <value>Matched</value>
   </data>
-  <data name="SmartBpRegionAspectStatusMismatched">
+  <data name="SmartBpRegionAspectStatusMismatched" xml:space="preserve">
     <value>Mismatched</value>
   </data>
-  <data name="SmartBpRegionAspectStatusNotStarted">
+  <data name="SmartBpRegionAspectStatusNotStarted" xml:space="preserve">
     <value>Capture not started</value>
   </data>
-  <data name="SmartBpRegionAspectStatusWaitingFirstFrame">
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame" xml:space="preserve">
     <value>Waiting for first frame</value>
   </data>
-  <data name="SmartBpRegionCellHunterKnockdowns">
+  <data name="SmartBpRegionCellHunterKnockdowns" xml:space="preserve">
     <value>Knockdowns</value>
   </data>
-  <data name="SmartBpRegionCellHunterPalletsDestroyed">
+  <data name="SmartBpRegionCellHunterPalletsDestroyed" xml:space="preserve">
     <value>Pallets Destroyed</value>
   </data>
-  <data name="SmartBpRegionCellHunterRemainingCipher">
+  <data name="SmartBpRegionCellHunterRemainingCipher" xml:space="preserve">
     <value>Remaining Ciphers</value>
   </data>
-  <data name="SmartBpRegionCellHunterSurvivorHits">
+  <data name="SmartBpRegionCellHunterSurvivorHits" xml:space="preserve">
     <value>Hits</value>
   </data>
-  <data name="SmartBpRegionCellHunterTerrorShocks">
+  <data name="SmartBpRegionCellHunterTerrorShocks" xml:space="preserve">
     <value>Terror Shocks</value>
   </data>
-  <data name="SmartBpRegionCellName">
+  <data name="SmartBpRegionCellName" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="SmartBpRegionCellSurvivorContainmentTime">
+  <data name="SmartBpRegionCellSurvivorContainmentTime" xml:space="preserve">
     <value>Containment</value>
   </data>
-  <data name="SmartBpRegionCellSurvivorDecodingProgress">
+  <data name="SmartBpRegionCellSurvivorDecodingProgress" xml:space="preserve">
     <value>Decoding</value>
   </data>
-  <data name="SmartBpRegionCellSurvivorHeals">
+  <data name="SmartBpRegionCellSurvivorHeals" xml:space="preserve">
     <value>Heals</value>
   </data>
-  <data name="SmartBpRegionCellSurvivorPalletStrikes">
+  <data name="SmartBpRegionCellSurvivorPalletStrikes" xml:space="preserve">
     <value>Pallet Strikes</value>
   </data>
-  <data name="SmartBpRegionCellSurvivorRescues">
+  <data name="SmartBpRegionCellSurvivorRescues" xml:space="preserve">
     <value>Rescues</value>
   </data>
-  <data name="SmartBpRegionConfigImported">
+  <data name="SmartBpRegionConfigImported" xml:space="preserve">
     <value>Config imported.</value>
   </data>
-  <data name="SmartBpRegionConfigResetConfirm">
+  <data name="SmartBpRegionConfigResetConfirm" xml:space="preserve">
     <value>Reset to built-in 16:9 default config? Current config will be overwritten.</value>
   </data>
-  <data name="SmartBpRegionConfigResetDone">
+  <data name="SmartBpRegionConfigResetDone" xml:space="preserve">
     <value>Reset to built-in 16:9 default config.</value>
   </data>
-  <data name="SmartBpRegionConfigResetTitle">
+  <data name="SmartBpRegionConfigResetTitle" xml:space="preserve">
     <value>Reset Config</value>
   </data>
-  <data name="SmartBpRegionConfigSaved">
+  <data name="SmartBpRegionConfigSaved" xml:space="preserve">
     <value>Region config saved.</value>
   </data>
-  <data name="SmartBpRegionEditorNodeRectChildFormat">
+  <data name="SmartBpRegionEditorNodeRectChildFormat" xml:space="preserve">
     <value>Node: {0}`nRelative rect (to parent)`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
   </data>
-  <data name="SmartBpRegionEditorNodeRectRootFormat">
+  <data name="SmartBpRegionEditorNodeRectRootFormat" xml:space="preserve">
     <value>Node: {0}`nRelative rect (to frame)`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
   </data>
-  <data name="SmartBpRegionEditorRequireCaptureFirst">
+  <data name="SmartBpRegionEditorRequireCaptureFirst" xml:space="preserve">
     <value>Please start capture before editing regions.</value>
   </data>
-  <data name="SmartBpRegionEditorRuleRuntimeFormat">
+  <data name="SmartBpRegionEditorRuleRuntimeFormat" xml:space="preserve">
     <value>Current structure: {0} editable nodes (any depth and count supported)</value>
   </data>
-  <data name="SmartBpRegionEditorSceneTitleFormat">
+  <data name="SmartBpRegionEditorSceneTitleFormat" xml:space="preserve">
     <value>Region Editor ({0})</value>
   </data>
-  <data name="SmartBpRegionEditorSelectNodeFirst">
+  <data name="SmartBpRegionEditorSelectNodeFirst" xml:space="preserve">
     <value>Please select a node first</value>
   </data>
-  <data name="SmartBpRegionEditorTemplateAppliedFormat">
+  <data name="SmartBpRegionEditorTemplateAppliedFormat" xml:space="preserve">
     <value>Applied to {0} same-template elements (parent position kept).</value>
   </data>
-  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat">
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat" xml:space="preserve">
     <value>Template group: {0}, elements: {1}.</value>
   </data>
-  <data name="SmartBpRegionEditorTemplateMarkFormat">
+  <data name="SmartBpRegionEditorTemplateMarkFormat" xml:space="preserve">
     <value> [Template:{0}]</value>
   </data>
-  <data name="SmartBpRegionHunterRow">
+  <data name="SmartBpRegionHunterRow" xml:space="preserve">
     <value>Hunter Row</value>
   </data>
-  <data name="SmartBpRegionLayoutMismatchCellCountFormat">
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat" xml:space="preserve">
     <value>Layout mismatch: row #{0} expected {1} cells, actual {2}.</value>
   </data>
-  <data name="SmartBpRegionLayoutMismatchRootCountFormat">
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat" xml:space="preserve">
     <value>Layout mismatch: expected {0} root regions, actual {1}.</value>
   </data>
-  <data name="SmartBpRegionLayoutMismatchRootIdFormat">
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
     <value>Layout mismatch: root #{0} should be {1}, actual {2}.</value>
   </data>
-  <data name="SmartBpRegionSurvivorRow1">
+  <data name="SmartBpRegionSurvivorRow1" xml:space="preserve">
     <value>Survivor Row 1</value>
   </data>
-  <data name="SmartBpRegionSurvivorRow2">
+  <data name="SmartBpRegionSurvivorRow2" xml:space="preserve">
     <value>Survivor Row 2</value>
   </data>
-  <data name="SmartBpRegionSurvivorRow3">
+  <data name="SmartBpRegionSurvivorRow3" xml:space="preserve">
     <value>Survivor Row 3</value>
   </data>
-  <data name="SmartBpRegionSurvivorRow4">
+  <data name="SmartBpRegionSurvivorRow4" xml:space="preserve">
     <value>Survivor Row 4</value>
   </data>
-  <data name="SmartBpSceneGameData">
+  <data name="SmartBpSceneGameData" xml:space="preserve">
     <value>GameData</value>
   </data>
-  <data name="SmartBpStopAutomaticRecognition">
+  <data name="SmartBpStopAutomaticRecognition" xml:space="preserve">
     <value>Stop SmartBP recognition</value>
   </data>
-  <data name="SmartBpStopCaptureWhileRecognizing">
+  <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve">
     <value>Automatic recognition is running. Stop automatic recognition before stopping window capture.</value>
   </data>
-  <data name="SmartBpTesseractDataDownloading">
+  <data name="SmartBpTesseractDataDownloading" xml:space="preserve">
     <value>Downloading Tesseract language data</value>
   </data>
-  <data name="SmartBpTesseractDataInstalled">
+  <data name="SmartBpTesseractDataInstalled" xml:space="preserve">
     <value>Tesseract language data installed</value>
   </data>
-  <data name="SmartBpTesseractDataMissing">
+  <data name="SmartBpTesseractDataMissing" xml:space="preserve">
     <value>Tesseract language data missing</value>
   </data>
-  <data name="SmartBpTesseractLanguageChineseSimplified">
+  <data name="SmartBpTesseractLanguageChineseSimplified" xml:space="preserve">
     <value>Simplified Chinese (chi_sim)</value>
   </data>
-  <data name="SmartBpTesseractLanguageEnglish">
+  <data name="SmartBpTesseractLanguageEnglish" xml:space="preserve">
     <value>English (eng)</value>
   </data>
-  <data name="SmartBpTesseractLanguageInstalled">
+  <data name="SmartBpTesseractLanguageInstalled" xml:space="preserve">
     <value>installed</value>
   </data>
-  <data name="SmartBpTesseractLanguageJapanese">
+  <data name="SmartBpTesseractLanguageJapanese" xml:space="preserve">
     <value>Japanese (jpn)</value>
   </data>
-  <data name="SmartBpTesseractLanguageMissing">
+  <data name="SmartBpTesseractLanguageMissing" xml:space="preserve">
     <value>missing</value>
   </data>
-  <data name="SmartBpTesseractNoLanguageSelected">
+  <data name="SmartBpTesseractNoLanguageSelected" xml:space="preserve">
     <value>Select at least one Tesseract language.</value>
   </data>
-  <data name="SmartBpValidationOcrNotReady">
+  <data name="SmartBpValidationOcrNotReady" xml:space="preserve">
     <value>Download and switch to an available OCR model before starting recognition.</value>
   </data>
-  <data name="QueueCanceled">
+  <data name="QueueCanceled" xml:space="preserve">
     <value>Canceled</value>
   </data>
-  <data name="Confirm">
+  <data name="Confirm" xml:space="preserve">
     <value>Confirm</value>
   </data>
-  <data name="UnknownError">
+  <data name="UnknownError" xml:space="preserve">
     <value>Unknown error</value>
   </data>
 </root>

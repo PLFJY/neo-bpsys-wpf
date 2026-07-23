@@ -271,7 +271,7 @@
     <value>Switch</value>
   </data>
   <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve">
-    <value>自動認識と適用</value>
+    <value>全プロセス BP 自動識別</value>
   </data>
   <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve">
     <value>認識領域設定</value>
@@ -284,6 +284,21 @@
   </data>
   <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve">
     <value>BP 認識領域を編集</value>
+  </data>
+  <data name="SmartBpResetBpRecognitionRegionConfig" xml:space="preserve">
+    <value>内蔵にリセット</value>
+  </data>
+  <data name="SmartBpShowBpRecognitionRegionExample" xml:space="preserve">
+    <value>領域調整例を表示</value>
+  </data>
+  <data name="SmartBpBpRecognitionRegionExampleDialogTitle" xml:space="preserve">
+    <value>領域調整例</value>
+  </data>
+  <data name="SmartBpNotification" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="SmartBpClose" xml:space="preserve">
+    <value>閉じる</value>
   </data>
   <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve">
     <value>試合後データ領域を編集</value>
@@ -947,20 +962,5 @@
   </data>
   <data name="UnknownError" xml:space="preserve">
     <value>不明なエラー</value>
-  </data>
-  <data name="SmartBpResetBpRecognitionRegionConfig" xml:space="preserve">
-    <value>内蔵にリセット</value>
-  </data>
-  <data name="SmartBpShowBpRecognitionRegionExample" xml:space="preserve">
-    <value>領域調整例を表示</value>
-  </data>
-  <data name="SmartBpBpRecognitionRegionExampleDialogTitle" xml:space="preserve">
-    <value>領域調整例</value>
-  </data>
-  <data name="SmartBpNotification" xml:space="preserve">
-    <value>通知</value>
-  </data>
-  <data name="SmartBpClose" xml:space="preserve">
-    <value>閉じる</value>
   </data>
 </root>
