@@ -17,6 +17,9 @@
     <Project Path="Built-inPlugins/neo-bpsys-wpf.WebRenderer/Host/neo-bpsys-wpf.WebRenderer.Host.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.GameStopwatch/neo-bpsys-wpf.GameStopwatch.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
   </Folder>
   <Project Path="neo-bpsys-wpf.Core/neo-bpsys-wpf.Core.csproj">
     <Platform Solution="*|x64" Project="x64" />
@@ -52,7 +55,6 @@
     <Platform Solution="*|x64" Project="x64" />
   </Project>
   <Project Path="neo-bpsys-wpf/neo-bpsys-wpf.csproj">
-    <BuildType Solution="Preview|*" Project="Preview" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
 </Solution>

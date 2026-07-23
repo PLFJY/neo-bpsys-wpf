@@ -1,0 +1,75 @@
+<Page
+    x:Class="neo_bpsys_wpf.GameStopwatch.Views.GameStopwatchSettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.GameStopwatch.ViewModels"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+    <StackPanel Margin="10">
+        <TextBlock
+            FontSize="20"
+            FontWeight="SemiBold"
+            Text="比赛秒表" />
+        <TextBlock
+            Margin="0,6,0,14"
+            Text="控制比赛秒表，并设置前台窗口的显示样式。"
+            TextWrapping="Wrap" />
+        <WrapPanel>
+            <ui:Button
+                Margin="0,0,8,8"
+                Command="{Binding StartCommand}"
+                Content="开始"
+                Icon="{ui:SymbolIcon Symbol=Play24}" />
+            <ui:Button
+                Margin="0,0,8,8"
+                Command="{Binding PauseCommand}"
+                Content="暂停"
+                Icon="{ui:SymbolIcon Symbol=Pause24}" />
+            <ui:Button
+                Margin="0,0,8,8"
+                Command="{Binding ResetCommand}"
+                Content="重置"
+                Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+        </WrapPanel>
+        <TextBlock Margin="0,8,0,4" Text="文字颜色" />
+        <colorpicker:PortableColorPicker
+            Width="60"
+            Height="30"
+            HorizontalAlignment="Left"
+            HexRepresentation="ARGB"
+            SelectedColor="{Binding TextColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            ShowAlpha="True"
+            Style="{StaticResource DefaultColorPickerStyle}" />
+        <TextBlock Margin="0,12,0,4" Text="字体" />
+        <ComboBox
+            Width="260"
+            HorizontalAlignment="Left"
+            ItemsSource="{Binding FontFamilies}"
+            SelectedItem="{Binding SelectedFontFamily, Mode=TwoWay}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock FontFamily="{Binding}" Text="{Binding}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+        <TextBlock Margin="0,12,0,4" Text="字号" />
+        <ui:NumberBox
+            Width="160"
+            HorizontalAlignment="Left"
+            LargeChange="10"
+            Maximum="300"
+            Minimum="12"
+            SmallChange="1"
+            Value="{Binding FontSize, Mode=TwoWay}" />
+        <TextBlock Margin="0,12,0,4" Text="窗口尺寸" />
+        <ui:NumberBox
+            Width="160"
+            HorizontalAlignment="Left"
+            LargeChange="10"
+            Maximum="4096"
+            Minimum="80"
+            SmallChange="1"
+            Value="{Binding WindowSize, Mode=TwoWay}" />
+    </StackPanel>
+</Page>
