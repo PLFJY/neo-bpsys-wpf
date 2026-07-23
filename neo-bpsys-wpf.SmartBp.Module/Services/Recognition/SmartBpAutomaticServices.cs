@@ -360,490 +360,11 @@ internal static class SmartBpAutomaticParser
         return new() { Phase = phase };
     }
 
-    /// <summary>
-    /// 解析增量快照 JSON，并确认 AI 只返回本次请求的字段。
-    /// </summary>
-    /// <param name="raw">AI 原始 JSON 文本。</param>
-    /// <param name="requestedFields">本次请求允许返回的字段集合。</param>
-    /// <param name="survivorCandidates">求生者候选名集合。</param>
-    /// <param name="hunterCandidates">监管者候选名集合。</param>
-    /// <returns>规范化后的快照增量。</returns>
-    /// <exception cref="InvalidDataException">JSON 结构、字段或候选值非法时抛出。</exception>
-    public static SmartBpSnapshotDeltaResult ParseSnapshotDelta(
-        string raw,
-        IReadOnlyCollection<string> requestedFields,
-        IReadOnlyCollection<string> survivorCandidates,
-        IReadOnlyCollection<string> hunterCandidates)
-    {
-        using var document = JsonDocument.Parse(raw);
-        var result = JsonSerializer.Deserialize<SmartBpSnapshotDeltaResult>(raw)
-            ?? throw new InvalidDataException("Snapshot delta JSON is empty.");
-        if (!SmartBpAutomaticMapping.ValidPhases.Contains(result.Phase)) throw new InvalidDataException("Invalid BP phase.");
-        result.Updates ??= [];
-        var requested = requestedFields.ToHashSet(StringComparer.Ordinal);
-        var rawUpdates = document.RootElement.TryGetProperty("updates", out var updatesElement) && updatesElement.ValueKind == JsonValueKind.Array
-            ? updatesElement.EnumerateArray().ToArray()
-            : [];
-        for (var updateIndex = 0; updateIndex < result.Updates.Count; updateIndex++)
-        {
-            var update = result.Updates[updateIndex];
-            var rawUpdate = updateIndex < rawUpdates.Length ? rawUpdates[updateIndex] : default;
-            if (!requested.Contains(update.Field)) throw new InvalidDataException($"Snapshot delta contained an unrequested field: {update.Field}.");
-            switch (update.Field)
-            {
-                case "banned_sur":
-                    NormalizeLegacyDeltaSlotStates(update.Slots, rawUpdate, "slots");
-                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
-                    if (update.PickedHun != null) throw new InvalidDataException("banned_sur update must not contain picked_hun.");
-                    break;
-                case "banned_hun":
-                    NormalizeLegacyDeltaSlotStates(update.Slots, rawUpdate, "slots");
-                    ValidateDeltaSlots(update.Slots, 2, hunterCandidates, update.Field);
-                    if (update.PickedHun != null) throw new InvalidDataException("banned_hun update must not contain picked_hun.");
-                    break;
-                case "picked_sur":
-                    NormalizeLegacyDeltaSlotStates(update.Slots, rawUpdate, "slots");
-                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
-                    if (update.PickedHun != null) throw new InvalidDataException("picked_sur update must not contain picked_hun.");
-                    break;
-                case "picked_hun":
-                    if (update.Slots != null) throw new InvalidDataException("picked_hun update must not contain slots.");
-                    if (update.PickedHun == null) throw new InvalidDataException("picked_hun update must contain picked_hun.");
-                    if (update.PickedHun.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
-                    NormalizeLegacyDeltaSlotState(update.PickedHun, rawUpdate, "picked_hun");
-                    ValidateDeltaSlot(update.PickedHun, hunterCandidates, "picked_hun");
-                    break;
-                default:
-                    throw new InvalidDataException($"Invalid snapshot delta field: {update.Field}.");
-            }
-        }
-        return result;
-    }
-
-    public static SmartBpSnapshotDeltaResult ParseBusinessAiFusionSnapshotDelta(
-        string raw,
-        string lockedPhase,
-        IReadOnlyCollection<string> requestedFields,
-        IReadOnlyCollection<string> survivorCandidates,
-        IReadOnlyCollection<string> hunterCandidates,
-        ICharacterSelectionService characterSelection,
-        SmartBpBusinessAiFusionOutputContract outputContract,
-        out IReadOnlyList<string> diagnostics)
-    {
-        var messages = new List<string>();
-        var (repaired, removedFence) = SmartBpJsonRepair.Repair(raw);
-        if (removedFence)
-            messages.Add("Business AI fusion JSON fence was removed before validation.");
-        var root = JsonNode.Parse(repaired)?.AsObject()
-            ?? throw new InvalidDataException("Business AI fusion output rejected: response must be a JSON object.");
-        if (root["phase"] is not JsonValue phaseValue || !phaseValue.TryGetValue<string>(out var outputPhase))
-            throw new InvalidDataException("Business AI fusion output rejected: phase must be a string.");
-        if (!string.Equals(outputPhase, lockedPhase, StringComparison.Ordinal))
-        {
-            messages.Add($"Business AI fusion changed phase from {lockedPhase} to {outputPhase}; overridden to {lockedPhase}.");
-            root["phase"] = lockedPhase;
-        }
-
-        if (HasFullBusinessStateFields(root))
-        {
-            var delta = NormalizeBusinessAiFusionFullState(root, lockedPhase, requestedFields, survivorCandidates, hunterCandidates, characterSelection, messages);
-            messages.Add(outputContract == SmartBpBusinessAiFusionOutputContract.FullBusinessState
-                ? "Business AI fusion returned full-state contract; normalized to snapshot delta."
-                : "Business AI fusion returned full-state contract while snapshot delta was expected; normalized to snapshot delta.");
-            diagnostics = messages;
-            return delta;
-        }
-
-        RejectUnexpectedProperties(root, ["phase", "updates"], "root");
-
-        if (root["updates"] is JsonObject updatesMap)
-        {
-            var delta = NormalizeBusinessAiFusionShorthandUpdates(updatesMap, lockedPhase, requestedFields, survivorCandidates, hunterCandidates, characterSelection, messages);
-            messages.Add("Business AI fusion returned shorthand updates object; normalized to canonical updates array.");
-            diagnostics = messages;
-            return delta;
-        }
-
-        if (root["updates"] is not JsonArray updates)
-            throw new InvalidDataException("Business AI fusion output rejected: updates must be an array.");
-        var seenFields = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var node in updates)
-        {
-            if (node is not JsonObject update)
-                throw new InvalidDataException("Business AI fusion output rejected: every update must be an object.");
-            var field = update["field"]?.GetValue<string>() ?? "";
-            RejectUnexpectedProperties(update, ["field", "slots", "picked_hun"], $"update field={field}");
-            if (!requestedFields.Contains(field))
-                throw new InvalidDataException($"Business AI fusion output rejected: update field={field} was not requested.");
-            if (!seenFields.Add(field))
-                throw new InvalidDataException($"Business AI fusion output rejected: duplicate update field={field}.");
-            if (!update.ContainsKey("slots") || !update.ContainsKey("picked_hun"))
-                throw new InvalidDataException($"Business AI fusion output rejected: update field={field} must contain slots and picked_hun.");
-
-            var camp = field is "banned_hun" or "picked_hun" ? Camp.Hun : Camp.Sur;
-            var candidates = camp == Camp.Sur ? survivorCandidates : hunterCandidates;
-            if (field == "picked_hun")
-            {
-                if (update["slots"] is not null)
-                    throw new InvalidDataException("Business AI fusion output rejected: update field=picked_hun requires slots=null.");
-                if (update["picked_hun"] is not JsonObject pickedHunter)
-                    throw new InvalidDataException("Business AI fusion output rejected: update field=picked_hun requires a picked_hun object.");
-                NormalizeFusionSlot(pickedHunter, field, camp, candidates, characterSelection, messages);
-            }
-            else
-            {
-                if (update["picked_hun"] is not null)
-                    throw new InvalidDataException($"Business AI fusion output rejected: update field={field} contained unexpected property picked_hun.");
-                if (update["slots"] is not JsonArray slots)
-                    throw new InvalidDataException($"Business AI fusion output rejected: update field={field} requires a slots array.");
-                foreach (var slot in slots.OfType<JsonObject>())
-                    NormalizeFusionSlot(slot, field, camp, candidates, characterSelection, messages);
-            }
-        }
-        var missingFields = requestedFields.Where(field => !seenFields.Contains(field)).ToArray();
-        if (missingFields.Length > 0)
-            throw new InvalidDataException($"Business AI fusion output rejected: missing requested fields [{string.Join(", ", missingFields)}].");
-
-        diagnostics = messages;
-        return ParseSnapshotDelta(root.ToJsonString(), requestedFields, survivorCandidates, hunterCandidates);
-    }
-
-    private static SmartBpSnapshotDeltaResult NormalizeBusinessAiFusionShorthandUpdates(
-        JsonObject updatesMap,
-        string lockedPhase,
-        IReadOnlyCollection<string> requestedFields,
-        IReadOnlyCollection<string> survivorCandidates,
-        IReadOnlyCollection<string> hunterCandidates,
-        ICharacterSelectionService characterSelection,
-        ICollection<string> diagnostics)
-    {
-        RejectUnexpectedProperties(updatesMap, ["banned_sur", "banned_hun", "picked_sur", "picked_hun"], "updates");
-        var updates = NormalizeBusinessAiFusionFieldNodes(
-            updatesMap,
-            lockedPhase,
-            requestedFields,
-            survivorCandidates,
-            hunterCandidates,
-            characterSelection,
-            diagnostics);
-        return new SmartBpSnapshotDeltaResult { Phase = lockedPhase, Updates = updates };
-    }
-
-    private static bool HasFullBusinessStateFields(JsonObject root) =>
-        root.ContainsKey("banned_sur") ||
-        root.ContainsKey("banned_hun") ||
-        root.ContainsKey("picked_sur") ||
-        root.ContainsKey("picked_hun");
-
-    private static SmartBpSnapshotDeltaResult NormalizeBusinessAiFusionFullState(
-        JsonObject root,
-        string lockedPhase,
-        IReadOnlyCollection<string> requestedFields,
-        IReadOnlyCollection<string> survivorCandidates,
-        IReadOnlyCollection<string> hunterCandidates,
-        ICharacterSelectionService characterSelection,
-        ICollection<string> diagnostics)
-    {
-        RejectUnexpectedProperties(root, ["phase", "banned_sur", "banned_hun", "picked_sur", "picked_hun"], "root");
-        var updates = NormalizeBusinessAiFusionFieldNodes(
-            root,
-            lockedPhase,
-            requestedFields,
-            survivorCandidates,
-            hunterCandidates,
-            characterSelection,
-            diagnostics);
-        return new SmartBpSnapshotDeltaResult { Phase = lockedPhase, Updates = updates };
-    }
-
-    private static List<SmartBpSnapshotFieldUpdate> NormalizeBusinessAiFusionFieldNodes(
-        JsonObject fieldNodes,
-        string lockedPhase,
-        IReadOnlyCollection<string> requestedFields,
-        IReadOnlyCollection<string> survivorCandidates,
-        IReadOnlyCollection<string> hunterCandidates,
-        ICharacterSelectionService characterSelection,
-        ICollection<string> diagnostics)
-    {
-        _ = lockedPhase;
-        var requested = requestedFields.ToHashSet(StringComparer.Ordinal);
-        var updates = new List<SmartBpSnapshotFieldUpdate>();
-        if (fieldNodes.TryGetPropertyValue("banned_sur", out var bannedSur) && requested.Contains("banned_sur"))
-            updates.Add(new SmartBpSnapshotFieldUpdate
-            {
-                Field = "banned_sur",
-                Slots = NormalizeFullStateCharacterSlots(bannedSur, 4, Camp.Sur, survivorCandidates, characterSelection, "banned_sur", diagnostics),
-                PickedHun = null
-            });
-        if (fieldNodes.TryGetPropertyValue("banned_hun", out var bannedHun) && requested.Contains("banned_hun"))
-            updates.Add(new SmartBpSnapshotFieldUpdate
-            {
-                Field = "banned_hun",
-                Slots = NormalizeFullStateCharacterSlots(bannedHun, 2, Camp.Hun, hunterCandidates, characterSelection, "banned_hun", diagnostics),
-                PickedHun = null
-            });
-        if (fieldNodes.TryGetPropertyValue("picked_sur", out var pickedSur) && requested.Contains("picked_sur"))
-            updates.Add(new SmartBpSnapshotFieldUpdate
-            {
-                Field = "picked_sur",
-                Slots = NormalizeFullStatePickedSurSlots(pickedSur, survivorCandidates, characterSelection, diagnostics),
-                PickedHun = null
-            });
-        if (fieldNodes.TryGetPropertyValue("picked_hun", out var pickedHun) && requested.Contains("picked_hun"))
-            updates.Add(new SmartBpSnapshotFieldUpdate
-            {
-                Field = "picked_hun",
-                Slots = null,
-                PickedHun = NormalizeFullStatePickedHunSlot(pickedHun, hunterCandidates, characterSelection, diagnostics)
-            });
-        var missingFields = requestedFields.Where(field => updates.All(update => update.Field != field)).ToArray();
-        if (missingFields.Length > 0)
-            throw new InvalidDataException($"Business AI fusion output rejected: missing requested fields [{string.Join(", ", missingFields)}].");
-
-        var delta = new SmartBpSnapshotDeltaResult { Phase = lockedPhase, Updates = updates };
-        foreach (var update in updates)
-        {
-            switch (update.Field)
-            {
-                case "banned_sur":
-                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
-                    break;
-                case "banned_hun":
-                    ValidateDeltaSlots(update.Slots, 2, hunterCandidates, update.Field);
-                    break;
-                case "picked_sur":
-                    ValidateDeltaSlots(update.Slots, 4, survivorCandidates, update.Field);
-                    break;
-                case "picked_hun":
-                    if (update.PickedHun == null) throw new InvalidDataException("picked_hun update must contain picked_hun.");
-                    if (update.PickedHun.Index != 0) throw new InvalidDataException("picked_hun.index must be 0.");
-                    ValidateDeltaSlot(update.PickedHun, hunterCandidates, "picked_hun");
-                    break;
-            }
-        }
-        return updates;
-    }
-
-    private static List<SmartBpSnapshotDeltaSlot> NormalizeFullStateCharacterSlots(
-        JsonNode? node,
-        int count,
-        Camp camp,
-        IReadOnlyCollection<string> candidates,
-        ICharacterSelectionService characterSelection,
-        string field,
-        ICollection<string> diagnostics)
-    {
-        if (node is not JsonArray array)
-            throw new InvalidDataException($"Business AI fusion output rejected: {field} must be an array.");
-        var slots = new List<SmartBpSnapshotDeltaSlot>();
-        var index = 0;
-        foreach (var item in array)
-        {
-            if (index >= count) break;
-            slots.Add(item is JsonObject obj
-                ? NormalizeFullStateSlotObject(obj, index, camp, candidates, characterSelection, field, diagnostics)
-                : NormalizeFullStateShorthandSlot(GetStringValue(item), index, camp, candidates, characterSelection, field, null, diagnostics));
-            index++;
-        }
-        while (slots.Count < count)
-            slots.Add(new SmartBpSnapshotDeltaSlot { Index = slots.Count, SlotState = "unknown", CharacterName = "未选择" });
-        return slots;
-    }
-
-    private static List<SmartBpSnapshotDeltaSlot> NormalizeFullStatePickedSurSlots(
-        JsonNode? node,
-        IReadOnlyCollection<string> survivorCandidates,
-        ICharacterSelectionService characterSelection,
-        ICollection<string> diagnostics)
-    {
-        if (node is not JsonArray array)
-            throw new InvalidDataException("Business AI fusion output rejected: picked_sur must be an array.");
-        if (array.All(item => item is not JsonObject) && array.Count >= 8)
-        {
-            var alternating = array.Select(GetStringValue).ToArray();
-            return Enumerable.Range(0, 4)
-                .Select(index => NormalizeFullStateShorthandSlot(
-                    index * 2 < alternating.Length ? alternating[index * 2] : "",
-                    index,
-                    Camp.Sur,
-                    survivorCandidates,
-                    characterSelection,
-                    "picked_sur",
-                    index * 2 + 1 < alternating.Length ? NormalizePlayerId(alternating[index * 2 + 1]) : null,
-                    diagnostics))
-                .ToList();
-        }
-        return NormalizeFullStateCharacterSlots(node, 4, Camp.Sur, survivorCandidates, characterSelection, "picked_sur", diagnostics);
-    }
-
-    private static SmartBpSnapshotDeltaSlot NormalizeFullStatePickedHunSlot(
-        JsonNode? node,
-        IReadOnlyCollection<string> hunterCandidates,
-        ICharacterSelectionService characterSelection,
-        ICollection<string> diagnostics)
-    {
-        return node is JsonObject obj
-            ? NormalizeFullStateSlotObject(RemoveNullSlotsProperty(obj, "picked_hun"), 0, Camp.Hun, hunterCandidates, characterSelection, "picked_hun", diagnostics)
-            : NormalizeFullStateShorthandSlot(GetStringValue(node), 0, Camp.Hun, hunterCandidates, characterSelection, "picked_hun", null, diagnostics);
-    }
-
-    private static JsonObject RemoveNullSlotsProperty(JsonObject obj, string field)
-    {
-        if (obj["slots"] is not null)
-            throw new InvalidDataException($"Business AI fusion output rejected: {field}.slots must be null when present.");
-        if (!obj.ContainsKey("slots"))
-            return obj;
-        var clone = new JsonObject();
-        foreach (var property in obj)
-        {
-            if (property.Key == "slots") continue;
-            clone[property.Key] = property.Value?.DeepClone();
-        }
-        return clone;
-    }
-
-    private static SmartBpSnapshotDeltaSlot NormalizeFullStateSlotObject(
-        JsonObject slot,
-        int expectedIndex,
-        Camp camp,
-        IReadOnlyCollection<string> candidates,
-        ICharacterSelectionService characterSelection,
-        string field,
-        ICollection<string> diagnostics)
-    {
-        RejectUnexpectedProperties(slot, ["index", "slot_state", "character_name", "player_id"], $"{field} slot");
-        var index = GetIntValue(slot["index"], expectedIndex);
-        if (index != expectedIndex)
-            throw new InvalidDataException($"Business AI fusion output rejected: {field}.index expected {expectedIndex} but was {index}.");
-        var rawName = GetStringValue(slot["character_name"]);
-        var playerId = NormalizePlayerId(GetStringValue(slot["player_id"]));
-        var slotState = GetStringValue(slot["slot_state"]).Trim().ToLowerInvariant();
-        if (string.IsNullOrWhiteSpace(slotState))
-            return NormalizeFullStateShorthandSlot(rawName, expectedIndex, camp, candidates, characterSelection, field, playerId, diagnostics);
-        if (slotState is "empty" or "unknown")
-            return new SmartBpSnapshotDeltaSlot { Index = expectedIndex, SlotState = slotState, CharacterName = "未选择", PlayerId = playerId };
-        if (slotState != "selected")
-            throw new InvalidDataException($"Business AI fusion output rejected: {field}.slot_state is invalid: {slotState}.");
-        var normalized = ResolveSelectedCharacter(rawName, camp, candidates, characterSelection, field, diagnostics, allowUnknown: false);
-        return new SmartBpSnapshotDeltaSlot { Index = expectedIndex, SlotState = "selected", CharacterName = normalized!, PlayerId = playerId };
-    }
-
-    private static SmartBpSnapshotDeltaSlot NormalizeFullStateShorthandSlot(
-        string? rawName,
-        int index,
-        Camp camp,
-        IReadOnlyCollection<string> candidates,
-        ICharacterSelectionService characterSelection,
-        string field,
-        string? playerId,
-        ICollection<string> diagnostics)
-    {
-        var name = NormalizeRawText(rawName);
-        if (SmartBpBusinessStateParser.IsUnselected(name))
-            return new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "empty", CharacterName = "未选择", PlayerId = playerId };
-        var normalized = ResolveSelectedCharacter(name, camp, candidates, characterSelection, field, diagnostics, allowUnknown: true);
-        return normalized == null
-            ? new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "unknown", CharacterName = "未选择", PlayerId = playerId }
-            : new SmartBpSnapshotDeltaSlot { Index = index, SlotState = "selected", CharacterName = normalized, PlayerId = playerId };
-    }
-
-    private static string? ResolveSelectedCharacter(
-        string rawName,
-        Camp camp,
-        IReadOnlyCollection<string> candidates,
-        ICharacterSelectionService characterSelection,
-        string field,
-        ICollection<string> diagnostics,
-        bool allowUnknown)
-    {
-        if (candidates.Contains(rawName))
-            return rawName;
-        var resolution = characterSelection.ResolveCharacterDetailed(rawName, camp);
-        if (resolution.CanonicalName != null && candidates.Contains(resolution.CanonicalName))
-        {
-            diagnostics.Add($"Business AI fusion normalized {field} character '{rawName}' to '{resolution.CanonicalName}'.");
-            return resolution.CanonicalName;
-        }
-        if (allowUnknown)
-            return null;
-        throw new InvalidDataException($"Business AI fusion output rejected: {field}.character_name is not a valid {camp} candidate: {rawName}.");
-    }
-
-    private static string NormalizeRawText(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return "未选择";
-        var trimmed = value.Trim();
-        return trimmed.Equals("unknown", StringComparison.OrdinalIgnoreCase) ||
-               trimmed.Equals("null", StringComparison.OrdinalIgnoreCase) ||
-               trimmed.Equals("none", StringComparison.OrdinalIgnoreCase)
-            ? "未选择"
-            : trimmed;
-    }
-
-    private static string? NormalizePlayerId(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value)) return null;
-        var trimmed = value.Trim();
-        var normalized = SmartBpOcrTextResolver.NormalizeForMatch(trimmed);
-        string[] statusValues =
-        [
-            "已选择", "未选择", "等待选择", "等待中", "选择中", "天赋已锁定",
-            "区域选择", "等待游戏开始", "前往", "剩余"
-        ];
-        return trimmed.Equals("null", StringComparison.OrdinalIgnoreCase) ||
-               trimmed.Equals("none", StringComparison.OrdinalIgnoreCase) ||
-               statusValues.Any(status => normalized.Equals(
-                   SmartBpOcrTextResolver.NormalizeForMatch(status), StringComparison.Ordinal))
-            ? null
-            : trimmed;
-    }
-
-    private static string GetStringValue(JsonNode? node)
-    {
-        if (node == null) return "";
-        return node is JsonValue value && value.TryGetValue<string>(out var text)
-            ? text
-            : node.ToJsonString().Trim('"');
-    }
-
-    private static int GetIntValue(JsonNode? node, int fallback)
-    {
-        if (node == null) return fallback;
-        if (node is JsonValue value && value.TryGetValue<int>(out var intValue))
-            return intValue;
-        return int.TryParse(GetStringValue(node), out var parsed) ? parsed : fallback;
-    }
-
     private static void RejectUnexpectedProperties(JsonObject value, IReadOnlyCollection<string> allowed, string context)
     {
         var unexpected = value.Select(property => property.Key).FirstOrDefault(name => !allowed.Contains(name));
         if (unexpected != null)
             throw new InvalidDataException($"Business AI fusion output rejected: {context} contained unexpected property {unexpected}.");
-    }
-
-    private static void NormalizeFusionSlot(
-        JsonObject slot,
-        string field,
-        Camp camp,
-        IReadOnlyCollection<string> candidates,
-        ICharacterSelectionService characterSelection,
-        ICollection<string> diagnostics)
-    {
-        RejectUnexpectedProperties(slot, ["index", "slot_state", "character_name", "player_id"], $"{field} slot");
-        var slotState = slot["slot_state"]?.GetValue<string>()?.Trim().ToLowerInvariant() ?? "";
-        var characterName = slot["character_name"]?.GetValue<string>()?.Trim() ?? "";
-        if (slotState is "empty" or "unknown")
-        {
-            slot["character_name"] = "未选择";
-            return;
-        }
-        if (slotState != "selected" || candidates.Contains(characterName))
-            return;
-        var resolution = characterSelection.ResolveCharacterDetailed(characterName, camp);
-        if (resolution.CanonicalName == null || !candidates.Contains(resolution.CanonicalName))
-            throw new InvalidDataException($"Business AI fusion output rejected: {field}.character_name is not a valid {camp} candidate: {characterName}.");
-        slot["character_name"] = resolution.CanonicalName;
-        diagnostics.Add($"Business AI fusion normalized {field} character '{characterName}' to '{resolution.CanonicalName}'.");
     }
 
     private static void NormalizeLegacyDeltaSlotStates(List<SmartBpSnapshotDeltaSlot>? slots, JsonElement rawUpdate, string propertyName)
@@ -1510,7 +1031,6 @@ internal sealed class SmartBpDetectedOperationApplier(
             if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; MarkSkipped(key, "resolved key missing"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
             var playAnimation = operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep ||
                                 operation.ApplyMode == SmartBpDetectedOperationApplyMode.Backfill &&
-                                settings.Settings.RecognitionEngine != SmartBpRecognitionEngine.AiQwen &&
                                 settings.Settings.PlayBackfillAnimations;
             if (playAnimation && operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep && settings.Settings.RecognitionVisualBufferMilliseconds > 0)
                 await Task.Delay(settings.Settings.RecognitionVisualBufferMilliseconds, cancellationToken);
@@ -2141,7 +1661,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            if (ex is LlamaCppRequestException request) raw = request.RawResponse;
             return new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, raw, ex.Message);
         }
         finally
@@ -2649,7 +2168,28 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         };
 
     private static string FormatBusinessStateForDiagnostics(SmartBpBusinessStateRecognitionResult state) =>
-        JsonSerializer.Serialize(SmartBpRecognitionPromptBuilder.CreateCurrentKnownStateJson(state));
+        JsonSerializer.Serialize(CreateCurrentKnownStateJson(state));
+
+    private static JsonObject CreateCurrentKnownStateJson(SmartBpBusinessStateRecognitionResult? state)
+    {
+        static string[] Names(IEnumerable<SmartBpRecognizedCharacterSlot> slots, int count) =>
+            slots.OrderBy(x => x.Index).Take(count).Select(x => string.IsNullOrWhiteSpace(x.CharacterName) ? "未选择" : x.CharacterName).ToArray();
+        return state == null
+            ? new JsonObject
+            {
+                ["banned_sur"] = new JsonArray("未选择", "未选择", "未选择", "未选择"),
+                ["banned_hun"] = new JsonArray("未选择", "未选择"),
+                ["picked_sur"] = new JsonArray("未选择", "未选择", "未选择", "未选择"),
+                ["picked_hun"] = "未选择"
+            }
+            : new JsonObject
+            {
+                ["banned_sur"] = new JsonArray(Names(state.BannedSur, 4).Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
+                ["banned_hun"] = new JsonArray(Names(state.BannedHun, 2).Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
+                ["picked_sur"] = new JsonArray(Names(state.PickedSur, 4).Select(x => (JsonNode?)JsonValue.Create(x)).ToArray()),
+                ["picked_hun"] = string.IsNullOrWhiteSpace(state.PickedHun.CharacterName) ? "未选择" : state.PickedHun.CharacterName
+            };
+    }
 
     private static SmartBpSnapshotDeltaResult ToDelta(SmartBpBusinessStateRecognitionResult state, IReadOnlyCollection<string> requestedFields)
     {

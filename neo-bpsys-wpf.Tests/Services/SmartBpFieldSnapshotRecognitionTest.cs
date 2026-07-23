@@ -10,10 +10,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using Xunit;
-using SmartBpRecognitionPromptBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionPromptBuilder;
-using SmartBpRecognitionJsonSchemaProvider = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionJsonSchemaProvider;
 using SmartBpAutomaticParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutomaticParser;
-using SmartBpJsonRepair = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpJsonRepair;
 using SmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionStateStore;
 using AiStructuredOutputMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.AiStructuredOutputMode;
 using SmartBpRecognitionPath = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionPath;
@@ -31,114 +28,6 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// </summary>
 public sealed class SmartBpFieldSnapshotRecognitionTest
 {
-    [Fact]
-    public void PhaseOnlyPrompt_IsShortAndDoesNotContainCurrentKnownState()
-    {
-        var prompt = SmartBpRecognitionPromptBuilder.BuildPhaseOnly();
-
-        Assert.Contains("/no_think", prompt);
-        Assert.Contains("phase", prompt);
-        Assert.Contains("phase_top", prompt);
-        Assert.Contains("top_left_status", prompt);
-        Assert.Contains("等待游戏开始", prompt);
-        Assert.DoesNotContain("current_known_state", prompt);
-        Assert.DoesNotContain("survivor_candidates", prompt);
-        Assert.DoesNotContain("hunter_candidates", prompt);
-        Assert.True(prompt.Length < 600, $"Phase-only prompt should be short, was {prompt.Length} chars.");
-    }
-
-    [Theory]
-    [InlineData("banned_sur")]
-    [InlineData("banned_hun")]
-    [InlineData("picked_sur")]
-    [InlineData("picked_hun")]
-    public void FieldSnapshotPrompts_DoNotContainCurrentKnownState(string field)
-    {
-        var prompt = SmartBpRecognitionPromptBuilder.BuildFieldSnapshot(field);
-
-        Assert.Contains("/no_think", prompt);
-        Assert.Contains(field, prompt);
-        Assert.DoesNotContain("current_known_state", prompt);
-        Assert.DoesNotContain("survivor_candidates", prompt);
-        Assert.DoesNotContain("hunter_candidates", prompt);
-    }
-
-    [Fact]
-    public void BannedSurFieldPrompt_DefinesFourSlotsAndBanSemantics()
-    {
-        var prompt = SmartBpRecognitionPromptBuilder.BuildBannedSurFieldSnapshot();
-
-        Assert.Contains("right_top", prompt);
-        Assert.Contains("banned_sur", prompt);
-        Assert.Contains("4 个槽", prompt);
-        Assert.Contains("index 0,1,2,3", prompt);
-        Assert.Contains("selected/banned", prompt);
-        Assert.DoesNotContain("current_known_state", prompt);
-    }
-
-    [Fact]
-    public void BannedHunFieldPrompt_DefinesTwoSlots()
-    {
-        var prompt = SmartBpRecognitionPromptBuilder.BuildBannedHunFieldSnapshot();
-
-        Assert.Contains("left_top", prompt);
-        Assert.Contains("banned_hun", prompt);
-        Assert.Contains("2 个槽", prompt);
-        Assert.Contains("index 0,1", prompt);
-        Assert.DoesNotContain("current_known_state", prompt);
-    }
-
-    [Fact]
-    public void PickedSurFieldPrompt_DefinesFourPlayerSlots()
-    {
-        var prompt = SmartBpRecognitionPromptBuilder.BuildPickedSurFieldSnapshot();
-
-        Assert.Contains("left_bottom", prompt);
-        Assert.Contains("picked_sur", prompt);
-        Assert.Contains("4 个槽", prompt);
-        Assert.Contains("index 0,1,2,3", prompt);
-        Assert.Contains("player_id", prompt);
-        Assert.DoesNotContain("current_known_state", prompt);
-    }
-
-    [Fact]
-    public void PickedHunFieldPrompt_DefinesSingleHunterSlot()
-    {
-        var prompt = SmartBpRecognitionPromptBuilder.BuildPickedHunFieldSnapshot();
-
-        Assert.Contains("right_bottom", prompt);
-        Assert.Contains("picked_hun", prompt);
-        Assert.Contains("index 0", prompt);
-        Assert.Contains("player_id", prompt);
-        Assert.DoesNotContain("current_known_state", prompt);
-    }
-
-    [Fact]
-    public void FieldSnapshotSchema_BannedSur_HasFourSlotsWithSlotState()
-    {
-        var schema = SmartBpRecognitionJsonSchemaProvider.GetBannedSurFieldSnapshot(["小说家", "昆虫学者"], false).ToJsonString();
-
-        Assert.Contains("\"field\"", schema);
-        Assert.Contains("\"banned_sur\"", schema);
-        Assert.Contains("\"slots\"", schema);
-        Assert.Contains("\"slot_state\"", schema);
-        Assert.Contains("\"minItems\":4", schema);
-        Assert.Contains("\"maxItems\":4", schema);
-        Assert.Contains("\"selected\",\"empty\",\"unknown\"", schema);
-        Assert.DoesNotContain("\"picked_hun\"", schema);
-    }
-
-    [Fact]
-    public void FieldSnapshotSchema_PickedHun_HasSingleObjectNotSlotsArray()
-    {
-        var schema = SmartBpRecognitionJsonSchemaProvider.GetPickedHunFieldSnapshot(["厂长"], false).ToJsonString();
-
-        Assert.Contains("\"field\"", schema);
-        Assert.Contains("\"picked_hun\"", schema);
-        Assert.Contains("\"slot_state\"", schema);
-        Assert.DoesNotContain("\"slots\"", schema);
-    }
-
     [Fact]
     public void ParseFieldSnapshot_BannedSur_ValidJson_ParsesCorrectly()
     {
@@ -216,46 +105,6 @@ public sealed class SmartBpFieldSnapshotRecognitionTest
 
         Assert.Throws<InvalidDataException>(() =>
             SmartBpAutomaticParser.ParseFieldSnapshot(raw, "picked_hun", ["小说家"], ["厂长"]));
-    }
-
-    [Fact]
-    public void SmartBpJsonRepair_RemovesMarkdownFence()
-    {
-        var fenced = "```json\n{\"phase\":\"屏蔽求生者\"}\n```";
-        var (repaired, removedFence) = SmartBpJsonRepair.Repair(fenced);
-
-        Assert.True(removedFence);
-        Assert.Equal("""{"phase":"屏蔽求生者"}""", repaired);
-    }
-
-    [Fact]
-    public void SmartBpJsonRepair_RemovesFenceWithoutLanguageTag()
-    {
-        var fenced = "```\n{\"phase\":\"屏蔽求生者\"}\n```";
-        var (repaired, removedFence) = SmartBpJsonRepair.Repair(fenced);
-
-        Assert.True(removedFence);
-        Assert.Equal("""{"phase":"屏蔽求生者"}""", repaired);
-    }
-
-    [Fact]
-    public void SmartBpJsonRepair_PreservesCleanJson()
-    {
-        var clean = """{"phase":"屏蔽求生者"}""";
-        var (repaired, removedFence) = SmartBpJsonRepair.Repair(clean);
-
-        Assert.False(removedFence);
-        Assert.Equal(clean, repaired);
-    }
-
-    [Fact]
-    public void SmartBpJsonRepair_ExtractsJsonObjectFromSurroundingProse()
-    {
-        var prose = """Here is the result: {"phase":"屏蔽求生者"} done.""";
-        var (repaired, removedFence) = SmartBpJsonRepair.Repair(prose);
-
-        Assert.False(removedFence);
-        Assert.Equal("""{"phase":"屏蔽求生者"}""", repaired);
     }
 
     [Fact]
@@ -400,26 +249,6 @@ public sealed class SmartBpFieldSnapshotRecognitionTest
         var settings = new SmartBpRecognitionSettings();
 
         Assert.False(settings.UseLegacySnapshotDeltaRecognition);
-    }
-
-    [Fact]
-    public void Settings_Defaults_StructuredOutputModeIsJsonSchemaStrict()
-    {
-        var settings = new SmartBpRecognitionSettings();
-
-        Assert.Equal(AiStructuredOutputMode.JsonSchemaStrict, settings.StructuredOutputMode);
-    }
-
-    [Fact]
-    public void Settings_Defaults_PerFieldMaxTokensMatchSpec()
-    {
-        var settings = new SmartBpRecognitionSettings();
-
-        Assert.Equal(48, settings.PhaseMaxTokens);
-        Assert.Equal(256, settings.BannedSurFieldMaxTokens);
-        Assert.Equal(192, settings.BannedHunFieldMaxTokens);
-        Assert.Equal(384, settings.PickedSurFieldMaxTokens);
-        Assert.Equal(192, settings.PickedHunFieldMaxTokens);
     }
 
     [Fact]

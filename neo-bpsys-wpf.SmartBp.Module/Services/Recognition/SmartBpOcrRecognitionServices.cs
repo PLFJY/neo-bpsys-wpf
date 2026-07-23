@@ -1444,23 +1444,3 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
             PlayerId = slot.PlayerId
         };
 }
-
-/// <summary>
-/// 根据当前设置在 AI 快照增量识别和 OCR 快照增量识别之间路由。
-/// </summary>
-internal sealed class SmartBpSnapshotDeltaRecognitionRouter(
-    ISmartBpRecognitionSettingsService settings,
-    SmartBpAiSnapshotDeltaRecognitionService ai,
-    ISmartBpOcrSnapshotDeltaRecognitionService ocr) : ISmartBpSnapshotDeltaRecognitionService
-{
-    public Task<(SmartBpSnapshotDeltaResult Delta, IReadOnlyDictionary<string, string> RawResponses, SmartBpCroppedFrame PhaseCrop, IReadOnlyList<SmartBpCroppedFrame> ContentCrops, IReadOnlyList<string> Diagnostics)> RecognizeDeltaAsync(
-        BitmapSource frame,
-        SmartBpSnapshotDeltaRequest request,
-        long frameSequence,
-        CancellationToken cancellationToken = default)
-    {
-        return settings.Settings.RecognitionEngine == SmartBpRecognitionEngine.Ocr && settings.Settings.EnableOcrBpRecognition
-            ? ocr.RecognizeDeltaAsync(frame, request, frameSequence, cancellationToken)
-            : ai.RecognizeDeltaAsync(frame, request, frameSequence, cancellationToken);
-    }
-}

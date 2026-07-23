@@ -27,8 +27,6 @@ public partial class SmartBpModuleContentViewModel
     private int _automaticRecognitionUnavailableFrameCount;
     /// <summary>获取可用的识别应用模式。</summary>
     public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
-    /// <summary>获取可用的混合融合模式。</summary>
-    public IReadOnlyList<SmartBpHybridFusionMode> HybridFusionModes { get; } = Enum.GetValues<SmartBpHybridFusionMode>();
 
     /// <summary>获取可用的内置测试帧。</summary>
     public IReadOnlyList<SmartBpTestFrame> AiTestFrames { get; } =
@@ -1332,9 +1330,6 @@ public partial class SmartBpModuleContentViewModel
         finally { IsAiRecognizing = false; Interlocked.Exchange(ref _recognitionBusy, 0); }
     }
 
-    private async Task RunPureAiFullRecognitionDebugCoreAsync(BitmapSource frame)
-        => await RunFullStrategyRecognitionCoreAsync(frame);
-
     private async Task RunPhaseOnlyRecognitionCoreAsync(BitmapSource frame)
     {
         if (Interlocked.CompareExchange(ref _recognitionBusy, 1, 0) != 0) return;
@@ -1863,7 +1858,6 @@ public partial class SmartBpModuleContentViewModel
             return;
 
         _recognitionSettingsService.Settings.RecognitionStrategy = value.Strategy;
-        _recognitionSettingsService.Settings.RecognitionEngine = SmartBpRecognitionEngine.Ocr;
         RefreshRecognitionEngineVisibility();
         RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();

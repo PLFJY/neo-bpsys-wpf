@@ -167,78 +167,6 @@ public interface ISmartBpPromptProfileProvider
     /// <summary>按标识加载一个配置档。</summary>
     Task<SmartBpPromptProfile> LoadAsync(string profileId, CancellationToken cancellationToken = default);
 }
-/// <summary>加载 llama.cpp 运行时元数据。</summary>
-public interface ILlamaCppRuntimeManifestProvider
-{
-    /// <summary>加载并校验内置运行时清单。</summary>
-    Task<LlamaCppRuntimeManifest> LoadAsync(CancellationToken cancellationToken = default);
-}
-/// <summary>安装并管理已选 llama.cpp 运行时。</summary>
-public interface ILlamaCppRuntimeAssetManager
-{
-    /// <summary>安装状态变化时触发。</summary>
-    event EventHandler<LlamaCppRuntimeInstallState>? StateChanged;
-    /// <summary>获取当前安装状态。</summary>
-    LlamaCppRuntimeInstallState State { get; }
-    /// <summary>获取可选运行时资产。</summary>
-    Task<IReadOnlyList<LlamaCppRuntimeAsset>> GetAvailableAssetsAsync(CancellationToken cancellationToken = default);
-    /// <summary>获取已选运行时资产。</summary>
-    Task<LlamaCppRuntimeAsset> GetSelectedAssetAsync(CancellationToken cancellationToken = default);
-    /// <summary>检查已选运行时是否已安装。</summary>
-    Task<bool> IsInstalledAsync(CancellationToken cancellationToken = default);
-    /// <summary>在不加载清单的情况下检查指定运行时资产是否已安装。</summary>
-    /// <param name="assetId">资产标识。</param>
-    /// <param name="entryExe">入口可执行文件名。</param>
-    Task<bool> IsAssetInstalledAsync(string assetId, string entryExe, CancellationToken cancellationToken = default);
-    /// <summary>安装已选运行时。</summary>
-    Task InstallAsync(CancellationToken cancellationToken = default);
-    /// <summary>取消当前安装。</summary>
-    void Cancel();
-    /// <summary>删除已选运行时，不阻塞调用线程。</summary>
-    Task DeleteAsync(CancellationToken cancellationToken = default);
-    /// <summary>获取已选运行时的服务器可执行文件路径。</summary>
-    Task<string> GetInstalledExecutablePathAsync(CancellationToken cancellationToken = default);
-    /// <summary>获取是否可以恢复上一个运行时快照。</summary>
-    Task<bool> CanRollbackAsync(CancellationToken cancellationToken = default);
-    /// <summary>交换当前和上一个运行时快照。</summary>
-    Task RollbackAsync(CancellationToken cancellationToken = default);
-}
-/// <summary>检查远程 llama.cpp 运行时清单更新。</summary>
-public interface ILlamaCppRuntimeUpdateService
-{
-    /// <summary>检查是否存在更新的运行时清单。</summary>
-    Task<LlamaCppRuntimeUpdateCheckResult> CheckForUpdatesAsync(bool force, CancellationToken cancellationToken = default);
-}
-/// <summary>控制本地 llama.cpp 服务器。</summary>
-public interface ILlamaCppServerManager
-{
-    /// <summary>获取托管进程是否已就绪。</summary>
-    bool IsRunning { get; }
-    /// <summary>获取服务器角色。</summary>
-    LlamaVisionServerRole Role { get; }
-    /// <summary>获取已配置的服务器端口。</summary>
-    int Port { get; }
-    /// <summary>获取显示状态。</summary>
-    string Status { get; }
-    /// <summary>获取托管 llama-server 进程标识。</summary>
-    int? ProcessId { get; }
-    /// <summary>启动服务器并等待就绪。</summary>
-    Task StartAsync(CancellationToken cancellationToken = default);
-    /// <summary>停止托管进程。</summary>
-    Task StopAsync();
-    /// <summary>强制停止先前记录的托管 llama-server 进程（如果仍在运行）。</summary>
-    Task ForceStopManagedProcessAsync(CancellationToken cancellationToken = default);
-}
-
-/// <summary>按角色解析托管 llama.cpp 服务器管理器。</summary>
-public interface ILlamaCppServerManagerFactory
-{
-    /// <summary>获取指定服务器角色的管理器。</summary>
-    /// <param name="role">服务器角色。</param>
-    /// <returns>对应角色的服务器管理器。</returns>
-    ILlamaCppServerManager Get(LlamaVisionServerRole role);
-}
-
 /// <summary>在不提取字段的情况下分类场景和阶段。</summary>
 public interface ISmartBpScenePhaseController
 {
@@ -249,77 +177,6 @@ public interface ISmartBpScenePhaseController
     Task<SmartBpScenePhaseDecision> RecognizeAsync(BitmapSource frame, CancellationToken cancellationToken = default);
 }
 
-/// <summary>使用 AI OCR 模型提取原始文本转写。</summary>
-public interface ISmartBpAiOcrTranscriptRecognitionService
-{
-    /// <summary>从请求的业务区域识别可见文本行。</summary>
-    /// <param name="frame">源画面帧。</param>
-    /// <param name="regions">请求区域及其所属字段名。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>原始 AI OCR 转写结果。</returns>
-    Task<SmartBpAiOcrTranscriptResult> RecognizeAsync(
-        BitmapSource frame,
-        IReadOnlyList<(SmartBpRecognitionRegion Region, string Field)> regions,
-        CancellationToken cancellationToken = default);
-}
-
-/// <summary>在不使用 OCR 坐标的情况下，将原始 AI OCR 文本转写解释为 SmartBP 字段更新。</summary>
-public interface ISmartBpAiOcrTranscriptInterpreter
-{
-    /// <summary>将一份 AI OCR 转写映射为业务字段更新。</summary>
-    /// <param name="transcript">原始转写结果。</param>
-    /// <param name="region">源 BP 粗粒度区域。</param>
-    /// <param name="field">目标业务字段标识。</param>
-    /// <returns>解释得到的字段更新和诊断信息。</returns>
-    (SmartBpSnapshotFieldUpdate Update, IReadOnlyList<string> Diagnostics) Interpret(
-        SmartBpAiOcrTranscriptResult transcript,
-        SmartBpRecognitionRegion region,
-        string field);
-}
-
-/// <summary>使用业务 AI 模型将原始 OCR 或 AI OCR 证据融合为结构化 SmartBP 字段更新。</summary>
-public interface ISmartBpBusinessAiFusionService
-{
-    /// <summary>将原始转写证据转换为请求的 SmartBP 字段更新。</summary>
-    /// <param name="phase">已识别的阶段和场景证据。</param>
-    /// <param name="evidence">按 BP 区域分组的转写证据。</param>
-    /// <param name="requestedFields">允许更新的业务字段。</param>
-    /// <param name="currentKnownState">当前本地已知 BP 状态。</param>
-    /// <param name="outputContract">本次融合请求期望的输出契约。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>业务 AI 模型响应后经校验的结构化快照增量。</returns>
-    Task<(SmartBpSnapshotDeltaResult Delta, string RawJson, IReadOnlyList<string> Diagnostics)> FuseAsync(
-        SmartBpPhaseRecognitionResult phase,
-        IReadOnlyList<SmartBpAiOcrTranscriptRegionEvidence> evidence,
-        IReadOnlyCollection<string> requestedFields,
-        SmartBpBusinessStateRecognitionResult currentKnownState,
-        SmartBpBusinessAiFusionOutputContract outputContract = SmartBpBusinessAiFusionOutputContract.SnapshotDelta,
-        CancellationToken cancellationToken = default);
-}
-
-/// <summary>在状态仓库合并前校验并归一化业务 AI 转写融合输出。</summary>
-public interface ISmartBpBusinessAiFusionValidator
-{
-    /// <summary>修复、校验并归一化一份业务 AI 融合响应。</summary>
-    /// <param name="rawJson">模型原始响应。</param>
-    /// <param name="lockedPhase">融合前已识别的权威阶段。</param>
-    /// <param name="requestedFields">响应中允许出现的字段。</param>
-    /// <param name="currentKnownState">融合前已知状态。</param>
-    /// <param name="outputContract">本次融合响应期望的输出契约。</param>
-    /// <param name="diagnostics">校验与归一化诊断信息。</param>
-    /// <returns>适合状态仓库合并的已校验快照增量。</returns>
-    /// <exception cref="InvalidDataException">响应无法安全归一化时抛出。</exception>
-    SmartBpSnapshotDeltaResult ValidateAndNormalize(
-        string rawJson,
-        string lockedPhase,
-        IReadOnlyCollection<string> requestedFields,
-        SmartBpBusinessStateRecognitionResult currentKnownState,
-        SmartBpBusinessAiFusionOutputContract outputContract,
-        out IReadOnlyList<string> diagnostics);
-}
-/// <summary>为多模态请求编码 WPF 画面帧。</summary>
-public interface ISmartBpImageEncoder { /// <summary>编码 PNG data URL。</summary>
-    string EncodeDataUrl(BitmapSource source, int maxWidth); }
 /// <summary>加载并持久化 SmartBP 粗粒度识别裁剪布局配置档。</summary>
 public interface ISmartBpRecognitionRegionProfileService
 {
@@ -482,45 +339,6 @@ public interface ISmartBpBusinessStateMerger
         SmartBpFocusedBusinessExtractionResult? pickedSur,
         SmartBpFocusedBusinessExtractionResult? pickedHun);
 }
-/// <summary>发送独立的 OpenAI 兼容请求。</summary>
-public interface ILlamaCppOpenAiClient
-{
-    /// <summary>获取最近一次完成响应的指标。</summary>
-    LlamaCppResponseMetrics? LastResponseMetrics { get; }
-    /// <summary>获取最近一次完成响应的结束原因。</summary>
-    string? LastFinishReason { get; }
-    /// <summary>使用手动通用 schema 识别一张图片。</summary>
-    Task<string> RecognizeAsync(string imageDataUrl, SmartBpRecognitionTask task, CancellationToken cancellationToken = default);
-    /// <summary>从顶部操作区域裁剪图识别 BP 阶段。</summary>
-    Task<string> RecognizePhaseAsync(string imageDataUrl, CancellationToken cancellationToken = default);
-    /// <summary>从聚焦粗粒度区域裁剪图提取业务内容。</summary>
-    Task<string> RecognizeFocusedBusinessAsync(string imageDataUrl, Core.Enums.GameAction action, CancellationToken cancellationToken = default);
-    /// <summary>检测当前 BP 阶段，不提取角色。</summary>
-    Task<string> DetectStageAsync(string imageDataUrl, CancellationToken cancellationToken = default);
-    /// <summary>提取本地选中引导步骤对应的操作。</summary>
-    Task<string> RecognizeFocusedAsync(string imageDataUrl, Core.Enums.GameAction action, IReadOnlyList<int> indexes, CancellationToken cancellationToken = default);
-    /// <summary>在一次请求中根据多张裁剪图识别阶段和请求的内容更新。</summary>
-    Task<string> RecognizeSnapshotDeltaAsync(IReadOnlyList<SmartBpMultimodalRegionInput> regions, SmartBpSnapshotDeltaRequest request, CancellationToken cancellationToken = default);
-    /// <summary>使用字段专用提示词和 schema，从单张裁剪图识别一个字段快照。</summary>
-    /// <param name="imageDataUrl">已编码的裁剪图 data URL。</param>
-    /// <param name="field">业务字段标识。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>模型原始 JSON 响应；使用提示词修复模式时已完成修复。</returns>
-    Task<string> RecognizeFieldSnapshotAsync(string imageDataUrl, string field, CancellationToken cancellationToken = default);
-    /// <summary>通过业务 AI 服务器将纯文本转写证据融合为快照增量。</summary>
-    /// <param name="prompt">纯文本业务融合提示词。</param>
-    /// <param name="lockedPhase">融合响应必须保持的权威阶段。</param>
-    /// <param name="requestedFields">输出中允许出现的字段。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>模型原始 JSON 响应；需要时已完成修复。</returns>
-    Task<string> FuseTranscriptEvidenceAsync(string prompt, string lockedPhase, IReadOnlyCollection<string> requestedFields, CancellationToken cancellationToken = default);
-    /// <summary>仅根据带标签的阶段和全局状态裁剪图识别阶段。</summary>
-    /// <param name="images">带标签的已编码裁剪图输入。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>模型原始 JSON 响应；使用提示词修复模式时已完成修复。</returns>
-    Task<string> RecognizePhaseOnlyAsync(IReadOnlyList<SmartBpMultimodalRegionInput> images, CancellationToken cancellationToken = default);
-}
-
 /// <summary>分类当前第五人格场景并门控 BP 写入。</summary>
 public interface ISmartBpSceneGateService
 {

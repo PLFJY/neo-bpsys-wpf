@@ -28,7 +28,6 @@ using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models
 using SmartBpRecognitionLedgerSnapshot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionLedgerSnapshot;
 using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
 using SmartBpLifecycleCategory = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpLifecycleCategory;
-using LlamaVisionServerRole = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.LlamaVisionServerRole;
 using SmartBpAutoRecognitionCoordinator = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutoRecognitionCoordinator;
 using SmartBpCandidateOperationBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCandidateOperationBuilder;
 using SmartBpPlayerIdentityMatcher = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPlayerIdentityMatcher;
@@ -48,11 +47,6 @@ using ISmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstracti
 using ISmartBpAiFieldSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiFieldSnapshotRecognitionService;
 using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDebugLog;
 using ISmartBpOcrBpRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpOcrBpRecognitionService;
-using ISmartBpAiOcrTranscriptRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiOcrTranscriptRecognitionService;
-using ISmartBpAiOcrTranscriptInterpreter = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpAiOcrTranscriptInterpreter;
-using ISmartBpBusinessAiFusionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpBusinessAiFusionService;
-using ILlamaCppServerManagerFactory = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppServerManagerFactory;
-using ILlamaCppServerManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ILlamaCppServerManager;
 
 namespace neo_bpsys_wpf.Tests.Services;
 

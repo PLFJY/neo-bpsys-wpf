@@ -20,24 +20,6 @@ public enum SmartBpRecognitionStrategy
     PureOcr
 }
 
-/// <summary>选择混合识别证据如何融合为 SmartBP 字段更新。</summary>
-public enum SmartBpHybridFusionMode
-{
-    /// <summary>使用本地 C# 解析器/解释器并在进程内合并。</summary>
-    LocalCSharp,
-    /// <summary>请求业务 AI 模型将证据转换为结构化 BP 字段更新。</summary>
-    BusinessAi
-}
-
-/// <summary>业务 AI 转写融合输出期望的 JSON 契约。</summary>
-public enum SmartBpBusinessAiFusionOutputContract
-{
-    /// <summary>返回包含阶段和四个 BP 字段的完整 BP 业务状态对象。</summary>
-    FullBusinessState,
-    /// <summary>返回包含阶段和更新的快照增量对象。</summary>
-    SnapshotDelta
-}
-
 /// <summary>托管本地视觉模型系列。</summary>
 public enum LocalVisionModelFamily
 {
@@ -72,15 +54,6 @@ public enum QwenMmprojMode { Separate, Embedded, None }
 
 /// <summary>描述本地视觉投影器的提供方式。</summary>
 public enum VisionProjectorMode { Separate, Embedded, None }
-
-/// <summary>托管 llama.cpp 视觉服务器角色。</summary>
-public enum LlamaVisionServerRole
-{
-    /// <summary>用于场景、阶段和 BP 业务推理的业务 AI 服务器。</summary>
-    BusinessAi,
-    /// <summary>仅用于提取可见文本转写的 AI OCR 服务器。</summary>
-    AiOcr
-}
 
 /// <summary>用于门控 BP 识别的第五人格细粒度场景。</summary>
 public enum SmartBpRecognitionScene
@@ -493,56 +466,10 @@ public sealed class SmartBpRecognitionSettings
 {
     /// <summary>获取或设置 schema 版本。</summary>
     public int SchemaVersion { get; set; } = 1;
-    /// <summary>获取或设置 llama-server 路径。</summary>
-    public string LlamaServerExecutablePath { get; set; } = "";
-    /// <summary>获取或设置回环端口。</summary>
-    public int LlamaServerPort { get; set; } = 18080;
-    /// <summary>获取或设置业务 AI 服务器端口。</summary>
-    public int BusinessAiServerPort { get; set; } = 18080;
-    /// <summary>获取或设置 AI OCR 服务器端口。</summary>
-    public int AiOcrServerPort { get; set; } = 18081;
-    /// <summary>获取或设置单次 llama.cpp 推理请求超时时间。</summary>
-    public int AiRequestTimeoutSeconds { get; set; } = 35;
-    /// <summary>获取或设置 llama.cpp 启动超时时间。</summary>
-    public int AiStartupTimeoutSeconds { get; set; } = 120;
     /// <summary>获取或设置中文 UI 是否使用 HuggingFace 镜像。</summary>
     public bool UseHuggingFaceMirrorForChineseUi { get; set; } = true;
     /// <summary>获取或设置可选 HuggingFace 端点覆盖值。</summary>
     public string HuggingFaceEndpointOverride { get; set; } = "";
-    /// <summary>获取或设置 llama.cpp 上下文大小。</summary>
-    public int LlamaContextSize { get; set; } = 8192;
-    /// <summary>获取或设置已选 Qwen 配置档。</summary>
-    public string SelectedQwenModelId { get; set; } = "qwen3.5-2b-q4km";
-    /// <summary>获取或设置已选业务本地视觉模型配置档。</summary>
-    public string SelectedBusinessAiModelId { get; set; } = "qwen3.5-2b-q4km";
-    /// <summary>获取或设置已选 AI OCR 本地视觉模型配置档。</summary>
-    public string SelectedAiOcrModelId { get; set; } = "paddleocr-vl-1.6-gguf";
-    /// <summary>获取或设置模型不同时 AI OCR 是否使用独立 llama.cpp 服务器。</summary>
-    public bool UseSeparateAiOcrServer { get; set; } = true;
-    /// <summary>获取或设置 AI + OCR 如何将 OCR 证据融合为业务状态。</summary>
-    public SmartBpHybridFusionMode AiWithOcrFusionMode { get; set; } = SmartBpHybridFusionMode.LocalCSharp;
-    /// <summary>获取或设置 AI + AI OCR 如何将转写证据融合为业务状态。</summary>
-    public SmartBpHybridFusionMode AiWithAiOcrFusionMode { get; set; } = SmartBpHybridFusionMode.BusinessAi;
-    /// <summary>获取或设置业务 AI 融合如何向 llama.cpp 请求结构化输出。</summary>
-    public AiStructuredOutputMode BusinessAiFusionStructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonPromptAndRepair;
-    /// <summary>获取或设置 AI + AI OCR 完整调试识别使用的业务 AI 融合输出契约。</summary>
-    public SmartBpBusinessAiFusionOutputContract AiWithAiOcrFullDebugFusionContract { get; set; } = SmartBpBusinessAiFusionOutputContract.FullBusinessState;
-    /// <summary>获取或设置已选投影器配置档标签。</summary>
-    public string SelectedMmprojId { get; set; } = "mmproj-f16";
-    /// <summary>获取或设置内置提示词配置档标识。</summary>
-    public string PromptProfileId { get; set; } = "zh-CN";
-    /// <summary>获取或设置托管 llama.cpp 运行时资产标识。</summary>
-    public string SelectedLlamaRuntimeId { get; set; } = "";
-    /// <summary>获取或设置最大编码宽度。</summary>
-    public int MaxImageWidth { get; set; } = 1280;
-    /// <summary>获取或设置图片编码格式。</summary>
-    public string ImageFormat { get; set; } = "png";
-    /// <summary>获取或设置推理温度。</summary>
-    public double Temperature { get; set; }
-    /// <summary>获取或设置聚焦识别 token 上限。</summary>
-    public int FocusedMaxTokens { get; set; } = 1024;
-    /// <summary>获取或设置全量扫描 token 上限。</summary>
-    public int FullScanMaxTokens { get; set; } = 2048;
     /// <summary>获取或设置循环间隔。</summary>
     public int RecognitionIntervalMs { get; set; } = 1200;
     /// <summary>获取或设置推荐最小间隔。</summary>
@@ -593,8 +520,6 @@ public sealed class SmartBpRecognitionSettings
     public bool UseMultiImageSnapshotRequest { get; set; } = true;
     /// <summary>获取或设置是否使用旧版模型侧快照增量识别替代字段快照。</summary>
     public bool UseLegacySnapshotDeltaRecognition { get; set; }
-    /// <summary>获取或设置 AI 客户端如何向 llama-server 请求结构化 JSON 输出。</summary>
-    public AiStructuredOutputMode StructuredOutputMode { get; set; } = AiStructuredOutputMode.JsonSchemaStrict;
     /// <summary>获取或设置已选 BP 识别引擎。</summary>
     public SmartBpRecognitionEngine RecognitionEngine { get; set; } = SmartBpRecognitionEngine.Ocr;
     /// <summary>获取或设置已选 SmartBP 识别策略。</summary>
@@ -657,18 +582,6 @@ public sealed class SmartBpRecognitionSettings
     public int RecognitionFieldStaleMilliseconds { get; set; } = 2500;
     /// <summary>获取或设置应用当前步骤动画操作前的可选延迟。</summary>
     public int RecognitionVisualBufferMilliseconds { get; set; }
-    /// <summary>获取或设置 llama.cpp 并行槽位数量。</summary>
-    public int LlamaParallelSlots { get; set; } = 1;
-    /// <summary>获取或设置 llama.cpp GPU 层数；-1 表示自动。</summary>
-    public int LlamaGpuLayers { get; set; } = -1;
-    /// <summary>获取或设置是否启用 llama.cpp flash attention。</summary>
-    public bool LlamaFlashAttention { get; set; } = true;
-    /// <summary>获取或设置 llama.cpp batch size。</summary>
-    public int LlamaBatchSize { get; set; } = 512;
-    /// <summary>获取或设置 llama.cpp micro-batch size。</summary>
-    public int LlamaUBatchSize { get; set; } = 512;
-    /// <summary>获取或设置是否可自动结束过期的托管 llama-server 进程。</summary>
-    public bool AutoKillStaleManagedLlamaServer { get; set; } = true;
     /// <summary>获取或设置多图识别失败时是否允许使用逐区域顺序请求。</summary>
     public bool AllowSequentialSnapshotFallback { get; set; } = true;
     /// <summary>获取或设置自动 JSON schema 是否使用完整候选枚举。</summary>
@@ -681,14 +594,6 @@ public sealed class SmartBpRecognitionSettings
     public int PhaseMaxTokens { get; set; } = 48;
     /// <summary>获取或设置增量快照增量 token 预算。</summary>
     public int SnapshotDeltaMaxTokens { get; set; } = 768;
-    /// <summary>获取或设置 banned_sur 字段快照 token 预算。</summary>
-    public int BannedSurFieldMaxTokens { get; set; } = 256;
-    /// <summary>获取或设置 banned_hun 字段快照 token 预算。</summary>
-    public int BannedHunFieldMaxTokens { get; set; } = 192;
-    /// <summary>获取或设置 picked_sur 字段快照 token 预算。</summary>
-    public int PickedSurFieldMaxTokens { get; set; } = 384;
-    /// <summary>获取或设置 picked_hun 字段快照 token 预算。</summary>
-    public int PickedHunFieldMaxTokens { get; set; } = 192;
     /// <summary>获取或设置将引导移动到新检测阶段前的短提交等待时间。</summary>
     public int PhaseTransitionCommitHoldMilliseconds { get; set; } = 350;
     /// <summary>获取或设置允许延迟回填前的最大提交等待时间。</summary>
@@ -705,14 +610,6 @@ public sealed class SmartBpRecognitionSettings
     public double RecognitionCropChangeThreshold { get; set; } = 0.035;
     /// <summary>获取或设置优先要求的稳定裁剪观测帧数。</summary>
     public int RecognitionCropStableFrames { get; set; } = 2;
-    /// <summary>获取或设置是否启用 llama.cpp 运行时更新检查。</summary>
-    public bool EnableLlamaRuntimeUpdateCheck { get; set; } = true;
-    /// <summary>获取或设置 llama.cpp 运行时更新检查间隔（小时）。</summary>
-    public int LlamaRuntimeUpdateCheckIntervalHours { get; set; } = 168;
-    /// <summary>获取或设置自定义远程 llama.cpp 运行时清单 API URL。</summary>
-    public string LlamaRuntimeManifestApiUrl { get; set; } = "";
-    /// <summary>获取或设置最近一次 llama.cpp 运行时更新检查时间。</summary>
-    public DateTimeOffset? LastLlamaRuntimeUpdateCheckAt { get; set; }
 }
 
 /// <summary>面向模型的 BP 业务状态识别结果。</summary>

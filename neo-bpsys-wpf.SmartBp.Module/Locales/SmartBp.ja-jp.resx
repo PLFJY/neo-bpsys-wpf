@@ -228,54 +228,6 @@
   <data name="SmartBpEnableDebugLog" xml:space="preserve">
     <value>デバッグログを有効にする</value>
   </data>
-  <data name="SmartBpAiParallelSlots" xml:space="preserve">
-    <value>llama.cpp 並列スロット</value>
-  </data>
-  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve">
-    <value>並列スロットを増やすと同時処理性能が上がる場合がありますが、VRAM/RAM を多く使います。既定値 1 が安全です。</value>
-  </data>
-  <data name="SmartBpAiGpuLayers" xml:space="preserve">
-    <value>GPU レイヤー（-1 は自動）</value>
-  </data>
-  <data name="SmartBpAiFlashAttention" xml:space="preserve">
-    <value>Flash Attention を有効化</value>
-  </data>
-  <data name="SmartBpAiBatchSize" xml:space="preserve">
-    <value>Batch size</value>
-  </data>
-  <data name="SmartBpAiUBatchSize" xml:space="preserve">
-    <value>UBatch size</value>
-  </data>
-  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve">
-    <value>複数画像失敗時に順次認識へフォールバック</value>
-  </data>
-  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve">
-    <value>自動認識で厳密な候補 enum を使用</value>
-  </data>
-  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve">
-    <value>フェーズ裁剪の最大幅</value>
-  </data>
-  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve">
-    <value>内容裁剪の最大幅</value>
-  </data>
-  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve">
-    <value>フェーズ認識 token 上限</value>
-  </data>
-  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve">
-    <value>差分認識 token 上限</value>
-  </data>
-  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve">
-    <value>フェーズ遷移コミット待機ミリ秒</value>
-  </data>
-  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve">
-    <value>フェーズ遷移最大待機ミリ秒</value>
-  </data>
-  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames" xml:space="preserve">
-    <value>未知フェーズから天賦を推定するフレーム数</value>
-  </data>
-  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve">
-    <value>現在手順アニメーションのバッファミリ秒</value>
-  </data>
   <data name="SmartBpOcrUseContactSheet" xml:space="preserve">
     <value>OCR 結合認識画像を使用</value>
   </data>
@@ -462,12 +414,6 @@
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
     <value>Start automatic recognition</value>
   </data>
-  <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve">
-    <value>AI one-step-delayed mode</value>
-  </data>
-  <data name="SmartBpAiUseMultiImage" xml:space="preserve">
-    <value>Use multi-image request</value>
-  </data>
   <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
     <value>現在のキャプチャ全体を認識</value>
   </data>
@@ -495,30 +441,6 @@
   <data name="SmartBpTooltipTesseractVariants" xml:space="preserve">
     <value>Number of preprocessed image variants tried per region.</value>
   </data>
-  <data name="SmartBpTooltipAiDelayed" xml:space="preserve">
-    <value>Completes the preceding recognition step before moving GameGuidance.</value>
-  </data>
-  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve">
-    <value>Consecutive unknown-phase frames required before hunter-talent inference.</value>
-  </data>
-  <data name="SmartBpTooltipMultiImage" xml:space="preserve">
-    <value>Sends phase and content regions in one AI request.</value>
-  </data>
-  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve">
-    <value>Retries regions separately when a multi-image request fails.</value>
-  </data>
-  <data name="SmartBpTooltipGpuLayers" xml:space="preserve">
-    <value>llama.cpp layers offloaded to GPU; -1 selects automatically.</value>
-  </data>
-  <data name="SmartBpTooltipBatchSize" xml:space="preserve">
-    <value>llama.cpp logical batch size.</value>
-  </data>
-  <data name="SmartBpTooltipUBatchSize" xml:space="preserve">
-    <value>llama.cpp physical micro-batch size.</value>
-  </data>
-  <data name="SmartBpTooltipFlashAttention" xml:space="preserve">
-    <value>Enables llama.cpp Flash Attention.</value>
-  </data>
   <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
     <value>Test recognition speed</value>
   </data>
@@ -542,33 +464,6 @@
   </data>
   <data name="SmartBpMinimumInterval" xml:space="preserve">
     <value>速度テストの最小間隔</value>
-  </data>
-  <data name="SmartBpAiIntervalMilliseconds" xml:space="preserve">
-    <value>AI 自動認識間隔（ms）</value>
-  </data>
-  <data name="SmartBpTooltipAiRecognitionInterval" xml:space="preserve">
-    <value>AI スクリーンショット間隔を制御します。実際の推論時間より短いと古い結果が滞留し停止も遅くなります。速度テスト後、最大実測時間 + 250ms が最小値になります。</value>
-  </data>
-  <data name="SmartBpTooltipPhaseCropWidth" xml:space="preserve">
-    <value>段階画像の最大幅です。小さいほど高速ですが文字を失う場合があります。推奨 480–768。変更後は再測定してください。</value>
-  </data>
-  <data name="SmartBpTooltipContentCropWidth" xml:space="preserve">
-    <value>BP 内容画像の最大幅です。小さいほど高速ですが文字やアイコン詳細を失う場合があります。推奨 640–1280。</value>
-  </data>
-  <data name="SmartBpTooltipPhaseTokens" xml:space="preserve">
-    <value>段階出力 token 上限です。小さすぎると JSON が切れ、大きすぎると生成が長引きます。推奨 32–128。</value>
-  </data>
-  <data name="SmartBpTooltipSnapshotTokens" xml:space="preserve">
-    <value>差分出力 token 上限です。小さすぎると JSON が切れます。要求フィールドに応じて 256–1536 を推奨します。</value>
-  </data>
-  <data name="SmartBpTooltipCommitHold" xml:space="preserve">
-    <value>案内移動前に直前の認識・適用を待つ時間です。短すぎると前段を失い、長すぎると UI が遅れます。AI は通常 250–1000ms。</value>
-  </data>
-  <data name="SmartBpTooltipVisualBuffer" xml:space="preserve">
-    <value>現在ステップ適用前の追加遅延です。既定値 0。アニメーション安定化時のみ使用し、推奨 0–500ms。</value>
-  </data>
-  <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve">
-    <value>キャラクター候補を AI JSON schema に追加し架空名を減らしますが、処理時間と互換性リスクが増えます。schema エラー時は無効にしてください。</value>
   </data>
   <data name="SmartBpRapidOcrModelManagement" xml:space="preserve">
     <value>RapidOCR 中国語モデル</value>
@@ -666,15 +561,6 @@
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve">
     <value>現在の試合の SmartBP AI 認識履歴をリセットしました。</value>
   </data>
-  <data name="SmartBpAiModelDownloadRequired" xml:space="preserve">
-    <value>The selected model must be downloaded first.</value>
-  </data>
-  <data name="SmartBpAiOcrServerRestarting" xml:space="preserve">
-    <value>AI OCR サーバーを再起動しています...</value>
-  </data>
-  <data name="SmartBpAiOcrServerStarting" xml:space="preserve">
-    <value>Starting AI OCR server...</value>
-  </data>
   <data name="SmartBpAiRegionEditor" xml:space="preserve">
     <value>SmartBP OCR 認識領域エディター</value>
   </data>
@@ -705,35 +591,11 @@
   <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve">
     <value>左上のBP終了後ステータス領域</value>
   </data>
-  <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve">
-    <value>llama.cpp runtime rollback completed</value>
-  </data>
-  <data name="SmartBpAiStatusRestarting" xml:space="preserve">
-    <value>llama.cpp サーバーを再起動しています…</value>
-  </data>
-  <data name="SmartBpAiStatusStarting" xml:space="preserve">
-    <value>llama.cpp サーバーを起動しています…</value>
-  </data>
-  <data name="SmartBpAiStatusStopped" xml:space="preserve">
-    <value>停止しました</value>
-  </data>
-  <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve">
-    <value>llama-server is running. Switching models will restart it automatically. Continue?</value>
-  </data>
-  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve">
-    <value>AI モデルを切り替え</value>
-  </data>
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
     <value>Please confirm that the current game progress and half are set correctly. Incorrect settings may write recognition results to the wrong game.</value>
   </data>
   <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve">
     <value>Start automatic recognition</value>
-  </data>
-  <data name="SmartBpBusinessAiServerRestarting" xml:space="preserve">
-    <value>Business AI サーバーを再起動しています...</value>
-  </data>
-  <data name="SmartBpBusinessAiServerStarting" xml:space="preserve">
-    <value>Starting Business AI server...</value>
   </data>
   <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
     <value>Bitblt</value>
@@ -746,9 +608,6 @@
   </data>
   <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
     <value>現在のOCRモデル：{0}</value>
-  </data>
-  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve">
-    <value>Current Business AI model: {0}</value>
   </data>
   <data name="SmartBpDownloadCancelled" xml:space="preserve">
     <value>Download cancelled</value>

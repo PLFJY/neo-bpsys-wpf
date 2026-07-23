@@ -231,54 +231,6 @@
   <data name="SmartBpEnableDebugLog" xml:space="preserve">
     <value>启用调试日志</value>
   </data>
-  <data name="SmartBpAiParallelSlots" xml:space="preserve">
-    <value>llama.cpp 并行槽位</value>
-  </data>
-  <data name="SmartBpAiParallelSlotsHint" xml:space="preserve">
-    <value>增加并行槽位可能提升并发吞吐，但会占用更多显存/内存。默认 1 更稳。</value>
-  </data>
-  <data name="SmartBpAiGpuLayers" xml:space="preserve">
-    <value>GPU 层数（-1 为自动）</value>
-  </data>
-  <data name="SmartBpAiFlashAttention" xml:space="preserve">
-    <value>启用 Flash Attention</value>
-  </data>
-  <data name="SmartBpAiBatchSize" xml:space="preserve">
-    <value>Batch size</value>
-  </data>
-  <data name="SmartBpAiUBatchSize" xml:space="preserve">
-    <value>UBatch size</value>
-  </data>
-  <data name="SmartBpAiAllowSequentialFallback" xml:space="preserve">
-    <value>多图失败时允许顺序识别回退</value>
-  </data>
-  <data name="SmartBpAiUseStrictCandidateEnums" xml:space="preserve">
-    <value>自动识别使用严格候选枚举</value>
-  </data>
-  <data name="SmartBpAiPhaseCropMaxWidth" xml:space="preserve">
-    <value>阶段裁剪最大宽度</value>
-  </data>
-  <data name="SmartBpAiContentCropMaxWidth" xml:space="preserve">
-    <value>内容裁剪最大宽度</value>
-  </data>
-  <data name="SmartBpAiPhaseMaxTokens" xml:space="preserve">
-    <value>阶段识别 token 上限</value>
-  </data>
-  <data name="SmartBpAiSnapshotDeltaMaxTokens" xml:space="preserve">
-    <value>增量识别 token 上限</value>
-  </data>
-  <data name="SmartBpAiCommitHoldMilliseconds" xml:space="preserve">
-    <value>阶段切换提交等待毫秒</value>
-  </data>
-  <data name="SmartBpAiCommitHoldMaxMilliseconds" xml:space="preserve">
-    <value>阶段切换最长等待毫秒</value>
-  </data>
-  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames" xml:space="preserve">
-    <value>未知阶段推断天赋帧数</value>
-  </data>
-  <data name="SmartBpAiVisualBufferMilliseconds" xml:space="preserve">
-    <value>当前步骤动画缓冲毫秒</value>
-  </data>
   <data name="SmartBpOcrUseContactSheet" xml:space="preserve">
     <value>使用 OCR 合并识别图</value>
   </data>
@@ -480,12 +432,6 @@
   <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
     <value>启动自动识别</value>
   </data>
-  <data name="SmartBpAiOneStepDelayedMode" xml:space="preserve">
-    <value>AI 单步延迟模式</value>
-  </data>
-  <data name="SmartBpAiUseMultiImage" xml:space="preserve">
-    <value>使用多图请求</value>
-  </data>
   <data name="SmartBpAiRecognizeCurrentFrame" xml:space="preserve">
     <value>识别当前捕获画面全图</value>
   </data>
@@ -513,30 +459,6 @@
   <data name="SmartBpTooltipTesseractVariants" xml:space="preserve">
     <value>每个区域尝试的预处理版本数量。更多版本可能提高复杂背景下的识别率，但耗时近似成倍增加。安全范围 1–3；自动识别卡顿时降低。</value>
   </data>
-  <data name="SmartBpTooltipAiDelayed" xml:space="preserve">
-    <value>让 AI 先确认并完成上一角色步骤，再移动 GameGuidance，可降低模型结果慢一拍造成的漏录。只在角色 BP/紧邻天赋阶段生效，绝不会跨入区域选择。建议开启；关闭会更快但更容易漏掉最后一步。</value>
-  </data>
-  <data name="SmartBpTooltipAiInferenceFrames" xml:space="preserve">
-    <value>连续多少个未知阶段画面后，才可在“监管者已选择且账本完成”的严格条件下推断监管者天赋。太小可能误跳，太大会延迟引导；建议 2–4，区域选择后不会推断。</value>
-  </data>
-  <data name="SmartBpTooltipMultiImage" xml:space="preserve">
-    <value>开启后会把 phase_top 和需要识别的 BP 区域合并到一次 llama.cpp 请求中，通常比多次请求更快。若当前 llama.cpp/模型不支持多图输入，可能返回错误；可关闭后使用顺序回退，但延迟会明显增加。</value>
-  </data>
-  <data name="SmartBpTooltipSequentialFallback" xml:space="preserve">
-    <value>当多图 AI 请求失败时，允许退回到逐区域识别。优点是兼容性更好；缺点是一次 tick 可能变成多次模型请求，延迟和显存占用更高。出现卡顿时建议关闭并查看错误。</value>
-  </data>
-  <data name="SmartBpTooltipGpuLayers" xml:space="preserve">
-    <value>控制模型有多少层放到 GPU。-1 表示自动。数值越高显存占用越高，速度可能更快；显存不足会导致 llama.cpp 启动失败或推理崩溃。</value>
-  </data>
-  <data name="SmartBpTooltipBatchSize" xml:space="preserve">
-    <value>影响 llama.cpp prompt 处理吞吐和显存峰值。数值过大可能更快但更吃显存；数值过小更稳但慢。除非你了解 llama.cpp 的 batch 参数，否则保持默认 512。</value>
-  </data>
-  <data name="SmartBpTooltipUBatchSize" xml:space="preserve">
-    <value>控制 llama.cpp 物理微批大小并影响显存峰值。过大可能显存不足，过小会降低速度。普通用户建议保持默认 512，遇到显存问题时再逐步降低。</value>
-  </data>
-  <data name="SmartBpTooltipFlashAttention" xml:space="preserve">
-    <value>开启 llama.cpp Flash Attention。通常可降低显存或提升速度，但依赖当前 runtime 和显卡后端支持；如果启动失败或输出异常，可以关闭。</value>
-  </data>
   <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
     <value>测试识别速度</value>
   </data>
@@ -560,33 +482,6 @@
   </data>
   <data name="SmartBpMinimumInterval" xml:space="preserve">
     <value>测速允许的最低间隔</value>
-  </data>
-  <data name="SmartBpAiIntervalMilliseconds" xml:space="preserve">
-    <value>AI 自动识别间隔（毫秒）</value>
-  </data>
-  <data name="SmartBpTooltipAiRecognitionInterval" xml:space="preserve">
-    <value>控制自动识别两次截图之间的间隔。AI/Qwen 每次识别可能耗时几秒，如果间隔低于模型实际耗时，会导致请求堆积、识别结果滞后、停止按钮响应变慢。建议先运行“测试识别速度”，系统会把最低间隔锁定为“实测最大耗时 + 250ms”。</value>
-  </data>
-  <data name="SmartBpTooltipPhaseCropWidth" xml:space="preserve">
-    <value>限制送入 AI 的阶段裁剪图最大宽度。数值越小越快、显存占用越低，但阶段文字可能丢失。通常 480–768；修改后需要重新测试识别速度。</value>
-  </data>
-  <data name="SmartBpTooltipContentCropWidth" xml:space="preserve">
-    <value>限制送入 AI 的 BP 内容裁剪图最大宽度。数值越小越快、显存占用越低，但文字和头像细节可能丢失。通常 640–1280；修改后需要重新测速。</value>
-  </data>
-  <data name="SmartBpTooltipPhaseTokens" xml:space="preserve">
-    <value>限制阶段识别最多输出多少 token。太小会导致 JSON 被截断，太大会延长生成。阶段结果很短，建议 32–128，默认 48。</value>
-  </data>
-  <data name="SmartBpTooltipSnapshotTokens" xml:space="preserve">
-    <value>限制增量快照最多输出多少 token。太小会截断 JSON，太大可能生成更久并增加卡顿。建议 256–1536，并确保能覆盖本次请求字段。</value>
-  </data>
-  <data name="SmartBpTooltipCommitHold" xml:space="preserve">
-    <value>检测到阶段切换后，在同步对局引导前短暂等待上一步识别和应用完成。太小可能漏掉上一步，太大会让 UI 跟随变慢。AI 通常建议 250–1000ms，OCR 可更小。</value>
-  </data>
-  <data name="SmartBpTooltipVisualBuffer" xml:space="preserve">
-    <value>当前步骤识别结果应用前的额外延迟，默认 0。只在希望动画更稳定、减少闪烁时使用；数值过大会让 BP 界面明显慢半拍，建议 0–500ms。</value>
-  </data>
-  <data name="SmartBpTooltipStrictCandidateEnums" xml:space="preserve">
-    <value>把当前角色候选表写入 AI JSON schema，能减少模型输出不存在的角色名，但 schema 更大、prompt 处理更慢，部分模型兼容性较差。角色名幻觉较多时开启；出现 schema 错误或延迟增加时关闭。</value>
   </data>
   <data name="SmartBpRapidOcrModelManagement" xml:space="preserve">
     <value>RapidOCR 中文模型</value>
@@ -684,15 +579,6 @@
   <data name="SmartBpAiLedgerResetCompleted" xml:space="preserve">
     <value>已重置当前对局的 SmartBP AI 识别记录。</value>
   </data>
-  <data name="SmartBpAiModelDownloadRequired" xml:space="preserve">
-    <value>所选模型尚未安装，请先下载。</value>
-  </data>
-  <data name="SmartBpAiOcrServerRestarting" xml:space="preserve">
-    <value>正在重启 AI OCR 服务器...</value>
-  </data>
-  <data name="SmartBpAiOcrServerStarting" xml:space="preserve">
-    <value>正在启动 AI OCR 服务器...</value>
-  </data>
   <data name="SmartBpAiRegionEditor" xml:space="preserve">
     <value>SmartBP OCR 识别区域编辑器</value>
   </data>
@@ -723,62 +609,11 @@
   <data name="SmartBpAiRegionTopLeftStatus" xml:space="preserve">
     <value>左上角赛后状态区域</value>
   </data>
-  <data name="SmartBpAiRuntimeDownloading" xml:space="preserve">
-    <value>正在下载并安装 llama.cpp 运行时</value>
-  </data>
-  <data name="SmartBpAiRuntimeRollbackComplete" xml:space="preserve">
-    <value>llama.cpp 运行时回滚完成</value>
-  </data>
-  <data name="SmartBpAiStatusCancelled" xml:space="preserve">
-    <value>已取消</value>
-  </data>
-  <data name="SmartBpAiStatusDownloading" xml:space="preserve">
-    <value>正在下载 AI 模型</value>
-  </data>
-  <data name="SmartBpAiStatusFailed" xml:space="preserve">
-    <value>失败</value>
-  </data>
-  <data name="SmartBpAiStatusInstalled" xml:space="preserve">
-    <value>已安装</value>
-  </data>
-  <data name="SmartBpAiStatusLoaded" xml:space="preserve">
-    <value>已加载</value>
-  </data>
-  <data name="SmartBpAiStatusLoading" xml:space="preserve">
-    <value>正在加载</value>
-  </data>
-  <data name="SmartBpAiStatusNotInstalled" xml:space="preserve">
-    <value>未安装</value>
-  </data>
-  <data name="SmartBpAiStatusReady" xml:space="preserve">
-    <value>已就绪</value>
-  </data>
-  <data name="SmartBpAiStatusRestarting" xml:space="preserve">
-    <value>正在重启 llama.cpp 服务…</value>
-  </data>
-  <data name="SmartBpAiStatusStarting" xml:space="preserve">
-    <value>正在启动 llama.cpp 服务…</value>
-  </data>
-  <data name="SmartBpAiStatusStopped" xml:space="preserve">
-    <value>已停止</value>
-  </data>
-  <data name="SmartBpAiSwitchModelRestartConfirm" xml:space="preserve">
-    <value>llama-server 正在运行。切换模型需要自动重启服务，是否继续？</value>
-  </data>
-  <data name="SmartBpAiSwitchModelTitle" xml:space="preserve">
-    <value>切换 AI 模型</value>
-  </data>
   <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
     <value>请确认当前对局进度和半场已正确设置。设置错误可能导致识别结果写入错误对局。</value>
   </data>
   <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve">
     <value>启动自动识别</value>
-  </data>
-  <data name="SmartBpBusinessAiServerRestarting" xml:space="preserve">
-    <value>正在重启业务 AI 服务器...</value>
-  </data>
-  <data name="SmartBpBusinessAiServerStarting" xml:space="preserve">
-    <value>正在启动业务 AI 服务器...</value>
   </data>
   <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
     <value>Bitblt</value>
@@ -791,9 +626,6 @@
   </data>
   <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
     <value>当前 OCR 模型：{0}</value>
-  </data>
-  <data name="SmartBpCurrentQwenModelFormat" xml:space="preserve">
-    <value>当前业务 AI 模型：{0}</value>
   </data>
   <data name="SmartBpDownloadCancelled" xml:space="preserve">
     <value>下载已取消</value>

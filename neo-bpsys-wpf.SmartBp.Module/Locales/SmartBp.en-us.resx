@@ -118,54 +118,6 @@
   <data name="SmartBpEnableDebugLog">
     <value>Enable debug log</value>
   </data>
-  <data name="SmartBpAiParallelSlots">
-    <value>llama.cpp parallel slots</value>
-  </data>
-  <data name="SmartBpAiParallelSlotsHint">
-    <value>Increasing parallel slots may improve concurrent throughput, but uses more VRAM/RAM. The default 1 is safer.</value>
-  </data>
-  <data name="SmartBpAiGpuLayers">
-    <value>GPU layers (-1 = auto)</value>
-  </data>
-  <data name="SmartBpAiFlashAttention">
-    <value>Enable Flash Attention</value>
-  </data>
-  <data name="SmartBpAiBatchSize">
-    <value>Batch size</value>
-  </data>
-  <data name="SmartBpAiUBatchSize">
-    <value>UBatch size</value>
-  </data>
-  <data name="SmartBpAiAllowSequentialFallback">
-    <value>Allow sequential fallback when multi-image fails</value>
-  </data>
-  <data name="SmartBpAiUseStrictCandidateEnums">
-    <value>Use strict candidate enums in automatic recognition</value>
-  </data>
-  <data name="SmartBpAiPhaseCropMaxWidth">
-    <value>Phase crop max width</value>
-  </data>
-  <data name="SmartBpAiContentCropMaxWidth">
-    <value>Content crop max width</value>
-  </data>
-  <data name="SmartBpAiPhaseMaxTokens">
-    <value>Phase token limit</value>
-  </data>
-  <data name="SmartBpAiSnapshotDeltaMaxTokens">
-    <value>Delta token limit</value>
-  </data>
-  <data name="SmartBpAiCommitHoldMilliseconds">
-    <value>Phase transition commit hold milliseconds</value>
-  </data>
-  <data name="SmartBpAiCommitHoldMaxMilliseconds">
-    <value>Maximum phase transition hold milliseconds</value>
-  </data>
-  <data name="SmartBpAiUnknownPhaseTalentInferenceFrames">
-    <value>Unknown-phase talent inference frames</value>
-  </data>
-  <data name="SmartBpAiVisualBufferMilliseconds">
-    <value>Current-step animation buffer milliseconds</value>
-  </data>
   <data name="SmartBpOcrUseContactSheet">
     <value>Use OCR contact sheet</value>
   </data>
@@ -367,12 +319,6 @@
   <data name="SmartBpStartAutomaticRecognition">
     <value>Start automatic recognition</value>
   </data>
-  <data name="SmartBpAiOneStepDelayedMode">
-    <value>AI one-step-delayed mode</value>
-  </data>
-  <data name="SmartBpAiUseMultiImage">
-    <value>Use multi-image request</value>
-  </data>
   <data name="SmartBpAiRecognizeCurrentFrame">
     <value>Recognize current capture (full)</value>
   </data>
@@ -400,30 +346,6 @@
   <data name="SmartBpTooltipTesseractVariants">
     <value>Number of preprocessed image variants tried per region.</value>
   </data>
-  <data name="SmartBpTooltipAiDelayed">
-    <value>Completes the preceding recognition step before moving GameGuidance.</value>
-  </data>
-  <data name="SmartBpTooltipAiInferenceFrames">
-    <value>Consecutive unknown-phase frames required before hunter-talent inference.</value>
-  </data>
-  <data name="SmartBpTooltipMultiImage">
-    <value>Sends phase and content regions in one AI request.</value>
-  </data>
-  <data name="SmartBpTooltipSequentialFallback">
-    <value>Retries regions separately when a multi-image request fails.</value>
-  </data>
-  <data name="SmartBpTooltipGpuLayers">
-    <value>llama.cpp layers offloaded to GPU; -1 selects automatically.</value>
-  </data>
-  <data name="SmartBpTooltipBatchSize">
-    <value>llama.cpp logical batch size.</value>
-  </data>
-  <data name="SmartBpTooltipUBatchSize">
-    <value>llama.cpp physical micro-batch size.</value>
-  </data>
-  <data name="SmartBpTooltipFlashAttention">
-    <value>Enables llama.cpp Flash Attention.</value>
-  </data>
   <data name="SmartBpTestRecognitionSpeed">
     <value>Test recognition speed</value>
   </data>
@@ -447,33 +369,6 @@
   </data>
   <data name="SmartBpMinimumInterval">
     <value>Minimum interval from speed test</value>
-  </data>
-  <data name="SmartBpAiIntervalMilliseconds">
-    <value>AI automatic recognition interval (ms)</value>
-  </data>
-  <data name="SmartBpTooltipAiRecognitionInterval">
-    <value>Controls time between AI screenshots. An interval below actual inference time causes stale queued results and slower stopping. Run the speed test first; the minimum is measured maximum elapsed + 250ms.</value>
-  </data>
-  <data name="SmartBpTooltipPhaseCropWidth">
-    <value>Maximum phase crop width. Smaller is faster and uses less VRAM but can lose text. Recommended 480–768; rerun the speed test after changing it.</value>
-  </data>
-  <data name="SmartBpTooltipContentCropWidth">
-    <value>Maximum BP content crop width. Smaller is faster but may lose text or portrait detail. Recommended 640–1280; rerun the speed test after changing it.</value>
-  </data>
-  <data name="SmartBpTooltipPhaseTokens">
-    <value>Maximum phase output tokens. Too few truncates JSON; too many can generate longer. Recommended 32–128, default 48.</value>
-  </data>
-  <data name="SmartBpTooltipSnapshotTokens">
-    <value>Maximum snapshot delta output tokens. Too few truncates JSON; too many can add latency. Recommended 256–1536 depending on requested fields.</value>
-  </data>
-  <data name="SmartBpTooltipCommitHold">
-    <value>Briefly waits for the preceding recognition/apply before guidance moves. Too short may miss a step; too long delays UI. AI usually needs 250–1000ms.</value>
-  </data>
-  <data name="SmartBpTooltipVisualBuffer">
-    <value>Extra delay before applying current-step results. Default 0; use only to stabilize animation. Large values make BP visibly lag. Recommended 0–500ms.</value>
-  </data>
-  <data name="SmartBpTooltipStrictCandidateEnums">
-    <value>Adds the character candidate list to the AI JSON schema. This reduces invented names but increases schema processing and may be incompatible with some models. Disable it on schema errors or added latency.</value>
   </data>
   <data name="SmartBpRapidOcrModelManagement">
     <value>RapidOCR Chinese model</value>
@@ -571,15 +466,6 @@
   <data name="SmartBpAiLedgerResetCompleted">
     <value>The SmartBP AI recognition ledger was reset for the current game.</value>
   </data>
-  <data name="SmartBpAiModelDownloadRequired">
-    <value>The selected model must be downloaded first.</value>
-  </data>
-  <data name="SmartBpAiOcrServerRestarting">
-    <value>Restarting AI OCR server...</value>
-  </data>
-  <data name="SmartBpAiOcrServerStarting">
-    <value>Starting AI OCR server...</value>
-  </data>
   <data name="SmartBpAiRegionEditor">
     <value>SmartBP OCR recognition region editor</value>
   </data>
@@ -610,62 +496,11 @@
   <data name="SmartBpAiRegionTopLeftStatus">
     <value>Top-left post-BP status area</value>
   </data>
-  <data name="SmartBpAiRuntimeDownloading">
-    <value>Downloading and installing llama.cpp runtime</value>
-  </data>
-  <data name="SmartBpAiRuntimeRollbackComplete">
-    <value>llama.cpp runtime rollback completed</value>
-  </data>
-  <data name="SmartBpAiStatusCancelled">
-    <value>Cancelled</value>
-  </data>
-  <data name="SmartBpAiStatusDownloading">
-    <value>Downloading AI model</value>
-  </data>
-  <data name="SmartBpAiStatusFailed">
-    <value>Failed</value>
-  </data>
-  <data name="SmartBpAiStatusInstalled">
-    <value>Installed</value>
-  </data>
-  <data name="SmartBpAiStatusLoaded">
-    <value>Loaded</value>
-  </data>
-  <data name="SmartBpAiStatusLoading">
-    <value>Loading</value>
-  </data>
-  <data name="SmartBpAiStatusNotInstalled">
-    <value>Not installed</value>
-  </data>
-  <data name="SmartBpAiStatusReady">
-    <value>Ready</value>
-  </data>
-  <data name="SmartBpAiStatusRestarting">
-    <value>Restarting llama.cpp server…</value>
-  </data>
-  <data name="SmartBpAiStatusStarting">
-    <value>Starting llama.cpp server…</value>
-  </data>
-  <data name="SmartBpAiStatusStopped">
-    <value>Stopped</value>
-  </data>
-  <data name="SmartBpAiSwitchModelRestartConfirm">
-    <value>llama-server is running. Switching models will restart it automatically. Continue?</value>
-  </data>
-  <data name="SmartBpAiSwitchModelTitle">
-    <value>Switch AI model</value>
-  </data>
   <data name="SmartBpAutoRecognitionStartConfirm">
     <value>Please confirm that the current game progress and half are set correctly. Incorrect settings may write recognition results to the wrong game.</value>
   </data>
   <data name="SmartBpAutoRecognitionStartTitle">
     <value>Start automatic recognition</value>
-  </data>
-  <data name="SmartBpBusinessAiServerRestarting">
-    <value>Restarting Business AI server...</value>
-  </data>
-  <data name="SmartBpBusinessAiServerStarting">
-    <value>Starting Business AI server...</value>
   </data>
   <data name="SmartBpCaptureMethodBitblt">
     <value>Bitblt</value>
@@ -678,9 +513,6 @@
   </data>
   <data name="SmartBpCurrentOcrModelFormat">
     <value>Current OCR model: {0}</value>
-  </data>
-  <data name="SmartBpCurrentQwenModelFormat">
-    <value>Current Business AI model: {0}</value>
   </data>
   <data name="SmartBpDownloadCancelled">
     <value>Download cancelled</value>

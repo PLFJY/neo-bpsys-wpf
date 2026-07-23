@@ -275,7 +275,7 @@ RapidOCR 与其他 OCR Provider 没有依赖关系。SmartBP 自动识别只使�
 
 ### 旧 AI 字段兼容
 
-SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和 AI OCR transcript 方案。这些路径已从生产运行链路移除。`SmartBpRecognitionSettings` 仍可能保留若干旧字段用于读取历史配置，但加载时会把缺失或不支持的策略归一化为 `PureOcr`，UI 不再暴露相关模式、模型或服务器状态。
+SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和 AI OCR transcript 方案。这些路径及其对应的 Llama 服务器、Qwen 模型、融合模式、结构化输出、运行时更新检查等设置字段已从 `SmartBpRecognitionSettings` 中删除。仅保留 `RecognitionEngine` 枚举（含 `Ocr` 与 `AiQwen` 哨兵值）和 `RecognitionStrategy` 枚举（仅 `PureOcr`）用于读取历史配置 JSON：旧配置中的 AI 策略值会在加载时归一化为 `PureOcr`，若用户历史配置选中了 `AiQwen`，`SmartBpService` 的 `IsGameDataAiRecognitionSelected()` 守卫会显示"未实现"错误并阻止识别启动。UI 不再暴露任何 AI 模式、模型或服务器状态。
 
 ### 识别设置总览
 
@@ -290,13 +290,12 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 | Tesseract | `EnableTesseractOcr`, `TesseractLanguages`, `TesseractDefaultPsm` | true / "chi_sim+eng" / 6 |
 | RapidOCR 模型 | `SelectedRapidOcrModelId` | "ppocr-v5-zh-mobile" |
 | RapidOCR 推理 | `RapidOcrPadding`, `RapidOcrMaxSideLen`, `RapidOcrBoxScoreThreshold`, `RapidOcrBoxThreshold`, `RapidOcrUnclipRatio`, `RapidOcrUseAngleClassifier`, `RapidOcrUsePreprocessingVariants` | 0 / 1024 / 0.5 / 0.3 / 1.6 / true / false |
-| 旧 AI 字段兼容 | 历史 AI 策略、模型与端口字段 | 加载后不参与 SmartBP 自动识别，策略回退为 `PureOcr` |
 | 循环控制 | `RecognitionIntervalMs`, `OcrRecognitionIntervalMs` | 1200ms / 300ms |
 | 自动应用 | `EnableAutoApplyRecognition`, `EnableAutoGuidanceSync` | false / false |
 | 应用模式 | `RecognitionApplyMode` | `GuidedWorkflow` |
 | 补录 | `PlayBackfillAnimations`, `AllowLateBackfillAfterPhaseMoved` | false / true |
 | 状态管理 | `OcrFieldStaleMilliseconds`, `OcrBackfillLookBehindSteps`, `RequiredStableSnapshots` | 1500ms / 2 / 1 |
-| 图像编码 | `MaxImageWidth`, `PhaseCropMaxImageWidth`, `ContentCropMaxImageWidth` | 1280 / 640 / 768 |
+| 图像编码 | `PhaseCropMaxImageWidth`, `ContentCropMaxImageWidth` | 640 / 768 |
 | 帧缓冲与切换回看 | `RecognitionFrameBufferMilliseconds`, `RecognitionTransitionLookBehindMilliseconds`, `RecognitionTransitionReplayMinimumConfidence`, `RecognitionCropChangeThreshold` | 1500ms / 800ms / 0.95 / 0.035 |
 
 ## 区域配置
