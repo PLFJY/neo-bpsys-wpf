@@ -9,9 +9,9 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
@@ -138,7 +138,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     public ObservableCollection<FrontedWindowManageItem> ManageableWindows { get; } = [];
 
     /// <summary>
-    /// 按描述符分组键分组后的可管理前台窗口。
+    /// 按注册分组键分组后的可管理前台窗口。
     /// </summary>
     public ObservableCollection<FrontedWindowManageGroup> ManageableWindowGroups { get; } = [];
 
@@ -159,7 +159,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         ManageableWindows.Clear();
         ManageableWindowGroups.Clear();
         var manageableWindows = _frontedWindowRegistry.GetManageableWindows() ?? [];
-        foreach (var group in FrontedWindowManageGroup.FromDescriptors(manageableWindows, _settingsHostService))
+        foreach (var group in FrontedWindowManageGroup.FromRegistrations(manageableWindows, _settingsHostService))
         {
             ManageableWindowGroups.Add(group);
             foreach (var item in group.Windows)
@@ -170,9 +170,9 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         if (ManageableWindowGroups.Count == 0)
         {
-            foreach (var descriptor in manageableWindows)
+            foreach (var registration in manageableWindows)
             {
-                ManageableWindows.Add(FrontedWindowManageItem.FromDescriptor(descriptor, _settingsHostService));
+                ManageableWindows.Add(FrontedWindowManageItem.FromRegistration(registration, _settingsHostService));
             }
         }
     }
@@ -1066,7 +1066,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
     private static void PublishBpWindowOpenedIfTarget(string windowId)
     {
-        var bpWindowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow);
+        var bpWindowId = FrontedWindowHelper.GetFrontedWindowCanonicalId(FrontedWindowType.BpWindow);
         if (string.Equals(windowId, bpWindowId, StringComparison.Ordinal))
         {
             TutorialSignalPublisher.Publish(TutorialSignalIds.BpWindowOpened, new { WindowId = windowId });
@@ -1128,7 +1128,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 public sealed class FrontedWindowManageGroup
 {
     /// <summary>
-    /// 由窗口描述符或回退规则提供的稳定分组键。
+    /// 由窗口注册或回退规则提供的稳定分组键。
     /// </summary>
     public string GroupKey { get; init; } = string.Empty;
 
@@ -1143,22 +1143,22 @@ public sealed class FrontedWindowManageGroup
     public ObservableCollection<FrontedWindowManageItem> Windows { get; } = [];
 
     /// <summary>
-    /// 根据窗口描述符构建分组后的前台管理页条目。
+    /// 根据窗口注册构建分组后的前台管理页条目。
     /// </summary>
-    /// <param name="descriptors">要分组的窗口描述符。</param>
+    /// <param name="registrations">要分组的窗口注册。</param>
     /// <param name="settingsHostService">可选的设置服务，用于解析本地化的窗口显示名称。</param>
     /// <returns>分组后的前台窗口管理条目。</returns>
-    public static IReadOnlyList<FrontedWindowManageGroup> FromDescriptors(
-        IEnumerable<IFrontedWindowDescriptor> descriptors,
+    public static IReadOnlyList<FrontedWindowManageGroup> FromRegistrations(
+        IEnumerable<FrontedWindowRegistration> registrations,
         ISettingsHostService? settingsHostService = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptors);
+        ArgumentNullException.ThrowIfNull(registrations);
 
         var groups = new List<FrontedWindowManageGroup>();
         var byKey = new Dictionary<string, FrontedWindowManageGroup>(StringComparer.Ordinal);
-        foreach (var descriptor in descriptors)
+        foreach (var registration in registrations)
         {
-            var key = GetStableGroupKey(descriptor);
+            var key = GetStableGroupKey(registration);
             if (!byKey.TryGetValue(key, out var group))
             {
                 group = new FrontedWindowManageGroup
@@ -1171,20 +1171,20 @@ public sealed class FrontedWindowManageGroup
                 groups.Add(group);
             }
 
-            group.Windows.Add(FrontedWindowManageItem.FromDescriptor(descriptor, settingsHostService));
+            group.Windows.Add(FrontedWindowManageItem.FromRegistration(registration, settingsHostService));
         }
 
         return groups;
     }
 
-    private static string GetStableGroupKey(IFrontedWindowDescriptor descriptor)
+    private static string GetStableGroupKey(FrontedWindowRegistration registration)
     {
-        if (!string.IsNullOrWhiteSpace(descriptor.GroupKey))
+        if (!string.IsNullOrWhiteSpace(registration.GroupKey))
         {
-            return descriptor.GroupKey;
+            return registration.GroupKey;
         }
 
-        return descriptor.IsPlugin ? "Plugin" : "BuiltIn";
+        return registration.IsBuiltIn ? "BuiltIn" : "Plugin";
     }
 
     private static string GetGroupDisplayName(string groupKey)
@@ -1214,7 +1214,7 @@ public sealed class FrontedWindowManageItem
     public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
-    /// 面向用户的描述符类型标签。
+    /// 面向用户的注册类型标签。
     /// </summary>
     public string KindDisplay { get; init; } = string.Empty;
 
@@ -1229,37 +1229,36 @@ public sealed class FrontedWindowManageItem
     public bool CanCustomize { get; init; }
 
     /// <summary>
-    /// 根据注册表描述符创建卡片条目。
+    /// 根据注册表注册创建卡片条目。
     /// </summary>
-    /// <param name="descriptor">窗口描述符。</param>
+    /// <param name="registration">窗口注册。</param>
     /// <param name="settingsHostService">可选的设置服务，用于解析本地化的窗口显示名称。</param>
     /// <returns>用于前台管理页的卡片条目。</returns>
-    public static FrontedWindowManageItem FromDescriptor(
-        IFrontedWindowDescriptor descriptor,
+    public static FrontedWindowManageItem FromRegistration(
+        FrontedWindowRegistration registration,
         ISettingsHostService? settingsHostService = null)
     {
         return new FrontedWindowManageItem
         {
-            WindowId = descriptor.WindowId,
-            DisplayName = GetDescriptorDisplayName(descriptor, settingsHostService),
-            FullWindowType = descriptor.FullWindowType,
-            KindDisplay = descriptor.Kind switch
-            {
-                FrontedWindowKind.PluginXaml => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontedWindowKind.PluginXaml"),
-                FrontedWindowKind.PluginLayout => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontedWindowKind.PluginLayout"),
-                _ => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontedWindowKind.BuiltIn")
-            },
-            CanCustomize = descriptor.IsV3LayoutWindow && descriptor.Customizable
+            WindowId = registration.Id,
+            DisplayName = GetRegistrationDisplayName(registration, settingsHostService),
+            FullWindowType = registration.Id,
+            KindDisplay = registration.IsBuiltIn
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.BuiltIn")
+                : registration.Kind == FrontedWindowRegistrationKind.Xaml
+                    ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.Xaml")
+                    : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.V3Layout"),
+            CanCustomize = registration.Kind == FrontedWindowRegistrationKind.V3Layout
         };
     }
 
-    private static string GetDescriptorDisplayName(
-        IFrontedWindowDescriptor descriptor,
+    private static string GetRegistrationDisplayName(
+        FrontedWindowRegistration registration,
         ISettingsHostService? settingsHostService)
     {
         var settings = settingsHostService?.Settings;
         return FrontedWindowDisplayNameResolver.ResolveDisplayName(
-            descriptor,
+            registration,
             settings?.Language ?? LanguageKey.System,
             settings?.CultureInfo);
     }

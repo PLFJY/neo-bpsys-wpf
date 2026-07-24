@@ -4349,7 +4349,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public async Task FrontedLayoutServiceReturnsErrorWhenActivePackageLayoutMissingOrInvalid()
+    public async Task FrontedLayoutServiceFallsBackToBuiltInWhenActivePackageLayoutMissingOrInvalid()
     {
         var root = CreateTempDirectory();
         try
@@ -4373,12 +4373,15 @@ public class FrontedLayoutDesignerFoundationTest
             await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
             var service = new FrontedLayoutService(userStore, packageManager, logger: null);
 
+            // 激活包缺少布局时，内置窗口回退到内置资源。
             var missingUserResult = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
                 TestContext.Current.CancellationToken);
-            Assert.Equal(FrontedLayoutSource.MissingOrError, missingUserResult.Source);
-            Assert.Null(missingUserResult.Config);
+            Assert.Equal(FrontedLayoutSource.BuiltIn, missingUserResult.Source);
+            Assert.NotNull(missingUserResult.Config);
+            Assert.True(missingUserResult.Config?.ControlLayout.Controls.ContainsKey("BuiltInText"));
 
+            // 激活包布局无效时，内置窗口同样回退到内置资源。
             var layoutPath = Path.Combine(packageRoot, packageId, "FrontedLayouts", "BpWindow.json");
             Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
             File.WriteAllText(layoutPath, "{ invalid json");
@@ -4386,9 +4389,48 @@ public class FrontedLayoutDesignerFoundationTest
                 "BpWindow",
                 TestContext.Current.CancellationToken);
 
-            Assert.Equal(FrontedLayoutSource.MissingOrError, invalidUserResult.Source);
-            Assert.Null(invalidUserResult.Config);
-            Assert.NotNull(invalidUserResult.Error);
+            Assert.Equal(FrontedLayoutSource.BuiltIn, invalidUserResult.Source);
+            Assert.NotNull(invalidUserResult.Config);
+            Assert.True(invalidUserResult.Config?.ControlLayout.Controls.ContainsKey("BuiltInText"));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task FrontedLayoutServiceReturnsEmptyTemplateWhenNoLayoutAvailable()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var packageRoot = Path.Combine(root, "packages");
+            // 不在内置资源中创建任何布局文件
+            var packageId = "empty-package";
+            Directory.CreateDirectory(Path.Combine(packageRoot, packageId));
+            File.WriteAllText(Path.Combine(packageRoot, packageId, "manifest.json"), "{\"PackageId\":\"empty-package\",\"FormatVersion\":3}");
+            var packageManager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
+            await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
+            var service = new FrontedLayoutService(userStore, packageManager, logger: null);
+
+            // 内置窗口在激活包和内置资源中均找不到时，返回空模板。
+            var builtInResult = await service.LoadWindowConfigWithMetadataAsync(
+                "NonExistentWindow",
+                TestContext.Current.CancellationToken);
+            Assert.Equal(FrontedLayoutSource.EmptyTemplate, builtInResult.Source);
+            Assert.NotNull(builtInResult.Config);
+            Assert.Equal(3, builtInResult.Config?.Version);
+
+            // 插件窗口在激活包中找不到时，直接返回空模板（不检查内置资源）。
+            var pluginResult = await service.LoadWindowConfigWithMetadataAsync(
+                "plugin:test/Overlay",
+                TestContext.Current.CancellationToken);
+            Assert.Equal(FrontedLayoutSource.EmptyTemplate, pluginResult.Source);
+            Assert.NotNull(pluginResult.Config);
+            Assert.Equal(3, pluginResult.Config?.Version);
         }
         finally
         {

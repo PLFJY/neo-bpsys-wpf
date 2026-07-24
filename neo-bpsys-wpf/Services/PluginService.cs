@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
 using System.IO;
 using System.Reflection;
@@ -185,7 +186,10 @@ public class PluginService : IPluginService
 
                 entranceObj.Info = info;
                 entranceObj.PluginConfigFolder = Path.Combine(AppConstants.PluginConfigsPath, info.Manifest.Id);
-                entranceObj.Initialize(context, services);
+                using (FrontedPluginRegistrationContext.BeginScope(info.Manifest.Id))
+                {
+                    entranceObj.Initialize(context, services);
+                }
                 services.AddSingleton(entranceObj);
                 services.AddSingleton(entrance, entranceObj);
                 info.LoadStatus = PluginLoadStatus.Loaded;

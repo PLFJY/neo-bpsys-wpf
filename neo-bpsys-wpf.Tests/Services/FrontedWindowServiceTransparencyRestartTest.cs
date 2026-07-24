@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Controls;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
@@ -23,11 +24,11 @@ public class FrontedWindowServiceTransparencyRestartTest
     {
         await RunOnStaThreadAsync(async () =>
         {
-            var descriptor = CreateDescriptor();
+            var registration = CreateRegistration();
             var eventBus = new Mock<IFrontedEventBus>();
-            var service = CreateService(descriptor, eventBus: eventBus);
+            var service = CreateService(registration, eventBus: eventBus);
 
-            var restarted = await service.RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+            var restarted = await service.RestartWindowForTransparencyChangeAsync(registration.Id);
 
             Assert.False(restarted);
             Assert.Empty(service.FrontedWindows);
@@ -41,20 +42,20 @@ public class FrontedWindowServiceTransparencyRestartTest
     {
         await RunOnStaThreadAsync(async () =>
         {
-            var descriptor = CreateDescriptor();
+            var registration = CreateRegistration();
             var eventBus = new Mock<IFrontedEventBus>();
-            var service = CreateService(descriptor, eventBus: eventBus);
-            var oldWindow = service.EnsureWindowCreated(descriptor.WindowId);
+            var service = CreateService(registration, eventBus: eventBus);
+            var oldWindow = service.EnsureWindowCreated(registration.Id);
             Assert.NotNull(oldWindow);
             oldWindow.Show();
             oldWindow.Hide();
-            service.FrontedWindowStates[descriptor.WindowId] = false;
+            service.FrontedWindowStates[registration.Id] = false;
 
-            var restarted = await service.RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+            var restarted = await service.RestartWindowForTransparencyChangeAsync(registration.Id);
 
             Assert.True(restarted);
-            Assert.DoesNotContain(descriptor.WindowId, service.FrontedWindows.Keys);
-            Assert.DoesNotContain(descriptor.WindowId, service.FrontedWindowStates.Keys);
+            Assert.DoesNotContain(registration.Id, service.FrontedWindows.Keys);
+            Assert.DoesNotContain(registration.Id, service.FrontedWindowStates.Keys);
             Assert.False(oldWindow.IsVisible);
             eventBus.Verify(
                 x => x.Publish(It.Is<FrontedBehaviorEvent>(e => e.EventType == "WindowShown")),
@@ -70,19 +71,19 @@ public class FrontedWindowServiceTransparencyRestartTest
     {
         await RunOnStaThreadAsync(async () =>
         {
-            var descriptor = CreateDescriptor();
+            var registration = CreateRegistration();
             var eventBus = new Mock<IFrontedEventBus>();
-            var service = CreateService(descriptor, allowsTransparency: true, eventBus: eventBus);
-            var oldWindow = service.EnsureWindowCreated(descriptor.WindowId);
+            var service = CreateService(registration, allowsTransparency: true, eventBus: eventBus);
+            var oldWindow = service.EnsureWindowCreated(registration.Id);
             Assert.NotNull(oldWindow);
-            service.FrontedWindowStates[descriptor.WindowId] = true;
+            service.FrontedWindowStates[registration.Id] = true;
             oldWindow.Show();
 
-            var restarted = await service.RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+            var restarted = await service.RestartWindowForTransparencyChangeAsync(registration.Id);
 
             Assert.True(restarted);
-            Assert.True(service.FrontedWindowStates[descriptor.WindowId]);
-            Assert.True(service.FrontedWindows.TryGetValue(descriptor.WindowId, out var newWindow));
+            Assert.True(service.FrontedWindowStates[registration.Id]);
+            Assert.True(service.FrontedWindows.TryGetValue(registration.Id, out var newWindow));
             Assert.NotSame(oldWindow, newWindow);
             Assert.True(newWindow.IsVisible);
             Assert.True(newWindow.AllowsTransparency);
@@ -109,17 +110,17 @@ public class FrontedWindowServiceTransparencyRestartTest
     {
         await RunOnStaThreadAsync(async () =>
         {
-            var descriptor = CreateDescriptor();
+            var registration = CreateRegistration();
             var currentConfig = CreateConfig("#FFFF0000", allowsTransparency: false);
             var renderer = new Mock<IFrontedRenderer>();
             var service = CreateService(
-                descriptor,
+                registration,
                 configFactory: () => currentConfig,
                 renderer: renderer);
-            var window = Assert.IsType<FrontedWindowBase>(service.EnsureWindowCreated(descriptor.WindowId));
+            var window = Assert.IsType<FrontedWindowBase>(service.EnsureWindowCreated(registration.Id));
             await window.EnsureInitialWindowSettingsAppliedAsync();
             window.Show();
-            service.FrontedWindowStates[descriptor.WindowId] = true;
+            service.FrontedWindowStates[registration.Id] = true;
 
             currentConfig = CreateConfig("#FF00FF00", allowsTransparency: false);
             await service.ReloadFrontedLayoutsAsync();
@@ -162,19 +163,19 @@ public class FrontedWindowServiceTransparencyRestartTest
         Assert.Contains("RestartWindowForTransparencyChangeAsync", designerViewModel, StringComparison.Ordinal);
     }
 
-    private static FrontedBuiltInWindowDescriptor CreateDescriptor()
+    private static FrontedV3LayoutWindowRegistration CreateRegistration()
     {
-        return new FrontedBuiltInWindowDescriptor
+        return new FrontedV3LayoutWindowRegistration
         {
-            WindowId = Guid.NewGuid().ToString("D"),
-            WindowTypeName = "TestWindow",
-            DisplayName = "Test Window",
-            IsV3LayoutWindow = true
+            Id = Guid.NewGuid().ToString("D"),
+            LocalId = "TestWindow",
+            IsBuiltIn = false,
+            DisplayName = "Test Window"
         };
     }
 
     private static FrontedWindowService CreateService(
-        IFrontedWindowDescriptor descriptor,
+        FrontedWindowRegistration registration,
         bool allowsTransparency = false,
         Mock<IFrontedEventBus> eventBus = null,
         Func<FrontedWindowConfig> configFactory = null,
@@ -183,7 +184,7 @@ public class FrontedWindowServiceTransparencyRestartTest
         var services = new ServiceCollection();
         var layoutService = new Mock<IFrontedLayoutService>();
         layoutService
-            .Setup(x => x.LoadWindowConfigAsync(descriptor.FullWindowType, It.IsAny<CancellationToken>()))
+            .Setup(x => x.LoadWindowConfigAsync(registration.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => configFactory?.Invoke() ?? CreateConfig("#00000000", allowsTransparency));
         services.AddSingleton(layoutService.Object);
         services.AddSingleton((renderer ?? new Mock<IFrontedRenderer>()).Object);
@@ -191,13 +192,9 @@ public class FrontedWindowServiceTransparencyRestartTest
         services.AddSingleton(NullLogger<FrontedWindowBase>.Instance);
 
         var registry = new Mock<IFrontedWindowRegistry>();
-        var descriptorByFullType = descriptor;
-        var descriptorByWindowId = descriptor;
+        var registrationOut = registration;
         registry
-            .Setup(x => x.TryGetByFullWindowType(descriptor.FullWindowType, out descriptorByFullType))
-            .Returns(true);
-        registry
-            .Setup(x => x.TryGetByWindowId(descriptor.WindowId, out descriptorByWindowId))
+            .Setup(x => x.TryGet(registration.Id, out registrationOut))
             .Returns(true);
 
         var options = new Mock<IFrontedWindowLayoutOptionsService>();

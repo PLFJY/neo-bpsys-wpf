@@ -8,7 +8,7 @@ internal static class FrontedLayoutPluginDependencyScanner
 {
     public static List<FrontedPluginDependency> SyncCanvasRequiredPlugins(
         FrontedCanvasConfig config,
-        string windowTypeName,
+        string canonicalWindowId,
         string canvasName,
         IFrontedControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
@@ -43,12 +43,12 @@ internal static class FrontedLayoutPluginDependencyScanner
                     MarketplaceId = string.IsNullOrWhiteSpace(existing?.MarketplaceId) ? group.Key : existing.MarketplaceId,
                     Reason = FrontedPluginDependencyReason.FrontedControl,
                     Controls = controls,
-                    RequiredBy = [windowTypeName]
+                    RequiredBy = [canonicalWindowId]
                 };
             })
             .ToList();
 
-        if (FrontedLayoutWindowPathHelper.TryParsePluginFullWindowType(windowTypeName, out var windowPackageId, out _))
+        if (FrontedV3LayoutWindowPathHelper.TryParsePluginCanonicalWindowId(canonicalWindowId, out var windowPackageId, out _))
         {
             var existing = existingByPackage.GetValueOrDefault(windowPackageId);
             var windowDependency = dependencies.FirstOrDefault(dependency =>
@@ -63,13 +63,13 @@ internal static class FrontedLayoutPluginDependencyScanner
                         ? displayName
                         : existing?.DisplayName ?? windowPackageId,
                     MarketplaceId = string.IsNullOrWhiteSpace(existing?.MarketplaceId) ? windowPackageId : existing.MarketplaceId,
-                    RequiredBy = [windowTypeName],
+                    RequiredBy = [canonicalWindowId],
                     Reason = FrontedPluginDependencyReason.FrontedWindow
                 });
             }
             else
             {
-                AddDistinct(windowDependency.RequiredBy, [windowTypeName]);
+                AddDistinct(windowDependency.RequiredBy, [canonicalWindowId]);
                 windowDependency.Reason = FrontedPluginDependencyReason.Both;
             }
         }

@@ -1,39 +1,39 @@
 using System.Globalization;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
 /// <summary>
-/// 从描述符本地化的国际化字典中解析前台窗口显示名称。
+/// 从注册信息本地化的国际化字典中解析前台窗口显示名称。
 /// </summary>
 public static class FrontedWindowDisplayNameResolver
 {
     /// <summary>
-    /// 解析前台窗口描述符面向用户的显示名称。
+    /// 解析前台窗口注册面向用户的显示名称。
     /// </summary>
-    /// <param name="descriptor">窗口描述符。</param>
+    /// <param name="registration">窗口注册。</param>
     /// <param name="language">请求的语言设置。</param>
     /// <param name="cultureInfo">当 <paramref name="language"/> 不是具体语言时使用的有效 UI 区域信息。</param>
-    /// <returns>本地化的显示名称，或描述符的回退显示名称。</returns>
-    /// <exception cref="ArgumentNullException">当 <paramref name="descriptor"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <returns>本地化的显示名称，或注册的回退显示名称。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="registration"/> 为 <see langword="null"/> 时抛出。</exception>
     public static string ResolveDisplayName(
-        IFrontedWindowDescriptor descriptor,
+        FrontedWindowRegistration registration,
         LanguageKey language,
         CultureInfo? cultureInfo = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(registration);
 
         var concreteLanguage = ResolveConcreteLanguage(language, cultureInfo);
         if (concreteLanguage.HasValue
-            && descriptor.I18nDisplayNames is { Count: > 0 } names
+            && registration.I18nDisplayNames is { Count: > 0 } names
             && names.TryGetValue(concreteLanguage.Value, out var localized)
             && !string.IsNullOrWhiteSpace(localized))
         {
             return localized;
         }
 
-        return GetFallbackDisplayName(descriptor);
+        return GetFallbackDisplayName(registration);
     }
 
     /// <summary>
@@ -69,16 +69,16 @@ public static class FrontedWindowDisplayNameResolver
     }
 
     /// <summary>
-    /// 获取前台窗口描述符的非本地化回退显示名称。
+    /// 获取前台窗口注册的非本地化回退显示名称。
     /// </summary>
-    /// <param name="descriptor">窗口描述符。</param>
-    /// <returns>描述符的显示名称；未配置显示名称时返回其窗口类型名称。</returns>
-    /// <exception cref="ArgumentNullException">当 <paramref name="descriptor"/> 为 <see langword="null"/> 时抛出。</exception>
-    public static string GetFallbackDisplayName(IFrontedWindowDescriptor descriptor)
+    /// <param name="registration">窗口注册。</param>
+    /// <returns>注册的显示名称；未配置显示名称时返回其局部窗口标识。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="registration"/> 为 <see langword="null"/> 时抛出。</exception>
+    public static string GetFallbackDisplayName(FrontedWindowRegistration registration)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
-        return string.IsNullOrWhiteSpace(descriptor.DisplayName)
-            ? descriptor.WindowTypeName
-            : descriptor.DisplayName;
+        ArgumentNullException.ThrowIfNull(registration);
+        return string.IsNullOrWhiteSpace(registration.DisplayName)
+            ? registration.LocalId
+            : registration.DisplayName;
     }
 }

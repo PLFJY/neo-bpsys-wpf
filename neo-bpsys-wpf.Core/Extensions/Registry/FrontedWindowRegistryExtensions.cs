@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Attributes;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.Registry;
 using System.Windows;
 
@@ -17,7 +19,8 @@ public static class FrontedWindowRegistryExtensions
     /// <typeparam name="TView">前台窗口类型，必须继承 <see cref="Window"/></typeparam>
     /// <typeparam name="TViewModel">前台窗口的视图模型类型，必须继承 <see cref="ViewModelBase"/></typeparam>
     /// <param name="services">服务容器</param>
-    /// <exception cref="ArgumentException">窗口类型未注册 <see cref="FrontedWindowInfo"/> 特性，或窗口 ID 已被占用</exception>
+    /// <exception cref="ArgumentException">窗口类型未注册 <see cref="FrontedWindowInfo"/> 特性，或窗口 ID 为空。
+    /// XAML 窗口 ID 不再要求为 GUID，只需非空且不与已注册窗口重复；重复检测由 <see cref="IFrontedWindowRegistry"/> 在构建 Canonical ID 索引时执行。</exception>
     public static void AddFrontedWindow<TView, TViewModel>(this IServiceCollection services)
     where TView : Window where TViewModel : ViewModelBase
     {
@@ -27,14 +30,17 @@ public static class FrontedWindowRegistryExtensions
             throw new ArgumentException($"无法注册前台窗口 {type.FullName}，因为前台窗口没有注册信息。");
         }
 
-        if (FrontedWindowRegistryService.RegisteredWindow.FirstOrDefault(x => x.Id == info.Id) != null)
+        if (string.IsNullOrWhiteSpace(info.Id))
         {
-            throw new ArgumentException($"此前台窗口id {info.Id} 已经被占用。");
+            throw new ArgumentException(
+                $"无法注册前台窗口 {type.FullName}，因为前台窗口 ID 为空。");
         }
 
         info.WindowType = type;
 
-        FrontedWindowRegistryService.RegisteredWindow.Add(info);
+        var packageId = FrontedPluginRegistrationContext.CurrentPackageId;
+        var isBuiltIn = info.IsBuiltIn;
+        var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(info.Id, packageId, isBuiltIn);
 
         services.AddSingleton<TViewModel>();
         services.AddSingleton<TView>(sp =>
@@ -42,6 +48,18 @@ public static class FrontedWindowRegistryExtensions
             var view = ActivatorUtilities.CreateInstance<TView>(sp);
             view.DataContext = sp.GetRequiredService<TViewModel>();
             return view;
+        });
+
+        services.AddSingleton<FrontedWindowRegistration>(new FrontedXamlWindowRegistration
+        {
+            Id = canonicalId,
+            LocalId = info.Id,
+            PackageId = packageId,
+            IsBuiltIn = isBuiltIn,
+            DisplayName = info.Name,
+            WindowType = type,
+            ViewModelType = typeof(TViewModel),
+            GroupKey = isBuiltIn ? "BuiltIn" : null
         });
     }
 }

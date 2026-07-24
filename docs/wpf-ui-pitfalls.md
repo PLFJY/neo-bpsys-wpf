@@ -11,7 +11,7 @@ services.AddBackendPage<MyPage, MyViewModel>();
 services.AddFrontedWindow<MyWindow, MyWindowViewModel>();
 ```
 
-手动 `new Page()` 或 `new Window()` 会丢失 DataContext、服务注入、注册表信息和 WPF-UI page provider 集成。插件 v3 前台窗口应通过 `IFrontedWindowPluginContributor` 和 `FrontedPluginWindowDescriptor` 声明，再用 `AddFrontedWindowPluginContributor<T>()` 注册 contributor。
+手动 `new Page()` 或 `new Window()` 会丢失 DataContext、服务注入、注册表信息和 WPF-UI page provider 集成。插件前台窗口应通过 `services.AddFrontedWindow<TWindow,TViewModel>()`（XAML 窗口，配合 `[FrontedWindowInfo("GUID", "DisplayName", IsBuiltIn = false)]`）或 `services.AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)`（v3 布局窗口，PackageId 由宿主自动注入）注册；窗口元数据由 `FrontedWindowRegistration`（`FrontedXamlWindowRegistration` / `FrontedV3LayoutWindowRegistration`，`FrontedWindowRegistrationKind` 为 `Xaml` / `V3Layout`）承载，统一进入 `IFrontedWindowRegistry`。
 
 ## Page 宿主限制
 
@@ -146,7 +146,7 @@ BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的�
 
 插件注册的页面/窗口也进入同一 DI 和 WPF UI 环境。插件作者应：
 
-1. 后台页面使用 `BackendPageInfo`，前台窗口使用 `IFrontedWindowPluginContributor`。
+1. 后台页面使用 `BackendPageInfo`，前台 XAML 窗口使用 `AddFrontedWindow<TWindow,TViewModel>()` 配合 `[FrontedWindowInfo(IsBuiltIn = false)]`，v3 布局窗口使用 `AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)`。
 2. 避免和宿主或其他插件重复 ID。
 3. 插件 v3 控件应使用稳定控件名和合理默认几何。
 4. 用户可见文本同样考虑本地化。

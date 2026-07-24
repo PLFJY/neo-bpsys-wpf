@@ -1,6 +1,7 @@
 using System.Globalization;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -40,8 +41,8 @@ public interface IWebLocalizationProvider
     /// <summary>解析阵营名称的最终文本。</summary>
     string ResolveCamp(Camp camp, CultureInfo culture);
 
-    /// <summary>解析窗口描述符的最终显示名称。</summary>
-    string ResolveWindowDisplayName(IFrontedWindowDescriptor descriptor, LanguageKey language, CultureInfo culture);
+    /// <summary>解析窗口注册的最终显示名称。</summary>
+    string ResolveWindowDisplayName(FrontedWindowRegistration registration, LanguageKey language, CultureInfo culture);
 
     /// <summary>生成指定对局进度和控件配置的最终显示部件。</summary>
     WebGameProgressDisplayState CreateGameProgress(

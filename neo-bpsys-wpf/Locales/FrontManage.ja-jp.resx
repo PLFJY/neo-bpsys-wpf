@@ -322,13 +322,13 @@
   <data name="MissingPluginImportMessage">
     <value>このレイアウトパッケージは現在登録されていないプラグインコントロールを参照しています。不足しているコントロールはレンダリングされません。インポートをキャンセルするか、強制インポートして削除できます。</value>
   </data>
-  <data name="FrontedWindowKind.BuiltIn">
+  <data name="FrontManageWindowCategory.BuiltIn">
     <value>ビルトイン</value>
   </data>
-  <data name="FrontedWindowKind.PluginXaml">
+  <data name="FrontManageWindowCategory.Xaml">
     <value>プラグイン XAML</value>
   </data>
-  <data name="FrontedWindowKind.PluginLayout">
+  <data name="FrontManageWindowCategory.V3Layout">
     <value>プラグイン v3</value>
   </data>
   <data name="StopAllLoopAnimations">

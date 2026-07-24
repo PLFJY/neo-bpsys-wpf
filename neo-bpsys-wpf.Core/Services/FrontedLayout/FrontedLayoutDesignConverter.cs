@@ -201,7 +201,7 @@ public class FrontedLayoutDesignConverter
             })
             .ToList();
 
-        if (FrontedLayoutWindowPathHelper.TryParsePluginFullWindowType(
+        if (FrontedV3LayoutWindowPathHelper.TryParsePluginCanonicalWindowId(
                 document.WindowTypeName,
                 out var windowPackageId,
                 out _))

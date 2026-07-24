@@ -8,6 +8,7 @@ public enum FrontedLayoutSource
     User,
     BuiltIn,
     PluginDefault,
+    EmptyTemplate,
     MissingOrError
 }
 

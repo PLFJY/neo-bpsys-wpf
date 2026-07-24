@@ -386,7 +386,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         foreach (var layout in manifest.Content.Layouts)
             {
                 if (!IsSafeRelativePath(layout.Path)
-                || !FrontedLayoutWindowPathHelper.IsSafeFullWindowType(layout.Window))
+                || !FrontedV3LayoutWindowPathHelper.IsSafeCanonicalWindowId(layout.Window))
             {
                 return Fail("Layout path is not safe.");
             }

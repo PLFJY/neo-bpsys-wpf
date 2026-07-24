@@ -1,267 +1,97 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Attributes;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
 namespace neo_bpsys_wpf.Core.Services.Registry;
 
+/// <summary>
+/// 前台窗口注册表服务，从 DI 接收 <see cref="FrontedWindowRegistration"/> 集合并提供查询。
+/// </summary>
+/// <remarks>
+/// 该实现维护唯一的 Canonical ID 索引。重复 Canonical ID 在构造时抛出
+/// <see cref="InvalidOperationException"/>，保证 fail-fast。
+/// </remarks>
 public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
 {
-    internal static List<FrontedWindowInfo> RegisteredWindow { get; } = [];
+    private readonly IReadOnlyList<FrontedWindowRegistration> _windows;
+    private readonly IReadOnlyList<FrontedV3LayoutWindowRegistration> _v3LayoutWindows;
+    private readonly Dictionary<string, FrontedWindowRegistration> _byCanonicalId;
 
-    private readonly IReadOnlyList<FrontedBuiltInWindowDescriptor> _builtInWindows;
-    private readonly IReadOnlyList<FrontedPluginWindowDescriptor> _pluginWindows;
-    private readonly IReadOnlyList<IFrontedWindowDescriptor> _windows;
-    private readonly Dictionary<string, IFrontedWindowDescriptor> _byWindowId;
-    private readonly Dictionary<string, IFrontedWindowDescriptor> _byFullWindowType;
-
+    /// <summary>
+    /// 使用默认空集合初始化注册表（主要用于测试回退）。
+    /// </summary>
     public FrontedWindowRegistryService()
-        : this([], null, null)
+        : this([], NullLogger<FrontedWindowRegistryService>.Instance)
     {
     }
 
+    /// <summary>
+    /// 从 DI 接收的 registration 集合初始化注册表。
+    /// </summary>
+    /// <param name="registrations">由 DI 注册的所有前台窗口 registration。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <exception cref="InvalidOperationException">当出现重复 Canonical ID 时抛出，异常信息含 ID、PackageId、IsBuiltIn、Kind、XAML WindowType（若存在）。</exception>
     public FrontedWindowRegistryService(
-        IEnumerable<IFrontedWindowPluginContributor> pluginContributors,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
+        IEnumerable<FrontedWindowRegistration> registrations,
         ILogger<FrontedWindowRegistryService>? logger = null)
     {
         logger ??= NullLogger<FrontedWindowRegistryService>.Instance;
-        _builtInWindows = GetBuiltInV3Windows()
-            .Concat(RegisteredWindow
-                .Where(info => !IsBuiltInV3Window(info.Name)
-                               && !string.Equals(info.Name, "WidgetsWindow", StringComparison.Ordinal))
-                .Select(FrontedBuiltInWindowDescriptor.FromInfo))
-            .ToArray();
 
-        var acceptedPluginWindows = new List<FrontedPluginWindowDescriptor>();
-        foreach (var contributor in pluginContributors)
+        var registrationList = registrations as IReadOnlyList<FrontedWindowRegistration>
+                               ?? registrations.ToArray();
+        _byCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.Ordinal);
+
+        foreach (var registration in registrationList)
         {
-            IReadOnlyList<FrontedPluginWindowDescriptor> descriptors;
-            try
+            if (string.IsNullOrWhiteSpace(registration.Id))
             {
-                descriptors = contributor.GetFrontedWindows().ToArray();
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Plugin fronted window contributor {ContributorType} failed.", contributor.GetType().FullName);
+                logger.LogWarning("Rejected fronted window registration with empty Canonical ID.");
                 continue;
             }
 
-            foreach (var descriptor in descriptors)
+            if (_byCanonicalId.TryGetValue(registration.Id, out var existing))
             {
-                try
-                {
-                    if (pluginMetadataProvider?.TryGetPluginFolder(descriptor.PackageId, out var pluginFolder) == true)
-                    {
-                        descriptor.PluginFolder = pluginFolder;
-                    }
-
-                    descriptor.Validate(descriptor.PluginFolder);
-                    acceptedPluginWindows.Add(descriptor);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(
-                        ex,
-                        "Rejected plugin fronted window descriptor {FullWindowType}.",
-                        descriptor.FullWindowType);
-                }
+                throw new InvalidOperationException(
+                    $"Duplicate fronted window Canonical ID '{registration.Id}'. "
+                    + $"Existing: Id={existing.Id}, PackageId={existing.PackageId ?? "(null)"}, "
+                    + $"IsBuiltIn={existing.IsBuiltIn}, Kind={existing.Kind}, "
+                    + $"XamlWindowType={(existing is FrontedXamlWindowRegistration xaml ? xaml.WindowType.FullName ?? "(null)" : "(none)")}. "
+                    + $"Duplicate: Id={registration.Id}, PackageId={registration.PackageId ?? "(null)"}, "
+                    + $"IsBuiltIn={registration.IsBuiltIn}, Kind={registration.Kind}, "
+                    + $"XamlWindowType={(registration is FrontedXamlWindowRegistration dupXaml ? dupXaml.WindowType.FullName ?? "(null)" : "(none)")}.");
             }
+
+            _byCanonicalId[registration.Id] = registration;
         }
 
-        _pluginWindows = acceptedPluginWindows.ToArray();
-        var candidates = _builtInWindows.Cast<IFrontedWindowDescriptor>()
-            .Concat(_pluginWindows)
-            .ToArray();
-
-        _byWindowId = BuildIndex(
-            candidates,
-            descriptor => descriptor.WindowId,
-            "WindowId",
-            logger);
-        _byFullWindowType = BuildIndex(
-            _byWindowId.Values,
-            descriptor => descriptor.FullWindowType,
-            "FullWindowType",
-            logger);
-
-        _windows = _byFullWindowType.Values.ToArray();
-        _builtInWindows = _windows.OfType<FrontedBuiltInWindowDescriptor>().ToArray();
-        _pluginWindows = _windows.OfType<FrontedPluginWindowDescriptor>().ToArray();
+        _windows = _byCanonicalId.Values.ToArray();
+        _v3LayoutWindows = _windows.OfType<FrontedV3LayoutWindowRegistration>().ToArray();
     }
 
-    /// <summary>
-    /// 获取所有已注册的前台窗口描述符。
-    /// </summary>
-    /// <returns>前台窗口描述符列表。</returns>
-    public IReadOnlyList<IFrontedWindowDescriptor> GetWindows() => _windows;
+    /// <inheritdoc />
+    public IReadOnlyList<FrontedWindowRegistration> GetWindows() => _windows;
 
-    /// <summary>
-    /// 获取所有支持自定义布局的前台窗口描述符。
-    /// </summary>
-    /// <returns>可自定义布局的前台窗口描述符列表。</returns>
-    public IReadOnlyList<IFrontedWindowDescriptor> GetCustomizableLayoutWindows()
+    /// <inheritdoc />
+    public IReadOnlyList<FrontedV3LayoutWindowRegistration> GetV3LayoutWindows() => _v3LayoutWindows;
+
+    /// <inheritdoc />
+    public IReadOnlyList<FrontedWindowRegistration> GetManageableWindows()
     {
         return _windows
-            .Where(descriptor => descriptor.IsV3LayoutWindow && descriptor.Customizable)
-            .ToArray();
-    }
-
-    public IReadOnlyList<IFrontedWindowDescriptor> GetManageableWindows()
-    {
-        return _windows
-            .Where(descriptor => descriptor.IsVisibleInFrontManage)
-            .OrderBy(descriptor => string.IsNullOrWhiteSpace(descriptor.GroupKey)
-                ? descriptor.IsPlugin ? "Plugin" : "BuiltIn"
-                : descriptor.GroupKey,
+            .OrderBy(registration => string.IsNullOrWhiteSpace(registration.GroupKey)
+                ? registration.IsBuiltIn ? "BuiltIn" : "Plugin"
+                : registration.GroupKey,
                 StringComparer.Ordinal)
-            .ThenBy(descriptor => descriptor.DisplayOrder ?? int.MaxValue)
-            .ThenBy(descriptor => string.IsNullOrWhiteSpace(descriptor.DisplayName)
-                ? descriptor.WindowTypeName
-                : descriptor.DisplayName,
+            .ThenBy(registration => registration.DisplayOrder ?? int.MaxValue)
+            .ThenBy(registration => string.IsNullOrWhiteSpace(registration.DisplayName)
+                ? registration.LocalId
+                : registration.DisplayName,
                 StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 
-    /// <summary>
-    /// 通过窗口 ID 查找前台窗口描述符。
-    /// </summary>
-    /// <param name="windowId">窗口 ID。</param>
-    /// <param name="descriptor">匹配的描述符（若找到）。</param>
-    /// <returns>是否找到匹配的描述符。</returns>
-    public bool TryGetByWindowId(string windowId, out IFrontedWindowDescriptor descriptor) =>
-        _byWindowId.TryGetValue(windowId, out descriptor!);
-
-    /// <summary>
-    /// 通过完整窗口类型名查找前台窗口描述符。
-    /// </summary>
-    /// <param name="fullWindowType">完整窗口类型名。</param>
-    /// <param name="descriptor">匹配的描述符（若找到）。</param>
-    /// <returns>是否找到匹配的描述符。</returns>
-    public bool TryGetByFullWindowType(string fullWindowType, out IFrontedWindowDescriptor descriptor) =>
-        _byFullWindowType.TryGetValue(fullWindowType, out descriptor!);
-
-    /// <summary>
-    /// 获取所有插件提供的前台窗口描述符。
-    /// </summary>
-    /// <returns>插件窗口描述符列表。</returns>
-    public IReadOnlyList<FrontedPluginWindowDescriptor> GetPluginWindows() => _pluginWindows;
-
-    /// <summary>
-    /// 获取所有内置前台窗口描述符。
-    /// </summary>
-    /// <returns>内置窗口描述符列表。</returns>
-    public IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInWindows() => _builtInWindows;
-
-    private static IReadOnlyList<FrontedBuiltInWindowDescriptor> GetBuiltInV3Windows()
-    {
-        return
-        [
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.BpWindow,
-                0,
-                CreateWindowNameI18n("BP 主窗口", "BP Main Window", "BP メインウィンドウ")),
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.CutSceneWindow,
-                100,
-                CreateWindowNameI18n("过场窗口", "Cut Scene Window", "カットシーンウィンドウ")),
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.ScoreSurWindow,
-                300,
-                CreateWindowNameI18n("求生者游戏内比分窗口", "Survivor Score in Gane Window", "サバイバー小スコアウィンドウ")),
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.ScoreHunWindow,
-                400,
-                CreateWindowNameI18n("监管者游戏内比分窗口", "Hunter Score in Gane Window", "ハンター小スコアウィンドウ")),
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.ScoreGlobalWindow,
-                500,
-                CreateWindowNameI18n("全局比分窗口", "Global Score Window", "全体スコアウィンドウ")),
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.GameDataWindow,
-                600,
-                CreateWindowNameI18n("赛后数据窗口", "Post-match Data Window", "試合後データウィンドウ")),
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.BpOverviewWindow,
-                700,
-                CreateWindowNameI18n("BP 总览窗口", "BP Overview Window", "BP 概要ウィンドウ")),
-            CreateBuiltInV3Descriptor(
-                FrontedWindowType.MapV2Window,
-                710,
-                CreateWindowNameI18n("地图 BP v2 窗口", "Map BP v2 Window", "マップ BP v2 ウィンドウ"))
-        ];
-    }
-
-    private static FrontedBuiltInWindowDescriptor CreateBuiltInV3Descriptor(
-        FrontedWindowType windowType,
-        int displayOrder,
-        IReadOnlyDictionary<LanguageKey, string>? i18nDisplayNames = null)
-    {
-        var windowTypeName = windowType.ToString();
-        return new FrontedBuiltInWindowDescriptor
-        {
-            WindowId = FrontedWindowHelper.GetFrontedWindowGuid(windowType),
-            WindowTypeName = windowTypeName,
-            DisplayName = windowTypeName,
-            I18nDisplayNames = i18nDisplayNames,
-            DisplayNameKey = $"Designer.Window.{windowTypeName}",
-            GroupKey = "BuiltIn",
-            DisplayOrder = displayOrder,
-            IsV3LayoutWindow = true,
-            Customizable = true
-        };
-    }
-
-    private static IReadOnlyDictionary<LanguageKey, string> CreateWindowNameI18n(
-        string zhHans,
-        string enUs,
-        string jaJp)
-    {
-        return new Dictionary<LanguageKey, string>
-        {
-            [LanguageKey.zh_Hans] = zhHans,
-            [LanguageKey.en_US] = enUs,
-            [LanguageKey.ja_JP] = jaJp
-        };
-    }
-
-    private static bool IsBuiltInV3Window(string windowTypeName)
-    {
-        return Enum.TryParse<FrontedWindowType>(windowTypeName, ignoreCase: false, out var windowType)
-               && windowType is not FrontedWindowType.ScoreWindow;
-    }
-
-    private static Dictionary<string, IFrontedWindowDescriptor> BuildIndex(
-        IEnumerable<IFrontedWindowDescriptor> descriptors,
-        Func<IFrontedWindowDescriptor, string> keySelector,
-        string keyName,
-        ILogger logger)
-    {
-        var index = new Dictionary<string, IFrontedWindowDescriptor>(StringComparer.OrdinalIgnoreCase);
-        foreach (var descriptor in descriptors)
-        {
-            var key = keySelector(descriptor);
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                logger.LogWarning("Rejected fronted window descriptor with empty {KeyName}.", keyName);
-                continue;
-            }
-
-            if (index.ContainsKey(key))
-            {
-                logger.LogWarning(
-                    "Rejected duplicate fronted window descriptor {KeyName}: {Key}.",
-                    keyName,
-                    key);
-                continue;
-            }
-
-            index[key] = descriptor;
-        }
-
-        return index;
-    }
+    /// <inheritdoc />
+    public bool TryGet(string canonicalId, out FrontedWindowRegistration registration) =>
+        _byCanonicalId.TryGetValue(canonicalId, out registration!);
 }

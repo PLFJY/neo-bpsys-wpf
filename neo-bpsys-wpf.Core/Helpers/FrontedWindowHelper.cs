@@ -23,10 +23,30 @@ public static class FrontedWindowHelper
     /// <summary>
     /// 获取内置前台窗口 GUID。FrontedWindowType 只表示内置窗口。
     /// </summary>
+    /// <remarks>
+    /// 该方法仅用于仍需 GUID 身份的 XAML 内置窗口。
+    /// v3 内置窗口应使用 <see cref="GetFrontedWindowCanonicalId"/> 获取 Canonical ID（窗口名）。
+    /// </remarks>
     public static string GetFrontedWindowGuid(FrontedWindowType windowType)
     {
         return FrontedWindowGuidDict.TryGetValue(windowType, out var guid)
             ? guid
             : throw new ArgumentException($"{windowType} is not a valid built-in FrontedWindowType");
+    }
+
+    /// <summary>
+    /// 获取内置前台窗口的 Canonical ID。
+    /// </summary>
+    /// <param name="windowType">内置窗口类型枚举。</param>
+    /// <returns>v3 内置窗口返回枚举名（例如 <c>BpWindow</c>）；
+    /// <see cref="FrontedWindowType.ScoreWindow"/> 返回 <see cref="Guid.Empty"/> 的字符串形式（复合操作，非真实窗口）。</returns>
+    /// <remarks>
+    /// v3 内置窗口的 Canonical ID 直接使用枚举名。
+    /// </remarks>
+    public static string GetFrontedWindowCanonicalId(FrontedWindowType windowType)
+    {
+        return windowType == FrontedWindowType.ScoreWindow
+            ? Guid.Empty.ToString()
+            : windowType.ToString();
     }
 }

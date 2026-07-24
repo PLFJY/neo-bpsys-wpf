@@ -94,7 +94,7 @@ public partial class FrontedWindowsView : ITutorialOwner<FrontedWindowsView>
             .Package(Tours.BpWindowLaunchBasic)
                 .StepKey("Step.FrontManageBpWindowLaunchBasic.0.Title")
                     .TextKey("Step.FrontManageBpWindowLaunchBasic.0.Description")
-                    .TargetTag(FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow))
+                    .TargetTag(FrontedWindowHelper.GetFrontedWindowCanonicalId(FrontedWindowType.BpWindow))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                     .WaitFor(TutorialSignalIds.BpWindowOpened)
                     .PostStepAction((context, _) =>

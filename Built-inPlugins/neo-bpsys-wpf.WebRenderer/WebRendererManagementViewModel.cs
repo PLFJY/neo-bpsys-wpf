@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.WebRenderer.Services;
 using System.Diagnostics;
 using System.Windows;
@@ -209,15 +210,15 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
         var published = _service.GetPublishedWindows()
             .ToDictionary(window => window.FullWindowType, StringComparer.OrdinalIgnoreCase);
         var settings = _settingsHostService.Settings;
-        var items = _windowRegistry.GetCustomizableLayoutWindows()
-            .OrderBy(window => window.DisplayOrder ?? int.MaxValue)
-            .Where(descriptor => published.ContainsKey(descriptor.FullWindowType))
-            .Select(descriptor =>
+        var items = _windowRegistry.GetV3LayoutWindows()
+            .OrderBy(registration => registration.DisplayOrder ?? int.MaxValue)
+            .Where(registration => published.ContainsKey(registration.Id))
+            .Select(registration =>
             {
-                published.TryGetValue(descriptor.FullWindowType, out var snapshot);
+                published.TryGetValue(registration.Id, out var snapshot);
                 var name = FrontedWindowDisplayNameResolver.ResolveDisplayName(
-                    descriptor, settings.Language, settings.CultureInfo);
-                var url = $"{LocalUrl.TrimEnd('/')}/render/{EncodeWindowType(descriptor.FullWindowType)}";
+                    registration, settings.Language, settings.CultureInfo);
+                var url = $"{LocalUrl.TrimEnd('/')}/render/{EncodeWindowType(registration.Id)}";
                 return new WebRendererWindowLink(
                     name,
                     url,

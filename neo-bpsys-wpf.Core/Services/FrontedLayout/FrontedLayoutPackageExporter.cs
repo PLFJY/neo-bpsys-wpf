@@ -220,7 +220,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            EnsureSafeFullWindowType(entry.WindowTypeName, nameof(entry.WindowTypeName));
+            EnsureSafeCanonicalWindowId(entry.WindowTypeName, nameof(entry.WindowTypeName));
 
             var loadResult = await _layoutService.LoadWindowConfigWithMetadataAsync(
                 entry.WindowTypeName,
@@ -253,7 +253,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
             var relativePath = ToZipPath(
                 "FrontedLayouts",
-                FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName)
+                FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName)
                     .Replace('\\', '/'));
             var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
@@ -301,7 +301,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 var relativePath = ToZipPath(
                     "FrontedBehaviors",
                     Path.ChangeExtension(
-                        FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName),
+                        FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName),
                         ".behaviors.json").Replace('\\', '/'));
                 var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
@@ -613,9 +613,9 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         }
     }
 
-    private static void EnsureSafeFullWindowType(string value, string name)
+    private static void EnsureSafeCanonicalWindowId(string value, string name)
     {
-        if (!FrontedLayoutWindowPathHelper.IsSafeFullWindowType(value))
+        if (!FrontedV3LayoutWindowPathHelper.IsSafeCanonicalWindowId(value))
         {
             throw new InvalidOperationException($"{name} is not safe: {value}");
         }

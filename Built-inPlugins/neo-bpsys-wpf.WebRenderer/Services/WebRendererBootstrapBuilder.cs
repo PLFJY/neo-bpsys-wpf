@@ -2,6 +2,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.WebRenderer.Protocol;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -39,14 +40,14 @@ public sealed class WebRendererBootstrapBuilder(
         var windows = new List<WebRendererBootstrapWindow>();
         var culture = settingsHostService.Settings.CultureInfo;
         var language = settingsHostService.Settings.Language;
-        foreach (var descriptor in windowRegistry.GetCustomizableLayoutWindows())
+        foreach (var registration in windowRegistry.GetV3LayoutWindows())
         {
-            var result = await layoutService.LoadWindowConfigWithMetadataAsync(descriptor.FullWindowType, cancellationToken);
+            var result = await layoutService.LoadWindowConfigWithMetadataAsync(registration.Id, cancellationToken);
             var diagnostics = new List<string>();
             if (result.Config is null)
             {
                 diagnostics.Add(result.Error ?? "LayoutMissing");
-                windows.Add(new(descriptor.FullWindowType, localizationProvider.ResolveWindowDisplayName(descriptor, language, culture), true, false, false, 0,
+                windows.Add(new(registration.Id, localizationProvider.ResolveWindowDisplayName(registration, language, culture), true, false, false, 0,
                     null, null, new Dictionary<string, string>(), diagnostics));
                 continue;
             }
@@ -56,7 +57,7 @@ public sealed class WebRendererBootstrapBuilder(
             var behaviorLoaded = false;
             try
             {
-                behavior = await behaviorService.LoadDocumentAsync(descriptor.FullWindowType, cancellationToken);
+                behavior = await behaviorService.LoadDocumentAsync(registration.Id, cancellationToken);
                 behaviorLoaded = true;
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
@@ -78,7 +79,7 @@ public sealed class WebRendererBootstrapBuilder(
                     continue;
                 mapping[reference] = $"/bpui-assets/{asset.Token}";
             }
-            windows.Add(new(descriptor.FullWindowType, localizationProvider.ResolveWindowDisplayName(descriptor, language, culture), true, true, behaviorLoaded,
+            windows.Add(new(registration.Id, localizationProvider.ResolveWindowDisplayName(registration, language, culture), true, true, behaviorLoaded,
                 mapping.Count, result.Config, behavior, mapping, diagnostics)
             {
                 DefaultPickingBorderResourceUrl = mapping.GetValueOrDefault(WebRendererResourceKeys.PickingBorder)
@@ -135,10 +136,10 @@ public sealed class WebRendererBootstrapBuilder(
 
         var snapshot = localizationProvider.Create(requests, culture, revision);
         var windowTexts = snapshot.StaticTexts.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
-        foreach (var descriptor in windowRegistry.GetCustomizableLayoutWindows())
+        foreach (var registration in windowRegistry.GetV3LayoutWindows())
         {
-            windowTexts[$"window:{descriptor.FullWindowType}"] =
-                localizationProvider.ResolveWindowDisplayName(descriptor, language, culture);
+            windowTexts[$"window:{registration.Id}"] =
+                localizationProvider.ResolveWindowDisplayName(registration, language, culture);
         }
 
         return snapshot with { StaticTexts = windowTexts };

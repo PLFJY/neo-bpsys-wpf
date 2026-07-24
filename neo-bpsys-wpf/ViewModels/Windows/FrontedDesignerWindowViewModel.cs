@@ -6715,62 +6715,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string ResolveEntryDisplayName(FrontedDesignerLayoutCatalogEntry entry)
     {
         var settings = _settingsHostService?.Settings;
-        return FrontedWindowDisplayNameResolver.ResolveDisplayName(
-            new FrontedDesignerLayoutCatalogEntryWindowDescriptor(entry),
-            settings?.Language ?? LanguageKey.System,
-            settings?.CultureInfo);
-    }
+        var language = settings?.Language ?? LanguageKey.System;
+        var cultureInfo = settings?.CultureInfo;
 
-    private sealed class FrontedDesignerLayoutCatalogEntryWindowDescriptor(
-        FrontedDesignerLayoutCatalogEntry entry) : IFrontedWindowDescriptor
-    {
-        /// <inheritdoc />
-        public string WindowId => entry.WindowId;
+        var concreteLanguage = FrontedWindowDisplayNameResolver.ResolveConcreteLanguage(language, cultureInfo);
+        if (concreteLanguage.HasValue
+            && entry.I18nDisplayNames is { Count: > 0 } names
+            && names.TryGetValue(concreteLanguage.Value, out var localized)
+            && !string.IsNullOrWhiteSpace(localized))
+        {
+            return localized;
+        }
 
-        /// <inheritdoc />
-        public string WindowTypeName => entry.WindowTypeName;
-
-        /// <inheritdoc />
-        public string FullWindowType => entry.WindowTypeName;
-
-        /// <inheritdoc />
-        public string DisplayName => entry.DisplayName;
-
-        /// <inheritdoc />
-        public IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames => entry.I18nDisplayNames;
-
-        /// <inheritdoc />
-        public string? DisplayNameKey => null;
-
-        /// <inheritdoc />
-        public string? Description => null;
-
-        /// <inheritdoc />
-        public string? DescriptionKey => null;
-
-        /// <inheritdoc />
-        public string? GroupKey => null;
-
-        /// <inheritdoc />
-        public int? DisplayOrder => null;
-
-        /// <inheritdoc />
-        public bool IsVisibleInFrontManage => true;
-
-        /// <inheritdoc />
-        public bool IsV3LayoutWindow => true;
-
-        /// <inheritdoc />
-        public bool Customizable => true;
-
-        /// <inheritdoc />
-        public FrontedWindowKind Kind => FrontedWindowKind.BuiltIn;
-
-        /// <inheritdoc />
-        public bool IsPlugin => false;
-
-        /// <inheritdoc />
-        public string? PackageId => null;
+        return entry.DisplayName;
     }
 }
 

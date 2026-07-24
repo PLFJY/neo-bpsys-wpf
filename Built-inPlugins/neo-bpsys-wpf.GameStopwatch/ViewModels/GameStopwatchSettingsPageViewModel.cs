@@ -4,13 +4,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.GameStopwatch.Views;
 
 namespace neo_bpsys_wpf.GameStopwatch.ViewModels;
 
 /// <summary>比赛秒表设置页视图模型。</summary>
 public sealed partial class GameStopwatchSettingsPageViewModel : ViewModelBase
 {
+    private const string WindowCanonicalId = "plugin:neo_bpsys_wpf.GameStopwatch/A6B4CB0B-354B-4B66-8AB8-2E94C3F0E5D2";
+
     private readonly IGameStopwatchService _service;
     private readonly IFrontedWindowService _frontedWindowService;
 
@@ -84,13 +85,13 @@ public sealed partial class GameStopwatchSettingsPageViewModel : ViewModelBase
     [RelayCommand]
     private void OpenWindow()
     {
-        var window = _frontedWindowService.EnsureWindowCreated(GameStopwatchWindowContributor.WindowId);
+        var window = _frontedWindowService.EnsureWindowCreated(WindowCanonicalId);
         if (window is null)
         {
             return;
         }
 
-        _frontedWindowService.ShowWindow(GameStopwatchWindowContributor.WindowId);
+        _frontedWindowService.ShowWindow(WindowCanonicalId);
         window.Activate();
     }
 

@@ -1,6 +1,6 @@
 # neo-bpsys-wpf Plugin SDK
 
-本项目用于开发 `neo-bpsys-wpf` 插件。v3 起 PluginSdk 不再作为 NuGet 包发布；插件作者应 clone `neo-bpsys-wpf` 仓库，并在插件项目中通过 `ProjectReference` 引用本项目源码。3.0 版本起，插件 API 版本为 `3.0.0.0`，旧前台注入 API 已移除；旧插件需要迁移到 v3 descriptor / Designer v3 布局模型。
+本项目用于开发 `neo-bpsys-wpf` 插件。v3 起 PluginSdk 不再作为 NuGet 包发布；插件作者应 clone `neo-bpsys-wpf` 仓库，并在插件项目中通过 `ProjectReference` 引用本项目源码。3.0 版本起，插件 API 版本为 `3.0.0.0`，前台窗口注册使用强类型 registration 模型；旧 contributor/descriptor 注入 API 已移除，旧插件需要迁移到新 API。
 
 完整参考示例请查看 `neo-bpsys-wpf.ExamplePlugin` 项目（插件 ID `plfjy.ExamplePlugin`），它是一个综合示例，演示了所有当前插件能力。
 
@@ -87,73 +87,79 @@ plugin:{PackageId}/{ControlTypeName}
 
 ## 插件前台窗口
 
-v3 提供两类插件前台窗口，均通过 `IFrontedWindowPluginContributor` 暴露 descriptor。descriptor 未写 `Kind` 时默认是 `PluginXaml`；只有明确写出 `Kind = FrontedWindowKind.PluginLayout` 才会创建宿主的 v3 layout window。这个选择不在 `manifest.yml` 中配置。
+v3 提供两类前台窗口，均通过强类型 registration 模型注册。窗口类型不在 `manifest.yml` 中指定。
 
-### Plugin XAML Window
+### XAML Window
 
 插件提供自己的 WPF `Window` 类型，宿主只负责创建、注册、显示和隐藏。它会出现在 FrontManage，不默认进入 Designer。
 
+窗口类必须使用 `[FrontedWindowInfo("GUID", "DisplayName")]` 特性标注，并继承 `FrontedWindowBase`。`IsBuiltIn` 是 attribute named argument，默认 `false`；内置窗口设 `IsBuiltIn = true`。
+
 ```csharp
-public sealed class ExampleFrontedWindowContributor : IFrontedWindowPluginContributor
+[FrontedWindowInfo("3363BFE1-1393-4765-B926-001B6848FAF7", "Example XAML Window")]
+public partial class ExampleXamlWindow : FrontedWindowBase
 {
-    public IEnumerable<FrontedPluginWindowDescriptor> GetFrontedWindows()
-    {
-        yield return new FrontedPluginWindowDescriptor
-        {
-            PackageId = "plfjy.ExamplePlugin",
-            WindowId = "3363BFE1-1393-4765-B926-001B6848FAF7",
-            WindowTypeName = "ExampleXamlWindow",
-            DisplayName = "Example XAML Window",
-            Kind = FrontedWindowKind.PluginXaml,
-            WindowType = typeof(ExampleXamlWindow),
-            ViewModelType = typeof(ExampleXamlWindowViewModel)
-        };
-    }
+    public ExampleXamlWindow() => InitializeComponent();
 }
 ```
 
-### Plugin v3 Layout Window
+注册：
+
+```csharp
+services.AddFrontedWindow<ExampleXamlWindow, ExampleXamlWindowViewModel>();
+```
+
+`AddFrontedWindow<TWindow, TViewModel>` 会读取 Attribute 上的 GUID 作为 Canonical ID，注册 ViewModel 和 Window，并在创建时设置 DataContext。`FrontedWindowInfo` 旧的 canvas 构造函数仍保留但参数会被忽略，Canvas 注入能力不会恢复。
+
+### v3 Layout Window
 
 插件声明一个 layout window，宿主使用标准 v3 layout host 渲染。它可出现在 FrontManage，进入 Designer 编辑。
 
 ```csharp
-yield return new FrontedPluginWindowDescriptor
-{
-    PackageId = "plfjy.ExamplePlugin",
-    WindowId = "B11F63A4-1765-4870-9E36-0AE654026421",
-    WindowTypeName = "ExampleLayoutOverlay",
-    DisplayName = "Example Layout Overlay",
-    Kind = FrontedWindowKind.PluginLayout,
-};
+services.AddFrontedV3LayoutWindow("ExampleLayoutOverlay");
 ```
 
-默认布局文件放在插件安装目录：
+`AddFrontedV3LayoutWindow(string windowId, bool isBuiltIn = false)` 只接受局部窗口标识 `windowId` 和 `isBuiltIn` 两个参数。`windowId` 只需插件内唯一；`isBuiltIn` 默认 `false`，内置窗口显式传 `true`。PackageId 不是 API 参数，由宿主在插件初始化作用域内通过 `FrontedPluginRegistrationContext` 自动注入。
+
+局部 ID 验证规则：不允许包含 `/`、`\`、`:`、`.`、`..` 或非法文件名字符；不允许直接传入完整 `plugin:package/window` 形式。同名局部 ID 可以存在于不同插件（`plugin:a/Overlay` 与 `plugin:b/Overlay` 共存）。
+
+### v3 Layout 加载
+
+v3 Layout Window 不要求默认 JSON 存在。无默认 JSON 时使用 `FrontedV3LayoutWindowConfigFactory` 生成的内存空模板，可正常渲染并打开 Designer；Designer 首次保存时才创建 JSON 文件。
+
+加载优先级：
 
 ```text
-FrontedLayouts/{WindowTypeName}.json
+内置: 激活 package → 内置资源 → 空模板
+插件: 激活 package → 空模板
 ```
+
+宿主不从插件安装目录加载默认 v3 Layout。
 
 ## 标识模型
 
-`WindowId` 是运行时窗口身份，必须是稳定 GUID 字符串。`WindowTypeName` 是插件内短语义名称。`FullWindowType` 是布局和 `.bpui` 身份：
+前台窗口使用 Canonical ID 作为运行时、Designer 和 `.bpui` 的统一身份：
 
 ```text
-内置: BpWindow
-插件: plugin:{PackageId}/{WindowTypeName}
+内置 v3 窗口: 直接使用 local ID（例如 BpWindow）
+插件 v3 窗口: plugin:{PackageId}/{LocalWindowId}（例如 plugin:plfjy.ExamplePlugin/ExampleLayoutOverlay）
+XAML 窗口:   使用 Attribute GUID（例如 3363BFE1-1393-4765-B926-001B6848FAF7）
 ```
 
-`FrontedWindowType` enum 只映射内置窗口；插件窗口不扩展该 enum。Designer 和 `.bpui` 应使用 `FullWindowType`。
+`.bpui` 契约保持不变：`FormatVersion=3`、`LayoutSchemaVersion=3`、所有 JSON 字段名不变，`Content.Layouts[].Window` 使用 Canonical ID。导入再导出不会重写 Canonical ID。
 
 用户 layout 安全路径示例：
 
 ```text
-FrontedLayouts/BpWindow/BaseCanvas.json
-FrontedLayouts/plugin/plfjy.ExamplePlugin/ExampleLayoutOverlay/BaseCanvas.json
+FrontedLayouts/BpWindow.json
+FrontedLayouts/plugin/plfjy.ExamplePlugin/ExampleLayoutOverlay.json
 ```
+
+同一 Canonical ID 冲突时启动失败，不会静默跳过。
 
 ## 缺失插件行为
 
-导入 `.bpui` 时，如果插件窗口 descriptor 缺失，导入仍成功，layout JSON、资源和依赖元数据会保留；运行时不创建该窗口，FrontManage 和 Designer 不显示它。插件安装并重启后，窗口会重新可用并使用已保留布局。
+导入 `.bpui` 时，如果插件窗口 registration 缺失，导入仍成功，layout JSON、资源和依赖元数据会保留；运行时不创建该窗口，FrontManage 和 Designer 不显示它。插件安装并重启后，窗口会重新可用并使用已保留布局。
 
 如果 layout 中存在缺失插件控件，导入仍成功。Designer 显示 Missing Plugin placeholder，可选择、移动、缩放和手动删除；运行时默认跳过该控件并记录 warning；导出会继续保留控件 JSON、`ExtensionData` 和依赖元数据。
 
@@ -161,10 +167,14 @@ FrontedLayouts/plugin/plfjy.ExamplePlugin/ExampleLayoutOverlay/BaseCanvas.json
 
 ## 迁移说明
 
-旧的“把 WPF 控件直接塞进现有前台窗口”能力已经移除，不提供 Obsolete shim。旧插件自己的 XAML 前台窗口仍可继续用 `AddFrontedWindow<TWindow, TViewModel>()` 注册；`FrontedWindowInfo` 的旧 canvas 参数会被忽略。需要迁移旧插件的控件注入能力时，可选择：
+旧的前台窗口 contributor/descriptor 架构（包括 contributor 接口、window descriptor、window kind 枚举和 contributor 注册扩展）已整体移除，不提供 Obsolete shim，也不保留 adapter。
 
-1. Designer v3 插件控件，用于可编辑 overlay 元素。
-2. Plugin XAML Window，用于插件完全控制 XAML/行为的前台窗口。
-3. Plugin v3 Layout Window，用于宿主托管的可编辑 layout 窗口。
+迁移到新 API：
+
+1. **Plugin XAML Window**：将原 contributor 中的窗口类型、ViewModel 类型、显示名和 GUID 整理到窗口类上的 `[FrontedWindowInfo("GUID", "DisplayName")]` 特性，并让窗口类继承 `FrontedWindowBase`，然后用 `services.AddFrontedWindow<TWindow, TViewModel>()` 注册。
+2. **Plugin v3 Layout Window**：将原 descriptor 中的窗口短名作为局部 ID 传入 `services.AddFrontedV3LayoutWindow("WindowId")`。原 descriptor 上的默认布局根、空白布局开关、插件目录等字段不再支持；如需默认布局，改由用户首次在 Designer 中保存生成。
+3. **Designer v3 插件控件**：沿用 `AddFrontedPluginControlContributor<T>()`，无变化。
+
+旧的“把 WPF 控件直接塞进现有前台窗口”能力已移除，不提供兼容路径。需要可编辑 overlay 元素时使用 Designer v3 插件控件；需要插件完全控制 XAML/行为时使用 XAML Window；需要宿主托管的可编辑 layout 窗口时使用 v3 Layout Window。
 
 参照 `neo-bpsys-wpf.ExamplePlugin` 项目获取完整迁移示例。

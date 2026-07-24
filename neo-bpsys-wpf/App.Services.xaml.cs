@@ -194,7 +194,8 @@ public partial class App
         services.AddSingleton<FrontedResourceBrowserProvider>();
         services.AddSingleton<FrontedControlDefaultConfigFactory>();
         services.AddSingleton<FrontedControlNameGenerator>();
-        services.AddSingleton<FrontedDesignerLayoutCatalog>();
+        services.AddSingleton<FrontedDesignerLayoutCatalog>(sp =>
+            new FrontedDesignerLayoutCatalog(sp.GetRequiredService<IFrontedWindowRegistry>()));
         services.AddTransient<DesignerPreviewSharedDataService>();
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
@@ -243,6 +244,16 @@ public partial class App
         services.AddBackendPage<FrontManagePage, FrontManagePageViewModel>();
         services.AddBackendPage<PluginPage, PluginPageViewModel>();
         services.AddBackendPage<SmartBpPage, SmartBpPageViewModel>();
+
+        // 注册内置 v3 Layout 前台窗口（Canonical ID = LocalId，无 PackageId）
+        services.AddFrontedV3LayoutWindow("BpWindow", isBuiltIn: true);
+        services.AddFrontedV3LayoutWindow("CutSceneWindow", isBuiltIn: true);
+        services.AddFrontedV3LayoutWindow("ScoreSurWindow", isBuiltIn: true);
+        services.AddFrontedV3LayoutWindow("ScoreHunWindow", isBuiltIn: true);
+        services.AddFrontedV3LayoutWindow("ScoreGlobalWindow", isBuiltIn: true);
+        services.AddFrontedV3LayoutWindow("GameDataWindow", isBuiltIn: true);
+        services.AddFrontedV3LayoutWindow("BpOverviewWindow", isBuiltIn: true);
+        services.AddFrontedV3LayoutWindow("MapV2Window", isBuiltIn: true);
 
         PluginService.InitializePlugins(context, services);
     }

@@ -386,13 +386,13 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     /// 获取指定包中特定窗口的布局文件完整路径。
     /// </summary>
     /// <param name="packageId">包 ID。</param>
-    /// <param name="fullWindowType">完整窗口类型名。</param>
+    /// <param name="canonicalWindowId">窗口 Canonical ID。</param>
     /// <returns>布局文件的完整路径。</returns>
-    public string GetPackageLayoutPath(string packageId, string fullWindowType)
+    public string GetPackageLayoutPath(string packageId, string canonicalWindowId)
     {
         return Path.Combine(
             GetPackageLayoutsRootFolder(packageId),
-            FrontedLayoutWindowPathHelper.GetLayoutRelativePath(fullWindowType));
+            FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(canonicalWindowId));
     }
 
     public string GetPackageRootFolder()
@@ -631,7 +631,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             string window;
             try
             {
-                window = ToFullWindowTypeFromLayoutRelativePath(relativePath);
+                window = ToCanonicalWindowIdFromLayoutRelativePath(relativePath);
             }
             catch
             {
@@ -646,7 +646,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         }
     }
 
-    private static string ToFullWindowTypeFromLayoutRelativePath(string relativePath)
+    private static string ToCanonicalWindowIdFromLayoutRelativePath(string relativePath)
     {
         var parts = relativePath
             .Replace('\\', '/')
@@ -656,8 +656,8 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             && parts[2].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
         {
             var packageId = parts[1];
-            var windowTypeName = Path.GetFileNameWithoutExtension(parts[2]);
-            return $"{FrontedLayoutWindowPathHelper.PluginPrefix}{packageId}/{windowTypeName}";
+            var localWindowId = Path.GetFileNameWithoutExtension(parts[2]);
+            return $"{FrontedV3LayoutWindowPathHelper.PluginPrefix}{packageId}/{localWindowId}";
         }
 
         if (parts.Length == 1 && parts[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))

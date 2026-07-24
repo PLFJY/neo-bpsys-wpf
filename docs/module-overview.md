@@ -35,8 +35,8 @@
 | --- | --- |
 | `Abstractions` | `PluginBase`、`ViewModelBase`、服务接口 |
 | `Attributes` | `BackendPageInfo`、内置前台窗口使用的 `FrontedWindowInfo` |
-| `Extensions/Registry` | `AddBackendPage`、内置 `AddFrontedWindow`、插件 `AddFrontedWindowPluginContributor` 注册扩展 |
-| `Services/Registry` | 后台页面静态注册表和 v3 前台窗口 descriptor registry |
+| `Extensions/Registry` | `AddBackendPage`、内置与插件共用的 `AddFrontedWindow<TWindow,TViewModel>()`（XAML 窗口）和 `AddFrontedV3LayoutWindow("WindowId", isBuiltIn:)`（v3 布局窗口）注册扩展 |
+| `Services/Registry` | 后台页面静态注册表和前台窗口 registration registry（`IFrontedWindowRegistry`，提供 `GetWindows()`、`GetManageableWindows()`、`GetV3LayoutWindows()`、`TryGet()`） |
 | `Models` | `Settings`、`Game`、`Team`、`Character`、插件模型、SmartBP 区域模型等 |
 | `Controls` | `FrontedWindowBase`、设计器相关 adorner |
 | `Helpers` | 前台窗口 GUID、配置文件、图片、字体等工具 |
@@ -47,7 +47,7 @@
 | --- | --- |
 | 新增后台页面 | 页面类上的 `BackendPageInfo`，然后在 `App.Services.xaml.cs` 或插件 `Initialize` 中 `AddBackendPage<TView,TViewModel>()` |
 | 新增内置前台窗口 | 窗口类上的 `FrontedWindowInfo`，继承 `FrontedWindowBase`，然后 `AddFrontedWindow<TView,TViewModel>()` |
-| 新增插件前台窗口 | `IFrontedWindowPluginContributor`、`FrontedPluginWindowDescriptor`、`AddFrontedWindowPluginContributor<T>()` |
+| 新增插件前台窗口 | XAML 窗口：`[FrontedWindowInfo("GUID", "DisplayName", IsBuiltIn = false)]` + `services.AddFrontedWindow<TWindow,TViewModel>()`；v3 布局窗口：`services.AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)`（PackageId 由宿主自动注入） |
 | 改前台布局保存/恢复 | `FrontedLayoutService`、`FrontedUserLayoutStore`、`FrontedWindowLayoutOptionsService`、`Resources/FrontedLayouts` |
 | 改引导式 BP 流程 | `GameGuidanceService` 和 `GameRule.json` |
 | 改 SmartBP/OCR 运行时 | `neo-bpsys-wpf.SmartBp.Module` 中的 `SmartBpService`、`OcrService`、`GameDataTableOcrParser` |

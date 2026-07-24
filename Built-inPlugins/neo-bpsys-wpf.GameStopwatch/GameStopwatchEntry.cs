@@ -20,7 +20,7 @@ public sealed class GameStopwatchEntry : PluginBase
         services.AddSingleton<IGameStopwatchService>(service);
         services.AddSingleton<GameStopwatchWindowViewModel>();
         services.AddSingleton<GameStopwatchSettingsPageViewModel>();
-        services.AddFrontedWindowPluginContributor<GameStopwatchWindowContributor>();
+        services.AddFrontedWindow<GameStopwatchWindow, GameStopwatchWindowViewModel>();
         services.AddBackendPage<GameStopwatchSettingsPage, GameStopwatchSettingsPageViewModel>();
     }
 }

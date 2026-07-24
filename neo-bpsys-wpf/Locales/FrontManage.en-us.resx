@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
@@ -322,13 +322,13 @@
   <data name="MissingPluginImportMessage">
     <value>This layout package references plugin controls that are not registered in the current app. Missing controls will not render; cancel the import or force import and remove them.</value>
   </data>
-  <data name="FrontedWindowKind.BuiltIn">
+  <data name="FrontManageWindowCategory.BuiltIn">
     <value>Built-in</value>
   </data>
-  <data name="FrontedWindowKind.PluginXaml">
+  <data name="FrontManageWindowCategory.Xaml">
     <value>Plugin XAML</value>
   </data>
-  <data name="FrontedWindowKind.PluginLayout">
+  <data name="FrontManageWindowCategory.V3Layout">
     <value>Plugin v3</value>
   </data>
   <data name="StopAllLoopAnimations">

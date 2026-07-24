@@ -17,6 +17,7 @@ public class FrontedLayoutService : IFrontedLayoutService
     private readonly IFrontedUserLayoutStore _userLayoutStore;
     private readonly ILogger<FrontedLayoutService> _logger;
     private readonly IFrontedLayoutPackageManager _packageManager;
+    private FrontedV3LayoutWindowConfigFactory _configFactory = new();
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -163,6 +164,23 @@ public class FrontedLayoutService : IFrontedLayoutService
         _logger = logger ?? NullLogger<FrontedLayoutService>.Instance;
     }
 
+    /// <summary>
+    /// 使用包管理器和空模板工厂初始化布局服务。
+    /// </summary>
+    /// <param name="userLayoutStore">为可编辑包创建兼容性而保留的用户布局存储。</param>
+    /// <param name="packageManager">用于活动布局包读取和写入的包管理器。</param>
+    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
+    /// <param name="configFactory">用于生成内存空模板的工厂。为 <see langword="null"/> 时使用默认实例。</param>
+    public FrontedLayoutService(
+        IFrontedUserLayoutStore userLayoutStore,
+        IFrontedLayoutPackageManager packageManager,
+        ILogger<FrontedLayoutService>? logger,
+        FrontedV3LayoutWindowConfigFactory? configFactory)
+        : this(userLayoutStore, packageManager, logger)
+    {
+        _configFactory = configFactory ?? new FrontedV3LayoutWindowConfigFactory();
+    }
+
     private static string GetIsolatedPackageRoot(string builtInLayoutRoot)
     {
         var parent = Path.GetDirectoryName(Path.GetFullPath(builtInLayoutRoot));
@@ -171,19 +189,25 @@ public class FrontedLayoutService : IFrontedLayoutService
 
     /// <inheritdoc />
     public async Task<FrontedWindowConfig?> LoadWindowConfigAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         CancellationToken cancellationToken = default)
     {
-        return (await LoadWindowConfigWithMetadataAsync(windowTypeName, cancellationToken)).Config;
+        return (await LoadWindowConfigWithMetadataAsync(canonicalWindowId, cancellationToken)).Config;
     }
 
     /// <inheritdoc />
     public async Task<FrontedLayoutLoadResult> LoadWindowConfigWithMetadataAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         CancellationToken cancellationToken = default)
     {
         var activeState = await _packageManager.GetActivePackageStateAsync(cancellationToken);
-        var packagePath = _packageManager.GetPackageLayoutPath(activeState.PackageId, windowTypeName);
+        var isActiveBuiltin = string.Equals(
+            activeState.PackageId,
+            FrontedLayoutPackageManager.BuiltInPackageId,
+            StringComparison.OrdinalIgnoreCase);
+
+        // Step 1: 尝试从激活包加载。
+        var packagePath = _packageManager.GetPackageLayoutPath(activeState.PackageId, canonicalWindowId);
         if (File.Exists(packagePath))
         {
             try
@@ -191,9 +215,7 @@ public class FrontedLayoutService : IFrontedLayoutService
                 return new FrontedLayoutLoadResult
                 {
                     Config = await ReadConfigAsync(packagePath, cancellationToken),
-                    Source = string.Equals(activeState.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
-                        ? FrontedLayoutSource.BuiltIn
-                        : FrontedLayoutSource.User,
+                    Source = isActiveBuiltin ? FrontedLayoutSource.BuiltIn : FrontedLayoutSource.User,
                     Path = packagePath
                 };
             }
@@ -201,35 +223,59 @@ public class FrontedLayoutService : IFrontedLayoutService
             {
                 _logger.LogError(
                     ex,
-                    "Failed to load active package fronted layout. PackageId: {PackageId}, Window: {WindowTypeName}, Path: {Path}",
+                    "Failed to load active package fronted layout. PackageId: {PackageId}, Window: {CanonicalWindowId}, Path: {Path}",
                     activeState.PackageId,
-                    windowTypeName,
+                    canonicalWindowId,
                     packagePath);
-                return new FrontedLayoutLoadResult
-                {
-                    Source = FrontedLayoutSource.MissingOrError,
-                    Path = packagePath,
-                    Error = ex.Message
-                };
             }
         }
 
+        // Step 2: 仅对内置窗口（非插件窗口），且激活包不是内置包时，回退到内置资源。
+        if (!isActiveBuiltin
+            && !FrontedV3LayoutWindowPathHelper.TryParsePluginCanonicalWindowId(canonicalWindowId, out _, out _))
+        {
+            var builtInPath = _packageManager.GetPackageLayoutPath(
+                FrontedLayoutPackageManager.BuiltInPackageId,
+                canonicalWindowId);
+            if (File.Exists(builtInPath))
+            {
+                try
+                {
+                    return new FrontedLayoutLoadResult
+                    {
+                        Config = await ReadConfigAsync(builtInPath, cancellationToken),
+                        Source = FrontedLayoutSource.BuiltIn,
+                        Path = builtInPath
+                    };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to load built-in fronted layout. Window: {CanonicalWindowId}, Path: {Path}",
+                        canonicalWindowId,
+                        builtInPath);
+                }
+            }
+        }
+
+        // Step 3: 返回内存空模板。
         return new FrontedLayoutLoadResult
         {
-            Source = FrontedLayoutSource.MissingOrError,
-            Path = packagePath,
-            Error = $"Active package layout is missing: {activeState.PackageId}"
+            Config = _configFactory.CreateEmptyConfig(canonicalWindowId),
+            Source = FrontedLayoutSource.EmptyTemplate,
+            Path = null
         };
     }
 
     /// <inheritdoc />
     public async Task SaveWindowConfigAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         FrontedWindowConfig config,
         CancellationToken cancellationToken = default)
     {
         var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
-        var path = _packageManager.GetPackageLayoutPath(package.PackageId, windowTypeName);
+        var path = _packageManager.GetPackageLayoutPath(package.PackageId, canonicalWindowId);
         await WriteConfigAsync(path, config, cancellationToken);
     }
 

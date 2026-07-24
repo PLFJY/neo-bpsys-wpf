@@ -19,25 +19,39 @@ services.AddFrontedWindow<TView, TViewModel>();
 
 v3 layout 已改为 Window-centric。新的 v3 layout window 只以 Window 为管理单位，运行时固定由 `FrontedWindowBase` 创建 `ViewBox -> Canvas BaseCanvas`，不再向用户、包管理或 FrontManagePage 暴露 Canvas。传统固定 XAML window 可继续使用原有注册方式，但不强制 BaseCanvas。
 
-新式插件前台窗口通过 `IFrontedWindowPluginContributor` 和 `FrontedPluginWindowDescriptor` 声明。descriptor 默认创建插件自己的 XAML `Window`；仅显式指定 `Kind = PluginLayout` 时才使用 v3 layout host。现有插件仍可使用 `FrontedWindowInfo` + `AddFrontedWindow<TWindow,TViewModel>()` 注册自己的 XAML 窗口；旧 canvas 元数据被忽略。窗口类型不在 `manifest.yml` 中指定：
+插件前台窗口通过两个公开 API 注册，窗口类型不在 `manifest.yml` 中指定：
 
-```csharp
-services.AddFrontedWindowPluginContributor<MyFrontedWindowContributor>();
-```
+1. **XAML 窗口**：`services.AddFrontedWindow<TWindow, TViewModel>()`
+   - 窗口类需 `[FrontedWindowInfo("GUID", "DisplayName", IsBuiltIn = false)]` 特性
+   - 继承 `FrontedWindowBase`
+   - 示例：
+     ```csharp
+     [FrontedWindowInfo("3363BFE1-1393-4765-B926-001B6848FAF7", "Example XAML Window")]
+     public partial class ExampleXamlWindow : FrontedWindowBase
+     {
+         public ExampleXamlWindow() => InitializeComponent();
+     }
+     // 注册：services.AddFrontedWindow<ExampleXamlWindow, ExampleXamlWindowViewModel>();
+     ```
+2. **v3 Layout 窗口**：`services.AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)`
+   - `windowId` 是局部标识，只需插件内唯一
+   - PackageId 由宿主自动注入，不是 API 参数
+   - 无默认 JSON 时使用空模板
+   - 示例：`services.AddFrontedV3LayoutWindow("ExampleLayoutOverlay");`
 
-descriptor 使用稳定 `WindowId`，并用 `FullWindowType = plugin:{PackageId}/{WindowTypeName}` 作为布局、`.bpui` manifest 和用户目录中的窗口身份。插件窗口分为两类：
+`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。窗口身份使用 Canonical ID：内置为 `BpWindow`，插件 v3 layout 为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute GUID；该 ID 作为布局、`.bpui` manifest 和用户目录中的窗口身份。插件窗口分为两类：
 
 | 类型 | 说明 |
 | --- | --- |
-| `PluginXaml` | 插件提供真实 WPF `Window` 类型，可选 ViewModel，由宿主统一显示/隐藏 |
-| `PluginLayout` | 插件只声明窗口和默认 `FrontedLayouts/{WindowTypeName}.json`，宿主用 `FrontedWindowBase` 配置驱动 host 承载 v3 renderer |
+| `Xaml` | 插件提供真实 WPF `Window` 类型，可选 ViewModel，由宿主统一显示/隐藏 |
+| `V3Layout` | 插件只声明窗口和默认 `FrontedLayouts/{WindowId}.json`，宿主用 `FrontedWindowBase` 配置驱动 host 承载 v3 renderer |
 
 ## FrontedWindowService
 
 `FrontedWindowService` 构造时只保存服务依赖和 registry，不创建前台输出窗口。窗口实例通过 `EnsureWindowCreated(windowId)` 按需创建：
 
-1. `ShowWindow(windowId)` 首次调用时只创建对应 descriptor 的窗口。
-2. `AllWindowShow()` 遍历 registry descriptor，再逐个按需创建并显示。
+1. `ShowWindow(windowId)` 首次调用时只创建对应 registration 的窗口。
+2. `AllWindowShow()` 遍历 registry registration，再逐个按需创建并显示。
 3. `HideWindow()`、`GetWindowName()`、动画查找和布局 dirty 标记都不会创建窗口。
 4. 已创建窗口保留在 `FrontedWindows` 表中；关闭按钮触发 `OnClosing -> Hide()`，不会销毁窗口内容。
 

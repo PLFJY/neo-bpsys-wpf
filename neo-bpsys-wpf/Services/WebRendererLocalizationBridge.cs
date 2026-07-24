@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Services;
@@ -124,13 +125,13 @@ public sealed class WebRendererLocalizationBridge(ILogger<WebRendererLocalizatio
 
     /// <inheritdoc />
     public string ResolveWindowDisplayName(
-        IFrontedWindowDescriptor descriptor,
+        FrontedWindowRegistration registration,
         LanguageKey language,
         CultureInfo culture)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(registration);
         ArgumentNullException.ThrowIfNull(culture);
-        return FrontedWindowDisplayNameResolver.ResolveDisplayName(descriptor, language, culture);
+        return FrontedWindowDisplayNameResolver.ResolveDisplayName(registration, language, culture);
     }
 
     /// <inheritdoc />

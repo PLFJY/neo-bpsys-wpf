@@ -41,9 +41,9 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
         _packageManager = packageManager;
     }
 
-    public FrontedWindowLayoutOptions LoadOptions(string windowTypeName)
+    public FrontedWindowLayoutOptions LoadOptions(string canonicalWindowId)
     {
-        var path = GetReadOptionsPath(windowTypeName);
+        var path = GetReadOptionsPath(canonicalWindowId);
         if (!File.Exists(path))
         {
             return new FrontedWindowLayoutOptions();
@@ -67,11 +67,11 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
     }
 
     public async Task SaveOptionsAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         FrontedWindowLayoutOptions options,
         CancellationToken cancellationToken = default)
     {
-        var path = await GetWriteOptionsPathAsync(windowTypeName, cancellationToken);
+        var path = await GetWriteOptionsPathAsync(canonicalWindowId, cancellationToken);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         options.Version = 3;
@@ -79,14 +79,14 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
         await File.WriteAllTextAsync(path, json, cancellationToken);
     }
 
-    public string GetUserOptionsPath(string windowTypeName)
+    public string GetUserOptionsPath(string canonicalWindowId)
     {
-        return GetReadOptionsPath(windowTypeName);
+        return GetReadOptionsPath(canonicalWindowId);
     }
 
-    public Task ResetOptionsAsync(string windowTypeName, CancellationToken cancellationToken = default)
+    public Task ResetOptionsAsync(string canonicalWindowId, CancellationToken cancellationToken = default)
     {
-        var path = GetUserOptionsPath(windowTypeName);
+        var path = GetUserOptionsPath(canonicalWindowId);
         if (File.Exists(path))
         {
             File.Delete(path);
@@ -95,43 +95,43 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
         return Task.CompletedTask;
     }
 
-    private string GetReadOptionsPath(string windowTypeName)
+    private string GetReadOptionsPath(string canonicalWindowId)
     {
         if (_packageManager is null)
         {
-            return GetLegacyOptionsPath(windowTypeName);
+            return GetLegacyOptionsPath(canonicalWindowId);
         }
 
         var active = _packageManager.GetActivePackageStateAsync().GetAwaiter().GetResult();
         if (string.Equals(active.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
         {
-            return GetLegacyOptionsPath(windowTypeName);
+            return GetLegacyOptionsPath(canonicalWindowId);
         }
 
-        var packagePath = GetPackageOptionsPath(active.PackageId, windowTypeName);
-        return File.Exists(packagePath) ? packagePath : GetLegacyOptionsPath(windowTypeName);
+        var packagePath = GetPackageOptionsPath(active.PackageId, canonicalWindowId);
+        return File.Exists(packagePath) ? packagePath : GetLegacyOptionsPath(canonicalWindowId);
     }
 
-    private async Task<string> GetWriteOptionsPathAsync(string windowTypeName, CancellationToken cancellationToken)
+    private async Task<string> GetWriteOptionsPathAsync(string canonicalWindowId, CancellationToken cancellationToken)
     {
         if (_packageManager is null)
         {
-            return GetLegacyOptionsPath(windowTypeName);
+            return GetLegacyOptionsPath(canonicalWindowId);
         }
 
         var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
-        return GetPackageOptionsPath(package.PackageId, windowTypeName);
+        return GetPackageOptionsPath(package.PackageId, canonicalWindowId);
     }
 
-    private string GetPackageOptionsPath(string packageId, string windowTypeName)
+    private string GetPackageOptionsPath(string packageId, string canonicalWindowId)
     {
         return Path.Combine(
             _packageManager!.GetPackageLayoutsRootFolder(packageId),
-            FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName));
+            FrontedV3LayoutWindowPathHelper.GetWindowOptionsRelativePath(canonicalWindowId));
     }
 
-    private string GetLegacyOptionsPath(string windowTypeName)
+    private string GetLegacyOptionsPath(string canonicalWindowId)
     {
-        return Path.Combine(_frontedLayoutsRoot, FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName));
+        return Path.Combine(_frontedLayoutsRoot, FrontedV3LayoutWindowPathHelper.GetWindowOptionsRelativePath(canonicalWindowId));
     }
 }

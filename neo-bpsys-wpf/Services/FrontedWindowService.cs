@@ -5,11 +5,10 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Controls;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Views.Windows;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -84,29 +83,28 @@ public class FrontedWindowService : IFrontedWindowService
             return existingWindow;
         }
 
-        if (!_windowRegistry.TryGetByWindowId(windowId, out var descriptor))
+        if (!_windowRegistry.TryGet(windowId, out var registration))
         {
             return null;
         }
 
         try
         {
-            var window = CreateWindow(descriptor);
+            var window = CreateWindow(registration);
             if (window is null)
             {
                 return null;
             }
 
-            RegisterFrontedWindow(descriptor.WindowId, window);
+            RegisterFrontedWindow(registration.Id, window);
             return window;
         }
         catch (Exception ex)
         {
             _logger.LogWarning(
                 ex,
-                "Failed to create fronted window {FullWindowType} ({WindowId}).",
-                descriptor.FullWindowType,
-                descriptor.WindowId);
+                "Failed to create fronted window {WindowId}.",
+                registration.Id);
             return null;
         }
     }
@@ -120,46 +118,40 @@ public class FrontedWindowService : IFrontedWindowService
     }
 
     /// <summary>
-    /// 根据窗口描述符的分派策略创建对应的前台窗口实例。
+    /// 根据窗口注册的承载方式创建对应的前台窗口实例。
     /// </summary>
-    /// <param name="descriptor">窗口描述符，携带来源（内置/插件）和布局模式信息。</param>
+    /// <param name="registration">窗口注册，携带承载方式（Xaml/V3Layout）和来源信息。</param>
     /// <returns>创建的 <see cref="Window"/> 实例；无法识别时返回 <c>null</c>。</returns>
     /// <remarks>
-    /// 分派优先级：
+    /// 分派依据 <see cref="FrontedWindowRegistration.Kind"/>：
     /// <list type="number">
-    ///   <item><description><see cref="IFrontedWindowDescriptor.IsV3LayoutWindow"/> 为 <c>true</c> —
-    /// 任何 descriptor（内置或插件）只要声明使用 v3 layout host 渲染，都走 <see cref="CreateV3LayoutHostWindow"/>。</description></item>
-    ///   <item><description><see cref="FrontedBuiltInWindowDescriptor"/> — 非 v3 的内置窗口，
-    /// 直接通过 DI 创建 XAML 窗口，不绑定 ViewModel。</description></item>
-    ///   <item><description><see cref="FrontedPluginWindowDescriptor"/> 且 <see cref="FrontedWindowKind.PluginXaml"/> —
-    /// 插件提供的纯 XAML 窗口，通过 DI 创建窗口并设置 ViewModel 为 DataContext。</description></item>
+    ///   <item><description><see cref="FrontedWindowRegistrationKind.V3Layout"/> —
+    /// v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口），走 <see cref="CreateV3LayoutHostWindow"/>。</description></item>
+    ///   <item><description><see cref="FrontedWindowRegistrationKind.Xaml"/> —
+    /// XAML 窗口（含内置与插件），通过 DI 创建窗口并设置 ViewModel 为 DataContext。</description></item>
     ///   <item><description>其他未知类型 — 返回 <c>null</c>，由调用方跳过注册。</description></item>
     /// </list>
     /// </remarks>
-    private Window? CreateWindow(IFrontedWindowDescriptor descriptor)
+    private Window? CreateWindow(FrontedWindowRegistration registration)
     {
-        return descriptor switch
+        return registration switch
         {
-            // 模式 1：v3 layout host 窗口（含内置 v3 窗口和插件 PluginLayout 窗口）
-            { IsV3LayoutWindow: true } => CreateV3LayoutHostWindow(descriptor),
+            // 模式 1：v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口）
+            FrontedV3LayoutWindowRegistration v3 => CreateV3LayoutHostWindow(v3),
 
-            // 模式 2：非 v3 的内置窗口 — 创建 XAML 窗口，无 ViewModel
-            FrontedBuiltInWindowDescriptor builtIn => CreateXamlWindow(builtIn.WindowType, null),
+            // 模式 2：XAML 窗口（含内置与插件）— 创建窗口并设置 ViewModel 为 DataContext
+            FrontedXamlWindowRegistration xaml => CreateXamlWindow(xaml.WindowType, xaml.ViewModelType),
 
-            // 模式 3：插件提供的纯 XAML 窗口 — 创建窗口并设置 ViewModel 为 DataContext
-            FrontedPluginWindowDescriptor { Kind: FrontedWindowKind.PluginXaml } pluginXaml =>
-                CreateXamlWindow(pluginXaml.WindowType, pluginXaml.ViewModelType),
-
-            // 模式 4：无法识别的描述符，跳过
+            // 模式 3：无法识别的注册，跳过
             _ => null
         };
     }
 
-    private Window CreateV3LayoutHostWindow(IFrontedWindowDescriptor descriptor)
+    private Window CreateV3LayoutHostWindow(FrontedWindowRegistration registration)
     {
         var window = new FrontedWindowBase();
         window.InitializeV3LayoutHost(
-            descriptor,
+            registration,
             _services.GetRequiredService<IFrontedLayoutService>(),
             _services.GetRequiredService<IFrontedRenderer>(),
             _services.GetRequiredService<ISharedDataService>(),
@@ -178,16 +170,6 @@ public class FrontedWindowService : IFrontedWindowService
 
         var window = (_services.GetService(windowType)
                       ?? ActivatorUtilities.CreateInstance(_services, windowType)) as Window;
-    /// <summary>
-    /// 获取指定前台窗口类型的显示名称。
-    /// </summary>
-    /// <param name="windowType">窗口类型。</param>
-    /// <returns>显示名称；未找到时返回 <see langword="null"/>。</returns>
-    /// <summary>
-    /// 获取指定窗口 ID 的显示名称。
-    /// </summary>
-    /// <param name="windowId">窗口 ID。</param>
-    /// <returns>显示名称；未找到时返回 <see langword="null"/>。</returns>
         if (window is null)
         {
             return null;
@@ -199,27 +181,26 @@ public class FrontedWindowService : IFrontedWindowService
                                  ?? ActivatorUtilities.CreateInstance(_services, viewModelType);
         }
 
-    /// <summary>
-    /// 显示所有前台窗口。
-    /// </summary>
         return window;
     }
 
+    /// <summary>
+    /// 获取指定前台窗口类型的显示名称。
+    /// </summary>
+    /// <param name="windowType">窗口类型。</param>
+    /// <returns>显示名称；未找到时返回 <see langword="null"/>。</returns>
     public string? GetWindowName(FrontedWindowType windowType)
     {
-    /// <summary>
-    /// 隐藏所有前台窗口。
-    /// </summary>
-        return GetWindowName(FrontedWindowHelper.GetFrontedWindowGuid(windowType));
+        return GetWindowName(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
 
     public string? GetWindowName(string windowId)
     {
-        if (_windowRegistry.TryGetByWindowId(windowId, out var descriptor))
+        if (_windowRegistry.TryGet(windowId, out var registration))
         {
             var settings = _services.GetService<ISettingsHostService>()?.Settings;
             return FrontedWindowDisplayNameResolver.ResolveDisplayName(
-                descriptor,
+                registration,
                 settings?.Language ?? LanguageKey.System,
                 settings?.CultureInfo);
         }
@@ -228,14 +209,20 @@ public class FrontedWindowService : IFrontedWindowService
         return window?.GetType().Name;
     }
 
+    /// <summary>
+    /// 显示所有前台窗口。
+    /// </summary>
     public async void AllWindowShow()
     {
-        foreach (var descriptor in _windowRegistry.GetWindows())
+        foreach (var registration in _windowRegistry.GetWindows())
         {
-            await ShowWindowAsync(descriptor.WindowId);
+            await ShowWindowAsync(registration.Id);
         }
     }
 
+    /// <summary>
+    /// 隐藏所有前台窗口。
+    /// </summary>
     public void AllWindowHide()
     {
         foreach (var window in FrontedWindows.Where(pair => FrontedWindowStates[pair.Key]))
@@ -252,14 +239,14 @@ public class FrontedWindowService : IFrontedWindowService
     /// <param name="windowType">窗口类型。</param>
     public void HideWindow(FrontedWindowType windowType)
     {
-        HideWindow(FrontedWindowHelper.GetFrontedWindowGuid(windowType));
+        HideWindow(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
 
     public void HideWindow(string windowId)
     {
         if (!FrontedWindows.TryGetValue(windowId, out var window))
         {
-            if (!_windowRegistry.TryGetByWindowId(windowId, out _))
+            if (!_windowRegistry.TryGet(windowId, out _))
             {
                 _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCloseError"));
             }
@@ -277,18 +264,28 @@ public class FrontedWindowService : IFrontedWindowService
         PublishWindowHidden(windowId);
     }
 
+    /// <summary>
+    /// 显示指定类型的前台窗口。
+    /// </summary>
+    /// <param name="windowType">窗口类型。</param>
     public void ShowWindow(FrontedWindowType windowType)
     {
-        ShowWindow(FrontedWindowHelper.GetFrontedWindowGuid(windowType));
+        ShowWindow(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
 
     /// <summary>
     /// 显示指定 ID 的前台窗口。
     /// </summary>
     /// <param name="windowId">窗口 ID。</param>
-    public async void ShowWindow(string windowId)
+    public void ShowWindow(string windowId)
     {
-        await ShowWindowAsync(windowId);
+        _ = ShowWindowAsync(windowId).ContinueWith(t =>
+        {
+            if (t.IsFaulted)
+            {
+                _logger.LogError(t.Exception, "Failed to show window {WindowId}", windowId);
+            }
+        }, TaskScheduler.Default);
     }
 
     private async Task ShowWindowAsync(string windowId)
@@ -341,22 +338,22 @@ public class FrontedWindowService : IFrontedWindowService
 
     private void ApplyWindowLayoutOptions(string windowId, Window window)
     {
-        if (!_windowRegistry.TryGetByWindowId(windowId, out var descriptor))
+        if (!_windowRegistry.TryGet(windowId, out var registration))
         {
             return;
         }
 
-        if (descriptor.IsV3LayoutWindow)
+        if (registration.Kind == FrontedWindowRegistrationKind.V3Layout)
         {
             return;
         }
 
-        if (!File.Exists(_windowLayoutOptionsService.GetUserOptionsPath(descriptor.FullWindowType)))
+        if (!File.Exists(_windowLayoutOptionsService.GetUserOptionsPath(registration.Id)))
         {
             return;
         }
 
-        var options = _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
+        var options = _windowLayoutOptionsService.LoadOptions(registration.Id);
         try
         {
             window.AllowsTransparency = options.AllowTransparency;
@@ -365,8 +362,8 @@ public class FrontedWindowService : IFrontedWindowService
         {
             _logger.LogDebug(
                 ex,
-                "Fronted window transparency option could not be applied after source creation. Window: {FullWindowType}",
-                descriptor.FullWindowType);
+                "Fronted window transparency option could not be applied after source creation. Window: {WindowId}",
+                registration.Id);
         }
 
         if (!TryCreateBackgroundBrush(options.BackgroundColor, out var brush))
@@ -384,15 +381,16 @@ public class FrontedWindowService : IFrontedWindowService
     /// <returns>成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public async Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType)
     {
-        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
-            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !FrontedWindows.TryGetValue(registration.Id, out var window))
         {
             return false;
         }
 
-        var backgroundColor = descriptor.IsV3LayoutWindow
-            ? (await LoadV3WindowSettingsAsync(descriptor.FullWindowType))?.BackgroundColor
-            : _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType).BackgroundColor;
+        var isV3 = registration.Kind == FrontedWindowRegistrationKind.V3Layout;
+        var backgroundColor = isV3
+            ? (await LoadV3WindowSettingsAsync(registration.Id))?.BackgroundColor
+            : _windowLayoutOptionsService.LoadOptions(registration.Id).BackgroundColor;
         if (!TryCreateBackgroundBrush(backgroundColor, out var brush))
         {
             brush = Brushes.Transparent;
@@ -419,18 +417,19 @@ public class FrontedWindowService : IFrontedWindowService
     /// <returns>成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public async Task<bool> ApplyWindowSizeAsync(string fullWindowType)
     {
-        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
-            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !FrontedWindows.TryGetValue(registration.Id, out var window))
         {
             return false;
         }
 
-        var v3Settings = descriptor.IsV3LayoutWindow
-            ? await LoadV3WindowSettingsAsync(descriptor.FullWindowType)
+        var isV3 = registration.Kind == FrontedWindowRegistrationKind.V3Layout;
+        var v3Settings = isV3
+            ? await LoadV3WindowSettingsAsync(registration.Id)
             : null;
-        var options = descriptor.IsV3LayoutWindow
+        var options = isV3
             ? null
-            : _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
+            : _windowLayoutOptionsService.LoadOptions(registration.Id);
         var width = v3Settings?.WindowWidth ?? options?.WindowWidth;
         var height = v3Settings?.WindowHeight ?? options?.WindowHeight;
         if (width is null && height is null)
@@ -466,28 +465,28 @@ public class FrontedWindowService : IFrontedWindowService
     /// <inheritdoc/>
     public async Task<bool> RestartWindowForTransparencyChangeAsync(string fullWindowType)
     {
-        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
-            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var oldWindow))
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !FrontedWindows.TryGetValue(registration.Id, out var oldWindow))
         {
             return false;
         }
 
         if (oldWindow.Dispatcher.CheckAccess())
         {
-            return await RestartWindowForTransparencyChangeOnDispatcherAsync(descriptor, oldWindow);
+            return await RestartWindowForTransparencyChangeOnDispatcherAsync(registration, oldWindow);
         }
 
         return await oldWindow.Dispatcher
-            .InvokeAsync(() => RestartWindowForTransparencyChangeOnDispatcherAsync(descriptor, oldWindow))
+            .InvokeAsync(() => RestartWindowForTransparencyChangeOnDispatcherAsync(registration, oldWindow))
             .Task
             .Unwrap();
     }
 
     private async Task<bool> RestartWindowForTransparencyChangeOnDispatcherAsync(
-        IFrontedWindowDescriptor descriptor,
+        FrontedWindowRegistration registration,
         Window oldWindow)
     {
-        var windowId = descriptor.WindowId;
+        var windowId = registration.Id;
         if (!FrontedWindows.TryGetValue(windowId, out var currentWindow)
             || !ReferenceEquals(currentWindow, oldWindow))
         {
@@ -515,8 +514,7 @@ public class FrontedWindowService : IFrontedWindowService
         if (newWindow is null)
         {
             _logger.LogWarning(
-                "Failed to recreate fronted window after transparency change. Window: {FullWindowType}, WindowId: {WindowId}",
-                descriptor.FullWindowType,
+                "Failed to recreate fronted window after transparency change. WindowId: {WindowId}",
                 windowId);
             return true;
         }
@@ -567,8 +565,8 @@ public class FrontedWindowService : IFrontedWindowService
 
     public (double Width, double Height)? GetWindowSize(string fullWindowType)
     {
-        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
-            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !FrontedWindows.TryGetValue(registration.Id, out var window))
         {
             return null;
         }
@@ -620,8 +618,8 @@ public class FrontedWindowService : IFrontedWindowService
         foreach (var pair in FrontedWindows.ToArray())
         {
             if (pair.Value is not FrontedWindowBase frontedWindow
-                || !_windowRegistry.TryGetByWindowId(pair.Key, out var descriptor)
-                || !descriptor.IsV3LayoutWindow)
+                || !_windowRegistry.TryGet(pair.Key, out var registration)
+                || registration.Kind != FrontedWindowRegistrationKind.V3Layout)
             {
                 continue;
             }
@@ -632,7 +630,7 @@ public class FrontedWindowService : IFrontedWindowService
                 if (requestedTransparency.HasValue
                     && requestedTransparency.Value != frontedWindow.AllowsTransparency)
                 {
-                    await RestartWindowForTransparencyChangeAsync(descriptor.FullWindowType);
+                    await RestartWindowForTransparencyChangeAsync(registration.Id);
                     continue;
                 }
 
@@ -640,7 +638,7 @@ public class FrontedWindowService : IFrontedWindowService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowType}.", descriptor.FullWindowType);
+                _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowId}.", registration.Id);
             }
         }
     }
@@ -654,9 +652,9 @@ public class FrontedWindowService : IFrontedWindowService
         }
 
         var windowId = windowIdOrFullWindowType;
-        if (_windowRegistry.TryGetByFullWindowType(windowIdOrFullWindowType, out var descriptor))
+        if (_windowRegistry.TryGet(windowIdOrFullWindowType, out var registration))
         {
-            windowId = descriptor.WindowId;
+            windowId = registration.Id;
         }
 
         if (FrontedWindows.TryGetValue(windowId, out var window)

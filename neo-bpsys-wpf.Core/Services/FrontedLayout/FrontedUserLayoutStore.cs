@@ -37,17 +37,17 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
     }
 
     /// <inheritdoc />
-    public bool Exists(string windowTypeName)
+    public bool Exists(string canonicalWindowId)
     {
-        return File.Exists(GetLayoutPath(windowTypeName));
+        return File.Exists(GetLayoutPath(canonicalWindowId));
     }
 
     /// <inheritdoc />
     public async Task<FrontedWindowConfig?> LoadAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         CancellationToken cancellationToken = default)
     {
-        var path = GetLayoutPath(windowTypeName);
+        var path = GetLayoutPath(canonicalWindowId);
         if (!File.Exists(path))
         {
             return null;
@@ -64,7 +64,7 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
 
     /// <inheritdoc />
     public async Task SaveAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         FrontedWindowConfig config,
         CancellationToken cancellationToken = default)
     {
@@ -72,15 +72,15 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
 
         config.Version = 3;
         var json = JsonSerializer.Serialize(config, _jsonSerializerOptions);
-        await File.WriteAllTextAsync(GetLayoutPath(windowTypeName), json, cancellationToken);
+        await File.WriteAllTextAsync(GetLayoutPath(canonicalWindowId), json, cancellationToken);
     }
 
     /// <inheritdoc />
     public Task DeleteAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         CancellationToken cancellationToken = default)
     {
-        var path = GetLayoutPath(windowTypeName);
+        var path = GetLayoutPath(canonicalWindowId);
         if (File.Exists(path))
         {
             File.Delete(path);
@@ -90,9 +90,9 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
     }
 
     /// <inheritdoc />
-    public string GetLayoutPath(string windowTypeName)
+    public string GetLayoutPath(string canonicalWindowId)
     {
-        return Path.Combine(_rootFolder, FrontedLayoutWindowPathHelper.GetLayoutRelativePath(windowTypeName));
+        return Path.Combine(_rootFolder, FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(canonicalWindowId));
     }
 
     /// <inheritdoc />

@@ -1,7 +1,7 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -41,25 +41,25 @@ public class FrontedDesignerLayoutCatalog
             return GetFallbackEntries();
         }
 
-        return _windowRegistry.GetCustomizableLayoutWindows()
+        return _windowRegistry.GetV3LayoutWindows()
             .Select(Create)
             .ToArray();
     }
 
-    private static FrontedDesignerLayoutCatalogEntry Create(IFrontedWindowDescriptor descriptor)
+    private static FrontedDesignerLayoutCatalogEntry Create(FrontedV3LayoutWindowRegistration registration)
     {
         return new FrontedDesignerLayoutCatalogEntry
         {
-            WindowTypeName = descriptor.FullWindowType,
-            DisplayName = string.IsNullOrWhiteSpace(descriptor.DisplayName)
-                ? descriptor.WindowTypeName
-                : descriptor.DisplayName,
-            I18nDisplayNames = descriptor.I18nDisplayNames,
-            WindowId = descriptor.WindowId,
+            WindowTypeName = registration.Id,
+            DisplayName = string.IsNullOrWhiteSpace(registration.DisplayName)
+                ? registration.LocalId
+                : registration.DisplayName,
+            I18nDisplayNames = registration.I18nDisplayNames,
+            WindowId = registration.Id,
             CanvasWidth = null,
             CanvasHeight = null,
             IsMigrated = true,
-            IsEditable = descriptor.IsV3LayoutWindow && descriptor.Customizable
+            IsEditable = true
         };
     }
 

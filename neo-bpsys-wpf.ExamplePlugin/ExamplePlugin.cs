@@ -18,8 +18,8 @@ public class ExamplePlugin : PluginBase
     {
         services.AddBackendPage<MainPage, ViewModels.MainPageViewModel>();
 
-        services.AddFrontedWindowPluginContributor<ExampleFrontedWindowContributor>();
-        services.AddFrontedWindowPluginContributor<ExampleLayoutWindowContributor>();
+        services.AddFrontedWindow<ExampleXamlWindow, ViewModels.ExampleXamlWindowViewModel>();
+        services.AddFrontedV3LayoutWindow("ExampleLayoutOverlay");
 
         services.AddFrontedPluginControlContributor<TeamCardFrontedControlContributor>();
 

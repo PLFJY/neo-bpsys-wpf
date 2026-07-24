@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">text/microsoft-resx</resheader>
   <resheader name="version">2.0</resheader>
@@ -322,13 +322,13 @@
   <data name="MissingPluginImportMessage">
     <value>此布局包引用了当前未注册的插件控件。缺失控件不会在前台窗口渲染；你可以取消导入，或强制导入并删除这些控件。</value>
   </data>
-  <data name="FrontedWindowKind.BuiltIn">
+  <data name="FrontManageWindowCategory.BuiltIn">
     <value>内置窗口</value>
   </data>
-  <data name="FrontedWindowKind.PluginXaml">
+  <data name="FrontManageWindowCategory.Xaml">
     <value>插件 XAML 窗口</value>
   </data>
-  <data name="FrontedWindowKind.PluginLayout">
+  <data name="FrontManageWindowCategory.V3Layout">
     <value>插件 v3 窗口</value>
   </data>
   <data name="StopAllLoopAnimations">

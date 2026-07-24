@@ -39,7 +39,7 @@
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
             "TextWrapping": "WrapWithOverflow",
-            "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+            "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
             "FontWeight": "Normal",
             "Color": "#FF000000",
             "ColorBindingPath": null,
@@ -51,7 +51,9 @@
             "Height": 26,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "AwayTeamName": {
             "Text": null,
@@ -72,7 +74,7 @@
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
             "TextWrapping": "WrapWithOverflow",
-            "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+            "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
             "FontWeight": "Normal",
             "Color": "#FF000000",
             "ColorBindingPath": null,
@@ -84,7 +86,9 @@
             "Height": 29,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "SurTeamLogo": {
             "SizingMode": "FillContainer",
@@ -114,7 +118,9 @@
             "Height": 40,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": "MainTeam.Logo"
+            "BindingPath": "MainTeam.Logo",
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "HomeScoreTotal": {
             "Text": null,
@@ -135,7 +141,7 @@
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
             "TextWrapping": null,
-            "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+            "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
             "FontWeight": "Bold",
             "Color": "#FF000000",
             "ColorBindingPath": null,
@@ -147,7 +153,9 @@
             "Height": null,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "AwayTeamLogo": {
             "SizingMode": "FillContainer",
@@ -177,7 +185,9 @@
             "Height": 40,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": "AwayTeam.Logo"
+            "BindingPath": "AwayTeam.Logo",
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "AwayScoreTotal": {
             "Text": null,
@@ -198,7 +208,7 @@
             "VerticalAlignment": "Center",
             "TextAlignment": "Center",
             "TextWrapping": null,
-            "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+            "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
             "FontWeight": "Bold",
             "Color": "#FF000000",
             "ColorBindingPath": null,
@@ -210,7 +220,9 @@
             "Height": null,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "HomeGlobalScoreRow": {
             "TeamType": "HomeTeam",
@@ -469,7 +481,9 @@
             "Height": 36,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "BackgroundTintSur": {
             "RadiusX": 0,
@@ -488,7 +502,9 @@
             "Height": 60,
             "ZIndex": -1,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "BackgroundTintHun": {
             "RadiusX": 0,
@@ -507,7 +523,9 @@
             "Height": 61.5,
             "ZIndex": -1,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           },
           "AwayGlobalScoreRow": {
             "TeamType": "AwayTeam",
@@ -767,7 +785,9 @@
             "Height": 36,
             "ZIndex": 3,
             "Visibility": "Visible",
-            "BindingPath": null
+            "BindingPath": null,
+            "IsGaussianBlurEnabled": false,
+            "GaussianBlurRadius": 0
           }
         }
       }
@@ -795,7 +815,7 @@
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": "WrapWithOverflow",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
         "FontWeight": "Normal",
         "Color": "#FF000000",
         "ColorBindingPath": null,
@@ -807,7 +827,9 @@
         "Height": 26,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "AwayTeamName": {
         "Text": null,
@@ -828,7 +850,7 @@
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": "WrapWithOverflow",
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
         "FontWeight": "Normal",
         "Color": "#FF000000",
         "ColorBindingPath": null,
@@ -840,7 +862,9 @@
         "Height": 29,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HomeTeamLogo": {
         "SizingMode": "FillContainer",
@@ -870,7 +894,9 @@
         "Height": 40,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": "HomeTeam.Logo"
+        "BindingPath": "HomeTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HomeScoreTotal": {
         "Text": null,
@@ -891,7 +917,7 @@
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": null,
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
         "FontWeight": "Bold",
         "Color": "#FF000000",
         "ColorBindingPath": null,
@@ -903,7 +929,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HunTeamLogo": {
         "SizingMode": "FillContainer",
@@ -933,7 +961,9 @@
         "Height": 40,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": "CurrentGame.HunTeam.Logo"
+        "BindingPath": "CurrentGame.HunTeam.Logo",
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "AwayScoreTotal": {
         "Text": null,
@@ -954,7 +984,7 @@
         "VerticalAlignment": "Center",
         "TextAlignment": "Center",
         "TextWrapping": null,
-        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
         "FontWeight": "Bold",
         "Color": "#FF000000",
         "ColorBindingPath": null,
@@ -966,7 +996,9 @@
         "Height": null,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "HomeGlobalScoreRow": {
         "TeamType": "HomeTeam",
@@ -1225,7 +1257,9 @@
         "Height": 36,
         "ZIndex": 2,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "BackgroundTintSur": {
         "RadiusX": 0,
@@ -1244,7 +1278,9 @@
         "Height": 60,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "BackgroundTintHun": {
         "RadiusX": 0,
@@ -1263,7 +1299,9 @@
         "Height": 61.5,
         "ZIndex": -1,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       },
       "AwayGlobalScoreRow": {
         "TeamType": "AwayTeam",
@@ -1523,7 +1561,9 @@
         "Height": 36,
         "ZIndex": 3,
         "Visibility": "Visible",
-        "BindingPath": null
+        "BindingPath": null,
+        "IsGaussianBlurEnabled": false,
+        "GaussianBlurRadius": 0
       }
     }
   }

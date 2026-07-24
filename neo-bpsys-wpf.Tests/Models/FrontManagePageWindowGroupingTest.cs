@@ -1,8 +1,11 @@
 #nullable enable
 
+using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System;
@@ -14,9 +17,9 @@ namespace neo_bpsys_wpf.Tests.Models;
 public class FrontManagePageWindowGroupingTest
 {
     [Fact]
-    public void BuiltInDesignerV3WindowsUseStableV3Descriptors()
+    public void BuiltInDesignerV3WindowsUseStableV3Registrations()
     {
-        var registry = new FrontedWindowRegistryService();
+        var services = new ServiceCollection();
         var expectedWindows = new[]
         {
             FrontedWindowType.BpWindow,
@@ -31,28 +34,37 @@ public class FrontManagePageWindowGroupingTest
 
         foreach (var windowType in expectedWindows)
         {
-            var windowTypeName = windowType.ToString();
-            Assert.True(registry.TryGetByFullWindowType(windowTypeName, out var descriptor));
-            Assert.Equal(FrontedWindowHelper.GetFrontedWindowGuid(windowType), descriptor.WindowId);
-            Assert.Equal(windowTypeName, descriptor.FullWindowType);
-            Assert.Equal(FrontedWindowKind.BuiltIn, descriptor.Kind);
-            Assert.True(descriptor.IsV3LayoutWindow);
-            Assert.True(descriptor.Customizable);
-            Assert.Equal("BuiltIn", descriptor.GroupKey);
+            services.AddFrontedV3LayoutWindow(
+                FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType),
+                isBuiltIn: true);
+        }
+
+        services.AddSingleton<IFrontedWindowRegistry, FrontedWindowRegistryService>();
+        var registry = services.BuildServiceProvider().GetRequiredService<IFrontedWindowRegistry>();
+
+        foreach (var windowType in expectedWindows)
+        {
+            var canonicalId = FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType);
+            Assert.True(registry.TryGet(canonicalId, out var registration));
+            Assert.Equal(canonicalId, registration.Id);
+            Assert.Equal(canonicalId, registration.LocalId);
+            Assert.True(registration.IsBuiltIn);
+            Assert.Equal(FrontedWindowRegistrationKind.V3Layout, registration.Kind);
+            Assert.Equal("BuiltIn", registration.GroupKey);
         }
     }
 
     [Fact]
     public void GroupsFollowRegistryOrderAndDoNotExposeCanvas()
     {
-        IFrontedWindowDescriptor[] descriptors =
+        FrontedWindowRegistration[] registrations =
         [
-            CreateDescriptor("score-sur", "ScoreSurWindow", "Score", 100),
-            CreateDescriptor("score-hun", "ScoreHunWindow", "Score", 110),
-            CreateDescriptor("bp", "BpWindow", "Bp", 10)
+            CreateV3Registration("score-sur", "ScoreSurWindow", "Score", 100),
+            CreateV3Registration("score-hun", "ScoreHunWindow", "Score", 110),
+            CreateV3Registration("bp", "BpWindow", "Bp", 10)
         ];
 
-        var groups = FrontedWindowManageGroup.FromDescriptors(descriptors);
+        var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
         Assert.Collection(
             groups,
@@ -77,54 +89,40 @@ public class FrontManagePageWindowGroupingTest
     [Fact]
     public void MissingGroupKeyUsesStableFallback()
     {
-        IFrontedWindowDescriptor[] descriptors =
+        FrontedWindowRegistration[] registrations =
         [
-            CreateDescriptor("builtin", "BpWindow", null, null),
-            new FrontedPluginWindowDescriptor
-            {
-                PackageId = "top.plfjy.test",
-                WindowId = Guid.NewGuid().ToString(),
-                WindowTypeName = "Overlay",
-                DisplayName = "Overlay",
-                Kind = FrontedWindowKind.PluginLayout,
-                AllowBlankDefaultLayout = true
-            }
+            CreateV3Registration("BpWindow", "BpWindow", null, null, isBuiltIn: true),
+            CreateV3Registration("plugin:top.plfjy.test/Overlay", "Overlay", null, null, isBuiltIn: false)
         ];
 
-        var groups = FrontedWindowManageGroup.FromDescriptors(descriptors);
+        var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
         Assert.Equal(["BuiltIn", "Plugin"], groups.Select(group => group.GroupKey));
     }
 
     [Fact]
-    public void PluginWindowDescriptorDefaultsToXamlWindow()
+    public void V3RegistrationReportsV3LayoutKind()
     {
-        var descriptor = new FrontedPluginWindowDescriptor
-        {
-            PackageId = "top.plfjy.test",
-            WindowId = Guid.NewGuid().ToString(),
-            WindowTypeName = "LegacyWindow"
-        };
+        var registration = CreateV3Registration("Overlay", "Overlay", null, null, isBuiltIn: false);
 
-        Assert.Equal(FrontedWindowKind.PluginXaml, descriptor.Kind);
-        Assert.False(descriptor.IsV3LayoutWindow);
+        Assert.Equal(FrontedWindowRegistrationKind.V3Layout, registration.Kind);
     }
 
-    private static FrontedBuiltInWindowDescriptor CreateDescriptor(
-        string windowId,
-        string windowTypeName,
+    private static FrontedV3LayoutWindowRegistration CreateV3Registration(
+        string id,
+        string displayName,
         string? groupKey,
-        int? displayOrder)
+        int? displayOrder,
+        bool isBuiltIn = true)
     {
-        return new FrontedBuiltInWindowDescriptor
+        return new FrontedV3LayoutWindowRegistration
         {
-            WindowId = windowId,
-            WindowTypeName = windowTypeName,
-            DisplayName = windowTypeName,
+            Id = id,
+            LocalId = id,
+            IsBuiltIn = isBuiltIn,
+            DisplayName = displayName,
             GroupKey = groupKey,
-            DisplayOrder = displayOrder,
-            IsV3LayoutWindow = true,
-            Customizable = true
+            DisplayOrder = displayOrder
         };
     }
 }

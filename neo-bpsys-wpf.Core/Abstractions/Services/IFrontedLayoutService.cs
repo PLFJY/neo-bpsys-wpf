@@ -10,31 +10,31 @@ public interface IFrontedLayoutService
     /// <summary>
     /// 加载以窗口为中心的 v3 布局配置。
     /// </summary>
-    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="canonicalWindowId">窗口的 Canonical ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>加载的配置，缺失时返回 <see langword="null"/>。</returns>
     Task<FrontedWindowConfig?> LoadWindowConfigAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 加载以窗口为中心的 v3 布局配置并返回来源元数据。
     /// </summary>
-    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="canonicalWindowId">窗口的 Canonical ID。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>加载结果。</returns>
     Task<FrontedLayoutLoadResult> LoadWindowConfigWithMetadataAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 保存以窗口为中心的 v3 布局配置。
     /// </summary>
-    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="canonicalWindowId">窗口的 Canonical ID。</param>
     /// <param name="config">要保存的配置。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     Task SaveWindowConfigAsync(
-        string windowTypeName,
+        string canonicalWindowId,
         FrontedWindowConfig config,
         CancellationToken cancellationToken = default);
 }

@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
 namespace neo_bpsys_wpf.Core.Controls;
 
@@ -20,7 +21,7 @@ namespace neo_bpsys_wpf.Core.Controls;
 /// </summary>
 public class FrontedWindowBase : Window
 {
-    private IFrontedWindowDescriptor? _v3Descriptor;
+    private FrontedWindowRegistration? _v3Registration;
     private IFrontedLayoutService? _layoutService;
     private IFrontedRenderer? _renderer;
     private ISharedDataService? _sharedDataService;
@@ -127,7 +128,7 @@ public class FrontedWindowBase : Window
     /// <summary>
     /// 将此窗口初始化为由配置驱动的 v3 布局宿主。
     /// </summary>
-    /// <param name="descriptor">前台窗口描述符。</param>
+    /// <param name="registration">前台窗口注册。</param>
     /// <param name="layoutService">布局服务。</param>
     /// <param name="renderer">前台渲染器。</param>
     /// <param name="sharedDataService">共享数据服务。</param>
@@ -136,7 +137,7 @@ public class FrontedWindowBase : Window
     /// <param name="settingsHostService">可选的设置宿主服务，用于刷新本地化的窗口标题。</param>
     /// <exception cref="ArgumentNullException">当必选参数为 null 时抛出。</exception>
     public void InitializeV3LayoutHost(
-        IFrontedWindowDescriptor descriptor,
+        FrontedWindowRegistration registration,
         IFrontedLayoutService layoutService,
         IFrontedRenderer renderer,
         ISharedDataService sharedDataService,
@@ -144,12 +145,12 @@ public class FrontedWindowBase : Window
         ILogger? logger,
         ISettingsHostService? settingsHostService = null)
     {
-        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(registration);
         ArgumentNullException.ThrowIfNull(layoutService);
         ArgumentNullException.ThrowIfNull(renderer);
         ArgumentNullException.ThrowIfNull(sharedDataService);
 
-        _v3Descriptor = descriptor;
+        _v3Registration = registration;
         _layoutService = layoutService;
         _renderer = renderer;
         _sharedDataService = sharedDataService;
@@ -202,12 +203,12 @@ public class FrontedWindowBase : Window
     /// <returns>请求的透明度值；当没有可用的 v3 布局时返回 <c>null</c>。</returns>
     public async Task<bool?> GetRequestedAllowsTransparencyAsync()
     {
-        if (!_isV3LayoutHost || _v3Descriptor is null || _layoutService is null)
+        if (!_isV3LayoutHost || _v3Registration is null || _layoutService is null)
         {
             return null;
         }
 
-        var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+        var config = await _layoutService.LoadWindowConfigAsync(_v3Registration.Id);
         return config?.WindowSettings.AllowsTransparency;
     }
 
@@ -217,12 +218,12 @@ public class FrontedWindowBase : Window
     /// <returns>设置应用完成后完成的任务。</returns>
     public async Task ReloadWindowSettingsAsync()
     {
-        if (!_isV3LayoutHost || _v3Descriptor is null || _layoutService is null)
+        if (!_isV3LayoutHost || _v3Registration is null || _layoutService is null)
         {
             return;
         }
 
-        var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+        var config = await _layoutService.LoadWindowConfigAsync(_v3Registration.Id);
         if (config is null)
         {
             return;
@@ -242,7 +243,7 @@ public class FrontedWindowBase : Window
     public async Task EnsureInitialWindowSettingsAppliedAsync()
     {
         if (!_isV3LayoutHost
-            || _v3Descriptor is null
+            || _v3Registration is null
             || _layoutService is null
             || _hasInitialWindowSettingsApplied)
         {
@@ -251,12 +252,12 @@ public class FrontedWindowBase : Window
 
         try
         {
-            var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+            var config = await _layoutService.LoadWindowConfigAsync(_v3Registration.Id);
             if (config is null)
             {
                 _logger?.LogWarning(
                     "Fronted v3 window layout config not found. Window: {WindowTypeName}",
-                    _v3Descriptor.FullWindowType);
+                    _v3Registration.Id);
                 return;
             }
 
@@ -272,7 +273,7 @@ public class FrontedWindowBase : Window
             _logger?.LogError(
                 ex,
                 "Failed to apply initial fronted v3 window settings. Window: {WindowTypeName}",
-                _v3Descriptor.FullWindowType);
+                _v3Registration.Id);
         }
     }
 
@@ -284,7 +285,7 @@ public class FrontedWindowBase : Window
     public async Task LoadOrReloadContentAsync(bool force = false)
     {
         if (!_isV3LayoutHost
-            || _v3Descriptor is null
+            || _v3Registration is null
             || _layoutService is null
             || _renderer is null
             || _sharedDataService is null
@@ -306,12 +307,12 @@ public class FrontedWindowBase : Window
                 return;
             }
 
-            var config = await _layoutService.LoadWindowConfigAsync(_v3Descriptor.FullWindowType);
+            var config = await _layoutService.LoadWindowConfigAsync(_v3Registration.Id);
             if (config is null)
             {
                 _logger?.LogWarning(
                     "Fronted v3 window layout config not found. Window: {WindowTypeName}",
-                    _v3Descriptor.FullWindowType);
+                    _v3Registration.Id);
                 return;
             }
 
@@ -321,8 +322,8 @@ public class FrontedWindowBase : Window
                 await DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason.LayoutReloaded);
                 _renderer.RenderToCanvas(_baseCanvas, config, new FrontedRenderContext
                 {
-                    WindowId = _v3Descriptor.WindowId,
-                    WindowTypeName = _v3Descriptor.FullWindowType,
+                    WindowId = _v3Registration.Id,
+                    WindowTypeName = _v3Registration.Id,
                     CanvasName = FrontedLayoutConstants.BaseCanvasName
                 });
 
@@ -337,7 +338,7 @@ public class FrontedWindowBase : Window
             _logger?.LogError(
                 ex,
                 "Failed to reload fronted v3 window layout. Window: {WindowTypeName}",
-                _v3Descriptor.FullWindowType);
+                _v3Registration.Id);
         }
         finally
         {
@@ -369,7 +370,7 @@ public class FrontedWindowBase : Window
     public async Task AttachBehaviorRuntimeAsync()
     {
         if (!_isV3LayoutHost
-            || _v3Descriptor is null
+            || _v3Registration is null
             || _sharedDataService is null
             || _baseCanvas is null
             || _behaviorRuntime is null
@@ -384,8 +385,8 @@ public class FrontedWindowBase : Window
         {
             await _behaviorRuntime.AttachAsync(new FrontedBehaviorRuntimeContext
             {
-                WindowId = _v3Descriptor.WindowId,
-                WindowType = _v3Descriptor.FullWindowType,
+                WindowId = _v3Registration.Id,
+                WindowType = _v3Registration.Id,
                 RootCanvas = _baseCanvas,
                 WindowConfig = _lastRenderedConfig,
                 SharedDataService = _sharedDataService,
@@ -431,7 +432,7 @@ public class FrontedWindowBase : Window
         {
             _logger?.LogWarning(
                 "Fronted window background color is empty or invalid; falling back to Transparent. Window: {WindowTypeName}, BackgroundColor: {BackgroundColor}",
-                _v3Descriptor?.FullWindowType,
+                _v3Registration?.Id,
                 settings.BackgroundColor);
         }
 
@@ -501,14 +502,14 @@ public class FrontedWindowBase : Window
 
     private void RefreshV3WindowTitle(System.Globalization.CultureInfo? cultureInfo = null)
     {
-        if (_v3Descriptor is null)
+        if (_v3Registration is null)
         {
             return;
         }
 
         var settings = _settingsHostService?.Settings;
         Title = FrontedWindowDisplayNameResolver.ResolveDisplayName(
-            _v3Descriptor,
+            _v3Registration,
             settings?.Language ?? LanguageKey.System,
             cultureInfo ?? settings?.CultureInfo);
     }
@@ -577,13 +578,13 @@ public class FrontedWindowBase : Window
 
     private async Task DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason reason = FrontedBehaviorStopReason.WindowHidden)
     {
-        if (_v3Descriptor is null || _behaviorRuntime is null || !IsBehaviorAttached)
+        if (_v3Registration is null || _behaviorRuntime is null || !IsBehaviorAttached)
         {
             return;
         }
 
-        await _behaviorRuntime.StopLoopBehaviorsAsync(_v3Descriptor.WindowId, reason);
-        await _behaviorRuntime.DetachAsync(_v3Descriptor.WindowId);
+        await _behaviorRuntime.StopLoopBehaviorsAsync(_v3Registration.Id, reason);
+        await _behaviorRuntime.DetachAsync(_v3Registration.Id);
         IsBehaviorAttached = false;
     }
 
