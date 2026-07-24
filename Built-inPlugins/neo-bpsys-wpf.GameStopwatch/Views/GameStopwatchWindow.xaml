@@ -5,12 +5,13 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Core.Controls;assembly=neo-bpsys-wpf.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    SizeToContent="Height"
+    Title="比赛秒表"
     Width="{Binding WindowSize}"
-    Background="Transparent"
     AllowsTransparency="True"
-    WindowStyle="None"
+    Background="Transparent"
     ShowInTaskbar="False"
+    SizeToContent="Height"
+    WindowStyle="None"
     mc:Ignorable="d">
     <Border Padding="8" Background="Transparent">
         <TextBlock
