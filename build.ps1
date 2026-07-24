@@ -146,7 +146,6 @@ Invoke-External -FilePath "dotnet" -Arguments @(
     "-o", $BuildPath,
     "-r", $RuntimeIdentifier,
     "--self-contained", $SelfContained,
-    "--no-restore",
     "/p:BuildMeta=$GitHash"
 ) -ErrorMessage "dotnet publish failed"
 
@@ -200,8 +199,7 @@ Invoke-External -FilePath "dotnet" -Arguments @(
     "-c", $Configuration,
     "-o", $ModuleBuildPath,
     "-r", $RuntimeIdentifier,
-    "--self-contained", $SelfContained,
-    "--no-restore"
+    "--self-contained", $SelfContained
 ) -ErrorMessage "SmartBP module publish failed"
 
 $HostProvidedFiles = @{}

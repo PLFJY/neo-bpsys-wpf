@@ -46,13 +46,13 @@ WebRenderer 插件的前端由 Host sidecar 的 MSBuild target 调用 `pnpm` 构
 3. 用 `git rev-parse --short=7 HEAD` 获取 `BuildMeta`。
 4. 按 `win-x64`、`SelfContained=false` 执行主应用 `dotnet restore`。
 5. 按同一 RID 和 self-contained 配置执行内置插件 `TeamJsonMaker` 的 `dotnet restore`。
-6. 按同一 RID 和 self-contained 配置执行主应用 `dotnet publish --no-restore`。
+6. 按同一 RID 和 self-contained 配置执行主应用 `dotnet publish`。
 7. 检查 `neo-bpsys-wpf.exe` 是否存在。
 8. 从 `neo-bpsys-wpf.exe` 的 `ProductVersion` 读取本次 tag。
 9. 调用 `Installer\Inno Setup 6\ISCC.exe` 构建 lite 安装包。
 10. 计算 `neo-bpsys-wpf_Installer.exe.sha256`。
 11. 按 `win-x64`、`SelfContained=false` 执行 SmartBP 模块项目 `dotnet restore`。
-12. 按同一 RID 和 self-contained 配置执行 SmartBP 模块项目 `dotnet publish --no-restore` 到 `build\SmartBpModule`。
+12. 按同一 RID 和 self-contained 配置执行 SmartBP 模块项目 `dotnet publish` 到 `build\SmartBpModule`。
 13. 用本次 tag 写入模块 staging 的 `component.json`。
 14. 用仓库内官方 x64 7-Zip（`third_party/7zip/win-x64/7z.exe`）从同一 staging 目录生成 `SmartBpModule.7z` 和 `SmartBpModuleManifest.json`。
 15. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
