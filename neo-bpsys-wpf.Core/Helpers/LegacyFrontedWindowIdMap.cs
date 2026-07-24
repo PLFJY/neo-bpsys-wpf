@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Enums;
 namespace neo_bpsys_wpf.Core.Helpers;
 
 /// <summary>
-/// 旧版前台窗口 GUID 标识映射表，仅用于仍需 GUID 身份的遗留路径（如 legacy converter、设计器回退条目）。
+/// 旧版前台窗口 GUID 标识映射表，仅用于仍需 GUID 身份的遗留路径（如 legacy converter、旧数据转换）。
 /// </summary>
 /// <remarks>
 /// <para>
@@ -37,7 +37,7 @@ public static class LegacyFrontedWindowIdMap
     /// <returns>该内置窗口对应的旧版 GUID 字符串。</returns>
     /// <exception cref="ArgumentException">当 <paramref name="windowType"/> 不是有效的内置 <see cref="FrontedWindowType"/> 时抛出。</exception>
     /// <remarks>
-    /// 该方法仅用于仍需 GUID 身份的遗留路径（如 legacy converter、设计器回退条目）。
+    /// 该方法仅用于仍需 GUID 身份的遗留路径（如 legacy converter、旧数据转换）。
     /// v3 内置窗口应使用 <see cref="FrontedWindowHelper.GetFrontedWindowCanonicalId"/> 获取 Canonical ID（窗口名）。
     /// </remarks>
     public static string GetLegacyGuid(FrontedWindowType windowType)

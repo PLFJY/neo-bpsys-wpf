@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
@@ -24,18 +22,14 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     /// 从 DI 接收的 registration 集合初始化注册表。
     /// </summary>
     /// <param name="registrations">由 DI 注册的所有前台窗口 registration。</param>
-    /// <param name="logger">日志记录器。</param>
     /// <exception cref="InvalidOperationException">
     /// 当出现重复 Canonical ID 或空 Canonical ID 时抛出。
     /// 重复 ID 的异常信息含 ID、PackageId、IsBuiltIn、Kind、XAML WindowType（若存在）。
     /// 空 ID 的异常信息明确说明 ID 为空。
     /// </exception>
     public FrontedWindowRegistryService(
-        IEnumerable<FrontedWindowRegistration> registrations,
-        ILogger<FrontedWindowRegistryService>? logger = null)
+        IEnumerable<FrontedWindowRegistration> registrations)
     {
-        logger ??= NullLogger<FrontedWindowRegistryService>.Instance;
-
         var registrationList = registrations as IReadOnlyList<FrontedWindowRegistration>
                                ?? registrations.ToArray();
         // 使用 OrdinalIgnoreCase 与 Windows 路径/符号大小写不敏感语义保持一致。

@@ -44,14 +44,6 @@ public sealed class WebRendererBootstrapBuilder(
         {
             var result = await layoutService.LoadWindowConfigWithMetadataAsync(registration.Id, cancellationToken);
             var diagnostics = new List<string>();
-            if (result.Config is null)
-            {
-                diagnostics.Add(result.Error ?? "LayoutMissing");
-                windows.Add(new(registration.Id, localizationProvider.ResolveWindowDisplayName(registration, language, culture), true, false, false, 0,
-                    null, null, new Dictionary<string, string>(), diagnostics));
-                continue;
-            }
-
             var mapping = new Dictionary<string, string>(StringComparer.Ordinal);
             FrontedBehaviorDocument? behavior = null;
             var behaviorLoaded = false;

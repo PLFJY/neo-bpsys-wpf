@@ -58,9 +58,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         string canonicalWindowId,
         CancellationToken cancellationToken = default)
     {
-        return (await LoadWindowConfigWithMetadataAsync(canonicalWindowId, cancellationToken)).Config
-            ?? throw new InvalidDataException(
-                $"Fronted layout load returned null config for window '{canonicalWindowId}'.");
+        return (await LoadWindowConfigWithMetadataAsync(canonicalWindowId, cancellationToken)).Config;
     }
 
     /// <inheritdoc />

@@ -93,7 +93,7 @@ v3 提供两类前台窗口，均通过强类型 registration 模型注册。窗
 
 插件提供自己的 WPF `Window` 类型，宿主只负责创建、注册、显示和隐藏。它会出现在 FrontManage，不默认进入 Designer。
 
-窗口类必须使用 `[FrontedWindowInfo("GUID", "DisplayName")]` 特性标注，并继承 `FrontedWindowBase`。`IsBuiltIn` 是 attribute named argument，默认 `false`；内置窗口设 `IsBuiltIn = true`。
+窗口类必须使用 `[FrontedWindowInfo]` 特性标注，并继承 `FrontedWindowBase`。`FrontedWindowInfo.Id` 是稳定的窗口 Local ID；推荐新插件使用 GUID 以降低与历史插件发生冲突的可能，但不强制 GUID，允许任何通过 Window Local ID 安全校验的稳定字符串（不含 `/`、`\`、`:`、控制字符或前后空白）。`IsBuiltIn` 是 attribute named argument，默认 `false`；内置窗口设 `IsBuiltIn = true`。
 
 ```csharp
 [FrontedWindowInfo("3363BFE1-1393-4765-B926-001B6848FAF7", "Example XAML Window")]
@@ -109,7 +109,7 @@ public partial class ExampleXamlWindow : FrontedWindowBase
 services.AddFrontedWindow<ExampleXamlWindow, ExampleXamlWindowViewModel>();
 ```
 
-`AddFrontedWindow<TWindow, TViewModel>` 会读取 Attribute 上的 GUID 作为 runtime ID（LocalId），注册 ViewModel 和 Window，并在创建时设置 DataContext。PackageId 仅表示来源，不参与 v3 layout / Designer。`FrontedWindowInfo` 旧的 canvas 构造函数仍保留但参数会被忽略，Canvas 注入能力不会恢复。
+`AddFrontedWindow<TWindow, TViewModel>` 会读取 Attribute 上的 `Id` 作为 runtime ID（LocalId），注册 ViewModel 和 Window，并在创建时设置 DataContext。PackageId 仅表示来源，不参与 v3 layout / Designer。`FrontedWindowInfo` 旧的 canvas 构造函数仍保留但参数会被忽略，Canvas 注入能力不会恢复。
 
 ### v3 Layout Window
 
@@ -143,11 +143,11 @@ v3 Layout Window 不要求默认 JSON 存在。无默认 JSON 时使用 `Fronted
 ```text
 内置 v3 窗口:   直接使用 local ID（例如 BpWindow）
 插件 v3 窗口:   plugin:{PackageId}/{LocalWindowId}（例如 plugin:plfjy.ExamplePlugin/ExampleLayoutOverlay）
-内置 XAML 窗口: 直接使用 Attribute GUID（例如 3363BFE1-1393-4765-B926-001B6848FAF7）
-插件 XAML 窗口: plugin:{PackageId}/{AttributeGUID}
+内置 XAML 窗口: 直接使用 Attribute ID（例如 3363BFE1-1393-4765-B926-001B6848FAF7）
+插件 XAML 窗口: plugin:{PackageId}/{AttributeId}
 ```
 
-Attribute GUID 是 XAML 窗口的 runtime ID（LocalId）；PackageId 仅表示来源，不参与 v3 layout / Designer。
+`FrontedWindowInfo.Id` 是稳定的窗口 Local ID。推荐新插件使用 GUID，以降低与历史插件发生冲突的可能；但为了兼容既有社区插件，不强制 GUID。允许任何通过 Window Local ID 安全校验的稳定字符串（不含 `/`、`\`、`:`、控制字符或前后空白）。插件 XAML 窗口的 Canonical ID 为 `plugin:{PackageId}/{AttributeId}`，宿主直接注册的 XAML 窗口为 `{AttributeId}`。XAML 窗口不参与 v3 layout、Designer 或 `.bpui` layout entry。PackageId 仅表示来源，不参与 v3 layout / Designer。
 
 `.bpui` 契约保持不变：`FormatVersion=3`、`LayoutSchemaVersion=3`、所有 JSON 字段名不变，`Content.Layouts[].Window` 使用 Canonical ID。导入再导出不会重写 Canonical ID。
 

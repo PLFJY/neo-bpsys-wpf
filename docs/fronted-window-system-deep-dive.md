@@ -18,7 +18,7 @@
 | 窗口选项服务 | `IFrontedWindowLayoutOptionsService` / `FrontedWindowLayoutOptionsService` | 仅用于非 v3 / legacy XAML 窗口选项；v3 layout window 使用 `FrontedWindowConfig.WindowSettings` |
 | 管理页 ViewModel | `FrontManagePageViewModel` | 用户在后台管理前台窗口的入口 |
 | 插件注册作用域 | `FrontedPluginRegistrationContext`（internal static） | 在插件 `Initialize` 期间通过 `AsyncLocal<string?>` 携带当前插件包 ID |
-| v3 身份生成 | `FrontedV3LayoutWindowIdentity` | 按 `plugin:{PackageId}/{LocalId}` / `{LocalId}` 规则生成 Canonical ID |
+| 身份生成 | `FrontedWindowIdentity` | 按 `plugin:{PackageId}/{LocalId}` / `{LocalId}` 规则生成 Canonical ID |
 | v3 身份校验 | `FrontedV3LayoutWindowIdValidator` | 验证局部窗口标识，拒绝路径分隔符、`plugin:` 前缀、纯空白等形式 |
 | v3 空模板工厂 | `FrontedV3LayoutWindowConfigFactory` | 在布局加载不到时返回合法内存空模板，不立即写磁盘 |
 | v3 路径映射 | `FrontedV3LayoutWindowPathHelper` | 将 Canonical ID 映射为文件系统安全的布局路径 |
@@ -93,7 +93,7 @@ PluginService.InitializePlugins(context, services);
 
 1. 调用 `FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(windowId)` 验证局部窗口标识（含 null、空串、纯空白、路径分隔符、`..`、`plugin:` 前缀等）
 2. 读取 `FrontedPluginRegistrationContext.CurrentPackageId` 获取当前插件包 ID；若非空则校验其可作为 canonical path segment
-3. 调用 `FrontedV3LayoutWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn)` 生成 Canonical ID
+3. 调用 `FrontedWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn)` 生成 Canonical ID
 4. 创建 `FrontedV3LayoutWindowRegistration` 并向 DI 注册为 `FrontedWindowRegistration`
 
 ```csharp
@@ -103,7 +103,7 @@ FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(windowId);
 var packageId = FrontedPluginRegistrationContext.CurrentPackageId;
 FrontedWindowRegistryExtensions.EnsureSafePackageId(packageId);
 
-var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn);
+var canonicalId = FrontedWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn);
 
 var registration = new FrontedV3LayoutWindowRegistration
 {
@@ -119,7 +119,7 @@ services.AddSingleton<FrontedWindowRegistration>(registration);
 
 来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导；顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序；内置窗口的本地化显示名由 UI 层通过现有 resx（`Designer.Window.{LocalId}`）解析。基类不再有 `GroupKey` / `DisplayOrder` / `I18nDisplayNames` 字段。
 
-**Canonical ID 生成规则**（见 [FrontedV3LayoutWindowIdentity.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowIdentity.cs)）：
+**Canonical ID 生成规则**（见 [FrontedWindowIdentity.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedWindowIdentity.cs)）：
 
 - `isBuiltIn = true` 或 `packageId is null`：`canonicalId = localWindowId`
 - 否则：`canonicalId = $"plugin:{packageId}/{localWindowId}"`
@@ -139,7 +139,7 @@ services.AddSingleton<FrontedWindowRegistration>(registration);
 在 [FrontedWindowRegistryExtensions.cs](../neo-bpsys-wpf.Core/Extensions/Registry/FrontedWindowRegistryExtensions.cs) 中，用于注册有 WPF `Window` CLR 类型的窗口（典型为插件 XAML 窗口）：
 
 1. 从 `TView` 类型的 `[FrontedWindowInfo]` 特性中提取 `Id`（不再强制要求 GUID，只需非空白且不与已注册窗口重复）、`Name`、`IsBuiltIn`
-2. 拒绝空白 ID（`string.IsNullOrWhiteSpace`）
+2. 校验 ID 可作为 Canonical ID 的安全片段（`FrontedWindowIdentity.EnsureValidWindowLocalId`：拒绝空/空白、前后空白、路径分隔符 `/` `\`、冒号 `:` 与控制字符）
 3. 设置 `info.WindowType = typeof(TView)`
 4. 读取 `FrontedPluginRegistrationContext.CurrentPackageId`；若非空则校验其可作为 canonical path segment
 5. 生成 Canonical ID：内置或无 PackageId 时为 Attribute ID 本身；插件时为 `plugin:{PackageId}/{AttributeId}`
@@ -153,7 +153,7 @@ info.WindowType = type;
 var packageId = FrontedPluginRegistrationContext.CurrentPackageId;
 var isBuiltIn = info.IsBuiltIn;
 EnsureSafePackageId(packageId);
-var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(info.Id, packageId, isBuiltIn);
+var canonicalId = FrontedWindowIdentity.BuildCanonicalId(info.Id, packageId, isBuiltIn);
 
 services.AddSingleton<TViewModel>();
 services.AddSingleton<TView>(sp =>
@@ -315,7 +315,7 @@ public partial class ExampleXamlWindow : FrontedWindowBase { ... }
 
 | 属性 | 含义 |
 |---|---|
-| `Id` | GUID 字符串，XAML 窗口的稳定标识 |
+| `Id` | 稳定字符串，XAML 窗口的稳定标识（推荐 GUID，但不强制） |
 | `Name` | 窗口显示名 |
 | `WindowType` | `internal set` — 由 `AddFrontedWindow` 在注册时设置为 `typeof(TView)` |
 | `IsBuiltIn` | 是否内置，attribute named argument，默认 `false` |
@@ -331,9 +331,9 @@ Canonical ID 是窗口在系统中的唯一稳定标识，用于注册表索引�
 | 来源 | Canonical ID 规则 | 示例 |
 |---|---|---|
 | 内置 v3 窗口 | `LocalId` | `BpWindow` |
-| 内置 XAML 窗口 | Attribute GUID | `ACFC0F23-83F4-4607-B473-24D7DB292D23` |
+| 内置 XAML 窗口 | Attribute ID | `ACFC0F23-83F4-4607-B473-24D7DB292D23` |
 | 插件 v3 窗口 | `plugin:{PackageId}/{LocalId}` | `plugin:a/Overlay` |
-| 插件 XAML 窗口 | `plugin:{PackageId}/{GUID}` | `plugin:a/3363BFE1-...` |
+| 插件 XAML 窗口 | `plugin:{PackageId}/{AttributeId}` | `plugin:a/3363BFE1-...` |
 
 **插件 ID 隔离**：不同插件注册相同 `LocalId` 不会冲突。插件 A 与插件 B 都注册 `"Overlay"` 时，分别得到 `plugin:a/Overlay` 与 `plugin:b/Overlay`。
 
@@ -1018,7 +1018,7 @@ Shutdown / Dispose
 | 窗口注册表服务 | [FrontedWindowRegistryService.cs](../neo-bpsys-wpf.Core/Services/Registry/FrontedWindowRegistryService.cs) |
 | 窗口注册表接口 | [IFrontedWindowRegistry.cs](../neo-bpsys-wpf.Core/Abstractions/Services/IFrontedWindowRegistry.cs) |
 | 插件注册作用域 | [FrontedPluginRegistrationContext.cs](../neo-bpsys-wpf.Core/Services/Registry/FrontedPluginRegistrationContext.cs) |
-| v3 Canonical ID 生成 | [FrontedV3LayoutWindowIdentity.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowIdentity.cs) |
+| v3 Canonical ID 生成 | [FrontedWindowIdentity.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedWindowIdentity.cs) |
 | v3 局部 ID 校验 | [FrontedV3LayoutWindowIdValidator.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowIdValidator.cs) |
 | v3 空模板工厂 | [FrontedV3LayoutWindowConfigFactory.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowConfigFactory.cs) |
 | v3 路径映射 | [FrontedV3LayoutWindowPathHelper.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowPathHelper.cs) |
@@ -1087,7 +1087,7 @@ Shutdown / Dispose
 │  │   └─ Id="plugin:{PackageId}/{LocalWindowId}"        │ │
 │  │                                                     │ │
 │  │ FrontedXamlWindowRegistration（插件 XAML）           │ │
-│  │   └─ Id="plugin:{PackageId}/{GUID}" 或 GUID         │ │
+│  │   └─ Id="plugin:{PackageId}/{AttributeId}" 或 Id    │ │
 │  │                                                     │ │
 │  │ 索引：_byCanonicalId（重复 ID → fail fast）          │ │
 │  │ 查询：GetWindows / GetManageableWindows /            │ │

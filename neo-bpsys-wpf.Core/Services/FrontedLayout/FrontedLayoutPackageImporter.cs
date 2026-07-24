@@ -7,7 +7,6 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using System.IO;
 using System.IO.Compression;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -31,12 +30,6 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
-    };
-    private readonly JsonSerializerOptions _writeJsonSerializerOptions = new()
-    {
-        WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 

@@ -20,7 +20,8 @@ public static class FrontedWindowRegistryExtensions
     /// <typeparam name="TViewModel">前台窗口的视图模型类型，必须继承 <see cref="ViewModelBase"/></typeparam>
     /// <param name="services">服务容器</param>
     /// <exception cref="ArgumentException">窗口类型未注册 <see cref="FrontedWindowInfo"/> 特性，
-    /// 或窗口 ID 为空白，或当前插件包 ID 不是安全的 canonical path segment（含路径分隔符、<c>..</c> 等）时抛出。
+    /// 或窗口 ID 未通过 <see cref="FrontedWindowIdentity.EnsureValidWindowLocalId"/>（空/空白、前后空白、路径分隔符、冒号或控制字符），
+    /// 或当前插件包 ID 不是安全的 canonical path segment（含路径分隔符、<c>..</c> 等）时抛出。
     /// XAML 窗口 ID 不再要求为 GUID，只需非空且不与已注册窗口重复；重复检测由 <see cref="IFrontedWindowRegistry"/> 在构建 Canonical ID 索引时执行。</exception>
     public static void AddFrontedWindow<TView, TViewModel>(this IServiceCollection services)
     where TView : Window where TViewModel : ViewModelBase
@@ -31,11 +32,7 @@ public static class FrontedWindowRegistryExtensions
             throw new ArgumentException($"无法注册前台窗口 {type.FullName}，因为前台窗口没有注册信息。");
         }
 
-        if (string.IsNullOrWhiteSpace(info.Id))
-        {
-            throw new ArgumentException(
-                $"无法注册前台窗口 {type.FullName}，因为前台窗口 ID 为空。");
-        }
+        FrontedWindowIdentity.EnsureValidWindowLocalId(info.Id);
 
         info.WindowType = type;
 
@@ -46,7 +43,7 @@ public static class FrontedWindowRegistryExtensions
         // 避免路径分隔符、.. 等字符在 LayoutService 拼接路径时才报错。
         EnsureSafePackageId(packageId);
 
-        var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(info.Id, packageId, isBuiltIn);
+        var canonicalId = FrontedWindowIdentity.BuildCanonicalId(info.Id, packageId, isBuiltIn);
 
         services.AddSingleton<TViewModel>();
         services.AddSingleton<TView>(sp =>

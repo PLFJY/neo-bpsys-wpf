@@ -12,14 +12,14 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
 
-public class FrontedV3LayoutWindowIdentityTest
+public class FrontedWindowIdentityTest
 {
     [Fact]
     public void BuildCanonicalId_BuiltIn_ReturnsLocalId()
     {
         Assert.Equal(
             "BpWindow",
-            FrontedV3LayoutWindowIdentity.BuildCanonicalId("BpWindow", packageId: null, isBuiltIn: true));
+            FrontedWindowIdentity.BuildCanonicalId("BpWindow", packageId: null, isBuiltIn: true));
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class FrontedV3LayoutWindowIdentityTest
     {
         Assert.Equal(
             "plugin:a/Overlay",
-            FrontedV3LayoutWindowIdentity.BuildCanonicalId("Overlay", "a", isBuiltIn: false));
+            FrontedWindowIdentity.BuildCanonicalId("Overlay", "a", isBuiltIn: false));
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class FrontedV3LayoutWindowIdentityTest
     {
         Assert.Equal(
             "plugin:b/Overlay",
-            FrontedV3LayoutWindowIdentity.BuildCanonicalId("Overlay", "b", isBuiltIn: false));
+            FrontedWindowIdentity.BuildCanonicalId("Overlay", "b", isBuiltIn: false));
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class FrontedV3LayoutWindowIdentityTest
     {
         Assert.Equal(
             "BpWindow",
-            FrontedV3LayoutWindowIdentity.BuildCanonicalId("BpWindow", "some-package", isBuiltIn: true));
+            FrontedWindowIdentity.BuildCanonicalId("BpWindow", "some-package", isBuiltIn: true));
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class FrontedV3LayoutWindowIdentityTest
     {
         Assert.Equal(
             "Overlay",
-            FrontedV3LayoutWindowIdentity.BuildCanonicalId("Overlay", packageId: null, isBuiltIn: false));
+            FrontedWindowIdentity.BuildCanonicalId("Overlay", packageId: null, isBuiltIn: false));
     }
 
     [Theory]
@@ -335,6 +335,145 @@ public class FrontedV3LayoutWindowIdentityTest
 
         Assert.Contains("plugin:test/Overlay", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
+
+    // ===== XAML 局部 ID 安全校验（EnsureValidWindowLocalId）测试 =====
+
+    /// <summary>
+    /// XAML 窗口局部 ID 不要求为 GUID；任意不含路径分隔符、冒号、控制字符且无前后空白的
+    /// 稳定字符串都应通过 <see cref="FrontedWindowIdentity.EnsureValidWindowLocalId"/>。
+    /// </summary>
+    [Theory]
+    [InlineData("CommunityScoreOverlay")]
+    [InlineData("community.score-overlay")]
+    [InlineData("社区比分窗口")]
+    [InlineData("Overlay 2")]
+    [InlineData("3363BFE1-1393-4765-B926-001B6848FAF7")]
+    public void Xaml_NonGuidSafeId_IsAccepted(string id)
+    {
+        var exception = Record.Exception(() => FrontedWindowIdentity.EnsureValidWindowLocalId(id));
+
+        Assert.Null(exception);
+    }
+
+    /// <summary>
+    /// 含 <c>/</c> 的局部 ID 会破坏 <c>plugin:{PackageId}/{LocalId}</c> 结构，应被拒绝。
+    /// </summary>
+    [Fact]
+    public void Xaml_IdContainingSlash_IsRejected()
+    {
+        Assert.Throws<ArgumentException>(
+            () => FrontedWindowIdentity.EnsureValidWindowLocalId("foo/bar"));
+    }
+
+    /// <summary>
+    /// 含 <c>\</c> 的局部 ID 会干扰路径解析，应被拒绝。
+    /// </summary>
+    [Fact]
+    public void Xaml_IdContainingBackslash_IsRejected()
+    {
+        Assert.Throws<ArgumentException>(
+            () => FrontedWindowIdentity.EnsureValidWindowLocalId("foo\\bar"));
+    }
+
+    /// <summary>
+    /// 含 <c>:</c> 的局部 ID 会与 <c>plugin:</c> 前缀歧义，应被拒绝。
+    /// </summary>
+    [Fact]
+    public void Xaml_IdContainingColon_IsRejected()
+    {
+        Assert.Throws<ArgumentException>(
+            () => FrontedWindowIdentity.EnsureValidWindowLocalId("foo:bar"));
+    }
+
+    /// <summary>
+    /// 含控制字符（如 TAB）的局部 ID 应被拒绝。
+    /// </summary>
+    [Fact]
+    public void Xaml_IdContainingControlCharacter_IsRejected()
+    {
+        Assert.Throws<ArgumentException>(
+            () => FrontedWindowIdentity.EnsureValidWindowLocalId("abc\tdef"));
+    }
+
+    /// <summary>
+    /// 含前导或尾随空白的局部 ID 会破坏稳定比较语义，应被拒绝。
+    /// </summary>
+    [Theory]
+    [InlineData(" foo")]
+    [InlineData("foo ")]
+    public void Xaml_IdWithLeadingOrTrailingWhitespace_IsRejected(string id)
+    {
+        Assert.Throws<ArgumentException>(
+            () => FrontedWindowIdentity.EnsureValidWindowLocalId(id));
+    }
+
+    /// <summary>
+    /// 两个不同插件包注册相同 LocalId 的 XAML 窗口时，canonical ID 通过
+    /// <c>plugin:{PackageId}/{LocalId}</c> 命名空间隔离，应产生不同且不相等的 canonical ID。
+    /// </summary>
+    [Fact]
+    public void PluginXaml_SameLocalIdAcrossPackages_IsNamespaced()
+    {
+        const string localId = "Overlay";
+        var services = new ServiceCollection();
+
+        using (FrontedPluginRegistrationContext.BeginScope("pkgA"))
+        {
+            services.AddFrontedWindow<OverlayXamlTestWindow, PluginXamlTestViewModel>();
+        }
+
+        using (FrontedPluginRegistrationContext.BeginScope("pkgB"))
+        {
+            services.AddFrontedWindow<OverlayXamlTestWindow, PluginXamlTestViewModel>();
+        }
+
+        var registrations = services
+            .BuildServiceProvider()
+            .GetServices<FrontedWindowRegistration>()
+            .OfType<FrontedXamlWindowRegistration>()
+            .ToArray();
+
+        Assert.Equal(2, registrations.Length);
+        Assert.All(registrations, r => Assert.Equal(localId, r.LocalId));
+
+        Assert.Equal("plugin:pkgA/Overlay", registrations[0].Id);
+        Assert.Equal("plugin:pkgB/Overlay", registrations[1].Id);
+        Assert.NotEqual(registrations[0].Id, registrations[1].Id);
+    }
+
+    /// <summary>
+    /// 同一插件包内注册两个仅大小写不同的 XAML 窗口局部 ID（如 <c>OVERLAY</c> 与 <c>overlay</c>），
+    /// 生成的 canonical ID 仅大小写不同，<see cref="FrontedWindowRegistryService"/> 构造时应
+    /// fail-fast 抛出 <see cref="InvalidOperationException"/>。
+    /// </summary>
+    [Fact]
+    public void PluginXaml_DuplicateIdIgnoringCase_FailsFast()
+    {
+        const string packageId = "test.plugin";
+        var services = new ServiceCollection();
+
+        using (FrontedPluginRegistrationContext.BeginScope(packageId))
+        {
+            services.AddFrontedWindow<UpperOverlayXamlTestWindow, PluginXamlTestViewModel>();
+            services.AddFrontedWindow<LowerOverlayXamlTestWindow, PluginXamlTestViewModel>();
+        }
+
+        var registrations = services
+            .BuildServiceProvider()
+            .GetServices<FrontedWindowRegistration>()
+            .OfType<FrontedXamlWindowRegistration>()
+            .ToArray();
+
+        // 两个 registration 均应存在，canonical ID 仅大小写不同。
+        Assert.Equal(2, registrations.Length);
+        Assert.Equal($"plugin:{packageId}/OVERLAY", registrations[0].Id);
+        Assert.Equal($"plugin:{packageId}/overlay", registrations[1].Id);
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => new FrontedWindowRegistryService(registrations));
+
+        Assert.Contains($"plugin:{packageId}/OVERLAY", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 /// <summary>
@@ -357,3 +496,27 @@ internal sealed class EmptyIdXamlTestWindow : Window
 /// 用于测试 XAML 窗口注册的测试 ViewModel。
 /// </summary>
 internal sealed class PluginXamlTestViewModel : ViewModelBase;
+
+/// <summary>
+/// 用于测试跨插件包命名空间隔离的 XAML 窗口，使用非 GUID 的安全局部 ID。
+/// </summary>
+[FrontedWindowInfo("Overlay", "Overlay XAML Test Window")]
+internal sealed class OverlayXamlTestWindow : Window
+{
+}
+
+/// <summary>
+/// 用于测试大小写重复检测的 XAML 窗口，使用大写局部 ID。
+/// </summary>
+[FrontedWindowInfo("OVERLAY", "Upper Overlay XAML Test Window")]
+internal sealed class UpperOverlayXamlTestWindow : Window
+{
+}
+
+/// <summary>
+/// 用于测试大小写重复检测的 XAML 窗口，使用小写局部 ID。
+/// </summary>
+[FrontedWindowInfo("overlay", "Lower Overlay XAML Test Window")]
+internal sealed class LowerOverlayXamlTestWindow : Window
+{
+}

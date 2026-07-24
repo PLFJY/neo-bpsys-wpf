@@ -59,7 +59,7 @@ public static class FrontedV3LayoutWindowRegistryExtensions
         // 避免路径分隔符、.. 等字符在 LayoutService 拼接路径时才报错（Task 2.7）。
         FrontedWindowRegistryExtensions.EnsureSafePackageId(packageId);
 
-        var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn);
+        var canonicalId = FrontedWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn);
 
         var registration = new FrontedV3LayoutWindowRegistration
         {

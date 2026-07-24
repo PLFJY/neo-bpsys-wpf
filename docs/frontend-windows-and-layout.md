@@ -25,9 +25,9 @@ v3 layout 已改为 Window-centric。新的 v3 layout window 只以 Window 为�
 插件前台窗口通过两个公开 API 注册，窗口类型不在 `manifest.yml` 中指定：
 
 1. **XAML 窗口**：`services.AddFrontedWindow<TWindow, TViewModel>()`
-   - 窗口类需 `[FrontedWindowInfo("GUID", "DisplayName", IsBuiltIn = false)]` 特性
+   - 窗口类需 `[FrontedWindowInfo]` 特性，`Id` 为稳定窗口 Local ID（推荐 GUID 以降低与历史插件冲突的可能，但不强制；允许任何通过 Window Local ID 安全校验的稳定字符串，不含 `/`、`\`、`:`、控制字符或前后空白）
    - 继承 `FrontedWindowBase`
-   - Attribute GUID 作为运行时 Canonical ID（PackageId 仅表示来源，不参与 v3 layout / Designer）
+   - Attribute ID 作为运行时 Canonical ID（PackageId 仅表示来源，不参与 v3 layout / Designer）
    - 示例：
      ```csharp
      [FrontedWindowInfo("3363BFE1-1393-4765-B926-001B6848FAF7", "Example XAML Window")]
@@ -43,7 +43,7 @@ v3 layout 已改为 Window-centric。新的 v3 layout window 只以 Window 为�
    - 加载顺序：激活 package → 空模板（无默认 JSON 时使用空模板；宿主不从插件安装目录加载默认布局）
    - 示例：`services.AddFrontedV3LayoutWindow("ExampleLayoutOverlay");`
 
-`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。窗口身份使用 Canonical ID：内置为 `BpWindow`，插件 v3 layout 为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute GUID；该 ID 作为布局、`.bpui` manifest 和用户目录中的窗口身份。XAML 窗口不进入 v3 layout / Designer。插件窗口分为两类：
+`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。窗口身份使用 Canonical ID：内置为 `BpWindow`，插件 v3 layout 为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute ID（插件为 `plugin:{PackageId}/{AttributeId}`，宿主直接注册的为 `{AttributeId}`）；该 ID 作为布局、`.bpui` manifest 和用户目录中的窗口身份。XAML 窗口不进入 v3 layout / Designer / `.bpui` layout entry。插件窗口分为两类：
 
 | 类型 | 说明 |
 | --- | --- |
@@ -147,7 +147,7 @@ v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` �
 
 旧的“向现有内置前台窗口注入 WPF 控件”能力已移除。插件应使用 Designer v3 插件控件、Plugin XAML Window 或 Plugin v3 Layout Window。
 
-前台窗口使用 Canonical ID 作为运行时、Designer 和 `.bpui` 的统一身份：内置窗口为 `BpWindow` 等短名（即 LocalId），插件 v3 窗口为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute GUID。用户目录中的插件窗口磁盘路径会转换为安全路径，例如 `FrontedLayouts/plugin/top.plfjy.demo/ExampleLayoutOverlay.json`。插件 v3 窗口不从插件安装目录加载默认布局；无默认 JSON 时使用空模板。XAML 窗口的 PackageId 仅表示来源，不参与 v3 layout / Designer。
+前台窗口使用 Canonical ID 作为运行时、Designer 和 `.bpui` 的统一身份：内置窗口为 `BpWindow` 等短名（即 LocalId），插件 v3 窗口为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute ID（插件为 `plugin:{PackageId}/{AttributeId}`，宿主直接注册的为 `{AttributeId}`）。`FrontedWindowInfo.Id` 是稳定的窗口 Local ID；推荐新插件使用 GUID 以降低与历史插件冲突的可能，但不强制。XAML 窗口不参与 v3 layout、Designer 或 `.bpui` layout entry。用户目录中的插件窗口磁盘路径会转换为安全路径，例如 `FrontedLayouts/plugin/top.plfjy.demo/ExampleLayoutOverlay.json`。插件 v3 窗口不从插件安装目录加载默认布局；无默认 JSON 时使用空模板。XAML 窗口的 PackageId 仅表示来源，不参与 v3 layout / Designer。
 
 ## 透明背景
 

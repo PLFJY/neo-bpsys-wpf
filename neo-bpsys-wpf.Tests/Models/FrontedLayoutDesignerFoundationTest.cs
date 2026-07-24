@@ -4303,7 +4303,7 @@ public class FrontedLayoutDesignerFoundationTest
                 TestContext.Current.CancellationToken);
 
             Assert.Equal(FrontedLayoutSource.User, result.Source);
-            Assert.True(result.Config?.ControlLayout.Controls.ContainsKey("UserText"));
+            Assert.True(result.Config.ControlLayout.Controls.ContainsKey("UserText"));
         }
         finally
         {
@@ -4341,7 +4341,7 @@ public class FrontedLayoutDesignerFoundationTest
                 TestContext.Current.CancellationToken);
             Assert.Equal(FrontedLayoutSource.BuiltIn, missingUserResult.Source);
             Assert.NotNull(missingUserResult.Config);
-            Assert.True(missingUserResult.Config?.ControlLayout.Controls.ContainsKey("BuiltInText"));
+            Assert.True(missingUserResult.Config.ControlLayout.Controls.ContainsKey("BuiltInText"));
 
             // 激活包布局无效时，内置窗口同样回退到内置资源。
             var layoutPath = Path.Combine(packageRoot, packageId, "FrontedLayouts", "BpWindow.json");
@@ -4353,7 +4353,7 @@ public class FrontedLayoutDesignerFoundationTest
 
             Assert.Equal(FrontedLayoutSource.BuiltIn, invalidUserResult.Source);
             Assert.NotNull(invalidUserResult.Config);
-            Assert.True(invalidUserResult.Config?.ControlLayout.Controls.ContainsKey("BuiltInText"));
+            Assert.True(invalidUserResult.Config.ControlLayout.Controls.ContainsKey("BuiltInText"));
         }
         finally
         {
@@ -4383,7 +4383,7 @@ public class FrontedLayoutDesignerFoundationTest
                 TestContext.Current.CancellationToken);
             Assert.Equal(FrontedLayoutSource.EmptyTemplate, builtInResult.Source);
             Assert.NotNull(builtInResult.Config);
-            Assert.Equal(3, builtInResult.Config?.Version);
+            Assert.Equal(3, builtInResult.Config.Version);
 
             // 插件窗口在激活包中找不到时，直接返回空模板（不检查内置资源）。
             var pluginResult = await service.LoadWindowConfigWithMetadataAsync(
@@ -4391,7 +4391,7 @@ public class FrontedLayoutDesignerFoundationTest
                 TestContext.Current.CancellationToken);
             Assert.Equal(FrontedLayoutSource.EmptyTemplate, pluginResult.Source);
             Assert.NotNull(pluginResult.Config);
-            Assert.Equal(3, pluginResult.Config?.Version);
+            Assert.Equal(3, pluginResult.Config.Version);
         }
         finally
         {
