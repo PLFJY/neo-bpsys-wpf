@@ -1179,12 +1179,12 @@ public sealed class FrontedWindowManageGroup
 
     private static string GetStableGroupKey(FrontedWindowRegistration registration)
     {
-        if (!string.IsNullOrWhiteSpace(registration.GroupKey))
+        if (registration.IsBuiltIn)
         {
-            return registration.GroupKey;
+            return "BuiltIn";
         }
 
-        return registration.IsBuiltIn ? "BuiltIn" : "Plugin";
+        return registration.PackageId is not null ? "Plugin" : "External";
     }
 
     private static string GetGroupDisplayName(string groupKey)
@@ -1193,6 +1193,7 @@ public sealed class FrontedWindowManageGroup
         {
             "BuiltIn" => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "SystemBuiltIn"),
             "Plugin" => I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "Plugins"),
+            "External" => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "External"),
             _ => groupKey
         };
     }
@@ -1204,7 +1205,7 @@ public sealed class FrontedWindowManageGroup
 public sealed class FrontedWindowManageItem
 {
     /// <summary>
-    /// 稳定的运行时窗口 ID。
+    /// 稳定的运行时窗口 Canonical ID。
     /// </summary>
     public string WindowId { get; init; } = string.Empty;
 
@@ -1214,14 +1215,9 @@ public sealed class FrontedWindowManageItem
     public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
-    /// 面向用户的注册类型标签。
+    /// 面向用户的注册类型标签，只根据 <see cref="FrontedWindowRegistrationKind"/> 推导，与来源分组独立。
     /// </summary>
     public string KindDisplay { get; init; } = string.Empty;
-
-    /// <summary>
-    /// 布局路径使用的完整窗口类型名。
-    /// </summary>
-    public string FullWindowType { get; init; } = string.Empty;
 
     /// <summary>
     /// 此窗口是否可由设计器 v3 自定义。
@@ -1242,12 +1238,9 @@ public sealed class FrontedWindowManageItem
         {
             WindowId = registration.Id,
             DisplayName = GetRegistrationDisplayName(registration, settingsHostService),
-            FullWindowType = registration.Id,
-            KindDisplay = registration.IsBuiltIn
-                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.BuiltIn")
-                : registration.Kind == FrontedWindowRegistrationKind.Xaml
-                    ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.Xaml")
-                    : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.V3Layout"),
+            KindDisplay = registration.Kind == FrontedWindowRegistrationKind.Xaml
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.Xaml")
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.V3Layout"),
             CanCustomize = registration.Kind == FrontedWindowRegistrationKind.V3Layout
         };
     }
@@ -1256,6 +1249,18 @@ public sealed class FrontedWindowManageItem
         FrontedWindowRegistration registration,
         ISettingsHostService? settingsHostService)
     {
+        // 内置窗口的本地化显示名由 UI 层通过现有 resx（Designer.Window.{LocalId}）解析；
+        // 非内置窗口使用注册 DisplayName / LocalId 回退。
+        if (registration.IsBuiltIn)
+        {
+            var resxKey = $"Designer.Window.{registration.LocalId}";
+            var localized = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, resxKey);
+            if (!string.Equals(localized, resxKey, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+        }
+
         var settings = settingsHostService?.Settings;
         return FrontedWindowDisplayNameResolver.ResolveDisplayName(
             registration,

@@ -704,10 +704,10 @@
     <value>Cut Scene Window</value>
   </data>
   <data name="Designer.Window.ScoreSurWindow">
-    <value>Survivor Score in Gane Window</value>
+    <value>Survivor Score in Game Window</value>
   </data>
   <data name="Designer.Window.ScoreHunWindow">
-    <value>Hunter Score in Gane Window</value>
+    <value>Hunter Score in Game Window</value>
   </data>
   <data name="Designer.Window.ScoreGlobalWindow">
     <value>Global Score Window</value>

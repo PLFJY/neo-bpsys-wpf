@@ -11,14 +11,26 @@ public interface IFrontedWindowService
     #region Properties
 
     /// <summary>
-    /// 前台窗口列表
+    /// 前台窗口列表（只读视图）。键为窗口 Canonical ID，使用
+    /// <see cref="StringComparer.OrdinalIgnoreCase"/> 与注册表的比较语义保持一致。
     /// </summary>
-    Dictionary<string, Window> FrontedWindows { get; }
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改缓存。
+    /// 内部可变字典保持 private。需要修改窗口缓存必须通过服务方法（如
+    /// <see cref="EnsureWindowCreated"/>、<see cref="ShowWindow(string)"/>、
+    /// <see cref="HideWindow(string)"/> 等）。
+    /// </remarks>
+    IReadOnlyDictionary<string, Window> FrontedWindows { get; }
 
     /// <summary>
-    /// 前台窗口状态列表
+    /// 前台窗口状态列表（只读视图）。键为窗口 Canonical ID，值为窗口是否可见。
+    /// 比较语义与 <see cref="FrontedWindows"/> 一致。
     /// </summary>
-    Dictionary<string, bool> FrontedWindowStates { get; }
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改状态缓存。
+    /// 内部可变字典保持 private。需要修改窗口状态必须通过服务方法。
+    /// </remarks>
+    IReadOnlyDictionary<string, bool> FrontedWindowStates { get; }
 
     #endregion
 

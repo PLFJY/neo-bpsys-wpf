@@ -14,11 +14,6 @@ public sealed class FrontedXamlWindowRegistration : FrontedWindowRegistration
     /// </summary>
     public required Type WindowType { get; init; }
 
-    /// <summary>
-    /// 可选的视图模型类型。为 <see langword="null"/> 表示该窗口不使用独立视图模型。
-    /// </summary>
-    public Type? ViewModelType { get; init; }
-
     /// <inheritdoc />
     public override FrontedWindowRegistrationKind Kind => FrontedWindowRegistrationKind.Xaml;
 }

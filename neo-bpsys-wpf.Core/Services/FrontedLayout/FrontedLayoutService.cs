@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using System.IO;
 using System.Text.Encodings.Web;
@@ -14,10 +13,9 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public class FrontedLayoutService : IFrontedLayoutService
 {
-    private readonly IFrontedUserLayoutStore _userLayoutStore;
     private readonly ILogger<FrontedLayoutService> _logger;
     private readonly IFrontedLayoutPackageManager _packageManager;
-    private FrontedV3LayoutWindowConfigFactory _configFactory = new();
+    private readonly FrontedV3LayoutWindowConfigFactory _configFactory;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -27,172 +25,42 @@ public class FrontedLayoutService : IFrontedLayoutService
     };
 
     /// <summary>
-    /// 使用默认用户存储和内置布局根初始化布局服务。
+    /// 使用包管理器和记录器初始化布局服务。
     /// </summary>
-    public FrontedLayoutService()
-        : this(
-            new FrontedUserLayoutStore(),
-            new FrontedLayoutPackageManager(),
-            NullLogger<FrontedLayoutService>.Instance)
-    {
-    }
-
-    /// <summary>
-    /// 使用用户存储和记录器初始化布局服务。
-    /// </summary>
-    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
-    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
-    public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
-        ILogger<FrontedLayoutService> logger)
-        : this(
-            userLayoutStore,
-            new FrontedLayoutPackageManager(),
-            logger)
-    {
-    }
-
-    /// <summary>
-    /// 使用用户存储、窗口注册表和记录器初始化布局服务。
-    /// </summary>
-    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
-    /// <param name="windowRegistry">用于解析插件默认布局描述符的注册表。</param>
-    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
-    public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
-        IFrontedWindowRegistry windowRegistry,
-        ILogger<FrontedLayoutService> logger)
-        : this(
-            userLayoutStore,
-            new FrontedLayoutPackageManager(),
-            logger)
-    {
-    }
-
-    /// <summary>
-    /// 使用自定义内置布局根初始化布局服务。
-    /// </summary>
-    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
-    /// <param name="builtInLayoutRoot">内置以窗口为中心的布局的根文件夹。</param>
-    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
-    public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
-        string builtInLayoutRoot,
-        ILogger<FrontedLayoutService>? logger)
-        : this(
-            userLayoutStore,
-            new FrontedLayoutPackageManager(
-                GetIsolatedPackageRoot(builtInLayoutRoot),
-                builtInLayoutRoot),
-            logger)
-    {
-    }
-
-    /// <summary>
-    /// 使用自定义内置布局根和注册表初始化布局服务。
-    /// </summary>
-    /// <param name="userLayoutStore">用于可编辑布局的用户布局存储。</param>
-    /// <param name="builtInLayoutRoot">内置以窗口为中心的布局的根文件夹。</param>
-    /// <param name="windowRegistry">用于解析插件默认布局描述符的注册表。</param>
-    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
-    public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
-        string builtInLayoutRoot,
-        IFrontedWindowRegistry? windowRegistry,
-        ILogger<FrontedLayoutService>? logger)
-        : this(
-            userLayoutStore,
-            new FrontedLayoutPackageManager(
-                GetIsolatedPackageRoot(builtInLayoutRoot),
-                builtInLayoutRoot),
-            logger)
-    {
-    }
-
-    /// <summary>
-    /// 使用包管理器和默认内置布局根初始化布局服务。
-    /// </summary>
-    /// <param name="userLayoutStore">在没有活动可编辑包时使用的用户布局存储。</param>
-    /// <param name="packageManager">用于活动布局包读取和写入的包管理器。</param>
-    /// <param name="windowRegistry">用于解析插件默认布局描述符的注册表。</param>
-    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
-    public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
-        IFrontedLayoutPackageManager packageManager,
-        IFrontedWindowRegistry? windowRegistry,
-        ILogger<FrontedLayoutService>? logger)
-        : this(userLayoutStore, packageManager, logger)
-    {
-    }
-
-    /// <summary>
-    /// 使用所有显式依赖项初始化布局服务。
-    /// </summary>
-    /// <param name="userLayoutStore">在没有活动可编辑包时使用的用户布局存储。</param>
-    /// <param name="builtInLayoutRoot">内置以窗口为中心的布局的根文件夹。</param>
-    /// <param name="packageManager">用于活动包读取和写入的可选包管理器。</param>
-    /// <param name="windowRegistry">用于解析插件默认布局描述符的可选注册表。</param>
-    /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
-    public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
-        string builtInLayoutRoot,
-        IFrontedLayoutPackageManager? packageManager,
-        IFrontedWindowRegistry? windowRegistry,
-        ILogger<FrontedLayoutService>? logger)
-    {
-        _userLayoutStore = userLayoutStore;
-        _packageManager = packageManager
-            ?? new FrontedLayoutPackageManager(
-                GetIsolatedPackageRoot(builtInLayoutRoot),
-                builtInLayoutRoot);
-        _logger = logger ?? NullLogger<FrontedLayoutService>.Instance;
-    }
-
-    /// <summary>
-    /// 使用包管理器初始化布局服务。
-    /// </summary>
-    /// <param name="userLayoutStore">为可编辑包创建兼容性而保留的用户布局存储。</param>
     /// <param name="packageManager">用于活动布局包读取和写入的包管理器。</param>
     /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
     public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutService>? logger)
     {
-        _userLayoutStore = userLayoutStore;
         _packageManager = packageManager;
         _logger = logger ?? NullLogger<FrontedLayoutService>.Instance;
+        _configFactory = new FrontedV3LayoutWindowConfigFactory();
     }
 
     /// <summary>
-    /// 使用包管理器和空模板工厂初始化布局服务。
+    /// 使用包管理器、记录器和空模板工厂初始化布局服务。仅供测试使用。
     /// </summary>
-    /// <param name="userLayoutStore">为可编辑包创建兼容性而保留的用户布局存储。</param>
     /// <param name="packageManager">用于活动布局包读取和写入的包管理器。</param>
     /// <param name="logger">用于布局加载和保存诊断的记录器。</param>
-    /// <param name="configFactory">用于生成内存空模板的工厂。为 <see langword="null"/> 时使用默认实例。</param>
-    public FrontedLayoutService(
-        IFrontedUserLayoutStore userLayoutStore,
+    /// <param name="configFactory">用于生成内存空模板的工厂。</param>
+    internal FrontedLayoutService(
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutService>? logger,
         FrontedV3LayoutWindowConfigFactory? configFactory)
-        : this(userLayoutStore, packageManager, logger)
+        : this(packageManager, logger)
     {
         _configFactory = configFactory ?? new FrontedV3LayoutWindowConfigFactory();
     }
 
-    private static string GetIsolatedPackageRoot(string builtInLayoutRoot)
-    {
-        var parent = Path.GetDirectoryName(Path.GetFullPath(builtInLayoutRoot));
-        return Path.Combine(parent ?? AppConstants.FrontedLayoutPackagesPath, "FrontedLayoutPackages");
-    }
-
     /// <inheritdoc />
-    public async Task<FrontedWindowConfig?> LoadWindowConfigAsync(
+    public async Task<FrontedWindowConfig> LoadWindowConfigAsync(
         string canonicalWindowId,
         CancellationToken cancellationToken = default)
     {
-        return (await LoadWindowConfigWithMetadataAsync(canonicalWindowId, cancellationToken)).Config;
+        return (await LoadWindowConfigWithMetadataAsync(canonicalWindowId, cancellationToken)).Config
+            ?? throw new InvalidDataException(
+                $"Fronted layout load returned null config for window '{canonicalWindowId}'.");
     }
 
     /// <inheritdoc />
@@ -279,7 +147,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         await WriteConfigAsync(path, config, cancellationToken);
     }
 
-    private async Task<FrontedWindowConfig?> ReadConfigAsync(
+    private async Task<FrontedWindowConfig> ReadConfigAsync(
         string path,
         CancellationToken cancellationToken)
     {
@@ -289,7 +157,10 @@ public class FrontedLayoutService : IFrontedLayoutService
         }
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        return JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions);
+        // JSON null 视为损坏，按 spec 不允许返回 Source=User/BuiltIn 且 Config=null。
+        return JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions)
+            ?? throw new InvalidDataException(
+                $"Fronted layout JSON deserialized to null. Path: {path}");
     }
 
     private async Task WriteConfigAsync(

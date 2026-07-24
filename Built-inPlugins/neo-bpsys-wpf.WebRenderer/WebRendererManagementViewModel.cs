@@ -211,7 +211,7 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
             .ToDictionary(window => window.FullWindowType, StringComparer.OrdinalIgnoreCase);
         var settings = _settingsHostService.Settings;
         var items = _windowRegistry.GetV3LayoutWindows()
-            .OrderBy(registration => registration.DisplayOrder ?? int.MaxValue)
+            .OrderBy(registration => registration.LocalId, StringComparer.OrdinalIgnoreCase)
             .Where(registration => published.ContainsKey(registration.Id))
             .Select(registration =>
             {

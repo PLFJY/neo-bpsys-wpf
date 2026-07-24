@@ -1488,12 +1488,6 @@ public partial class FrontedDesignerWindow : FluentWindow
             FocusDesignSurface();
         }
 
-        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.BorderedImageResizeTarget))
-        {
-            RebuildInteractionLayer();
-            FocusDesignSurface();
-        }
-
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ZoomScale))
         {
             UpdateSelectedInteractionVisuals();
@@ -3187,13 +3181,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             bounds = ResolveMapV2InternalPartBounds(item, internalPart);
         }
-        if (item.Config is BorderedImageFrontedControlConfig imageConfig
-            && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
-        {
-            imageConfig.ImageWidth ??= bounds.Width;
-            imageConfig.ImageHeight ??= bounds.Height;
-        }
-        else if (!item.Config.Width.HasValue)
+        if (!item.Config.Width.HasValue)
         {
             item.Config.Width = bounds.Width;
 
@@ -3452,15 +3440,6 @@ public partial class FrontedDesignerWindow : FluentWindow
     private FrontedDesignerResolvedBounds ResolveItemBounds(FrontedControlDesignItem item)
     {
         var previewElement = FindPreviewElement(item.Name);
-        if (item.Config is BorderedImageFrontedControlConfig imageConfig
-            && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
-        {
-            return ResolveBorderedImageInnerBounds(
-                imageConfig,
-                previewElement?.ActualWidth,
-                previewElement?.ActualHeight);
-        }
-
         return FrontedDesignerBoundsResolver.Resolve(
             item.Config,
             previewElement?.ActualWidth,
@@ -3484,41 +3463,6 @@ public partial class FrontedDesignerWindow : FluentWindow
             parent.Config.Top + part.Y,
             Math.Max(FrontedDesignerGeometryHelper.MinHitWidth, part.Width),
             Math.Max(FrontedDesignerGeometryHelper.MinHitHeight, part.Height));
-
-    private static FrontedDesignerResolvedBounds ResolveBorderedImageInnerBounds(
-        BorderedImageFrontedControlConfig config,
-        double? actualWidth,
-        double? actualHeight)
-    {
-        var borderBounds = FrontedDesignerBoundsResolver.Resolve(config, actualWidth, actualHeight);
-        var imageWidth = config.ImageWidth ?? borderBounds.Width;
-        var imageHeight = config.ImageHeight ?? borderBounds.Height;
-        var offsetX = ResolveAlignedOffset(borderBounds.Width, imageWidth, config.HorizontalAlignment, isHorizontal: true);
-        var offsetY = ResolveAlignedOffset(borderBounds.Height, imageHeight, config.VerticalAlignment, isHorizontal: false);
-
-        return new FrontedDesignerResolvedBounds(
-            borderBounds.Left + offsetX,
-            borderBounds.Top + offsetY,
-            imageWidth,
-            imageHeight);
-    }
-
-    private static double ResolveAlignedOffset(double slotSize, double elementSize, string? alignment, bool isHorizontal)
-    {
-        var normalized = alignment?.Trim();
-        if (string.IsNullOrWhiteSpace(normalized))
-        {
-            normalized = "Center";
-        }
-
-        return normalized switch
-        {
-            "Right" when isHorizontal => slotSize - elementSize,
-            "Bottom" when !isHorizontal => slotSize - elementSize,
-            "Center" => (slotSize - elementSize) / 2D,
-            _ => 0D
-        };
-    }
 
     private void UpdateSelectedPreviewElement()
     {

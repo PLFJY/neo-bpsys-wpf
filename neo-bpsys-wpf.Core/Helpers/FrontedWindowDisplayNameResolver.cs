@@ -5,17 +5,21 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 namespace neo_bpsys_wpf.Core.Helpers;
 
 /// <summary>
-/// 从注册信息本地化的国际化字典中解析前台窗口显示名称。
+/// 解析前台窗口注册的显示名称。
 /// </summary>
+/// <remarks>
+/// Core 层只提供基于 <see cref="FrontedWindowRegistration.DisplayName"/> / <see cref="FrontedWindowRegistration.LocalId"/>
+/// 的回退显示名。内置窗口的本地化显示名由 UI 层通过现有 resx（<c>Designer.Window.{LocalId}</c>）覆盖。
+/// </remarks>
 public static class FrontedWindowDisplayNameResolver
 {
     /// <summary>
     /// 解析前台窗口注册面向用户的显示名称。
     /// </summary>
     /// <param name="registration">窗口注册。</param>
-    /// <param name="language">请求的语言设置。</param>
-    /// <param name="cultureInfo">当 <paramref name="language"/> 不是具体语言时使用的有效 UI 区域信息。</param>
-    /// <returns>本地化的显示名称，或注册的回退显示名称。</returns>
+    /// <param name="language">请求的语言设置（保留用于 UI 层扩展，Core 层回退实现不使用）。</param>
+    /// <param name="cultureInfo">当 <paramref name="language"/> 不是具体语言时使用的有效 UI 区域信息（保留用于 UI 层扩展）。</param>
+    /// <returns>注册的回退显示名称。</returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="registration"/> 为 <see langword="null"/> 时抛出。</exception>
     public static string ResolveDisplayName(
         FrontedWindowRegistration registration,
@@ -23,16 +27,6 @@ public static class FrontedWindowDisplayNameResolver
         CultureInfo? cultureInfo = null)
     {
         ArgumentNullException.ThrowIfNull(registration);
-
-        var concreteLanguage = ResolveConcreteLanguage(language, cultureInfo);
-        if (concreteLanguage.HasValue
-            && registration.I18nDisplayNames is { Count: > 0 } names
-            && names.TryGetValue(concreteLanguage.Value, out var localized)
-            && !string.IsNullOrWhiteSpace(localized))
-        {
-            return localized;
-        }
-
         return GetFallbackDisplayName(registration);
     }
 

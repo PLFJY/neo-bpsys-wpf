@@ -37,6 +37,9 @@
   <data name="SystemBuiltIn">
     <value>内置布局方案</value>
   </data>
+  <data name="External">
+    <value>外部</value>
+  </data>
   <data name="BuiltInLayoutSchemeName">
     <value>内置布局方案</value>
   </data>
@@ -326,10 +329,10 @@
     <value>内置窗口</value>
   </data>
   <data name="FrontManageWindowCategory.Xaml">
-    <value>插件 XAML 窗口</value>
+    <value>XAML</value>
   </data>
   <data name="FrontManageWindowCategory.V3Layout">
-    <value>插件 v3 窗口</value>
+    <value>v3 布局</value>
   </data>
   <data name="StopAllLoopAnimations">
     <value>停止所有循环动画</value>

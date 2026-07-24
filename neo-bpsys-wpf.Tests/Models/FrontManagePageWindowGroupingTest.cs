@@ -50,79 +50,139 @@ public class FrontManagePageWindowGroupingTest
             Assert.Equal(canonicalId, registration.LocalId);
             Assert.True(registration.IsBuiltIn);
             Assert.Equal(FrontedWindowRegistrationKind.V3Layout, registration.Kind);
-            Assert.Equal("BuiltIn", registration.GroupKey);
         }
     }
 
     [Fact]
-    public void GroupsFollowRegistryOrderAndDoNotExposeCanvas()
+    public void BuiltInRegistration_GoesToBuiltInGroup()
     {
         FrontedWindowRegistration[] registrations =
         [
-            CreateV3Registration("score-sur", "ScoreSurWindow", "Score", 100),
-            CreateV3Registration("score-hun", "ScoreHunWindow", "Score", 110),
-            CreateV3Registration("bp", "BpWindow", "Bp", 10)
+            CreateV3Registration("BpWindow", isBuiltIn: true, packageId: null)
         ];
 
         var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
-        Assert.Collection(
-            groups,
-            group =>
-            {
-                Assert.Equal("Score", group.GroupKey);
-                Assert.Equal(["ScoreSurWindow", "ScoreHunWindow"], group.Windows.Select(window => window.DisplayName));
-            },
-            group =>
-            {
-                Assert.Equal("Bp", group.GroupKey);
-                Assert.Equal(["BpWindow"], group.Windows.Select(window => window.DisplayName));
-            });
-
-        Assert.All(groups.SelectMany(group => group.Windows), window =>
-        {
-            Assert.DoesNotContain("BaseCanvas", window.DisplayName, StringComparison.Ordinal);
-            Assert.DoesNotContain("Canvas", window.DisplayName, StringComparison.Ordinal);
-        });
+        Assert.Single(groups);
+        Assert.Equal("BuiltIn", groups[0].GroupKey);
     }
 
     [Fact]
-    public void MissingGroupKeyUsesStableFallback()
+    public void PluginRegistration_GoesToPluginGroup()
     {
         FrontedWindowRegistration[] registrations =
         [
-            CreateV3Registration("BpWindow", "BpWindow", null, null, isBuiltIn: true),
-            CreateV3Registration("plugin:top.plfjy.test/Overlay", "Overlay", null, null, isBuiltIn: false)
+            CreateV3Registration("plugin:test.plugin/Overlay", isBuiltIn: false, packageId: "test.plugin")
         ];
 
         var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
-        Assert.Equal(["BuiltIn", "Plugin"], groups.Select(group => group.GroupKey));
+        Assert.Single(groups);
+        Assert.Equal("Plugin", groups[0].GroupKey);
+    }
+
+    [Fact]
+    public void HostNonBuiltInRegistration_GoesToExternalGroup()
+    {
+        FrontedWindowRegistration[] registrations =
+        [
+            CreateV3Registration("ExternalOverlay", isBuiltIn: false, packageId: null)
+        ];
+
+        var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
+
+        Assert.Single(groups);
+        Assert.Equal("External", groups[0].GroupKey);
+    }
+
+    [Fact]
+    public void ThreeSourceGroupsAreEmittedInRegistrationOrder()
+    {
+        FrontedWindowRegistration[] registrations =
+        [
+            CreateV3Registration("BpWindow", isBuiltIn: true, packageId: null),
+            CreateV3Registration("ExternalOverlay", isBuiltIn: false, packageId: null),
+            CreateV3Registration("plugin:test.plugin/Overlay", isBuiltIn: false, packageId: "test.plugin")
+        ];
+
+        var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
+
+        Assert.Equal(["BuiltIn", "External", "Plugin"], groups.Select(group => group.GroupKey));
+    }
+
+    [Fact]
+    public void KindDisplay_IsIndependentFromSourceGroup()
+    {
+        FrontedWindowRegistration[] registrations =
+        [
+            CreateV3Registration("BpWindow", isBuiltIn: true, packageId: null),
+            CreateV3Registration("plugin:test.plugin/Overlay", isBuiltIn: false, packageId: "test.plugin"),
+            CreateXamlRegistration("XamlBuiltIn", isBuiltIn: true, packageId: null),
+            CreateXamlRegistration("plugin:test.plugin/XamlOverlay", isBuiltIn: false, packageId: "test.plugin")
+        ];
+
+        var items = registrations
+            .Select(registration => FrontedWindowManageItem.FromRegistration(registration))
+            .ToArray();
+
+        // V3Layout registrations share the same KindDisplay regardless of source group.
+        Assert.Equal(items[0].KindDisplay, items[1].KindDisplay);
+
+        // XAML registrations share the same KindDisplay regardless of source group.
+        Assert.Equal(items[2].KindDisplay, items[3].KindDisplay);
+
+        // V3Layout and XAML have different KindDisplay.
+        Assert.NotEqual(items[0].KindDisplay, items[2].KindDisplay);
     }
 
     [Fact]
     public void V3RegistrationReportsV3LayoutKind()
     {
-        var registration = CreateV3Registration("Overlay", "Overlay", null, null, isBuiltIn: false);
+        var registration = CreateV3Registration("Overlay", isBuiltIn: false, packageId: null);
 
         Assert.Equal(FrontedWindowRegistrationKind.V3Layout, registration.Kind);
     }
 
+    [Fact]
+    public void ManageItemDoesNotExposeDuplicateFullWindowType()
+    {
+        var registration = CreateV3Registration("BpWindow", isBuiltIn: true, packageId: null);
+
+        var item = FrontedWindowManageItem.FromRegistration(registration);
+
+        // WindowId is the single Canonical ID property; FullWindowType has been removed.
+        Assert.Equal(registration.Id, item.WindowId);
+        Assert.DoesNotContain("FullWindowType", item.GetType().GetProperties().Select(property => property.Name));
+    }
+
     private static FrontedV3LayoutWindowRegistration CreateV3Registration(
         string id,
-        string displayName,
-        string? groupKey,
-        int? displayOrder,
-        bool isBuiltIn = true)
+        bool isBuiltIn,
+        string? packageId)
     {
         return new FrontedV3LayoutWindowRegistration
         {
             Id = id,
             LocalId = id,
             IsBuiltIn = isBuiltIn,
-            DisplayName = displayName,
-            GroupKey = groupKey,
-            DisplayOrder = displayOrder
+            PackageId = packageId,
+            DisplayName = id
+        };
+    }
+
+    private static FrontedXamlWindowRegistration CreateXamlRegistration(
+        string id,
+        bool isBuiltIn,
+        string? packageId)
+    {
+        return new FrontedXamlWindowRegistration
+        {
+            Id = id,
+            LocalId = id,
+            IsBuiltIn = isBuiltIn,
+            PackageId = packageId,
+            DisplayName = id,
+            WindowType = typeof(object)
         };
     }
 }

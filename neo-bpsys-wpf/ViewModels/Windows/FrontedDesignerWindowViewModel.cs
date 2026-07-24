@@ -275,7 +275,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         CurrentWindowCanvasDisplay = ResolveEntryDisplayName(_selectedCatalogEntry);
-        LoadWindowOptions(_selectedCatalogEntry.WindowTypeName);
+        LoadWindowOptions(_selectedCatalogEntry.CanonicalWindowId);
     }
 
     /// <summary>
@@ -433,14 +433,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDesignItem))]
     [NotifyPropertyChangedFor(nameof(CanDeleteSelectedControl))]
-    [NotifyPropertyChangedFor(nameof(IsBorderedImageSelected))]
     [NotifyPropertyChangedFor(nameof(IsMapV2DisplaySelected))]
     [NotifyPropertyChangedFor(nameof(IsPolygonSelected))]
     private FrontedControlDesignItem? _selectedDesignItem;
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
-
-    public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
 
     public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
 
@@ -559,45 +556,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool HasSelectedGlobalScoreCell => SelectedGlobalScoreCell is not null;
 
     public bool HasGlobalScoreCellEditor => SelectedDesignItem?.Config is GlobalScoreRowControlConfig;
-
-    private FrontedDesignerResizeTarget _borderedImageResizeTarget = FrontedDesignerResizeTarget.Border;
-
-    public FrontedDesignerResizeTarget BorderedImageResizeTarget
-    {
-        get => _borderedImageResizeTarget;
-        set
-        {
-            if (SetProperty(ref _borderedImageResizeTarget, value))
-            {
-                OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
-                OnPropertyChanged(nameof(IsImageResizeTargetSelected));
-            }
-        }
-    }
-
-    public bool IsBorderResizeTargetSelected
-    {
-        get => BorderedImageResizeTarget == FrontedDesignerResizeTarget.Border;
-        set
-        {
-            if (value)
-            {
-                BorderedImageResizeTarget = FrontedDesignerResizeTarget.Border;
-            }
-        }
-    }
-
-    public bool IsImageResizeTargetSelected
-    {
-        get => BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image;
-        set
-        {
-            if (value)
-            {
-                BorderedImageResizeTarget = FrontedDesignerResizeTarget.Image;
-            }
-        }
-    }
 
     public bool CanDeleteSelectedControl =>
         !HasSelectedGlobalScoreCell
@@ -724,7 +682,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         _selectedCatalogEntry = _layoutCatalog?.GetEntries()
-            .FirstOrDefault(e => e.WindowTypeName == value.WindowTypeName);
+            .FirstOrDefault(e => e.CanonicalWindowId == value.WindowTypeName);
         _currentWindowSettings = new FrontedWindowSettings();
         LoadWindowOptions(value.WindowTypeName);
     }
@@ -821,9 +779,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RefreshLayerNodeSelection();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
         CopySelectedControlCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(IsBorderedImageSelected));
-        OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
-        OnPropertyChanged(nameof(IsImageResizeTargetSelected));
         OnPropertyChanged(nameof(HasGlobalScoreCellEditor));
         OnPropertyChanged(nameof(IsMapV2DisplaySelected));
         OnPropertyChanged(nameof(IsPolygonSelected));
@@ -1235,7 +1190,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         try
         {
             var loadResult = await _layoutService.LoadWindowConfigWithMetadataAsync(
-                entry.WindowTypeName,
+                entry.CanonicalWindowId,
                 cancellationToken);
             if (cancellationToken.IsCancellationRequested || reloadVersion != _reloadLayoutVersion)
             {
@@ -1250,12 +1205,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 ClearLoadedLayout(CreateMessage(
                     FrontedLayoutValidationSeverity.Error,
                     "MissingLayout",
-                    loadResult.Error ?? $"Layout file was not found for {entry.WindowTypeName}."));
+                    loadResult.Error ?? $"Layout file was not found for {entry.CanonicalWindowId}."));
                 return;
             }
 
             var document = _designConverter.FromConfig(
-                entry.WindowTypeName,
+                entry.CanonicalWindowId,
                 FrontedLayoutConstants.BaseCanvasName,
                 FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig));
 
@@ -1263,9 +1218,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ControlFilterText = string.Empty;
             CurrentDocument = document;
             CurrentDocument.IsDirty = false;
-            LoadWindowOptions(entry.WindowTypeName);
+            LoadWindowOptions(entry.CanonicalWindowId);
             var behaviorDocument = await _behaviorService.LoadDocumentAsync(
-                entry.WindowTypeName,
+                entry.CanonicalWindowId,
                 cancellationToken);
             if (cancellationToken.IsCancellationRequested || reloadVersion != _reloadLayoutVersion)
             {
@@ -1301,7 +1256,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _logger.LogError(
                 ex,
                 "Failed to load fronted designer layout. Window: {WindowTypeName}",
-                entry.WindowTypeName);
+                entry.CanonicalWindowId);
 
             ClearLoadedLayout(CreateMessage(
                 FrontedLayoutValidationSeverity.Error,
@@ -3130,22 +3085,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        if (SelectedDesignItem.Config is BorderedImageFrontedControlConfig imageConfig
-            && BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
-        {
-            ClearActiveSnapGuides();
-            ResizeSelectedBorderedImageInnerImage(
-                imageConfig,
-                handle,
-                originalWidth,
-                originalHeight,
-                deltaX,
-                deltaY);
-            CurrentDocument.IsDirty = true;
-            OnDesignItemGeometryChanged(renderPreview);
-            return;
-        }
-
         var result = FrontedDesignerSmartSnapHelper.Resize(
             SelectedDesignItem,
             CurrentDocument,
@@ -3462,51 +3401,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             ActiveSnapGuides = [];
         }
-    }
-
-    private void ResizeSelectedBorderedImageInnerImage(
-        BorderedImageFrontedControlConfig config,
-        FrontedDesignerResizeHandleKind handle,
-        double originalWidth,
-        double originalHeight,
-        double deltaX,
-        double deltaY)
-    {
-        var widthDelta = handle is FrontedDesignerResizeHandleKind.Left
-            or FrontedDesignerResizeHandleKind.TopLeft
-            or FrontedDesignerResizeHandleKind.BottomLeft
-            ? -deltaX
-            : handle is FrontedDesignerResizeHandleKind.Right
-                or FrontedDesignerResizeHandleKind.TopRight
-                or FrontedDesignerResizeHandleKind.BottomRight
-                ? deltaX
-                : 0D;
-        var heightDelta = handle is FrontedDesignerResizeHandleKind.Top
-            or FrontedDesignerResizeHandleKind.TopLeft
-            or FrontedDesignerResizeHandleKind.TopRight
-            ? -deltaY
-            : handle is FrontedDesignerResizeHandleKind.Bottom
-                or FrontedDesignerResizeHandleKind.BottomLeft
-                or FrontedDesignerResizeHandleKind.BottomRight
-                ? deltaY
-                : 0D;
-
-        var width = originalWidth + widthDelta;
-        var height = originalHeight + heightDelta;
-
-        if (EffectiveSnapEnabled)
-        {
-            width = FrontedDesignerGeometryHelper.NormalizeCoordinate(width, effectiveSnapEnabled: true, SnapGridSize);
-            height = FrontedDesignerGeometryHelper.NormalizeCoordinate(height, effectiveSnapEnabled: true, SnapGridSize);
-        }
-        else
-        {
-            width = FrontedDesignerGeometryHelper.Snap(width);
-            height = FrontedDesignerGeometryHelper.Snap(height);
-        }
-
-        config.ImageWidth = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, width);
-        config.ImageHeight = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, height);
     }
 
     public IReadOnlyList<FrontedControlDesignItem> SyncLinkedOverlays(
@@ -4080,11 +3974,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             FrontedLayoutSource.User => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceUser"),
             FrontedLayoutSource.BuiltIn => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceBuiltIn"),
-            FrontedLayoutSource.PluginDefault => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceBuiltIn"),
             _ => I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "LayoutSourceError")
         };
         LayoutSourcePath = loadResult.Path
-            ?? GetBuiltInPackageLayoutPath(entry.WindowTypeName);
+            ?? GetBuiltInPackageLayoutPath(entry.CanonicalWindowId);
 
         if (!string.IsNullOrWhiteSpace(loadResult.Error))
         {
@@ -5032,8 +4925,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 ? WindowBackgroundColorEditText
                 : null;
 
-            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName)
-                         ?? CreateConfigFromCurrentDocument();
+            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName);
             config.WindowSettings = CloneWindowSettings(settings);
 
             await _layoutService.SaveWindowConfigAsync(
@@ -5088,8 +4980,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     await File.ReadAllTextAsync(builtInPath));
             }
             _currentWindowSettings = CloneWindowSettings(builtInConfig?.WindowSettings ?? new FrontedWindowSettings());
-            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName)
-                         ?? CreateConfigFromCurrentDocument();
+            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName);
             config.WindowSettings = CloneWindowSettings(_currentWindowSettings);
             await _layoutService.SaveWindowConfigAsync(SelectedWindow.WindowTypeName, config);
             LoadWindowOptions(SelectedWindow.WindowTypeName);
@@ -5222,7 +5113,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _previewAnimationScope?.Update(
             previewRoot,
             SelectedDesignItem,
-            _selectedCatalogEntry?.WindowId,
+            _selectedCatalogEntry?.CanonicalWindowId,
             FrontedLayoutConstants.BaseCanvasName,
             CurrentDocument?.Controls ?? [],
             BehaviorPanel.CurrentDocument);
@@ -5762,8 +5653,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     ? null
                     : new FrontedRenderContext
                     {
-                        WindowId = entry.WindowId,
-                        WindowTypeName = entry.WindowTypeName,
+                        WindowId = entry.CanonicalWindowId,
+                        WindowTypeName = entry.CanonicalWindowId,
                         CanvasName = FrontedLayoutConstants.BaseCanvasName,
                         SharedDataServiceOverride = _designerPreviewSharedDataService,
                         RenderMissingPluginPlaceholders = true,
@@ -6683,7 +6574,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                          .Where(entry => entry.IsMigrated && entry.IsEditable))
             {
                 WindowOptions.Add(new FrontedDesignerWindowOption(
-                    entry.WindowTypeName,
+                    entry.CanonicalWindowId,
                     ResolveEntryDisplayName(entry)));
             }
 
@@ -6706,7 +6597,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string ResolveWindowOptionDisplayName(string windowTypeName)
     {
         var entry = _layoutCatalog.GetEntries()
-            .FirstOrDefault(item => string.Equals(item.WindowTypeName, windowTypeName, StringComparison.Ordinal));
+            .FirstOrDefault(item => string.Equals(item.CanonicalWindowId, windowTypeName, StringComparison.Ordinal));
         return entry is null
             ? _localizationService.GetWindowDisplayName(windowTypeName)
             : ResolveEntryDisplayName(entry);
@@ -6718,13 +6609,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var language = settings?.Language ?? LanguageKey.System;
         var cultureInfo = settings?.CultureInfo;
 
+        // entry 不再携带 I18nDisplayNames；按本地化服务回退解析显示名。
         var concreteLanguage = FrontedWindowDisplayNameResolver.ResolveConcreteLanguage(language, cultureInfo);
-        if (concreteLanguage.HasValue
-            && entry.I18nDisplayNames is { Count: > 0 } names
-            && names.TryGetValue(concreteLanguage.Value, out var localized)
-            && !string.IsNullOrWhiteSpace(localized))
+        if (concreteLanguage.HasValue)
         {
-            return localized;
+            var localized = _localizationService.GetWindowDisplayName(entry.CanonicalWindowId);
+            if (!string.IsNullOrWhiteSpace(localized))
+            {
+                return localized;
+            }
         }
 
         return entry.DisplayName;

@@ -21,8 +21,10 @@ public static class FrontedV3LayoutWindowRegistryExtensions
     /// <param name="windowId">提供方内部的局部窗口标识，必须通过
     /// <see cref="FrontedV3LayoutWindowIdValidator"/> 验证。</param>
     /// <param name="isBuiltIn">是否为宿主内置窗口。内置窗口不要求 PackageId，
-    /// Canonical ID 直接使用 <paramref name="windowId"/>，并从内置元数据表填充分组、排序与本地化显示名。</param>
-    /// <exception cref="ArgumentException">当 <paramref name="windowId"/> 不是合法的局部窗口标识时抛出。</exception>
+    /// Canonical ID 直接使用 <paramref name="windowId"/>。</param>
+    /// <exception cref="ArgumentException">当 <paramref name="windowId"/> 不是合法的局部窗口标识
+    /// （含 null、空串、纯空白、路径分隔符、<c>..</c>、<c>plugin:</c> 前缀等），
+    /// 或当前插件包 ID 不是安全的 canonical path segment 时抛出。</exception>
     /// <remarks>
     /// <para>
     /// 当在插件初始化作用域内调用时，<see cref="FrontedV3LayoutWindowRegistration.PackageId"/>
@@ -36,8 +38,10 @@ public static class FrontedV3LayoutWindowRegistryExtensions
     /// 为 <see langword="null"/>。
     /// </para>
     /// <para>
-    /// 内置窗口的分组、排序与本地化显示名由 <see cref="FrontedBuiltInWindowMetadata"/> 提供；
-    /// 插件窗口的显示名默认回退到 <paramref name="windowId"/>。
+    /// 来源分组（BuiltIn / Plugin / External）由 UI 层基于 <see cref="FrontedWindowRegistration.IsBuiltIn"/>
+    /// 与 <see cref="FrontedWindowRegistration.PackageId"/> 推导；顺序使用 DI 注册顺序或在 UI 按
+    /// <see cref="FrontedWindowRegistration.LocalId"/> 排序；内置窗口的本地化显示名由 UI 层通过现有
+    /// resx（<c>Designer.Window.{LocalId}</c>）解析，显示名默认回退到 <paramref name="windowId"/>。
     /// </para>
     /// </remarks>
     public static void AddFrontedV3LayoutWindow(
@@ -45,26 +49,17 @@ public static class FrontedV3LayoutWindowRegistryExtensions
         string windowId,
         bool isBuiltIn = false)
     {
+        // 入口直接抛出明确异常，不 warning 后跳过（Task 2.7）。
+        // 纯空白 Local ID 会被 IsNullOrWhiteSpace 拒绝。
         FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(windowId);
 
         var packageId = FrontedPluginRegistrationContext.CurrentPackageId;
+
+        // 当 PackageId 非空（即插件作用域内）时，校验其可作为 canonical path segment，
+        // 避免路径分隔符、.. 等字符在 LayoutService 拼接路径时才报错（Task 2.7）。
+        FrontedWindowRegistryExtensions.EnsureSafePackageId(packageId);
+
         var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn);
-
-        string? groupKey = null;
-        int? displayOrder = null;
-        IReadOnlyDictionary<Core.Enums.LanguageKey, string>? i18nDisplayNames = null;
-
-        if (isBuiltIn
-            && FrontedBuiltInWindowMetadata.TryGetMetadata(
-                windowId,
-                out var metaGroupKey,
-                out var metaDisplayOrder,
-                out var metaI18n))
-        {
-            groupKey = metaGroupKey;
-            displayOrder = metaDisplayOrder;
-            i18nDisplayNames = metaI18n;
-        }
 
         var registration = new FrontedV3LayoutWindowRegistration
         {
@@ -72,10 +67,7 @@ public static class FrontedV3LayoutWindowRegistryExtensions
             LocalId = windowId,
             PackageId = packageId,
             IsBuiltIn = isBuiltIn,
-            DisplayName = windowId,
-            GroupKey = groupKey,
-            DisplayOrder = displayOrder,
-            I18nDisplayNames = i18nDisplayNames
+            DisplayName = windowId
         };
 
         services.AddSingleton<FrontedWindowRegistration>(registration);

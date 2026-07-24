@@ -4,7 +4,9 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -362,7 +364,7 @@ public class FrontedLayoutPackageManagerTest : IDisposable
             WriteTinyPng(absoluteImagePath);
             File.AppendAllBytes(absoluteImagePath, [0]);
 
-            var catalog = new FrontedDesignerLayoutCatalog();
+            var catalog = new FrontedDesignerLayoutCatalog(CreateBuiltInV3Registry());
             WriteCatalogLayouts(
                 catalog,
                 builtInRoot,
@@ -370,15 +372,12 @@ public class FrontedLayoutPackageManagerTest : IDisposable
                 "bpui://local/resources/images/local.png",
                 absoluteImagePath,
                 "bpui://local/resources/fonts/NotoSans-Regular.ttf#Noto Sans");
-            var layoutService = new FrontedLayoutService(
-                new FrontedUserLayoutStore(userRoot),
+            var packageManager = new FrontedLayoutPackageManager(
+                packageRoot,
                 builtInRoot,
-                null);
-            var optionsService = new FrontedWindowLayoutOptionsService(userRoot);
+                logger: NullLogger<FrontedLayoutPackageManager>.Instance);
             var exporter = new FrontedLayoutPackageExporter(
-                catalog,
-                layoutService,
-                optionsService,
+                packageManager,
                 packageRoot,
                 tempRoot);
 
@@ -434,12 +433,14 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         {
             var builtInRoot = Path.Combine(root, "builtIn");
             var missingPath = Path.Combine(root, "missing.png");
-            var catalog = new FrontedDesignerLayoutCatalog();
+            var catalog = new FrontedDesignerLayoutCatalog(CreateBuiltInV3Registry());
             WriteCatalogLayouts(catalog, builtInRoot, missingPath, "Resources/foo.png", "Resources/bar.png");
+            var packageManager = new FrontedLayoutPackageManager(
+                Path.Combine(root, "packages"),
+                builtInRoot,
+                logger: NullLogger<FrontedLayoutPackageManager>.Instance);
             var exporter = new FrontedLayoutPackageExporter(
-                catalog,
-                new FrontedLayoutService(new FrontedUserLayoutStore(Path.Combine(root, "user")), builtInRoot, null),
-                new FrontedWindowLayoutOptionsService(Path.Combine(root, "user")),
+                packageManager,
                 Path.Combine(root, "packages"),
                 Path.Combine(root, "temp"));
 
@@ -721,11 +722,8 @@ public class FrontedLayoutPackageManagerTest : IDisposable
 
             var manifest = ReadManifestFromPath(Path.Combine(packageRoot, "converted.legacy.test", "manifest.json"));
             var layoutService = new FrontedLayoutService(
-                new FrontedUserLayoutStore(userLayoutRoot),
-                builtInRoot,
                 manager,
-                null,
-                null);
+                NullLogger<FrontedLayoutService>.Instance);
             foreach (var layout in manifest.Content.Layouts)
             {
                 Assert.Equal($"FrontedLayouts/{layout.Window}.json", layout.Path);
@@ -1141,11 +1139,8 @@ public class FrontedLayoutPackageManagerTest : IDisposable
                 userRoot,
                 localize: key => key == "UserLayoutSchemeNameFormat" ? "User Layout Scheme {0}" : key);
             var service = new FrontedLayoutService(
-                new FrontedUserLayoutStore(userRoot),
-                builtInRoot,
                 manager,
-                null,
-                null);
+                NullLogger<FrontedLayoutService>.Instance);
 
             await service.SaveWindowConfigAsync(
                 "BpWindow",
@@ -1321,7 +1316,7 @@ public class FrontedLayoutPackageManagerTest : IDisposable
                 2 => thirdBackgroundImage,
                 _ => "Resources/foo.png"
             };
-            var path = Path.Combine(builtInRoot, $"{entry.WindowTypeName}.json");
+            var path = Path.Combine(builtInRoot, $"{entry.CanonicalWindowId}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, $$"""
                                       {
@@ -1732,6 +1727,38 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         return fourth is null
             ? Path.Combine(repositoryRoot, first, second, third)
             : Path.Combine(repositoryRoot, first, second, third, fourth);
+    }
+
+    /// <summary>
+    /// 构造包含 8 个内置 v3 窗口 registration 的注册表，用于测试目录遍历。
+    /// 该辅助方法仅用于让测试拥有一个稳定的注册表集合；生产代码不再硬编码这些窗口。
+    /// </summary>
+    private static FrontedWindowRegistryService CreateBuiltInV3Registry()
+    {
+        var localIds = new[]
+        {
+            "ScoreSurWindow",
+            "ScoreHunWindow",
+            "ScoreGlobalWindow",
+            "CutSceneWindow",
+            "GameDataWindow",
+            "BpOverviewWindow",
+            "MapV2Window",
+            "BpWindow"
+        };
+
+        var registrations = localIds
+            .Select(localId => new FrontedV3LayoutWindowRegistration
+            {
+                Id = localId,
+                LocalId = localId,
+                IsBuiltIn = true,
+                DisplayName = localId
+            })
+            .Cast<FrontedWindowRegistration>()
+            .ToArray();
+
+        return new FrontedWindowRegistryService(registrations);
     }
 
     private sealed class FakeFilePickerService(string? bpuiSavePath) : IFilePickerService

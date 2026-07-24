@@ -109,7 +109,7 @@ public partial class ExampleXamlWindow : FrontedWindowBase
 services.AddFrontedWindow<ExampleXamlWindow, ExampleXamlWindowViewModel>();
 ```
 
-`AddFrontedWindow<TWindow, TViewModel>` 会读取 Attribute 上的 GUID 作为 Canonical ID，注册 ViewModel 和 Window，并在创建时设置 DataContext。`FrontedWindowInfo` 旧的 canvas 构造函数仍保留但参数会被忽略，Canvas 注入能力不会恢复。
+`AddFrontedWindow<TWindow, TViewModel>` 会读取 Attribute 上的 GUID 作为 runtime ID（LocalId），注册 ViewModel 和 Window，并在创建时设置 DataContext。PackageId 仅表示来源，不参与 v3 layout / Designer。`FrontedWindowInfo` 旧的 canvas 构造函数仍保留但参数会被忽略，Canvas 注入能力不会恢复。
 
 ### v3 Layout Window
 
@@ -141,10 +141,13 @@ v3 Layout Window 不要求默认 JSON 存在。无默认 JSON 时使用 `Fronted
 前台窗口使用 Canonical ID 作为运行时、Designer 和 `.bpui` 的统一身份：
 
 ```text
-内置 v3 窗口: 直接使用 local ID（例如 BpWindow）
-插件 v3 窗口: plugin:{PackageId}/{LocalWindowId}（例如 plugin:plfjy.ExamplePlugin/ExampleLayoutOverlay）
-XAML 窗口:   使用 Attribute GUID（例如 3363BFE1-1393-4765-B926-001B6848FAF7）
+内置 v3 窗口:   直接使用 local ID（例如 BpWindow）
+插件 v3 窗口:   plugin:{PackageId}/{LocalWindowId}（例如 plugin:plfjy.ExamplePlugin/ExampleLayoutOverlay）
+内置 XAML 窗口: 直接使用 Attribute GUID（例如 3363BFE1-1393-4765-B926-001B6848FAF7）
+插件 XAML 窗口: plugin:{PackageId}/{AttributeGUID}
 ```
+
+Attribute GUID 是 XAML 窗口的 runtime ID（LocalId）；PackageId 仅表示来源，不参与 v3 layout / Designer。
 
 `.bpui` 契约保持不变：`FormatVersion=3`、`LayoutSchemaVersion=3`、所有 JSON 字段名不变，`Content.Layouts[].Window` 使用 Canonical ID。导入再导出不会重写 Canonical ID。
 

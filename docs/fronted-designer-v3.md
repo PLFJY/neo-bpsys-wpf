@@ -22,7 +22,7 @@ FrontedLayoutPackages/{PackageId}/
   Resources/...
 ```
 
-`PackageId = builtin` 是特殊的包身份，但不是 fallback 链。活动包为 `builtin` 时，layout service 读取运行目录 `Resources/FrontedLayouts`；活动包为用户包时，读取 `FrontedLayoutPackages/{PackageId}/FrontedLayouts`。缺失或损坏的布局应返回 Missing/Error 诊断，不应继续读取旧 loose user layout、插件默认布局或 `Resources/FrontedLayouts`。
+`PackageId = builtin` 是特殊的包身份，但不是 fallback 链。活动包为 `builtin` 时，layout service 读取运行目录 `Resources/FrontedLayouts`；活动包为用户包时，读取 `FrontedLayoutPackages/{PackageId}/FrontedLayouts`。加载优先级按窗口来源区分：内置 v3 窗口为活动包 → 内置资源 → 空模板；插件 v3 窗口为活动包 → 空模板。`FrontedLayoutSource.PluginDefault` / `MissingOrError` 枚举值已删除，接口统一返回非空 `FrontedWindowConfig`；不再读取旧 loose user layout 或插件默认布局。
 
 启动时如果发现 legacy v2 `Config.json`（`Version` 缺失或为 `null`），只允许 `ILegacyV2StartupMigrationService` 处理兼容逻辑。它会先备份原始 `Config.json`，再从 AppData 根目录读取实际存在的 `*Config-*.json` loose 布局和 `CustomUi/`。启动迁移与 legacy `.bpui` 导入通过同一 legacy frontend input source abstraction 进入同一转换核心；区别仅是 `.bpui` 从 `FrontElementsConfig/` 读取布局，本地迁移从 AppData 根目录读取布局。转换结果通过 package importer 安装并激活为普通 v3 包，最后保存干净的 v3 Settings。正常 v3 runtime 不读取 legacy canvas 文件。
 
@@ -396,7 +396,7 @@ layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedCo
 
 新版编辑器是独立窗口，而不是直接编辑被 OBS 捕获的真实前台窗口。详细设计见 [fronted-designer-editor.md](fronted-designer-editor.md)。编辑器依赖 v3 的硬规则：JSON key 等于控件名。
 
-`FrontedDesignerWindow` 是后台侧独立编辑器窗口，入口在 `FrontManagePage`。它通过固定的 `FrontedDesignerLayoutCatalog` 暴露已迁移窗口，按窗口/Canvas 选择读取 v3 layout JSON，使用 `FrontedLayoutDesignConverter` 和 `FrontedLayoutValidator` 显示设计文档与校验结果，并调用现有 `IFrontedRenderer` 把真实 v3 布局渲染到自己的 `PreviewCanvas`。
+`FrontedDesignerWindow` 是后台侧独立编辑器窗口，入口在 `FrontManagePage`。它通过 `FrontedDesignerLayoutCatalog` 暴露可编辑窗口；该 catalog 只从 `IFrontedWindowRegistry.GetV3LayoutWindows()` 获取 v3 registrations，不存在硬编码 fallback 或内置窗口清单。Designer 按窗口选择读取 v3 layout JSON，使用 `FrontedLayoutDesignConverter` 和 `FrontedLayoutValidator` 显示设计文档与校验结果，并调用现有 `IFrontedRenderer` 把真实 v3 布局渲染到自己的 `PreviewCanvas`。
 
 | 区域/能力 | 设计要求 |
 | --- | --- |

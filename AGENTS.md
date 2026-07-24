@@ -17,7 +17,7 @@
 
 1. 改代码前先读现有实现，不要发明架构。
 2. 保持 WPF + Generic Host + DI 设计，页面、窗口、服务优先通过现有扩展注册。
-3. 后台页面使用 `AddBackendPage<TView,TViewModel>()`，XAML 前台窗口使用 `AddFrontedWindow<TView,TViewModel>()`。当前 built-in 前台窗口由 v3 descriptor (`GetBuiltInV3Windows()`) 注册，通过 `FrontedWindowBase` + v3 layout host 创建，不再保留旧 XAML 文件。每个 v3 layout window 内部固定一个 `BaseCanvas`，外部不再注册或选择 Canvas。
+3. 后台页面使用 `AddBackendPage<TView,TViewModel>()`。前台窗口使用强类型 registration 模型：XAML 窗口使用 `AddFrontedWindow<TView,TViewModel>()`，v3 layout 窗口使用 `AddFrontedV3LayoutWindow("WindowId", isBuiltIn: bool)`。内置前台窗口在 `App.Services.xaml.cs` 的 DI 配置中通过 `AddFrontedV3LayoutWindow(name, isBuiltIn: true)` 注册，由 `FrontedWindowBase` + v3 layout host 创建。每个 v3 layout window 内部固定一个 `BaseCanvas`，外部不再注册或选择 Canvas。`FrontedWindowRegistration` 基类只暴露 `Id`、`LocalId`、`PackageId`、`IsBuiltIn`、`DisplayName`、`Kind`；来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导，不再有 `GroupKey`/`DisplayOrder`/`I18nDisplayNames`。
 4. WPF `Page` 只能作为 `Window`、`Frame` 或导航宿主的内容；严禁把 `Page` 直接放入 `ContentControl`、`Border`、`Grid`、`TabItem`、插件/模块内容 host 等嵌入容器。需要嵌入的页面片段必须用 `UserControl` 或普通 `Control`，否则会触发 `InvalidOperationException: Page can have only Window or Frame as parent.`
 5. 不要把 FrontedWindow 理解成 Web 前端，也不要引入 Web 前端假设。
 6. 不要随意大规模重构服务、ViewModel 或资源结构。

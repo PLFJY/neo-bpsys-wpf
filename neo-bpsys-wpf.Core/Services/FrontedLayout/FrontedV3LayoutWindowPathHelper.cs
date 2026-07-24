@@ -95,6 +95,61 @@ public static partial class FrontedV3LayoutWindowPathHelper
     }
 
     /// <summary>
+    /// 将相对于前台布局根目录的布局 JSON 文件路径转换回对应的 Canonical ID。
+    /// </summary>
+    /// <param name="relativePath">由 <see cref="GetLayoutRelativePath"/> 创建的相对 JSON 文件路径。</param>
+    /// <returns>该文件表示的 Canonical ID。</returns>
+    /// <exception cref="ArgumentException">当 <paramref name="relativePath"/> 不是有效的布局文件路径时抛出。</exception>
+    public static string ToCanonicalWindowIdFromLayoutRelativePath(string relativePath)
+    {
+        var parts = relativePath
+            .Replace('\\', '/')
+            .Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 3
+            && string.Equals(parts[0], "plugin", StringComparison.OrdinalIgnoreCase)
+            && parts[2].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            var packageId = parts[1];
+            var localWindowId = Path.GetFileNameWithoutExtension(parts[2]);
+            EnsureSafePathSegment(packageId, nameof(packageId));
+            EnsureSafePathSegment(localWindowId, nameof(localWindowId));
+            return $"{PluginPrefix}{packageId}/{localWindowId}";
+        }
+
+        if (parts.Length == 1 && parts[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            var localWindowId = Path.GetFileNameWithoutExtension(parts[0]);
+            EnsureSafePathSegment(localWindowId, nameof(localWindowId));
+            return localWindowId;
+        }
+
+        throw new ArgumentException("Layout path is not a valid window-centric layout path.", nameof(relativePath));
+    }
+
+    /// <summary>
+    /// 将相对于前台布局根目录的布局 JSON 文件路径转换回对应的 Canonical ID。
+    /// 转换失败时返回 <see langword="false"/> 而不抛出异常。
+    /// </summary>
+    /// <param name="relativePath">由 <see cref="GetLayoutRelativePath"/> 创建的相对 JSON 文件路径。</param>
+    /// <param name="canonicalWindowId">转换成功时输出的 Canonical ID。</param>
+    /// <returns>当 <paramref name="relativePath"/> 是有效的布局文件路径时为 <see langword="true"/>。</returns>
+    public static bool TryToCanonicalWindowIdFromLayoutRelativePath(
+        string relativePath,
+        out string canonicalWindowId)
+    {
+        try
+        {
+            canonicalWindowId = ToCanonicalWindowIdFromLayoutRelativePath(relativePath);
+            return true;
+        }
+        catch
+        {
+            canonicalWindowId = string.Empty;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 返回 Canonical ID 是否可以安全映射到布局路径。
     /// </summary>
     /// <param name="canonicalWindowId">内置窗口 LocalWindowId 或插件 Canonical ID。</param>

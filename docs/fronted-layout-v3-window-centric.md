@@ -78,35 +78,38 @@ FrontedWindowBase
 
 ## 路径
 
-用户、内置和包内布局都使用一级窗口路径：
+用户、内置和包内布局都使用一级窗口路径，路径键为 Canonical ID：
 
 ```text
-FrontedLayouts/{WindowTypeName}.json
-FrontedBehaviors/{WindowTypeName}.behaviors.json
+FrontedLayouts/{CanonicalId}.json
+FrontedBehaviors/{CanonicalId}.behaviors.json
 ```
 
-插件窗口的插件内默认布局为：
+Canonical ID 到文件路径的映射：
 
 ```text
-Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}.json
+BpWindow                          → FrontedLayouts/BpWindow.json
+plugin:{PackageId}/{LocalId}      → FrontedLayouts/plugin/{PackageId}/{LocalId}.json
 ```
+
+宿主不从插件安装目录加载默认 v3 Layout；插件 v3 窗口无默认 JSON 时使用空模板。
 
 `.bpui` 包内结构为：
 
 ```text
-FrontedLayouts/{WindowTypeName}.json
-FrontedBehaviors/{WindowTypeName}.behaviors.json
+FrontedLayouts/{CanonicalId}.json
+FrontedBehaviors/{CanonicalId}.behaviors.json
 Resources/...
 manifest.json
 ```
 
-manifest 使用 window-centric layout model 标记，layout entry 只记录 Window 和 Path，不记录 Canvas。缺插件窗口或缺插件控件的数据文件必须保留；Registry 没有 descriptor 时不显示该窗口，但 importer/exporter/package manager 不删除未知 window layout 或 behavior 文件。
+manifest 使用 window-centric layout model 标记，layout entry 只记录 Window 和 Path，不记录 Canvas。缺插件窗口或缺插件控件的数据文件必须保留；Registry 没有 registration 时不显示该窗口，但 importer/exporter/package manager 不删除未知 window layout 或 behavior 文件。
 
 ## Registry 和窗口
 
-Registry descriptor 提供 `WindowId`、`WindowTypeName`、`FullWindowType`、`DisplayNameKey`、`GroupKey`、`DisplayOrder`、`IsVisibleInFrontManage`、`IsV3LayoutWindow`、`Customizable` 和 `Kind`。FrontManagePage 只从 registry 获取可管理窗口，按 `GroupKey` 分组、按 `DisplayOrder` 排序；缺失分组或顺序时使用稳定 fallback。
+Registry 使用强类型 registration 模型，基类 `FrontedWindowRegistration` 只暴露 `Id`（Canonical ID）、`LocalId`、`PackageId`、`IsBuiltIn`、`DisplayName`、`Kind`。`Kind` 只有 `Xaml` / `V3Layout` 两种，由派生类 `FrontedXamlWindowRegistration` / `FrontedV3LayoutWindowRegistration` 固定返回。FrontManagePage 只从 registry 获取可管理窗口，来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导，顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序；基类不再有 `GroupKey` / `DisplayOrder` / `I18nDisplayNames`。
 
-`WidgetsWindow` 已删除。`MapBpCanvas` / MapV1 已删除且不注册。旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow`，旧 `MapV2Canvas` 迁移为 `MapV2Window`。这两个窗口都是 descriptor + `FrontedWindowBase` host 驱动，不创建独立 XAML。
+`WidgetsWindow` 已删除。`MapBpCanvas` / MapV1 已删除且不注册。旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow`，旧 `MapV2Canvas` 迁移为 `MapV2Window`。这两个窗口都是 registration + `FrontedWindowBase` host 驱动，不创建独立 XAML。
 
 ## Behavior
 
@@ -120,7 +123,12 @@ runtime host key 使用 Window scope。`FrontedBehaviorDocument.CanvasName` 如�
 
 ## 活动包读取规则
 
-`IFrontedLayoutService.LoadWindowConfigWithMetadataAsync` 只通过 `IFrontedLayoutPackageManager` 解析当前活动包。活动包缺布局、JSON 无效或 schema 无法通过验证时，返回 Missing/Error 结果和诊断；不继续读取旧用户布局、插件默认布局或内置资源 fallback。`builtin` 是 package id，不是兜底路径。
+`IFrontedLayoutService.LoadWindowConfigAsync` 只通过 `IFrontedLayoutPackageManager` 解析当前活动包，并统一返回非空 `FrontedWindowConfig`。加载优先级按窗口来源区分：
+
+- 内置 v3 窗口：活动包 → 内置资源（`Resources/FrontedLayouts`）→ 空模板
+- 插件 v3 窗口：活动包 → 空模板
+
+活动包缺布局、JSON 无效或 schema 无法通过验证时，按上述优先级继续回退；JSON `null` 视为损坏。不再读取旧用户布局存储或插件默认布局（`FrontedLayoutSource.PluginDefault` / `MissingOrError` 枚举值已删除）。`builtin` 是 package id，不是兜底路径。
 
 legacy canvas 与 `FrontedCanvasConfig` 只能在启动迁移、旧 `.bpui` 转换和测试辅助中出现。主路径模型是 `FrontedWindowConfig`，public model 不再暴露 `FromCanvasConfig`、`ToCanvasConfig` 或 `SyncWindowSizeToCanvas`。
 

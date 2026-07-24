@@ -7,7 +7,9 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.ExamplePlugin;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
@@ -171,9 +173,10 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             WriteAllCatalogLayouts(builtInRoot, includePluginOnFirstLayout: true);
 
             var exporter = new FrontedLayoutPackageExporter(
-                new FrontedDesignerLayoutCatalog(),
-                new FrontedLayoutService(new FrontedUserLayoutStore(Path.Combine(root, "user")), builtInRoot, null),
-                new FrontedWindowLayoutOptionsService(Path.Combine(root, "user")),
+                new FrontedLayoutPackageManager(
+                    packageRoot,
+                    builtInRoot,
+                    logger: NullLogger<FrontedLayoutPackageManager>.Instance),
                 packageRoot,
                 tempRoot,
                 controlRegistry: CreateRegistryWithExamplePlugin());
@@ -220,9 +223,10 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             WriteAllCatalogLayouts(builtInRoot, includePluginOnFirstLayout: true);
 
             var exporter = new FrontedLayoutPackageExporter(
-                new FrontedDesignerLayoutCatalog(),
-                new FrontedLayoutService(new FrontedUserLayoutStore(Path.Combine(root, "user")), builtInRoot, null),
-                new FrontedWindowLayoutOptionsService(Path.Combine(root, "user")),
+                new FrontedLayoutPackageManager(
+                    Path.Combine(root, "packages"),
+                    builtInRoot,
+                    logger: NullLogger<FrontedLayoutPackageManager>.Instance),
                 Path.Combine(root, "packages"),
                 Path.Combine(root, "temp"),
                 controlRegistry: CreateRegistryWithExamplePlugin(),
@@ -561,12 +565,303 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             NullLogger<FrontedControlRegistry>.Instance);
     }
 
+    private static FrontedControlRegistry CreateTextOnlyRegistry()
+    {
+        return new FrontedControlRegistry([new TextFrontedControl()]);
+    }
+
+    private static void CreateUnknownPluginBpuiArchive(string archivePath)
+    {
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+        {
+            PackageId = "unknown-plugin-package",
+            Name = "Unknown Plugin Package",
+            Content = new FrontedLayoutPackageManifestContent
+            {
+                Layouts =
+                [
+                    new FrontedLayoutPackageLayoutEntry
+                    {
+                        Window = "plugin:missing.plugin/Overlay",
+                        Path = "FrontedLayouts/plugin/missing.plugin/Overlay.json"
+                    }
+                ]
+            }
+        }));
+        WriteZipEntry(
+            archive,
+            "FrontedLayouts/plugin/missing.plugin/Overlay.json",
+            """
+            {
+              "Version": 3,
+              "CanvasSettings": {
+                "CanvasWidth": 100,
+                "CanvasHeight": 100
+              },
+              "ControlLayout": {
+                "RequiredPlugins": [],
+                "Controls": {
+                  "Title": {
+                    "ControlType": "Text",
+                    "Text": "Unknown Plugin"
+                  }
+                }
+              },
+              "VendorExtension": {
+                "KeepMe": true
+              }
+            }
+            """);
+        WriteZipEntry(
+            archive,
+            "FrontedBehaviors/plugin/missing.plugin/Overlay.behaviors.json",
+            """
+            {
+              "Version": 1,
+              "WindowType": "plugin:missing.plugin/Overlay",
+              "CanvasName": "BaseCanvas",
+              "ControlBehaviorSets": [
+                {
+                  "BehaviorGuid": "11111111-1111-1111-1111-111111111111",
+                  "Behaviors": []
+                }
+              ]
+            }
+            """);
+    }
+
+    private static async Task<string> ImportActivateExportAsync(string root, string archivePath)
+    {
+        var packageRoot = Path.Combine(root, "packages");
+        var builtInRoot = Path.Combine(root, "builtIn");
+        var tempRoot = Path.Combine(root, "temp");
+        Directory.CreateDirectory(builtInRoot);
+
+        var packageManager = new FrontedLayoutPackageManager(
+            packageRoot,
+            builtInRoot,
+            logger: NullLogger<FrontedLayoutPackageManager>.Instance);
+
+        var importer = new FrontedLayoutPackageImporter(
+            packageRoot,
+            tempRoot,
+            packageManager: packageManager,
+            controlRegistry: CreateTextOnlyRegistry());
+
+        var importResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+        {
+            PackagePath = archivePath,
+            ReplaceExisting = true,
+            ActivateAfterImport = true
+        }, TestContext.Current.CancellationToken);
+        Assert.True(importResult.Success, importResult.ErrorMessage);
+
+        var outputPath = Path.Combine(root, "exported.bpui");
+        var exporter = new FrontedLayoutPackageExporter(
+            packageManager,
+            packageRoot,
+            tempRoot,
+            controlRegistry: CreateTextOnlyRegistry());
+
+        var exportResult = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+        {
+            PackageId = "exported-package",
+            Name = "Exported Package",
+            OutputPath = outputPath
+        }, TestContext.Current.CancellationToken);
+        Assert.True(exportResult.Success, exportResult.ErrorMessage);
+        return outputPath;
+    }
+
+    /// <summary>
+    /// Task 5.4：导入包含未安装插件窗口（plugin:missing.plugin/Overlay）的 .bpui 包应成功，
+    /// 不因当前 Registry 中缺少该插件而阻止导入。
+    /// </summary>
+    [Fact]
+    public async Task UnknownPluginWindow_ImportSucceeds()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "unknown-plugin.bpui");
+            CreateUnknownPluginBpuiArchive(archivePath);
+
+            var packageRoot = Path.Combine(root, "packages");
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var tempRoot = Path.Combine(root, "temp");
+            Directory.CreateDirectory(builtInRoot);
+
+            var packageManager = new FrontedLayoutPackageManager(
+                packageRoot,
+                builtInRoot,
+                logger: NullLogger<FrontedLayoutPackageManager>.Instance);
+
+            var importer = new FrontedLayoutPackageImporter(
+                packageRoot,
+                tempRoot,
+                packageManager: packageManager,
+                controlRegistry: CreateTextOnlyRegistry());
+
+            var importResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath,
+                ReplaceExisting = true,
+                ActivateAfterImport = true
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(importResult.Success, importResult.ErrorMessage);
+
+            // 导入后布局文件应存在于包目录中。
+            var layoutPath = Path.Combine(packageRoot, "unknown-plugin-package", "FrontedLayouts", "plugin", "missing.plugin", "Overlay.json");
+            Assert.True(File.Exists(layoutPath), "导入后未知插件窗口的布局文件应存在");
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task UnknownPluginWindow_ImportExportPreservesEntry()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "unknown-plugin.bpui");
+            CreateUnknownPluginBpuiArchive(archivePath);
+            var outputPath = await ImportActivateExportAsync(root, archivePath);
+
+            using var archive = ZipFile.OpenRead(outputPath);
+            var manifest = ReadManifest(archive);
+            Assert.Contains(manifest.Content.Layouts, entry =>
+                string.Equals(entry.Window, "plugin:missing.plugin/Overlay", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task UnknownPluginWindow_ImportExportPreservesPath()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "unknown-plugin.bpui");
+            CreateUnknownPluginBpuiArchive(archivePath);
+            var outputPath = await ImportActivateExportAsync(root, archivePath);
+
+            using var archive = ZipFile.OpenRead(outputPath);
+            var manifest = ReadManifest(archive);
+            var entry = Assert.Single(manifest.Content.Layouts);
+            Assert.Equal("plugin:missing.plugin/Overlay", entry.Window);
+            Assert.Equal("FrontedLayouts/plugin/missing.plugin/Overlay.json", entry.Path);
+            Assert.Contains(archive.Entries, e =>
+                string.Equals(e.FullName, "FrontedLayouts/plugin/missing.plugin/Overlay.json", StringComparison.OrdinalIgnoreCase));
+            var layoutJson = ReadZipEntry(archive, "FrontedLayouts/plugin/missing.plugin/Overlay.json");
+            Assert.Contains("VendorExtension", layoutJson);
+            Assert.Contains("KeepMe", layoutJson);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task UnknownPluginWindow_ImportExportPreservesBehavior()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "unknown-plugin.bpui");
+            CreateUnknownPluginBpuiArchive(archivePath);
+            var outputPath = await ImportActivateExportAsync(root, archivePath);
+
+            using var archive = ZipFile.OpenRead(outputPath);
+            Assert.Contains(archive.Entries, e =>
+                string.Equals(e.FullName, "FrontedBehaviors/plugin/missing.plugin/Overlay.behaviors.json", StringComparison.OrdinalIgnoreCase));
+            var behaviorJson = ReadZipEntry(archive, "FrontedBehaviors/plugin/missing.plugin/Overlay.behaviors.json");
+            Assert.Contains("plugin:missing.plugin/Overlay", behaviorJson);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task Exporter_DoesNotSynthesizeUnsavedEmptyLayouts()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var packageRoot = Path.Combine(root, "packages");
+            var tempRoot = Path.Combine(root, "temp");
+            var outputPath = Path.Combine(root, "exported.bpui");
+            Directory.CreateDirectory(builtInRoot);
+            File.WriteAllText(
+                Path.Combine(builtInRoot, "BpWindow.json"),
+                """
+                {
+                  "Version": 3,
+                  "CanvasSettings": {
+                    "CanvasWidth": 100,
+                    "CanvasHeight": 100
+                  },
+                  "ControlLayout": {
+                    "RequiredPlugins": [],
+                    "Controls": {
+                      "Title": {
+                        "ControlType": "Text",
+                        "Text": "Built-in"
+                      }
+                    }
+                  }
+                }
+                """);
+
+            var packageManager = new FrontedLayoutPackageManager(
+                packageRoot,
+                builtInRoot,
+                logger: NullLogger<FrontedLayoutPackageManager>.Instance);
+            var exporter = new FrontedLayoutPackageExporter(
+                packageManager,
+                packageRoot,
+                tempRoot,
+                controlRegistry: CreateTextOnlyRegistry());
+
+            var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+            {
+                PackageId = "single-window-export",
+                Name = "Single Window Export",
+                OutputPath = outputPath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(outputPath);
+            var manifest = ReadManifest(archive);
+            var entry = Assert.Single(manifest.Content.Layouts);
+            Assert.Equal("BpWindow", entry.Window);
+            Assert.DoesNotContain(archive.Entries, e =>
+                e.FullName.StartsWith("FrontedLayouts/", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(e.FullName, "FrontedLayouts/BpWindow.json", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
     private static void WriteAllCatalogLayouts(string builtInRoot, bool includePluginOnFirstLayout)
     {
         var first = true;
-        foreach (var entry in new FrontedDesignerLayoutCatalog().GetEntries())
+        foreach (var entry in new FrontedDesignerLayoutCatalog(CreateBuiltInV3Registry()).GetEntries())
         {
-            var path = Path.Combine(builtInRoot, $"{entry.WindowTypeName}.json");
+            var path = Path.Combine(builtInRoot, $"{entry.CanonicalWindowId}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             var pluginJson = first && includePluginOnFirstLayout
                 ? """
@@ -830,6 +1125,38 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root.");
+    }
+
+    /// <summary>
+    /// 构造包含 8 个内置 v3 窗口 registration 的注册表，用于测试目录遍历。
+    /// 该辅助方法仅用于让测试拥有一个稳定的注册表集合；生产代码不再硬编码这些窗口。
+    /// </summary>
+    private static FrontedWindowRegistryService CreateBuiltInV3Registry()
+    {
+        var localIds = new[]
+        {
+            "ScoreSurWindow",
+            "ScoreHunWindow",
+            "ScoreGlobalWindow",
+            "CutSceneWindow",
+            "GameDataWindow",
+            "BpOverviewWindow",
+            "MapV2Window",
+            "BpWindow"
+        };
+
+        var registrations = localIds
+            .Select(localId => new FrontedV3LayoutWindowRegistration
+            {
+                Id = localId,
+                LocalId = localId,
+                IsBuiltIn = true,
+                DisplayName = localId
+            })
+            .Cast<FrontedWindowRegistration>()
+            .ToArray();
+
+        return new FrontedWindowRegistryService(registrations);
     }
 
     private sealed class FakePluginMarketService : IPluginMarketService

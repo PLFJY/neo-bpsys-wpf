@@ -36,14 +36,37 @@ public class FrontedWindowService : IFrontedWindowService
     private readonly IFrontedEventBus? _eventBus;
 
     /// <summary>
-    /// 前台窗口字典，键为窗口 ID。
+    /// 前台窗口可变字典（私有），键为窗口 Canonical ID。使用 <see cref="StringComparer.OrdinalIgnoreCase"/>
+    /// 与注册表的比较语义保持一致，避免调用方传入大小写不同的 ID 时无法命中缓存。
     /// </summary>
-    public Dictionary<string, Window> FrontedWindows { get; private set; } = [];
+    private readonly Dictionary<string, Window> _frontedWindows = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// 前台窗口状态字典，键为窗口 ID，值为窗口是否可见。
+    /// 前台窗口状态可变字典（私有），键为窗口 Canonical ID，值为窗口是否可见。
+    /// 比较语义与 <see cref="_frontedWindows"/> 一致。
     /// </summary>
-    public Dictionary<string, bool> FrontedWindowStates { get; private set; } = [];
+    private readonly Dictionary<string, bool> _frontedWindowStates = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 获取前台窗口的只读视图，键为窗口 Canonical ID。使用 <see cref="StringComparer.OrdinalIgnoreCase"/>
+    /// 与注册表的比较语义保持一致，避免调用方传入大小写不同的 ID 时无法命中缓存。
+    /// </summary>
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改缓存。
+    /// 需要修改窗口缓存必须通过服务方法（如 <see cref="EnsureWindowCreated"/>、
+    /// <see cref="ShowWindow(string)"/>、<see cref="HideWindow(string)"/> 等）。
+    /// </remarks>
+    public IReadOnlyDictionary<string, Window> FrontedWindows => _frontedWindows;
+
+    /// <summary>
+    /// 获取前台窗口状态的只读视图，键为窗口 Canonical ID，值为窗口是否可见。
+    /// 比较语义与 <see cref="FrontedWindows"/> 一致。
+    /// </summary>
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改状态缓存。
+    /// 需要修改窗口状态必须通过服务方法。
+    /// </remarks>
+    public IReadOnlyDictionary<string, bool> FrontedWindowStates => _frontedWindowStates;
 
     /// <summary>
     /// 初始化前台窗口服务。
@@ -75,15 +98,37 @@ public class FrontedWindowService : IFrontedWindowService
 #endif
     }
 
+    /// <summary>
+    /// 将调用方传入的窗口 ID 规范化为注册表中的 Canonical ID。
+    /// </summary>
+    /// <param name="windowId">调用方传入的窗口 ID（可能是任意大小写）。</param>
+    /// <returns>
+    /// 当 <paramref name="windowId"/> 在注册表中存在时，返回 <see cref="FrontedWindowRegistration.Id"/>；
+    /// 否则返回原始 <paramref name="windowId"/>，由调用方按未注册路径处理。
+    /// </returns>
+    /// <remarks>
+    /// 该方法保证整条调用链只使用注册表中的 Canonical ID 作为缓存键和事件 payload，
+    /// 避免调用方传入的大小写变体导致缓存孤立或事件 payload 不一致。
+    /// </remarks>
+    private string NormalizeWindowId(string windowId)
+    {
+        return _windowRegistry.TryGet(windowId, out var registration)
+            ? registration.Id
+            : windowId;
+    }
+
     /// <inheritdoc/>
     public Window? EnsureWindowCreated(string windowId)
     {
-        if (FrontedWindows.TryGetValue(windowId, out var existingWindow))
+        // 入口先规范化为 Canonical ID，整条调用链使用规范化后的值作为缓存键。
+        var canonicalId = NormalizeWindowId(windowId);
+
+        if (_frontedWindows.TryGetValue(canonicalId, out var existingWindow))
         {
             return existingWindow;
         }
 
-        if (!_windowRegistry.TryGet(windowId, out var registration))
+        if (!_windowRegistry.TryGet(canonicalId, out var registration))
         {
             return null;
         }
@@ -91,11 +136,6 @@ public class FrontedWindowService : IFrontedWindowService
         try
         {
             var window = CreateWindow(registration);
-            if (window is null)
-            {
-                return null;
-            }
-
             RegisterFrontedWindow(registration.Id, window);
             return window;
         }
@@ -111,9 +151,9 @@ public class FrontedWindowService : IFrontedWindowService
 
     private void RegisterFrontedWindow(string windowId, Window window)
     {
-        if (FrontedWindows.TryAdd(windowId, window))
+        if (_frontedWindows.TryAdd(windowId, window))
         {
-            FrontedWindowStates[windowId] = false;
+            _frontedWindowStates[windowId] = false;
         }
     }
 
@@ -121,37 +161,51 @@ public class FrontedWindowService : IFrontedWindowService
     /// 根据窗口注册的承载方式创建对应的前台窗口实例。
     /// </summary>
     /// <param name="registration">窗口注册，携带承载方式（Xaml/V3Layout）和来源信息。</param>
-    /// <returns>创建的 <see cref="Window"/> 实例；无法识别时返回 <c>null</c>。</returns>
+    /// <returns>创建的 <see cref="Window"/> 实例。</returns>
+    /// <exception cref="InvalidOperationException">当 <paramref name="registration"/> 不是
+    /// <see cref="FrontedV3LayoutWindowRegistration"/> 或 <see cref="FrontedXamlWindowRegistration"/> 时抛出。
+    /// 系统只有这两个 sealed registration 模型，未知类型表示编程错误。</exception>
     /// <remarks>
     /// 分派依据 <see cref="FrontedWindowRegistration.Kind"/>：
     /// <list type="number">
     ///   <item><description><see cref="FrontedWindowRegistrationKind.V3Layout"/> —
     /// v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口），走 <see cref="CreateV3LayoutHostWindow"/>。</description></item>
     ///   <item><description><see cref="FrontedWindowRegistrationKind.Xaml"/> —
-    /// XAML 窗口（含内置与插件），通过 DI 创建窗口并设置 ViewModel 为 DataContext。</description></item>
-    ///   <item><description>其他未知类型 — 返回 <c>null</c>，由调用方跳过注册。</description></item>
+    /// XAML 窗口（含内置与插件），通过 DI 解析窗口实例。DataContext 已由
+    /// <c>AddFrontedWindow</c> 注册 factory 设置，此处不再重复处理。</description></item>
+    ///   <item><description>其他未知类型 — 抛出 <see cref="InvalidOperationException"/>，
+    /// 系统只有两个 sealed registration 模型，未知类型表示编程错误。</description></item>
     /// </list>
     /// </remarks>
-    private Window? CreateWindow(FrontedWindowRegistration registration)
+    private Window CreateWindow(FrontedWindowRegistration registration)
     {
         return registration switch
         {
             // 模式 1：v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口）
             FrontedV3LayoutWindowRegistration v3 => CreateV3LayoutHostWindow(v3),
 
-            // 模式 2：XAML 窗口（含内置与插件）— 创建窗口并设置 ViewModel 为 DataContext
-            FrontedXamlWindowRegistration xaml => CreateXamlWindow(xaml.WindowType, xaml.ViewModelType),
+            // 模式 2：XAML 窗口（含内置与插件）— 通过 DI 解析窗口实例。
+            // DataContext 已由 AddFrontedWindow 注册 factory 设置，此处不再重复处理。
+            FrontedXamlWindowRegistration xaml => CreateXamlWindow(xaml.WindowType),
 
-            // 模式 3：无法识别的注册，跳过
-            _ => null
+            // 模式 3：系统只有两个 sealed registration 模型，未知类型表示编程错误。
+            _ => throw new InvalidOperationException(
+                $"Unsupported registration type: {registration.GetType().Name}. " +
+                $"Only {nameof(FrontedV3LayoutWindowRegistration)} and {nameof(FrontedXamlWindowRegistration)} are supported.")
         };
     }
 
     private Window CreateV3LayoutHostWindow(FrontedWindowRegistration registration)
     {
         var window = new FrontedWindowBase();
+        // 只向渲染层传递渲染所需的最小信息（Canonical ID 和显示名），
+        // 不传递整个 registration，避免 Registry/UI 元数据泄漏到渲染层。
+        // 显示名使用 Core 回退解析（DisplayName 为空时回退到 LocalId），
+        // 内置窗口的本地化显示名由 UI 层通过 resx 覆盖。
+        var displayName = FrontedWindowDisplayNameResolver.GetFallbackDisplayName(registration);
         window.InitializeV3LayoutHost(
-            registration,
+            registration.Id,
+            displayName,
             _services.GetRequiredService<IFrontedLayoutService>(),
             _services.GetRequiredService<IFrontedRenderer>(),
             _services.GetRequiredService<ISharedDataService>(),
@@ -161,27 +215,29 @@ public class FrontedWindowService : IFrontedWindowService
         return window;
     }
 
-    private Window? CreateXamlWindow(Type? windowType, Type? viewModelType)
+    /// <summary>
+    /// 通过 DI 解析 XAML 前台窗口实例。
+    /// </summary>
+    /// <param name="windowType">WPF 窗口 CLR 类型，必须可赋值给 <see cref="Window"/>。</param>
+    /// <returns>由 DI 容器提供的 <see cref="Window"/> 实例，DataContext 已由
+    /// <c>AddFrontedWindow</c> 注册 factory 设置。</returns>
+    /// <exception cref="InvalidOperationException">当 <paramref name="windowType"/> 为 <see langword="null"/>
+    /// 或不可赋值给 <see cref="Window"/> 时抛出。</exception>
+    /// <remarks>
+    /// 仅通过 <see cref="ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider, Type)"/> 解析窗口实例，
+    /// 不再使用 <c>ActivatorUtilities.CreateInstance</c> fallback，避免掩盖 DI 配置错误。
+    /// ViewModel 与 DataContext 的关联由 <c>AddFrontedWindow</c> 注册 factory 一次性完成。
+    /// </remarks>
+    private Window CreateXamlWindow(Type windowType)
     {
         if (windowType is null || !typeof(Window).IsAssignableFrom(windowType))
         {
-            return null;
+            throw new InvalidOperationException(
+                $"XAML window registration has invalid WindowType: " +
+                $"{windowType?.FullName ?? "(null)"}. Type must be assignable to Window.");
         }
 
-        var window = (_services.GetService(windowType)
-                      ?? ActivatorUtilities.CreateInstance(_services, windowType)) as Window;
-        if (window is null)
-        {
-            return null;
-        }
-
-        if (viewModelType is not null)
-        {
-            window.DataContext = _services.GetService(viewModelType)
-                                 ?? ActivatorUtilities.CreateInstance(_services, viewModelType);
-        }
-
-        return window;
+        return (Window)_services.GetRequiredService(windowType);
     }
 
     /// <summary>
@@ -205,18 +261,37 @@ public class FrontedWindowService : IFrontedWindowService
                 settings?.CultureInfo);
         }
 
-        FrontedWindows.TryGetValue(windowId, out var window);
+        // 未注册时回退查缓存：缓存已使用 OrdinalIgnoreCase，可命中大小写不同的变体。
+        _frontedWindows.TryGetValue(windowId, out var window);
         return window?.GetType().Name;
     }
 
     /// <summary>
-    /// 显示所有前台窗口。
+    /// 显示所有前台窗口。同步入口：内部以 fire-and-forget 方式调度安全异步流程，
+    /// 单窗口失败不会阻止后续窗口打开，也不会向调用方传播异常。
     /// </summary>
-    public async void AllWindowShow()
+    public void AllWindowShow()
+    {
+        _ = ShowAllWindowsSafelyAsync();
+    }
+
+    /// <summary>
+    /// 安全地显示所有已注册窗口。单窗口失败被捕获并记录，不阻止后续窗口。
+    /// </summary>
+    /// <returns>表示异步操作的任务。</returns>
+    private async Task ShowAllWindowsSafelyAsync()
     {
         foreach (var registration in _windowRegistry.GetWindows())
         {
-            await ShowWindowAsync(registration.Id);
+            try
+            {
+                await ShowWindowCoreAsync(registration.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to show window {WindowId}", registration.Id);
+                // 单窗口失败不阻止后续窗口。
+            }
         }
     }
 
@@ -225,10 +300,10 @@ public class FrontedWindowService : IFrontedWindowService
     /// </summary>
     public void AllWindowHide()
     {
-        foreach (var window in FrontedWindows.Where(pair => FrontedWindowStates[pair.Key]))
+        foreach (var window in _frontedWindows.Where(pair => _frontedWindowStates[pair.Key]))
         {
             window.Value.Hide();
-            FrontedWindowStates[window.Key] = false;
+            _frontedWindowStates[window.Key] = false;
             PublishWindowHidden(window.Key);
         }
     }
@@ -237,68 +312,124 @@ public class FrontedWindowService : IFrontedWindowService
     /// 隐藏指定类型的前台窗口。
     /// </summary>
     /// <param name="windowType">窗口类型。</param>
+    /// <remarks>
+    /// <see cref="FrontedWindowType.ScoreWindow"/> 是复合操作，会同时隐藏三个比分窗口，
+    /// 不会进入普通 Canonical ID 解析（其 Canonical ID 为 <see cref="Guid.Empty"/> 字符串形式，非真实窗口）。
+    /// </remarks>
     public void HideWindow(FrontedWindowType windowType)
     {
+        // ScoreWindow 是复合操作：同时隐藏三个比分窗口，不进入普通 Canonical ID 解析。
+        if (windowType == FrontedWindowType.ScoreWindow)
+        {
+            HideWindow(FrontedWindowType.ScoreSurWindow);
+            HideWindow(FrontedWindowType.ScoreHunWindow);
+            HideWindow(FrontedWindowType.ScoreGlobalWindow);
+            return;
+        }
+
         HideWindow(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
 
     public void HideWindow(string windowId)
     {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
+        // 入口先规范化为 Canonical ID，整条调用链使用规范化后的值。
+        var canonicalId = NormalizeWindowId(windowId);
+
+        if (!_frontedWindows.TryGetValue(canonicalId, out var window))
         {
-            if (!_windowRegistry.TryGet(windowId, out _))
+            if (!_windowRegistry.TryGet(canonicalId, out _))
             {
-                _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCloseError"));
+                _ = MessageBoxHelper.ShowErrorAsync(
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {canonicalId}",
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCloseError"));
             }
 
             return;
         }
 
-        if (!FrontedWindowStates.GetValueOrDefault(windowId))
+        if (!_frontedWindowStates.GetValueOrDefault(canonicalId))
         {
             return;
         }
 
         window.Hide();
-        FrontedWindowStates[windowId] = false;
-        PublishWindowHidden(windowId);
+        _frontedWindowStates[canonicalId] = false;
+        PublishWindowHidden(canonicalId);
     }
 
     /// <summary>
     /// 显示指定类型的前台窗口。
     /// </summary>
     /// <param name="windowType">窗口类型。</param>
+    /// <remarks>
+    /// <see cref="FrontedWindowType.ScoreWindow"/> 是复合操作，会同时显示三个比分窗口，
+    /// 不会进入普通 Canonical ID 解析（其 Canonical ID 为 <see cref="Guid.Empty"/> 字符串形式，非真实窗口）。
+    /// </remarks>
     public void ShowWindow(FrontedWindowType windowType)
     {
+        // ScoreWindow 是复合操作：同时显示三个比分窗口，不进入普通 Canonical ID 解析。
+        if (windowType == FrontedWindowType.ScoreWindow)
+        {
+            ShowWindow(FrontedWindowType.ScoreSurWindow);
+            ShowWindow(FrontedWindowType.ScoreHunWindow);
+            ShowWindow(FrontedWindowType.ScoreGlobalWindow);
+            return;
+        }
+
         ShowWindow(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
 
     /// <summary>
-    /// 显示指定 ID 的前台窗口。
+    /// 显示指定 ID 的前台窗口。同步入口：内部以 fire-and-forget 方式调度安全异步流程，
+    /// 窗口显示失败被捕获并提示用户，不会向调用方传播异常。
     /// </summary>
-    /// <param name="windowId">窗口 ID。</param>
+    /// <param name="windowId">窗口 ID（可以是任意大小写变体，内部规范化为 Canonical ID）。</param>
     public void ShowWindow(string windowId)
     {
-        _ = ShowWindowAsync(windowId).ContinueWith(t =>
-        {
-            if (t.IsFaulted)
-            {
-                _logger.LogError(t.Exception, "Failed to show window {WindowId}", windowId);
-            }
-        }, TaskScheduler.Default);
+        _ = ShowWindowSafelyAsync(windowId);
     }
 
-    private async Task ShowWindowAsync(string windowId)
+    /// <summary>
+    /// 安全地显示指定 ID 的窗口。捕获所有异常并提示用户，不向 SynchronizationContext 传播。
+    /// </summary>
+    /// <param name="windowId">调用方传入的窗口 ID（可能是任意大小写）。</param>
+    /// <returns>表示异步操作的任务。</returns>
+    private async Task ShowWindowSafelyAsync(string windowId)
     {
-        var window = EnsureWindowCreated(windowId);
+        try
+        {
+            await ShowWindowCoreAsync(windowId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to show window {WindowId}", windowId);
+            _ = MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError")}\n{ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 实际执行窗口显示的核心逻辑。调用方应通过 <see cref="ShowWindowSafelyAsync"/> 或
+    /// <see cref="ShowAllWindowsSafelyAsync"/> 间接调用，避免异常逃逸到 SynchronizationContext。
+    /// </summary>
+    /// <param name="windowId">调用方传入的窗口 ID（可能是任意大小写）。</param>
+    /// <returns>表示异步操作的任务。</returns>
+    private async Task ShowWindowCoreAsync(string windowId)
+    {
+        // 入口先规范化为 Canonical ID，整条调用链使用规范化后的值作为缓存键和事件 payload。
+        var canonicalId = NormalizeWindowId(windowId);
+
+        var window = EnsureWindowCreated(canonicalId);
         if (window is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError"));
-            _logger.LogError("Unregistered window type {WindowId}", windowId);
+            _ = MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {canonicalId}",
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError"));
+            _logger.LogError("Unregistered window type {WindowId}", canonicalId);
             return;
         }
 
-        if (FrontedWindowStates.GetValueOrDefault(windowId))
+        if (_frontedWindowStates.GetValueOrDefault(canonicalId))
         {
             window.Show();
             window.Activate();
@@ -310,14 +441,14 @@ public class FrontedWindowService : IFrontedWindowService
             await frontedWindow.EnsureInitialWindowSettingsAppliedAsync();
         }
 
-        ApplyWindowLayoutOptions(windowId, window);
+        ApplyWindowLayoutOptions(canonicalId, window);
         window.Show();
-        FrontedWindowStates[windowId] = true;
-        PublishWindowShown(windowId);
+        _frontedWindowStates[canonicalId] = true;
+        PublishWindowShown(canonicalId);
 
         if (window is FrontedWindowBase shownFrontedWindow)
         {
-            _ = LoadFrontedContentAfterShowAsync(windowId, shownFrontedWindow);
+            _ = LoadFrontedContentAfterShowAsync(canonicalId, shownFrontedWindow);
         }
     }
 
@@ -382,7 +513,7 @@ public class FrontedWindowService : IFrontedWindowService
     public async Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType)
     {
         if (!_windowRegistry.TryGet(fullWindowType, out var registration)
-            || !FrontedWindows.TryGetValue(registration.Id, out var window))
+            || !_frontedWindows.TryGetValue(registration.Id, out var window))
         {
             return false;
         }
@@ -418,7 +549,7 @@ public class FrontedWindowService : IFrontedWindowService
     public async Task<bool> ApplyWindowSizeAsync(string fullWindowType)
     {
         if (!_windowRegistry.TryGet(fullWindowType, out var registration)
-            || !FrontedWindows.TryGetValue(registration.Id, out var window))
+            || !_frontedWindows.TryGetValue(registration.Id, out var window))
         {
             return false;
         }
@@ -466,7 +597,15 @@ public class FrontedWindowService : IFrontedWindowService
     public async Task<bool> RestartWindowForTransparencyChangeAsync(string fullWindowType)
     {
         if (!_windowRegistry.TryGet(fullWindowType, out var registration)
-            || !FrontedWindows.TryGetValue(registration.Id, out var oldWindow))
+            || !_frontedWindows.TryGetValue(registration.Id, out var oldWindow))
+        {
+            return false;
+        }
+
+        // 静默重建只支持宿主创建的 v3 Window。
+        // XAML 窗口在 DI 中注册为 singleton，Close() 后 DI 仍返回同一已关闭实例，
+        // WPF Window 关闭后无法再次 Show，因此必须直接拒绝，避免破坏窗口状态。
+        if (registration is not FrontedV3LayoutWindowRegistration)
         {
             return false;
         }
@@ -487,16 +626,16 @@ public class FrontedWindowService : IFrontedWindowService
         Window oldWindow)
     {
         var windowId = registration.Id;
-        if (!FrontedWindows.TryGetValue(windowId, out var currentWindow)
+        if (!_frontedWindows.TryGetValue(windowId, out var currentWindow)
             || !ReferenceEquals(currentWindow, oldWindow))
         {
             return false;
         }
 
-        var wasShown = FrontedWindowStates.GetValueOrDefault(windowId);
+        var wasShown = _frontedWindowStates.GetValueOrDefault(windowId);
 
-        FrontedWindows.Remove(windowId);
-        FrontedWindowStates.Remove(windowId);
+        _frontedWindows.Remove(windowId);
+        _frontedWindowStates.Remove(windowId);
 
         if (wasShown)
         {
@@ -526,7 +665,7 @@ public class FrontedWindowService : IFrontedWindowService
 
         ApplyWindowLayoutOptions(windowId, newWindow);
         newWindow.Show();
-        FrontedWindowStates[windowId] = true;
+        _frontedWindowStates[windowId] = true;
         PublishWindowShown(windowId);
 
         if (newWindow is FrontedWindowBase shownFrontedWindow)
@@ -566,7 +705,7 @@ public class FrontedWindowService : IFrontedWindowService
     public (double Width, double Height)? GetWindowSize(string fullWindowType)
     {
         if (!_windowRegistry.TryGet(fullWindowType, out var registration)
-            || !FrontedWindows.TryGetValue(registration.Id, out var window))
+            || !_frontedWindows.TryGetValue(registration.Id, out var window))
         {
             return null;
         }
@@ -615,7 +754,7 @@ public class FrontedWindowService : IFrontedWindowService
     {
         _services.GetService<IFrontedResourceResolver>()?.ClearCache();
 
-        foreach (var pair in FrontedWindows.ToArray())
+        foreach (var pair in _frontedWindows.ToArray())
         {
             if (pair.Value is not FrontedWindowBase frontedWindow
                 || !_windowRegistry.TryGet(pair.Key, out var registration)
@@ -651,13 +790,10 @@ public class FrontedWindowService : IFrontedWindowService
             return;
         }
 
-        var windowId = windowIdOrFullWindowType;
-        if (_windowRegistry.TryGet(windowIdOrFullWindowType, out var registration))
-        {
-            windowId = registration.Id;
-        }
+        // 规范化为 Canonical ID，保证与缓存键一致。
+        var windowId = NormalizeWindowId(windowIdOrFullWindowType);
 
-        if (FrontedWindows.TryGetValue(windowId, out var window)
+        if (_frontedWindows.TryGetValue(windowId, out var window)
             && window is FrontedWindowBase frontedWindow)
         {
             frontedWindow.MarkLayoutDirty();

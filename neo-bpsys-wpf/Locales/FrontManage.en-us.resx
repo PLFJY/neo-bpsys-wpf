@@ -37,6 +37,9 @@
   <data name="SystemBuiltIn">
     <value>Built-in Layout Scheme</value>
   </data>
+  <data name="External">
+    <value>External</value>
+  </data>
   <data name="BuiltInLayoutSchemeName">
     <value>Built-in Layout Scheme</value>
   </data>
@@ -326,10 +329,10 @@
     <value>Built-in</value>
   </data>
   <data name="FrontManageWindowCategory.Xaml">
-    <value>Plugin XAML</value>
+    <value>XAML</value>
   </data>
   <data name="FrontManageWindowCategory.V3Layout">
-    <value>Plugin v3</value>
+    <value>v3 Layout</value>
   </data>
   <data name="StopAllLoopAnimations">
     <value>Stop all loop animations</value>

@@ -15,15 +15,15 @@ public static class FrontedV3LayoutWindowIdValidator
     /// 返回给定的局部窗口标识是否合法。
     /// </summary>
     /// <param name="localWindowId">要验证的局部窗口标识。</param>
-    /// <returns>当标识非空且不含 <c>/</c>、<c>\</c>、<c>:</c>、<c>.</c> 以及
+    /// <returns>当标识非空白且不含 <c>/</c>、<c>\</c>、<c>:</c>、<c>.</c> 以及
     /// <see cref="Path.GetInvalidFileNameChars"/> 中的任何字符时为 <see langword="true"/>。</returns>
     /// <remarks>
     /// 拒绝包含 <c>plugin:</c> 前缀或 <c>/</c> 的完整 <c>plugin:package/window</c> 形式，
-    /// 因为局部标识只应是单个窗口名段。
+    /// 因为局部标识只应是单个窗口名段。纯空白字符串（如 <c>"   "</c>）同样被拒绝。
     /// </remarks>
     public static bool IsValidLocalWindowId(string localWindowId)
     {
-        if (string.IsNullOrEmpty(localWindowId))
+        if (string.IsNullOrWhiteSpace(localWindowId))
         {
             return false;
         }
@@ -48,16 +48,16 @@ public static class FrontedV3LayoutWindowIdValidator
     /// 验证给定的局部窗口标识，无效时抛出 <see cref="ArgumentException"/>。
     /// </summary>
     /// <param name="localWindowId">要验证的局部窗口标识。</param>
-    /// <exception cref="ArgumentException">当 <paramref name="localWindowId"/> 为 null/空串，
+    /// <exception cref="ArgumentException">当 <paramref name="localWindowId"/> 为 null/空白，
     /// 或包含 <c>/</c>、<c>\</c>、<c>:</c>、<c>.</c>、<c>..</c>、
     /// <see cref="Path.GetInvalidFileNameChars"/> 中的字符，或为 <c>plugin:package/window</c> 形式时抛出。
     /// 异常消息包含被拒绝的值与具体原因。</exception>
     public static void EnsureValidLocalWindowId(string localWindowId)
     {
-        if (string.IsNullOrEmpty(localWindowId))
+        if (string.IsNullOrWhiteSpace(localWindowId))
         {
             throw new ArgumentException(
-                $"Local window id must be a non-empty string, but was '{localWindowId}'.",
+                $"Local window id must be a non-empty, non-whitespace string, but was '{localWindowId}'.",
                 nameof(localWindowId));
         }
 

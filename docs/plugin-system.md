@@ -196,7 +196,7 @@ Visibility bindings must use `IsVisible` or a specific visibility-oriented prope
 
 ## 插件前台窗口 v3
 
-插件窗口通过两个公开 API 注册，对应 `FrontedWindowRegistration` 派生类型：`services.AddFrontedWindow<TWindow, TViewModel>()` 注册 XAML 窗口（`FrontedXamlWindowRegistration`，含 `WindowType`、`ViewModelType`），`services.AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)` 注册 v3 layout 窗口（`FrontedV3LayoutWindowRegistration`，无额外字段）。`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。Registry 接口提供 `GetWindows()`、`GetManageableWindows()`、`GetV3LayoutWindows()`、`TryGet()`。
+插件窗口通过两个公开 API 注册，对应 `FrontedWindowRegistration` 派生类型：`services.AddFrontedWindow<TWindow, TViewModel>()` 注册 XAML 窗口（`FrontedXamlWindowRegistration`，含 `WindowType`），`services.AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)` 注册 v3 layout 窗口（`FrontedV3LayoutWindowRegistration`，无额外字段）。`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。Registry 接口提供 `GetWindows()`、`GetManageableWindows()`、`GetV3LayoutWindows()`、`TryGet()`。
 
 标识模型（Canonical ID）：
 
@@ -205,7 +205,7 @@ Visibility bindings must use `IsVisible` or a specific visibility-oriented prope
 | Canonical ID | 窗口身份；内置为 `BpWindow`，插件 v3 layout 为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute GUID |
 | `PackageId` | 插件 `manifest.yml` 的 `id`，由宿主自动注入 |
 
-XAML 窗口（`FrontedWindowRegistrationKind.Xaml`）由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。v3 Layout 窗口（`FrontedWindowRegistrationKind.V3Layout`）使用宿主标准 `FrontedWindowBase` layout host；默认布局来自 `Plugins/{PackageId}/FrontedLayouts/{WindowId}.json`，无默认 JSON 时使用空模板。该选择不由 `manifest.yml` 指定。Canvas/BaseCanvas 只是运行时实现细节，不出现在插件默认布局路径或 manifest 中。
+XAML 窗口（`FrontedWindowRegistrationKind.Xaml`）由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。v3 Layout 窗口（`FrontedWindowRegistrationKind.V3Layout`）使用宿主标准 `FrontedWindowBase` layout host；加载优先级为活动包 → 空模板，宿主不从插件安装目录加载默认 v3 Layout。该选择不由 `manifest.yml` 指定。Canvas/BaseCanvas 只是运行时实现细节，不出现在插件布局路径或 manifest 中。
 
 示例：
 

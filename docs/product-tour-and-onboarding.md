@@ -223,7 +223,7 @@ builder.ForPage<BanSurPage>()
         .Build();
 ```
 
-DataTemplate 内有稳定业务 ID 的控件可使用 `.Tag(...)` 或 `.TagAction(...)`。例如前台管理页的卡片“打开”按钮把 `Tag` 绑定到前台窗口 `WindowId`；BP 前台窗口教程使用 `FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow)` 定位单个 BP Window 按钮，不指向“打开全部”按钮。
+DataTemplate 内有稳定业务 ID 的控件可使用 `.Tag(...)` 或 `.TagAction(...)`。例如前台管理页的卡片“打开”按钮把 `Tag` 绑定到前台窗口 `WindowId`；BP 前台窗口教程使用 `LegacyFrontedWindowIdMap.GetLegacyGuid(FrontedWindowType.BpWindow)` 定位单个 BP Window 按钮，不指向“打开全部”按钮。
 
 Authoring API 使用 `TutorialPackageRef` 引用 package。`builder.Flow(...).Step(MainWindow.Tours.NavigationFrontManage)` 会自动维护 `IncludedPackageIds`，并在 build 时校验引用的 package 已注册、不是 fallback package。Owner builder 只在同一个 owner authoring 链条内拒绝重复主内容，低层 registry 不做全局重复判定，以免误伤合法的分段教学。
 

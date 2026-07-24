@@ -1,5 +1,3 @@
-using neo_bpsys_wpf.Core.Enums;
-
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
 /// <summary>
@@ -9,6 +7,9 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 /// <see cref="Id"/> 是 Canonical ID：内置窗口等于 <see cref="LocalId"/>；
 /// 插件窗口为 <c>plugin:{PackageId}/{LocalId}</c>。<see cref="Kind"/> 由派生类固定返回。
 /// 该基类不承载窗口 CLR 类型或布局资源信息，这些由派生类按承载方式分别提供。
+/// 来源分组（BuiltIn / Plugin / External）由 UI 层基于 <see cref="IsBuiltIn"/> 与
+/// <see cref="PackageId"/> 推导；顺序使用 DI 注册顺序或在 UI 按 <see cref="LocalId"/> 排序；
+/// 内置显示名由 UI 层通过现有 resx（<c>Designer.Window.{LocalId}</c>）解析。
 /// </remarks>
 public abstract class FrontedWindowRegistration
 {
@@ -34,7 +35,8 @@ public abstract class FrontedWindowRegistration
     public required bool IsBuiltIn { get; init; }
 
     /// <summary>
-    /// 窗口的显示名称。插件默认回退 <see cref="LocalId"/>，内置后续由本地化覆盖。
+    /// 窗口的显示名称。插件 XAML 使用 Attribute Name，插件 v3 与内置默认回退 <see cref="LocalId"/>；
+    /// 内置窗口的本地化显示名由 UI 层通过 resx 覆盖。
     /// </summary>
     public required string DisplayName { get; init; }
 
@@ -42,19 +44,4 @@ public abstract class FrontedWindowRegistration
     /// 窗口的承载方式。派生类返回固定值。
     /// </summary>
     public abstract FrontedWindowRegistrationKind Kind { get; }
-
-    /// <summary>
-    /// 稳定的管理分组键。为空时由注册表回退到 <c>Plugin</c> 或 <c>BuiltIn</c>。
-    /// </summary>
-    public string? GroupKey { get; init; }
-
-    /// <summary>
-    /// 管理分组内稳定的显示顺序。为空时排序靠后。
-    /// </summary>
-    public int? DisplayOrder { get; init; }
-
-    /// <summary>
-    /// 可选的本地化显示名称，以具体应用语言为键。内置窗口使用此字段提供多语言显示名。
-    /// </summary>
-    public IReadOnlyDictionary<LanguageKey, string>? I18nDisplayNames { get; init; }
 }

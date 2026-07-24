@@ -628,12 +628,10 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         foreach (var file in Directory.EnumerateFiles(layoutsRoot, "*.json", SearchOption.AllDirectories))
         {
             var relativePath = Path.GetRelativePath(layoutsRoot, file);
-            string window;
-            try
-            {
-                window = ToCanonicalWindowIdFromLayoutRelativePath(relativePath);
-            }
-            catch
+            // 路径反解析统一委托给 FrontedV3LayoutWindowPathHelper，PackageManager 不再自实现。
+            if (!FrontedV3LayoutWindowPathHelper.TryToCanonicalWindowIdFromLayoutRelativePath(
+                    relativePath,
+                    out var window))
             {
                 continue;
             }
@@ -644,28 +642,6 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
                 Path = Path.Combine("FrontedLayouts", relativePath).Replace('\\', '/')
             };
         }
-    }
-
-    private static string ToCanonicalWindowIdFromLayoutRelativePath(string relativePath)
-    {
-        var parts = relativePath
-            .Replace('\\', '/')
-            .Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 3
-            && string.Equals(parts[0], "plugin", StringComparison.OrdinalIgnoreCase)
-            && parts[2].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-        {
-            var packageId = parts[1];
-            var localWindowId = Path.GetFileNameWithoutExtension(parts[2]);
-            return $"{FrontedV3LayoutWindowPathHelper.PluginPrefix}{packageId}/{localWindowId}";
-        }
-
-        if (parts.Length == 1 && parts[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-        {
-            return Path.GetFileNameWithoutExtension(parts[0]);
-        }
-
-        throw new ArgumentException("Layout path is not a valid window-centric layout path.", nameof(relativePath));
     }
 
     private static IEnumerable<FrontedLayoutPackageResourceEntry> EnumerateResourceEntries(string packagePath)

@@ -8,8 +8,10 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
@@ -35,7 +37,7 @@ public class FrontedLayoutDesignerFoundationTest
 {
     public static IEnumerable<object[]> CatalogEntries()
     {
-        return new FrontedDesignerLayoutCatalog()
+        return new FrontedDesignerLayoutCatalog(CreateBuiltInV3Registry())
             .GetEntries()
             .Select(entry => new object[] { entry });
     }
@@ -595,18 +597,18 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void DesignerLayoutCatalogListsMigratedWindows()
     {
-        var entries = new FrontedDesignerLayoutCatalog().GetEntries();
+        var entries = new FrontedDesignerLayoutCatalog(CreateBuiltInV3Registry()).GetEntries();
 
         Assert.Equal(8, entries.Count);
-        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreSurWindow");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreHunWindow");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreGlobalWindow");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "CutSceneWindow");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "GameDataWindow");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "BpOverviewWindow");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "MapV2Window");
-        Assert.Contains(entries, entry => entry.WindowTypeName == "BpWindow");
-        Assert.DoesNotContain(entries, entry => entry.WindowTypeName == "WidgetsWindow");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "ScoreSurWindow");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "ScoreHunWindow");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "ScoreGlobalWindow");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "CutSceneWindow");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "GameDataWindow");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "BpOverviewWindow");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "MapV2Window");
+        Assert.Contains(entries, entry => entry.CanonicalWindowId == "BpWindow");
+        Assert.DoesNotContain(entries, entry => entry.CanonicalWindowId == "WidgetsWindow");
         Assert.All(entries, entry =>
         {
             Assert.True(entry.IsMigrated);
@@ -617,9 +619,9 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void DesignerLayoutCatalogDoesNotExposeWidgetsWindowCanvases()
     {
-        var entries = new FrontedDesignerLayoutCatalog().GetEntries();
+        var entries = new FrontedDesignerLayoutCatalog(CreateBuiltInV3Registry()).GetEntries();
 
-        Assert.DoesNotContain(entries, entry => entry.WindowTypeName == "WidgetsWindow");
+        Assert.DoesNotContain(entries, entry => entry.CanonicalWindowId == "WidgetsWindow");
     }
 
     [Fact]
@@ -666,7 +668,7 @@ public class FrontedLayoutDesignerFoundationTest
         var path = Path.Combine(
             AppConstants.ResourcesPath,
             "FrontedLayouts",
-            $"{entry.WindowTypeName}.json");
+            $"{entry.CanonicalWindowId}.json");
 
         Assert.True(File.Exists(path), path);
     }
@@ -676,8 +678,8 @@ public class FrontedLayoutDesignerFoundationTest
     public void DesignerLayoutCatalogLayoutLoadsAndValidatesWithoutErrors(
         FrontedDesignerLayoutCatalogEntry entry)
     {
-        var config = ReadBuiltInLayout(entry.WindowTypeName);
-        var messages = CreateValidator().Validate(entry.WindowTypeName, "BaseCanvas", config);
+        var config = ReadBuiltInLayout(entry.CanonicalWindowId);
+        var messages = CreateValidator().Validate(entry.CanonicalWindowId, "BaseCanvas", config);
 
         Assert.DoesNotContain(messages, message => message.Severity == FrontedLayoutValidationSeverity.Error);
     }
@@ -687,9 +689,9 @@ public class FrontedLayoutDesignerFoundationTest
     public void DesignerDocumentUsesCanvasSizeFromLoadedConfig(
         FrontedDesignerLayoutCatalogEntry entry)
     {
-        var config = ReadBuiltInLayout(entry.WindowTypeName);
+        var config = ReadBuiltInLayout(entry.CanonicalWindowId);
         var document = new FrontedLayoutDesignConverter().FromConfig(
-            entry.WindowTypeName,
+            entry.CanonicalWindowId,
             "BaseCanvas",
             config);
 
@@ -1316,7 +1318,6 @@ public class FrontedLayoutDesignerFoundationTest
         };
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([image]) };
         viewModel.SelectDesignItem(image);
-        viewModel.BorderedImageResizeTarget = FrontedDesignerResizeTarget.Image;
 
         viewModel.CaptureUndoSnapshot();
         var config = Assert.IsType<BorderedImageFrontedControlConfig>(image.Config);
@@ -2016,43 +2017,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DesignerViewModelCanResizeBorderedImageInnerImage()
-    {
-        var item = new FrontedControlDesignItem
-        {
-            Name = "Pick",
-            Config = new BorderedImageFrontedControlConfig
-            {
-                Left = 10,
-                Top = 20,
-                Width = 120,
-                Height = 80,
-                ImageWidth = 60,
-                ImageHeight = 40
-            }
-        };
-        var viewModel = new FrontedDesignerWindowViewModel
-        {
-            CurrentDocument = CreateDocument([item])
-        };
-
-        viewModel.SelectDesignItem(item);
-        viewModel.BorderedImageResizeTarget = FrontedDesignerResizeTarget.Image;
-        viewModel.ResizeSelectedDesignItem(
-            FrontedDesignerResizeHandleKind.BottomRight,
-            originalLeft: 10,
-            originalTop: 20,
-            originalWidth: 60,
-            originalHeight: 40,
-            deltaX: 15,
-            deltaY: 10,
-            renderPreview: false);
-
-        var config = Assert.IsType<BorderedImageFrontedControlConfig>(item.Config);
-        Assert.True(viewModel.CurrentDocument!.IsDirty);
-    }
-
-    [Fact]
     public void PropertyGridBuilderCreatesIdentityAndLayoutRows()
     {
         var item = new FrontedControlDesignItem
@@ -2594,14 +2558,14 @@ public class FrontedLayoutDesignerFoundationTest
             controlTypes: new Dictionary<string, string>(StringComparer.Ordinal) { ["Text"] = "文本" },
             windows: new Dictionary<string, string>(StringComparer.Ordinal) { ["BpWindow"] = "BP 主窗口" },
             canvases: new Dictionary<string, string>(StringComparer.Ordinal) { ["BaseCanvas"] = "主画布" });
-        var catalogEntry = new FrontedDesignerLayoutCatalog().GetEntries()
-            .Single(entry => entry.WindowTypeName == "BpWindow");
+        var catalogEntry = new FrontedDesignerLayoutCatalog(CreateBuiltInV3Registry()).GetEntries()
+            .Single(entry => entry.CanonicalWindowId == "BpWindow");
 
         Assert.Equal("Text", new TextFrontedControlConfig().ControlType);
         Assert.Equal("文本", localizer.GetControlTypeDisplayName("Text"));
         Assert.Equal("PluginFancyControl", localizer.GetControlTypeDisplayName("PluginFancyControl"));
-        Assert.Equal("BpWindow", catalogEntry.WindowTypeName);
-        Assert.Equal("BP 主窗口", localizer.GetWindowDisplayName(catalogEntry.WindowTypeName));
+        Assert.Equal("BpWindow", catalogEntry.CanonicalWindowId);
+        Assert.Equal("BP 主窗口", localizer.GetWindowDisplayName(catalogEntry.CanonicalWindowId));
         Assert.Equal("主画布", localizer.GetCanvasDisplayName("BaseCanvas"));
     }
 
@@ -4306,7 +4270,6 @@ public class FrontedLayoutDesignerFoundationTest
         var root = CreateTempDirectory();
         try
         {
-            var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
             var builtInRoot = Path.Combine(root, "builtIn");
             var packageRoot = Path.Combine(root, "packages");
             WriteBuiltInLayout(builtInRoot, "BpWindow", "BaseCanvas", new FrontedCanvasConfig
@@ -4334,7 +4297,7 @@ public class FrontedLayoutDesignerFoundationTest
 
             var packageManager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
             await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
-            var service = new FrontedLayoutService(userStore, packageManager, logger: null);
+            var service = new FrontedLayoutService(packageManager, logger: null);
             var result = await service.LoadWindowConfigWithMetadataAsync(
                 "BpWindow",
                 TestContext.Current.CancellationToken);
@@ -4354,7 +4317,6 @@ public class FrontedLayoutDesignerFoundationTest
         var root = CreateTempDirectory();
         try
         {
-            var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
             var builtInRoot = Path.Combine(root, "builtIn");
             var packageRoot = Path.Combine(root, "packages");
             WriteBuiltInLayout(builtInRoot, "BpWindow", "BaseCanvas", new FrontedCanvasConfig
@@ -4371,7 +4333,7 @@ public class FrontedLayoutDesignerFoundationTest
             File.WriteAllText(Path.Combine(packageRoot, packageId, "manifest.json"), "{\"PackageId\":\"broken-package\",\"FormatVersion\":3}");
             var packageManager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
             await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
-            var service = new FrontedLayoutService(userStore, packageManager, logger: null);
+            var service = new FrontedLayoutService(packageManager, logger: null);
 
             // 激活包缺少布局时，内置窗口回退到内置资源。
             var missingUserResult = await service.LoadWindowConfigWithMetadataAsync(
@@ -4405,7 +4367,6 @@ public class FrontedLayoutDesignerFoundationTest
         var root = CreateTempDirectory();
         try
         {
-            var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
             var builtInRoot = Path.Combine(root, "builtIn");
             var packageRoot = Path.Combine(root, "packages");
             // 不在内置资源中创建任何布局文件
@@ -4414,7 +4375,7 @@ public class FrontedLayoutDesignerFoundationTest
             File.WriteAllText(Path.Combine(packageRoot, packageId, "manifest.json"), "{\"PackageId\":\"empty-package\",\"FormatVersion\":3}");
             var packageManager = new FrontedLayoutPackageManager(packageRoot, builtInRoot);
             await packageManager.ActivatePackageAsync(packageId, TestContext.Current.CancellationToken);
-            var service = new FrontedLayoutService(userStore, packageManager, logger: null);
+            var service = new FrontedLayoutService(packageManager, logger: null);
 
             // 内置窗口在激活包和内置资源中均找不到时，返回空模板。
             var builtInResult = await service.LoadWindowConfigWithMetadataAsync(
@@ -4455,7 +4416,7 @@ public class FrontedLayoutDesignerFoundationTest
             user.WindowSettings.BackgroundColor = "#FFFF0000";
             await userStore.SaveAsync("BpWindow", user, TestContext.Current.CancellationToken);
 
-            var service = new FrontedLayoutService(userStore, builtInRoot, packageManager, null, null);
+            var service = new FrontedLayoutService(packageManager, logger: null);
             var result = await service.LoadWindowConfigWithMetadataAsync("BpWindow", TestContext.Current.CancellationToken);
 
             Assert.Equal(FrontedLayoutSource.BuiltIn, result.Source);
@@ -5506,6 +5467,38 @@ public class FrontedLayoutDesignerFoundationTest
         {
             Directory.Delete(path, recursive: true);
         }
+    }
+
+    /// <summary>
+    /// 构造包含 8 个内置 v3 窗口 registration 的注册表，用于测试目录遍历与设计器基础结构。
+    /// 该辅助方法仅用于让测试拥有一个稳定的注册表集合；生产代码不再硬编码这些窗口。
+    /// </summary>
+    private static FrontedWindowRegistryService CreateBuiltInV3Registry()
+    {
+        var localIds = new[]
+        {
+            "ScoreSurWindow",
+            "ScoreHunWindow",
+            "ScoreGlobalWindow",
+            "CutSceneWindow",
+            "GameDataWindow",
+            "BpOverviewWindow",
+            "MapV2Window",
+            "BpWindow"
+        };
+
+        var registrations = localIds
+            .Select(localId => new FrontedV3LayoutWindowRegistration
+            {
+                Id = localId,
+                LocalId = localId,
+                IsBuiltIn = true,
+                DisplayName = localId
+            })
+            .Cast<FrontedWindowRegistration>()
+            .ToArray();
+
+        return new FrontedWindowRegistryService(registrations);
     }
 
     private static string GetRepositoryPath(

@@ -18,7 +18,7 @@
 `.bpui v3` 必须服务于 Designer v3 的现有模型：
 
 1. 布局文件对应 `FrontedLayouts/{WindowTypeName}.json`。
-2. 运行时继续遵守用户布局优先、内置布局兜底。
+2. 运行时加载优先级：内置 v3 窗口为活动包 → 内置资源 → 空模板；插件 v3 窗口为活动包 → 空模板。导入时不重写普通 v3 layout JSON，未知扩展字段保留；未注册插件窗口和控件的 layout/behavior/manifest entry 原样保留，不因当前 Registry 缺失而删除。
 3. 前台窗口由 v3 renderer 根据 JSON 创建控件。
 4. 每个 v3 layout window 运行时固定生成 `ViewBox -> Canvas BaseCanvas`，Canvas 不再是包路径、manifest 或管理单位。
 5. 包内资源通过 URI 解析，不依赖全局 `Config.json` 中的自定义 UI 设置。

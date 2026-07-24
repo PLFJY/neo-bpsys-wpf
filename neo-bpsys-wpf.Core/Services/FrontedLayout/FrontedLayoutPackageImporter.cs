@@ -292,10 +292,9 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 await File.ReadAllTextAsync(path, cancellationToken),
                 _jsonSerializerOptions)
                 ?? throw new FrontedLayoutConfigException($"Layout JSON is invalid: {layout.Path}");
-            await File.WriteAllTextAsync(
-                path,
-                JsonSerializer.Serialize(config, _jsonSerializerOptions),
-                cancellationToken);
+            // 仅反序列化用于校验/扫描，不重写磁盘上的 Layout JSON。
+            // 重写会丢失宿主暂不认识的根字段、未来版本扩展字段，并改写原始 JSON 格式与属性顺序，
+            // 违反"读取期不应重写持久化内容"的仓库规则。只有显式 legacy migration 才允许生成新 JSON。
             layouts.Add(new PackageLayoutState(layout.Window, layout.Path, config));
         }
 
@@ -391,7 +390,13 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 return Fail("Layout path is not safe.");
             }
 
-            var layoutPath = CombineInsideRoot(stagingRoot, layout.Path);
+                if (!TryGetExpectedWindowFromPath(layout.Path, out var expectedWindow)
+                    || !string.Equals(expectedWindow, layout.Window, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Fail($"Layout Window '{layout.Window}' does not match path '{layout.Path}'.");
+                }
+
+                var layoutPath = CombineInsideRoot(stagingRoot, layout.Path);
             if (!File.Exists(layoutPath))
             {
                 return Fail($"Layout file is missing: {layout.Path}");
@@ -690,10 +695,28 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private static bool IsForbiddenPluginPayloadEntry(string entryName)
     {
         var segments = entryName.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Any(segment =>
-                string.Equals(segment, "Plugins", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(segment, "Plugin", StringComparison.OrdinalIgnoreCase)))
+        for (var index = 0; index < segments.Length; index++)
         {
+            var segment = segments[index];
+            if (!string.Equals(segment, "Plugins", StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(segment, "Plugin", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // v3 window-centric 布局路径约定在 FrontedLayouts/ 和 FrontedBehaviors/ 下使用
+            // "plugin" 作为结构性目录名，例如：
+            //   FrontedLayouts/plugin/{PackageId}/{LocalId}.json
+            //   FrontedBehaviors/plugin/{PackageId}/{LocalId}.behaviors.json
+            // 这些是 JSON 布局/行为文件，不是可执行插件载荷，应当允许。
+            // 只有非结构位置（例如根级 Plugins/ 安装目录）才被视为威胁。
+            if (index == 1
+                && (string.Equals(segments[0], "FrontedLayouts", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(segments[0], "FrontedBehaviors", StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
             return true;
         }
 
@@ -829,6 +852,22 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                && !Path.IsPathRooted(relativePath)
                && !relativePath.Contains('\\', StringComparison.Ordinal)
                && relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries).All(segment => segment is not "." and not "..");
+    }
+
+    private static bool TryGetExpectedWindowFromPath(string layoutPath, out string expectedWindow)
+    {
+        expectedWindow = string.Empty;
+        var normalized = layoutPath.Replace('\\', '/');
+        var prefix = "FrontedLayouts/";
+        if (!normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var relativeToLayoutsRoot = normalized[prefix.Length..];
+        return FrontedV3LayoutWindowPathHelper.TryToCanonicalWindowIdFromLayoutRelativePath(
+            relativeToLayoutsRoot,
+            out expectedWindow);
     }
 
     private static string CombineInsideRoot(string root, string relativePath)

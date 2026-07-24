@@ -10,11 +10,14 @@
 
 ## 注册模型
 
-内置前台窗口仍通过 `FrontedWindowInfo` 标注，并在宿主启动时注册：
+前台窗口采用强类型 registration 模型，基类 `FrontedWindowRegistration` 只暴露 `Id`、`LocalId`、`PackageId`、`IsBuiltIn`、`DisplayName`、`Kind`。来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导，顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序，不再有 `GroupKey`/`DisplayOrder`/`I18nDisplayNames`。
+
+内置前台窗口在 `App.Services.xaml.cs` 中通过 `AddFrontedV3LayoutWindow` 注册：
 
 ```csharp
-[FrontedWindowInfo("窗口 GUID", "窗口显示名称")]
-services.AddFrontedWindow<TView, TViewModel>();
+services.AddFrontedV3LayoutWindow("BpWindow", isBuiltIn: true);
+services.AddFrontedV3LayoutWindow("CutSceneWindow", isBuiltIn: true);
+// ... 其他内置 v3 窗口
 ```
 
 v3 layout 已改为 Window-centric。新的 v3 layout window 只以 Window 为管理单位，运行时固定由 `FrontedWindowBase` 创建 `ViewBox -> Canvas BaseCanvas`，不再向用户、包管理或 FrontManagePage 暴露 Canvas。传统固定 XAML window 可继续使用原有注册方式，但不强制 BaseCanvas。
@@ -24,6 +27,7 @@ v3 layout 已改为 Window-centric。新的 v3 layout window 只以 Window 为�
 1. **XAML 窗口**：`services.AddFrontedWindow<TWindow, TViewModel>()`
    - 窗口类需 `[FrontedWindowInfo("GUID", "DisplayName", IsBuiltIn = false)]` 特性
    - 继承 `FrontedWindowBase`
+   - Attribute GUID 作为运行时 Canonical ID（PackageId 仅表示来源，不参与 v3 layout / Designer）
    - 示例：
      ```csharp
      [FrontedWindowInfo("3363BFE1-1393-4765-B926-001B6848FAF7", "Example XAML Window")]
@@ -36,15 +40,15 @@ v3 layout 已改为 Window-centric。新的 v3 layout window 只以 Window 为�
 2. **v3 Layout 窗口**：`services.AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)`
    - `windowId` 是局部标识，只需插件内唯一
    - PackageId 由宿主自动注入，不是 API 参数
-   - 无默认 JSON 时使用空模板
+   - 加载顺序：激活 package → 空模板（无默认 JSON 时使用空模板；宿主不从插件安装目录加载默认布局）
    - 示例：`services.AddFrontedV3LayoutWindow("ExampleLayoutOverlay");`
 
-`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。窗口身份使用 Canonical ID：内置为 `BpWindow`，插件 v3 layout 为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute GUID；该 ID 作为布局、`.bpui` manifest 和用户目录中的窗口身份。插件窗口分为两类：
+`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。窗口身份使用 Canonical ID：内置为 `BpWindow`，插件 v3 layout 为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute GUID；该 ID 作为布局、`.bpui` manifest 和用户目录中的窗口身份。XAML 窗口不进入 v3 layout / Designer。插件窗口分为两类：
 
 | 类型 | 说明 |
 | --- | --- |
-| `Xaml` | 插件提供真实 WPF `Window` 类型，可选 ViewModel，由宿主统一显示/隐藏 |
-| `V3Layout` | 插件只声明窗口和默认 `FrontedLayouts/{WindowId}.json`，宿主用 `FrontedWindowBase` 配置驱动 host 承载 v3 renderer |
+| `Xaml` | 插件提供真实 WPF `Window` 类型，可选 ViewModel，由宿主统一显示/隐藏；不参与 v3 layout / Designer |
+| `V3Layout` | 插件只声明窗口，宿主用 `FrontedWindowBase` 配置驱动 host 承载 v3 renderer；无默认 JSON 时使用空模板 |
 
 ## FrontedWindowService
 
@@ -102,7 +106,7 @@ v3 layout 支持通用 BO3/BO5 Canvas states。`CanvasSettings` root 是默认/B
 
 `Visibility` 绑定必须使用 `IsVisible` 或具体的可见性语义属性，不得绑定泛名 `IsActive`。
 
-后台侧独立 `FrontedDesignerWindow` shell 已实现。它通过 `FrontedDesignerLayoutCatalog` 只列出可定制 v3 layout window，例如 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`BpWindow`、`BpOverviewWindow` 和 `MapV2Window`。选择窗口后，编辑器按 `IFrontedLayoutService` 的活动布局方案规则加载 `FrontedWindowConfig`，内部转换到设计文档，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。如果当前活动方案是 `builtin`，保存时会自动复制出可编辑用户布局方案并激活，避免覆盖内置资源。
+后台侧独立 `FrontedDesignerWindow` shell 已实现。`FrontedDesignerLayoutCatalog` 只从 `IFrontedWindowRegistry.GetV3LayoutWindows()` 获取可定制 v3 layout window（例如 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`BpWindow`、`BpOverviewWindow` 和 `MapV2Window`，具体由 App DI 注册决定），不存在硬编码 fallback 或内置窗口清单；XAML 窗口不进入 Designer。选择窗口后，编辑器按 `IFrontedLayoutService` 的活动布局方案规则加载 `FrontedWindowConfig`，内部转换到设计文档，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。如果当前活动方案是 `builtin`，保存时会自动复制出可编辑用户布局方案并激活，避免覆盖内置资源。
 
 该预览 Canvas 的 `Width` 和 `Height` 直接来自 `CanvasSettings.CanvasWidth` / `CanvasHeight`，不使用真实前台窗口的 `ActualHeight`、外框或标题栏尺寸，因此不会引入标题栏高度偏移。v3 layout window 的真实窗口宽高来自 `WindowSettings.WindowWidth` / `WindowHeight`，不会在普通读取、保存、包导入或导出时被 Canvas 尺寸覆盖。独立编辑器已支持内存交互层、基础 Property Grid 和 Add Control：可选中普通设计项，编辑名称、布局、绑定文本和简单控件属性，把新控件添加到当前内存文档并即时重渲染预览。它不创建真实前台输出窗口作为设计 surface。
 
@@ -143,7 +147,7 @@ v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` �
 
 旧的“向现有内置前台窗口注入 WPF 控件”能力已移除。插件应使用 Designer v3 插件控件、Plugin XAML Window 或 Plugin v3 Layout Window。
 
-`WindowId` 是运行时身份，必须稳定；`FullWindowType` 是 layout / `.bpui` 身份。内置窗口使用 `BpWindow` 等短名，插件窗口使用 `plugin:{PackageId}/{WindowTypeName}`。用户目录中的插件窗口磁盘路径会转换为安全路径，例如 `FrontedLayouts/plugin/top.plfjy.demo/ExampleLayoutOverlay.json`；插件自己的默认布局路径仍是 `{PluginFolder}/FrontedLayouts/{WindowTypeName}.json`。
+前台窗口使用 Canonical ID 作为运行时、Designer 和 `.bpui` 的统一身份：内置窗口为 `BpWindow` 等短名（即 LocalId），插件 v3 窗口为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute GUID。用户目录中的插件窗口磁盘路径会转换为安全路径，例如 `FrontedLayouts/plugin/top.plfjy.demo/ExampleLayoutOverlay.json`。插件 v3 窗口不从插件安装目录加载默认布局；无默认 JSON 时使用空模板。XAML 窗口的 PackageId 仅表示来源，不参与 v3 layout / Designer。
 
 ## 透明背景
 

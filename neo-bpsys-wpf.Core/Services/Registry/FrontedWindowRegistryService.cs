@@ -9,8 +9,10 @@ namespace neo_bpsys_wpf.Core.Services.Registry;
 /// 前台窗口注册表服务，从 DI 接收 <see cref="FrontedWindowRegistration"/> 集合并提供查询。
 /// </summary>
 /// <remarks>
-/// 该实现维护唯一的 Canonical ID 索引。重复 Canonical ID 在构造时抛出
-/// <see cref="InvalidOperationException"/>，保证 fail-fast。
+/// 该实现维护唯一的 Canonical ID 索引。Canonical ID 比较使用
+/// <see cref="StringComparer.OrdinalIgnoreCase"/>，与 Windows 文件系统、路径和符号
+/// 大小写不敏感语义一致。重复 Canonical ID 在构造时抛出
+/// <see cref="InvalidOperationException"/>，保证 fail-fast；空 ID 同样 fail-fast。
 /// </remarks>
 public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
 {
@@ -19,19 +21,15 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     private readonly Dictionary<string, FrontedWindowRegistration> _byCanonicalId;
 
     /// <summary>
-    /// 使用默认空集合初始化注册表（主要用于测试回退）。
-    /// </summary>
-    public FrontedWindowRegistryService()
-        : this([], NullLogger<FrontedWindowRegistryService>.Instance)
-    {
-    }
-
-    /// <summary>
     /// 从 DI 接收的 registration 集合初始化注册表。
     /// </summary>
     /// <param name="registrations">由 DI 注册的所有前台窗口 registration。</param>
     /// <param name="logger">日志记录器。</param>
-    /// <exception cref="InvalidOperationException">当出现重复 Canonical ID 时抛出，异常信息含 ID、PackageId、IsBuiltIn、Kind、XAML WindowType（若存在）。</exception>
+    /// <exception cref="InvalidOperationException">
+    /// 当出现重复 Canonical ID 或空 Canonical ID 时抛出。
+    /// 重复 ID 的异常信息含 ID、PackageId、IsBuiltIn、Kind、XAML WindowType（若存在）。
+    /// 空 ID 的异常信息明确说明 ID 为空。
+    /// </exception>
     public FrontedWindowRegistryService(
         IEnumerable<FrontedWindowRegistration> registrations,
         ILogger<FrontedWindowRegistryService>? logger = null)
@@ -40,14 +38,20 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
 
         var registrationList = registrations as IReadOnlyList<FrontedWindowRegistration>
                                ?? registrations.ToArray();
-        _byCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.Ordinal);
+        // 使用 OrdinalIgnoreCase 与 Windows 路径/符号大小写不敏感语义保持一致。
+        _byCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var registration in registrationList)
         {
             if (string.IsNullOrWhiteSpace(registration.Id))
             {
-                logger.LogWarning("Rejected fronted window registration with empty Canonical ID.");
-                continue;
+                // 空 ID 视为配置错误，fail-fast 而不是静默跳过。
+                throw new InvalidOperationException(
+                    $"Fronted window registration has an empty Canonical ID. "
+                    + $"PackageId={registration.PackageId ?? "(null)"}, "
+                    + $"IsBuiltIn={registration.IsBuiltIn}, Kind={registration.Kind}, "
+                    + $"LocalId={registration.LocalId ?? "(null)"}. "
+                    + $"Canonical ID must not be null, empty, or whitespace.");
             }
 
             if (_byCanonicalId.TryGetValue(registration.Id, out var existing))
@@ -79,15 +83,7 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     public IReadOnlyList<FrontedWindowRegistration> GetManageableWindows()
     {
         return _windows
-            .OrderBy(registration => string.IsNullOrWhiteSpace(registration.GroupKey)
-                ? registration.IsBuiltIn ? "BuiltIn" : "Plugin"
-                : registration.GroupKey,
-                StringComparer.Ordinal)
-            .ThenBy(registration => registration.DisplayOrder ?? int.MaxValue)
-            .ThenBy(registration => string.IsNullOrWhiteSpace(registration.DisplayName)
-                ? registration.LocalId
-                : registration.DisplayName,
-                StringComparer.OrdinalIgnoreCase)
+            .OrderBy(registration => registration.LocalId, StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
 

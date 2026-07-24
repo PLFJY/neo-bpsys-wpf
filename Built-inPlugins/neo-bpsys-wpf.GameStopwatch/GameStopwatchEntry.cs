@@ -18,8 +18,8 @@ public sealed class GameStopwatchEntry : PluginBase
     {
         var service = new GameStopwatchService(System.IO.Path.Combine(PluginConfigFolder, "Settings.json"));
         services.AddSingleton<IGameStopwatchService>(service);
-        services.AddSingleton<GameStopwatchWindowViewModel>();
         services.AddSingleton<GameStopwatchSettingsPageViewModel>();
+        // GameStopwatchWindowViewModel 由 AddFrontedWindow 内部注册，此处无需重复注册（P2-6）。
         services.AddFrontedWindow<GameStopwatchWindow, GameStopwatchWindowViewModel>();
         services.AddBackendPage<GameStopwatchSettingsPage, GameStopwatchSettingsPageViewModel>();
     }

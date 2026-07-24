@@ -8,8 +8,8 @@
 
 | 角色 | 类 / 接口 | 职责 |
 |---|---|---|
-| 窗口注册 | `FrontedWindowRegistration`（基类） | 窗口的强类型元数据：Canonical ID、LocalId、PackageId、IsBuiltIn、DisplayName、Kind、GroupKey、DisplayOrder、I18nDisplayNames |
-| XAML 窗口注册 | `FrontedXamlWindowRegistration` | 承载 WPF `Window` CLR 类型的注册，额外含 `WindowType`、`ViewModelType`，Kind 固定 `Xaml` |
+| 窗口注册 | `FrontedWindowRegistration`（基类） | 窗口的强类型元数据：Canonical ID、LocalId、PackageId、IsBuiltIn、DisplayName、Kind |
+| XAML 窗口注册 | `FrontedXamlWindowRegistration` | 承载 WPF `Window` CLR 类型的注册，额外含 `WindowType`，Kind 固定 `Xaml` |
 | v3 布局窗口注册 | `FrontedV3LayoutWindowRegistration` | 由宿主 v3 布局渲染器承载的窗口注册，无额外字段，Kind 固定 `V3Layout` |
 | 窗口注册表 | `IFrontedWindowRegistry` / `FrontedWindowRegistryService` | 从 DI 接收 `FrontedWindowRegistration` 集合，按 Canonical ID 索引并提供查询 |
 | 窗口管理器 | `IFrontedWindowService` / `FrontedWindowService` | 窗口实例的按需创建、显示、隐藏、布局重载 |
@@ -19,10 +19,9 @@
 | 管理页 ViewModel | `FrontManagePageViewModel` | 用户在后台管理前台窗口的入口 |
 | 插件注册作用域 | `FrontedPluginRegistrationContext`（internal static） | 在插件 `Initialize` 期间通过 `AsyncLocal<string?>` 携带当前插件包 ID |
 | v3 身份生成 | `FrontedV3LayoutWindowIdentity` | 按 `plugin:{PackageId}/{LocalId}` / `{LocalId}` 规则生成 Canonical ID |
-| v3 身份校验 | `FrontedV3LayoutWindowIdValidator` | 验证局部窗口标识，拒绝路径分隔符、`plugin:` 前缀等形式 |
+| v3 身份校验 | `FrontedV3LayoutWindowIdValidator` | 验证局部窗口标识，拒绝路径分隔符、`plugin:` 前缀、纯空白等形式 |
 | v3 空模板工厂 | `FrontedV3LayoutWindowConfigFactory` | 在布局加载不到时返回合法内存空模板，不立即写磁盘 |
 | v3 路径映射 | `FrontedV3LayoutWindowPathHelper` | 将 Canonical ID 映射为文件系统安全的布局路径 |
-| 内置窗口元数据 | `FrontedBuiltInWindowMetadata`（internal） | 提供内置 v3 窗口的分组、排序与本地化显示名 |
 
 ### 窗口类型枚举：FrontedWindowType
 
@@ -40,7 +39,7 @@
 | `BpOverviewWindow` | BP 总览窗口 | `BpOverviewWindow` |
 | `MapV2Window` | 地图 v2 窗口 | `MapV2Window` |
 
-v3 内置窗口的 Canonical ID 直接使用枚举名（如 `BpWindow`），不再先映射 GUID 再查注册表。XAML 内置窗口仍可使用 GUID，由 `FrontedWindowHelper.GetFrontedWindowGuid` 提供。映射逻辑见 [FrontedWindowHelper.cs](../neo-bpsys-wpf.Core/Helpers/FrontedWindowHelper.cs)。
+v3 内置窗口的 Canonical ID 直接使用枚举名（如 `BpWindow`），不再先映射 GUID 再查注册表。XAML 内置窗口仍可使用 GUID，由 `LegacyFrontedWindowIdMap.GetLegacyGuid` 提供。映射逻辑见 [LegacyFrontedWindowIdMap.cs](../neo-bpsys-wpf.Core/Helpers/LegacyFrontedWindowIdMap.cs)。
 
 ### 窗口承载方式枚举：FrontedWindowRegistrationKind
 
@@ -92,32 +91,19 @@ PluginService.InitializePlugins(context, services);
 
 在 [FrontedV3LayoutWindowRegistryExtensions.cs](../neo-bpsys-wpf.Core/Extensions/Registry/FrontedV3LayoutWindowRegistryExtensions.cs) 中：
 
-1. 调用 `FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(windowId)` 验证局部窗口标识
-2. 读取 `FrontedPluginRegistrationContext.CurrentPackageId` 获取当前插件包 ID
+1. 调用 `FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(windowId)` 验证局部窗口标识（含 null、空串、纯空白、路径分隔符、`..`、`plugin:` 前缀等）
+2. 读取 `FrontedPluginRegistrationContext.CurrentPackageId` 获取当前插件包 ID；若非空则校验其可作为 canonical path segment
 3. 调用 `FrontedV3LayoutWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn)` 生成 Canonical ID
-4. 若 `isBuiltIn` 为 `true`，从 `FrontedBuiltInWindowMetadata` 查询分组、排序与本地化显示名
-5. 创建 `FrontedV3LayoutWindowRegistration` 并向 DI 注册为 `FrontedWindowRegistration`
+4. 创建 `FrontedV3LayoutWindowRegistration` 并向 DI 注册为 `FrontedWindowRegistration`
 
 ```csharp
 // 核心代码示意
 FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(windowId);
 
 var packageId = FrontedPluginRegistrationContext.CurrentPackageId;
+FrontedWindowRegistryExtensions.EnsureSafePackageId(packageId);
+
 var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(windowId, packageId, isBuiltIn);
-
-// 内置窗口从 FrontedBuiltInWindowMetadata 获取 GroupKey / DisplayOrder / I18nDisplayNames
-string? groupKey = null;
-int? displayOrder = null;
-IReadOnlyDictionary<LanguageKey, string>? i18nDisplayNames = null;
-
-if (isBuiltIn
-    && FrontedBuiltInWindowMetadata.TryGetMetadata(
-        windowId, out var metaGroupKey, out var metaDisplayOrder, out var metaI18n))
-{
-    groupKey = metaGroupKey;
-    displayOrder = metaDisplayOrder;
-    i18nDisplayNames = metaI18n;
-}
 
 var registration = new FrontedV3LayoutWindowRegistration
 {
@@ -125,14 +111,13 @@ var registration = new FrontedV3LayoutWindowRegistration
     LocalId = windowId,
     PackageId = packageId,
     IsBuiltIn = isBuiltIn,
-    DisplayName = windowId,
-    GroupKey = groupKey,
-    DisplayOrder = displayOrder,
-    I18nDisplayNames = i18nDisplayNames
+    DisplayName = windowId
 };
 
 services.AddSingleton<FrontedWindowRegistration>(registration);
 ```
+
+来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导；顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序；内置窗口的本地化显示名由 UI 层通过现有 resx（`Designer.Window.{LocalId}`）解析。基类不再有 `GroupKey` / `DisplayOrder` / `I18nDisplayNames` 字段。
 
 **Canonical ID 生成规则**（见 [FrontedV3LayoutWindowIdentity.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowIdentity.cs)）：
 
@@ -141,21 +126,25 @@ services.AddSingleton<FrontedWindowRegistration>(registration);
 
 **局部 ID 校验规则**（见 [FrontedV3LayoutWindowIdValidator.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowIdValidator.cs)）：
 
+- 拒绝 null、空串、纯空白（`string.IsNullOrWhiteSpace`）
 - 禁止包含 `/`、`\`、`:`、`.`
 - 禁止包含 `Path.GetInvalidFileNameChars()` 中的字符
 - 拒绝 `plugin:package/window` 完整形式
-- 违规时抛出 `ArgumentException`
+- 违规时在注册入口直接抛出 `ArgumentException`，不 warning 后跳过
+
+当 `packageId` 非空时，`FrontedWindowRegistryExtensions.EnsureSafePackageId` 还会校验插件包 ID 可作为 canonical path segment（与 `FrontedV3LayoutWindowPathHelper.IsSafePathSegment` 一致），避免路径分隔符、`..` 等字符在 LayoutService 拼接路径时才报错。
 
 ### 2.3 `AddFrontedWindow<TView,TViewModel>()` 扩展方法（XAML 窗口）
 
 在 [FrontedWindowRegistryExtensions.cs](../neo-bpsys-wpf.Core/Extensions/Registry/FrontedWindowRegistryExtensions.cs) 中，用于注册有 WPF `Window` CLR 类型的窗口（典型为插件 XAML 窗口）：
 
-1. 从 `TView` 类型的 `[FrontedWindowInfo]` 特性中提取 `Id`（必须为合法 GUID）、`Name`、`IsBuiltIn`
-2. 设置 `info.WindowType = typeof(TView)`
-3. 读取 `FrontedPluginRegistrationContext.CurrentPackageId`
-4. 生成 Canonical ID：内置或无 PackageId 时为 GUID 本身；插件时为 `plugin:{PackageId}/{GUID}`
-5. 向 DI 容器注册 `TViewModel`、`TView`（工厂创建，显式设置 `DataContext`）
-6. 创建 `FrontedXamlWindowRegistration` 并向 DI 注册为 `FrontedWindowRegistration`
+1. 从 `TView` 类型的 `[FrontedWindowInfo]` 特性中提取 `Id`（不再强制要求 GUID，只需非空白且不与已注册窗口重复）、`Name`、`IsBuiltIn`
+2. 拒绝空白 ID（`string.IsNullOrWhiteSpace`）
+3. 设置 `info.WindowType = typeof(TView)`
+4. 读取 `FrontedPluginRegistrationContext.CurrentPackageId`；若非空则校验其可作为 canonical path segment
+5. 生成 Canonical ID：内置或无 PackageId 时为 Attribute ID 本身；插件时为 `plugin:{PackageId}/{AttributeId}`
+6. 向 DI 容器注册 `TViewModel`、`TView`（工厂创建，显式设置 `DataContext`）
+7. 创建 `FrontedXamlWindowRegistration` 并向 DI 注册为 `FrontedWindowRegistration`
 
 ```csharp
 // 核心代码示意
@@ -163,9 +152,8 @@ info.WindowType = type;
 
 var packageId = FrontedPluginRegistrationContext.CurrentPackageId;
 var isBuiltIn = info.IsBuiltIn;
-var canonicalId = isBuiltIn || packageId is null
-    ? info.Id
-    : $"plugin:{packageId}/{info.Id}";
+EnsureSafePackageId(packageId);
+var canonicalId = FrontedV3LayoutWindowIdentity.BuildCanonicalId(info.Id, packageId, isBuiltIn);
 
 services.AddSingleton<TViewModel>();
 services.AddSingleton<TView>(sp =>
@@ -182,32 +170,32 @@ services.AddSingleton<FrontedWindowRegistration>(new FrontedXamlWindowRegistrati
     PackageId = packageId,
     IsBuiltIn = isBuiltIn,
     DisplayName = info.Name,
-    WindowType = type,
-    ViewModelType = typeof(TViewModel),
-    GroupKey = isBuiltIn ? "BuiltIn" : null
+    WindowType = type
 });
 ```
+
+`FrontedXamlWindowRegistration` 只暴露 `WindowType`；不再保留 `ViewModelType`。XAML 窗口由 `AddFrontedWindow` 注册工厂在创建时一次性设置 `DataContext`，`CreateXamlWindow` 不再二次解析 ViewModel 或再次设置 `DataContext`，也不再有 `ActivatorUtilities.CreateInstance` fallback。XAML 窗口的 PackageId 仅表示来源，不参与 v3 layout / Designer。
 
 ### 2.4 `FrontedWindowRegistryService` 构造
 
 当 DI 容器解析 `IFrontedWindowRegistry` 时，`FrontedWindowRegistryService` 的构造函数从 DI 接收 `IEnumerable<FrontedWindowRegistration>` 集合并构建索引（见 [FrontedWindowRegistryService.cs](../neo-bpsys-wpf.Core/Services/Registry/FrontedWindowRegistryService.cs)）：
 
 1. **收集 registration**：遍历 DI 注入的所有 `FrontedWindowRegistration`
-2. **跳过空 ID**：空或空白 Canonical ID 记录警告并跳过
-3. **重复 Canonical ID 检测**：若同一 Canonical ID 已存在，**启动时 fail fast**，抛出 `InvalidOperationException`，异常信息含 ID、PackageId、IsBuiltIn、Kind、XAML WindowType（若存在）
-4. **构建索引字典**：`_byCanonicalId` — 按 Canonical ID 索引
+2. **空 ID fail-fast**：空或空白 Canonical ID 直接抛 `InvalidOperationException`，不记录警告后跳过
+3. **重复 Canonical ID 检测**：使用 `StringComparer.OrdinalIgnoreCase` 比较 Canonical ID（与 Windows 文件系统默认大小写不敏感语义一致）；若仅大小写不同的 Canonical ID 已存在，启动时 fail fast，抛出 `InvalidOperationException`，异常信息含 ID、PackageId、IsBuiltIn、Kind、XAML WindowType（若存在）
+4. **构建索引字典**：`_byCanonicalId` — 按 Canonical ID 索引（OrdinalIgnoreCase）
 5. **派生缓存列表**：`_windows`（全部窗口）、`_v3LayoutWindows`（仅 `FrontedV3LayoutWindowRegistration`）
 
 ```csharp
 // 核心代码示意
-_byCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.Ordinal);
+_byCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.OrdinalIgnoreCase);
 
 foreach (var registration in registrationList)
 {
     if (string.IsNullOrWhiteSpace(registration.Id))
     {
-        logger.LogWarning("Rejected fronted window registration with empty Canonical ID.");
-        continue;
+        throw new InvalidOperationException(
+            $"Fronted window registration has an empty Canonical ID. ...");
     }
 
     if (_byCanonicalId.TryGetValue(registration.Id, out var existing))
@@ -223,6 +211,8 @@ foreach (var registration in registrationList)
 _windows = _byCanonicalId.Values.ToArray();
 _v3LayoutWindows = _windows.OfType<FrontedV3LayoutWindowRegistration>().ToArray();
 ```
+
+`TryGet` 也使用同一 OrdinalIgnoreCase 字典；调用者传入大小写变体后，整条调用链使用 `registration.Id` 作为缓存键和事件 payload，不再使用调用者传入的原始字符串。`GetManageableWindows()` 按 `LocalId`（OrdinalIgnoreCase）排序，不再有 `GroupKey` / `DisplayOrder` 排序逻辑。
 
 ### 2.5 `FrontedWindowService` 构造（按需创建）
 
@@ -247,10 +237,9 @@ public FrontedWindowService(...)
 App.Services.xaml.cs
   └─ services.AddFrontedV3LayoutWindow("BpWindow", isBuiltIn: true) × 8
       ├─ EnsureValidLocalWindowId(windowId)
-      ├─ 读取 FrontedPluginRegistrationContext.CurrentPackageId
+      ├─ EnsureSafePackageId(packageId)
       ├─ BuildCanonicalId → Canonical ID
-      ├─ 内置窗口从 FrontedBuiltInWindowMetadata 获取分组/排序/本地化名
-      └─ 注册 FrontedV3LayoutWindowRegistration 到 DI
+      └─ 注册 FrontedV3LayoutWindowRegistration 到 DI（含 Id/LocalId/PackageId/IsBuiltIn/DisplayName/Kind）
   └─ PluginService.InitializePlugins(context, services)
       └─ 每个插件：
           └─ using (FrontedPluginRegistrationContext.BeginScope(plugin.Manifest.Id))
@@ -262,16 +251,18 @@ App.Services.xaml.cs
           └─ 获取 IFrontedWindowRegistry 实例
               └─ new FrontedWindowRegistryService(IEnumerable<FrontedWindowRegistration>)
                   ├─ 从 DI 接收所有 registration
-                  ├─ 重复 Canonical ID → fail fast
-                  └─ 构建 _byCanonicalId 索引
+                  ├─ 空 ID → fail fast
+                  ├─ 重复 Canonical ID（仅大小写不同也视为重复）→ fail fast
+                  └─ 构建 _byCanonicalId 索引（OrdinalIgnoreCase）
 
 运行时：
   ShowWindow(canonicalId)
-    └─ EnsureWindowCreated(canonicalId)
-        ├─ registry.TryGet(canonicalId, out registration)
-        └─ CreateWindow(registration)
-            ├─ V3Layout → new FrontedWindowBase() + InitializeV3LayoutHost(registration, ...)
-            └─ Xaml → DI 创建窗口 + 设置 ViewModel 为 DataContext
+    └─ ShowWindowSafelyAsync(canonicalId)  ← Task 方法，完整捕获异常，非 async void
+        └─ EnsureWindowCreated(canonicalId)
+            ├─ registry.TryGet(canonicalId, out registration) → 用 registration.Id 规范化键
+            └─ CreateWindow(registration)
+                ├─ V3Layout → new FrontedWindowBase() + InitializeV3LayoutHost(canonicalId, displayName, ...)
+                └─ Xaml → _services.GetRequiredService(xaml.WindowType)（DataContext 已在 AddFrontedWindow 工厂中设置）
 ```
 
 ---
@@ -293,7 +284,8 @@ services.AddFrontedV3LayoutWindow("BpWindow", isBuiltIn: true);
 - `LocalId = "BpWindow"`，`PackageId = null`（不在插件作用域内）
 - `Canonical ID = "BpWindow"`（`isBuiltIn = true`）
 - `IsBuiltIn = true`，`Kind = V3Layout`
-- 分组、排序、本地化显示名由 `FrontedBuiltInWindowMetadata` 提供
+- `DisplayName = "BpWindow"`（默认回退到 LocalId；内置窗口的本地化显示名由 UI 层通过 resx `Designer.Window.{LocalId}` 解析）
+- 来源分组由 UI 层基于 `IsBuiltIn + PackageId` 推导为 BuiltIn；顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序
 
 **插件窗口注册**（在插件 `Initialize` 内）：
 
@@ -370,15 +362,15 @@ using (FrontedPluginRegistrationContext.BeginScope(info.Manifest.Id))
 | 方法 | 用途 |
 |---|---|
 | `GetWindows()` | 获取所有已注册窗口 |
-| `GetManageableWindows()` | 获取在后台管理页中显示的窗口（带排序和分组回退） |
+| `GetManageableWindows()` | 获取在后台管理页中显示的窗口（按 `LocalId` 排序） |
 | `GetV3LayoutWindows()` | 获取所有 v3 Layout host 窗口注册（`FrontedV3LayoutWindowRegistration`） |
-| `TryGet(string canonicalId, out FrontedWindowRegistration registration)` | 按 Canonical ID 查找 |
+| `TryGet(string canonicalId, out FrontedWindowRegistration registration)` | 按 Canonical ID 查找（OrdinalIgnoreCase） |
 
 `GetManageableWindows()` 的排序逻辑：
 
-1. 按 `GroupKey` 排序（空值回退到 `"BuiltIn"` 或 `"Plugin"`）
-2. 按 `DisplayOrder` 排序（空值回退到 `int.MaxValue`）
-3. 按 `DisplayName` 排序（空值回退到 `LocalId`）
+1. 按 `LocalId` 排序（`StringComparer.OrdinalIgnoreCase`）
+
+来源分组（BuiltIn / Plugin / External）和类型显示（`Xaml` / `v3 Layout`）由 FrontManage UI 层基于 `IsBuiltIn + PackageId` 和 `registration.Kind` 独立推导，不再有 `GroupKey` / `DisplayOrder` 排序字段。
 
 ---
 
@@ -389,32 +381,33 @@ using (FrontedPluginRegistrationContext.BeginScope(info.Manifest.Id))
 ### 4.1 创建分派逻辑
 
 ```csharp
-private Window? CreateWindow(FrontedWindowRegistration registration)
+private Window CreateWindow(FrontedWindowRegistration registration)
 {
     return registration switch
     {
         // v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口）
         FrontedV3LayoutWindowRegistration v3 => CreateV3LayoutHostWindow(v3),
 
-        // XAML 窗口（含内置与插件）— 创建窗口并设置 ViewModel 为 DataContext
-        FrontedXamlWindowRegistration xaml => CreateXamlWindow(xaml.WindowType, xaml.ViewModelType),
+        // XAML 窗口（含内置与插件）— DataContext 已在 AddFrontedWindow 注册工厂中设置
+        FrontedXamlWindowRegistration xaml => CreateXamlWindow(xaml.WindowType),
 
-        // 无法识别的注册，跳过
-        _ => null
+        // 系统只有两个 sealed 派生类，未知类型直接抛异常
+        _ => throw new InvalidOperationException(...)
     };
 }
 ```
 
-只有两个分支：`V3Layout` 和 `Xaml`。来源归属（`IsBuiltIn`）不影响创建分派。
+只有两个分支：`V3Layout` 和 `Xaml`。来源归属（`IsBuiltIn`）不影响创建分派。未知 registration 类型不返回 null，而是抛 `InvalidOperationException`。
 
 ### 4.2 v3 布局宿主窗口创建（`CreateV3LayoutHostWindow`）
 
 ```csharp
-private Window CreateV3LayoutHostWindow(FrontedWindowRegistration registration)
+private Window CreateV3LayoutHostWindow(FrontedV3LayoutWindowRegistration registration)
 {
     var window = new FrontedWindowBase();
     window.InitializeV3LayoutHost(
-        registration,
+        registration.Id,                 // CanonicalWindowId
+        registration.DisplayName,        // DisplayName
         _services.GetRequiredService<IFrontedLayoutService>(),
         _services.GetRequiredService<IFrontedRenderer>(),
         _services.GetRequiredService<ISharedDataService>(),
@@ -427,9 +420,9 @@ private Window CreateV3LayoutHostWindow(FrontedWindowRegistration registration)
 
 在 `FrontedWindowBase.InitializeV3LayoutHost()`（在 [FrontedWindowBase.cs](../neo-bpsys-wpf.Core/Controls/FrontedWindowBase.cs)）中：
 
-1. **存储依赖**：保存 registration（用于后续以 `registration.Id` 加载布局）、layoutService、renderer、sharedDataService、behaviorRuntime、settingsHostService、logger
+1. **存储依赖**：保存 CanonicalWindowId、DisplayName、layoutService、renderer、sharedDataService、behaviorRuntime、settingsHostService、logger。`FrontedWindowBase` 不再持有整个 `FrontedWindowRegistration`，避免 Registry/UI 元数据泄漏到渲染层
 2. **设置标志**：`_isV3LayoutHost = true`
-3. **设置标题**：使用 `registration.DisplayName`（由 `RefreshV3WindowTitle` 处理本地化）
+3. **设置标题**：使用 DisplayName（由 `RefreshV3WindowTitle` 处理本地化）
 4. **创建 BaseCanvas**：一个 `Canvas` 控件，Name 为 `BaseCanvas`，应用渲染质量选项
 5. **包装到 Viewbox**：`Content = new Viewbox { Child = _baseCanvas, Stretch = Fill }`，实现自适应缩放
 6. **订阅事件**：`Loaded`, `Unloaded`, `Closed`, `IsVisibleChanged`；若 `settingsHostService` 非 null，订阅 `LanguageSettingChanged`
@@ -446,10 +439,10 @@ public FrontedWindowBase()
 }
 ```
 
-v3 host 内部使用 `registration.Id`（Canonical ID）作为布局加载、事件发布的窗口标识：
+v3 host 内部使用 CanonicalWindowId（即 `registration.Id`）作为布局加载、事件发布的窗口标识：
 
 ```csharp
-var config = await _layoutService.LoadWindowConfigAsync(_v3Registration.Id);
+var config = await _layoutService.LoadWindowConfigAsync(_canonicalWindowId);
 ```
 
 ### 4.3 XAML 窗口创建（`CreateXamlWindow`）
@@ -457,23 +450,15 @@ var config = await _layoutService.LoadWindowConfigAsync(_v3Registration.Id);
 适用于 `FrontedXamlWindowRegistration` 注册的窗口（典型为插件 XAML 窗口）：
 
 ```csharp
-private Window? CreateXamlWindow(Type? windowType, Type? viewModelType)
+private Window CreateXamlWindow(Type windowType)
 {
-    if (windowType is null || !typeof(Window).IsAssignableFrom(windowType))
-        return null;
-
-    var window = (_services.GetService(windowType)
-                  ?? ActivatorUtilities.CreateInstance(_services, windowType)) as Window;
-    if (window is null) return null;
-
-    if (viewModelType is not null)
-        window.DataContext = _services.GetService(viewModelType)
-                            ?? ActivatorUtilities.CreateInstance(_services, viewModelType);
-    return window;
+    // DataContext 已在 AddFrontedWindow 注册工厂中设置，这里只解析窗口实例
+    var window = _services.GetRequiredService(windowType) as Window;
+    return window!;
 }
 ```
 
-对于通过 `AddFrontedWindow` 注册的窗口，`windowType` 已注册为 Singleton 到 DI 容器中，工厂创建时已设置 `DataContext`，因此 `_services.GetService(windowType)` 返回的实例已具备正确的 ViewModel。
+对于通过 `AddFrontedWindow` 注册的窗口，`windowType` 已注册为 Singleton 到 DI 容器中，工厂创建时已设置 `DataContext`，因此 `_services.GetRequiredService(windowType)` 返回的实例已具备正确的 ViewModel。`CreateXamlWindow` 不再二次解析 ViewModel、不再设置 DataContext、不再有 `ActivatorUtilities.CreateInstance` fallback。
 
 ### 4.4 窗口创建后处理
 
@@ -740,7 +725,7 @@ public sealed class FrontedLayoutLoadResult
 }
 ```
 
-`FrontedLayoutSource` 枚举值：`User`、`BuiltIn`、`PluginDefault`、`EmptyTemplate`、`MissingOrError`。新架构下加载链只会产生 `User`、`BuiltIn`、`EmptyTemplate` 三种来源。
+`FrontedLayoutSource` 枚举值：`User`、`BuiltIn`、`EmptyTemplate`。`PluginDefault` / `MissingOrError` 枚举值已删除（无运行时来源）。
 
 ### 6.3 v3 布局路径映射
 
@@ -1033,7 +1018,6 @@ Shutdown / Dispose
 | 窗口注册表服务 | [FrontedWindowRegistryService.cs](../neo-bpsys-wpf.Core/Services/Registry/FrontedWindowRegistryService.cs) |
 | 窗口注册表接口 | [IFrontedWindowRegistry.cs](../neo-bpsys-wpf.Core/Abstractions/Services/IFrontedWindowRegistry.cs) |
 | 插件注册作用域 | [FrontedPluginRegistrationContext.cs](../neo-bpsys-wpf.Core/Services/Registry/FrontedPluginRegistrationContext.cs) |
-| 内置窗口元数据 | [FrontedBuiltInWindowMetadata.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedBuiltInWindowMetadata.cs) |
 | v3 Canonical ID 生成 | [FrontedV3LayoutWindowIdentity.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowIdentity.cs) |
 | v3 局部 ID 校验 | [FrontedV3LayoutWindowIdValidator.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowIdValidator.cs) |
 | v3 空模板工厂 | [FrontedV3LayoutWindowConfigFactory.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowConfigFactory.cs) |
@@ -1188,20 +1172,18 @@ Shutdown / Dispose
 
 ## 附录 A：内置窗口注册信息汇总
 
-所有内置前台窗口均为 v3 布局窗口，通过 `AddFrontedV3LayoutWindow(name, isBuiltIn: true)` 注册。
+所有内置前台窗口均为 v3 布局窗口，通过 `AddFrontedV3LayoutWindow(name, isBuiltIn: true)` 注册。来源分组统一为 BuiltIn（由 `IsBuiltIn = true` 推导）；顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序；内置窗口的本地化显示名由 UI 层通过现有 resx（`Designer.Window.{LocalId}`）解析。
 
-| 窗口 | `FrontedWindowType` | Canonical ID | 注册方式 | 有 XAML 类 | 分组 | DisplayOrder |
-|---|---|---|---|---|---|---|
-| BpWindow | `BpWindow` | `BpWindow` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 0 |
-| CutSceneWindow | `CutSceneWindow` | `CutSceneWindow` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 100 |
-| ScoreSurWindow | `ScoreSurWindow` | `ScoreSurWindow` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 300 |
-| ScoreHunWindow | `ScoreHunWindow` | `ScoreHunWindow` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 400 |
-| ScoreGlobalWindow | `ScoreGlobalWindow` | `ScoreGlobalWindow` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 500 |
-| GameDataWindow | `GameDataWindow` | `GameDataWindow` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 600 |
-| BpOverviewWindow | `BpOverviewWindow` | `BpOverviewWindow` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 700 |
-| MapV2Window | `MapV2Window` | `MapV2Window` | `AddFrontedV3LayoutWindow` | ❌ | BuiltIn | 710 |
-
-内置窗口的分组、排序与本地化显示名由 `FrontedBuiltInWindowMetadata` 提供（见 [FrontedBuiltInWindowMetadata.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedBuiltInWindowMetadata.cs)）。
+| 窗口 | `FrontedWindowType` | Canonical ID | 注册方式 | 有 XAML 类 |
+|---|---|---|---|---|
+| BpWindow | `BpWindow` | `BpWindow` | `AddFrontedV3LayoutWindow` | ❌ |
+| CutSceneWindow | `CutSceneWindow` | `CutSceneWindow` | `AddFrontedV3LayoutWindow` | ❌ |
+| ScoreSurWindow | `ScoreSurWindow` | `ScoreSurWindow` | `AddFrontedV3LayoutWindow` | ❌ |
+| ScoreHunWindow | `ScoreHunWindow` | `ScoreHunWindow` | `AddFrontedV3LayoutWindow` | ❌ |
+| ScoreGlobalWindow | `ScoreGlobalWindow` | `ScoreGlobalWindow` | `AddFrontedV3LayoutWindow` | ❌ |
+| GameDataWindow | `GameDataWindow` | `GameDataWindow` | `AddFrontedV3LayoutWindow` | ❌ |
+| BpOverviewWindow | `BpOverviewWindow` | `BpOverviewWindow` | `AddFrontedV3LayoutWindow` | ❌ |
+| MapV2Window | `MapV2Window` | `MapV2Window` | `AddFrontedV3LayoutWindow` | ❌ |
 
 ## 附录 B：插件窗口注册示例
 
