@@ -11,6 +11,6 @@
     </PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" IncludeAssets="all" />
+        <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" IncludeAssets="all" />
     </ItemGroup>
 </Project>

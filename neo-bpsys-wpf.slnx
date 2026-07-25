@@ -54,6 +54,9 @@
     <BuildType Solution="Preview|*" Project="Debug" />
     <Platform Solution="*|x64" Project="x64" />
   </Project>
+  <Project Path="neo-bpsys-wpf.V3SourceGenerator/neo-bpsys-wpf.V3SourceGenerator.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
   <Project Path="neo-bpsys-wpf/neo-bpsys-wpf.csproj">
     <Platform Solution="*|x64" Project="x64" />
   </Project>
