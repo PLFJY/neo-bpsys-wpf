@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Properties;
 
@@ -159,14 +160,75 @@ internal static class BuiltInPropertyDefinitionResolver
         var groupName = ResolveGroupName(property.Name);
         var editorKind = ResolveEditorKind(property);
         var isVisible = IsVisibleByDefault(property.Name);
+        var semantic = ResolveSemantic(property);
 
         return new FrontedV3PropertyMetadata
         {
             DisplayNameKey = property.Name,
             GroupName = groupName,
             EditorKind = editorKind,
-            IsVisible = isVisible
+            IsVisible = isVisible,
+            Semantic = semantic
         };
+    }
+
+    /// <summary>
+    /// 根据属性名推断 <see cref="FrontedV3PropertySemantic"/>，驱动 StyleTransfer 传播范围。
+    /// </summary>
+    /// <param name="property">控件 CLR 属性。</param>
+    /// <returns>推断出的语义分类；未分类时为 <see cref="FrontedV3PropertySemantic.Other"/>。</returns>
+    /// <remarks>
+    /// <para>
+    /// 推断规则（按优先级，先命中先返回）：
+    /// <list type="number">
+    /// <item><see cref="FrontedV3PropertySemantic.Effects"/>：<c>IsGaussianBlurEnabled</c>、<c>GaussianBlurRadius</c>。</item>
+    /// <item><see cref="FrontedV3PropertySemantic.DataIdentity"/>：<c>MapKey</c>、<c>TeamType</c>、<c>BindingPath</c>、以 <c>BindingPath</c> 结尾、<c>ControlName</c>、<c>Name</c>。</item>
+    /// <item><see cref="FrontedV3PropertySemantic.RootSize"/>：根级 <c>Width</c>、<c>Height</c>。</item>
+    /// <item><see cref="FrontedV3PropertySemantic.Appearance"/>：颜色属性（<see cref="ColorPropertyNames"/> 或以 <c>Color</c> 结尾）、字体属性（<c>FontFamily</c>/<c>FontWeight</c>/<c>FontSize</c>）、<c>CornerRadius</c>、<c>ClipToBounds</c>。</item>
+    /// <item><see cref="FrontedV3PropertySemantic.Other"/>：其余属性。</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// 注意：<c>IsGaussianBlurEnabled</c> 与 <c>GaussianBlurRadius</c> 虽然在 <see cref="IsAppearanceProperty"/> 中返回 <see langword="true"/>，
+    /// 但语义上属于视觉效果，因此特判为 <see cref="FrontedV3PropertySemantic.Effects"/>，不归入 <see cref="FrontedV3PropertySemantic.Appearance"/>。
+    /// </para>
+    /// <para>
+    /// <c>BehaviorGuid</c> 在 <see cref="ReservedPropertyNames"/> 中已被排除，不会进入本方法；
+    /// <c>Left</c>/<c>Top</c>/<c>ZIndex</c> 等根级保留字段无对应语义分类，落入 <see cref="FrontedV3PropertySemantic.Other"/>。
+    /// </para>
+    /// </remarks>
+    private static FrontedV3PropertySemantic ResolveSemantic(PropertyInfo property)
+    {
+        var name = property.Name;
+
+        // Effects: 高斯模糊视觉效果（特判，优先于 Appearance，因为 IsAppearanceProperty 也包含这两个名称）
+        if (name is nameof(FrontedControlConfigBase.IsGaussianBlurEnabled)
+            or nameof(FrontedControlConfigBase.GaussianBlurRadius))
+        {
+            return FrontedV3PropertySemantic.Effects;
+        }
+
+        // DataIdentity: 数据身份字段（永不传播，防止控件指向错误数据源）
+        if (name is "MapKey" or "TeamType" or "ControlName" or "Name"
+            || name == nameof(FrontedControlConfigBase.BindingPath)
+            || name.EndsWith(nameof(FrontedControlConfigBase.BindingPath), StringComparison.Ordinal))
+        {
+            return FrontedV3PropertySemantic.DataIdentity;
+        }
+
+        // RootSize: 根级 Width/Height
+        if (name is nameof(FrontedControlConfigBase.Width) or nameof(FrontedControlConfigBase.Height))
+        {
+            return FrontedV3PropertySemantic.RootSize;
+        }
+
+        // Appearance: 颜色、字体、CornerRadius、ClipToBounds
+        if (IsAppearanceProperty(name))
+        {
+            return FrontedV3PropertySemantic.Appearance;
+        }
+
+        return FrontedV3PropertySemantic.Other;
     }
 
     private static string ResolveGroupName(string propertyName)

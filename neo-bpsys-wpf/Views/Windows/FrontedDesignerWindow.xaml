@@ -696,9 +696,6 @@
                                                                             </Style>
                                                                         </Border.Style>
                                                                         <Grid>
-                                                                            <Grid.ColumnDefinitions>
-                                                                                <ColumnDefinition Width="*" />
-                                                                            </Grid.ColumnDefinitions>
                                                                             <Grid.RowDefinitions>
                                                                                 <RowDefinition Height="Auto" />
                                                                                 <RowDefinition Height="Auto" />
@@ -740,6 +737,41 @@
                                                                                         Text="{Binding ZIndex}" />
                                                                                 </StackPanel>
                                                                             </Grid>
+                                                                            <ItemsControl
+                                                                                Grid.Row="2"
+                                                                                Margin="12,4,0,0"
+                                                                                ItemsSource="{Binding Children}">
+                                                                                <ItemsControl.ItemTemplate>
+                                                                                    <DataTemplate DataType="{x:Type designer:DesignerLayerNode}">
+                                                                                        <Border
+                                                                                            Margin="0,2"
+                                                                                            Padding="6,3"
+                                                                                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                                                            BorderThickness="1"
+                                                                                            CornerRadius="2"
+                                                                                            MouseLeftButtonDown="LayerItem_OnMouseLeftButtonDown"
+                                                                                            Tag="{Binding}">
+                                                                                            <Border.Style>
+                                                                                                <Style TargetType="Border">
+                                                                                                    <Setter Property="Opacity" Value="0.85" />
+                                                                                                    <Style.Triggers>
+                                                                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                                            <Setter Property="BorderBrush" Value="Orange" />
+                                                                                                            <Setter Property="Opacity" Value="1" />
+                                                                                                        </DataTrigger>
+                                                                                                    </Style.Triggers>
+                                                                                                </Style>
+                                                                                            </Border.Style>
+                                                                                            <TextBlock
+                                                                                                FontSize="11"
+                                                                                                Text="{Binding DisplayName}"
+                                                                                                TextTrimming="CharacterEllipsis"
+                                                                                                ToolTip="{Binding Metadata}" />
+                                                                                        </Border>
+                                                                                    </DataTemplate>
+                                                                                </ItemsControl.ItemTemplate>
+                                                                            </ItemsControl>
                                                                         </Grid>
                                                                     </Border>
                                                                 </DataTemplate>
@@ -983,6 +1015,26 @@
                             FontSize="18"
                             FontWeight="SemiBold"
                             Text="{lex:Loc Properties}" />
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,0,0"
+                            Appearance="Secondary"
+                            Icon="{ui:SymbolIcon Symbol=Copy24}"
+                            Command="{Binding ApplyAppearanceToSameTypeCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToSameType}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
                         <Grid Grid.Row="2" Margin="0,8,0,8">
 
                             <ItemsControl ItemsSource="{Binding PropertyEditorItems}">

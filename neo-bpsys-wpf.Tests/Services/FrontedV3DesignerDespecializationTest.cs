@@ -603,7 +603,57 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     // -------------------------------------------------------------------
-    // 8. DesignerDoesNotReferenceBorderedImageConfig
+    // 8. EscReturnsToRootSelection
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 子控件选中后通过 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
+    /// 回退到根选中：从 FixedPart selection 取得 DesignItem，重新构建 Root selection，
+    /// 验证 Kind 切换为 Root 且 Schema 包含根控件属性。这是 <c>EscapeToRootSelection</c>
+    /// 方法依赖的数据流契约。
+    /// </summary>
+    [Fact]
+    public void EscReturnsToRootSelection()
+    {
+        var config = new BorderedImageFrontedControlConfig
+        {
+            ImageWidth = 60,
+            ImageHeight = 40,
+            Left = 10,
+            Top = 20,
+            Width = 200,
+            Height = 100
+        };
+        var designItem = new FrontedControlDesignItem
+        {
+            Name = "BorderedImage1",
+            Config = config
+        };
+
+        var builder = new FrontedV3DesignSelectionBuilder();
+
+        // 先构建 FixedPart 选中（模拟用户点击内部 Image 部件）
+        var partSelection = builder.BuildFixedPartSelection(designItem, partId: "Image");
+        Assert.NotNull(partSelection);
+        Assert.Equal(FrontedV3DesignSelectionKind.FixedPart, partSelection!.Kind);
+        Assert.NotNull(partSelection.DesignItem);
+
+        // 模拟 Esc：从子控件选中取得 DesignItem，重新构建 Root 选中
+        var rootSelection = builder.BuildRootSelection(partSelection.DesignItem!);
+        Assert.NotNull(rootSelection);
+        Assert.Equal(FrontedV3DesignSelectionKind.Root, rootSelection!.Kind);
+        Assert.Null(rootSelection.SubTarget);
+
+        // Root Schema 应包含根控件布局属性（Left/Top/Width/Height）
+        var optionsPaths = rootSelection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Left), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Top), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Width), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Height), optionsPaths);
+    }
+
+    // -------------------------------------------------------------------
+    // 9. DesignerDoesNotReferenceBorderedImageConfig
     // -------------------------------------------------------------------
 
     /// <summary>
@@ -618,7 +668,7 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     // -------------------------------------------------------------------
-    // 9. DesignerDoesNotReferenceMapV2DisplayConfig
+    // 10. DesignerDoesNotReferenceMapV2DisplayConfig
     // -------------------------------------------------------------------
 
     /// <summary>
@@ -633,7 +683,7 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     // -------------------------------------------------------------------
-    // 10. DesignerDoesNotReferenceGlobalScoreRowConfig
+    // 11. DesignerDoesNotReferenceGlobalScoreRowConfig
     // -------------------------------------------------------------------
 
     /// <summary>

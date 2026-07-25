@@ -82,6 +82,12 @@
   <data name="Designer.LayerPanel.ReorderBlocked">
     <value>This control cannot be reordered</value>
   </data>
+  <data name="Designer.LayerPanel.Part">
+    <value>Part</value>
+  </data>
+  <data name="Designer.LayerPanel.CollectionItem">
+    <value>Collection item</value>
+  </data>
   <data name="Properties">
     <value>Properties</value>
   </data>
@@ -105,6 +111,9 @@
   </data>
   <data name="EditProperty">
     <value>Edit property</value>
+  </data>
+  <data name="Designer.PropertyEditor.ApplyToSameType">
+    <value>Apply to same type controls</value>
   </data>
   <data name="EditTextBindingSource">
     <value>Edit binding source</value>

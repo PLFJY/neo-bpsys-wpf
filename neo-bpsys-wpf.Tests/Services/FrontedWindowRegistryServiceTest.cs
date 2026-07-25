@@ -121,6 +121,52 @@ public class FrontedWindowRegistryServiceTest
         Assert.Same(registration, resolvedMixed);
     }
 
+    /// <summary>
+    /// 验证 <see cref="FrontedWindowRegistryService.GetManageableWindows"/> 保持 DI 注册顺序，
+    /// 不再按 <see cref="FrontedWindowRegistration.LocalId"/> 字母排序。
+    /// 注册顺序刻意与字母顺序不同，以使测试能够区分两种排序策略。
+    /// </summary>
+    [Fact]
+    public void GetManageableWindows_PreservesRegistrationOrder()
+    {
+        var first = CreateV3Registration("WindowC", "窗口 C");
+        var second = CreateV3Registration("WindowA", "窗口 A");
+        var third = CreateV3Registration("WindowB", "窗口 B");
+
+        var registrations = new List<FrontedWindowRegistration> { first, second, third };
+        var registry = new FrontedWindowRegistryService(registrations);
+
+        var manageable = registry.GetManageableWindows();
+
+        Assert.Equal(3, manageable.Count);
+        Assert.Same(first, manageable[0]);
+        Assert.Same(second, manageable[1]);
+        Assert.Same(third, manageable[2]);
+    }
+
+    /// <summary>
+    /// 验证 <see cref="FrontedWindowRegistryService.GetManageableWindows"/> 保持 DI 注册顺序：
+    /// 内置窗口先于插件窗口注册时，内置窗口排在前面。
+    /// 插件窗口的 LocalId 字母序刻意早于内置窗口，以验证不再按字母排序。
+    /// </summary>
+    [Fact]
+    public void GetManageableWindows_BuiltInBeforePlugin()
+    {
+        var builtIn = CreateV3Registration("Zeta", "内置窗口", isBuiltIn: true, packageId: null);
+        var plugin = CreateV3Registration("plugin:test.plugin/Alpha", "插件窗口", isBuiltIn: false, packageId: "test.plugin");
+
+        var registrations = new List<FrontedWindowRegistration> { builtIn, plugin };
+        var registry = new FrontedWindowRegistryService(registrations);
+
+        var manageable = registry.GetManageableWindows();
+
+        Assert.Equal(2, manageable.Count);
+        Assert.Same(builtIn, manageable[0]);
+        Assert.Same(plugin, manageable[1]);
+        Assert.True(manageable[0].IsBuiltIn);
+        Assert.False(manageable[1].IsBuiltIn);
+    }
+
     private static FrontedV3LayoutWindowRegistration CreateV3Registration(string id, string displayName)
     {
         return new FrontedV3LayoutWindowRegistration
@@ -128,6 +174,22 @@ public class FrontedWindowRegistryServiceTest
             Id = id,
             LocalId = id,
             IsBuiltIn = false,
+            DisplayName = displayName
+        };
+    }
+
+    private static FrontedV3LayoutWindowRegistration CreateV3Registration(
+        string id,
+        string displayName,
+        bool isBuiltIn,
+        string? packageId)
+    {
+        return new FrontedV3LayoutWindowRegistration
+        {
+            Id = id,
+            LocalId = id,
+            IsBuiltIn = isBuiltIn,
+            PackageId = packageId,
             DisplayName = displayName
         };
     }

@@ -74,12 +74,7 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
     public IReadOnlyList<FrontedV3LayoutWindowRegistration> GetV3LayoutWindows() => _v3LayoutWindows;
 
     /// <inheritdoc />
-    public IReadOnlyList<FrontedWindowRegistration> GetManageableWindows()
-    {
-        return _windows
-            .OrderBy(registration => registration.LocalId, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-    }
+    public IReadOnlyList<FrontedWindowRegistration> GetManageableWindows() => _windows;
 
     /// <inheritdoc />
     public bool TryGet(string canonicalId, out FrontedWindowRegistration registration) =>

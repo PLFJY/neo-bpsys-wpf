@@ -12,10 +12,16 @@ using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.StyleTransfer;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
@@ -90,12 +96,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedBehaviorCopyPasteService _behaviorCopyPasteService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
     private readonly ISettingsHostService? _settingsHostService;
+    private readonly FrontedV3DesignSelectionBuilder _selectionBuilder;
+    private readonly FrontedV3StyleTransferService? _styleTransferService;
+    private FrontedV3StyleTransferService StyleTransferService
+        => _styleTransferService ?? new FrontedV3StyleTransferService();
 
     private static ILogger<FrontedDesignerWindowViewModel>? StaticLogger =>
         IAppHost.TryGetService<ILogger<FrontedDesignerWindowViewModel>>();
 
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, FrontedV3PropertyDefinition> _schemaPropertiesByPath = new(StringComparer.Ordinal);
     private readonly Stack<string> _undoStack = new();
     private readonly Stack<string> _redoStack = new();
     private readonly List<PendingImportedResource> _pendingImportedResources = [];
@@ -115,8 +126,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _clearRestoreVisualsAfterScheduledPreview;
     private bool _isApplyingDesignSelection;
     private bool _isRefreshingWindowOptions;
+    private bool _isApplyingSelectedTarget;
     private FrontedControlDesignItem? _lastSelectedDesignItem;
     private DesignerLayerNode? _selectedLayerNode;
+    private FrontedV3DesignSelection? _selectedTarget;
     private CancellationTokenSource? _reloadLayoutCancellation;
     private int _reloadLayoutVersion;
     private double _lastPreviewViewportWidth;
@@ -155,6 +168,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _localizationService);
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         _settingsHostService = null;
+        _selectionBuilder = new FrontedV3DesignSelectionBuilder();
         BehaviorPanel = CreateBehaviorPanel();
         InitializeZoomPresets();
     }
@@ -203,6 +217,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// <param name="previewAnimationScope">预览动画目标作用域。</param>
     /// <param name="logger">日志记录器。</param>
     /// <param name="settingsHostService">可选的设置宿主服务。</param>
+    /// <param name="v3ControlRegistry">可选的 V3 控件注册表。</param>
+    /// <param name="styleTransferService">可选的 v3 控件 StyleTransfer 服务；为 <see langword="null"/> 时按需创建默认实例。</param>
     public FrontedDesignerWindowViewModel(
         FrontedDesignerLayoutCatalog layoutCatalog,
         IFrontedLayoutService layoutService,
@@ -224,7 +240,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         IFrontedAnimationRuntime animationRuntime,
         FrontedDesignerPreviewAnimationScope previewAnimationScope,
         ILogger<FrontedDesignerWindowViewModel> logger,
-        ISettingsHostService? settingsHostService = null)
+        ISettingsHostService? settingsHostService = null,
+        IFrontedV3ControlRegistry? v3ControlRegistry = null,
+        FrontedV3StyleTransferService? styleTransferService = null)
     {
         _layoutService = layoutService;
         _designConverter = designConverter;
@@ -247,6 +265,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _logger = logger;
         _settingsHostService = settingsHostService;
         _layoutCatalog = layoutCatalog;
+        _selectionBuilder = new FrontedV3DesignSelectionBuilder(v3ControlRegistry);
+        _styleTransferService = styleTransferService;
         BehaviorPanel = CreateBehaviorPanel();
 
         RebuildWindowOptions(preserveSelectedWindowTypeName: null);
@@ -432,6 +452,51 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
 
+    /// <summary>
+    /// 获取当前统一选中目标。根控件选中时为 Root selection；
+    /// 子控件（Part/CollectionItem）选中时为对应子目标；
+    /// 无选中或选中无可用 Schema 时为 <see langword="null"/>。
+    /// </summary>
+    public FrontedV3DesignSelection? SelectedTarget
+    {
+        get => _selectedTarget;
+        private set
+        {
+            if (ReferenceEquals(_selectedTarget, value))
+            {
+                return;
+            }
+
+            _selectedTarget = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasSelectedTarget));
+            OnPropertyChanged(nameof(IsSubControlSelected));
+        }
+    }
+
+    /// <summary>
+    /// 获取是否具有统一选中目标。
+    /// </summary>
+    public bool HasSelectedTarget => _selectedTarget is not null;
+
+    /// <summary>
+    /// 获取当前是否选中了子控件（Part 或 CollectionItem）。
+    /// </summary>
+    public bool IsSubControlSelected =>
+        _selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root };
+
+    /// <summary>
+    /// 获取当前选中根控件在 <see cref="CurrentDocument"/> 中是否存在相同
+    /// <see cref="FrontedControlConfigBase.ControlType"/> 的其他控件（同类型 peer），
+    /// 用于驱动"应用到同类型控件"按钮的启用状态。
+    /// </summary>
+    /// <remarks>
+    /// 仅根控件选中时检查；子控件选中时（Part/CollectionItem）始终返回 <see langword="false"/>。
+    /// peer 判定使用 <see cref="FrontedControlConfigBase.ControlType"/> 完全相等 +
+    /// Config 引用不等，避免在源控件自身上报真。
+    /// </remarks>
+    public bool HasSameTypePeers => TryGetSameTypePeerDesignItems().Count > 0;
+
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
     /// <summary>
@@ -615,6 +680,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CopySelectedControlCommand.NotifyCanExecuteChanged();
         PasteControlCommand.NotifyCanExecuteChanged();
         NotifyLayoutCommandState();
+        OnPropertyChanged(nameof(HasSameTypePeers));
+        ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnAreBehaviorsDirtyChanged(bool value)
@@ -675,6 +742,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ? 0
             : -1;
         ApplyDesignSelectionFlags();
+        SyncSelectedTargetOnDesignItemChanged(value);
 
         BehaviorPanel.SetSelectedControl(SelectedDesignItems.Count > 1 ? null : value);
         RefreshSelectedControlDisplay();
@@ -688,6 +756,37 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedPolygonVertexDisplay));
         OnPropertyChanged(nameof(CanRemovePolygonVertex));
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(HasSameTypePeers));
+        ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// 在 <see cref="SelectedDesignItem"/> 变化时同步 <see cref="SelectedTarget"/>。
+    /// 新值为 <see langword="null"/> 时清除 <see cref="SelectedTarget"/>；
+    /// 新值非 <see langword="null"/> 且当前 <see cref="SelectedTarget"/> 为 <see langword="null"/>
+    /// 或非 Root 选中时，重建 Root 选中。
+    /// </summary>
+    /// <param name="value">新选中的设计项。</param>
+    private void SyncSelectedTargetOnDesignItemChanged(FrontedControlDesignItem? value)
+    {
+        if (_isApplyingSelectedTarget)
+        {
+            return;
+        }
+
+        if (value is null)
+        {
+            SelectedTarget = null;
+            return;
+        }
+
+        if (_selectedTarget is { Kind: FrontedV3DesignSelectionKind.Root } root
+            && ReferenceEquals(root.DesignItem, value))
+        {
+            return;
+        }
+
+        SelectedTarget = _selectionBuilder.BuildRootSelection(value);
     }
 
     partial void OnSelectedPolygonVertexIndexChanged(int value)
@@ -1652,6 +1751,158 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestPreviewRenderCurrentDocument();
     }
 
+    /// <summary>
+    /// 判断"应用到同类型控件"命令是否可执行：需要存在当前文档、选中根控件、
+    /// 且文档中存在与源控件 <see cref="FrontedControlConfigBase.ControlType"/> 相同的其他控件。
+    /// </summary>
+    /// <returns>当可执行同类型样式传播时返回 <see langword="true"/>。</returns>
+    private bool CanApplyAppearanceToSameType()
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        // 子控件选中时禁用，仅根控件选中可传播同类型样式。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return false;
+        }
+
+        var sourceConfig = SelectedDesignItem?.Config;
+        if (sourceConfig is null)
+        {
+            return false;
+        }
+
+        return TryGetSameTypePeerDesignItems().Count > 0;
+    }
+
+    /// <summary>
+    /// 将当前选中根控件的外观属性（按 <see cref="FrontedV3StyleTransferProfile.Default"/>）
+    /// 传播到 <see cref="CurrentDocument"/> 中所有相同 <see cref="FrontedControlConfigBase.ControlType"/>
+    /// 的其他控件上。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 传播范围由 <see cref="FrontedV3StyleTransferProfile.Default"/> 控制，仅传播
+    /// <see cref="FrontedV3PropertySemantic.Appearance"/> 语义的属性；
+    /// <see cref="FrontedV3PropertySemantic.DataIdentity"/> 与位置/尺寸/行为/效果等语义不会被传播。
+    /// </para>
+    /// <para>
+    /// 完成传播后触发：Undo 快照已先于传播捕获、属性面板重建、预览刷新、文档标记为脏。
+    /// </para>
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanApplyAppearanceToSameType))]
+    private void ApplyAppearanceToSameType()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        // 子控件选中时禁用，仅根控件选中可传播同类型样式。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return;
+        }
+
+        var sourceDesignItem = SelectedDesignItem;
+        if (sourceDesignItem?.Config is not { } sourceConfig)
+        {
+            return;
+        }
+
+        var sourceRegistration = _selectionBuilder.ResolveRegistration(sourceConfig);
+        if (sourceRegistration is null)
+        {
+            return;
+        }
+
+        var peerDesignItems = TryGetSameTypePeerDesignItems();
+        if (peerDesignItems.Count == 0)
+        {
+            return;
+        }
+
+        var peers = new List<PeerStyleTarget>(peerDesignItems.Count);
+        foreach (var peerDesignItem in peerDesignItems)
+        {
+            if (peerDesignItem.Config is null)
+            {
+                continue;
+            }
+
+            var peerRegistration = _selectionBuilder.ResolveRegistration(peerDesignItem.Config);
+            if (peerRegistration is null)
+            {
+                continue;
+            }
+
+            peers.Add(new PeerStyleTarget(peerRegistration, peerDesignItem.Config));
+        }
+
+        if (peers.Count == 0)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        StyleTransferService.TransferPeerStyle(
+            sourceRegistration,
+            sourceConfig,
+            peers,
+            FrontedV3StyleTransferProfile.Default);
+
+        CurrentDocument.IsDirty = true;
+        RebuildPropertyEditorItems();
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+        ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// 返回当前文档中与选中根控件 <see cref="FrontedControlConfigBase.ControlType"/> 相同、
+    /// 但 Config 引用不同的设计项列表。仅根控件选中时返回非空列表。
+    /// </summary>
+    /// <returns>同类型 peer 设计项列表；无选中或无 peer 时返回空列表。</returns>
+    private List<FrontedControlDesignItem> TryGetSameTypePeerDesignItems()
+    {
+        if (CurrentDocument is null)
+        {
+            return [];
+        }
+
+        // 子控件选中时不参与同类型传播，避免对 Part/CollectionItem 应用外观传播。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return [];
+        }
+
+        var sourceDesignItem = SelectedDesignItem;
+        if (sourceDesignItem?.Config is not { } sourceConfig)
+        {
+            return [];
+        }
+
+        var sourceControlType = sourceConfig.ControlType;
+        var peers = new List<FrontedControlDesignItem>();
+        foreach (var item in CurrentDocument.Controls)
+        {
+            if (item is null
+                || ReferenceEquals(item, sourceDesignItem)
+                || item.Config is null
+                || !string.Equals(item.Config.ControlType, sourceControlType, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            peers.Add(item);
+        }
+
+        return peers;
+    }
+
     [RelayCommand]
     private void ApplyCanvasSize()
     {
@@ -2035,6 +2286,272 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 选中根控件，构建 Root selection 并同步 <see cref="SelectedDesignItem"/>。
+    /// </summary>
+    /// <param name="designItem">要选中的设计项。</param>
+    /// <remarks>
+    /// 当 <paramref name="designItem"/> 无可用 Schema 属性时，<see cref="SelectedTarget"/> 会被清除。
+    /// </remarks>
+    public void SelectRoot(FrontedControlDesignItem designItem)
+    {
+        ArgumentNullException.ThrowIfNull(designItem);
+
+        _isApplyingSelectedTarget = true;
+        try
+        {
+            if (!ReferenceEquals(SelectedDesignItem, designItem))
+            {
+                SetSelectedDesignItems([designItem], designItem);
+            }
+
+            SelectedTarget = _selectionBuilder.BuildRootSelection(designItem);
+            RebuildPropertyEditorItems();
+            RefreshLayerNodeSelection();
+        }
+        finally
+        {
+            _isApplyingSelectedTarget = false;
+        }
+    }
+
+    /// <summary>
+    /// 选中控件内部的固定 Part，构建 FixedPart selection。
+    /// </summary>
+    /// <param name="designItem">Part 所属的父控件设计项。</param>
+    /// <param name="partId">Part 标识。</param>
+    /// <remarks>
+    /// 当 Part 不存在或无可用 Schema 时，<see cref="SelectedTarget"/> 保持不变。
+    /// 该方法会同步 <see cref="SelectedDesignItem"/> 到 <paramref name="designItem"/>，以便属性网格与画布定位到父控件。
+    /// </remarks>
+    public void SelectFixedPart(FrontedControlDesignItem designItem, string partId)
+    {
+        ArgumentNullException.ThrowIfNull(designItem);
+        ArgumentNullException.ThrowIfNull(partId);
+
+        _isApplyingSelectedTarget = true;
+        try
+        {
+            if (!ReferenceEquals(SelectedDesignItem, designItem))
+            {
+                SetSelectedDesignItems([designItem], designItem);
+            }
+
+            var selection = _selectionBuilder.BuildFixedPartSelection(designItem, partId);
+            if (selection is null)
+            {
+                return;
+            }
+
+            SelectedTarget = selection;
+            RebuildPropertyEditorItems();
+            RefreshLayerNodeSelection();
+        }
+        finally
+        {
+            _isApplyingSelectedTarget = false;
+        }
+    }
+
+    /// <summary>
+    /// 选中控件内部 PartCollection 的一个集合项，构建 CollectionItem selection。
+    /// </summary>
+    /// <param name="designItem">集合所属的父控件设计项。</param>
+    /// <param name="collectionId">集合标识。</param>
+    /// <param name="itemKey">集合项唯一键。</param>
+    /// <remarks>
+    /// 当集合或项不存在时，<see cref="SelectedTarget"/> 保持不变。
+    /// </remarks>
+    public void SelectCollectionItem(FrontedControlDesignItem designItem, string collectionId, string itemKey)
+    {
+        ArgumentNullException.ThrowIfNull(designItem);
+        ArgumentNullException.ThrowIfNull(collectionId);
+        ArgumentNullException.ThrowIfNull(itemKey);
+
+        _isApplyingSelectedTarget = true;
+        try
+        {
+            if (!ReferenceEquals(SelectedDesignItem, designItem))
+            {
+                SetSelectedDesignItems([designItem], designItem);
+            }
+
+            var selection = _selectionBuilder.BuildCollectionItemSelection(designItem, collectionId, itemKey);
+            if (selection is null)
+            {
+                return;
+            }
+
+            SelectedTarget = selection;
+            RebuildPropertyEditorItems();
+            RefreshLayerNodeSelection();
+        }
+        finally
+        {
+            _isApplyingSelectedTarget = false;
+        }
+    }
+
+    /// <summary>
+    /// 当子控件（Part/CollectionItem）被选中时，按 Esc 回退到根控件选中。
+    /// 根控件选中时调用此方法无效果。
+    /// </summary>
+    /// <returns>是否执行了回退（即调用前为子控件选中）。</returns>
+    public bool EscapeToRootSelection()
+    {
+        if (_selectedTarget is not { Kind: not FrontedV3DesignSelectionKind.Root } target
+            || target.DesignItem is null)
+        {
+            return false;
+        }
+
+        SelectRoot(target.DesignItem);
+        return true;
+    }
+
+    /// <summary>
+    /// 返回当前选中根控件可编辑子控件（Part/CollectionItem）的命中框与装饰器信息列表。
+    /// 供 View 创建透明 hitbox；仅在根控件选中时返回非空列表，子控件选中或无选中时返回空列表。
+    /// </summary>
+    /// <returns>子控件目标信息列表；无可用子控件时返回空列表。</returns>
+    /// <remarks>
+    /// 几何值相对于父控件，View 需要叠加父控件的画布坐标得到绝对位置。
+    /// 当<see cref="SelectedTarget"/> 为子控件选中时也返回空列表（不再显示同级 hitbox）。
+    /// </remarks>
+    public IReadOnlyList<DesignerChildTargetInfo> GetChildTargetInfos()
+    {
+        if (SelectedDesignItem is not { } designItem
+            || _selectedTarget is not { Kind: FrontedV3DesignSelectionKind.Root })
+        {
+            return Array.Empty<DesignerChildTargetInfo>();
+        }
+
+        var config = designItem.Config;
+        var parentBounds = FrontedDesignerBoundsResolver.Resolve(config);
+        var parentWidth = parentBounds.Width;
+        var parentHeight = parentBounds.Height;
+        var result = new List<DesignerChildTargetInfo>();
+
+        foreach (var part in _selectionBuilder.GetAvailableParts(designItem))
+        {
+            var geometry = new FixedPartGeometryTarget(part, config);
+            var width = geometry.Width ?? parentWidth;
+            var height = geometry.Height ?? parentHeight;
+            result.Add(new DesignerChildTargetInfo
+            {
+                ParentItem = designItem,
+                Id = part.Id,
+                ItemKey = null,
+                IsCollectionItem = false,
+                Left = geometry.Left,
+                Top = geometry.Top,
+                Width = width,
+                Height = height,
+                CanMove = part.Capabilities.CanMove,
+                CanResize = part.Capabilities.CanResize
+            });
+        }
+
+        foreach (var collection in _selectionBuilder.GetAvailableCollections(designItem))
+        {
+            var items = collection.CollectionGetter(config);
+            foreach (var item in items)
+            {
+                var itemKey = collection.ItemKeySelector(item);
+                var geometry = new CollectionItemGeometryTarget(collection, config, itemKey);
+                var width = geometry.Width ?? parentWidth;
+                var height = geometry.Height ?? parentHeight;
+                result.Add(new DesignerChildTargetInfo
+                {
+                    ParentItem = designItem,
+                    Id = collection.Id,
+                    ItemKey = itemKey,
+                    IsCollectionItem = true,
+                    Left = geometry.Left,
+                    Top = geometry.Top,
+                    Width = width,
+                    Height = height,
+                    CanMove = collection.ItemCapabilities.CanMove,
+                    CanResize = collection.ItemCapabilities.CanResize
+                });
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 返回当前选中子控件（Part/CollectionItem）的目标信息，供 View 绘制 selection adorner 与 resize handles。
+    /// 根控件选中或无选中时返回 <see langword="null"/>。
+    /// </summary>
+    /// <returns>当前子控件目标信息；非子控件选中时为 <see langword="null"/>。</returns>
+    public DesignerChildTargetInfo? GetCurrentSubTargetInfo()
+    {
+        if (_selectedTarget is not { Kind: not FrontedV3DesignSelectionKind.Root } target
+            || target.DesignItem is not { } designItem)
+        {
+            return null;
+        }
+
+        var config = designItem.Config;
+        var parentBounds = FrontedDesignerBoundsResolver.Resolve(config);
+        var parentWidth = parentBounds.Width;
+        var parentHeight = parentBounds.Height;
+        var geometry = target.GeometryTarget;
+        var width = geometry.Width ?? parentWidth;
+        var height = geometry.Height ?? parentHeight;
+
+        return target.Kind switch
+        {
+            FrontedV3DesignSelectionKind.FixedPart when target.SubTarget is FrontedV3FixedPartTarget partTarget
+                => new DesignerChildTargetInfo
+                {
+                    ParentItem = designItem,
+                    Id = partTarget.PartId,
+                    ItemKey = null,
+                    IsCollectionItem = false,
+                    Left = geometry.Left,
+                    Top = geometry.Top,
+                    Width = width,
+                    Height = height,
+                    CanMove = ResolvePartCapabilities(designItem, partTarget.PartId).CanMove,
+                    CanResize = ResolvePartCapabilities(designItem, partTarget.PartId).CanResize
+                },
+            FrontedV3DesignSelectionKind.CollectionItem
+                when target.SubTarget is FrontedV3CollectionItemTarget collectionTarget
+                => new DesignerChildTargetInfo
+                {
+                    ParentItem = designItem,
+                    Id = collectionTarget.CollectionId,
+                    ItemKey = collectionTarget.ItemKey,
+                    IsCollectionItem = true,
+                    Left = geometry.Left,
+                    Top = geometry.Top,
+                    Width = width,
+                    Height = height,
+                    CanMove = ResolveCollectionItemCapabilities(designItem, collectionTarget.CollectionId).CanMove,
+                    CanResize = ResolveCollectionItemCapabilities(designItem, collectionTarget.CollectionId).CanResize
+                },
+            _ => null
+        };
+    }
+
+    private static FrontedV3PartCapabilities ResolvePartCapabilities(
+        FrontedControlDesignItem designItem,
+        string partId)
+    {
+        var part = BuiltInPartDefinitionResolver.FindPart(designItem.Config, partId);
+        return part?.Capabilities ?? FrontedV3PartCapabilities.None;
+    }
+
+    private static FrontedV3PartCapabilities ResolveCollectionItemCapabilities(
+        FrontedControlDesignItem designItem,
+        string collectionId)
+    {
+        var collection = BuiltInPartCollectionDefinitionResolver.FindCollection(designItem.Config, collectionId);
+        return collection?.ItemCapabilities ?? FrontedV3PartCapabilities.None;
+    }
+
+    /// <summary>
     /// 选择多个设计控件，并将其中一个设为属性网格的主目标。
     /// </summary>
     /// <param name="items">要选中的控件。</param>
@@ -2105,7 +2622,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        SelectDesignItem(node.ControlItem);
+        switch (node.Kind)
+        {
+            case DesignerLayerNodeKind.Control when node.ControlItem is not null:
+                SelectDesignItem(node.ControlItem);
+                break;
+            case DesignerLayerNodeKind.Part when node.ControlItem is not null && node.PartId is not null:
+                SelectFixedPart(node.ControlItem, node.PartId);
+                break;
+            case DesignerLayerNodeKind.CollectionItem
+                when node.ControlItem is not null
+                && node.CollectionId is not null
+                && node.ItemKey is not null:
+                SelectCollectionItem(node.ControlItem, node.CollectionId, node.ItemKey);
+                break;
+            default:
+                ClearSelection();
+                break;
+        }
     }
 
     /// <summary>
@@ -2201,6 +2735,25 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || SelectedDesignItem is null || IsRebuildingPropertyGrid)
         {
+            return;
+        }
+
+        // 子控件（Part/CollectionItem）选中时，Move 通过 GeometryTarget 执行，
+        // 坐标相对于父控件。GeometryTarget 内部遵守 Capabilities 约束（Resize-only 不写入）。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root } subTarget)
+        {
+            var geometry = subTarget.GeometryTarget;
+            var newLeft = originalLeft + deltaX;
+            var newTop = originalTop + deltaY;
+            if (EffectiveSnapEnabled)
+            {
+                newLeft = FrontedDesignerGeometryHelper.Snap(newLeft);
+                newTop = FrontedDesignerGeometryHelper.Snap(newTop);
+            }
+
+            geometry.MoveTo(newLeft, newTop);
+            CurrentDocument.IsDirty = true;
+            OnDesignItemGeometryChanged(renderPreview);
             return;
         }
 
@@ -2327,6 +2880,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CaptureUndoSnapshot();
         ClearActiveSnapGuides();
 
+        // 子控件选中时，键盘微调通过 GeometryTarget 执行。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root } subTarget)
+        {
+            var geometry = subTarget.GeometryTarget;
+            geometry.MoveTo(geometry.Left + deltaX, geometry.Top + deltaY);
+            CurrentDocument.IsDirty = true;
+            OnDesignItemGeometryChanged(renderPreview: false);
+            RequestDesignerGeometryPatch([SelectedDesignItem], updateSelection: true);
+            return;
+        }
+
         var selectedItems = GetMovableSelectedDesignItems();
         if (selectedItems.Count > 1)
         {
@@ -2398,6 +2962,33 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
+            return;
+        }
+
+        // 子控件（Part/CollectionItem）选中时，Resize 通过 GeometryTarget 执行。
+        // 几何值通过 GeometryTarget.ResizeTo 写入，坐标相对于父控件。
+        // GeometryTarget 内部遵守 Capabilities 约束（Move-only 不写入尺寸）。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root } subTarget)
+        {
+            var geometry = subTarget.GeometryTarget;
+            FrontedDesignerGeometryHelper.ComputeResizedBounds(
+                handle,
+                originalLeft,
+                originalTop,
+                originalWidth,
+                originalHeight,
+                deltaX,
+                deltaY,
+                EffectiveSnapEnabled,
+                SnapGridSize,
+                out var newLeft,
+                out var newTop,
+                out var newWidth,
+                out var newHeight);
+
+            geometry.ResizeTo(newLeft, newTop, newWidth, newHeight);
+            CurrentDocument.IsDirty = true;
+            OnDesignItemGeometryChanged(renderPreview);
             return;
         }
 
@@ -2840,6 +3431,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyEditErrors.Remove(item.PropertyName);
         _propertyEditBuffers.Remove(item.PropertyName);
 
+        // Schema 驱动路径：子控件选中时，属性编辑通过 PropertyDefinition.Storage 写入，
+        // 不通过 propertyName 字符串反射写入。
+        if (_schemaPropertiesByPath.TryGetValue(item.PropertyName, out var schemaProperty)
+            && _selectedTarget is not null)
+        {
+            return ApplySchemaPropertyEdit(item, schemaProperty, newValue);
+        }
+
         if (item.PropertyName == nameof(FrontedControlDesignItem.Name))
         {
             return ApplyNameEdit(item, newValue);
@@ -2930,6 +3529,149 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return sameTypeTargets.Count == SelectedDesignItems.Count
             ? sameTypeTargets
             : [SelectedDesignItem];
+    }
+
+    /// <summary>
+    /// 通过 <see cref="FrontedV3PropertyDefinition.Storage"/> 应用 Schema 属性编辑，
+    /// 不通过 propertyName 字符串反射写入。
+    /// </summary>
+    /// <param name="item">属性行。</param>
+    /// <param name="schemaProperty">属性定义。</param>
+    /// <param name="newValue">用户输入的新值。</param>
+    /// <returns>是否成功提交。</returns>
+    private bool ApplySchemaPropertyEdit(
+        FrontedPropertyEditorItem item,
+        FrontedV3PropertyDefinition schemaProperty,
+        object? newValue)
+    {
+        if (_selectedTarget is null || _selectedTarget.DesignItem is not { } designItem)
+        {
+            return false;
+        }
+
+        var config = designItem.Config;
+        object? convertedValue;
+        if (schemaProperty.PropertyType == typeof(double))
+        {
+            if (!TryConvertSchemaDoubleValue(newValue, out var doubleValue, out var errorMessage))
+            {
+                SetPropertyEditError(item, errorMessage, newValue);
+                return false;
+            }
+
+            convertedValue = NormalizeSchemaGeometryValue(item.PropertyName, doubleValue);
+        }
+        else
+        {
+            try
+            {
+                convertedValue = Convert.ChangeType(
+                    newValue,
+                    Nullable.GetUnderlyingType(schemaProperty.PropertyType) ?? schemaProperty.PropertyType,
+                    CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                var errorMessage = I18nHelper.GetLocalizedString(
+                    AppI18nDictionaries.Designer,
+                    "PropertyValidationErrors");
+                SetPropertyEditError(item, errorMessage, newValue);
+                return false;
+            }
+        }
+
+        CaptureUndoSnapshot();
+        schemaProperty.SetValue(config, convertedValue);
+        CurrentDocument.IsDirty = true;
+
+        var refreshedValue = schemaProperty.GetValue(config);
+        item.Value = refreshedValue;
+        item.EditText = Convert.ToString(refreshedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+
+        ClearPropertyEditError(item.PropertyName);
+        OnDesignItemGeometryChanged(renderPreview: true);
+        return true;
+    }
+
+    /// <summary>
+    /// 尝试将用户输入转换为 Schema 几何属性所需的 <see cref="double"/> 值。
+    /// </summary>
+    /// <param name="newValue">用户输入。</param>
+    /// <param name="value">转换后的值。</param>
+    /// <param name="errorMessage">转换失败时的错误消息。</param>
+    /// <returns>是否转换成功。</returns>
+    private static bool TryConvertSchemaDoubleValue(object? newValue, out double value, out string errorMessage)
+    {
+        value = 0D;
+        errorMessage = string.Empty;
+
+        switch (newValue)
+        {
+            case double d:
+                value = d;
+                break;
+            case IConvertible convertible:
+                try
+                {
+                    value = Convert.ToDouble(convertible, CultureInfo.InvariantCulture);
+                }
+                catch
+                {
+                    errorMessage = I18nHelper.GetLocalizedString(
+                        AppI18nDictionaries.Designer,
+                        "PropertyValidationErrors");
+                    return false;
+                }
+
+                break;
+            default:
+                if (!double.TryParse(
+                        Convert.ToString(newValue, CultureInfo.InvariantCulture),
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out value))
+                {
+                    errorMessage = I18nHelper.GetLocalizedString(
+                        AppI18nDictionaries.Designer,
+                        "PropertyValidationErrors");
+                    return false;
+                }
+
+                break;
+        }
+
+        if (double.IsNaN(value) || double.IsInfinity(value))
+        {
+            errorMessage = I18nHelper.GetLocalizedString(
+                AppI18nDictionaries.Designer,
+                "PropertyValidationErrors");
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 对 Schema 几何属性值进行归一化（对齐网格、最小尺寸约束）。
+    /// </summary>
+    /// <param name="propertyName">属性名（OptionsPath 末段）。</param>
+    /// <param name="value">原始值。</param>
+    /// <returns>归一化后的值。</returns>
+    private static double NormalizeSchemaGeometryValue(string propertyName, double value)
+    {
+        if (propertyName is "Width" or "Height")
+        {
+            return Math.Max(
+                FrontedDesignerGeometryHelper.MinResizeWidth,
+                FrontedDesignerGeometryHelper.Snap(value));
+        }
+
+        if (propertyName is "X" or "Y" or "Left" or "Top")
+        {
+            return FrontedDesignerGeometryHelper.Snap(value);
+        }
+
+        return value;
     }
 
     private bool ApplyNameEdit(FrontedPropertyEditorItem item, object? newValue)
@@ -3232,9 +3974,22 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         try
         {
             PropertyEditorItems.Clear();
+            _schemaPropertiesByPath.Clear();
 
             if (CurrentDocument is null || SelectedDesignItem is null)
             {
+                return;
+            }
+
+            // 子控件（Part/CollectionItem）选中时走 Schema 驱动路径：
+            // 属性行由 SelectedTarget.Properties 构造，属性编辑通过 Storage 写入。
+            if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root } subTarget)
+            {
+                foreach (var row in BuildSchemaPropertyEditorItems(subTarget))
+                {
+                    PropertyEditorItems.Add(row);
+                }
+
                 return;
             }
 
@@ -3272,6 +4027,68 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _isRebuildingPropertyGrid = false;
             OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         }
+    }
+
+    /// <summary>
+    /// 为子控件选中（Part/CollectionItem）构造 Schema 驱动的属性行。
+    /// 属性值通过 <see cref="FrontedV3PropertyDefinition.GetValue"/> 读取，
+    /// 编辑时通过 <see cref="FrontedV3PropertyDefinition.SetValue"/> 写入，不通过 propertyName 字符串反射。
+    /// </summary>
+    /// <param name="selection">子控件选中目标。</param>
+    /// <returns>属性行列表。</returns>
+    private IEnumerable<FrontedPropertyEditorItem> BuildSchemaPropertyEditorItems(
+        FrontedV3DesignSelection selection)
+    {
+        var config = selection.DesignItem.Config;
+        foreach (var property in selection.Properties)
+        {
+            _schemaPropertiesByPath[property.OptionsPath] = property;
+
+            var value = property.GetValue(config);
+            var displayText = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+            var groupName = property.Metadata.GroupName ?? "Layout";
+
+            var row = new FrontedPropertyEditorItem
+            {
+                DisplayName = ResolveSchemaPropertyDisplayName(property),
+                PropertyName = property.OptionsPath,
+                PropertyType = property.PropertyType,
+                EditorKind = property.Metadata.EditorKind ?? FrontedPropertyEditorKind.Text,
+                Value = value,
+                DisplayValue = displayText,
+                EditText = displayText,
+                GroupName = groupName,
+                GroupDisplayName = _localizationService.GetGroupDisplayName(groupName),
+                IsGroupHeaderVisible = true,
+                IsReadOnly = false
+            };
+
+            yield return row;
+        }
+    }
+
+    /// <summary>
+    /// 解析 Schema 属性的显示名称。优先使用本地化键，回退到 OptionsPath 末段。
+    /// </summary>
+    /// <param name="property">属性定义。</param>
+    /// <returns>显示名称。</returns>
+    private string ResolveSchemaPropertyDisplayName(FrontedV3PropertyDefinition property)
+    {
+        var key = property.Metadata.DisplayNameKey;
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            var localized = _localizationService.GetPropertyDisplayName(key);
+            if (!string.IsNullOrWhiteSpace(localized))
+            {
+                return localized;
+            }
+        }
+
+        var optionsPath = property.OptionsPath;
+        var lastDot = optionsPath.LastIndexOf('.');
+        return lastDot >= 0 && lastDot < optionsPath.Length - 1
+            ? optionsPath[(lastDot + 1)..]
+            : optionsPath;
     }
 
     private void ApplyMultiSelectionPropertyRowState(FrontedPropertyEditorItem row)
@@ -4280,7 +5097,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private DesignerLayerNode CreateControlLayerNode(FrontedControlDesignItem item)
     {
-        return new DesignerLayerNode
+        var node = new DesignerLayerNode
         {
             Kind = DesignerLayerNodeKind.Control,
             ControlItem = item,
@@ -4290,6 +5107,53 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             Metadata = _localizationService.GetControlTypeDisplayName(item.Config.ControlType),
             ZIndex = item.Config.ZIndex
         };
+
+        AppendChildLayerNodes(node, item);
+        return node;
+    }
+
+    /// <summary>
+    /// 为控件图层节点追加 Part/CollectionItem 子节点，使图层树可展开选中子控件。
+    /// </summary>
+    /// <param name="parent">父控件节点。</param>
+    /// <param name="item">父控件设计项。</param>
+    private void AppendChildLayerNodes(DesignerLayerNode parent, FrontedControlDesignItem item)
+    {
+        foreach (var part in _selectionBuilder.GetAvailableParts(item))
+        {
+            parent.Children.Add(new DesignerLayerNode
+            {
+                Kind = DesignerLayerNodeKind.Part,
+                ControlItem = item,
+                CanSelect = part.Capabilities.CanMove || part.Capabilities.CanResize,
+                CanReorder = false,
+                DisplayName = part.Id,
+                Metadata = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Part"),
+                ZIndex = item.Config.ZIndex,
+                PartId = part.Id
+            });
+        }
+
+        foreach (var collection in _selectionBuilder.GetAvailableCollections(item))
+        {
+            var items = collection.CollectionGetter(item.Config);
+            foreach (var collectionItem in items)
+            {
+                var itemKey = collection.ItemKeySelector(collectionItem);
+                parent.Children.Add(new DesignerLayerNode
+                {
+                    Kind = DesignerLayerNodeKind.CollectionItem,
+                    ControlItem = item,
+                    CanSelect = collection.ItemCapabilities.CanMove || collection.ItemCapabilities.CanResize,
+                    CanReorder = false,
+                    DisplayName = $"{collection.Id} [{itemKey}]",
+                    Metadata = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.CollectionItem"),
+                    ZIndex = item.Config.ZIndex,
+                    CollectionId = collection.Id,
+                    ItemKey = itemKey
+                });
+            }
+        }
     }
 
     private void RefreshLayerNodeSelection()
@@ -4299,9 +5163,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             var isSelected = IsSelectedLayerNode(node);
             node.IsSelected = isSelected;
-            if (isSelected)
+            if (isSelected && selectedNode is null)
             {
                 selectedNode = node;
+            }
+
+            foreach (var child in node.Children)
+            {
+                var childSelected = IsSelectedLayerNode(child);
+                child.IsSelected = childSelected;
+                if (childSelected && selectedNode is null)
+                {
+                    selectedNode = child;
+                }
             }
         }
 
@@ -4313,6 +5187,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return node.Kind switch
         {
             DesignerLayerNodeKind.Control => node.ControlItem is not null && SelectedDesignItems.Contains(node.ControlItem),
+            DesignerLayerNodeKind.Part => _selectedTarget is { Kind: FrontedV3DesignSelectionKind.FixedPart } target
+                && ReferenceEquals(target.DesignItem, node.ControlItem)
+                && target.SubTarget is FrontedV3FixedPartTarget partTarget
+                && string.Equals(partTarget.PartId, node.PartId, StringComparison.Ordinal),
+            DesignerLayerNodeKind.CollectionItem => _selectedTarget is { Kind: FrontedV3DesignSelectionKind.CollectionItem } target
+                && ReferenceEquals(target.DesignItem, node.ControlItem)
+                && target.SubTarget is FrontedV3CollectionItemTarget collectionTarget
+                && string.Equals(collectionTarget.CollectionId, node.CollectionId, StringComparison.Ordinal)
+                && string.Equals(collectionTarget.ItemKey, node.ItemKey, StringComparison.Ordinal),
             _ => false
         };
     }

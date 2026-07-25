@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.StyleTransfer;
 using Xunit;
 
@@ -404,6 +405,74 @@ public class FrontedV3StyleTransferTest
             new List<PeerStyleTarget> { new(registration, peerConfig2) },
             new FrontedV3StyleTransferProfile { TransferBehaviors = true });
         Assert.Equal(behaviorGuid, GetExtensionData<Guid>(peerConfig2, "BehaviorGuid"));
+    }
+
+    // -------------------------------------------------------------------
+    // 12. BuiltInControl_AppearanceSemanticTransfers
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 内置控件（以 MapV2Display 为例）的属性通过 <see cref="BuiltInPropertyDefinitionResolver"/> 解析后，
+    /// 颜色等 Appearance 语义属性必须能在同类型 peer 间通过
+    /// <see cref="FrontedV3StyleTransferService.TransferPeerStyle"/> 传播；
+    /// 而 <see cref="FrontedV3PropertySemantic.DataIdentity"/> 语义的 <c>MapKey</c> 不得传播。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 该测试验证 <see cref="BuiltInPropertyDefinitionResolver"/> 的 <c>ResolveSemantic</c> 推断与
+    /// 默认 <see cref="FrontedV3PropertyTransfer"/> 能力声明（<c>CanTransferAppearance = true</c>）协同工作，
+    /// 使内置控件的同类型样式传播无需额外注册即可生效。
+    /// </para>
+    /// <para>
+    /// 属性列表通过 <see cref="BuiltInPropertyDefinitionResolver.GetProperties"/> 获取，而非手动构造，
+    /// 以验证真实内置控件的 Schema 驱动路径。
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void BuiltInControl_AppearanceSemanticTransfers()
+    {
+        var sourceConfig = new MapV2DisplayControlConfig
+        {
+            ControlType = "MapV2Display",
+            MapKey = "ArmsFactory",
+            MapNameColor = "#FF0000",
+            TeamNameColor = "#00FF00",
+            CampNameColor = "#0000FF"
+        };
+        var peerConfig = new MapV2DisplayControlConfig
+        {
+            ControlType = "MapV2Display",
+            MapKey = "AnotherMap"
+        };
+
+        // 通过 BuiltInPropertyDefinitionResolver 获取属性列表，而非手动构造
+        var properties = BuiltInPropertyDefinitionResolver.GetProperties(sourceConfig);
+
+        var registration = new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = "MapV2Display",
+            LocalControlId = "MapV2Display",
+            PackageId = null,
+            IsBuiltIn = true,
+            ControlType = typeof(Border),
+            ConfigType = typeof(MapV2DisplayControlConfig),
+            Properties = properties,
+            CreateDefaultConfig = () => new MapV2DisplayControlConfig { ControlType = "MapV2Display" }
+            // StyleTransfer 使用默认值（CanTransferAppearance = true）
+        };
+
+        var service = new FrontedV3StyleTransferService();
+        var peers = new List<PeerStyleTarget> { new(registration, peerConfig) };
+
+        service.TransferPeerStyle(registration, sourceConfig, peers);
+
+        // Appearance 语义的颜色属性应当被传播
+        Assert.Equal("#FF0000", peerConfig.MapNameColor);
+        Assert.Equal("#00FF00", peerConfig.TeamNameColor);
+        Assert.Equal("#0000FF", peerConfig.CampNameColor);
+
+        // DataIdentity 语义的 MapKey 不得传播
+        Assert.Equal("AnotherMap", peerConfig.MapKey);
     }
 
     // -------------------------------------------------------------------

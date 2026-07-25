@@ -104,6 +104,11 @@ public partial class FrontedDesignerWindow : FluentWindow
     private Task<TutorialRunResult>? _behaviorPanelTutorialTask;
     private bool _initialLayoutLoaded;
     private int _userSelectionDepth;
+    private readonly List<Border> _childHitboxes = [];
+    private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _childResizeHandles = new();
+    private Border? _childSelectionOutline;
+    private Border? _childSelectionLabel;
+    private DesignerChildTargetInfo? _currentSubTargetInfo;
 
     public FrontedDesignerWindow()
     {
@@ -508,6 +513,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         RunUserSelection(() => _viewModel?.SelectLayerNode(node));
         _pendingLayerDragNode = node.CanReorder ? node : null;
         _layerDragStartPoint = e.GetPosition(this);
+        e.Handled = true;
     }
 
     private void LayerItem_OnMouseMove(object sender, MouseEventArgs e)
@@ -1472,9 +1478,21 @@ public partial class FrontedDesignerWindow : FluentWindow
             FocusDesignSurface();
         }
 
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedTarget)
+            || e.PropertyName == nameof(FrontedDesignerWindowViewModel.IsSubControlSelected))
+        {
+            if (_viewModel?.IsRestoringSnapshotVisuals == true)
+            {
+                return;
+            }
+
+            RebuildInteractionLayer();
+        }
+
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ZoomScale))
         {
             UpdateSelectedInteractionVisuals();
+            UpdateSubControlSelectionVisuals();
             RenderSnapGuides();
             ResetPreviewScrollOffsetForFitMode();
         }
@@ -2226,6 +2244,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         _parentSelectionOutline = null;
         _selectionLabel = null;
         _marqueeSelectionOutline = null;
+        _childHitboxes.Clear();
+        _childResizeHandles.Clear();
+        _childSelectionOutline = null;
+        _childSelectionLabel = null;
+        _currentSubTargetInfo = null;
 
         if (_viewModel?.CurrentDocument is null)
         {
@@ -2247,6 +2270,16 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (_viewModel.SelectedDesignItems.Count > 0)
         {
             AddSelectionAdorners();
+        }
+
+        // 子控件选中时绘制子控件装饰器；根控件选中且有可编辑子控件时绘制子控件 hitbox。
+        if (_viewModel.IsSubControlSelected)
+        {
+            AddSubControlSelectionAdorner();
+        }
+        else if (_viewModel.SelectedDesignItem is not null)
+        {
+            AddChildHitboxes();
         }
     }
 
@@ -2369,6 +2402,315 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         UpdateSelectedInteractionVisuals();
+    }
+
+    /// <summary>
+    /// 子控件 hitbox 的 ZIndex，高于根选中轮廓但低于根缩放手柄。
+    /// </summary>
+    private const int ChildHitboxZIndex = 20_150;
+
+    /// <summary>
+    /// 子控件选中轮廓的 ZIndex，高于根缩放手柄。
+    /// </summary>
+    private const int ChildSelectionOutlineZIndex = 20_300;
+
+    /// <summary>
+    /// 子控件缩放手柄的 ZIndex。
+    /// </summary>
+    private const int ChildSelectionHandleZIndex = 20_310;
+
+    /// <summary>
+    /// 为当前选中的根控件创建子控件透明 hitbox。仅在根控件选中且有可编辑子控件时创建。
+    /// </summary>
+    private void AddChildHitboxes()
+    {
+        if (_viewModel?.SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        var childTargets = _viewModel.GetChildTargetInfos();
+        if (childTargets.Count == 0)
+        {
+            return;
+        }
+
+        var parentBounds = ResolveItemBounds(_viewModel.SelectedDesignItem);
+        foreach (var target in childTargets)
+        {
+            var hitbox = CreateChildHitbox(target, parentBounds);
+            _childHitboxes.Add(hitbox);
+            InteractionLayer.Children.Add(hitbox);
+        }
+    }
+
+    /// <summary>
+    /// 创建单个子控件透明 hitbox。坐标由子控件相对几何叠加父控件画布坐标得到。
+    /// </summary>
+    /// <param name="target">子控件目标信息。</param>
+    /// <param name="parentBounds">父控件画布边界。</param>
+    /// <returns>透明 hitbox Border。</returns>
+    private Border CreateChildHitbox(DesignerChildTargetInfo target, FrontedDesignerResolvedBounds parentBounds)
+    {
+        var absoluteLeft = parentBounds.Left + target.Left;
+        var absoluteTop = parentBounds.Top + target.Top;
+        var hitbox = new Border
+        {
+            Background = Brushes.Transparent,
+            BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
+            BorderThickness = new Thickness(0.5),
+            Opacity = 0.4D,
+            Width = target.Width,
+            Height = target.Height,
+            IsHitTestVisible = true,
+            Cursor = target.CanMove ? Cursors.SizeAll : Cursors.Hand,
+            Tag = target
+        };
+
+        Canvas.SetLeft(hitbox, absoluteLeft);
+        Canvas.SetTop(hitbox, absoluteTop);
+        Panel.SetZIndex(hitbox, ChildHitboxZIndex);
+        hitbox.MouseLeftButtonDown += ChildHitbox_OnMouseLeftButtonDown;
+        return hitbox;
+    }
+
+    /// <summary>
+    /// 为当前选中的子控件（Part/CollectionItem）绘制 selection adorner 与 resize handles。
+    /// 装饰器坐标由子控件相对几何叠加父控件画布坐标得到。
+    /// </summary>
+    private void AddSubControlSelectionAdorner()
+    {
+        if (_viewModel?.GetCurrentSubTargetInfo() is not { } target)
+        {
+            return;
+        }
+
+        _currentSubTargetInfo = target;
+        var parentBounds = ResolveItemBounds(target.ParentItem);
+        var bounds = new FrontedDesignerResolvedBounds(
+            parentBounds.Left + target.Left,
+            parentBounds.Top + target.Top,
+            target.Width,
+            target.Height);
+
+        _childSelectionOutline = new Border
+        {
+            Width = bounds.Width,
+            Height = bounds.Height,
+            BorderBrush = Brushes.Orange,
+            BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
+            IsHitTestVisible = false
+        };
+        Canvas.SetLeft(_childSelectionOutline, bounds.Left);
+        Canvas.SetTop(_childSelectionOutline, bounds.Top);
+        Panel.SetZIndex(_childSelectionOutline, ChildSelectionOutlineZIndex);
+        InteractionLayer.Children.Add(_childSelectionOutline);
+
+        _childSelectionLabel = new Border
+        {
+            Background = Brushes.Orange,
+            Padding = new Thickness(4, 1, 4, 1),
+            CornerRadius = new CornerRadius(2),
+            Child = new System.Windows.Controls.TextBlock
+            {
+                Text = target.IsCollectionItem ? $"{target.Id} [{target.ItemKey}]" : target.Id,
+                FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
+                Foreground = Brushes.White
+            },
+            IsHitTestVisible = false
+        };
+        Panel.SetZIndex(_childSelectionLabel, ChildSelectionOutlineZIndex + 1);
+        InteractionLayer.Children.Add(_childSelectionLabel);
+
+        if (target.CanResize)
+        {
+            foreach (var handle in Enum.GetValues<FrontedDesignerResizeHandleKind>())
+            {
+                var handleElement = CreateChildResizeHandle(handle, target);
+                _childResizeHandles[handle] = handleElement;
+                InteractionLayer.Children.Add(handleElement);
+            }
+        }
+
+        UpdateSubControlSelectionVisuals();
+    }
+
+    /// <summary>
+    /// 创建子控件缩放手柄。手柄 Tag 携带手柄类别与子目标信息。
+    /// </summary>
+    /// <param name="handle">手柄方位。</param>
+    /// <param name="target">子控件目标信息。</param>
+    /// <returns>缩放手柄 Border。</returns>
+    private Border CreateChildResizeHandle(FrontedDesignerResizeHandleKind handle, DesignerChildTargetInfo target)
+    {
+        var element = new Border
+        {
+            Width = FrontedDesignerEditorVisualHelper.HandleHitTargetSize,
+            Height = FrontedDesignerEditorVisualHelper.HandleHitTargetSize,
+            Background = Brushes.Transparent,
+            Child = new Border
+            {
+                Width = FrontedDesignerEditorVisualHelper.HandleVisualSize,
+                Height = FrontedDesignerEditorVisualHelper.HandleVisualSize,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Background = Brushes.Orange,
+                BorderBrush = Brushes.White,
+                BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.HandleBorderThickness)
+            },
+            Cursor = GetCursor(handle),
+            Tag = (handle, target)
+        };
+
+        Panel.SetZIndex(element, ChildSelectionHandleZIndex);
+        element.MouseLeftButtonDown += ChildResizeHandle_OnMouseLeftButtonDown;
+        return element;
+    }
+
+    /// <summary>
+    /// 更新子控件选中装饰器与缩放手柄的位置。在几何变更或缩放比例变化时调用。
+    /// </summary>
+    private void UpdateSubControlSelectionVisuals()
+    {
+        if (_viewModel is null || _currentSubTargetInfo is not { } target)
+        {
+            return;
+        }
+
+        // 子控件几何可能已变更，重新从 ViewModel 获取最新信息。
+        if (_viewModel.GetCurrentSubTargetInfo() is { } latestTarget)
+        {
+            _currentSubTargetInfo = latestTarget;
+        }
+
+        var currentTarget = _currentSubTargetInfo;
+        if (currentTarget is null)
+        {
+            return;
+        }
+
+        var parentBounds = ResolveItemBounds(currentTarget.ParentItem);
+        var bounds = new FrontedDesignerResolvedBounds(
+            parentBounds.Left + currentTarget.Left,
+            parentBounds.Top + currentTarget.Top,
+            currentTarget.Width,
+            currentTarget.Height);
+
+        if (_childSelectionOutline is not null)
+        {
+            _childSelectionOutline.Width = bounds.Width;
+            _childSelectionOutline.Height = bounds.Height;
+            Canvas.SetLeft(_childSelectionOutline, bounds.Left);
+            Canvas.SetTop(_childSelectionOutline, bounds.Top);
+        }
+
+        if (_childSelectionLabel is not null)
+        {
+            var zoomScale = _viewModel.ZoomScale;
+            if (_childSelectionLabel.Child is System.Windows.Controls.TextBlock textBlock)
+            {
+                textBlock.FontSize = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale);
+            }
+
+            var topOffset = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale);
+            Canvas.SetLeft(_childSelectionLabel, bounds.Left);
+            Canvas.SetTop(_childSelectionLabel, Math.Max(0, bounds.Top - topOffset));
+        }
+
+        if (currentTarget.CanResize)
+        {
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.TopLeft, bounds.Left, bounds.Top);
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.Top, bounds.Left + bounds.Width / 2, bounds.Top);
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.TopRight, bounds.Left + bounds.Width, bounds.Top);
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.Left, bounds.Left, bounds.Top + bounds.Height / 2);
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.Right, bounds.Left + bounds.Width, bounds.Top + bounds.Height / 2);
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.BottomLeft, bounds.Left, bounds.Top + bounds.Height);
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.Bottom, bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height);
+            SetChildHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
+        }
+    }
+
+    /// <summary>
+    /// 设置子控件缩放手柄位置。
+    /// </summary>
+    /// <param name="handle">手柄方位。</param>
+    /// <param name="x">画布 X 坐标。</param>
+    /// <param name="y">画布 Y 坐标。</param>
+    private void SetChildHandlePosition(FrontedDesignerResizeHandleKind handle, double x, double y)
+    {
+        if (!_childResizeHandles.TryGetValue(handle, out var element))
+        {
+            return;
+        }
+
+        Canvas.SetLeft(element, x - element.Width / 2);
+        Canvas.SetTop(element, y - element.Height / 2);
+    }
+
+    /// <summary>
+    /// 子控件 hitbox 鼠标左键按下处理：切换到子控件选中，并准备拖拽。
+    /// </summary>
+    private void ChildHitbox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: DesignerChildTargetInfo target } hitbox
+            || _viewModel is null)
+        {
+            return;
+        }
+
+        FocusDesignSurface();
+        e.Handled = true;
+
+        // 首次点击切换到子控件选中；如果已选中同一子控件则开始拖拽。
+        if (_viewModel.IsSubControlSelected
+            && _currentSubTargetInfo is { } current
+            && ReferenceEquals(current.ParentItem, target.ParentItem)
+            && string.Equals(current.Id, target.Id, StringComparison.Ordinal)
+            && string.Equals(current.ItemKey ?? string.Empty, target.ItemKey ?? string.Empty, StringComparison.Ordinal))
+        {
+            if (target.CanMove)
+            {
+                _originalLeft = target.Left;
+                _originalTop = target.Top;
+                _originalWidth = target.Width;
+                _originalHeight = target.Height;
+                BeginSubControlInteraction(InteractionMode.SubControlMove, e.GetPosition(InteractionLayer), hitbox);
+            }
+
+            return;
+        }
+
+        // 切换到子控件选中，重建交互层以显示装饰器。
+        if (target.IsCollectionItem)
+        {
+            RunUserSelection(() => _viewModel.SelectCollectionItem(target.ParentItem, target.Id, target.ItemKey!));
+        }
+        else
+        {
+            RunUserSelection(() => _viewModel.SelectFixedPart(target.ParentItem, target.Id));
+        }
+    }
+
+    /// <summary>
+    /// 子控件缩放手柄鼠标左键按下处理：启动缩放交互。
+    /// </summary>
+    private void ChildResizeHandle_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: (FrontedDesignerResizeHandleKind handle, DesignerChildTargetInfo target) } element
+            || _viewModel is null
+            || !target.CanResize)
+        {
+            return;
+        }
+
+        FocusDesignSurface();
+        _activeResizeHandle = handle;
+        _originalLeft = target.Left;
+        _originalTop = target.Top;
+        _originalWidth = target.Width;
+        _originalHeight = target.Height;
+        BeginSubControlInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), element);
+        e.Handled = true;
     }
 
     private FrameworkElement CreatePolygonVertexHandle(int index)
@@ -2620,6 +2962,15 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
+        // 子控件选中时，点击父控件 hitbox 回退到根控件选中。
+        if (_viewModel.IsSubControlSelected
+            && ReferenceEquals(_viewModel.SelectedDesignItem, item))
+        {
+            RunUserSelection(() => _viewModel.EscapeToRootSelection());
+            e.Handled = true;
+            return;
+        }
+
         BeginPendingHitboxClick(item, e.GetPosition(InteractionLayer), hitbox);
         e.Handled = true;
     }
@@ -2707,9 +3058,25 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
         else if (_interactionMode == InteractionMode.Resize && _activeResizeHandle is { } handle)
         {
-            if (_originalSelectedBounds.Count > 1)
+            if (_viewModel?.IsSubControlSelected == true)
+            {
+                _viewModel?.ResizeSelectedDesignItem(
+                    handle,
+                    _originalLeft,
+                    _originalTop,
+                    _originalWidth,
+                    _originalHeight,
+                    deltaX,
+                    deltaY,
+                    renderPreview: false);
+                UpdateSubControlSelectionVisuals();
+                UpdateSelectedPreviewElement();
+            }
+            else if (_originalSelectedBounds.Count > 1)
             {
                 _viewModel?.ResizeSelectedDesignItems(handle, _originalSelectedBounds, deltaX, deltaY, renderPreview: false);
+                UpdateSelectedInteractionVisuals();
+                UpdateSelectedPreviewElement();
             }
             else
             {
@@ -2722,9 +3089,19 @@ public partial class FrontedDesignerWindow : FluentWindow
                     deltaX,
                     deltaY,
                     renderPreview: false);
+                UpdateSelectedInteractionVisuals();
+                UpdateSelectedPreviewElement();
             }
-
-            UpdateSelectedInteractionVisuals();
+        }
+        else if (_interactionMode == InteractionMode.SubControlMove)
+        {
+            _viewModel?.MoveSelectedDesignItem(
+                _originalLeft,
+                _originalTop,
+                deltaX,
+                deltaY,
+                renderPreview: false);
+            UpdateSubControlSelectionVisuals();
             UpdateSelectedPreviewElement();
         }
         else if (_interactionMode == InteractionMode.PolygonVertex && _activePolygonVertexIndex.HasValue)
@@ -2817,6 +3194,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             CommitMarqueeSelection();
         }
         else if (_interactionMode == InteractionMode.Resize)
+        {
+            _viewModel?.CommitDesignItemGeometryEdit();
+        }
+        else if (_interactionMode == InteractionMode.SubControlMove)
         {
             _viewModel?.CommitDesignItemGeometryEdit();
         }
@@ -2929,7 +3310,20 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void DesignSurface_OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (_viewModel?.SelectedDesignItem is null || ShouldIgnoreKeyboardInput())
+        if (_viewModel is null || ShouldIgnoreKeyboardInput())
+        {
+            return;
+        }
+
+        // Esc 键：子控件选中时回退到根控件选中。
+        if (e.Key == Key.Escape && _viewModel.IsSubControlSelected)
+        {
+            RunUserSelection(() => _viewModel.EscapeToRootSelection());
+            e.Handled = true;
+            return;
+        }
+
+        if (_viewModel.SelectedDesignItem is null)
         {
             return;
         }
@@ -2963,6 +3357,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             if (e.Key is Key.Left or Key.Right or Key.Up or Key.Down)
             {
                 UpdateSelectedInteractionVisuals();
+                UpdateSubControlSelectionVisuals();
                 UpdateSelectedPreviewElement();
                 RenderSnapGuides();
             }
@@ -3003,6 +3398,29 @@ public partial class FrontedDesignerWindow : FluentWindow
         _originalWidth = bounds.Width;
         _originalHeight = bounds.Height;
         CaptureOriginalSelectedBounds();
+        _capturedElement = element;
+        element.CaptureMouse();
+    }
+
+    /// <summary>
+    /// 启动子控件（Part/CollectionItem）的交互（Move/Resize）。
+    /// 与 <see cref="BeginInteraction"/> 不同，原始几何值由调用方设置（来自子控件相对坐标），
+    /// 不从根控件 Config 读取，也不捕获根级 SelectedBounds。
+    /// </summary>
+    /// <param name="mode">交互模式。</param>
+    /// <param name="startMousePosition">起始鼠标位置（画布坐标）。</param>
+    /// <param name="element">捕获鼠标的元素。</param>
+    private void BeginSubControlInteraction(InteractionMode mode, Point startMousePosition, FrameworkElement element)
+    {
+        if (_viewModel?.SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        _viewModel?.CaptureUndoSnapshot();
+        _interactionMode = mode;
+        _startMousePosition = startMousePosition;
+        _originalSelectedBounds.Clear();
         _capturedElement = element;
         element.CaptureMouse();
     }
@@ -3195,6 +3613,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
                 UpdateSelectedPreviewElement();
                 UpdateSelectedInteractionVisuals();
+                UpdateSubControlSelectionVisuals();
                 RenderSnapGuides();
             }),
             DispatcherPriority.Loaded);
@@ -3499,6 +3918,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         Drag,
         Resize,
         PolygonVertex,
-        Marquee
+        Marquee,
+        SubControlMove
     }
 }

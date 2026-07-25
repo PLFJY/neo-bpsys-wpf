@@ -184,6 +184,85 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
+    /// 根据调整大小手柄与拖拽增量计算新的矩形边界，不写入任何配置。
+    /// 用于子控件几何目标（<see cref="Abstractions.Services.IFrontedV3GeometryTarget"/>）的 Resize 计算。
+    /// </summary>
+    /// <param name="handle">正在拖动的调整大小手柄。</param>
+    /// <param name="originalLeft">起始左坐标。</param>
+    /// <param name="originalTop">起始顶坐标。</param>
+    /// <param name="originalWidth">起始宽度。</param>
+    /// <param name="originalHeight">起始高度。</param>
+    /// <param name="deltaX">水平拖拽增量。</param>
+    /// <param name="deltaY">垂直拖拽增量。</param>
+    /// <param name="effectiveSnapEnabled">是否启用网格吸附。</param>
+    /// <param name="snapGridSize">吸附网格大小。</param>
+    /// <param name="newLeft">计算后的左坐标。</param>
+    /// <param name="newTop">计算后的顶坐标。</param>
+    /// <param name="newWidth">计算后的宽度。</param>
+    /// <param name="newHeight">计算后的高度。</param>
+    public static void ComputeResizedBounds(
+        FrontedDesignerResizeHandleKind handle,
+        double originalLeft,
+        double originalTop,
+        double originalWidth,
+        double originalHeight,
+        double deltaX,
+        double deltaY,
+        bool effectiveSnapEnabled,
+        double snapGridSize,
+        out double newLeft,
+        out double newTop,
+        out double newWidth,
+        out double newHeight)
+    {
+        var left = originalLeft;
+        var top = originalTop;
+        var width = originalWidth;
+        var height = originalHeight;
+
+        if (AffectsLeft(handle))
+        {
+            left = originalLeft + deltaX;
+            width = originalWidth - deltaX;
+            if (width < MinResizeWidth)
+            {
+                left = originalLeft + originalWidth - MinResizeWidth;
+                width = MinResizeWidth;
+            }
+        }
+
+        if (AffectsRight(handle))
+        {
+            width = Math.Max(MinResizeWidth, originalWidth + deltaX);
+        }
+
+        if (AffectsTop(handle))
+        {
+            top = originalTop + deltaY;
+            height = originalHeight - deltaY;
+            if (height < MinResizeHeight)
+            {
+                top = originalTop + originalHeight - MinResizeHeight;
+                height = MinResizeHeight;
+            }
+        }
+
+        if (AffectsBottom(handle))
+        {
+            height = Math.Max(MinResizeHeight, originalHeight + deltaY);
+        }
+
+        newLeft = NormalizeCoordinate(left, effectiveSnapEnabled, snapGridSize);
+        newTop = NormalizeCoordinate(top, effectiveSnapEnabled, snapGridSize);
+        newWidth = Math.Max(
+            MinResizeWidth,
+            NormalizeCoordinate(width, effectiveSnapEnabled, snapGridSize));
+        newHeight = Math.Max(
+            MinResizeHeight,
+            NormalizeCoordinate(height, effectiveSnapEnabled, snapGridSize));
+    }
+
+    /// <summary>
     /// 通过逻辑增量从当前可编辑矩形调整项大小。
     /// </summary>
     public static void ResizeBy(

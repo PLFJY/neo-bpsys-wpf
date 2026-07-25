@@ -2,6 +2,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry;
@@ -157,6 +158,66 @@ public class FrontedV3DesignSelectionBuilder
     {
         ArgumentNullException.ThrowIfNull(designItem);
         return BuiltInPartDefinitionResolver.GetParts(designItem.Config);
+    }
+
+    /// <summary>
+    /// 解析给定 Config 对应的 <see cref="FrontedV3ControlRegistration"/>。
+    /// </summary>
+    /// <param name="config">控件配置实例。</param>
+    /// <returns>
+    /// 匹配的注册信息；当 Registry 中存在时返回 Registry 注册项，
+    /// 否则为内置控件按 <see cref="BuiltInPropertyDefinitionResolver"/> 反射生成的临时注册项。
+    /// 当 Config 缺失或属性列表为空时返回 <see langword="null"/>。
+    /// </returns>
+    /// <remarks>
+    /// <para>
+    /// 该方法供 Designer 的 Peer Style Transfer 使用：源控件需要一个
+    /// <see cref="FrontedV3ControlRegistration"/> 来描述 StyleTransfer 能力与属性 Schema。
+    /// 对于插件控件，Registry 直接返回注册项；对于内置控件，若 Registry 未提供
+    /// （例如测试场景），则按 <see cref="BuiltInPropertyDefinitionResolver"/> 反射生成
+    /// 使用默认 <see cref="FrontedV3PropertyTransfer.Default"/> 能力的临时注册项。
+    /// </para>
+    /// <para>
+    /// 临时注册项的 <see cref="FrontedV3ControlRegistration.ControlType"/> 与
+    /// <see cref="FrontedV3ControlRegistration.ConfigType"/> 通过反射获取，
+    /// 不引用具体内置控件类型，保持 Designer 去特化契约。
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">当 <paramref name="config"/> 为 <see langword="null"/> 时抛出。</exception>
+    public FrontedV3ControlRegistration? ResolveRegistration(FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+
+        if (_v3Registry is not null
+            && _v3Registry.GetRegistration(config.ControlType) is { } registryRegistration)
+        {
+            return registryRegistration;
+        }
+
+        var properties = BuiltInPropertyDefinitionResolver.GetProperties(config);
+        if (properties.Count == 0)
+        {
+            return null;
+        }
+
+        var configType = config.GetType();
+        var canonicalControlType = config.ControlType;
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = canonicalControlType,
+            LocalControlId = canonicalControlType,
+            PackageId = null,
+            IsBuiltIn = true,
+            ControlType = typeof(System.Windows.Controls.Border),
+            ConfigType = configType,
+            Properties = properties,
+            CreateDefaultConfig = () =>
+            {
+                var instance = (FrontedControlConfigBase)Activator.CreateInstance(configType)!;
+                instance.ControlType = canonicalControlType;
+                return instance;
+            }
+        };
     }
 
     /// <summary>
