@@ -1,0 +1,100 @@
+using System.Collections;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+
+namespace neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
+
+/// <summary>
+/// PartCollection 的已解析定义，描述集合的标识、策略、项能力、集合访问方式与模板补齐逻辑。
+/// </summary>
+/// <remarks>
+/// <para>
+/// PartCollection 是控件内部可变子项集合的抽象（如 GlobalScoreRow 的 Cells）。
+/// 与固定 <see cref="FrontedV3PartDefinition"/> 不同，PartCollection 的项数可变（受 <see cref="Strategy"/> 约束），
+/// 每个项通过 <see cref="ItemKeySelector"/> 获取唯一键，几何值通过 <see cref="CollectionGetter"/> 返回的列表项上的属性读写。
+/// </para>
+/// <para>
+/// <see cref="Strategy"/> 决定增删与模板补齐行为：
+/// <list type="bullet">
+/// <item><see cref="FrontedV3PartCollectionStrategy.FixedTemplate"/>：通过 <see cref="EnsureTemplateItems"/> 补齐缺失项，拒绝增删。</item>
+/// <item><see cref="FrontedV3PartCollectionStrategy.Dynamic"/>：允许增删，不补齐。</item>
+/// <item><see cref="FrontedV3PartCollectionStrategy.ReadOnly"/>：只读。</item>
+/// </list>
+/// </para>
+/// <para>
+/// <see cref="ItemCapabilities"/> 决定 Designer 中对单个集合项允许的几何操作类型；
+/// <see cref="IFrontedV3GeometryTarget"/> 实现必须遵守能力约束。
+/// </para>
+/// <para>
+/// 集合项的几何值直接读写列表项上的 CLR 属性（如 <c>X</c>/<c>Y</c>/<c>Width</c>/<c>Height</c>），
+/// 不改变 JSON 结构，继续使用现有字段。
+/// </para>
+/// </remarks>
+public sealed class FrontedV3PartCollectionDefinition
+{
+    /// <summary>
+    /// 初始化 <see cref="FrontedV3PartCollectionDefinition"/>。
+    /// </summary>
+    public FrontedV3PartCollectionDefinition()
+    {
+    }
+
+    /// <summary>
+    /// 初始化 <see cref="FrontedV3PartCollectionDefinition"/> 并指定全部属性。
+    /// </summary>
+    /// <param name="id">集合标识，在同一控件内必须唯一。</param>
+    /// <param name="strategy">集合策略，决定增删与模板补齐行为。</param>
+    /// <param name="itemCapabilities">单个集合项的操作能力。</param>
+    /// <param name="collectionGetter">从 Config 获取集合列表的函数。</param>
+    /// <param name="itemKeySelector">从集合项获取唯一键的函数。</param>
+    /// <param name="ensureTemplateItems">对于 FixedTemplate 策略，补齐缺失模板项的回调；其他策略可为 <see langword="null"/>。</param>
+    public FrontedV3PartCollectionDefinition(
+        string id,
+        FrontedV3PartCollectionStrategy strategy,
+        FrontedV3PartCapabilities itemCapabilities,
+        Func<FrontedControlConfigBase, IList> collectionGetter,
+        Func<object, string> itemKeySelector,
+        Action<FrontedControlConfigBase>? ensureTemplateItems = null)
+    {
+        Id = id ?? throw new ArgumentNullException(nameof(id));
+        Strategy = strategy ?? throw new ArgumentNullException(nameof(strategy));
+        ItemCapabilities = itemCapabilities ?? throw new ArgumentNullException(nameof(itemCapabilities));
+        CollectionGetter = collectionGetter ?? throw new ArgumentNullException(nameof(collectionGetter));
+        ItemKeySelector = itemKeySelector ?? throw new ArgumentNullException(nameof(itemKeySelector));
+        EnsureTemplateItems = ensureTemplateItems;
+    }
+
+    /// <summary>
+    /// 获取或设置集合标识，在同一控件内必须唯一（例如 <c>Cells</c>）。
+    /// </summary>
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 获取或设置集合策略，决定增删与模板补齐行为。
+    /// </summary>
+    public FrontedV3PartCollectionStrategy Strategy { get; set; } = FrontedV3PartCollectionStrategy.ReadOnly;
+
+    /// <summary>
+    /// 获取或设置单个集合项的操作能力，决定 Designer 中允许的几何操作类型。
+    /// </summary>
+    public FrontedV3PartCapabilities ItemCapabilities { get; set; } = FrontedV3PartCapabilities.MoveAndResize;
+
+    /// <summary>
+    /// 获取或设置从 Config 获取集合列表的函数。
+    /// </summary>
+    public Func<FrontedControlConfigBase, IList> CollectionGetter { get; set; } = _ => new List<object>();
+
+    /// <summary>
+    /// 获取或设置从集合项获取唯一键的函数，用于项的身份识别与选择恢复。
+    /// </summary>
+    public Func<object, string> ItemKeySelector { get; set; } = _ => string.Empty;
+
+    /// <summary>
+    /// 获取或设置对于 FixedTemplate 策略，补齐缺失模板项的回调；其他策略可为 <see langword="null"/>。
+    /// </summary>
+    /// <remarks>
+    /// 该回调只负责初始化与补齐，不负责 Designer 的几何操作。Designer 几何操作通过
+    /// <see cref="neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry.CollectionItemGeometryTarget"/> 完成。
+    /// </remarks>
+    public Action<FrontedControlConfigBase>? EnsureTemplateItems { get; set; }
+}

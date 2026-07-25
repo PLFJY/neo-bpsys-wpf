@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.PluginSdk;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,36 +14,27 @@ using System.Windows.Data;
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
 
 /// <summary>
-/// 内置 v3 CutScene 地图名称文本业务控件工厂。
+/// 内置 v3 CutScene 地图名称文本业务控件。
 /// </summary>
-public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logger = null) : IFrontedControl
+[FrontedV3Control("MapNameText", IsBuiltIn = true)]
+public class MapNameTextFrontedControl : FrontedV3ControlBase
 {
-    private readonly ILogger<MapNameTextFrontedControl>? _logger = logger;
-
     /// <inheritdoc />
-    public string ControlType => "MapNameText";
-
-    /// <inheritdoc />
-    public Type ConfigType => typeof(MapNameTextControlConfig);
-
-    /// <inheritdoc />
-    public FrameworkElement Create(
-        string name,
-        FrontedControlConfigBase config,
-        FrontedControlBuildContext context)
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        if (config is not MapNameTextControlConfig textConfig)
+        if (context.Config is not MapNameTextControlConfig textConfig)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a MapNameText config.");
+            throw new FrontedLayoutConfigException("Control config is not a MapNameText config.");
         }
 
         var settingsHostService = context.Services.GetRequiredService<ISettingsHostService>();
-        return new MapNameTextElement(
-            name,
+        var element = new MapNameTextElement(
+            context.ControlName ?? string.Empty,
             textConfig,
             context.SharedDataService,
             settingsHostService,
-            _logger ?? context.Logger);
+            context.Logger);
+        Content = element;
     }
 
     private sealed class MapNameTextElement : Border
@@ -77,13 +69,7 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
             _settingsHostService = settingsHostService;
             _currentAppCulture = settingsHostService.Settings.CultureInfo;
 
-            var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
-            Name = outer.Name;
-            Width = outer.Width;
-            Height = outer.Height;
-            Canvas.SetLeft(this, Canvas.GetLeft(outer));
-            Canvas.SetTop(this, Canvas.GetTop(outer));
-            Panel.SetZIndex(this, Panel.GetZIndex(outer));
+            Name = name;
 
             CutSceneFrontedControlHelper.ApplyTextStyle(
                 _textBlock,

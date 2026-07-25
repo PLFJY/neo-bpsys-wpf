@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.PluginSdk;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,36 +14,27 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
 
 /// <summary>
-/// 内置 v3 CutScene 天赋/辅助特质业务控件工厂。
+/// 内置 v3 CutScene 天赋/辅助特质业务控件。
 /// </summary>
-public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedControl>? logger = null) : IFrontedControl
+[FrontedV3Control("TalentTraitDisplay", IsBuiltIn = true)]
+public class TalentTraitDisplayFrontedControl : FrontedV3ControlBase
 {
-    private readonly ILogger<TalentTraitDisplayFrontedControl>? _logger = logger;
-
     /// <inheritdoc />
-    public string ControlType => "TalentTraitDisplay";
-
-    /// <inheritdoc />
-    public Type ConfigType => typeof(TalentTraitDisplayControlConfig);
-
-    /// <inheritdoc />
-    public FrameworkElement Create(
-        string name,
-        FrontedControlConfigBase config,
-        FrontedControlBuildContext context)
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        if (config is not TalentTraitDisplayControlConfig talentConfig)
+        if (context.Config is not TalentTraitDisplayControlConfig talentConfig)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a TalentTraitDisplay config.");
+            throw new FrontedLayoutConfigException("Control config is not a TalentTraitDisplay config.");
         }
 
         var settingsHostService = context.Services.GetRequiredService<ISettingsHostService>();
-        return new TalentTraitDisplayElement(
-            name,
+        var element = new TalentTraitDisplayElement(
+            context.ControlName ?? string.Empty,
             talentConfig,
             context.SharedDataService,
             settingsHostService,
-            _logger ?? context.Logger);
+            context.Logger);
+        Content = element;
     }
 
     private sealed class TalentTraitDisplayElement : Border
@@ -81,20 +73,6 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
             _config = config;
             _sharedDataService = sharedDataService;
             _logger = logger;
-
-            Canvas.SetLeft(this, config.Left);
-            Canvas.SetTop(this, config.Top);
-            Panel.SetZIndex(this, config.ZIndex);
-
-            if (config.Width.HasValue)
-            {
-                Width = config.Width.Value;
-            }
-
-            if (config.Height.HasValue)
-            {
-                Height = config.Height.Value;
-            }
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;

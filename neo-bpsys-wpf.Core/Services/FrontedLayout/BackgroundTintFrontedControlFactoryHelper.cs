@@ -48,7 +48,6 @@ internal static class BackgroundTintFrontedControlFactoryHelper
         {
             Name = name
         };
-        FrontedControlFactoryHelper.ApplyCanvasLayout(root, config);
 
         void RefreshClip()
         {
@@ -96,7 +95,6 @@ internal static class BackgroundTintFrontedControlFactoryHelper
         FrontedControlBuildContext context)
     {
         var root = new Grid { Name = name };
-        FrontedControlFactoryHelper.ApplyCanvasLayout(root, config);
         if (!context.IsDesignerPreview || !config.ShowMissingBackgroundPlaceholder)
         {
             return root;

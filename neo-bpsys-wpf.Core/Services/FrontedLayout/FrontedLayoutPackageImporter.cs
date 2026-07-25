@@ -25,7 +25,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private readonly ILogger<FrontedLayoutPackageImporter> _logger;
     private readonly FrontedLayoutValidator _validator;
     private readonly IFrontedImageSafetyService _imageSafetyService;
-    private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedV3ControlRegistry? _controlRegistry;
     private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -43,7 +43,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     public FrontedLayoutPackageImporter(
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutPackageImporter> logger,
-        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedV3ControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
         : this(
             AppConstants.FrontedLayoutPackagesPath,
@@ -69,7 +69,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         string tempRoot,
         IFrontedLayoutPackageManager? packageManager = null,
         ILogger<FrontedLayoutPackageImporter>? logger = null,
-        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedV3ControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
     {
         _packageRoot = packageRoot;

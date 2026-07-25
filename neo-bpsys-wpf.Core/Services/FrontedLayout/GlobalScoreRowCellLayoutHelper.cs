@@ -127,6 +127,114 @@ public static class GlobalScoreRowCellLayoutHelper
         return changed;
     }
 
+    /// <summary>
+    /// 确保指定控件包含所选 BO 模式所需的每个单元格。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 该重载是 Phase 6 Designer 去特化的桥梁：Designer ViewModel 调用此方法时
+    /// 不需要引用 <see cref="GlobalScoreRowControlConfig"/>，类型判定在本 Helper 内完成。
+    /// 当 <paramref name="config"/> 不是 <see cref="GlobalScoreRowControlConfig"/> 时返回
+    /// <see langword="false"/> 且不修改任何状态。
+    /// </para>
+    /// </remarks>
+    /// <param name="config">控件配置实例。</param>
+    /// <param name="isBo3Mode">是否为 BO3 模式。</param>
+    /// <returns>当 config 为 <see cref="GlobalScoreRowControlConfig"/> 且调用适用时返回 <see langword="true"/>；否则 <see langword="false"/>。</returns>
+    public static bool EnsureCompleteCells(FrontedControlConfigBase config, bool isBo3Mode = false)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        return config is GlobalScoreRowControlConfig row
+            && EnsureCompleteCells(row, isBo3Mode);
+    }
+
+    /// <summary>
+    /// 判断给定控件是否支持 GlobalScoreRow 模板操作。
+    /// </summary>
+    /// <param name="config">控件配置实例。</param>
+    /// <returns>支持模板操作时为 <see langword="true"/>。</returns>
+    public static bool SupportsTemplateOperations(FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        return config is GlobalScoreRowControlConfig;
+    }
+
+    /// <summary>
+    /// 对指定控件应用 BO3 可见性模板。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 该重载是 Phase 6 Designer 去特化的桥梁：Designer ViewModel 调用此方法时
+    /// 不需要引用 <see cref="GlobalScoreRowControlConfig"/>，类型判定在本 Helper 内完成。
+    /// 当 <paramref name="config"/> 不是 <see cref="GlobalScoreRowControlConfig"/> 时返回
+    /// <see langword="false"/> 且不修改任何状态。
+    /// </para>
+    /// </remarks>
+    /// <param name="config">控件配置实例。</param>
+    /// <returns>当 config 为 <see cref="GlobalScoreRowControlConfig"/> 且调用适用时返回 <see langword="true"/>；否则 <see langword="false"/>。</returns>
+    public static bool ApplyBo3VisibilityTemplate(FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        if (config is not GlobalScoreRowControlConfig row)
+        {
+            return false;
+        }
+
+        ApplyBo3VisibilityTemplate(row);
+        return true;
+    }
+
+    /// <summary>
+    /// 对指定控件应用 BO5 可见性模板。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 该重载是 Phase 6 Designer 去特化的桥梁：Designer ViewModel 调用此方法时
+    /// 不需要引用 <see cref="GlobalScoreRowControlConfig"/>，类型判定在本 Helper 内完成。
+    /// 当 <paramref name="config"/> 不是 <see cref="GlobalScoreRowControlConfig"/> 时返回
+    /// <see langword="false"/> 且不修改任何状态。
+    /// </para>
+    /// </remarks>
+    /// <param name="config">控件配置实例。</param>
+    /// <returns>当 config 为 <see cref="GlobalScoreRowControlConfig"/> 且调用适用时返回 <see langword="true"/>；否则 <see langword="false"/>。</returns>
+    public static bool ApplyBo5VisibilityTemplate(FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        if (config is not GlobalScoreRowControlConfig row)
+        {
+            return false;
+        }
+
+        ApplyBo5VisibilityTemplate(row);
+        return true;
+    }
+
+    /// <summary>
+    /// 对指定控件按间距自动排列单元格。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 该重载是 Phase 6 Designer 去特化的桥梁：Designer ViewModel 调用此方法时
+    /// 不需要引用 <see cref="GlobalScoreRowControlConfig"/>，类型判定在本 Helper 内完成。
+    /// 当 <paramref name="config"/> 不是 <see cref="GlobalScoreRowControlConfig"/> 时返回
+    /// <see langword="false"/> 且不修改任何状态。
+    /// </para>
+    /// </remarks>
+    /// <param name="config">控件配置实例。</param>
+    /// <param name="isBo3Mode">是否为 BO3 模式。</param>
+    /// <returns>当 config 为 <see cref="GlobalScoreRowControlConfig"/> 且调用适用时返回 <see langword="true"/>；否则 <see langword="false"/>。</returns>
+    public static bool AutoArrangeBySpacing(FrontedControlConfigBase config, bool isBo3Mode)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        if (config is not GlobalScoreRowControlConfig row)
+        {
+            return false;
+        }
+
+        AutoArrangeBySpacing(row, isBo3Mode);
+        return true;
+    }
+
     public static void ApplyBo3VisibilityTemplate(GlobalScoreRowControlConfig row)
     {
         EnsureCompleteCells(row, isBo3Mode: true);

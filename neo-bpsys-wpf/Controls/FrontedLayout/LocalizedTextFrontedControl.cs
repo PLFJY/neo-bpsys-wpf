@@ -5,51 +5,45 @@ using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.PluginSdk;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
 
 /// <summary>
-/// 内置 v3 本地化静态文本控件工厂。
+/// 内置 v3 本地化静态文本控件。
 /// </summary>
-public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? logger = null) : IFrontedControl
+[FrontedV3Control("LocalizedText", IsBuiltIn = true)]
+public class LocalizedTextFrontedControl : FrontedV3ControlBase
 {
-    private readonly ILogger<LocalizedTextFrontedControl>? _logger = logger;
-
     /// <inheritdoc />
-    public string ControlType => "LocalizedText";
-
-    /// <inheritdoc />
-    public Type ConfigType => typeof(LocalizedTextControlConfig);
-
-    /// <inheritdoc />
-    public FrameworkElement Create(
-        string name,
-        FrontedControlConfigBase config,
-        FrontedControlBuildContext context)
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        if (config is not LocalizedTextControlConfig textConfig)
+        if (context.Config is not LocalizedTextControlConfig textConfig)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a LocalizedText config.");
+            throw new FrontedLayoutConfigException("Control config is not a LocalizedText config.");
         }
 
         var settingsHostService = context.Services.GetRequiredService<ISettingsHostService>();
-        return new LocalizedTextElement(
-            name,
+        var element = new LocalizedTextElement(
+            context.ControlName ?? string.Empty,
             textConfig,
             settingsHostService,
             context.SharedDataService,
-            _logger ?? context.Logger);
+            context.Logger);
+        Content = element;
     }
 
     /// <summary>
     /// 解析本地化文本，资源缺失时使用 fallback 或 key。
     /// </summary>
+    /// <param name="localizationKey">本地化资源 key。</param>
+    /// <param name="fallbackText">资源缺失时使用的 fallback 文本。</param>
+    /// <returns>解析后的文本。</returns>
     public static string ResolveText(string localizationKey, string? fallbackText)
     {
         return ResolveText(localizationKey, fallbackText, null);
@@ -103,19 +97,6 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
             _currentAppCulture = settingsHostService.Settings.CultureInfo;
 
             Name = name;
-            Canvas.SetLeft(this, config.Left);
-            Canvas.SetTop(this, config.Top);
-            Panel.SetZIndex(this, config.ZIndex);
-
-            if (config.Width.HasValue)
-            {
-                Width = config.Width.Value;
-            }
-
-            if (config.Height.HasValue)
-            {
-                Height = config.Height.Value;
-            }
 
             ApplyTextStyle(_textBlock, config, sharedDataService, logger);
             Child = _textBlock;

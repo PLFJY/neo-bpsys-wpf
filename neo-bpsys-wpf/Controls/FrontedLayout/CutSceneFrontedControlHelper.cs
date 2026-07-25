@@ -13,22 +13,7 @@ internal static class CutSceneFrontedControlHelper
 {
     public static Border CreateOuterBorder(string name, FrontedControlConfigBase config)
     {
-        var border = new Border { Name = name };
-        Canvas.SetLeft(border, config.Left);
-        Canvas.SetTop(border, config.Top);
-        Panel.SetZIndex(border, config.ZIndex);
-
-        if (config.Width.HasValue)
-        {
-            border.Width = config.Width.Value;
-        }
-
-        if (config.Height.HasValue)
-        {
-            border.Height = config.Height.Value;
-        }
-
-        return border;
+        return new Border { Name = name };
     }
 
     public static void ApplyTextStyle(

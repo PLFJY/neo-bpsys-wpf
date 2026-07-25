@@ -6,7 +6,10 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -99,7 +102,7 @@ public class TeamColorAndShapeTest
     [Fact]
     public void ShapeDefaultsAndJsonRoundTrip()
     {
-        var factory = new FrontedControlDefaultConfigFactory();
+        var factory = new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry());
         var document = new FrontedCanvasDesignDocument
         {
             CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 800, CanvasHeight = 600 }
@@ -125,48 +128,47 @@ public class TeamColorAndShapeTest
             var home = new Team(Camp.Sur, TeamType.HomeTeam) { ColorHex = "#FF123456" };
             var shared = new Mock<ISharedDataService>();
             shared.SetupGet(service => service.HomeTeam).Returns(home);
-            var context = CreateContext(shared.Object);
 
-            var boundRectangle = Assert.IsType<ShapeRectangle>(new RectangleFrontedControl().Create(
-                "Bound",
-                new RectangleFrontedControlConfig
-                {
-                    Width = 100,
-                    Height = 50,
-                    UseFillBinding = true,
-                    FillBindingPath = "HomeTeam.ColorHex"
-                },
-                context));
+            var boundConfig = new RectangleFrontedControlConfig
+            {
+                Width = 100,
+                Height = 50,
+                UseFillBinding = true,
+                FillBindingPath = "HomeTeam.ColorHex"
+            };
+            var boundControl = new RectangleFrontedControl();
+            boundControl.InitializeFrontedV3(CreateV3Context(boundConfig, "Bound", shared.Object));
+            var boundRectangle = Assert.IsType<ShapeRectangle>(boundControl.Content);
             Assert.NotNull(BindingOperations.GetBinding(boundRectangle, ShapeRectangle.FillProperty));
 
-            var gradientRectangle = Assert.IsType<ShapeRectangle>(new RectangleFrontedControl().Create(
-                "Gradient",
-                new RectangleFrontedControlConfig
-                {
-                    Width = 100,
-                    Height = 50,
-                    FillMode = ShapeFillMode.LinearGradient,
-                    GradientStartColor = "#FF000000",
-                    GradientEndColor = "#FFFFFFFF",
-                    GradientAngle = 90
-                },
-                context));
+            var gradientConfig = new RectangleFrontedControlConfig
+            {
+                Width = 100,
+                Height = 50,
+                FillMode = ShapeFillMode.LinearGradient,
+                GradientStartColor = "#FF000000",
+                GradientEndColor = "#FFFFFFFF",
+                GradientAngle = 90
+            };
+            var gradientControl = new RectangleFrontedControl();
+            gradientControl.InitializeFrontedV3(CreateV3Context(gradientConfig, "Gradient", shared.Object));
+            var gradientRectangle = Assert.IsType<ShapeRectangle>(gradientControl.Content);
             var gradient = Assert.IsType<LinearGradientBrush>(gradientRectangle.Fill);
             Assert.Equal(2, gradient.GradientStops.Count);
             Assert.Equal(new Point(0.5, 0), gradient.StartPoint);
             Assert.Equal(new Point(0.5, 1), gradient.EndPoint);
 
-            var polygon = Assert.IsType<ShapePolygon>(new PolygonFrontedControl().Create(
-                "Polygon",
-                new PolygonFrontedControlConfig { Width = 200, Height = 100 },
-                context));
+            var polygonConfig = new PolygonFrontedControlConfig { Width = 200, Height = 100 };
+            var polygonControl = new PolygonFrontedControl();
+            polygonControl.InitializeFrontedV3(CreateV3Context(polygonConfig, "Polygon", shared.Object));
+            var polygon = Assert.IsType<ShapePolygon>(polygonControl.Content);
             Assert.Equal(new Point(100, 0), polygon.Points[0]);
             Assert.IsType<SolidColorBrush>(polygon.Fill);
 
-            var fallbackPolygon = Assert.IsType<ShapePolygon>(new PolygonFrontedControl().Create(
-                "Fallback",
-                new PolygonFrontedControlConfig { Width = 200, Height = 100, Points = [] },
-                context));
+            var fallbackConfig = new PolygonFrontedControlConfig { Width = 200, Height = 100, Points = [] };
+            var fallbackControl = new PolygonFrontedControl();
+            fallbackControl.InitializeFrontedV3(CreateV3Context(fallbackConfig, "Fallback", shared.Object));
+            var fallbackPolygon = Assert.IsType<ShapePolygon>(fallbackControl.Content);
             Assert.Equal(3, fallbackPolygon.Points.Count);
         });
     }
@@ -180,17 +182,16 @@ public class TeamColorAndShapeTest
             var shared = new Mock<ISharedDataService>();
             shared.SetupGet(service => service.HomeTeam).Returns(home);
 
-            var element = new TextFrontedControl().Create(
-                "Title",
-                new TextFrontedControlConfig
-                {
-                    Text = "Title",
-                    Color = "#FFFFFFFF",
-                    ColorBindingPath = "HomeTeam.ColorHex"
-                },
-                CreateContext(shared.Object));
+            var config = new TextFrontedControlConfig
+            {
+                Text = "Title",
+                Color = "#FFFFFFFF",
+                ColorBindingPath = "HomeTeam.ColorHex"
+            };
+            var control = new TextFrontedControl();
+            control.InitializeFrontedV3(CreateV3Context(config, "Title", shared.Object));
 
-            var border = Assert.IsType<Border>(element);
+            var border = Assert.IsType<Border>(control.Content);
             var textBlock = Assert.IsType<TextBlock>(border.Child);
             var binding = BindingOperations.GetBinding(textBlock, TextBlock.ForegroundProperty);
             Assert.NotNull(binding);
@@ -317,7 +318,10 @@ public class TeamColorAndShapeTest
         Assert.Contains(messages, message => message.PropertyName == nameof(PolygonFrontedControlConfig.Points));
     }
 
-    private static FrontedControlBuildContext CreateContext(ISharedDataService sharedDataService) =>
+    private static FrontedV3ControlContext CreateV3Context(
+        FrontedControlConfigBase config,
+        string controlName,
+        ISharedDataService sharedDataService) =>
         new()
         {
             Services = new Mock<IServiceProvider>().Object,
@@ -325,6 +329,8 @@ public class TeamColorAndShapeTest
             ResourceResolver = new Mock<IFrontedResourceResolver>().Object,
             WindowId = "TestWindow",
             CanvasName = "BaseCanvas",
+            Config = config,
+            ControlName = controlName,
             Logger = NullLogger.Instance
         };
 
@@ -358,5 +364,36 @@ public class TeamColorAndShapeTest
     private static void RunOnStaThread(Action action)
     {
         WpfTestThread.Run(action);
+    }
+
+    /// <summary>
+    /// 构造包含本测试所需内置 v3 控件 registration 的注册表。
+    /// </summary>
+    private static FrontedV3ControlRegistry CreateTestV3ControlRegistry()
+    {
+        return new FrontedV3ControlRegistry(
+        [
+            CreateBuiltInRegistration("Rectangle", typeof(RectangleFrontedControl), typeof(RectangleFrontedControlConfig), () => new RectangleFrontedControlConfig()),
+            CreateBuiltInRegistration("Polygon", typeof(PolygonFrontedControl), typeof(PolygonFrontedControlConfig), () => new PolygonFrontedControlConfig())
+        ]);
+    }
+
+    private static FrontedV3ControlRegistration CreateBuiltInRegistration(
+        string controlId,
+        Type controlType,
+        Type configType,
+        Func<FrontedControlConfigBase> createDefaultConfig)
+    {
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = controlId,
+            LocalControlId = controlId,
+            PackageId = "builtin",
+            IsBuiltIn = true,
+            ControlType = controlType,
+            ConfigType = configType,
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = createDefaultConfig
+        };
     }
 }

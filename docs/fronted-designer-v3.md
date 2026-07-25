@@ -317,80 +317,128 @@ catalog 构建是 lazy + cache，只做类型反射，不调用属性 getter，�
 
 v3 之后 PluginSdk 不再作为 NuGet 包发布。插件作者应 clone 本仓库，并在插件项目中通过 `ProjectReference` 引用 `neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj`，再手动 `Import` 同目录下的 `neo-bpsys-wpf.PluginSdk.targets` 获取 `CreateZip` 打包 target。插件 API 兼容性仍看 `manifest.yml` 的 `apiVersion`；SDK 源码所在提交只表示编译期 API 和打包目标来源，不等同于插件 API 版本。
 
-控件工厂抽象：
+### 统一 V3 Control API
+
+旧的前台控件架构（`IFrontedControl`、`IFrontedControlPluginContributor`、`FrontedPluginControlDescriptor`、`AddFrontedPluginControlContributor<T>()` 等）已整体移除，由统一 V3 Control API 替代。内置控件与插件控件使用同一套注册与属性模型，`FrontedV3ControlRegistry` 按 `CanonicalControlType` 索引所有注册。
+
+核心类型：
+
+| 类型 | 职责 |
+| --- | --- |
+| `FrontedV3ControlBase` | 所有 v3 控件的抽象基类（继承 `UserControl`），定义在 Core 程序集，命名空间为 `neo_bpsys_wpf.PluginSdk`。控件不管理根布局。 |
+| `[FrontedV3Control("ControlId", IsBuiltIn = bool)]` | 标注控件类型，携带局部标识与内置标记。 |
+| `FrontedV3ControlRegistration` | 注册记录，包含 `CanonicalControlType`、`ControlType`、`ConfigType`、`Properties`、`CreateDefaultConfig`、`StyleTransfer` 能力声明。 |
+| `FrontedV3ControlRegistry` / `IFrontedV3ControlRegistry` | 统一注册表，从 DI 收集所有 `FrontedV3ControlRegistration` 并按 `CanonicalControlType` 索引。 |
+| `FrontedV3Property<T>` | 强类型属性声明，作为控件类上的 `public static readonly` 字段。 |
+| `FrontedV3Storage` | 存储访问器工厂，提供 `ExtensionData`、`ClrProperty`、`CollectionItemProperty` 三种实现。 |
+| `FrontedV3OptionsView` | Options 动态代理视图，按属性 Schema 将逻辑路径投影到 Config 存储位置。 |
+| `FrontedV3ControlHost` | 根布局宿主，唯一负责根级属性（Canvas.Left/Top、Width/Height、ZIndex、Visibility、GaussianBlur、BehaviorGuid）。 |
+| `FrontedV3Part` / `FrontedV3PartDefinition` | 固定 Part 系统，管理控件内部固定区域。 |
+| `FrontedV3Parts` / `FrontedV3PartCollectionDefinition` | PartCollection 系统，管理模板或动态集合。 |
+| `FrontedV3StyleTransferService` | 统一样式继承与 peer 传播服务。 |
+
+注册入口：
 
 ```csharp
-public interface IFrontedControl
-{
-    string ControlType { get; }
-    Type ConfigType { get; }
-    FrameworkElement Create(string name, FrontedControlConfigBase config, FrontedControlBuildContext context);
-}
+services.AddFrontedV3Control<TeamCardControl>();
 ```
 
-`FrontedControlBuildContext` 承载 `ISharedDataService`、资源 resolver、窗口/Canvas 元信息、服务提供器和可选日志。`FrontedControlRegistry` 从 DI 收集所有 `IFrontedControl`，因此后续插件可以通过 DI 注册自定义控件工厂。
+`AddFrontedV3Control<TControl>()` 只接受控件类型一个参数。`PackageId` 由宿主在插件初始化作用域内自动注入。控件类型必须标注 `[FrontedV3Control]` 并继承 `FrontedV3ControlBase`。属性通过控件类上的 `public static readonly FrontedV3Property<T>` 字段声明，框架在注册时反射发现并校验：`OptionsPath` 必须唯一、不得使用保留路径、`Storage` 不得指向根级保留字段。
 
-第三方插件前台控件采用明确命名空间，内置控件仍使用简单 `ControlType`；插件控件必须使用：
+Canonical Control Type 命名规则：
 
 ```text
-plugin:<PackageId>/<ControlTypeName>
+内置控件:   直接使用 ControlId（例如 Text、BorderedImage）
+插件控件:   plugin:<PackageId>/<ControlId>（例如 plugin:plfjy.ExamplePlugin/TeamCard）
 ```
 
-`PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整字符串是稳定 layout schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。Canvas 通过 `RequiredPlugins` 声明本 Canvas 依赖，`.bpui` manifest 通过 `PluginDependencies` 汇总包级依赖。
+`PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlId` 在插件内唯一。完整字符串是稳定 layout schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。Canvas 通过 `RequiredPlugins` 声明本 Canvas 依赖，`.bpui` manifest 通过 `PluginDependencies` 汇总包级依赖。
 
-插件控件 registry 和 descriptor API：
+### 根布局由 Host 管理
+
+运行时结构统一为 `Canvas → FrontedV3ControlHost → FrontedV3ControlBase`。`FrontedV3ControlHost` 是 v3 控件路径中唯一被直接加入 Canvas 的元素，所有根级属性都由 Host 拥有：
+
+- `Canvas.Left` / `Canvas.Top`
+- `Panel.ZIndex`
+- `Width` / `Height`
+- `Visibility`
+- 高斯模糊 `Effect`
+- `BehaviorGuid` 标记
+- 运行时生成标记
+- Designer 选中与根 Move/Resize
+- 错误占位（控件初始化失败时显示安全占位，原 Config 保留，不写默认值）
+
+包装的 Control 只负责矩形区域内的视觉内容，不得设置自己的 Canvas 坐标。
+
+### Options 不进入 JSON
+
+`Options` 是由属性 Schema 构建的动态代理视图，**不进入 JSON**，**不缓存独立值**。XAML 中将 `DataContext` 设置为 `Options`，绑定路径 `{Binding Appearance.TextColor}` 通过 `ICustomTypeDescriptor` 发现动态属性，最终委托到对应 `IFrontedV3StorageAccessor`，直接读写当前 Config 的根级字段。
+
+`OptionsPath`（如 `Appearance.TextColor`）只是 Designer 属性网格与 StyleTransfer 的逻辑路径，不进入 JSON；实际读写位置由 `Storage` 访问器决定。插件控件使用 `FrontedV3Storage.ExtensionData("key")` 时，属性值存储到 `PluginFrontedControlConfig.ExtensionData` 字典，序列化后平铺到 JSON 根级字段（如 `TextColor`、`TeamName`）。
+
+### Part 管理固定内部区域
+
+固定 Part 系统管理控件内部固定区域（如 BorderedImage 的内层 Image、MapV2Display 的 TeamName/MapCard/MapName/CampName/PickingBorder 部件）。通过控件类上的 `public static readonly FrontedV3Part` 字段声明：
 
 ```csharp
-public interface IFrontedControlPluginContributor
-{
-    void RegisterFrontedControls(IFrontedControlPluginRegistry registry);
-}
-
-public interface IFrontedControlPluginRegistry
-{
-    void Register<TConfig>(FrontedPluginControlDescriptor<TConfig> descriptor)
-        where TConfig : FrontedControlConfigBase;
-}
-
-public sealed class FrontedPluginControlDescriptor<TConfig>
-    where TConfig : FrontedControlConfigBase
-{
-    public required string PackageId { get; init; }
-    public required string ControlTypeName { get; init; }
-    public string FullControlType => $"plugin:{PackageId}/{ControlTypeName}";
-    public required Type ConfigType { get; init; }
-    public required Func<string, TConfig, FrontedControlBuildContext, FrameworkElement> CreateControl { get; init; }
-    public Func<TConfig>? CreateDefaultConfig { get; init; }
-    public IReadOnlyList<FrontedPluginPropertyDescriptor>? Properties { get; init; }
-    public Func<TConfig, IEnumerable<FrontedLayoutValidationMessage>>? Validate { get; init; }
-    public string? DisplayNameKey { get; init; }
-    public string? DescriptionKey { get; init; }
-    public string? Icon { get; init; }
-    public Version? MinHostVersion { get; init; }
-    public int ConfigSchemaVersion { get; init; } = 1;
-}
+public static readonly FrontedV3Part LogoPart =
+    FrontedV3Part.Register<TeamCardControl>("Logo")
+        .WithSize(
+            FrontedV3Storage.ClrProperty("LogoWidth"),
+            FrontedV3Storage.ClrProperty("LogoHeight"))
+        .WithCapabilities(FrontedV3PartCapabilities.Resize);
 ```
 
-插件属性元数据使用声明式 descriptor：
+XAML 中通过 `fronted:FrontedV3.PartId="Logo"` 附加属性标记 Part Visual，与 C# 特性 `[FrontedV3PartVisual("Logo")]` 等价。Visual 发现器同时扫描两种声明方式，缺失或重复的 Visual 输出诊断日志，不崩溃 Designer。Part 的几何值通过 `Storage` 访问器读写到 Config 的现有字段，存储访问器为 `null` 时表示该维度不可持久化。
+
+### PartCollection 管理模板或动态子项
+
+PartCollection 系统管理模板或动态集合（如 GlobalScoreRow 的 Cells）。通过控件类上的 `public static readonly FrontedV3Parts` 字段声明：
 
 ```csharp
-public sealed class FrontedPluginPropertyDescriptor
-{
-    public required string PropertyName { get; init; }
-    public string? DisplayNameKey { get; init; }
-    public string? DescriptionKey { get; init; }
-    public string GroupName { get; init; } = "Plugin";
-    public FrontedPropertyEditorKind? EditorKind { get; init; }
-    public IReadOnlyList<FrontedPropertyEditorOption>? Options { get; init; }
-    public FrontedBindingTargetKind BindingTargetKind { get; init; } = FrontedBindingTargetKind.Any;
-    public bool IsVisible { get; init; } = true;
-    public bool IsReadOnly { get; init; }
-}
+public static readonly FrontedV3Parts CellsCollection =
+    FrontedV3Parts.RegisterCollection<GlobalScoreRowControl>("Cells")
+        .WithStrategy(FrontedV3PartCollectionStrategy.FixedTemplate)
+        .WithItemCapabilities(FrontedV3PartCapabilities.MoveAndResize)
+        .WithCollectionGetter(c => ((GlobalScoreRowControlConfig)c).Cells)
+        .WithItemKeySelector(item => ((GlobalScoreCellConfig)item).Id)
+        .WithEnsureTemplateItems(c => EnsureCells((GlobalScoreRowControlConfig)c));
 ```
 
-插件 config 类型应继承 `FrontedControlConfigBase`，构造函数设置完整插件 `ControlType`，插件专属属性必须能被 `System.Text.Json` 序列化。布局 JSON 不保存可执行状态，不保存本地绝对路径作为长期依赖。
+三种预设策略：
 
-layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；插件已安装且 descriptor 已注册时，adapter 会把通用 config 转换为插件声明的 typed config 并创建控件。运行时缺失插件控件时跳过并记录 warning，不让前台窗口崩溃。Designer preview 显示 MissingPlugin 占位符，允许选择、移动、缩放和删除底层插件控件配置。
+| 策略 | 行为 | 典型场景 |
+| --- | --- | --- |
+| `FixedTemplate` | 根据业务模板补齐缺失项，拒绝任意增删；可移动、缩放、编辑 | GlobalScoreRow 的 Cells |
+| `Dynamic` | 允许任意增删集合项 | 动态图层列表 |
+| `ReadOnly` | 只读，不允许增删或几何操作 | 只读装饰集合 |
+
+### StyleTransfer 不默认传播数据身份
+
+`FrontedV3StyleTransferService` 提供父-子继承与同 peer 传播，替代旧链路中 MapV2/GlobalScore 的手写 StyleTransfer 特判。不可破坏的传播约束：
+
+- Peer 传播仅匹配完全相同的 `CanonicalControlType`。`plugin:a/TeamCard` 不能传播给 `plugin:b/TeamCard`。
+- 默认仅传播 `Appearance` 语义的属性（颜色、字体、边框等）。
+- `RootSize`/`PartLayout`/`Behaviors`/`Effects` 语义只有 profile 显式开启时才传播。
+- `DataIdentity` 语义（MapKey、TeamType、BindingPath、ControlName 等）和 `Other` 语义**永远不传播**。
+- 根级保留字段（`Left`/`Top`/`ZIndex` 等）不会注册为属性，因此不在传播范围内。
+
+属性语义通过 `FrontedV3PropertyMetadata.Semantic` 声明，默认为 `Other`（不参与传播）。继承模式通过 `FrontedV3PropertyMetadata.Inheritance` 声明，支持 `None`、`ParentFallback`（动态回退到父值）、`CopyFromParentOnCreate`（创建时复制后独立）、`LockedToParent`（锁定到父值，拒绝 override）。
+
+### 缺失插件数据不会丢失
+
+layout JSON 中的 `plugin:*` 控件即使插件未安装也会反序列化为通用 `PluginFrontedControlConfig`，并通过 `JsonExtensionData` 保留插件专属属性，确保可读取、保存和 roundtrip。缺失插件时：
+
+- `ExtensionData` 原样保留，不会丢失。
+- Designer 显示 Missing Plugin placeholder，根控件仍可选择、移动、缩放和删除。
+- 运行时默认跳过该控件并记录 warning，不让前台窗口崩溃。
+- 导出会继续保留控件 JSON、`ExtensionData` 和依赖元数据。
+- 不会写入任何默认值掩盖缺失。
+- 安装插件并重启后，schema 恢复可用。
+
+### Designer 去特判化
+
+Designer v3 的选中模型由 `FrontedV3DesignSelection` 统一管理，不再为 MapV2/GlobalScore 等控件手写特判。几何操作通过 `IFrontedV3GeometryTarget` 抽象，根控件使用 `RootControlGeometryTarget`，固定 Part 使用 `FixedPartGeometryTarget`。PropertyGrid 通过 `Options` 动态代理视图统一展示属性，不再为插件控件单独构建 descriptor 驱动的属性面板。
 
 ## 8. 前台编辑窗口设计
 

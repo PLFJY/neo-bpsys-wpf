@@ -33,8 +33,8 @@ v3 layout JSON 中，root object 的控件属性名就是控件名：
 运行时渲染流程：
 
 1. `FrontedCanvasConfigJsonConverter` 读取 root-level 控件属性，把 `property.Name` 作为 `Controls` key。
-2. `FrontedRenderer` 遍历 `config.Controls`，把 `(name, controlConfig)` 传给 `IFrontedControl.Create(...)`。
-3. 内置控件把 root `FrameworkElement.Name` 设置为该 `name`，例如 `FrontedControlFactoryHelper.CreateOuterBorder(name, config)`。
+2. `FrontedRenderer` 遍历 `config.Controls`，通过 `IFrontedV3ControlRegistry` 查找 `FrontedV3ControlRegistration`，由 `FrontedV3ControlHost` 创建并包装控件实例。
+3. 控件实例的 root `FrameworkElement.Name` 设置为该 `name`，宿主通过 `FrontedV3ControlHost` 统一应用根布局（Canvas.Left/Top、Width/Height、ZIndex、Visibility 等）。
 4. renderer 将生成控件注册到窗口或 Canvas namescope，并记录 `FrontedRendererProperties.RegisteredName`。
 
 编辑器读取时必须把 dictionary 转成适合 UI 绑定的设计项集合；保存时再把设计项集合转回 `Dictionary<Name, Config>`。推荐设计时模型：

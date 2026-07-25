@@ -12,8 +12,10 @@ using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
@@ -66,10 +68,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private static readonly Regex ValidControlNameRegex = new(
         "^[A-Za-z_][A-Za-z0-9_]*$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
-    private static readonly JsonSerializerOptions BehaviorCloneJsonOptions = new()
-    {
-        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
-    };
 
     private readonly IFrontedLayoutService _layoutService;
     private readonly FrontedLayoutDesignConverter _designConverter;
@@ -169,6 +167,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         : this()
     {
         _behaviorService = behaviorService;
+    }
+
+    /// <summary>
+    /// 使用指定的默认配置工厂初始化面向测试的实例。
+    /// </summary>
+    /// <param name="defaultConfigFactory">测试使用的默认配置工厂。</param>
+    public FrontedDesignerWindowViewModel(FrontedControlDefaultConfigFactory defaultConfigFactory)
+        : this()
+    {
+        _defaultConfigFactory = defaultConfigFactory;
     }
 
     /// <summary>
@@ -304,20 +312,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<FrontedLayerGroup> LayerGroups { get; } = [];
 
-    public ObservableCollection<GlobalScoreCellConfig> GlobalScoreCellEditorItems { get; } = [];
-
-    /// <summary>
-    /// 获取选中 MapV2Display 复合控件暴露的固定内部样式部件。
-    /// </summary>
-    public ObservableCollection<MapV2InternalStylePartOption> MapV2InternalStylePartOptions { get; } =
-    [
-        new(MapV2InternalStylePart.TeamName, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.TeamName")),
-        new(MapV2InternalStylePart.MapCard, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.MapCard")),
-        new(MapV2InternalStylePart.MapName, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.MapName")),
-        new(MapV2InternalStylePart.CampName, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.CampName")),
-        new(MapV2InternalStylePart.PickingBorder, I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.Part.PickingBorder"))
-    ];
-
     public DesignerLayerNode? SelectedLayerNode
     {
         get => _selectedLayerNode;
@@ -433,43 +427,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDesignItem))]
     [NotifyPropertyChangedFor(nameof(CanDeleteSelectedControl))]
-    [NotifyPropertyChangedFor(nameof(IsMapV2DisplaySelected))]
     [NotifyPropertyChangedFor(nameof(IsPolygonSelected))]
     private FrontedControlDesignItem? _selectedDesignItem;
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
-
-    public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
-
-    /// <summary>
-    /// 获取是否已选中 MapV2Display 内部样式部件。
-    /// </summary>
-    public bool HasSelectedMapV2InternalStylePart => SelectedMapV2InternalStylePart is not null;
-
-    /// <summary>
-    /// 获取选中 MapV2Display 内部部件的已持久化布局。
-    /// </summary>
-    public MapV2InternalPartLayoutConfig? SelectedMapV2InternalPartLayout
-    {
-        get
-        {
-            if (SelectedDesignItem?.Config is not MapV2DisplayControlConfig config
-                || SelectedMapV2InternalStylePart is not { } option)
-            {
-                return null;
-            }
-
-            MapV2InternalPartLayoutHelper.EnsureParts(config);
-            return config.InternalParts.First(part => part.Part == option.Part);
-        }
-    }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelectedMapV2InternalStylePart))]
-    private MapV2InternalStylePartOption? _selectedMapV2InternalStylePart;
-
-    [ObservableProperty]
-    private bool _isMapV2InternalStyleEditorVisible;
 
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
@@ -508,64 +469,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         && SelectedPolygonVertexIndex >= 0
         && SelectedPolygonVertexIndex < polygon.Points.Count;
 
-    private string? _selectedGlobalScoreCellParentName;
-    private string? _selectedGlobalScoreCellId;
-
-    public string? SelectedGlobalScoreCellParentName
-    {
-        get => _selectedGlobalScoreCellParentName;
-        private set
-        {
-            if (SetProperty(ref _selectedGlobalScoreCellParentName, value))
-            {
-                OnGlobalScoreCellSelectionChanged();
-            }
-        }
-    }
-
-    public string? SelectedGlobalScoreCellId
-    {
-        get => _selectedGlobalScoreCellId;
-        private set
-        {
-            if (SetProperty(ref _selectedGlobalScoreCellId, value))
-            {
-                OnGlobalScoreCellSelectionChanged();
-            }
-        }
-    }
-
-    public GlobalScoreCellConfig? SelectedGlobalScoreCell
-    {
-        get => TryGetSelectedGlobalScoreCell(out _, out _, out var cell) ? cell : null;
-        set
-        {
-            if (value is null)
-            {
-                ClearSelectedGlobalScoreCell();
-                return;
-            }
-
-            if (SelectedDesignItem is not null)
-            {
-                SelectGlobalScoreCell(SelectedDesignItem, value);
-            }
-        }
-    }
-
-    public bool HasSelectedGlobalScoreCell => SelectedGlobalScoreCell is not null;
-
-    public bool HasGlobalScoreCellEditor => SelectedDesignItem?.Config is GlobalScoreRowControlConfig;
-
     public bool CanDeleteSelectedControl =>
-        !HasSelectedGlobalScoreCell
-        && !HasSelectedMapV2InternalStylePart
-        && SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
+        SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
     public bool CanCopySelectedControl =>
-        !HasSelectedGlobalScoreCell
-        && !HasSelectedMapV2InternalStylePart
-        && CanCopyControl(SelectedDesignItem);
+        CanCopyControl(SelectedDesignItem);
 
     public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 
@@ -763,9 +671,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ClearActiveSnapGuides();
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
-        ClearSelectedGlobalScoreCell();
-        SelectedMapV2InternalStylePart = null;
-        IsMapV2InternalStyleEditorVisible = false;
         SelectedPolygonVertexIndex = value?.Config is IPolygonFrontedControlConfig polygon && polygon.Points.Count > 0
             ? 0
             : -1;
@@ -773,14 +678,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         BehaviorPanel.SetSelectedControl(SelectedDesignItems.Count > 1 ? null : value);
         RefreshSelectedControlDisplay();
-        RebuildGlobalScoreCellEditorItems();
         RebuildAnimationPartEditorItems();
         RebuildPropertyEditorItems();
         RefreshLayerNodeSelection();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
         CopySelectedControlCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(HasGlobalScoreCellEditor));
-        OnPropertyChanged(nameof(IsMapV2DisplaySelected));
         OnPropertyChanged(nameof(IsPolygonSelected));
         OnPropertyChanged(nameof(HasAnimationPartEditor));
         OnPropertyChanged(nameof(SelectedPolygonVertexDisplay));
@@ -791,31 +693,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     partial void OnSelectedPolygonVertexIndexChanged(int value)
     {
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnSelectedMapV2InternalStylePartChanged(MapV2InternalStylePartOption? value)
-    {
-        if (value is not null && SelectedDesignItem?.Config is MapV2DisplayControlConfig config)
-        {
-            MapV2InternalPartLayoutHelper.EnsureParts(config);
-        }
-
-        _propertyEditErrors.Clear();
-        _propertyEditBuffers.Clear();
-        OnPropertyChanged(nameof(SelectedMapV2InternalPartLayout));
-        OnPropertyChanged(nameof(CanDeleteSelectedControl));
-        OnPropertyChanged(nameof(CanCopySelectedControl));
-        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
-        CopySelectedControlCommand.NotifyCanExecuteChanged();
-        RebuildPropertyEditorItems();
-        RefreshSelectedControlDisplay();
-    }
-
-    partial void OnIsMapV2InternalStyleEditorVisibleChanged(bool value)
-    {
-        SelectedMapV2InternalStylePart = value
-            ? SelectedMapV2InternalStylePart ?? MapV2InternalStylePartOptions[0]
-            : null;
     }
 
     partial void OnSelectedAnimationPartChanged(FrontedAnimationPartConfig? value)
@@ -1031,37 +908,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    private void OnGlobalScoreCellSelectionChanged()
-    {
-        if (SelectedGlobalScoreCellParentName is not null
-            && SelectedDesignItem is not null
-            && !string.Equals(SelectedDesignItem.Name, SelectedGlobalScoreCellParentName, StringComparison.Ordinal))
-        {
-            var parent = CurrentDocument?.Controls.FirstOrDefault(control =>
-                string.Equals(control.Name, SelectedGlobalScoreCellParentName, StringComparison.Ordinal));
-            if (parent is not null)
-            {
-                SelectedDesignItem = parent;
-            }
-        }
-
-        if (SelectedGlobalScoreCellParentName is not null
-            && !TryGetSelectedGlobalScoreCell(out _, out _, out _))
-        {
-            ClearSelectedGlobalScoreCell(notify: false);
-        }
-
-        _propertyEditErrors.Clear();
-        _propertyEditBuffers.Clear();
-        OnPropertyChanged(nameof(SelectedGlobalScoreCell));
-        OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
-        RefreshSelectedControlDisplay();
-        RebuildPropertyEditorItems();
-        RefreshLayerNodeSelection();
-        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
-        CopySelectedControlCommand.NotifyCanExecuteChanged();
-    }
-
     partial void OnControlFilterTextChanged(string value)
     {
         var clamped = FrontedTextLimitHelper.Clamp(value, FrontedLayoutLimits.MaxSearchTextLength);
@@ -1200,15 +1046,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ApplyLayoutSource(loadResult, entry);
 
             var windowConfig = loadResult.Config;
-            if (windowConfig is null)
-            {
-                ClearLoadedLayout(CreateMessage(
-                    FrontedLayoutValidationSeverity.Error,
-                    "MissingLayout",
-                    loadResult.Error ?? $"Layout file was not found for {entry.CanonicalWindowId}."));
-                return;
-            }
-
             var document = _designConverter.FromConfig(
                 entry.CanonicalWindowId,
                 FrontedLayoutConstants.BaseCanvasName,
@@ -1741,27 +1578,33 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand]
     private void FillMissingGlobalScoreCells()
     {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not { } config
+            || !GlobalScoreRowCellLayoutHelper.SupportsTemplateOperations(config))
         {
             return;
         }
 
         CaptureUndoSnapshot();
-        GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(row, CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
+        GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(
+            config,
+            CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
         FinishGlobalScoreRowAction();
     }
 
     [RelayCommand]
     private void AutoArrangeGlobalScoreCellsBySpacing()
     {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not { } config
+            || !GlobalScoreRowCellLayoutHelper.SupportsTemplateOperations(config))
         {
             return;
         }
 
         CaptureUndoSnapshot();
         GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing(
-            row,
+            config,
             CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
         FinishGlobalScoreRowAction();
     }
@@ -1769,69 +1612,30 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand]
     private void ApplyBo3GlobalScoreVisibilityTemplate()
     {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not { } config
+            || !GlobalScoreRowCellLayoutHelper.SupportsTemplateOperations(config))
         {
             return;
         }
 
         CaptureUndoSnapshot();
-        GlobalScoreRowCellLayoutHelper.ApplyBo3VisibilityTemplate(row);
+        GlobalScoreRowCellLayoutHelper.ApplyBo3VisibilityTemplate(config);
         FinishGlobalScoreRowAction();
     }
 
     [RelayCommand]
     private void ApplyBo5GlobalScoreVisibilityTemplate()
     {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not { } config
+            || !GlobalScoreRowCellLayoutHelper.SupportsTemplateOperations(config))
         {
             return;
         }
 
         CaptureUndoSnapshot();
-        GlobalScoreRowCellLayoutHelper.ApplyBo5VisibilityTemplate(row);
-        FinishGlobalScoreRowAction();
-    }
-
-    [RelayCommand]
-    private void ApplyParentStyleToGlobalScoreCells()
-    {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
-        {
-            return;
-        }
-
-        CaptureUndoSnapshot();
-        GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(row, CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
-        foreach (var cell in row.Cells)
-        {
-            cell.FontFamily = row.FontFamily;
-            cell.FontWeight = row.FontWeight;
-            cell.Color = row.Color;
-            cell.FontSize = row.FontSize;
-            cell.ShowCampIcon = row.ShowCampIcon;
-        }
-
-        FinishGlobalScoreRowAction();
-    }
-
-    [RelayCommand]
-    private void ClearGlobalScoreCellStyleOverrides()
-    {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
-        {
-            return;
-        }
-
-        CaptureUndoSnapshot();
-        foreach (var cell in row.Cells)
-        {
-            cell.FontFamily = null;
-            cell.FontWeight = null;
-            cell.Color = null;
-            cell.FontSize = null;
-            cell.ShowCampIcon = null;
-        }
-
+        GlobalScoreRowCellLayoutHelper.ApplyBo5VisibilityTemplate(config);
         FinishGlobalScoreRowAction();
     }
 
@@ -1843,251 +1647,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         CurrentDocument.IsDirty = true;
-        RebuildGlobalScoreCellEditorItems();
-        RefreshGlobalScoreCellSelection();
         RebuildPropertyEditorItems();
         RefreshDirtyState();
         RequestPreviewRenderCurrentDocument();
-    }
-
-    [RelayCommand]
-    private void ToggleMapV2InternalStyleEditor()
-    {
-        if (SelectedDesignItem?.Config is not MapV2DisplayControlConfig)
-        {
-            return;
-        }
-
-        IsMapV2InternalStyleEditorVisible = !IsMapV2InternalStyleEditorVisible;
-    }
-
-    [RelayCommand]
-    private void ApplyMapV2DisplayStyleToAll()
-    {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not MapV2DisplayControlConfig source)
-        {
-            return;
-        }
-
-        var targets = CurrentDocument.Controls
-            .Where(item => !ReferenceEquals(item, SelectedDesignItem))
-            .Where(item => item.Config is MapV2DisplayControlConfig)
-            .ToArray();
-        if (targets.Length == 0)
-        {
-            return;
-        }
-
-        CaptureUndoSnapshot();
-        foreach (var target in targets.Select(item => (MapV2DisplayControlConfig)item.Config))
-        {
-            CopyMapV2DisplayStyle(source, target);
-        }
-
-        ApplyMapV2DisplayBehaviorSetToTargets(SelectedDesignItem, source, targets);
-        CurrentDocument.IsDirty = true;
-        RebuildPropertyEditorItems();
-        RefreshDirtyState();
-        ValidateCurrentDocument();
-        RequestPreviewRenderCurrentDocument();
-        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.StyleAppliedToAll");
-    }
-
-    private static void CopyMapV2DisplayStyle(MapV2DisplayControlConfig source, MapV2DisplayControlConfig target)
-    {
-        target.Width = source.Width;
-        target.Height = source.Height;
-        target.MapNameFontFamily = source.MapNameFontFamily;
-        target.MapNameFontWeight = source.MapNameFontWeight;
-        target.MapNameColor = source.MapNameColor;
-        target.MapNameFontSize = source.MapNameFontSize;
-        target.TeamNameFontFamily = source.TeamNameFontFamily;
-        target.TeamNameFontWeight = source.TeamNameFontWeight;
-        target.TeamNameColor = source.TeamNameColor;
-        target.TeamNameFontSize = source.TeamNameFontSize;
-        target.CampNameFontFamily = source.CampNameFontFamily;
-        target.CampNameFontWeight = source.CampNameFontWeight;
-        target.CampNameColor = source.CampNameColor;
-        target.CampNameFontSize = source.CampNameFontSize;
-        target.MapBorderNormalColor = source.MapBorderNormalColor;
-        target.MapBorderBannedColor = source.MapBorderBannedColor;
-        target.PickingBorderImagePath = source.PickingBorderImagePath;
-        target.PickingBorderFillColor = source.PickingBorderFillColor;
-        MapV2InternalPartLayoutHelper.EnsureParts(source);
-        target.InternalParts = source.InternalParts
-            .Select(part => new MapV2InternalPartLayoutConfig
-            {
-                Part = part.Part,
-                X = part.X,
-                Y = part.Y,
-                Width = part.Width,
-                Height = part.Height
-            })
-            .ToList();
-    }
-
-    private void ApplyMapV2DisplayBehaviorSetToTargets(
-        FrontedControlDesignItem sourceItem,
-        MapV2DisplayControlConfig source,
-        IReadOnlyList<FrontedControlDesignItem> targetItems)
-    {
-        var sourceSet = source.BehaviorGuid == Guid.Empty
-            ? null
-            : BehaviorPanel.CurrentDocument.FindSet(source.BehaviorGuid);
-        foreach (var targetItem in targetItems)
-        {
-            if (targetItem.Config is not MapV2DisplayControlConfig target)
-            {
-                continue;
-            }
-
-            if (target.BehaviorGuid != Guid.Empty)
-            {
-                BehaviorPanel.CurrentDocument.RemoveSet(target.BehaviorGuid);
-            }
-
-            if (sourceSet is null)
-            {
-                continue;
-            }
-
-            if (target.BehaviorGuid == Guid.Empty)
-            {
-                target.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
-            }
-
-            var clonedSet = CloneBehaviorSet(sourceSet);
-            clonedSet.BehaviorGuid = target.BehaviorGuid;
-            clonedSet.DisplayName = targetItem.Name;
-            foreach (var behavior in clonedSet.Behaviors)
-            {
-                behavior.BehaviorId = FrontedBehaviorGuidHelper.NewGuid();
-                RegenerateMapV2BehaviorGraphIds(behavior);
-                RewriteMapV2BehaviorTargetsAndFilters(
-                    behavior,
-                    source.BehaviorGuid,
-                    target.BehaviorGuid,
-                    source.MapKey,
-                    target.MapKey);
-            }
-
-            BehaviorPanel.CurrentDocument.ControlBehaviorSets.Add(clonedSet);
-        }
-
-        MarkBehaviorsDirty();
-        BehaviorPanel.SetCopyContext(CurrentDocument?.WindowTypeName, CurrentDocument?.Controls);
-        BehaviorPanel.SetSelectedControl(sourceItem);
-    }
-
-    private static ControlBehaviorSet CloneBehaviorSet(ControlBehaviorSet source)
-    {
-        var json = JsonSerializer.Serialize(source, BehaviorCloneJsonOptions);
-        return JsonSerializer.Deserialize<ControlBehaviorSet>(json, BehaviorCloneJsonOptions)
-               ?? throw new InvalidOperationException("Unable to clone fronted behavior set.");
-    }
-
-    private static void RewriteMapV2BehaviorTargetsAndFilters(
-        FrontedBehavior behavior,
-        Guid sourceGuid,
-        Guid targetGuid,
-        string sourceMapKey,
-        string targetMapKey)
-    {
-        foreach (var node in EnumerateBehaviorGraphs(behavior).SelectMany(graph => graph.Nodes))
-        {
-            if (node.Properties.TryGetValue("Target", out var targetValue)
-                && targetValue.ValueKind == JsonValueKind.String)
-            {
-                var parsed = FrontedAnimationTargetReference.Parse(targetValue.GetString());
-                if (parsed.BehaviorGuid == sourceGuid)
-                {
-                    node.Properties["Target"] = JsonSerializer.SerializeToElement(
-                        parsed.Kind == FrontedAnimationTargetReferenceKind.GeneratedPart
-                            ? $"part:{targetGuid}:{parsed.PartName}"
-                            : $"guid:{targetGuid}");
-                }
-            }
-
-            if (string.Equals(node.NodeType, "flow.if", StringComparison.Ordinal)
-                && TryGetStringNodeProperty(node, "Left", out var left)
-                && IsMapV2MapKeyFilterLeft(left)
-                && TryGetStringNodeProperty(node, "Right", out var right)
-                && string.Equals(right, sourceMapKey, StringComparison.Ordinal))
-            {
-                node.Properties["Right"] = JsonSerializer.SerializeToElement(targetMapKey);
-            }
-        }
-
-        foreach (var filter in EnumerateBehaviorTriggerFilters(behavior))
-        {
-            if (IsMapV2MapKeyFilterLeft(filter.Left)
-                && string.Equals(filter.Right, sourceMapKey, StringComparison.Ordinal))
-            {
-                filter.Right = targetMapKey;
-            }
-        }
-    }
-
-    private static bool IsMapV2MapKeyFilterLeft(string left) =>
-        string.Equals(left, "Event.MapKey", StringComparison.Ordinal)
-        || string.Equals(left, "StartEvent.MapKey", StringComparison.Ordinal)
-        || string.Equals(left, "StopEvent.MapKey", StringComparison.Ordinal);
-
-    private static IEnumerable<FrontedNodeGraph> EnumerateBehaviorGraphs(FrontedBehavior behavior)
-    {
-        yield return behavior.Graph;
-        yield return behavior.StartGraph;
-        yield return behavior.LoopGraph;
-        yield return behavior.StopGraph;
-        yield return behavior.ExitGraph;
-        yield return behavior.EnterGraph;
-    }
-
-    private static IEnumerable<TriggerFilter> EnumerateBehaviorTriggerFilters(FrontedBehavior behavior) =>
-        new[] { behavior.Trigger, behavior.StartTrigger, behavior.TransitionTrigger }
-            .Concat(behavior.StopTriggers)
-            .Where(trigger => trigger is not null)
-            .SelectMany(trigger => trigger!.Filters);
-
-    private static bool TryGetStringNodeProperty(FrontedNode node, string propertyName, out string value)
-    {
-        value = string.Empty;
-        if (!node.Properties.TryGetValue(propertyName, out var element)
-            || element.ValueKind != JsonValueKind.String)
-        {
-            return false;
-        }
-
-        value = element.GetString() ?? string.Empty;
-        return true;
-    }
-
-    private static void RegenerateMapV2BehaviorGraphIds(FrontedBehavior behavior)
-    {
-        foreach (var graph in EnumerateBehaviorGraphs(behavior))
-        {
-            var nodeIds = new Dictionary<Guid, Guid>();
-            foreach (var node in graph.Nodes)
-            {
-                var oldId = node.NodeId;
-                node.NodeId = FrontedBehaviorGuidHelper.NewGuid();
-                nodeIds[oldId] = node.NodeId;
-            }
-
-            foreach (var connection in graph.Connections)
-            {
-                connection.ConnectionId = FrontedBehaviorGuidHelper.NewGuid();
-                if (nodeIds.TryGetValue(connection.SourceNodeId, out var sourceNodeId))
-                {
-                    connection.SourceNodeId = sourceNodeId;
-                }
-
-                if (nodeIds.TryGetValue(connection.TargetNodeId, out var targetNodeId))
-                {
-                    connection.TargetNodeId = targetNodeId;
-                }
-            }
-        }
     }
 
     [RelayCommand]
@@ -2470,7 +2032,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         SetSelectedDesignItems(item is null ? [] : [item], item);
-        ClearSelectedGlobalScoreCell();
     }
 
     /// <summary>
@@ -2502,7 +2063,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             : selected.FirstOrDefault();
 
         SetSelectedDesignItems(selected, primary);
-        ClearSelectedGlobalScoreCell();
     }
 
     /// <summary>
@@ -2531,35 +2091,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             selected.Add(item);
             SetSelectedDesignItems(selected, item);
         }
-
-        ClearSelectedGlobalScoreCell();
-    }
-
-    /// <summary>
-    /// 选择 <see cref="GlobalScoreRowControlConfig"/> 设计项内部的子单元格。
-    /// </summary>
-    /// <param name="parent">父级全局比分行条目。</param>
-    /// <param name="cell">要选中的单元格，或 <see langword="null"/> 以清除子选择。</param>
-    public void SelectGlobalScoreCell(FrontedControlDesignItem parent, GlobalScoreCellConfig? cell)
-    {
-        if (parent.Config is not GlobalScoreRowControlConfig row || cell is not null && !row.Cells.Contains(cell))
-        {
-            return;
-        }
-
-        if (!ReferenceEquals(SelectedDesignItem, parent))
-        {
-            SelectedDesignItem = parent;
-        }
-
-        if (cell is null)
-        {
-            ClearSelectedGlobalScoreCell();
-            return;
-        }
-
-        RestoreGlobalScoreCellSelectionKeys(parent.Name, cell.Id);
-        OnGlobalScoreCellSelectionChanged();
     }
 
     /// <summary>
@@ -2590,7 +2121,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// </summary>
     public void ClearSelection()
     {
-        ClearSelectedGlobalScoreCell();
         SelectDesignItem(null);
     }
 
@@ -2655,124 +2185,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 当前选择指向全局比分行单元格时获取该单元格。
-    /// </summary>
-    /// <param name="parentItem">父设计项。</param>
-    /// <param name="row">父级全局比分行配置。</param>
-    /// <param name="cell">选中的单元格。</param>
-    /// <returns>选中单元格时返回 <see langword="true"/>。</returns>
-    public bool TryGetSelectedGlobalScoreCell(
-        out FrontedControlDesignItem parentItem,
-        out GlobalScoreRowControlConfig row,
-        out GlobalScoreCellConfig cell)
-    {
-        parentItem = null!;
-        row = null!;
-        cell = null!;
-
-        if (CurrentDocument is null
-            || string.IsNullOrWhiteSpace(SelectedGlobalScoreCellParentName)
-            || string.IsNullOrWhiteSpace(SelectedGlobalScoreCellId))
-        {
-            return false;
-        }
-
-        parentItem = CurrentDocument.Controls.FirstOrDefault(item =>
-            string.Equals(item.Name, SelectedGlobalScoreCellParentName, StringComparison.Ordinal))!;
-        if (parentItem?.Config is not GlobalScoreRowControlConfig resolvedRow)
-        {
-            return false;
-        }
-
-        var resolvedCell = resolvedRow.Cells.FirstOrDefault(candidate =>
-            string.Equals(candidate.Id, SelectedGlobalScoreCellId, StringComparison.Ordinal));
-        if (resolvedCell is null)
-        {
-            return false;
-        }
-
-        row = resolvedRow;
-        cell = resolvedCell;
-        return true;
-    }
-
-    /// <summary>
-    /// 清除全局比分子单元格选择。
-    /// </summary>
-    /// <param name="notify">是否触发依赖属性通知。</param>
-    public void ClearSelectedGlobalScoreCell(bool notify = true)
-    {
-        var hadSelection = SelectedGlobalScoreCellParentName is not null || SelectedGlobalScoreCellId is not null;
-        _selectedGlobalScoreCellParentName = null;
-        _selectedGlobalScoreCellId = null;
-        if (!notify || !hadSelection)
-        {
-            if (notify)
-            {
-                OnPropertyChanged(nameof(SelectedGlobalScoreCell));
-                OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
-            }
-
-            return;
-        }
-
-        OnPropertyChanged(nameof(SelectedGlobalScoreCellParentName));
-        OnPropertyChanged(nameof(SelectedGlobalScoreCellId));
-        OnGlobalScoreCellSelectionChanged();
-    }
-
-    private void RebuildGlobalScoreCellEditorItems()
-    {
-        GlobalScoreCellEditorItems.Clear();
-        if (SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
-        {
-            return;
-        }
-
-        GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(
-            row,
-            CurrentDocument?.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
-        foreach (var cell in row.Cells)
-        {
-            GlobalScoreCellEditorItems.Add(cell);
-        }
-    }
-
-    private void RefreshGlobalScoreCellSelection()
-    {
-        if (SelectedGlobalScoreCellParentName is null && SelectedGlobalScoreCellId is null)
-        {
-            return;
-        }
-
-        if (!TryGetSelectedGlobalScoreCell(out var parent, out _, out _))
-        {
-            ClearSelectedGlobalScoreCell();
-            return;
-        }
-
-        if (!ReferenceEquals(SelectedDesignItem, parent))
-        {
-            SelectedDesignItem = parent;
-        }
-        else
-        {
-            OnPropertyChanged(nameof(SelectedGlobalScoreCell));
-            OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
-        }
-    }
-
-    private void RestoreGlobalScoreCellSelectionKeys(string? parentName, string? cellId)
-    {
-        _selectedGlobalScoreCellParentName = parentName;
-        _selectedGlobalScoreCellId = cellId;
-        OnPropertyChanged(nameof(SelectedGlobalScoreCellParentName));
-        OnPropertyChanged(nameof(SelectedGlobalScoreCellId));
-        OnPropertyChanged(nameof(SelectedGlobalScoreCell));
-        OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
-    }
-
-    /// <summary>
     /// 按逻辑增量从拖拽起点移动主选中设计项。
     /// </summary>
     /// <param name="originalLeft">拖动起始左坐标。</param>
@@ -2789,18 +2201,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || SelectedDesignItem is null || IsRebuildingPropertyGrid)
         {
-            return;
-        }
-
-        if (HasSelectedGlobalScoreCell)
-        {
-            MoveSelectedGlobalScoreCell(originalLeft, originalTop, deltaX, deltaY, renderPreview);
-            return;
-        }
-
-        if (HasSelectedMapV2InternalStylePart)
-        {
-            MoveSelectedMapV2InternalPart(originalLeft, originalTop, deltaX, deltaY, renderPreview);
             return;
         }
 
@@ -2926,27 +2326,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         CaptureUndoSnapshot();
         ClearActiveSnapGuides();
-        if (TryGetSelectedGlobalScoreCell(out _, out _, out var selectedCell))
-        {
-            MoveSelectedGlobalScoreCell(
-                selectedCell.X,
-                selectedCell.Y,
-                deltaX,
-                deltaY,
-                renderPreview: true);
-            return;
-        }
-
-        if (SelectedMapV2InternalPartLayout is { } internalPart)
-        {
-            MoveSelectedMapV2InternalPart(
-                internalPart.X,
-                internalPart.Y,
-                deltaX,
-                deltaY,
-                renderPreview: true);
-            return;
-        }
 
         var selectedItems = GetMovableSelectedDesignItems();
         if (selectedItems.Count > 1)
@@ -3019,34 +2398,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
-            return;
-        }
-
-        if (HasSelectedGlobalScoreCell)
-        {
-            ResizeSelectedGlobalScoreCell(
-                handle,
-                originalLeft,
-                originalTop,
-                originalWidth,
-                originalHeight,
-                deltaX,
-                deltaY,
-                renderPreview);
-            return;
-        }
-
-        if (HasSelectedMapV2InternalStylePart)
-        {
-            ResizeSelectedMapV2InternalPart(
-                handle,
-                originalLeft,
-                originalTop,
-                originalWidth,
-                originalHeight,
-                deltaX,
-                deltaY,
-                renderPreview);
             return;
         }
 
@@ -3170,229 +2521,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CurrentDocument.IsDirty = true;
         ClearActiveSnapGuides();
         OnDesignItemGeometryChanged(renderPreview);
-    }
-
-    public void MoveSelectedGlobalScoreCell(
-        double originalX,
-        double originalY,
-        double deltaX,
-        double deltaY,
-        bool renderPreview)
-    {
-        if (CurrentDocument is null
-            || !TryGetSelectedGlobalScoreCell(out var parentItem, out var row, out var cell))
-        {
-            return;
-        }
-
-        var x = FrontedDesignerGeometryHelper.Snap(originalX + deltaX);
-        var y = FrontedDesignerGeometryHelper.Snap(originalY + deltaY);
-        var maxX = Math.Max(0D, (row.Width ?? double.PositiveInfinity) - Math.Max(cell.Width, 0D));
-        var maxY = Math.Max(0D, (row.Height ?? double.PositiveInfinity) - Math.Max(cell.Height, 0D));
-        cell.X = double.IsInfinity(maxX) ? x : Math.Clamp(x, 0D, maxX);
-        cell.Y = double.IsInfinity(maxY) ? y : Math.Clamp(y, 0D, maxY);
-        CurrentDocument.IsDirty = true;
-        SelectedDesignItem = parentItem;
-        OnDesignItemGeometryChanged(renderPreview);
-    }
-
-    /// <summary>
-    /// 在父级边界内移动选中的 MapV2Display 内部部件。
-    /// </summary>
-    /// <param name="originalX">原始相对 X 坐标。</param>
-    /// <param name="originalY">原始相对 Y 坐标。</param>
-    /// <param name="deltaX">水平指针增量。</param>
-    /// <param name="deltaY">垂直指针增量。</param>
-    /// <param name="renderPreview">是否立即渲染预览。</param>
-    public void MoveSelectedMapV2InternalPart(
-        double originalX,
-        double originalY,
-        double deltaX,
-        double deltaY,
-        bool renderPreview)
-    {
-        if (CurrentDocument is null
-            || SelectedDesignItem?.Config is not MapV2DisplayControlConfig parent
-            || SelectedMapV2InternalPartLayout is not { } part)
-        {
-            return;
-        }
-
-        var parentWidth = Math.Max(1D, parent.Width ?? part.X + part.Width);
-        var parentHeight = Math.Max(1D, parent.Height ?? part.Y + part.Height);
-        part.X = Math.Clamp(FrontedDesignerGeometryHelper.Snap(originalX + deltaX), 0D, Math.Max(0D, parentWidth - part.Width));
-        part.Y = Math.Clamp(FrontedDesignerGeometryHelper.Snap(originalY + deltaY), 0D, Math.Max(0D, parentHeight - part.Height));
-        CurrentDocument.IsDirty = true;
-        OnDesignItemGeometryChanged(renderPreview);
-    }
-
-    public void ResizeSelectedGlobalScoreCell(
-        FrontedDesignerResizeHandleKind handle,
-        double originalX,
-        double originalY,
-        double originalWidth,
-        double originalHeight,
-        double deltaX,
-        double deltaY,
-        bool renderPreview)
-    {
-        if (CurrentDocument is null
-            || !TryGetSelectedGlobalScoreCell(out var parentItem, out var row, out var cell))
-        {
-            return;
-        }
-
-        var left = originalX;
-        var top = originalY;
-        var width = originalWidth;
-        var height = originalHeight;
-
-        if (handle is FrontedDesignerResizeHandleKind.Left
-            or FrontedDesignerResizeHandleKind.TopLeft
-            or FrontedDesignerResizeHandleKind.BottomLeft)
-        {
-            left = originalX + deltaX;
-            width = originalWidth - deltaX;
-        }
-        else if (handle is FrontedDesignerResizeHandleKind.Right
-                 or FrontedDesignerResizeHandleKind.TopRight
-                 or FrontedDesignerResizeHandleKind.BottomRight)
-        {
-            width = originalWidth + deltaX;
-        }
-
-        if (handle is FrontedDesignerResizeHandleKind.Top
-            or FrontedDesignerResizeHandleKind.TopLeft
-            or FrontedDesignerResizeHandleKind.TopRight)
-        {
-            top = originalY + deltaY;
-            height = originalHeight - deltaY;
-        }
-        else if (handle is FrontedDesignerResizeHandleKind.Bottom
-                 or FrontedDesignerResizeHandleKind.BottomLeft
-                 or FrontedDesignerResizeHandleKind.BottomRight)
-        {
-            height = originalHeight + deltaY;
-        }
-
-        width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, FrontedDesignerGeometryHelper.Snap(width));
-        height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, FrontedDesignerGeometryHelper.Snap(height));
-        left = FrontedDesignerGeometryHelper.Snap(left);
-        top = FrontedDesignerGeometryHelper.Snap(top);
-
-        var maxX = Math.Max(0D, row.Width ?? left + width);
-        var maxY = Math.Max(0D, row.Height ?? top + height);
-        cell.X = Math.Clamp(left, 0D, Math.Max(0D, maxX - width));
-        cell.Y = Math.Clamp(top, 0D, Math.Max(0D, maxY - height));
-        cell.Width = Math.Min(width, maxX);
-        cell.Height = Math.Min(height, maxY);
-        CurrentDocument.IsDirty = true;
-        SelectedDesignItem = parentItem;
-        OnDesignItemGeometryChanged(renderPreview);
-    }
-
-    /// <summary>
-    /// 在父级边界内缩放选中的 MapV2Display 内部部件。
-    /// </summary>
-    /// <param name="handle">活动的调整大小句柄。</param>
-    /// <param name="originalX">原始相对 X 坐标。</param>
-    /// <param name="originalY">原始相对 Y 坐标。</param>
-    /// <param name="originalWidth">原始宽度。</param>
-    /// <param name="originalHeight">原始高度。</param>
-    /// <param name="deltaX">水平指针增量。</param>
-    /// <param name="deltaY">垂直指针增量。</param>
-    /// <param name="renderPreview">是否立即渲染预览。</param>
-    public void ResizeSelectedMapV2InternalPart(
-        FrontedDesignerResizeHandleKind handle,
-        double originalX,
-        double originalY,
-        double originalWidth,
-        double originalHeight,
-        double deltaX,
-        double deltaY,
-        bool renderPreview)
-    {
-        if (CurrentDocument is null
-            || SelectedDesignItem?.Config is not MapV2DisplayControlConfig
-            || SelectedMapV2InternalPartLayout is not { } part)
-        {
-            return;
-        }
-
-        var left = originalX;
-        var top = originalY;
-        var width = originalWidth;
-        var height = originalHeight;
-        if (handle is FrontedDesignerResizeHandleKind.Left or FrontedDesignerResizeHandleKind.TopLeft or FrontedDesignerResizeHandleKind.BottomLeft)
-        {
-            left += deltaX;
-            width -= deltaX;
-        }
-        else if (handle is FrontedDesignerResizeHandleKind.Right or FrontedDesignerResizeHandleKind.TopRight or FrontedDesignerResizeHandleKind.BottomRight)
-        {
-            width += deltaX;
-        }
-
-        if (handle is FrontedDesignerResizeHandleKind.Top or FrontedDesignerResizeHandleKind.TopLeft or FrontedDesignerResizeHandleKind.TopRight)
-        {
-            top += deltaY;
-            height -= deltaY;
-        }
-        else if (handle is FrontedDesignerResizeHandleKind.Bottom or FrontedDesignerResizeHandleKind.BottomLeft or FrontedDesignerResizeHandleKind.BottomRight)
-        {
-            height += deltaY;
-        }
-
-        part.X = FrontedDesignerGeometryHelper.Snap(left);
-        part.Y = FrontedDesignerGeometryHelper.Snap(top);
-        part.Width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, FrontedDesignerGeometryHelper.Snap(width));
-        part.Height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, FrontedDesignerGeometryHelper.Snap(height));
-        ClampSelectedMapV2InternalPart();
-        CurrentDocument.IsDirty = true;
-        OnDesignItemGeometryChanged(renderPreview);
-    }
-
-    private void ClampSelectedMapV2InternalPart()
-    {
-        if (SelectedDesignItem?.Config is not MapV2DisplayControlConfig parent
-            || SelectedMapV2InternalPartLayout is not { } part)
-        {
-            return;
-        }
-
-        var parentWidth = Math.Max(1D, parent.Width ?? part.X + part.Width);
-        var parentHeight = Math.Max(1D, parent.Height ?? part.Y + part.Height);
-        var minimumWidth = Math.Min(FrontedDesignerGeometryHelper.MinResizeWidth, parentWidth);
-        var minimumHeight = Math.Min(FrontedDesignerGeometryHelper.MinResizeHeight, parentHeight);
-        part.Width = Math.Clamp(part.Width, minimumWidth, parentWidth);
-        part.Height = Math.Clamp(part.Height, minimumHeight, parentHeight);
-        part.X = Math.Clamp(part.X, 0D, Math.Max(0D, parentWidth - part.Width));
-        part.Y = Math.Clamp(part.Y, 0D, Math.Max(0D, parentHeight - part.Height));
-    }
-
-    private void ClampSelectedGlobalScoreCell()
-    {
-        if (!TryGetSelectedGlobalScoreCell(out _, out var row, out var cell))
-        {
-            return;
-        }
-
-        cell.Width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, FrontedDesignerGeometryHelper.Snap(cell.Width));
-        cell.Height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, FrontedDesignerGeometryHelper.Snap(cell.Height));
-        cell.X = FrontedDesignerGeometryHelper.Snap(cell.X);
-        cell.Y = FrontedDesignerGeometryHelper.Snap(cell.Y);
-
-        if (row.Width.HasValue)
-        {
-            cell.Width = Math.Min(cell.Width, row.Width.Value);
-            cell.X = Math.Clamp(cell.X, 0D, Math.Max(0D, row.Width.Value - cell.Width));
-        }
-
-        if (row.Height.HasValue)
-        {
-            cell.Height = Math.Min(cell.Height, row.Height.Value);
-            cell.Y = Math.Clamp(cell.Y, 0D, Math.Max(0D, row.Height.Value - cell.Height));
-        }
     }
 
     public void ClearActiveSnapGuides()
@@ -3717,17 +2845,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return ApplyNameEdit(item, newValue);
         }
 
-        if (HasSelectedGlobalScoreCell)
-        {
-            return ApplyGlobalScoreCellPropertyEdit(item, newValue);
-        }
-
-        if (SelectedMapV2InternalPartLayout is { } internalPart
-            && typeof(MapV2InternalPartLayoutConfig).GetProperty(item.PropertyName) is { CanWrite: true } internalProperty)
-        {
-            return ApplyMapV2InternalPartLayoutPropertyEdit(item, newValue, internalPart, internalProperty);
-        }
-
         var property = SelectedDesignItem.Config.GetType().GetProperty(
             item.PropertyName,
             BindingFlags.Instance | BindingFlags.Public);
@@ -3813,81 +2930,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return sameTypeTargets.Count == SelectedDesignItems.Count
             ? sameTypeTargets
             : [SelectedDesignItem];
-    }
-
-    private bool ApplyGlobalScoreCellPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
-    {
-        if (CurrentDocument is null || !TryGetSelectedGlobalScoreCell(out _, out _, out var cell))
-        {
-            return false;
-        }
-
-        var property = typeof(GlobalScoreCellConfig).GetProperty(
-            item.PropertyName,
-            BindingFlags.Instance | BindingFlags.Public);
-        if (property is null || !property.CanWrite)
-        {
-            return false;
-        }
-
-        if (!TryConvertPropertyValue(property, newValue, out var convertedValue, out var errorMessage))
-        {
-            SetPropertyEditError(item, errorMessage, newValue);
-            return false;
-        }
-
-        var oldValue = property.GetValue(cell);
-        if (ValuesEqual(oldValue, convertedValue))
-        {
-            item.Value = convertedValue;
-            item.EditText = GetCommittedEditText(item, convertedValue);
-            return true;
-        }
-
-        CaptureUndoSnapshot();
-        property.SetValue(cell, convertedValue);
-        if (item.PropertyName == nameof(GlobalScoreCellConfig.Id))
-        {
-            RestoreGlobalScoreCellSelectionKeys(
-                SelectedDesignItem?.Name,
-                Convert.ToString(convertedValue, CultureInfo.InvariantCulture));
-            RebuildGlobalScoreCellEditorItems();
-        }
-        ClampSelectedGlobalScoreCell();
-        item.Value = convertedValue;
-        item.EditText = GetCommittedEditText(item, convertedValue);
-        CurrentDocument.IsDirty = true;
-        FinishPropertyEdit(item.PropertyName);
-        return true;
-    }
-
-    private bool ApplyMapV2InternalPartLayoutPropertyEdit(
-        FrontedPropertyEditorItem item,
-        object? newValue,
-        MapV2InternalPartLayoutConfig part,
-        PropertyInfo property)
-    {
-        if (CurrentDocument is null)
-        {
-            return false;
-        }
-
-        if (!TryConvertPropertyValue(property, newValue, out var convertedValue, out var errorMessage))
-        {
-            SetPropertyEditError(item, errorMessage, newValue);
-            return false;
-        }
-
-        CaptureUndoSnapshot();
-        property.SetValue(part, convertedValue);
-        ClampSelectedMapV2InternalPart();
-        item.Value = property.GetValue(part);
-        item.EditText = GetCommittedEditText(item, item.Value);
-        CurrentDocument.IsDirty = true;
-        RefreshDirtyState();
-        RequestPreviewRenderCurrentDocument();
-        RefreshSelectedControlDisplay();
-        return true;
     }
 
     private bool ApplyNameEdit(FrontedPropertyEditorItem item, object? newValue)
@@ -4196,23 +3238,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return;
             }
 
-            IEnumerable<FrontedPropertyEditorItem> rows = TryGetSelectedGlobalScoreCell(out _, out _, out var selectedCell)
-                ? BuildGlobalScoreCellPropertyRows(selectedCell)
-                : _propertyGridBuilder.Build(
+            IEnumerable<FrontedPropertyEditorItem> rows = _propertyGridBuilder.Build(
                     CurrentDocument,
                     SelectedDesignItem,
                     _validator,
                     _referenceScanner);
-
-            if (SelectedDesignItem.Config is MapV2DisplayControlConfig
-                && SelectedMapV2InternalStylePart is { } selectedPart)
-            {
-                var styleRows = rows
-                    .Where(row => IsMapV2InternalStyleProperty(selectedPart.Part, row.PropertyName));
-                rows = BuildMapV2InternalPartLayoutPropertyRows(SelectedMapV2InternalPartLayout)
-                    .Concat(styleRows)
-                    .ToArray();
-            }
 
             foreach (var row in rows)
             {
@@ -4244,56 +3274,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    private static bool IsMapV2InternalStyleProperty(MapV2InternalStylePart part, string propertyName) =>
-        part switch
-        {
-            MapV2InternalStylePart.TeamName => propertyName is
-                nameof(MapV2DisplayControlConfig.TeamNameFontFamily)
-                or nameof(MapV2DisplayControlConfig.TeamNameFontWeight)
-                or nameof(MapV2DisplayControlConfig.TeamNameColor)
-                or nameof(MapV2DisplayControlConfig.TeamNameFontSize),
-            MapV2InternalStylePart.MapCard => propertyName is
-                nameof(MapV2DisplayControlConfig.MapBorderNormalColor)
-                or nameof(MapV2DisplayControlConfig.MapBorderBannedColor),
-            MapV2InternalStylePart.MapName => propertyName is
-                nameof(MapV2DisplayControlConfig.MapNameFontFamily)
-                or nameof(MapV2DisplayControlConfig.MapNameFontWeight)
-                or nameof(MapV2DisplayControlConfig.MapNameColor)
-                or nameof(MapV2DisplayControlConfig.MapNameFontSize),
-            MapV2InternalStylePart.CampName => propertyName is
-                nameof(MapV2DisplayControlConfig.CampNameFontFamily)
-                or nameof(MapV2DisplayControlConfig.CampNameFontWeight)
-                or nameof(MapV2DisplayControlConfig.CampNameColor)
-                or nameof(MapV2DisplayControlConfig.CampNameFontSize),
-            MapV2InternalStylePart.PickingBorder => propertyName is
-                nameof(MapV2DisplayControlConfig.PickingBorderImagePath)
-                or nameof(MapV2DisplayControlConfig.PickingBorderFillColor),
-            _ => false
-        };
-
-    private ObservableCollection<FrontedPropertyEditorItem> BuildMapV2InternalPartLayoutPropertyRows(
-        MapV2InternalPartLayoutConfig? part)
-    {
-        if (part is null)
-        {
-            return [];
-        }
-
-        return
-        [
-            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.X), typeof(double), FrontedPropertyEditorKind.Number, part.X, "Layout"),
-            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.Y), typeof(double), FrontedPropertyEditorKind.Number, part.Y, "Layout"),
-            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.Width), typeof(double), FrontedPropertyEditorKind.Number, part.Width, "Layout"),
-            CreateCellPropertyRow(nameof(MapV2InternalPartLayoutConfig.Height), typeof(double), FrontedPropertyEditorKind.Number, part.Height, "Layout")
-        ];
-    }
-
     private void ApplyMultiSelectionPropertyRowState(FrontedPropertyEditorItem row)
     {
         if (CurrentDocument is null
             || SelectedDesignItem is null
-            || SelectedDesignItems.Count <= 1
-            || HasSelectedGlobalScoreCell)
+            || SelectedDesignItems.Count <= 1)
         {
             return;
         }
@@ -5406,9 +4391,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 _lastSelectedDesignItem = control;
             }
         }
-
-        RebuildGlobalScoreCellEditorItems();
-        RefreshGlobalScoreCellSelection();
     }
 
     private void ApplyDesignSelectionFlags()
@@ -5423,101 +4405,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         _lastSelectedDesignItem = SelectedDesignItem;
-    }
-
-    private ObservableCollection<FrontedPropertyEditorItem> BuildGlobalScoreCellPropertyRows(GlobalScoreCellConfig cell)
-    {
-        var rows = new List<FrontedPropertyEditorItem>
-        {
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Id), typeof(string), FrontedPropertyEditorKind.Text, cell.Id, "Identity"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.GameNumber), typeof(int), FrontedPropertyEditorKind.Number, cell.GameNumber, "ControlSpecific"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.GameKind), typeof(ScoreGameKind), FrontedPropertyEditorKind.Enum, cell.GameKind, "ControlSpecific"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.HalfKind), typeof(ScoreHalfKind), FrontedPropertyEditorKind.Enum, cell.HalfKind, "ControlSpecific"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.X), typeof(double), FrontedPropertyEditorKind.Number, cell.X, "Layout"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Y), typeof(double), FrontedPropertyEditorKind.Number, cell.Y, "Layout"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Width), typeof(double), FrontedPropertyEditorKind.Number, cell.Width, "Layout"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Height), typeof(double), FrontedPropertyEditorKind.Number, cell.Height, "Layout"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Visibility), typeof(FrontedControlVisibility), FrontedPropertyEditorKind.Enum, cell.Visibility, "Layout"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontFamily), typeof(string), FrontedPropertyEditorKind.FontFamily, cell.FontFamily, "Appearance"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontWeight), typeof(string), FrontedPropertyEditorKind.Enum, cell.FontWeight, "Appearance", new object[] { "Normal", "Bold", "SemiBold", "Light", "Medium", "ExtraBold" }),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Color), typeof(string), FrontedPropertyEditorKind.Color, cell.Color, "Appearance"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontSize), typeof(double?), FrontedPropertyEditorKind.Number, cell.FontSize, "Appearance"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.ShowCampIcon), typeof(bool?), FrontedPropertyEditorKind.Boolean, cell.ShowCampIcon, "Appearance"),
-            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.CampIconColor), typeof(GlobalScoreCampIconColor?), FrontedPropertyEditorKind.Enum, cell.CampIconColor, "Appearance")
-        };
-
-        string? currentGroup = null;
-        foreach (var row in rows)
-        {
-            row.Description = row.PropertyName is nameof(GlobalScoreCellConfig.FontFamily)
-                or nameof(GlobalScoreCellConfig.FontWeight)
-                or nameof(GlobalScoreCellConfig.Color)
-                or nameof(GlobalScoreCellConfig.FontSize)
-                or nameof(GlobalScoreCellConfig.ShowCampIcon)
-                or nameof(GlobalScoreCellConfig.CampIconColor)
-                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.GlobalScoreRow.CellInheritsFromParent")
-                : row.Description;
-            row.IsGroupHeaderVisible = row.GroupName != currentGroup;
-            row.GroupDisplayName = _localizationService.GetGroupDisplayName(row.GroupName ?? string.Empty);
-            currentGroup = row.GroupName;
-        }
-
-        return new ObservableCollection<FrontedPropertyEditorItem>(rows);
-    }
-
-    private FrontedPropertyEditorItem CreateCellPropertyRow(
-        string propertyName,
-        Type propertyType,
-        FrontedPropertyEditorKind editorKind,
-        object? value,
-        string groupName,
-        IReadOnlyList<object>? stringOptions = null)
-    {
-        var row = new FrontedPropertyEditorItem
-        {
-            DisplayName = _localizationService.GetPropertyDisplayName(GetGlobalScoreCellPropertyDisplayKey(propertyName)),
-            PropertyName = propertyName,
-            PropertyType = propertyType,
-            EditorKind = editorKind,
-            Value = value,
-            DisplayValue = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty,
-            EditText = GetCommittedEditText(editorKind, value, null),
-            GroupName = groupName,
-            IsRequired = propertyName is nameof(GlobalScoreCellConfig.Id)
-                or nameof(GlobalScoreCellConfig.GameNumber)
-                or nameof(GlobalScoreCellConfig.X)
-                or nameof(GlobalScoreCellConfig.Y)
-                or nameof(GlobalScoreCellConfig.Width)
-                or nameof(GlobalScoreCellConfig.Height),
-            RequiresExplicitCommit = propertyName == nameof(GlobalScoreCellConfig.Id)
-                                     || editorKind is FrontedPropertyEditorKind.FontFamily
-        };
-
-        if (editorKind == FrontedPropertyEditorKind.Enum)
-        {
-            row.Options = stringOptions is not null
-                ? stringOptions.Select(value => new FrontedPropertyEditorOption
-                {
-                    Value = value,
-                    DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
-                }).Cast<object>().ToArray()
-                : Enum.GetValues(Nullable.GetUnderlyingType(propertyType) ?? propertyType)
-                    .Cast<object>()
-                    .Select(value => new FrontedPropertyEditorOption
-                    {
-                        Value = value,
-                        DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
-                    })
-                    .Cast<object>()
-                    .ToArray();
-        }
-        else if (editorKind == FrontedPropertyEditorKind.FontFamily)
-        {
-            row.Options = _propertyGridBuilder.GetFontFamilyOptions();
-            row.EditText = GetCommittedEditText(row, value);
-        }
-
-        return row;
     }
 
     private static string GetCommittedEditText(FrontedPropertyEditorItem item, object? value) =>
@@ -5538,17 +4425,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         return Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
     }
-
-    private static string GetGlobalScoreCellPropertyDisplayKey(string propertyName) =>
-        propertyName switch
-        {
-            nameof(GlobalScoreCellConfig.Id) => "CellId",
-            nameof(GlobalScoreCellConfig.X) => "CellX",
-            nameof(GlobalScoreCellConfig.Y) => "CellY",
-            nameof(GlobalScoreCellConfig.ShowCampIcon) => "ShowCampIconOverride",
-            nameof(GlobalScoreCellConfig.CampIconColor) => "CampIconColorOverride",
-            _ => propertyName
-        };
 
     private Stopwatch? StartDesignerPerfTrace()
     {
@@ -5610,28 +4486,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var config = SelectedDesignItem.Config;
-        if (TryGetSelectedGlobalScoreCell(out _, out _, out var cell))
-        {
-            SelectedControlDisplay = $"{SelectedDesignItem.Name} / {cell.Id}";
-            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.GlobalScoreRow.SelectedCell");
-            SelectedControlGeometryDisplay =
-                $"X {cell.X:0.##}  Y {cell.Y:0.##}  "
-                + $"W {cell.Width:0.##}  H {cell.Height:0.##}";
-            SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
-            return;
-        }
-
-        if (SelectedMapV2InternalStylePart is { } selectedPart)
-        {
-            SelectedControlDisplay = $"{SelectedDesignItem.Name} / {selectedPart.DisplayName}";
-            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.MapV2Display.SelectedInternalPart");
-            var part = SelectedMapV2InternalPartLayout;
-            SelectedControlGeometryDisplay = part is null
-                ? string.Empty
-                : $"X {part.X:0.##}  Y {part.Y:0.##}  W {part.Width:0.##}  H {part.Height:0.##}";
-            SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
-            return;
-        }
 
         SelectedControlDisplay = SelectedDesignItem.Name;
         SelectedControlTypeDisplay = _localizationService.GetControlTypeDisplayName(config.ControlType);
@@ -5770,8 +4624,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var total = StartDesignerPerfTrace();
         var selectedName = SelectedDesignItem?.Name;
-        var selectedCellParentName = SelectedGlobalScoreCellParentName;
-        var selectedCellId = SelectedGlobalScoreCellId;
         var windowTypeName = CurrentDocument.WindowTypeName;
         var canvasName = CurrentDocument.CanvasName;
         var restoreSnapshot = DeserializeUndoSnapshot(snapshot);
@@ -5806,7 +4658,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CurrentDocument = document;
             SelectDesignItem(document.Controls.FirstOrDefault(control =>
                 string.Equals(control.Name, selectedName, StringComparison.Ordinal)));
-            RestoreGlobalScoreCellSelectionKeys(selectedCellParentName, selectedCellId);
             NormalizeSelectionState();
             RestoreBehaviorDocumentSnapshot(behaviorDocument, windowTypeName, canvasName);
 
@@ -5929,8 +4780,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var currentItemsByName = CurrentDocument.Controls.ToDictionary(item => item.Name, StringComparer.Ordinal);
         var selectedName = SelectedDesignItem?.Name;
-        var selectedCellParentName = SelectedGlobalScoreCellParentName;
-        var selectedCellId = SelectedGlobalScoreCellId;
         var changedItems = new List<FrontedControlDesignItem>();
         var restoreAppliedToPreview = false;
         var shouldKeepRestoreSuppression = false;
@@ -5972,7 +4821,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             if (!ReferenceEquals(SelectedDesignItem, selectedItem))
             {
                 SelectDesignItem(selectedItem);
-                RestoreGlobalScoreCellSelectionKeys(selectedCellParentName, selectedCellId);
             }
             else
             {
@@ -6061,23 +4909,78 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             changed = true;
         }
 
-        if (current is BorderedImageFrontedControlConfig currentImage
-            && target is BorderedImageFrontedControlConfig targetImage)
+        // Generic Part geometry patch: iterate Part definitions and copy
+        // geometry values from target to current via storage accessors.
+        // This replaces control-specific branches (e.g. BorderedImage ImageWidth/ImageHeight)
+        // with a unified Part-driven approach.
+        if (current.GetType() == target.GetType())
         {
-            if (!NullableDoubleEquals(currentImage.ImageWidth, targetImage.ImageWidth))
+            foreach (var part in BuiltInPartDefinitionResolver.GetParts(current))
             {
-                currentImage.ImageWidth = targetImage.ImageWidth;
+                changed |= PatchPartGeometry(part, current, target);
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool PatchPartGeometry(
+        FrontedV3PartDefinition part,
+        FrontedControlConfigBase current,
+        FrontedControlConfigBase target)
+    {
+        var changed = false;
+
+        if (part.WidthStorage is not null)
+        {
+            var targetValue = ToNullableDouble(part.WidthStorage.GetValue(target));
+            var currentValue = ToNullableDouble(part.WidthStorage.GetValue(current));
+            if (!NullableDoubleEquals(currentValue, targetValue))
+            {
+                part.WidthStorage.SetValue(current, part.WidthStorage.GetValue(target));
                 changed = true;
             }
+        }
 
-            if (!NullableDoubleEquals(currentImage.ImageHeight, targetImage.ImageHeight))
+        if (part.HeightStorage is not null)
+        {
+            var targetValue = ToNullableDouble(part.HeightStorage.GetValue(target));
+            var currentValue = ToNullableDouble(part.HeightStorage.GetValue(current));
+            if (!NullableDoubleEquals(currentValue, targetValue))
             {
-                currentImage.ImageHeight = targetImage.ImageHeight;
+                part.HeightStorage.SetValue(current, part.HeightStorage.GetValue(target));
+                changed = true;
+            }
+        }
+
+        if (part.XStorage is not null)
+        {
+            var targetValue = ToNullableDouble(part.XStorage.GetValue(target));
+            var currentValue = ToNullableDouble(part.XStorage.GetValue(current));
+            if (!NullableDoubleEquals(currentValue, targetValue))
+            {
+                part.XStorage.SetValue(current, part.XStorage.GetValue(target));
+                changed = true;
+            }
+        }
+
+        if (part.YStorage is not null)
+        {
+            var targetValue = ToNullableDouble(part.YStorage.GetValue(target));
+            var currentValue = ToNullableDouble(part.YStorage.GetValue(current));
+            if (!NullableDoubleEquals(currentValue, targetValue))
+            {
+                part.YStorage.SetValue(current, part.YStorage.GetValue(target));
                 changed = true;
             }
         }
 
         return changed;
+    }
+
+    private static double? ToNullableDouble(object? value)
+    {
+        return value is null ? null : Convert.ToDouble(value, CultureInfo.InvariantCulture);
     }
 
     private static bool DoubleEquals(double left, double right)
@@ -6508,8 +5411,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         if (propertyName is nameof(FrontedControlConfigBase.Width)
             or nameof(FrontedControlConfigBase.Height)
-            or nameof(BorderedImageFrontedControlConfig.ImageWidth)
-            or nameof(BorderedImageFrontedControlConfig.ImageHeight))
+            or "ImageWidth"
+            or "ImageHeight")
         {
             return Math.Max(
                 FrontedDesignerGeometryHelper.MinResizeWidth,
@@ -6765,8 +5668,8 @@ internal static class FrontedDesignerSnapshotRestorePlanner
         nameof(FrontedControlConfigBase.Width),
         nameof(FrontedControlConfigBase.Height),
         nameof(FrontedControlConfigBase.ZIndex),
-        nameof(BorderedImageFrontedControlConfig.ImageWidth),
-        nameof(BorderedImageFrontedControlConfig.ImageHeight)
+        "ImageWidth",
+        "ImageHeight"
     ];
 
     public static FrontedDesignerSnapshotDiff CreatePlan(

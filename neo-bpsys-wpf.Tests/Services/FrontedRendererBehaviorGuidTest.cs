@@ -4,7 +4,11 @@ using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using neo_bpsys_wpf.PluginSdk;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Windows;
@@ -25,7 +29,7 @@ public class FrontedRendererBehaviorGuidTest
                 new ServiceCollection().BuildServiceProvider(),
                 Mock.Of<ISharedDataService>(),
                 Mock.Of<IFrontedResourceResolver>(),
-                new FrontedControlRegistry([new RecordingControl()]),
+                new FrontedV3ControlRegistry([CreateRecordingRegistration()]),
                 NullLogger<FrontedRenderer>.Instance);
             var canvas = new Canvas();
             var config = new FrontedCanvasConfig
@@ -50,10 +54,9 @@ public class FrontedRendererBehaviorGuidTest
                 IsDesignerPreview = true
             });
 
-            var host = Assert.IsType<FrontedEffectHost>(Assert.Single(canvas.Children));
-            var element = Assert.IsType<Border>(host.HostedElement);
-            Assert.Equal(guid, FrontedRendererProperties.GetBehaviorGuid(element));
-            Assert.False(FrontedRendererProperties.GetIsGeneratedControl(host));
+            var host = Assert.IsType<FrontedV3ControlHost>(Assert.Single(canvas.Children));
+            Assert.Equal(guid, FrontedRendererProperties.GetBehaviorGuid(host));
+            Assert.True(FrontedRendererProperties.GetIsGeneratedControl(host));
         });
     }
 
@@ -112,6 +115,21 @@ public class FrontedRendererBehaviorGuidTest
         WpfTestThread.Run(action);
     }
 
+    private static FrontedV3ControlRegistration CreateRecordingRegistration()
+    {
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = "Recording",
+            LocalControlId = "Recording",
+            PackageId = "builtin",
+            IsBuiltIn = true,
+            ControlType = typeof(RecordingV3Control),
+            ConfigType = typeof(RecordingConfig),
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = () => new RecordingConfig()
+        };
+    }
+
     private sealed class RecordingConfig : FrontedControlConfigBase
     {
         public RecordingConfig()
@@ -119,18 +137,19 @@ public class FrontedRendererBehaviorGuidTest
             ControlType = "Recording";
         }
     }
+}
 
-    private sealed class RecordingControl : IFrontedControl
+/// <summary>
+/// 测试用 v3 控件，构造一个透明 Border 作为视觉内容，用于验证 Renderer 的 BehaviorGuid 传播。
+/// </summary>
+[FrontedV3Control("Recording", IsBuiltIn = true)]
+public sealed class RecordingV3Control : FrontedV3ControlBase
+{
+    /// <summary>
+    /// 初始化控件视觉树，创建一个 Border 作为内容。
+    /// </summary>
+    public RecordingV3Control()
     {
-        public string ControlType => "Recording";
-        public Type ConfigType => typeof(RecordingConfig);
-
-        public FrameworkElement Create(string name, FrontedControlConfigBase config, FrontedControlBuildContext context) =>
-            new Border
-            {
-                Name = name,
-                Width = config.Width ?? 0,
-                Height = config.Height ?? 0
-            };
+        Content = new Border();
     }
 }

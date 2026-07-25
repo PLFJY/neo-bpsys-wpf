@@ -1,41 +1,42 @@
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.PluginSdk;
 using System.Windows;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
-public class BackgroundTintRectangleFrontedControl(BackgroundImageTintProcessor processor) : IFrontedControl
+/// <summary>
+/// 内置 v3 背景色调矩形控件。
+/// </summary>
+[FrontedV3Control("BackgroundTintRectangle", IsBuiltIn = true)]
+public class BackgroundTintRectangleFrontedControl : FrontedV3ControlBase
 {
-    public BackgroundTintRectangleFrontedControl()
-        : this(new BackgroundImageTintProcessor())
+    /// <inheritdoc />
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-    }
-
-    public string ControlType => "BackgroundTintRectangle";
-
-    public Type ConfigType => typeof(BackgroundTintRectangleFrontedControlConfig);
-
-    public FrameworkElement Create(string name, FrontedControlConfigBase config, FrontedControlBuildContext context)
-    {
-        if (config is not BackgroundTintRectangleFrontedControlConfig rectangle)
+        if (context.Config is not BackgroundTintRectangleFrontedControlConfig rectangle)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a BackgroundTintRectangle config.");
+            throw new FrontedLayoutConfigException("Control config is not a BackgroundTintRectangle config.");
         }
 
-        return BackgroundTintFrontedControlFactoryHelper.Create(
-            name,
+        var buildContext = context.ToBuildContext();
+        var processor = context.Services.GetRequiredService<BackgroundImageTintProcessor>();
+        var root = BackgroundTintFrontedControlFactoryHelper.Create(
+            context.ControlName ?? string.Empty,
             rectangle,
-            context,
+            buildContext,
             processor,
-            root => new RectangleGeometry(
+            element => new RectangleGeometry(
                 new Rect(
                     0,
                     0,
-                    BackgroundTintFrontedControlFactoryHelper.GetWidth(root, rectangle),
-                    BackgroundTintFrontedControlFactoryHelper.GetHeight(root, rectangle)),
+                    BackgroundTintFrontedControlFactoryHelper.GetWidth(element, rectangle),
+                    BackgroundTintFrontedControlFactoryHelper.GetHeight(element, rectangle)),
                 Math.Max(0, rectangle.RadiusX),
                 Math.Max(0, rectangle.RadiusY)),
             BackgroundTintNormalizationMode.VisibleRectangle);
+        Content = root;
     }
 }

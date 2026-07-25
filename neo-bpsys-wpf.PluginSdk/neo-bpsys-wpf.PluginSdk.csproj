@@ -7,6 +7,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Version>0.3.0</Version>
 		<Platforms>AnyCPU;x64</Platforms>
+		<UseWPF>true</UseWPF>
     </PropertyGroup>
 
 	<ItemGroup>

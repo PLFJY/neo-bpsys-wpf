@@ -1,80 +1,104 @@
-using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
-using System.Reflection;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
 /// 为设计器 v3 添加控件创建安全的内存默认配置。
 /// </summary>
+/// <remarks>
+/// 通过 <see cref="IFrontedV3ControlRegistry"/> 解析 <see cref="FrontedV3ControlRegistration"/>，
+/// 调用 Registration 的 <see cref="FrontedV3ControlRegistration.CreateDefaultConfig"/> 创建默认配置。
+/// 不再维护硬编码白名单或类型 switch。
+/// </remarks>
 public class FrontedControlDefaultConfigFactory
 {
-    private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedV3ControlRegistry? _v3ControlRegistry;
     private readonly IFrontedDesignerLocalizationService _localizationService;
 
-    private static readonly IReadOnlySet<string> AddableControlTypes =
-        new HashSet<string>(StringComparer.Ordinal)
-        {
-            "Text",
-            "LocalizedText",
-            "Image",
-            "BorderedImage",
-            "Rectangle",
-            "Polygon",
-            "BackgroundTintRectangle",
-            "BackgroundTintPolygon",
-            "MapNameText",
-            "GameProgressText",
-            "TalentTraitDisplay",
-            "GlobalScoreRow",
-            "MapV2Display"
-        };
-
+    /// <summary>
+    /// 使用默认本地化初始化工厂，不绑定 V3 Registry（仅用于无 DI 的测试场景）。
+    /// </summary>
     public FrontedControlDefaultConfigFactory()
         : this(null, new FrontedDesignerLocalizationService())
     {
     }
 
+    /// <summary>
+    /// 使用 V3 Registry 和本地化服务初始化工厂。
+    /// </summary>
+    /// <param name="v3ControlRegistry">V3 控件注册表。</param>
+    /// <param name="localizationService">Designer 本地化服务。</param>
     public FrontedControlDefaultConfigFactory(
-        IFrontedControlRegistry? controlRegistry,
+        IFrontedV3ControlRegistry? v3ControlRegistry,
         IFrontedDesignerLocalizationService? localizationService = null)
     {
-        _controlRegistry = controlRegistry;
+        _v3ControlRegistry = v3ControlRegistry;
         _localizationService = localizationService ?? new FrontedDesignerLocalizationService();
     }
 
     /// <summary>
-    /// 获取普通添加控件公开的内置控件类型。
+    /// 获取普通添加控件公开的内置控件类型集合。
     /// </summary>
-    public IReadOnlySet<string> GetAddableControlTypes() => AddableControlTypes;
+    /// <returns>内置控件 CanonicalControlType 集合。</returns>
+    public IReadOnlySet<string> GetAddableControlTypes()
+    {
+        if (_v3ControlRegistry is null)
+        {
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+
+        return _v3ControlRegistry.GetRegistrations()
+            .Where(registration => registration.IsBuiltIn)
+            .Select(registration => registration.CanonicalControlType)
+            .ToHashSet(StringComparer.Ordinal);
+    }
 
     /// <summary>
     /// 返回 ControlType 是否可通过普通添加控件创建。
     /// </summary>
+    /// <param name="controlType">控件的 CanonicalControlType。</param>
+    /// <returns>已注册时为 <see langword="true"/>。</returns>
     public bool CanCreate(string controlType) =>
-        AddableControlTypes.Contains(controlType)
-        || CanCreatePlugin(controlType);
+        _v3ControlRegistry?.GetRegistration(controlType) is not null;
 
+    /// <summary>
+    /// 获取添加控件的目录分组（内置 + 插件）。
+    /// </summary>
+    /// <returns>目录分组列表。</returns>
     public IReadOnlyList<FrontedAddControlCatalogGroup> GetCatalog()
     {
+        var registrations = _v3ControlRegistry?.GetRegistrations() ?? [];
+
+        var builtInItems = registrations
+            .Where(registration => registration.IsBuiltIn)
+            .Select(registration => new FrontedAddControlCatalogItem
+            {
+                ControlType = registration.CanonicalControlType,
+                DisplayName = _localizationService.GetControlTypeDisplayName(registration.CanonicalControlType),
+                IsAvailable = true
+            })
+            .ToArray();
+
         var builtIn = new FrontedAddControlCatalogGroup
         {
             DisplayName = _localizationService.GetDesignerText("BasicControls", "Basic Controls"),
-            Items = AddableControlTypes
-                .Select(controlType => new FrontedAddControlCatalogItem
-                {
-                    ControlType = controlType,
-                    DisplayName = _localizationService.GetControlTypeDisplayName(controlType),
-                    IsAvailable = true
-                })
-                .ToArray()
+            Items = builtInItems
         };
 
-        var pluginGroups = (_controlRegistry?.GetPluginDescriptors() ?? [])
-            .Select(CreatePluginCatalogItem)
-            .Where(item => item.IsAvailable)
+        var pluginGroups = registrations
+            .Where(registration => !registration.IsBuiltIn)
+            .Select(registration => new FrontedAddControlCatalogItem
+            {
+                ControlType = registration.CanonicalControlType,
+                DisplayName = _localizationService.GetControlTypeDisplayName(registration.CanonicalControlType),
+                IsPlugin = true,
+                PackageId = registration.PackageId,
+                PluginDisplayName = registration.PackageId,
+                IsAvailable = true
+            })
             .GroupBy(item => item.PackageId ?? string.Empty, StringComparer.OrdinalIgnoreCase)
             .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
             .Select(group => new FrontedAddControlCatalogGroup
@@ -92,237 +116,26 @@ public class FrontedControlDefaultConfigFactory
     /// <summary>
     /// 创建默认配置并将其放置在请求的逻辑中心周围。
     /// </summary>
+    /// <param name="controlType">控件的 CanonicalControlType。</param>
+    /// <param name="document">目标设计文档。</param>
+    /// <param name="centerX">放置中心 X（可选）。</param>
+    /// <param name="centerY">放置中心 Y（可选）。</param>
+    /// <returns>创建的默认配置实例。</returns>
+    /// <exception cref="NotSupportedException">当 ControlType 未注册时抛出。</exception>
     public FrontedControlConfigBase Create(
         string controlType,
         FrontedCanvasDesignDocument document,
         double? centerX = null,
         double? centerY = null)
     {
-        if (!CanCreate(controlType))
-        {
-            throw new NotSupportedException($"Unsupported control type '{controlType}'.");
-        }
+        var registration = _v3ControlRegistry?.GetRegistration(controlType)
+            ?? throw new NotSupportedException($"Unsupported control type '{controlType}'.");
 
-        var config = FrontedPluginControlType.IsPluginControlType(controlType)
-            ? CreatePluginDefault(controlType)
-            : CreateDefault(controlType);
+        var config = registration.CreateDefaultConfig();
         config.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
         config.ZIndex = GetNextZIndex(document);
         ApplyPlacement(config, document, centerX, centerY);
         return config;
-    }
-
-    private bool CanCreatePlugin(string controlType)
-    {
-        return _controlRegistry?.GetPluginDescriptor(controlType) is { } descriptor
-               && TryCreatePluginDefault(descriptor, out _);
-    }
-
-    private FrontedControlConfigBase CreatePluginDefault(string controlType)
-    {
-        var descriptor = _controlRegistry?.GetPluginDescriptor(controlType)
-            ?? throw new NotSupportedException($"Unsupported plugin control type '{controlType}'.");
-
-        if (TryCreatePluginDefault(descriptor, out var config))
-        {
-            return config;
-        }
-
-        throw new NotSupportedException($"Plugin control type '{controlType}' does not provide a safe default config.");
-    }
-
-    private FrontedAddControlCatalogItem CreatePluginCatalogItem(IFrontedPluginControlDescriptor descriptor)
-    {
-        var isAvailable = TryCreatePluginDefault(descriptor, out _);
-        var displayName = ResolveDescriptorText(descriptor.DisplayNameKey, descriptor.ControlTypeName);
-        return new FrontedAddControlCatalogItem
-        {
-            ControlType = descriptor.FullControlType,
-            DisplayName = displayName,
-            Description = ResolveDescriptorText(descriptor.DescriptionKey, string.Empty),
-            Icon = descriptor.Icon,
-            IsPlugin = true,
-            PackageId = descriptor.PackageId,
-            PluginDisplayName = descriptor.PackageId,
-            IsAvailable = isAvailable,
-            UnavailableReason = isAvailable
-                ? null
-                : _localizationService.GetDesignerText("Designer.PluginControlUnavailable", "Plugin control unavailable")
-        };
-    }
-
-    private string ResolveDescriptorText(string? key, string fallback)
-    {
-        return string.IsNullOrWhiteSpace(key)
-            ? fallback
-            : _localizationService.GetDesignerText(key, fallback);
-    }
-
-    private static bool TryCreatePluginDefault(
-        IFrontedPluginControlDescriptor descriptor,
-        out FrontedControlConfigBase config)
-    {
-        config = null!;
-        var createDefaultConfig = descriptor.GetType()
-            .GetProperty(nameof(FrontedPluginControlDescriptor<FrontedControlConfigBase>.CreateDefaultConfig), BindingFlags.Instance | BindingFlags.Public)
-            ?.GetValue(descriptor) as Delegate;
-
-        if (createDefaultConfig is not null)
-        {
-            if (createDefaultConfig.DynamicInvoke() is FrontedControlConfigBase created)
-            {
-                created.ControlType = descriptor.FullControlType;
-                config = created;
-                return true;
-            }
-
-            return false;
-        }
-
-        if (descriptor.ConfigType.GetConstructor(Type.EmptyTypes) is null
-            || !typeof(FrontedControlConfigBase).IsAssignableFrom(descriptor.ConfigType))
-        {
-            return false;
-        }
-
-        config = (FrontedControlConfigBase)(Activator.CreateInstance(descriptor.ConfigType)
-            ?? throw new InvalidOperationException($"Plugin config '{descriptor.ConfigType.Name}' could not be created."));
-        config.ControlType = descriptor.FullControlType;
-        return true;
-    }
-
-    private static FrontedControlConfigBase CreateDefault(string controlType)
-    {
-        return controlType switch
-        {
-            "Text" => new TextFrontedControlConfig
-            {
-                Text = "Text",
-                Width = 160,
-                Height = 40,
-                FontSize = 24,
-                Color = "#FFFFFFFF",
-                TextAlignment = "Center"
-            },
-            "LocalizedText" => new LocalizedTextControlConfig
-            {
-                LocalizationKey = "Text",
-                FallbackText = "Localized Text",
-                Width = 200,
-                Height = 40,
-                FontSize = 24,
-                Color = "#FFFFFFFF",
-                TextAlignment = "Center"
-            },
-            "Image" => new ImageFrontedControlConfig
-            {
-                Width = 120,
-                Height = 120,
-                SizingMode = ImageSizingMode.Auto,
-                Stretch = "Uniform"
-            },
-            "BorderedImage" => new BorderedImageFrontedControlConfig
-            {
-                Width = 120,
-                Height = 120,
-                SizingMode = ImageSizingMode.FillContainer,
-                Stretch = "UniformToFill",
-                ClipToBounds = true
-            },
-            "Rectangle" => new RectangleFrontedControlConfig
-            {
-                Width = 160,
-                Height = 80,
-                FillMode = ShapeFillMode.Solid,
-                FillColor = "#FFFFFFFF"
-            },
-            "Polygon" => new PolygonFrontedControlConfig
-            {
-                Width = 160,
-                Height = 120,
-                FillMode = ShapeFillMode.Solid,
-                FillColor = "#FFFFFFFF"
-            },
-            "BackgroundTintRectangle" => new BackgroundTintRectangleFrontedControlConfig
-            {
-                Width = 160,
-                Height = 80,
-                TintColor = "#FFFFFFFF",
-                TintStrength = 1D,
-                TextureStrength = 0.45D,
-                TintMode = BackgroundTintMode.LuminanceColorize
-            },
-            "BackgroundTintPolygon" => new BackgroundTintPolygonFrontedControlConfig
-            {
-                Width = 160,
-                Height = 120,
-                TintColor = "#FFFFFFFF",
-                TintStrength = 1D,
-                TextureStrength = 0.45D,
-                TintMode = BackgroundTintMode.LuminanceColorize
-            },
-            "MapNameText" => new MapNameTextControlConfig
-            {
-                Width = 240,
-                Height = 40,
-                FontSize = 24,
-                Color = "#FFFFFFFF",
-                TextAlignment = "Center",
-                EmptyText = "Map"
-            },
-            "GameProgressText" => new GameProgressTextControlConfig
-            {
-                Width = 260,
-                Height = 56,
-                FontSize = 24,
-                Color = "#FFFFFFFF",
-                TextAlignment = "Center",
-                DisplayMode = Core.Enums.GameProgressTextDisplayMode.Inline,
-                VerticalLanguageMode = Core.Enums.GameProgressVerticalLanguageMode.Auto,
-                LatinVerticalMode = Core.Enums.GameProgressLatinVerticalMode.RotateBlock,
-                NumberStyle = Core.Enums.GameProgressNumberStyle.Auto,
-                VerticalDirection = Core.Enums.GameProgressVerticalDirection.Auto,
-                DisplayLanguage = Core.Enums.LanguageKey.FollowApp,
-                GroupSpacing = 8,
-                PaddingLeft = 0,
-                PaddingTop = 0,
-                PaddingRight = 0,
-                PaddingBottom = 0,
-                ShowSeparator = false,
-                SeparatorThickness = 1
-            },
-            "TalentTraitDisplay" => new TalentTraitDisplayControlConfig
-            {
-                DisplayKind = TalentTraitDisplayKind.SurvivorTalent,
-                PlayerIndex = 0,
-                Width = 180,
-                Height = 40,
-                IconSize = 36,
-                IconGap = 0
-            },
-            "GlobalScoreRow" => new GlobalScoreRowControlConfig
-            {
-                TeamType = TeamType.HomeTeam,
-                Width = 1080,
-                Height = 40,
-                FontFamily = "Arial",
-                FontWeight = "Bold",
-                FontSize = 24,
-                Color = "#FFFFFFFF",
-                ShowCampIcon = true,
-                CampIconColor = GlobalScoreCampIconColor.White,
-                Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate()
-            },
-            "MapV2Display" => new MapV2DisplayControlConfig
-            {
-                MapKey = "ArmsFactory",
-                Width = 151,
-                Height = 160,
-                MapBorderNormalColor = "#FF2B483B",
-                MapBorderBannedColor = "#FF9C3E2F"
-            },
-            _ => throw new NotSupportedException($"Unsupported control type '{controlType}'.")
-        };
     }
 
     private static int GetNextZIndex(FrontedCanvasDesignDocument document)

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -5,7 +6,12 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Options;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using neo_bpsys_wpf.PluginSdk;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
@@ -26,7 +32,7 @@ public class BackgroundTintFrontedControlTest
     [Fact]
     public void DefaultsJsonPropertyGridAndValidationSupportTintControls()
     {
-        var factory = new FrontedControlDefaultConfigFactory();
+        var factory = new FrontedControlDefaultConfigFactory(CreateTintV3Registry());
         var document = new FrontedCanvasDesignDocument
         {
             CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 800, CanvasHeight = 600 }
@@ -299,7 +305,6 @@ public class BackgroundTintFrontedControlTest
             var resolver = new Mock<IFrontedResourceResolver>();
             resolver.Setup(service => service.ResolveImage("Resources/bg.png", FrontedImagePurpose.Background))
                 .Returns(CreateBitmap(100, 100, 100, 200));
-            var context = CreateContext(shared.Object, resolver.Object);
             var rectangleConfig = new BackgroundTintRectangleFrontedControlConfig
             {
                 Left = 12,
@@ -311,8 +316,10 @@ public class BackgroundTintFrontedControlTest
                 TintBindingPath = "HomeTeam.ColorHex",
                 TintMode = BackgroundTintMode.BaseColorWithTexture
             };
-            var rectangle = Assert.IsType<BackgroundTintControlHost>(
-                new BackgroundTintRectangleFrontedControl().Create("Tint", rectangleConfig, context));
+            var rectangleControl = new BackgroundTintRectangleFrontedControl();
+            rectangleControl.InitializeFrontedV3(
+                CreateV3Context(rectangleConfig, shared.Object, resolver.Object));
+            var rectangle = Assert.IsType<BackgroundTintControlHost>(rectangleControl.Content);
             Assert.IsType<RectangleGeometry>(rectangle.Clip);
 
             home.ColorHex = "#FF00FF00";
@@ -331,16 +338,15 @@ public class BackgroundTintFrontedControlTest
             Assert.Equal(new Point(100, 0), geometry.Figures[0].StartPoint);
             polygonConfig.Points = [];
 
-            var missingLive = new BackgroundTintRectangleFrontedControl().Create(
-                "Missing",
-                rectangleConfig,
-                CreateContext(shared.Object, new Mock<IFrontedResourceResolver>().Object));
-            Assert.Empty(Assert.IsType<Grid>(missingLive).Children);
+            var missingLiveControl = new BackgroundTintRectangleFrontedControl();
+            missingLiveControl.InitializeFrontedV3(
+                CreateV3Context(rectangleConfig, shared.Object, new Mock<IFrontedResourceResolver>().Object));
+            Assert.Empty(Assert.IsType<Grid>(missingLiveControl.Content).Children);
 
-            var designerContext = CreateContext(shared.Object, new Mock<IFrontedResourceResolver>().Object, true);
-            var missingDesigner = Assert.IsType<Grid>(
-                new BackgroundTintRectangleFrontedControl().Create("Missing", rectangleConfig, designerContext));
-            Assert.NotEmpty(missingDesigner.Children);
+            var missingDesignerControl = new BackgroundTintRectangleFrontedControl();
+            missingDesignerControl.InitializeFrontedV3(
+                CreateV3Context(rectangleConfig, shared.Object, new Mock<IFrontedResourceResolver>().Object, true));
+            Assert.NotEmpty(Assert.IsType<Grid>(missingDesignerControl.Content).Children);
         });
     }
 
@@ -351,15 +357,15 @@ public class BackgroundTintFrontedControlTest
         {
             var shared = new Mock<ISharedDataService>();
             shared.SetupGet(service => service.IsBo3Mode).Returns(true);
-            var recorder = new RecordingControl();
             var renderer = new FrontedRenderer(
                 new Mock<IServiceProvider>().Object,
                 shared.Object,
                 new Mock<IFrontedResourceResolver>().Object,
-                new FrontedControlRegistry([recorder]),
+                new FrontedV3ControlRegistry([CreateRecordingRegistration()]),
                 NullLogger<FrontedRenderer>.Instance);
+            var canvas = new Canvas();
             renderer.RenderToCanvas(
-                new Canvas(),
+                canvas,
                 new FrontedCanvasConfig
                 {
                     CanvasWidth = 123,
@@ -381,7 +387,7 @@ public class BackgroundTintFrontedControlTest
                     IsDesignerPreview = true
                 });
 
-            Assert.True(recorder.Context.IsDesignerPreview);
+            Assert.True(RecordingV3Control.LastContext?.IsDesignerPreview);
         });
     }
 
@@ -402,17 +408,22 @@ public class BackgroundTintFrontedControlTest
         Assert.Equal(3, config.Points.Count);
     }
 
-    private static FrontedControlBuildContext CreateContext(
+    private static FrontedV3ControlContext CreateV3Context(
+        FrontedControlConfigBase config,
         ISharedDataService shared,
         IFrontedResourceResolver resolver,
         bool isDesigner = false) =>
         new()
         {
-            Services = new Mock<IServiceProvider>().Object,
+            Services = new ServiceCollection()
+                .AddSingleton(new BackgroundImageTintProcessor())
+                .BuildServiceProvider(),
             SharedDataService = shared,
             ResourceResolver = resolver,
             WindowId = "Window",
             CanvasName = "Canvas",
+            Config = config,
+            ControlName = "Test",
             CanvasBackgroundImage = "Resources/bg.png",
             CanvasWidth = 800,
             CanvasHeight = 600,
@@ -512,16 +523,58 @@ public class BackgroundTintFrontedControlTest
         }
     }
 
-    private sealed class RecordingControl : IFrontedControl
+    [FrontedV3Control("Recording", IsBuiltIn = true)]
+    private sealed class RecordingV3Control : FrontedV3ControlBase
     {
-        public string ControlType => "Recording";
-        public Type ConfigType => typeof(RecordingConfig);
-        public FrontedControlBuildContext Context { get; private set; }
+        public static FrontedV3ControlContext? LastContext { get; private set; }
 
-        public FrameworkElement Create(string name, FrontedControlConfigBase config, FrontedControlBuildContext context)
+        protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
         {
-            Context = context;
-            return new Grid();
+            LastContext = context;
+            Content = new Grid();
         }
+    }
+
+    private static FrontedV3ControlRegistration CreateRecordingRegistration()
+    {
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = "Recording",
+            LocalControlId = "Recording",
+            PackageId = "builtin",
+            IsBuiltIn = true,
+            ControlType = typeof(RecordingV3Control),
+            ConfigType = typeof(RecordingConfig),
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = () => new RecordingConfig()
+        };
+    }
+
+    private static FrontedV3ControlRegistry CreateTintV3Registry()
+    {
+        return new FrontedV3ControlRegistry([
+            new FrontedV3ControlRegistration
+            {
+                CanonicalControlType = "BackgroundTintRectangle",
+                LocalControlId = "BackgroundTintRectangle",
+                PackageId = "builtin",
+                IsBuiltIn = true,
+                ControlType = typeof(BackgroundTintRectangleFrontedControl),
+                ConfigType = typeof(BackgroundTintRectangleFrontedControlConfig),
+                Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+                CreateDefaultConfig = () => new BackgroundTintRectangleFrontedControlConfig()
+            },
+            new FrontedV3ControlRegistration
+            {
+                CanonicalControlType = "BackgroundTintPolygon",
+                LocalControlId = "BackgroundTintPolygon",
+                PackageId = "builtin",
+                IsBuiltIn = true,
+                ControlType = typeof(BackgroundTintPolygonFrontedControl),
+                ConfigType = typeof(BackgroundTintPolygonFrontedControlConfig),
+                Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+                CreateDefaultConfig = () => new BackgroundTintPolygonFrontedControlConfig()
+            }
+        ]);
     }
 }

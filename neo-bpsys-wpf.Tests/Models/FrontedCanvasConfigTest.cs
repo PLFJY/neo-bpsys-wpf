@@ -10,13 +10,18 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using neo_bpsys_wpf.PluginSdk;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
@@ -706,7 +711,7 @@ public class FrontedCanvasConfigTest
                 EmptyServiceProvider.Instance,
                 sharedDataService.Object,
                 NullFrontedResourceResolver.Instance,
-                new FrontedControlRegistry([new TextFrontedControl()]),
+                CreateTestRegistry(),
                 NullLogger<FrontedRenderer>.Instance);
 
             var window = new Window();
@@ -736,8 +741,8 @@ public class FrontedCanvasConfigTest
                     CanvasName = "BaseCanvas"
                 });
 
-            var host = Assert.IsType<FrontedEffectHost>(canvas.Children[0]);
-            Assert.Same(host.HostedElement, window.FindName("GeneratedText"));
+            var host = Assert.IsType<FrontedV3ControlHost>(canvas.Children[0]);
+            Assert.Same(host, window.FindName("GeneratedText"));
 
             renderer.RenderToCanvas(
                 canvas,
@@ -769,7 +774,7 @@ public class FrontedCanvasConfigTest
                 EmptyServiceProvider.Instance,
                 sharedDataService.Object,
                 resolver,
-                new FrontedControlRegistry([]),
+                new FrontedV3ControlRegistry([]),
                 NullLogger<FrontedRenderer>.Instance);
 
             renderer.RenderToCanvas(
@@ -833,7 +838,7 @@ public class FrontedCanvasConfigTest
                 EmptyServiceProvider.Instance,
                 sharedDataService.Object,
                 resolver,
-                new FrontedControlRegistry([]),
+                new FrontedV3ControlRegistry([]),
                 NullLogger<FrontedRenderer>.Instance);
 
             renderer.RenderToCanvas(
@@ -1150,16 +1155,14 @@ public class FrontedCanvasConfigTest
     {
         RunOnStaThread(() =>
         {
+            var config = new TextFrontedControlConfig
+            {
+                Text = "Static title"
+            };
             var control = new TextFrontedControl();
-            var element = control.Create(
-                "Title",
-                new TextFrontedControlConfig
-                {
-                    Text = "Static title"
-                },
-                CreateBuildContext());
+            control.InitializeFrontedV3(CreateV3Context(config, "Title"));
 
-            var border = Assert.IsType<Border>(element);
+            var border = Assert.IsType<Border>(control.Content);
             var textBlock = Assert.IsType<TextBlock>(border.Child);
             Assert.Equal("Static title", textBlock.Text);
             Assert.Null(BindingOperations.GetBinding(textBlock, TextBlock.TextProperty));
@@ -1172,17 +1175,15 @@ public class FrontedCanvasConfigTest
         RunOnStaThread(() =>
         {
             var sharedDataService = new Mock<ISharedDataService>().Object;
+            var config = new TextFrontedControlConfig
+            {
+                TextBinding = CreateTextBinding("CurrentGame.SurTeam.Name"),
+                Text = "Static title"
+            };
             var control = new TextFrontedControl();
-            var element = control.Create(
-                "Title",
-                new TextFrontedControlConfig
-                {
-                    TextBinding = CreateTextBinding("CurrentGame.SurTeam.Name"),
-                    Text = "Static title"
-                },
-                CreateBuildContext(sharedDataService));
+            control.InitializeFrontedV3(CreateV3Context(config, "Title", sharedDataService));
 
-            var border = Assert.IsType<Border>(element);
+            var border = Assert.IsType<Border>(control.Content);
             var textBlock = Assert.IsType<TextBlock>(border.Child);
             var binding = BindingOperations.GetMultiBinding(textBlock, TextBlock.TextProperty);
             Assert.NotNull(binding);
@@ -1198,34 +1199,32 @@ public class FrontedCanvasConfigTest
     {
         RunOnStaThread(() =>
         {
-            var control = new TextFrontedControl();
-            var element = control.Create(
-                "DecodingProgress",
-                new TextFrontedControlConfig
+            var sharedDataService = new Mock<ISharedDataService>().Object;
+            var config = new TextFrontedControlConfig
+            {
+                TextBinding = new FrontedTextBindingExpression
                 {
-                    TextBinding = new FrontedTextBindingExpression
-                    {
-                        Sources = [new FrontedBindingSourceConfig { Path = "CurrentGame.SurPlayerList[0].Data.DecodingProgress" }],
-                        StringFormat = "{0}%"
-                    }
-                },
-                CreateBuildContext(new Mock<ISharedDataService>().Object));
+                    Sources = [new FrontedBindingSourceConfig { Path = "CurrentGame.SurPlayerList[0].Data.DecodingProgress" }],
+                    StringFormat = "{0}%"
+                }
+            };
+            var control = new TextFrontedControl();
+            control.InitializeFrontedV3(CreateV3Context(config, "DecodingProgress", sharedDataService));
 
-            var border = Assert.IsType<Border>(element);
+            var border = Assert.IsType<Border>(control.Content);
             var textBlock = Assert.IsType<TextBlock>(border.Child);
             var binding = BindingOperations.GetMultiBinding(textBlock, TextBlock.TextProperty);
             Assert.NotNull(binding);
             Assert.Equal("{0}%", Assert.IsType<FrontedTextBindingExpression>(binding.ConverterParameter).StringFormat);
 
-            var staticElement = control.Create(
-                "Title",
-                new TextFrontedControlConfig
-                {
-                    Text = "Static title"
-                },
-                CreateBuildContext());
+            var staticConfig = new TextFrontedControlConfig
+            {
+                Text = "Static title"
+            };
+            var staticControl = new TextFrontedControl();
+            staticControl.InitializeFrontedV3(CreateV3Context(staticConfig, "Title"));
 
-            var staticBorder = Assert.IsType<Border>(staticElement);
+            var staticBorder = Assert.IsType<Border>(staticControl.Content);
             var staticTextBlock = Assert.IsType<TextBlock>(staticBorder.Child);
             Assert.Equal("Static title", staticTextBlock.Text);
             Assert.Null(BindingOperations.GetBinding(staticTextBlock, TextBlock.TextProperty));
@@ -1235,147 +1234,8 @@ public class FrontedCanvasConfigTest
     [Fact]
     public void ImageAndBorderedImageControlTypesAreStable()
     {
-        Assert.Equal("Image", new ImageFrontedControl().ControlType);
-        Assert.Equal("BorderedImage", new BorderedImageFrontedControl().ControlType);
-    }
-
-    [Fact]
-    public void FrontedControlRegistryResolvesBuiltInControls()
-    {
-        var registry = new FrontedControlRegistry([new TextFrontedControl()]);
-
-        Assert.NotNull(registry.GetControl("Text"));
-        Assert.Empty(registry.GetPluginDescriptors());
-    }
-
-    [Fact]
-    public void PluginContributorRegistersDescriptorAndFactory()
-    {
-        var registry = new FrontedControlRegistry(
-            [new TextFrontedControl()],
-            [new TestPluginControlContributor()],
-            NullLogger<FrontedControlRegistry>.Instance);
-
-        var descriptor = registry.GetPluginDescriptor("plugin:top.plfjy.example.fronted/TeamCard");
-        Assert.NotNull(descriptor);
-        Assert.True(registry.IsPluginControlRegistered("plugin:top.plfjy.example.fronted/TeamCard"));
-        Assert.Equal(typeof(TestPluginControlConfig), descriptor.ConfigType);
-        Assert.NotNull(registry.GetControl("plugin:top.plfjy.example.fronted/TeamCard"));
-        Assert.Contains(registry.GetControls(), control => control.ControlType == "Text");
-        Assert.Contains(
-            registry.GetControls(),
-            control => control.ControlType == "plugin:top.plfjy.example.fronted/TeamCard");
-    }
-
-    [Fact]
-    public void DuplicatePluginControlTypeFails()
-    {
-        Assert.Throws<FrontedLayoutConfigException>(() =>
-            new FrontedControlRegistry(
-                [new TextFrontedControl()],
-                [new TestPluginControlContributor(), new TestPluginControlContributor()],
-                NullLogger<FrontedControlRegistry>.Instance));
-    }
-
-    [Fact]
-    public void PluginDescriptorCannotShadowExistingControlType()
-    {
-        Assert.Throws<FrontedLayoutConfigException>(() =>
-            new FrontedControlRegistry(
-                [new FakeFrontedControl("plugin:top.plfjy.example.fronted/TeamCard")],
-                [new TestPluginControlContributor()],
-                NullLogger<FrontedControlRegistry>.Instance));
-    }
-
-    [Fact]
-    public void DuplicateBuiltInControlTypeFails()
-    {
-        Assert.Throws<FrontedLayoutConfigException>(() =>
-            new FrontedControlRegistry(
-                [new FakeFrontedControl("Text"), new FakeFrontedControl("Text")],
-                [],
-                NullLogger<FrontedControlRegistry>.Instance));
-    }
-
-    [Fact]
-    public void PluginAdapterConvertsGenericConfigAndCallsCreateControl()
-    {
-        RunOnStaThread(() =>
-        {
-            var contributor = new TestPluginControlContributor();
-            var registry = new FrontedControlRegistry(
-                [new TextFrontedControl()],
-                [contributor],
-                NullLogger<FrontedControlRegistry>.Instance);
-
-            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
-                """
-                {
-                  "Version": 3,
-                  "CanvasWidth": 1440,
-                  "CanvasHeight": 810,
-                  "TeamCard1": {
-                    "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
-                    "Left": 100,
-                    "Top": 120,
-                    "Width": 260,
-                    "Height": 96,
-                    "TeamNameBindingPath": "CurrentGame.HomeTeam.Name",
-                    "Count": 5
-                  }
-                }
-                """);
-
-            Assert.NotNull(config);
-            var factory = Assert.IsType<FrontedPluginControlAdapter<TestPluginControlConfig>>(
-                registry.GetControl("plugin:top.plfjy.example.fronted/TeamCard"));
-            var element = factory.Create(
-                "TeamCard1",
-                config.Controls["TeamCard1"],
-                CreateBuildContext());
-
-            var border = Assert.IsType<Border>(element);
-            Assert.Equal("TeamCard1", border.Name);
-            Assert.Equal("CurrentGame.HomeTeam.Name", contributor.LastConfig?.TeamNameBindingPath);
-            Assert.Equal(5, contributor.LastConfig?.Count);
-            Assert.Equal("TeamCard1", contributor.LastName);
-        });
-    }
-
-    [Fact]
-    public void PluginAdapterInvalidGenericConfigConversionThrowsClearException()
-    {
-        RunOnStaThread(() =>
-        {
-            var registry = new FrontedControlRegistry(
-                [new TextFrontedControl()],
-                [new TestPluginControlContributor()],
-                NullLogger<FrontedControlRegistry>.Instance);
-
-            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
-                """
-                {
-                  "Version": 3,
-                  "CanvasWidth": 1440,
-                  "CanvasHeight": 810,
-                  "TeamCard1": {
-                    "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
-                    "Left": 100,
-                    "Top": 120,
-                    "Count": "not-a-number"
-                  }
-                }
-                """);
-
-            Assert.NotNull(config);
-            var factory = registry.GetControl("plugin:top.plfjy.example.fronted/TeamCard");
-            Assert.NotNull(factory);
-            var exception = Assert.Throws<FrontedLayoutConfigException>(() =>
-                factory.Create("TeamCard1", config.Controls["TeamCard1"], CreateBuildContext()));
-
-            Assert.Contains("could not be converted", exception.Message);
-            Assert.Contains(nameof(TestPluginControlConfig), exception.Message);
-        });
+        Assert.Equal("Image", typeof(ImageFrontedControl).GetCustomAttribute<FrontedV3ControlAttribute>()!.ControlId);
+        Assert.Equal("BorderedImage", typeof(BorderedImageFrontedControl).GetCustomAttribute<FrontedV3ControlAttribute>()!.ControlId);
     }
 
     [Fact]
@@ -1387,7 +1247,7 @@ public class FrontedCanvasConfigTest
                 EmptyServiceProvider.Instance,
                 new Mock<ISharedDataService>().Object,
                 NullFrontedResourceResolver.Instance,
-                new FrontedControlRegistry([new TextFrontedControl()]),
+                CreateTestRegistry(),
                 NullLogger<FrontedRenderer>.Instance);
             var canvas = new Canvas();
 
@@ -1419,8 +1279,8 @@ public class FrontedCanvasConfigTest
                     CanvasName = "BaseCanvas"
                 });
 
-            var host = Assert.IsType<FrontedEffectHost>(Assert.Single(canvas.Children));
-            Assert.IsType<Border>(host.HostedElement);
+            var host = Assert.IsType<FrontedV3ControlHost>(Assert.Single(canvas.Children));
+            Assert.IsType<TextFrontedControl>(host.Control);
         });
     }
 
@@ -1433,7 +1293,7 @@ public class FrontedCanvasConfigTest
                 EmptyServiceProvider.Instance,
                 new Mock<ISharedDataService>().Object,
                 NullFrontedResourceResolver.Instance,
-                new FrontedControlRegistry([new TextFrontedControl()]),
+                CreateTestRegistry(),
                 NullLogger<FrontedRenderer>.Instance);
 
             Assert.Throws<FrontedLayoutConfigException>(() =>
@@ -1466,24 +1326,22 @@ public class FrontedCanvasConfigTest
     {
         RunOnStaThread(() =>
         {
+            var config = new ImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 85,
+                Height = 85,
+                SizingMode = ImageSizingMode.FillContainer,
+                Stretch = "Fill",
+                HorizontalAlignment = "Center",
+                VerticalAlignment = "Top",
+                ZIndex = 3
+            };
             var control = new ImageFrontedControl();
-            var element = control.Create(
-                "Logo",
-                new ImageFrontedControlConfig
-                {
-                    Left = 10,
-                    Top = 20,
-                    Width = 85,
-                    Height = 85,
-                    SizingMode = ImageSizingMode.FillContainer,
-                    Stretch = "Fill",
-                    HorizontalAlignment = "Center",
-                    VerticalAlignment = "Top",
-                    ZIndex = 3
-                },
-                CreateBuildContext());
+            control.InitializeFrontedV3(CreateV3Context(config, "Logo"));
 
-            var root = Assert.IsType<Grid>(element);
+            var root = Assert.IsType<Grid>(control.Content);
             var image = FindPrimaryImage(root);
         });
     }
@@ -1498,7 +1356,7 @@ public class FrontedCanvasConfigTest
                 EmptyServiceProvider.Instance,
                 new Mock<ISharedDataService>().Object,
                 NullFrontedResourceResolver.Instance,
-                new FrontedControlRegistry([new TextFrontedControl()]),
+                CreateTestRegistry(),
                 NullLogger<FrontedRenderer>.Instance);
             var canvas = new Canvas();
 
@@ -1631,17 +1489,16 @@ public class FrontedCanvasConfigTest
         RunOnStaThread(() =>
         {
             var guid = Guid.NewGuid();
-            var element = new ImageFrontedControl().Create(
-                "BanSlot",
-                new ImageFrontedControlConfig
-                {
-                    BehaviorGuid = guid,
-                    Lockable = true,
-                    PickingBorderAvailable = true
-                },
-                CreateBuildContext());
+            var config = new ImageFrontedControlConfig
+            {
+                BehaviorGuid = guid,
+                Lockable = true,
+                PickingBorderAvailable = true
+            };
+            var control = new ImageFrontedControl();
+            control.InitializeFrontedV3(CreateV3Context(config, "BanSlot"));
 
-            var root = Assert.IsType<Grid>(element);
+            var root = Assert.IsType<Grid>(control.Content);
             var lockOverlay = Assert.Single(
                 root.Children.OfType<Image>(),
                 item => FrontedRendererProperties.GetAnimationPartName(item) == "LockOverlay");
@@ -1659,17 +1516,16 @@ public class FrontedCanvasConfigTest
     {
         RunOnStaThread(() =>
         {
-            var element = new ImageFrontedControl().Create(
-                "BanSlot",
-                new ImageFrontedControlConfig
-                {
-                    BehaviorGuid = Guid.NewGuid(),
-                    Lockable = false,
-                    PickingBorderAvailable = false
-                },
-                CreateBuildContext());
+            var config = new ImageFrontedControlConfig
+            {
+                BehaviorGuid = Guid.NewGuid(),
+                Lockable = false,
+                PickingBorderAvailable = false
+            };
+            var control = new ImageFrontedControl();
+            control.InitializeFrontedV3(CreateV3Context(config, "BanSlot"));
 
-            var root = Assert.IsType<Grid>(element);
+            var root = Assert.IsType<Grid>(control.Content);
             Assert.DoesNotContain(
                 root.Children.OfType<FrameworkElement>(),
                 FrontedRendererProperties.GetIsAnimationAuxiliaryElement);
@@ -1683,18 +1539,16 @@ public class FrontedCanvasConfigTest
         {
             var sharedDataService = new Mock<ISharedDataService>().Object;
             var resolver = new RecordingFrontedResourceResolver { ThrowOnResolveImage = true };
+            var config = new ImageFrontedControlConfig
+            {
+                BindingPath = "CurrentGame.PickedMapImage",
+                ImagePath = "Resources/static.png",
+                Stretch = "UniformToFill"
+            };
             var control = new ImageFrontedControl();
-            var element = control.Create(
-                "Pick",
-                new ImageFrontedControlConfig
-                {
-                    BindingPath = "CurrentGame.PickedMapImage",
-                    ImagePath = "Resources/static.png",
-                    Stretch = "UniformToFill"
-                },
-                CreateBuildContext(sharedDataService, resourceResolver: resolver));
+            control.InitializeFrontedV3(CreateV3Context(config, "Pick", sharedDataService, resourceResolver: resolver));
 
-            var root = Assert.IsType<Grid>(element);
+            var root = Assert.IsType<Grid>(control.Content);
             var image = FindPrimaryImage(root);
             var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
             Assert.NotNull(binding);
@@ -1713,17 +1567,14 @@ public class FrontedCanvasConfigTest
             var source = new DrawingImage();
             source.Freeze();
             var resolver = new RecordingFrontedResourceResolver { ImageSource = source };
+            var config = new ImageFrontedControlConfig
+            {
+                ImagePath = "Resources/logo.png"
+            };
             var control = new ImageFrontedControl();
+            control.InitializeFrontedV3(CreateV3Context(config, "Logo", resourceResolver: resolver));
 
-            var element = control.Create(
-                "Logo",
-                new ImageFrontedControlConfig
-                {
-                    ImagePath = "Resources/logo.png"
-                },
-                CreateBuildContext(resourceResolver: resolver));
-
-            var root = Assert.IsType<Grid>(element);
+            var root = Assert.IsType<Grid>(control.Content);
             var image = FindPrimaryImage(root);
             Assert.Same(source, image.Source);
             Assert.Null(BindingOperations.GetBinding(image, Image.SourceProperty));
@@ -1737,24 +1588,22 @@ public class FrontedCanvasConfigTest
     {
         RunOnStaThread(() =>
         {
+            var config = new BorderedImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 120,
+                Height = 80,
+                ImageWidth = 64,
+                ImageHeight = 48,
+                ZIndex = 5,
+                SizingMode = ImageSizingMode.FillContainer,
+                Stretch = "UniformToFill"
+            };
             var control = new BorderedImageFrontedControl();
-            var element = control.Create(
-                "Header",
-                new BorderedImageFrontedControlConfig
-                {
-                    Left = 10,
-                    Top = 20,
-                    Width = 120,
-                    Height = 80,
-                    ImageWidth = 64,
-                    ImageHeight = 48,
-                    ZIndex = 5,
-                    SizingMode = ImageSizingMode.FillContainer,
-                    Stretch = "UniformToFill"
-                },
-                CreateBuildContext());
+            control.InitializeFrontedV3(CreateV3Context(config, "Header"));
 
-            var border = Assert.IsType<Border>(element);
+            var border = Assert.IsType<Border>(control.Content);
 
             var grid = Assert.IsType<Grid>(border.Child);
             var image = FindPrimaryImage(grid);
@@ -1769,17 +1618,14 @@ public class FrontedCanvasConfigTest
             var source = new DrawingImage();
             source.Freeze();
             var resolver = new RecordingFrontedResourceResolver { ImageSource = source };
+            var config = new BorderedImageFrontedControlConfig
+            {
+                ImagePath = "Resources/pick.png"
+            };
             var control = new BorderedImageFrontedControl();
+            control.InitializeFrontedV3(CreateV3Context(config, "Pick", resourceResolver: resolver));
 
-            var element = control.Create(
-                "Pick",
-                new BorderedImageFrontedControlConfig
-                {
-                    ImagePath = "Resources/pick.png"
-                },
-                CreateBuildContext(resourceResolver: resolver));
-
-            var border = Assert.IsType<Border>(element);
+            var border = Assert.IsType<Border>(control.Content);
             var grid = Assert.IsType<Grid>(border.Child);
             var image = FindPrimaryImage(grid);
             Assert.Same(source, image.Source);
@@ -1796,28 +1642,26 @@ public class FrontedCanvasConfigTest
         {
             var sharedDataService = new Mock<ISharedDataService>().Object;
             var resolver = new RecordingFrontedResourceResolver { ThrowOnResolveImage = true };
+            var config = new BorderedImageFrontedControlConfig
+            {
+                Left = 1,
+                Top = 115,
+                Width = 346,
+                Height = 308.5,
+                BindingPath = "CurrentGame.SurPlayerList[0].Character.BigImage",
+                ImagePath = "Resources/static.png",
+                SizingMode = ImageSizingMode.OverflowCrop,
+                Stretch = "UniformToFill",
+                HorizontalAlignment = "Center",
+                VerticalAlignment = "Top",
+                ClipToBounds = true,
+                CornerRadius = 8,
+                ZIndex = 3
+            };
             var control = new BorderedImageFrontedControl();
-            var element = control.Create(
-                "SurPick0",
-                new BorderedImageFrontedControlConfig
-                {
-                    Left = 1,
-                    Top = 115,
-                    Width = 346,
-                    Height = 308.5,
-                    BindingPath = "CurrentGame.SurPlayerList[0].Character.BigImage",
-                    ImagePath = "Resources/static.png",
-                    SizingMode = ImageSizingMode.OverflowCrop,
-                    Stretch = "UniformToFill",
-                    HorizontalAlignment = "Center",
-                    VerticalAlignment = "Top",
-                    ClipToBounds = true,
-                    CornerRadius = 8,
-                    ZIndex = 3
-                },
-                CreateBuildContext(sharedDataService, resourceResolver: resolver));
+            control.InitializeFrontedV3(CreateV3Context(config, "SurPick0", sharedDataService, resourceResolver: resolver));
 
-            var border = Assert.IsType<Border>(element);
+            var border = Assert.IsType<Border>(control.Content);
             Assert.Equal("SurPick0", border.Name);
 
             var grid = Assert.IsType<Grid>(border.Child);
@@ -1837,16 +1681,14 @@ public class FrontedCanvasConfigTest
     {
         RunOnStaThread(() =>
         {
+            var config = new ImageFrontedControlConfig
+            {
+                ImagePath = "Resources/missing.png"
+            };
             var control = new ImageFrontedControl();
-            var element = control.Create(
-                "Missing",
-                new ImageFrontedControlConfig
-                {
-                    ImagePath = "Resources/missing.png"
-                },
-                CreateBuildContext(resourceResolver: new RecordingFrontedResourceResolver()));
+            control.InitializeFrontedV3(CreateV3Context(config, "Missing", resourceResolver: new RecordingFrontedResourceResolver()));
 
-            var root = Assert.IsType<Grid>(element);
+            var root = Assert.IsType<Grid>(control.Content);
             var image = FindPrimaryImage(root);
             Assert.Null(image.Source);
         });
@@ -1937,12 +1779,9 @@ public class FrontedCanvasConfigTest
                 .BuildServiceProvider();
 
             var control = new MapV2DisplayFrontedControl();
-            var element = control.Create(
-                "Arms_Factory",
-                mapConfig,
-                CreateBuildContext(sharedDataService.Object, serviceProvider));
+            control.InitializeFrontedV3(CreateV3Context(mapConfig, "Arms_Factory", sharedDataService.Object, serviceProvider));
 
-            var border = Assert.IsAssignableFrom<Border>(element);
+            var border = Assert.IsAssignableFrom<Border>(control.Content);
             var presenter = Assert.IsType<MapV2Presenter>(border.Child);
 
             var widthBinding = BindingOperations.GetBinding(presenter, FrameworkElement.WidthProperty);
@@ -1995,27 +1834,25 @@ public class FrontedCanvasConfigTest
             var services = new ServiceCollection().AddSingleton(settingsHostService.Object).BuildServiceProvider();
             var control = new MapV2DisplayFrontedControl();
 
-            var configured = Assert.IsAssignableFrom<Border>(control.Create(
-                "Configured",
-                new MapV2DisplayControlConfig
-                {
-                    MapKey = "ArmsFactory",
-                    MapBorderNormalColor = "#FF102030",
-                    MapBorderBannedColor = "#FF405060",
-                    PickingBorderFillColor = "#FF708090"
-                },
-                CreateBuildContext(sharedDataService.Object, services)));
+            var configuredConfig = new MapV2DisplayControlConfig
+            {
+                MapKey = "ArmsFactory",
+                MapBorderNormalColor = "#FF102030",
+                MapBorderBannedColor = "#FF405060",
+                PickingBorderFillColor = "#FF708090"
+            };
+            control.InitializeFrontedV3(CreateV3Context(configuredConfig, "Configured", sharedDataService.Object, services));
+            var configured = Assert.IsAssignableFrom<Border>(control.Content);
             var configuredPresenter = Assert.IsType<MapV2Presenter>(configured.Child);
 
-            var invalid = Assert.IsAssignableFrom<Border>(control.Create(
-                "Invalid",
-                new MapV2DisplayControlConfig
-                {
-                    MapKey = "ArmsFactory",
-                    MapBorderNormalColor = "invalid",
-                    MapBorderBannedColor = "also-invalid"
-                },
-                CreateBuildContext(sharedDataService.Object, services)));
+            var invalidConfig = new MapV2DisplayControlConfig
+            {
+                MapKey = "ArmsFactory",
+                MapBorderNormalColor = "invalid",
+                MapBorderBannedColor = "also-invalid"
+            };
+            control.InitializeFrontedV3(CreateV3Context(invalidConfig, "Invalid", sharedDataService.Object, services));
+            var invalid = Assert.IsAssignableFrom<Border>(control.Content);
             var invalidPresenter = Assert.IsType<MapV2Presenter>(invalid.Child);
         });
     }
@@ -2068,7 +1905,7 @@ public class FrontedCanvasConfigTest
             EmptyServiceProvider.Instance,
             new Mock<ISharedDataService>().Object,
             NullFrontedResourceResolver.Instance,
-            new FrontedControlRegistry([new TextFrontedControl()]),
+            CreateTestRegistry(),
             NullLogger<FrontedRenderer>.Instance);
         var canvas = new Canvas();
 
@@ -2110,20 +1947,39 @@ public class FrontedCanvasConfigTest
             ]
         };
 
-    private static FrontedControlBuildContext CreateBuildContext(
+    private static FrontedV3ControlContext CreateV3Context(
+        FrontedControlConfigBase config,
+        string controlName = null,
         ISharedDataService sharedDataService = null,
         IServiceProvider services = null,
         IFrontedResourceResolver resourceResolver = null)
     {
-        return new FrontedControlBuildContext
+        return new FrontedV3ControlContext
         {
             Services = services ?? EmptyServiceProvider.Instance,
             SharedDataService = sharedDataService ?? new Mock<ISharedDataService>().Object,
             ResourceResolver = resourceResolver ?? NullFrontedResourceResolver.Instance,
             WindowId = "TestWindow",
             CanvasName = "BaseCanvas",
+            Config = config,
+            ControlName = controlName,
             Logger = NullLogger.Instance
         };
+    }
+
+    private static FrontedV3ControlRegistry CreateTestRegistry()
+    {
+        return new FrontedV3ControlRegistry([new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = "Text",
+            LocalControlId = "Text",
+            PackageId = "builtin",
+            IsBuiltIn = true,
+            ControlType = typeof(TextFrontedControl),
+            ConfigType = typeof(TextFrontedControlConfig),
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = () => new TextFrontedControlConfig()
+        }]);
     }
 
     [Fact]
@@ -2306,64 +2162,6 @@ public class FrontedCanvasConfigTest
             FindDescendants<FrameworkElement>(root),
             FrontedRendererProperties.GetIsPrimaryContentElement);
         return Assert.IsType<Image>(Assert.Single(FindDescendants<Image>(primaryContent)));
-    }
-
-    private sealed class TestPluginControlConfig : FrontedControlConfigBase
-    {
-        public string TeamNameBindingPath { get; set; }
-
-        public int Count { get; set; }
-    }
-
-    private sealed class TestPluginControlContributor : IFrontedControlPluginContributor
-    {
-        public string LastName { get; private set; }
-
-        public TestPluginControlConfig LastConfig { get; private set; }
-
-        public void RegisterFrontedControls(IFrontedControlPluginRegistry registry)
-        {
-            registry.Register(new FrontedPluginControlDescriptor<TestPluginControlConfig>
-            {
-                PackageId = "top.plfjy.example.fronted",
-                ControlTypeName = "TeamCard",
-                ConfigType = typeof(TestPluginControlConfig),
-                DisplayNameKey = "TeamCard",
-                Properties =
-                [
-                    new FrontedPluginPropertyDescriptor
-                    {
-                        PropertyName = nameof(TestPluginControlConfig.TeamNameBindingPath)
-                    }
-                ],
-                CreateControl = (name, config, _) =>
-                {
-                    LastName = name;
-                    LastConfig = config;
-                    return new Border
-                    {
-                        Name = name,
-                        Width = config.Width ?? 0,
-                        Height = config.Height ?? 0
-                    };
-                }
-            });
-        }
-    }
-
-    private sealed class FakeFrontedControl(string controlType) : IFrontedControl
-    {
-        public string ControlType { get; } = controlType;
-
-        public Type ConfigType => typeof(FrontedControlConfigBase);
-
-        public FrameworkElement Create(
-            string name,
-            FrontedControlConfigBase config,
-            FrontedControlBuildContext context)
-        {
-            return new Border { Name = name };
-        }
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider

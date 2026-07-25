@@ -3,6 +3,8 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -17,7 +19,7 @@ public class FrontedPropertyGridBuilder
 {
     private readonly FrontedFontFamilyOptionProvider _fontFamilyOptionProvider;
     private readonly IFrontedDesignerLocalizationService _localizationService;
-    private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedV3ControlRegistry? _v3ControlRegistry;
 
     /// <summary>
     /// 使用默认字体选项初始化属性网格构建器。
@@ -41,11 +43,11 @@ public class FrontedPropertyGridBuilder
     public FrontedPropertyGridBuilder(
         FrontedFontFamilyOptionProvider fontFamilyOptionProvider,
         IFrontedDesignerLocalizationService localizationService,
-        IFrontedControlRegistry? controlRegistry = null)
+        IFrontedV3ControlRegistry? v3ControlRegistry = null)
     {
         _fontFamilyOptionProvider = fontFamilyOptionProvider;
         _localizationService = localizationService;
-        _controlRegistry = controlRegistry;
+        _v3ControlRegistry = v3ControlRegistry;
     }
 
     private static readonly HashSet<string> CommonPropertyNames = new(StringComparer.Ordinal)
@@ -212,16 +214,10 @@ public class FrontedPropertyGridBuilder
         FrontedControlDesignItem selectedItem,
         IReadOnlyList<FrontedLayoutValidationMessage> messages)
     {
-        var pluginDescriptor = _controlRegistry?.GetPluginDescriptor(selectedItem.Config.ControlType);
-        if (selectedItem.Config is PluginFrontedControlConfig missingPlugin && pluginDescriptor is null)
+        var registration = _v3ControlRegistry?.GetRegistration(selectedItem.Config.ControlType);
+        if (selectedItem.Config is PluginFrontedControlConfig missingPlugin && registration is null)
         {
             AddMissingPluginRows(rows, selectedItem, missingPlugin, messages);
-            return;
-        }
-
-        if (pluginDescriptor is not null && pluginDescriptor.Properties?.Count > 0)
-        {
-            AddPluginMetadataRows(rows, selectedItem, pluginDescriptor, messages);
             return;
         }
 
@@ -311,50 +307,6 @@ public class FrontedPropertyGridBuilder
         }
     }
 
-    private void AddPluginMetadataRows(
-        ICollection<FrontedPropertyEditorItem> rows,
-        FrontedControlDesignItem selectedItem,
-        IFrontedPluginControlDescriptor descriptor,
-        IReadOnlyList<FrontedLayoutValidationMessage> messages)
-    {
-        var added = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var propertyName in new[]
-                 {
-                     nameof(FrontedControlConfigBase.Left),
-                     nameof(FrontedControlConfigBase.Top),
-                     nameof(FrontedControlConfigBase.Width),
-                     nameof(FrontedControlConfigBase.Height),
-                     nameof(FrontedControlConfigBase.ZIndex),
-                     nameof(FrontedControlConfigBase.BindingPath)
-                 })
-        {
-            var property = selectedItem.Config.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            if (property is not null && IsSupportedProperty(property))
-            {
-                AddPropertyRow(rows, selectedItem, messages, property, null);
-                added.Add(property.Name);
-            }
-        }
-
-        foreach (var metadata in descriptor.Properties?.Where(property => property.IsVisible) ?? [])
-        {
-            if (!added.Add(metadata.PropertyName))
-            {
-                continue;
-            }
-
-            var property = selectedItem.Config.GetType().GetProperty(metadata.PropertyName, BindingFlags.Instance | BindingFlags.Public);
-            if (property is null || !IsSupportedProperty(property))
-            {
-                continue;
-            }
-
-            AddPropertyRow(rows, selectedItem, messages, property, metadata);
-        }
-
-        AddGaussianBlurRows(rows, selectedItem, messages, added);
-    }
-
     private void AddMissingPluginRows(
         ICollection<FrontedPropertyEditorItem> rows,
         FrontedControlDesignItem selectedItem,
@@ -374,7 +326,7 @@ public class FrontedPropertyGridBuilder
             var property = selectedItem.Config.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
             if (property is not null && IsSupportedProperty(property))
             {
-                AddPropertyRow(rows, selectedItem, messages, property, null);
+                AddPropertyRow(rows, selectedItem, messages, property);
             }
         }
 
@@ -416,7 +368,7 @@ public class FrontedPropertyGridBuilder
             var property = selectedItem.Config.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
             if (property is not null && IsSupportedProperty(property))
             {
-                AddPropertyRow(rows, selectedItem, messages, property, null);
+                AddPropertyRow(rows, selectedItem, messages, property);
             }
         }
     }
@@ -444,16 +396,14 @@ public class FrontedPropertyGridBuilder
         ICollection<FrontedPropertyEditorItem> rows,
         FrontedControlDesignItem selectedItem,
         IReadOnlyList<FrontedLayoutValidationMessage> messages,
-        PropertyInfo property,
-        FrontedPluginPropertyDescriptor? metadata)
+        PropertyInfo property)
     {
-        var kind = metadata?.EditorKind ?? ResolveEditorKind(property);
+        var kind = ResolveEditorKind(property);
         var isReadOnly = !selectedItem.IsEditableInEditor
                          || !property.CanWrite
-                         || metadata?.IsReadOnly == true
                          || property.Name == nameof(FrontedControlConfigBase.GaussianBlurRadius)
                          && !selectedItem.Config.IsGaussianBlurEnabled;
-        var groupName = metadata?.GroupName ?? ResolveGroupName(property.Name, selectedItem.Config);
+        var groupName = ResolveGroupName(property.Name, selectedItem.Config);
         var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
         var validationErrors = validationMessages.Select(message => message.Message).ToList();
         var value = property.GetValue(selectedItem.Config);
@@ -475,15 +425,15 @@ public class FrontedPropertyGridBuilder
                                 && !canBrowseBinding
                                 && IsResourcePathProperty(property.Name);
         var bindingTargetKind = canBrowseBinding
-            ? metadata?.BindingTargetKind ?? ResolveBindingTargetKind(selectedItem.Config, property)
+            ? ResolveBindingTargetKind(selectedItem.Config, property)
             : FrontedBindingTargetKind.Any;
         var requiresExplicitCommit = RequiresExplicitCommit(property.Name, kind, canBrowseBinding, canBrowseResource);
 
         rows.Add(new FrontedPropertyEditorItem
         {
-            DisplayName = ResolveMetadataText(metadata?.DisplayNameKey, _localizationService.GetPropertyDisplayName(property.Name)),
+            DisplayName = _localizationService.GetPropertyDisplayName(property.Name),
             PropertyName = property.Name,
-            Description = ResolveMetadataText(metadata?.DescriptionKey, NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)) ?? string.Empty),
+            Description = NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)) ?? string.Empty,
             PropertyType = property.PropertyType,
             EditorKind = isReadOnly && property.Name != nameof(FrontedControlConfigBase.GaussianBlurRadius)
                 ? FrontedPropertyEditorKind.ReadOnly
@@ -494,7 +444,7 @@ public class FrontedPropertyGridBuilder
             IsReadOnly = isReadOnly,
             IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
                 or nameof(FrontedControlConfigBase.Top),
-            Options = metadata?.Options?.Cast<object>().ToArray() ?? ResolveOptions(property, kind),
+            Options = ResolveOptions(property, kind),
             GroupName = groupName,
             ValidationErrors = validationErrors,
             ValidationMessages = validationMessages,

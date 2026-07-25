@@ -70,7 +70,6 @@ internal static class ImageFrontedControlLayoutHelper
         Image image)
     {
         var root = new Grid { Name = name };
-        FrontedControlFactoryHelper.ApplyCanvasLayout(root, config);
         root.ClipToBounds = config.ClipToBounds;
         if (config.CornerRadius is > 0)
         {

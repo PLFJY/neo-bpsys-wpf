@@ -1,6 +1,7 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -226,21 +227,25 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
     private static Grid EnsureHost(FrameworkElement parent, string displayName)
     {
-        var effectHost = FrontedEffectHostFactory.FindEffectHost(parent)
-                         ?? FrontedEffectHostFactory.Wrap(parent);
-        if (VisualTreeHelper.GetParent(effectHost) is Grid existing
-            && existing.Children.Contains(effectHost)
+        // V3 controls are hosted directly in Canvas via FrontedV3ControlHost, which is
+        // the layout carrier. Legacy/plugin placeholders still use FrontedEffectHost.
+        FrameworkElement carrier = parent is FrontedV3ControlHost
+            ? parent
+            : FrontedEffectHostFactory.FindEffectHost(parent) ?? FrontedEffectHostFactory.Wrap(parent);
+
+        if (VisualTreeHelper.GetParent(carrier) is Grid existing
+            && existing.Children.Contains(carrier)
             && existing.Children.OfType<Canvas>().Any(item => item.Name == "PART_BehaviorAnimationAbove"))
         {
             return existing;
         }
 
-        if (VisualTreeHelper.GetParent(effectHost) is not Panel owner)
+        if (VisualTreeHelper.GetParent(carrier) is not Panel owner)
         {
             return new Grid();
         }
 
-        var index = owner.Children.IndexOf(effectHost);
+        var index = owner.Children.IndexOf(carrier);
         if (index < 0)
         {
             return new Grid();
@@ -251,7 +256,7 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             ClipToBounds = false
         };
 
-        FrontedEffectHostFactory.TransferAttachedLayout(effectHost, host);
+        FrontedEffectHostFactory.TransferAttachedLayout(carrier, host);
 
         var below = CreateLayer();
         below.Name = "PART_BehaviorAnimationBelow";
@@ -260,7 +265,7 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
         owner.Children.RemoveAt(index);
         host.Children.Add(below);
-        host.Children.Add(effectHost);
+        host.Children.Add(carrier);
         host.Children.Add(above);
         owner.Children.Insert(index, host);
         return host;

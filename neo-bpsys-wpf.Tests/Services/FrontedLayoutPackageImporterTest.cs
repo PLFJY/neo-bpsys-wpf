@@ -1,7 +1,12 @@
 #nullable enable
 
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -204,7 +209,22 @@ public sealed class FrontedLayoutPackageImporterTest
         return new FrontedLayoutPackageImporter(
             packageRoot,
             tempRoot,
-            controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
+            controlRegistry: new FrontedV3ControlRegistry([CreateTextRegistration()]));
+    }
+
+    private static FrontedV3ControlRegistration CreateTextRegistration()
+    {
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = "Text",
+            LocalControlId = "Text",
+            PackageId = "builtin",
+            IsBuiltIn = true,
+            ControlType = typeof(TextFrontedControl),
+            ConfigType = typeof(TextFrontedControlConfig),
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = () => new TextFrontedControlConfig()
+        };
     }
 
     private static void CreateBpuiArchiveWithLayout(string archivePath, string layoutJson)

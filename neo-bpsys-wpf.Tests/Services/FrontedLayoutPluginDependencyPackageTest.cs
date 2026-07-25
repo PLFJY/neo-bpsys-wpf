@@ -8,10 +8,14 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.ExamplePlugin;
 using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.PluginSdk;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -43,58 +47,6 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     }
 
     [Fact]
-    public void ExamplePluginManifestAndContributorRegisterTeamCard()
-    {
-        var manifest = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf.ExamplePlugin",
-            "manifest.yml"));
-        Assert.Contains("id: plfjy.ExamplePlugin", manifest);
-
-        var registry = CreateRegistryWithExamplePlugin();
-        var descriptor = registry.GetPluginDescriptor(TeamCardFrontedControlContributor.FullControlType);
-
-        Assert.NotNull(descriptor);
-        Assert.Equal("plugin:plfjy.ExamplePlugin/TeamCard", descriptor.FullControlType);
-        Assert.Equal(typeof(TeamCardFrontedControlConfig), descriptor.ConfigType);
-        Assert.Contains(descriptor.Properties ?? [], property =>
-            property.PropertyName == nameof(TeamCardFrontedControlConfig.TeamNameBindingPath)
-            && property.BindingTargetKind == FrontedBindingTargetKind.Text);
-        Assert.Contains(descriptor.Properties ?? [], property =>
-            property.PropertyName == nameof(TeamCardFrontedControlConfig.BackgroundColor)
-            && property.EditorKind == FrontedPropertyEditorKind.Color);
-        Assert.Contains(descriptor.Properties ?? [], property =>
-            property.PropertyName == nameof(TeamCardFrontedControlConfig.FontSize)
-            && property.EditorKind == FrontedPropertyEditorKind.Number);
-        Assert.Contains(descriptor.Properties ?? [], property =>
-            property.PropertyName == nameof(TeamCardFrontedControlConfig.FontWeight)
-            && property.EditorKind == FrontedPropertyEditorKind.Enum);
-
-        var factory = new FrontedControlDefaultConfigFactory(registry);
-        var created = factory.Create(
-            TeamCardFrontedControlContributor.FullControlType,
-            new FrontedCanvasDesignDocument
-            {
-                CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 }
-            });
-
-        var config = Assert.IsType<TeamCardFrontedControlConfig>(created);
-    }
-
-    [Fact]
-    public void ExampleTeamCardDefaultBindingPathsExistInBindingCatalog()
-    {
-        var config = new TeamCardFrontedControlConfig();
-        var provider = new FrontedBindingBrowserProvider();
-        var allPaths = provider.BuildTree()
-            .SelectMany(node => node.Flatten())
-            .Select(node => node.FullPath)
-            .ToHashSet(StringComparer.Ordinal);
-
-        Assert.Contains(config.TeamNameBindingPath, allPaths);
-        Assert.Contains(config.LogoBindingPath, allPaths);
-    }
-
-    [Fact]
     public void DesignConverterWritesRequiredPluginMinVersionFromInstalledPluginManifest()
     {
         var registry = CreateRegistryWithExamplePlugin();
@@ -121,7 +73,10 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 new FrontedControlDesignItem
                 {
                     Name = "TeamCard1",
-                    Config = new TeamCardFrontedControlConfig()
+                    Config = new PluginFrontedControlConfig
+                    {
+                        ControlType = "plugin:plfjy.ExamplePlugin/TeamCard"
+                    }
                 }
             ]
         };
@@ -131,33 +86,6 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         var dependency = Assert.Single(config.RequiredPlugins);
         Assert.Equal("1.0.0.0", dependency.MinVersion);
         Assert.Equal("ExamplePlugin", dependency.DisplayName);
-    }
-
-    [Fact]
-    public void ExampleTeamCardRuntimeControlCanBeCreated()
-    {
-        RunOnStaThread(() =>
-        {
-            var registry = CreateRegistryWithExamplePlugin();
-            var control = registry.GetControl(TeamCardFrontedControlContributor.FullControlType);
-            Assert.NotNull(control);
-
-            var element = control.Create(
-                "TeamCard1",
-                new TeamCardFrontedControlConfig(),
-                new FrontedControlBuildContext
-                {
-                    Services = new ServiceCollection().BuildServiceProvider(),
-                    SharedDataService = new Mock<ISharedDataService>().Object,
-                    ResourceResolver = new Mock<IFrontedResourceResolver>().Object,
-                    WindowId = "TestWindow",
-                    CanvasName = "BaseCanvas",
-                    Logger = NullLogger.Instance
-                });
-
-            Assert.IsType<Border>(element);
-            Assert.Equal("TeamCard1", element.Name);
-        });
     }
 
     [Fact]
@@ -327,7 +255,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             var importer = new FrontedLayoutPackageImporter(
                 packageRoot,
                 Path.Combine(root, "temp"),
-                controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
+                controlRegistry: CreateTextOnlyRegistry());
 
             var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
             {
@@ -360,7 +288,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             var importer = new FrontedLayoutPackageImporter(
                 Path.Combine(root, "packages"),
                 Path.Combine(root, "temp"),
-                controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
+                controlRegistry: CreateTextOnlyRegistry());
 
             var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
             {
@@ -557,17 +485,50 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         }
     }
 
-    private static FrontedControlRegistry CreateRegistryWithExamplePlugin()
+    private static FrontedV3ControlRegistry CreateRegistryWithExamplePlugin()
     {
-        return new FrontedControlRegistry(
-            [new TextFrontedControl()],
-            [new TeamCardFrontedControlContributor()],
-            NullLogger<FrontedControlRegistry>.Instance);
+        return new FrontedV3ControlRegistry([
+            CreateTextRegistration(),
+            CreateTeamCardRegistration()
+        ]);
     }
 
-    private static FrontedControlRegistry CreateTextOnlyRegistry()
+    private static FrontedV3ControlRegistry CreateTextOnlyRegistry()
     {
-        return new FrontedControlRegistry([new TextFrontedControl()]);
+        return new FrontedV3ControlRegistry([CreateTextRegistration()]);
+    }
+
+    private static FrontedV3ControlRegistration CreateTextRegistration()
+    {
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = "Text",
+            LocalControlId = "Text",
+            PackageId = "builtin",
+            IsBuiltIn = true,
+            ControlType = typeof(TextFrontedControl),
+            ConfigType = typeof(TextFrontedControlConfig),
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = () => new TextFrontedControlConfig()
+        };
+    }
+
+    private static FrontedV3ControlRegistration CreateTeamCardRegistration()
+    {
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = "plugin:plfjy.ExamplePlugin/TeamCard",
+            LocalControlId = "TeamCard",
+            PackageId = "plfjy.ExamplePlugin",
+            IsBuiltIn = false,
+            ControlType = typeof(TeamCardControl),
+            ConfigType = typeof(PluginFrontedControlConfig),
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = () => new PluginFrontedControlConfig
+            {
+                ControlType = "plugin:plfjy.ExamplePlugin/TeamCard"
+            }
+        };
     }
 
     private static void CreateUnknownPluginBpuiArchive(string archivePath)
@@ -1040,7 +1001,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         return new FrontedLayoutPackageImporter(
             Path.Combine(root, "packages"),
             Path.Combine(root, "temp"),
-            controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
+            controlRegistry: CreateTextOnlyRegistry());
     }
 
     private static FrontManagePageViewModel CreateFrontManagePageViewModel(

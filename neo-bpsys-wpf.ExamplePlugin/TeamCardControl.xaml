@@ -1,0 +1,30 @@
+<pluginSdk:FrontedV3ControlBase
+    x:Class="neo_bpsys_wpf.ExamplePlugin.TeamCardControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.ExamplePlugin"
+    xmlns:pluginSdk="clr-namespace:neo_bpsys_wpf.PluginSdk;assembly=neo-bpsys-wpf.Core"
+    xmlns:fronted="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.V3;assembly=neo-bpsys-wpf.Core">
+    <pluginSdk:FrontedV3ControlBase.Resources>
+        <local:StringToBrushConverter x:Key="StringToBrush" />
+    </pluginSdk:FrontedV3ControlBase.Resources>
+    <Border Background="#AA000000" CornerRadius="12" Padding="12">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Image
+                x:Name="LogoImage"
+                fronted:FrontedV3.PartId="Logo"
+                Width="40"
+                Height="40"
+                Stretch="Uniform"
+                VerticalAlignment="Center"
+                Margin="0,0,10,0" />
+            <TextBlock
+                Text="{Binding Content.TeamName}"
+                Foreground="{Binding Appearance.TextColor, Converter={StaticResource StringToBrush}}"
+                FontSize="24"
+                FontWeight="Bold"
+                VerticalAlignment="Center"
+                TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+    </Border>
+</pluginSdk:FrontedV3ControlBase>

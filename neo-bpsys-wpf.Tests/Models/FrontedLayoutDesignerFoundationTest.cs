@@ -1,6 +1,7 @@
 #nullable enable
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -9,8 +10,11 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -65,156 +69,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DesignConverterPreservesAndSyncsPluginRequiredPlugins()
-    {
-        var registry = new PluginFrontedControlRegistryForTests();
-        var config = new FrontedCanvasConfig
-        {
-            CanvasWidth = 100,
-            CanvasHeight = 50,
-            RequiredPlugins =
-            [
-                new FrontedPluginDependency
-                {
-                    PackageId = "top.plfjy.example.fronted",
-                    MinVersion = "1.2.3",
-                    Controls = ["plugin:top.plfjy.example.fronted/TeamCard"]
-                }
-            ],
-            Controls =
-            {
-                ["TeamCard1"] = new PluginFrontedControlConfig
-                {
-                    ControlType = "plugin:top.plfjy.example.fronted/TeamCard",
-                    Width = 100,
-                    Height = 40
-                }
-            }
-        };
-
-        var converter = new FrontedLayoutDesignConverter(registry);
-        var document = converter.FromConfig("TestWindow", "BaseCanvas", config);
-        var roundTrip = converter.ToConfig(document);
-
-        var dependency = Assert.Single(roundTrip.RequiredPlugins);
-        Assert.Equal("top.plfjy.example.fronted", dependency.PackageId);
-        Assert.Equal("1.2.3", dependency.MinVersion);
-        Assert.Equal(["plugin:top.plfjy.example.fronted/TeamCard"], dependency.Controls);
-        Assert.DoesNotContain("RequiredPlugins", roundTrip.Controls.Keys);
-    }
-
-    [Fact]
-    public void GenericPluginConfigMaterializesToTypedConfigWhenDescriptorExists()
-    {
-        var generic = JsonSerializer.Deserialize<PluginFrontedControlConfig>(
-            """
-            {
-              "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
-              "Left": 10,
-              "Top": 20,
-              "Title": "Home",
-              "AccentColor": "#FF112233",
-              "Mode": "Compact"
-            }
-            """);
-
-        Assert.NotNull(generic);
-        var materialized = FrontedPluginControlConfigMaterializer.Materialize(
-            "TeamCard1",
-            generic,
-            new PluginFrontedControlRegistryForTests());
-
-        var typed = Assert.IsType<TestPluginDesignerConfig>(materialized);
-        Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", typed.ControlType);
-        Assert.Equal("Home", typed.Title);
-        Assert.Equal("#FF112233", typed.AccentColor);
-        Assert.Equal("Compact", typed.Mode);
-    }
-
-    [Fact]
-    public void AddControlCatalogIncludesPluginControlsWithDefaultConfig()
-    {
-        var factory = new FrontedControlDefaultConfigFactory(
-            new PluginFrontedControlRegistryForTests(),
-            new FrontedDesignerLocalizationService());
-
-        var pluginItem = factory.GetCatalog()
-            .SelectMany(group => group.Items)
-            .Single(item => item.ControlType == "plugin:top.plfjy.example.fronted/TeamCard");
-
-        Assert.True(pluginItem.IsPlugin);
-        Assert.True(pluginItem.IsAvailable);
-
-        var document = new FrontedCanvasDesignDocument
-        {
-            CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 }
-        };
-        var config = Assert.IsType<TestPluginDesignerConfig>(
-            factory.Create("plugin:top.plfjy.example.fronted/TeamCard", document));
-        Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", config.ControlType);
-        Assert.Equal("Default", config.Title);
-    }
-
-    [Fact]
-    public void BehaviorGuid_PluginDefault_AlsoGetsFreshGuid()
-    {
-        var factory = new FrontedControlDefaultConfigFactory(
-            new PluginFrontedControlRegistryForTests(),
-            new FrontedDesignerLocalizationService());
-        var document = new FrontedCanvasDesignDocument
-        {
-            CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 }
-        };
-
-        var config = factory.Create("plugin:top.plfjy.example.fronted/TeamCard", document);
-
-        Assert.NotEqual(Guid.Empty, config.BehaviorGuid);
-        Assert.NotEqual(PluginFrontedControlRegistryForTests.PluginDefaultBehaviorGuid, config.BehaviorGuid);
-    }
-
-    [Fact]
-    public void PropertyGridUsesPluginDescriptorMetadata()
-    {
-        var document = new FrontedCanvasDesignDocument
-        {
-            WindowTypeName = "TestWindow",
-            CanvasName = "BaseCanvas",
-            CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 },
-            Controls =
-            {
-                new FrontedControlDesignItem
-                {
-                    Name = "TeamCard1",
-                    Config = new TestPluginDesignerConfig(),
-                    IsSelectableInEditor = true,
-                    IsEditableInEditor = true
-                }
-            }
-        };
-
-        var builder = new FrontedPropertyGridBuilder(
-            new FrontedFontFamilyOptionProvider(),
-            new FrontedDesignerLocalizationService(),
-            new PluginFrontedControlRegistryForTests());
-
-        var rows = builder.Build(
-            document,
-            document.Controls[0],
-            new FrontedLayoutValidator(new PluginFrontedControlRegistryForTests()),
-            new FrontedLayoutReferenceScanner());
-
-        var mode = rows.Single(row => row.PropertyName == nameof(TestPluginDesignerConfig.Mode));
-        Assert.Equal(FrontedPropertyEditorKind.Enum, mode.EditorKind);
-        Assert.Equal(FrontedBindingTargetKind.Any, mode.BindingTargetKind);
-        Assert.Equal("Plugin", mode.GroupName);
-        Assert.NotNull(mode.Options);
-
-        var titleBinding = rows.Single(row => row.PropertyName == nameof(TestPluginDesignerConfig.TitleBindingPath));
-        Assert.True(titleBinding.CanBrowseBinding);
-        Assert.Equal(FrontedBindingTargetKind.Text, titleBinding.BindingTargetKind);
-    }
-
-    [Fact]
     public void BehaviorGuid_PropertyGridDoesNotShowGuidRow()
     {
         var item = new FrontedControlDesignItem
@@ -241,7 +95,7 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void MissingPluginValidatorWarningDoesNotMaskUnknownBuiltInError()
     {
-        var validator = new FrontedLayoutValidator(new KnownFrontedControlRegistry());
+        var validator = new FrontedLayoutValidator(CreateTestV3ControlRegistry());
         var document = new FrontedCanvasDesignDocument
         {
             WindowTypeName = "TestWindow",
@@ -418,7 +272,7 @@ public class FrontedLayoutDesignerFoundationTest
             Config = new ImageFrontedControlConfig { ImagePath = "Resources/missing.png" }
         };
         var validator = new FrontedLayoutValidator(
-            new KnownFrontedControlRegistry(),
+            CreateTestV3ControlRegistry(),
             new FixedPathFrontedResourceResolver());
 
         var messages = validator.Validate(CreateDocument([item]));
@@ -521,7 +375,7 @@ public class FrontedLayoutDesignerFoundationTest
                 Config = new ImageFrontedControlConfig { ImagePath = "Resources/logo.png" }
             };
             var validator = new FrontedLayoutValidator(
-                new KnownFrontedControlRegistry(),
+                CreateTestV3ControlRegistry(),
                 new FixedPathFrontedResourceResolver(imagePath),
                 new RejectingImageSafetyService());
 
@@ -817,7 +671,7 @@ public class FrontedLayoutDesignerFoundationTest
                     Config = new TextFrontedControlConfig { ZIndex = 7 }
                 }
             ]);
-        var factory = new FrontedControlDefaultConfigFactory();
+        var factory = new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry());
 
         var config = factory.Create(controlType, document, 100.25, 100.25);
 
@@ -828,7 +682,7 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void BehaviorGuid_NewControlViaFactory_HasNonEmptyGuid()
     {
-        var factory = new FrontedControlDefaultConfigFactory();
+        var factory = new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry());
 
         var config = factory.Create("Text", CreateDocument([]));
 
@@ -838,7 +692,7 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void DefaultConfigFactoryDoesNotCreateCompatibilityOverlaysOrBanControlsFromNormalAddControl()
     {
-        var factory = new FrontedControlDefaultConfigFactory();
+        var factory = new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry());
 
         Assert.False(factory.CanCreate("PickingBorderOverlay"));
         Assert.Throws<NotSupportedException>(() => factory.Create("PickingBorderOverlay", CreateDocument([])));
@@ -851,7 +705,7 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void DefaultConfigFactoryUsesControlSpecificRecommendedDefaults()
     {
-        var factory = new FrontedControlDefaultConfigFactory();
+        var factory = new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry());
         var document = CreateDocument([]);
 
         var text = Assert.IsType<TextFrontedControlConfig>(factory.Create("Text", document));
@@ -905,7 +759,9 @@ public class FrontedLayoutDesignerFoundationTest
                     Config = new TextFrontedControlConfig { ZIndex = 3 }
                 }
             ]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(
+            new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry()))
+        { CurrentDocument = document };
         viewModel.ControlFilterText = "will-hide-new-control";
         var previewRequests = 0;
         viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
@@ -1201,7 +1057,9 @@ public class FrontedLayoutDesignerFoundationTest
     public void AddControlUndoRedoRestoresInMemoryDocument()
     {
         var document = CreateDocument([]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(
+            new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry()))
+        { CurrentDocument = document };
 
         viewModel.AddControlCommand.Execute(new FrontedAddControlRequest { ControlType = "Text" });
         Assert.Single(viewModel.CurrentDocument!.Controls);
@@ -1219,7 +1077,9 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void UndoFallsBackToScheduledAtomicPreviewForAddDeleteRestore()
     {
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([]) };
+        var viewModel = new FrontedDesignerWindowViewModel(
+            new FrontedControlDefaultConfigFactory(CreateTestV3ControlRegistry()))
+        { CurrentDocument = CreateDocument([]) };
         viewModel.AddControlCommand.Execute(new FrontedAddControlRequest { ControlType = "Text" });
 
         var previewRestoreStates = new List<bool>();
@@ -2183,279 +2043,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("Border", banned.GroupName);
     }
 
-    [Fact]
-    public void MapV2DisplayInternalStyleEditorFiltersFixedChildPartPropertiesAndEditsParentConfig()
-    {
-        var item = new FrontedControlDesignItem
-        {
-            Name = "Map",
-            Config = new MapV2DisplayControlConfig
-            {
-                TeamNameColor = "#FFFFFFFF",
-                MapBorderNormalColor = "#FF112233"
-            }
-        };
-        var document = CreateDocument([item]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-        viewModel.SelectDesignItem(item);
-
-        viewModel.ToggleMapV2InternalStyleEditorCommand.Execute(null);
-
-        Assert.True(viewModel.IsMapV2InternalStyleEditorVisible);
-        Assert.Equal(MapV2InternalStylePart.TeamName, viewModel.SelectedMapV2InternalStylePart?.Part);
-        Assert.Equal(
-            [
-                nameof(MapV2InternalPartLayoutConfig.X),
-                nameof(MapV2InternalPartLayoutConfig.Y),
-                nameof(MapV2InternalPartLayoutConfig.Width),
-                nameof(MapV2InternalPartLayoutConfig.Height),
-                nameof(MapV2DisplayControlConfig.TeamNameFontFamily),
-                nameof(MapV2DisplayControlConfig.TeamNameFontWeight),
-                nameof(MapV2DisplayControlConfig.TeamNameColor),
-                nameof(MapV2DisplayControlConfig.TeamNameFontSize)
-            ],
-            viewModel.PropertyEditorItems.Select(row => row.PropertyName).ToArray());
-
-        viewModel.MoveSelectedDesignItemBy(1, 1);
-        Assert.True(document.IsDirty);
-        Assert.True(viewModel.CanUndo);
-
-        var colorRow = viewModel.PropertyEditorItems.Single(row =>
-            row.PropertyName == nameof(MapV2DisplayControlConfig.TeamNameColor));
-        Assert.True(viewModel.ApplyPropertyEdit(colorRow, "#FF010203"));
-        Assert.Equal("#FF010203", ((MapV2DisplayControlConfig)item.Config).TeamNameColor);
-
-        viewModel.SelectedMapV2InternalStylePart = viewModel.MapV2InternalStylePartOptions.Single(option =>
-            option.Part == MapV2InternalStylePart.MapCard);
-
-        Assert.Equal(
-            [
-                nameof(MapV2InternalPartLayoutConfig.X),
-                nameof(MapV2InternalPartLayoutConfig.Y),
-                nameof(MapV2InternalPartLayoutConfig.Width),
-                nameof(MapV2InternalPartLayoutConfig.Height),
-                nameof(MapV2DisplayControlConfig.MapBorderNormalColor),
-                nameof(MapV2DisplayControlConfig.MapBorderBannedColor)
-            ],
-            viewModel.PropertyEditorItems.Select(row => row.PropertyName).ToArray());
-
-        viewModel.ToggleMapV2InternalStyleEditorCommand.Execute(null);
-        Assert.False(viewModel.IsMapV2InternalStyleEditorVisible);
-        Assert.Null(viewModel.SelectedMapV2InternalStylePart);
-        Assert.Contains(viewModel.PropertyEditorItems, row => row.PropertyName == nameof(FrontedControlConfigBase.Left));
-    }
-
-    [Fact]
-    public void MapV2DisplayStyleCanApplyToAllSameTypeControlsIncludingSizeWithoutChangingPositionOrBinding()
-    {
-        var source = new FrontedControlDesignItem
-        {
-            Name = "Map0",
-            Config = new MapV2DisplayControlConfig
-            {
-                MapKey = "Map0",
-                Left = 10,
-                Top = 20,
-                Width = 300,
-                Height = 180,
-                ZIndex = 2,
-                Visibility = FrontedControlVisibility.Hidden,
-                BindingPath = "Source.Binding",
-                MapNameFontFamily = "Source Map Font",
-                MapNameFontWeight = "Bold",
-                MapNameColor = "#FF010203",
-                MapNameFontSize = 20,
-                TeamNameFontFamily = "Source Team Font",
-                TeamNameFontWeight = "SemiBold",
-                TeamNameColor = "#FF040506",
-                TeamNameFontSize = 18,
-                CampNameFontFamily = "Source Camp Font",
-                CampNameFontWeight = "Medium",
-                CampNameColor = "#FF070809",
-                CampNameFontSize = 16,
-                MapBorderNormalColor = "#FF112233",
-                MapBorderBannedColor = "#FF445566",
-                PickingBorderImagePath = "Resources/picking.png",
-                PickingBorderFillColor = "#FF778899"
-            }
-        };
-        var target = new FrontedControlDesignItem
-        {
-            Name = "Map1",
-            Config = new MapV2DisplayControlConfig
-            {
-                MapKey = "Map1",
-                Left = 100,
-                Top = 200,
-                Width = 320,
-                Height = 190,
-                ZIndex = 7,
-                Visibility = FrontedControlVisibility.Collapsed,
-                BindingPath = "Target.Binding",
-                MapNameColor = "#FFFFFFFF",
-                MapBorderNormalColor = "#FF000000",
-                PickingBorderImagePath = "Resources/old.png"
-            }
-        };
-        var unrelated = new FrontedControlDesignItem
-        {
-            Name = "Title",
-            Config = new TextFrontedControlConfig { Color = "#FFAABBCC" }
-        };
-        var document = CreateDocument([source, target, unrelated]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-        viewModel.SelectDesignItem(source);
-
-        Assert.True(viewModel.IsMapV2DisplaySelected);
-
-        viewModel.ApplyMapV2DisplayStyleToAllCommand.Execute(null);
-
-        var targetConfig = Assert.IsType<MapV2DisplayControlConfig>(target.Config);
-        Assert.Equal("Map1", targetConfig.MapKey);
-        Assert.Equal("Target.Binding", targetConfig.BindingPath);
-        Assert.Equal(Enum.GetValues<MapV2InternalStylePart>(), targetConfig.InternalParts.Select(part => part.Part));
-        Assert.All(targetConfig.InternalParts, part =>
-            Assert.DoesNotContain(part, ((MapV2DisplayControlConfig)source.Config).InternalParts, ReferenceEqualityComparer.Instance));
-        Assert.True(document.IsDirty);
-        Assert.True(viewModel.CanUndo);
-
-        viewModel.UndoCommand.Execute(null);
-
-        var restoredTarget = Assert.IsType<MapV2DisplayControlConfig>(
-            viewModel.CurrentDocument!.Controls.Single(item => item.Name == "Map1").Config);
-        Assert.Equal("Map1", restoredTarget.MapKey);
-
-        viewModel.SelectDesignItem(viewModel.CurrentDocument.Controls.Single(item => item.Name == "Title"));
-        Assert.False(viewModel.IsMapV2DisplaySelected);
-    }
-
-    [Fact]
-    public void MapV2DisplayStyleApplyToAllAlsoReplacesBehaviorsAndRewritesMapKeyFilters()
-    {
-        var sourceGuid = Guid.NewGuid();
-        var targetGuid = Guid.NewGuid();
-        var source = new FrontedControlDesignItem
-        {
-            Name = "Map0",
-            Config = new MapV2DisplayControlConfig
-            {
-                BehaviorGuid = sourceGuid,
-                MapKey = "ArmsFactory",
-                Width = 300,
-                Height = 180
-            }
-        };
-        var target = new FrontedControlDesignItem
-        {
-            Name = "Map1",
-            Config = new MapV2DisplayControlConfig
-            {
-                BehaviorGuid = targetGuid,
-                MapKey = "TheRedChurch",
-                Width = 100,
-                Height = 80
-            }
-        };
-        var document = CreateDocument([source, target]);
-        var behavior = new FrontedBehavior
-        {
-            Name = "PickingBorderBreathing",
-            Kind = FrontedBehaviorKind.Loop,
-            StartTrigger = new TriggerDescriptor
-            {
-                EventType = "MapV2.PickingBorderStateChanged",
-                Filters =
-                [
-                    new TriggerFilter { Left = "Event.MapKey", Right = "ArmsFactory" },
-                    new TriggerFilter { Left = "Event.IsPickingBorderVisible", Right = "true" }
-                ]
-            },
-            StopTriggers =
-            [
-                new TriggerDescriptor
-                {
-                    EventType = "MapV2.PickingBorderStateChanged",
-                    Filters =
-                    [
-                        new TriggerFilter { Left = "StopEvent.MapKey", Right = "ArmsFactory" },
-                        new TriggerFilter { Left = "StopEvent.IsPickingBorderVisible", Right = "false" }
-                    ]
-                }
-            ],
-            StartGraph = new FrontedNodeGraph
-            {
-                Nodes =
-                [
-                    new FrontedNode
-                    {
-                        NodeType = "action.animate",
-                        Properties =
-                        {
-                            ["Target"] = JsonSerializer.SerializeToElement($"part:{sourceGuid}:PickingBorder")
-                        }
-                    },
-                    new FrontedNode
-                    {
-                        NodeType = "flow.if",
-                        Properties =
-                        {
-                            ["Left"] = JsonSerializer.SerializeToElement("Event.MapKey"),
-                            ["Operator"] = JsonSerializer.SerializeToElement("Equals"),
-                            ["Right"] = JsonSerializer.SerializeToElement("ArmsFactory")
-                        }
-                    }
-                ]
-            }
-        };
-        var oldTargetBehavior = new FrontedBehavior { Name = "OldTargetBehavior" };
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-        viewModel.BehaviorPanel.SetDocument(new FrontedBehaviorDocument
-        {
-            Version = 1,
-            WindowType = "TestWindow",
-            CanvasName = "BaseCanvas",
-            ControlBehaviorSets =
-            [
-                new ControlBehaviorSet
-                {
-                    BehaviorGuid = sourceGuid,
-                    DisplayName = "Map0",
-                    Behaviors = [behavior]
-                },
-                new ControlBehaviorSet
-                {
-                    BehaviorGuid = targetGuid,
-                    DisplayName = "Map1",
-                    Behaviors = [oldTargetBehavior]
-                }
-            ]
-        });
-        viewModel.SelectDesignItem(source);
-
-        viewModel.ApplyMapV2DisplayStyleToAllCommand.Execute(null);
-
-        var targetSet = Assert.Single(
-            viewModel.BehaviorPanel.CurrentDocument.ControlBehaviorSets,
-            set => set.BehaviorGuid == targetGuid);
-        Assert.Equal("Map1", targetSet.DisplayName);
-        var copied = Assert.Single(targetSet.Behaviors);
-        Assert.NotEqual(behavior.BehaviorId, copied.BehaviorId);
-        Assert.Equal("PickingBorderBreathing", copied.Name);
-        Assert.DoesNotContain(targetSet.Behaviors, item => item.Name == "OldTargetBehavior");
-        Assert.Equal(
-            $"part:{targetGuid}:PickingBorder",
-            copied.StartGraph.Nodes[0].Properties["Target"].GetString());
-        Assert.Equal("TheRedChurch", copied.StartGraph.Nodes[1].Properties["Right"].GetString());
-        Assert.True(viewModel.AreBehaviorsDirty);
-
-        viewModel.UndoCommand.Execute(null);
-
-        var restoredTargetSet = Assert.Single(
-            viewModel.BehaviorPanel.CurrentDocument.ControlBehaviorSets,
-            set => set.BehaviorGuid == targetGuid);
-        Assert.Equal("OldTargetBehavior", Assert.Single(restoredTargetSet.Behaviors).Name);
-    }
-
     [Theory]
     [InlineData("HorizontalAlignment", "Left", "Center", "Right", "Stretch")]
     [InlineData("VerticalAlignment", "Top", "Center", "Bottom", "Stretch")]
@@ -3146,65 +2733,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Equal(12, cell.X);
         Assert.Equal(4, cell.Y);
-    }
-
-    [Fact]
-    public void GlobalScoreRowChildMoveStoresRelativeCoordinatesOnly()
-    {
-        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
-        viewModel.SelectGlobalScoreCell(rowItem, cell);
-
-        viewModel.MoveSelectedGlobalScoreCell(12, 4, 8, 6, renderPreview: false);
-
-        Assert.Equal(20, cell.X);
-        Assert.Equal(8, cell.Y);
-    }
-
-    [Fact]
-    public void GlobalScoreRowChildPropertyEditUpdatesOnlySelectedCell()
-    {
-        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
-        var other = ((GlobalScoreRowControlConfig)rowItem.Config).Cells[1];
-        viewModel.SelectGlobalScoreCell(rowItem, cell);
-        var xRow = viewModel.PropertyEditorItems.Single(row => row.PropertyName == nameof(GlobalScoreCellConfig.X));
-
-        Assert.True(viewModel.ApplyPropertyEdit(xRow, "44"));
-
-        Assert.Equal(44, cell.X);
-        Assert.Equal(102, other.X);
-    }
-
-    [Fact]
-    public void GlobalScoreRowChildMoveAndResizeAreUndoable()
-    {
-        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
-        viewModel.SelectGlobalScoreCell(rowItem, cell);
-
-        viewModel.CaptureUndoSnapshot();
-        viewModel.MoveSelectedGlobalScoreCell(12, 4, 30, 0, renderPreview: false);
-        viewModel.CommitDesignItemGeometryEdit();
-        Assert.Equal(42, cell.X);
-
-        viewModel.UndoCommand.Execute(null);
-
-        var rowAfterUndo = Assert.IsType<GlobalScoreRowControlConfig>(viewModel.CurrentDocument!.Controls[0].Config);
-        Assert.Equal(12, rowAfterUndo.Cells[0].X);
-
-        viewModel.SelectGlobalScoreCell(viewModel.CurrentDocument.Controls[0], rowAfterUndo.Cells[0]);
-        viewModel.CaptureUndoSnapshot();
-        viewModel.ResizeSelectedGlobalScoreCell(
-            FrontedDesignerResizeHandleKind.BottomRight,
-            12,
-            4,
-            75,
-            32,
-            20,
-            10,
-            renderPreview: false);
-
-        viewModel.UndoCommand.Execute(null);
-
-        var rowAfterResizeUndo = Assert.IsType<GlobalScoreRowControlConfig>(viewModel.CurrentDocument!.Controls[0].Config);
     }
 
     [Fact]
@@ -4956,63 +4484,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void SelectingGlobalScoreRowExposesDedicatedCellEditorItems()
-    {
-        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
-
-        viewModel.SelectDesignItem(rowItem);
-
-        Assert.True(viewModel.HasGlobalScoreCellEditor);
-        Assert.Contains(cell, viewModel.GlobalScoreCellEditorItems);
-        Assert.All(viewModel.LayerGroups.SelectMany(group => group.Items), node =>
-            Assert.Equal(DesignerLayerNodeKind.Control, node.Kind));
-    }
-
-    [Fact]
-    public void SelectingParentLayerNodeClearsSelectedGlobalScoreCell()
-    {
-        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
-        var rowNode = viewModel.LayerGroups.Single().Items[0];
-        viewModel.SelectGlobalScoreCell(rowItem, cell);
-
-        viewModel.SelectLayerNode(rowNode);
-
-        Assert.Same(rowItem, viewModel.SelectedDesignItem);
-        Assert.Null(viewModel.SelectedGlobalScoreCell);
-        Assert.True(rowNode.IsSelected);
-    }
-
-    [Fact]
-    public void SelectingDedicatedGlobalScoreCellEditorItemSelectsParentAndCell()
-    {
-        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
-
-        viewModel.SelectDesignItem(rowItem);
-        viewModel.SelectedGlobalScoreCell = cell;
-
-        Assert.Same(rowItem, viewModel.SelectedDesignItem);
-        Assert.Same(cell, viewModel.SelectedGlobalScoreCell);
-        Assert.Equal(rowItem.Name, viewModel.SelectedGlobalScoreCellParentName);
-        Assert.Equal(cell.Id, viewModel.SelectedGlobalScoreCellId);
-    }
-
-    [Fact]
-    public void CanvasAndDedicatedEditorGlobalScoreCellSelectionProduceSameViewModelState()
-    {
-        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
-
-        viewModel.SelectGlobalScoreCell(rowItem, cell);
-        var canvasSelection = (viewModel.SelectedDesignItem, viewModel.SelectedGlobalScoreCell);
-
-        viewModel.ClearSelection();
-        viewModel.SelectDesignItem(rowItem);
-        viewModel.SelectedGlobalScoreCell = cell;
-
-        Assert.Same(canvasSelection.SelectedDesignItem, viewModel.SelectedDesignItem);
-        Assert.Same(canvasSelection.SelectedGlobalScoreCell, viewModel.SelectedGlobalScoreCell);
-    }
-
-    [Fact]
     public void GlobalScoreCellDoesNotEnterTopLevelReorderList()
     {
         var (viewModel, rowItem, _) = CreateGlobalScoreRowDesigner();
@@ -5416,8 +4887,50 @@ public class FrontedLayoutDesignerFoundationTest
     private static FrontedLayoutValidator CreateValidator()
     {
         return new FrontedLayoutValidator(
-            new KnownFrontedControlRegistry(),
+            CreateTestV3ControlRegistry(),
             referenceScanner: new FrontedLayoutReferenceScanner());
+    }
+
+    /// <summary>
+    /// 构造包含全部 13 个内置 v3 控件 registration 的注册表，供校验器/转换器测试使用。
+    /// </summary>
+    private static FrontedV3ControlRegistry CreateTestV3ControlRegistry()
+    {
+        return new FrontedV3ControlRegistry(
+        [
+            CreateBuiltInRegistration("Text", typeof(TextFrontedControl), typeof(TextFrontedControlConfig), () => new TextFrontedControlConfig { Text = "Text" }),
+            CreateBuiltInRegistration("LocalizedText", typeof(LocalizedTextFrontedControl), typeof(LocalizedTextControlConfig), () => new LocalizedTextControlConfig { LocalizationKey = "Text", FallbackText = "Localized Text" }),
+            CreateBuiltInRegistration("Image", typeof(ImageFrontedControl), typeof(ImageFrontedControlConfig), () => new ImageFrontedControlConfig()),
+            CreateBuiltInRegistration("BorderedImage", typeof(BorderedImageFrontedControl), typeof(BorderedImageFrontedControlConfig), () => new BorderedImageFrontedControlConfig()),
+            CreateBuiltInRegistration("Rectangle", typeof(RectangleFrontedControl), typeof(RectangleFrontedControlConfig), () => new RectangleFrontedControlConfig()),
+            CreateBuiltInRegistration("Polygon", typeof(PolygonFrontedControl), typeof(PolygonFrontedControlConfig), () => new PolygonFrontedControlConfig()),
+            CreateBuiltInRegistration("BackgroundTintRectangle", typeof(BackgroundTintRectangleFrontedControl), typeof(BackgroundTintRectangleFrontedControlConfig), () => new BackgroundTintRectangleFrontedControlConfig()),
+            CreateBuiltInRegistration("BackgroundTintPolygon", typeof(BackgroundTintPolygonFrontedControl), typeof(BackgroundTintPolygonFrontedControlConfig), () => new BackgroundTintPolygonFrontedControlConfig()),
+            CreateBuiltInRegistration("GlobalScoreRow", typeof(GlobalScoreRowFrontedControl), typeof(GlobalScoreRowControlConfig), () => new GlobalScoreRowControlConfig { TeamType = TeamType.HomeTeam, ShowCampIcon = true, CampIconColor = GlobalScoreCampIconColor.White, Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate() }),
+            CreateBuiltInRegistration("TalentTraitDisplay", typeof(TalentTraitDisplayFrontedControl), typeof(TalentTraitDisplayControlConfig), () => new TalentTraitDisplayControlConfig { DisplayKind = TalentTraitDisplayKind.SurvivorTalent, PlayerIndex = 0, IconSize = 36 }),
+            CreateBuiltInRegistration("GameProgressText", typeof(GameProgressTextFrontedControl), typeof(GameProgressTextControlConfig), () => new GameProgressTextControlConfig()),
+            CreateBuiltInRegistration("MapNameText", typeof(MapNameTextFrontedControl), typeof(MapNameTextControlConfig), () => new MapNameTextControlConfig()),
+            CreateBuiltInRegistration("MapV2Display", typeof(MapV2DisplayFrontedControl), typeof(MapV2DisplayControlConfig), () => new MapV2DisplayControlConfig { MapKey = "ArmsFactory" })
+        ]);
+    }
+
+    private static FrontedV3ControlRegistration CreateBuiltInRegistration(
+        string controlId,
+        Type controlType,
+        Type configType,
+        Func<FrontedControlConfigBase> createDefaultConfig)
+    {
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = controlId,
+            LocalControlId = controlId,
+            PackageId = "builtin",
+            IsBuiltIn = true,
+            ControlType = controlType,
+            ConfigType = configType,
+            Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+            CreateDefaultConfig = createDefaultConfig
+        };
     }
 
     private static FrontedCanvasConfig ReadBuiltInLayout(string windowTypeName, string canvasName = "BaseCanvas")
@@ -5562,130 +5075,6 @@ public class FrontedLayoutDesignerFoundationTest
         public string Name { get; } = string.Empty;
     }
 
-    private class KnownFrontedControlRegistry : IFrontedControlRegistry
-    {
-        private static readonly IReadOnlyCollection<IFrontedControl> Controls =
-        [
-            new KnownFrontedControl("Text", typeof(TextFrontedControlConfig)),
-            new KnownFrontedControl("LocalizedText", typeof(LocalizedTextControlConfig)),
-            new KnownFrontedControl("Image", typeof(ImageFrontedControlConfig)),
-            new KnownFrontedControl("BorderedImage", typeof(BorderedImageFrontedControlConfig)),
-            new KnownFrontedControl("GlobalScoreRow", typeof(GlobalScoreRowControlConfig)),
-            new KnownFrontedControl("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig)),
-            new KnownFrontedControl("GameProgressText", typeof(GameProgressTextControlConfig)),
-            new KnownFrontedControl("MapNameText", typeof(MapNameTextControlConfig)),
-            new KnownFrontedControl("MapV2Display", typeof(MapV2DisplayControlConfig)),
-            new KnownFrontedControl("Rectangle", typeof(RectangleFrontedControlConfig)),
-            new KnownFrontedControl("Polygon", typeof(PolygonFrontedControlConfig)),
-            new KnownFrontedControl("BackgroundTintRectangle", typeof(BackgroundTintRectangleFrontedControlConfig)),
-            new KnownFrontedControl("BackgroundTintPolygon", typeof(BackgroundTintPolygonFrontedControlConfig))
-        ];
-
-        public virtual IFrontedControl? GetControl(string controlType)
-        {
-            return Controls.FirstOrDefault(control => control.ControlType == controlType);
-        }
-
-        public virtual IReadOnlyCollection<IFrontedControl> GetControls()
-        {
-            return Controls;
-        }
-
-        public virtual IFrontedPluginControlDescriptor? GetPluginDescriptor(string fullControlType)
-        {
-            return null;
-        }
-
-        public virtual IReadOnlyCollection<IFrontedPluginControlDescriptor> GetPluginDescriptors()
-        {
-            return [];
-        }
-    }
-
-    private sealed class PluginFrontedControlRegistryForTests : KnownFrontedControlRegistry
-    {
-        public static readonly Guid PluginDefaultBehaviorGuid = Guid.NewGuid();
-
-        private readonly FrontedPluginControlDescriptor<TestPluginDesignerConfig> _descriptor = new()
-        {
-            PackageId = "top.plfjy.example.fronted",
-            ControlTypeName = "TeamCard",
-            ConfigType = typeof(TestPluginDesignerConfig),
-            DisplayNameKey = "Designer.ControlType.TeamCard",
-            DescriptionKey = "Designer.ControlType.TeamCard.Description",
-            CreateDefaultConfig = () => new TestPluginDesignerConfig
-            {
-                Title = "Default",
-                BehaviorGuid = PluginDefaultBehaviorGuid
-            },
-            Properties =
-            [
-                new FrontedPluginPropertyDescriptor
-                {
-                    PropertyName = nameof(TestPluginDesignerConfig.Title),
-                    GroupName = "Plugin"
-                },
-                new FrontedPluginPropertyDescriptor
-                {
-                    PropertyName = nameof(TestPluginDesignerConfig.TitleBindingPath),
-                    GroupName = "Plugin",
-                    BindingTargetKind = FrontedBindingTargetKind.Text
-                },
-                new FrontedPluginPropertyDescriptor
-                {
-                    PropertyName = nameof(TestPluginDesignerConfig.AccentColor),
-                    GroupName = "Plugin",
-                    EditorKind = FrontedPropertyEditorKind.Color
-                },
-                new FrontedPluginPropertyDescriptor
-                {
-                    PropertyName = nameof(TestPluginDesignerConfig.Mode),
-                    GroupName = "Plugin",
-                    EditorKind = FrontedPropertyEditorKind.Enum,
-                    Options =
-                    [
-                        new FrontedPropertyEditorOption { Value = "Compact", DisplayName = "Compact" },
-                        new FrontedPropertyEditorOption { Value = "Expanded", DisplayName = "Expanded" }
-                    ]
-                }
-            ],
-            Validate = config => string.IsNullOrWhiteSpace(config.Title)
-                ? [new FrontedLayoutValidationMessage
-                {
-                    Severity = FrontedLayoutValidationSeverity.Warning,
-                    Code = "PluginTitleEmpty",
-                    PropertyName = nameof(TestPluginDesignerConfig.Title),
-                    Message = "Title is empty."
-                }]
-                : [],
-            CreateControl = (name, _, _) => new Border { Name = name }
-        };
-
-        public override IFrontedControl? GetControl(string controlType)
-        {
-            return controlType == _descriptor.FullControlType
-                ? new KnownFrontedControl(_descriptor.FullControlType, typeof(TestPluginDesignerConfig))
-                : base.GetControl(controlType);
-        }
-
-        public override IReadOnlyCollection<IFrontedControl> GetControls()
-        {
-            return [.. base.GetControls(), new KnownFrontedControl(_descriptor.FullControlType, typeof(TestPluginDesignerConfig))];
-        }
-
-        public override IFrontedPluginControlDescriptor? GetPluginDescriptor(string fullControlType)
-        {
-            return string.Equals(fullControlType, _descriptor.FullControlType, StringComparison.OrdinalIgnoreCase)
-                ? _descriptor
-                : null;
-        }
-
-        public override IReadOnlyCollection<IFrontedPluginControlDescriptor> GetPluginDescriptors()
-        {
-            return [_descriptor];
-        }
-    }
-
     private sealed class RecordingFrontedBehaviorService : IFrontedBehaviorService
     {
         public List<Guid> RemovedBehaviorGuids { get; } = [];
@@ -5722,39 +5111,6 @@ public class FrontedLayoutDesignerFoundationTest
         public void RemoveBehaviors(Guid behaviorGuid)
         {
             RemovedBehaviorGuids.Add(behaviorGuid);
-        }
-    }
-
-    private sealed class TestPluginDesignerConfig : FrontedControlConfigBase
-    {
-        public TestPluginDesignerConfig()
-        {
-            ControlType = "plugin:top.plfjy.example.fronted/TeamCard";
-            Width = 220;
-            Height = 80;
-        }
-
-        public string? Title { get; set; }
-
-        public string? TitleBindingPath { get; set; }
-
-        public string AccentColor { get; set; } = "#FFFFFFFF";
-
-        public string Mode { get; set; } = "Compact";
-    }
-
-    private sealed class KnownFrontedControl(string controlType, Type configType) : IFrontedControl
-    {
-        public string ControlType { get; } = controlType;
-
-        public Type ConfigType { get; } = configType;
-
-        public FrameworkElement Create(
-            string name,
-            FrontedControlConfigBase config,
-            FrontedControlBuildContext context)
-        {
-            throw new NotSupportedException();
         }
     }
 }

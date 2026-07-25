@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.PluginSdk;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,28 +12,24 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
 
 /// <summary>
-/// 内置 v3 全局比分行控件工厂。
+/// 内置 v3 全局比分行控件。
 /// </summary>
-public class GlobalScoreRowFrontedControl : IFrontedControl
+[FrontedV3Control("GlobalScoreRow", IsBuiltIn = true)]
+public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
 {
     /// <inheritdoc />
-    public string ControlType => "GlobalScoreRow";
-
-    /// <inheritdoc />
-    public Type ConfigType => typeof(GlobalScoreRowControlConfig);
-
-    /// <inheritdoc />
-    public FrameworkElement Create(
-        string name,
-        FrontedControlConfigBase config,
-        FrontedControlBuildContext context)
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        if (config is not GlobalScoreRowControlConfig rowConfig)
+        if (context.Config is not GlobalScoreRowControlConfig rowConfig)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a GlobalScoreRow config.");
+            throw new FrontedLayoutConfigException("Control config is not a GlobalScoreRow config.");
         }
 
-        return new GlobalScoreRowElement(name, rowConfig, context.SharedDataService);
+        var element = new GlobalScoreRowElement(
+            context.ControlName ?? string.Empty,
+            rowConfig,
+            context.SharedDataService);
+        Content = element;
     }
 
     private sealed class GlobalScoreRowElement : Canvas
@@ -52,20 +49,6 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
             Name = name;
             _config = config;
             _sharedDataService = sharedDataService;
-
-            Canvas.SetLeft(this, config.Left);
-            Canvas.SetTop(this, config.Top);
-            Panel.SetZIndex(this, config.ZIndex);
-
-            if (config.Width.HasValue)
-            {
-                Width = config.Width.Value;
-            }
-
-            if (config.Height.HasValue)
-            {
-                Height = config.Height.Value;
-            }
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;

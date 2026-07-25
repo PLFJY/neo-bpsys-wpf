@@ -1,9 +1,10 @@
-﻿
+
 using System.Runtime.CompilerServices;
 using System.Windows.Markup;
 
 [assembly: InternalsVisibleTo("neo-bpsys-wpf")]
 [assembly: InternalsVisibleTo("neo-bpsys-wpf.Tests")]
+[assembly: InternalsVisibleTo("neo-bpsys-wpf.PluginSdk")]
 
 [assembly: XmlnsPrefix("https://bpsys.plfjy.top/xaml/core", "bp")]
 [assembly: XmlnsDefinition("https://bpsys.plfjy.top/xaml/core", "neo-bpsys-wpf.Core")]

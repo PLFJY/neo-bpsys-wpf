@@ -24,6 +24,7 @@
     <ProjectReference Include="..\neo-bpsys-wpf\neo-bpsys-wpf.csproj" />
     <ProjectReference Include="..\neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj" Aliases="smartbp" />
     <ProjectReference Include="..\neo-bpsys-wpf.ExamplePlugin\neo-bpsys-wpf.ExamplePlugin.csproj" />
+    <ProjectReference Include="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" />
     <ProjectReference Include="..\Built-inPlugins\neo-bpsys-wpf.WebRenderer\neo-bpsys-wpf.WebRenderer.csproj" />
     <ProjectReference Include="..\Built-inPlugins\neo-bpsys-wpf.WebRenderer\Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Aliases="host" />
   </ItemGroup>

@@ -56,7 +56,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     private readonly string _tempRoot;
     private readonly ILogger<FrontedLayoutPackageExporter> _logger;
     private readonly IFrontedImageSafetyService _imageSafetyService;
-    private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedV3ControlRegistry? _controlRegistry;
     private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -81,7 +81,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     public FrontedLayoutPackageExporter(
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutPackageExporter> logger,
-        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedV3ControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
         : this(
             packageManager,
@@ -107,7 +107,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         string packageRoot,
         string tempRoot,
         ILogger<FrontedLayoutPackageExporter>? logger = null,
-        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedV3ControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
     {
         _packageManager = packageManager;

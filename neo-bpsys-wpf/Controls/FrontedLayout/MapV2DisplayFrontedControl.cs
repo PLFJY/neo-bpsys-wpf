@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.PluginSdk;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,37 +15,28 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
 
 /// <summary>
-/// 内置 v3 地图 BP v2 展示控件工厂。
+/// 内置 v3 地图 BP v2 展示控件。
 /// </summary>
-public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? logger = null) : IFrontedControl
+[FrontedV3Control("MapV2Display", IsBuiltIn = true)]
+public class MapV2DisplayFrontedControl : FrontedV3ControlBase
 {
-    private readonly ILogger<MapV2DisplayFrontedControl>? _logger = logger;
-
     /// <inheritdoc />
-    public string ControlType => "MapV2Display";
-
-    /// <inheritdoc />
-    public Type ConfigType => typeof(MapV2DisplayControlConfig);
-
-    /// <inheritdoc />
-    public FrameworkElement Create(
-        string name,
-        FrontedControlConfigBase config,
-        FrontedControlBuildContext context)
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        if (config is not MapV2DisplayControlConfig mapConfig)
+        if (context.Config is not MapV2DisplayControlConfig mapConfig)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a MapV2Display config.");
+            throw new FrontedLayoutConfigException("Control config is not a MapV2Display config.");
         }
 
         var settingsHostService = context.Services.GetRequiredService<ISettingsHostService>();
-        return new MapV2DisplayElement(
-            name,
+        var element = new MapV2DisplayElement(
+            context.ControlName ?? string.Empty,
             mapConfig,
             context.SharedDataService,
             settingsHostService,
             context.ResourceResolver,
-            _logger ?? context.Logger);
+            context.Logger);
+        Content = element;
     }
 
     private sealed class MapV2DisplayElement : Border
@@ -59,13 +51,7 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
             IFrontedResourceResolver resourceResolver,
             ILogger? logger)
         {
-            var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
-            Name = outer.Name;
-            Width = outer.Width;
-            Height = outer.Height;
-            Canvas.SetLeft(this, Canvas.GetLeft(outer));
-            Canvas.SetTop(this, Canvas.GetTop(outer));
-            Panel.SetZIndex(this, Panel.GetZIndex(outer));
+            Name = name;
 
             if (string.IsNullOrWhiteSpace(config.MapKey)
                 || !sharedDataService.CurrentGame.MapV2Dictionary.ContainsKey(config.MapKey))

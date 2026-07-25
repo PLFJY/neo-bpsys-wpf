@@ -27,14 +27,14 @@ public static class FrontedV3LayoutWindowRegistryExtensions
     /// 或当前插件包 ID 不是安全的 canonical path segment 时抛出。</exception>
     /// <remarks>
     /// <para>
-    /// 当在插件初始化作用域内调用时，<see cref="FrontedV3LayoutWindowRegistration.PackageId"/>
+    /// 当在插件初始化作用域内调用时，<see cref="FrontedWindowRegistration.PackageId"/>
     /// 取自 <see cref="FrontedPluginRegistrationContext.CurrentPackageId"/>，Canonical ID 为
     /// <c>plugin:{PackageId}/{windowId}</c>。
     /// </para>
     /// <para>
     /// 当 <paramref name="isBuiltIn"/> 为 <see langword="true"/> 或当前不在任何插件作用域内
     /// （PackageId 为 <see langword="null"/>）时，按"非插件宿主直接注册"语义处理，
-    /// Canonical ID 为 <paramref name="windowId"/>，<see cref="FrontedV3LayoutWindowRegistration.PackageId"/>
+    /// Canonical ID 为 <paramref name="windowId"/>，<see cref="FrontedWindowRegistration.PackageId"/>
     /// 为 <see langword="null"/>。
     /// </para>
     /// <para>

@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Options;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -15,7 +17,7 @@ public class FrontedRenderer(
     IServiceProvider services,
     ISharedDataService sharedDataService,
     IFrontedResourceResolver resourceResolver,
-    IFrontedControlRegistry controlRegistry,
+    IFrontedV3ControlRegistry v3ControlRegistry,
     ILogger<FrontedRenderer> logger) : IFrontedRenderer
 {
     internal const string MissingPluginPlaceholderTitle = "Missing Plugin";
@@ -77,46 +79,59 @@ public class FrontedRenderer(
         var renderedElements = new Dictionary<string, FrameworkElement>(StringComparer.Ordinal);
         foreach (var (name, controlConfig) in runtimeState.Controls.OrderBy(x => x.Value.ZIndex))
         {
-            var factory = controlRegistry.GetControl(controlConfig.ControlType);
-            if (factory is null)
+            // V3 是唯一的控件创建路径：所有控件经 FrontedV3ControlHost 包装，
+            // Host 唯一负责根布局（Left/Top/ZIndex/Width/Height/Visibility/GaussianBlur）。
+            if (v3ControlRegistry.TryGetRegistration(controlConfig.ControlType, out var v3Registration))
             {
-                if (FrontedPluginControlType.IsPluginControlType(controlConfig.ControlType))
+                var host = new FrontedV3ControlHost(v3Registration, controlConfig, context.IsDesignerPreview);
+                var v3Context = new FrontedV3ControlContext
                 {
-                    if (context.RenderMissingPluginPlaceholders)
-                    {
-                        // Designer preview preserves missing plugin controls as selectable placeholders; live fronted windows skip them.
-                        var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
-                        placeholder.Visibility = MapVisibility(controlConfig.Visibility);
-                        FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
-                        FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
-                        RegisterGeneratedName(canvas, name, placeholder);
-                        var placeholderHost = FrontedEffectHostFactory.Wrap(placeholder);
-                        ApplyStaticGaussianBlur(placeholderHost, controlConfig.IsGaussianBlurEnabled, controlConfig.GaussianBlurRadius);
-                        canvas.Children.Add(placeholderHost);
-                        renderedElements[name] = placeholder;
-                        continue;
-                    }
+                    Services = buildContext.Services,
+                    SharedDataService = buildContext.SharedDataService,
+                    ResourceResolver = buildContext.ResourceResolver,
+                    WindowId = buildContext.WindowId,
+                    CanvasName = buildContext.CanvasName,
+                    CanvasBackgroundImage = buildContext.CanvasBackgroundImage,
+                    CanvasWidth = buildContext.CanvasWidth,
+                    CanvasHeight = buildContext.CanvasHeight,
+                    Config = controlConfig,
+                    Options = FrontedV3OptionsView.Create(controlConfig, v3Registration.Properties),
+                    IsDesignerPreview = buildContext.IsDesignerPreview,
+                    Logger = buildContext.Logger
+                };
+                host.TryInitialize(v3Context, logger);
+                RegisterGeneratedName(canvas, name, host);
+                canvas.Children.Add(host);
+                renderedElements[name] = host;
+                continue;
+            }
 
-                    logger.LogWarning(
-                        "Skipping fronted plugin control {ControlName} because ControlType {ControlType} is not registered.",
-                        name,
-                        controlConfig.ControlType);
+            // 未注册的插件控件：Designer 保留为可选占位，前台窗口跳过。
+            if (FrontedPluginControlType.IsPluginControlType(controlConfig.ControlType))
+            {
+                if (context.RenderMissingPluginPlaceholders)
+                {
+                    var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
+                    placeholder.Visibility = MapVisibility(controlConfig.Visibility);
+                    FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
+                    FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
+                    RegisterGeneratedName(canvas, name, placeholder);
+                    var placeholderHost = FrontedEffectHostFactory.Wrap(placeholder);
+                    ApplyStaticGaussianBlur(placeholderHost, controlConfig.IsGaussianBlurEnabled, controlConfig.GaussianBlurRadius);
+                    canvas.Children.Add(placeholderHost);
+                    renderedElements[name] = placeholder;
                     continue;
                 }
 
-                throw new FrontedLayoutConfigException(
-                    $"Control '{name}' has no registered factory for ControlType '{controlConfig.ControlType}'.");
+                logger.LogWarning(
+                    "Skipping fronted plugin control {ControlName} because ControlType {ControlType} is not registered.",
+                    name,
+                    controlConfig.ControlType);
+                continue;
             }
 
-            var element = factory.Create(name, controlConfig, buildContext);
-            element.Visibility = MapVisibility(controlConfig.Visibility);
-            FrontedRendererProperties.SetIsGeneratedControl(element, true);
-            FrontedRendererProperties.SetBehaviorGuid(element, controlConfig.BehaviorGuid);
-            RegisterGeneratedName(canvas, name, element);
-            var effectHost = FrontedEffectHostFactory.Wrap(element);
-            ApplyStaticGaussianBlur(effectHost, controlConfig.IsGaussianBlurEnabled, controlConfig.GaussianBlurRadius);
-            canvas.Children.Add(effectHost);
-            renderedElements[name] = element;
+            throw new FrontedLayoutConfigException(
+                $"Control '{name}' has no registered factory for ControlType '{controlConfig.ControlType}'.");
         }
 
     }

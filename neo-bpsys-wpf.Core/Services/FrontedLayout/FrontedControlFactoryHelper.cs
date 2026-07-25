@@ -17,6 +17,11 @@ internal static class FrontedControlFactoryHelper
         return border;
     }
 
+    public static Border CreateBorderWithoutCanvasLayout(string name)
+    {
+        return new Border { Name = name };
+    }
+
     public static void ApplyCanvasLayout(FrameworkElement element, FrontedControlConfigBase config)
     {
         Canvas.SetLeft(element, config.Left);

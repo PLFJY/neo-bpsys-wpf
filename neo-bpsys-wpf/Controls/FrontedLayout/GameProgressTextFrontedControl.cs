@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.PluginSdk;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
@@ -18,36 +19,27 @@ using System.Windows.Shapes;
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
 
 /// <summary>
-/// 内置 v3 CutScene 对局进度文本业务控件工厂。
+/// 内置 v3 CutScene 对局进度文本业务控件。
 /// </summary>
-public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedControl>? logger = null) : IFrontedControl
+[FrontedV3Control("GameProgressText", IsBuiltIn = true)]
+public class GameProgressTextFrontedControl : FrontedV3ControlBase
 {
-    private readonly ILogger<GameProgressTextFrontedControl>? _logger = logger;
-
     /// <inheritdoc />
-    public string ControlType => "GameProgressText";
-
-    /// <inheritdoc />
-    public Type ConfigType => typeof(GameProgressTextControlConfig);
-
-    /// <inheritdoc />
-    public FrameworkElement Create(
-        string name,
-        FrontedControlConfigBase config,
-        FrontedControlBuildContext context)
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        if (config is not GameProgressTextControlConfig textConfig)
+        if (context.Config is not GameProgressTextControlConfig textConfig)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a GameProgressText config.");
+            throw new FrontedLayoutConfigException("Control config is not a GameProgressText config.");
         }
 
         var settingsHostService = context.Services.GetRequiredService<ISettingsHostService>();
-        return new GameProgressTextElement(
-            name,
+        var element = new GameProgressTextElement(
+            context.ControlName ?? string.Empty,
             textConfig,
             context.SharedDataService,
             settingsHostService,
-            _logger ?? context.Logger);
+            context.Logger);
+        Content = element;
     }
 
     private sealed class GameProgressTextElement : Border
@@ -73,13 +65,7 @@ public class GameProgressTextFrontedControl(ILogger<GameProgressTextFrontedContr
             _logger = logger;
             _currentAppCulture = settingsHostService.Settings.CultureInfo;
 
-            var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
-            Name = outer.Name;
-            Width = outer.Width;
-            Height = outer.Height;
-            Canvas.SetLeft(this, Canvas.GetLeft(outer));
-            Canvas.SetTop(this, Canvas.GetTop(outer));
-            Panel.SetZIndex(this, Panel.GetZIndex(outer));
+            Name = name;
 
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;

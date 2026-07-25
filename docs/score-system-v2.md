@@ -394,4 +394,4 @@ Score System v2 的所有环节（Score 当前实现）已全部完成。核心�
 | `Free` 模式是否允许手动写比分 | 暂不支持，记录为设计缺口。暂时在Free下禁用相关按钮，且对外显示全部为 0 |
 | BO3 中第三场加赛与 BO5 第四场的持久化 key | 使用 `ScoreGameKey`，避免只靠 `GameProgress` 数值。 |
 | 旧 `Team.Score` 字段何时删除 | 等旧 DTO 和 legacy 导入路径完全收口后再删除。旧记录中的 `Team.Score` 无法安全还原完整 per-Game/per-Half 历史；导入器不会伪造半场结果。 |
-| 全局比分 v3 控件类型 | 已新增内置 `GlobalScoreRow`，通过 `IFrontedControl` 注册并由 JSON `ControlType = "GlobalScoreRow"` 使用。 |
+| 全局比分 v3 控件类型 | 已新增内置 `GlobalScoreRow`，通过统一 V3 Control API（`FrontedV3ControlBase` + `[FrontedV3Control]` + `AddFrontedV3Control<TControl>()`）注册并由 JSON `ControlType = "GlobalScoreRow"` 使用。 |

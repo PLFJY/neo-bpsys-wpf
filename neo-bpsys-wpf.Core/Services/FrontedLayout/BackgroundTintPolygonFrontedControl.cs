@@ -1,39 +1,47 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.PluginSdk;
 using System.Windows;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
-public class BackgroundTintPolygonFrontedControl(BackgroundImageTintProcessor processor) : IFrontedControl
+/// <summary>
+/// 内置 v3 背景色调多边形控件。
+/// </summary>
+[FrontedV3Control("BackgroundTintPolygon", IsBuiltIn = true)]
+public class BackgroundTintPolygonFrontedControl : FrontedV3ControlBase
 {
-    public BackgroundTintPolygonFrontedControl()
-        : this(new BackgroundImageTintProcessor())
+    /// <inheritdoc />
+    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-    }
-
-    public string ControlType => "BackgroundTintPolygon";
-
-    public Type ConfigType => typeof(BackgroundTintPolygonFrontedControlConfig);
-
-    public FrameworkElement Create(string name, FrontedControlConfigBase config, FrontedControlBuildContext context)
-    {
-        if (config is not BackgroundTintPolygonFrontedControlConfig polygon)
+        if (context.Config is not BackgroundTintPolygonFrontedControlConfig polygon)
         {
-            throw new FrontedLayoutConfigException($"Control '{name}' config is not a BackgroundTintPolygon config.");
+            throw new FrontedLayoutConfigException("Control config is not a BackgroundTintPolygon config.");
         }
 
-        return BackgroundTintFrontedControlFactoryHelper.Create(
-            name,
+        var buildContext = context.ToBuildContext();
+        var processor = context.Services.GetRequiredService<BackgroundImageTintProcessor>();
+        var root = BackgroundTintFrontedControlFactoryHelper.Create(
+            context.ControlName ?? string.Empty,
             polygon,
-            context,
+            buildContext,
             processor,
-            root => CreateGeometry(polygon, root, context.Logger),
+            element => CreateGeometry(polygon, element, context.Logger),
             BackgroundTintNormalizationMode.VisiblePolygon,
             polygon.Points);
+        Content = root;
     }
 
+    /// <summary>
+    /// 根据配置创建多边形裁剪几何。
+    /// </summary>
+    /// <param name="config">背景色调多边形配置。</param>
+    /// <param name="element">关联的可视元素，用于获取实际尺寸。</param>
+    /// <param name="logger">可选日志。</param>
+    /// <returns>多边形路径几何。</returns>
     public static PathGeometry CreateGeometry(
         BackgroundTintPolygonFrontedControlConfig config,
         FrameworkElement? element = null,

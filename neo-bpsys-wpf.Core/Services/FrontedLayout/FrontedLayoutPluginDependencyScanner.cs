@@ -10,7 +10,7 @@ internal static class FrontedLayoutPluginDependencyScanner
         FrontedCanvasConfig config,
         string canonicalWindowId,
         string canvasName,
-        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedV3ControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
     {
         _ = canvasName;
@@ -90,7 +90,7 @@ internal static class FrontedLayoutPluginDependencyScanner
     public static List<FrontedPluginDependency> MergePackageDependencies(
         IEnumerable<(string Window, string Canvas, FrontedCanvasConfig Config)> layouts,
         IEnumerable<FrontedPluginDependency>? manifestDependencies,
-        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedV3ControlRegistry? controlRegistry = null,
         IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
     {
         var packageSummaries = new Dictionary<string, FrontedPluginDependency>(StringComparer.OrdinalIgnoreCase);
@@ -142,7 +142,7 @@ internal static class FrontedLayoutPluginDependencyScanner
 
     public static List<FrontedLayoutPackagePluginControlIssue> FindMissingPluginControls(
         IEnumerable<(string Window, string Canvas, FrontedCanvasConfig Config)> layouts,
-        IFrontedControlRegistry? controlRegistry)
+        IFrontedV3ControlRegistry? controlRegistry)
     {
         if (controlRegistry is null)
         {
@@ -153,7 +153,7 @@ internal static class FrontedLayoutPluginDependencyScanner
             .SelectMany(layout => EnumerateStateControls(layout.Config)
                 .SelectMany(state => state.Controls)
                 .Where(control => FrontedPluginControlType.IsPluginControlType(control.Value.ControlType))
-                .Where(control => !controlRegistry.IsPluginControlRegistered(control.Value.ControlType))
+                .Where(control => controlRegistry.GetRegistration(control.Value.ControlType) is null)
                 .Select(control =>
                 {
                     var parsed = FrontedPluginControlType.Parse(control.Value.ControlType);
@@ -183,7 +183,7 @@ internal static class FrontedLayoutPluginDependencyScanner
     public static List<FrontedLayoutPackagePluginDependencyIssue> FindUnsatisfiedPluginDependencies(
         IEnumerable<(string Window, string Canvas, FrontedCanvasConfig Config)> layouts,
         IEnumerable<FrontedPluginDependency>? manifestDependencies,
-        IFrontedControlRegistry? controlRegistry,
+        IFrontedV3ControlRegistry? controlRegistry,
         IFrontedPluginMetadataProvider? pluginMetadataProvider)
     {
         var layoutList = layouts.ToList();
@@ -274,7 +274,7 @@ internal static class FrontedLayoutPluginDependencyScanner
     private static string ResolveDisplayName(
         FrontedPluginDependency? existing,
         IReadOnlyList<string> controls,
-        IFrontedControlRegistry? controlRegistry,
+        IFrontedV3ControlRegistry? controlRegistry,
         IFrontedPluginMetadataProvider? pluginMetadataProvider)
     {
         var packageId = existing?.PackageId ?? FrontedPluginControlType.Parse(controls[0]).PackageId;
@@ -289,11 +289,11 @@ internal static class FrontedLayoutPluginDependencyScanner
             return existing.DisplayName;
         }
 
-        var descriptor = controls
-            .Select(controlType => controlRegistry?.GetPluginDescriptor(controlType))
-            .FirstOrDefault(descriptor => descriptor is not null);
+        var registration = controls
+            .Select(controlType => controlRegistry?.GetRegistration(controlType))
+            .FirstOrDefault(registration => registration is not null);
 
-        return descriptor?.PackageId ?? existing?.PackageId ?? FrontedPluginControlType.Parse(controls[0]).PackageId;
+        return registration?.PackageId ?? existing?.PackageId ?? FrontedPluginControlType.Parse(controls[0]).PackageId;
     }
 
     private static string? ResolveMinVersion(

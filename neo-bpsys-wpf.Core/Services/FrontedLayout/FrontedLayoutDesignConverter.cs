@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Collections.ObjectModel;
 
@@ -10,23 +11,35 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public class FrontedLayoutDesignConverter
 {
-    private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedV3ControlRegistry? _v3ControlRegistry;
     private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
 
+    /// <summary>
+    /// 初始化转换器，不绑定 V3 Registry。
+    /// </summary>
     public FrontedLayoutDesignConverter()
     {
     }
 
-    public FrontedLayoutDesignConverter(IFrontedControlRegistry controlRegistry)
+    /// <summary>
+    /// 初始化转换器并绑定 V3 Registry。
+    /// </summary>
+    /// <param name="v3ControlRegistry">V3 控件注册表。</param>
+    public FrontedLayoutDesignConverter(IFrontedV3ControlRegistry v3ControlRegistry)
     {
-        _controlRegistry = controlRegistry;
+        _v3ControlRegistry = v3ControlRegistry;
     }
 
+    /// <summary>
+    /// 初始化转换器并绑定 V3 Registry 与插件元数据提供程序。
+    /// </summary>
+    /// <param name="v3ControlRegistry">V3 控件注册表。</param>
+    /// <param name="pluginMetadataProvider">插件元数据提供程序。</param>
     public FrontedLayoutDesignConverter(
-        IFrontedControlRegistry controlRegistry,
+        IFrontedV3ControlRegistry v3ControlRegistry,
         IFrontedPluginMetadataProvider pluginMetadataProvider)
     {
-        _controlRegistry = controlRegistry;
+        _v3ControlRegistry = v3ControlRegistry;
         _pluginMetadataProvider = pluginMetadataProvider;
     }
 
@@ -53,7 +66,7 @@ public class FrontedLayoutDesignConverter
                     control.Key,
                     MaterializeControlConfig(
                         control.Key,
-                        FrontedPluginControlConfigMaterializer.Materialize(control.Key, control.Value, _controlRegistry),
+                        control.Value,
                         editingState))))
         };
     }
@@ -179,23 +192,23 @@ public class FrontedLayoutDesignConverter
             .Select(group =>
             {
                 previous.TryGetValue(group.Key, out var existing);
-                var controls = group
+                var controlTypes = group
                     .Select(parsed => parsed.ToString())
                     .Distinct(StringComparer.Ordinal)
                     .OrderBy(value => value, StringComparer.Ordinal)
                     .ToList();
-                var descriptor = controls
-                    .Select(controlType => _controlRegistry?.GetPluginDescriptor(controlType))
-                    .FirstOrDefault(descriptor => descriptor is not null);
+                var registration = controlTypes
+                    .Select(controlType => _v3ControlRegistry?.GetRegistration(controlType))
+                    .FirstOrDefault(registration => registration is not null);
 
                 return new FrontedPluginDependency
                 {
                     PackageId = group.Key,
                     MinVersion = ResolveMinVersion(group.Key, existing),
-                    DisplayName = ResolveDisplayName(group.Key, existing, descriptor),
+                    DisplayName = ResolveDisplayName(group.Key, existing, registration),
                     MarketplaceId = existing?.MarketplaceId,
                     Reason = FrontedPluginDependencyReason.FrontedControl,
-                    Controls = controls,
+                    Controls = controlTypes,
                     RequiredBy = [document.WindowTypeName]
                 };
             })
@@ -247,7 +260,7 @@ public class FrontedLayoutDesignConverter
     private string ResolveDisplayName(
         string packageId,
         FrontedPluginDependency? existing,
-        IFrontedPluginControlDescriptor? descriptor)
+        FrontedV3ControlRegistration? registration)
     {
         if (_pluginMetadataProvider?.TryGetPluginDisplayName(packageId, out var displayName) == true
             && !string.IsNullOrWhiteSpace(displayName))
@@ -255,7 +268,7 @@ public class FrontedLayoutDesignConverter
             return displayName;
         }
 
-        return existing?.DisplayName ?? descriptor?.PackageId ?? packageId;
+        return existing?.DisplayName ?? registration?.PackageId ?? packageId;
     }
 
     private static FrontedControlDesignItem CreateDesignItem(

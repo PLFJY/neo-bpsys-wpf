@@ -16,7 +16,7 @@ public class FrontedLayoutValidator
         "^[A-Za-z_][A-Za-z0-9_]*$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedV3ControlRegistry? _v3ControlRegistry;
     private readonly IFrontedResourceResolver? _resourceResolver;
     private readonly IFrontedImageSafetyService _imageSafetyService;
     private readonly FrontedLayoutReferenceScanner _referenceScanner;
@@ -25,12 +25,12 @@ public class FrontedLayoutValidator
     /// 初始化校验器。
     /// </summary>
     public FrontedLayoutValidator(
-        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedV3ControlRegistry? v3ControlRegistry = null,
         IFrontedResourceResolver? resourceResolver = null,
         IFrontedImageSafetyService? imageSafetyService = null,
         FrontedLayoutReferenceScanner? referenceScanner = null)
     {
-        _controlRegistry = controlRegistry;
+        _v3ControlRegistry = v3ControlRegistry;
         _resourceResolver = resourceResolver;
         _imageSafetyService = imageSafetyService ?? new FrontedImageSafetyService();
         _referenceScanner = referenceScanner ?? new FrontedLayoutReferenceScanner();
@@ -44,9 +44,9 @@ public class FrontedLayoutValidator
         string canvasName,
         FrontedCanvasConfig config)
     {
-        var converter = _controlRegistry is null
+        var converter = _v3ControlRegistry is null
             ? new FrontedLayoutDesignConverter()
-            : new FrontedLayoutDesignConverter(_controlRegistry);
+            : new FrontedLayoutDesignConverter(_v3ControlRegistry);
         var document = converter
             .FromConfig(windowTypeName, canvasName, config);
 
@@ -202,7 +202,6 @@ public class FrontedLayoutValidator
         {
             ValidateCommonControlFields(item, messages);
             ValidateKnownControlConfig(item, messages);
-            ValidatePluginControlConfig(item, messages);
             if (item.Config is BackgroundTintFrontedControlConfigBase
                 && string.IsNullOrWhiteSpace(document.CanvasConfig.BackgroundImage))
             {
@@ -212,35 +211,6 @@ public class FrontedLayoutValidator
                     item.Name,
                     nameof(FrontedCanvasConfig.BackgroundImage)));
             }
-        }
-    }
-
-    private void ValidatePluginControlConfig(
-        FrontedControlDesignItem item,
-        ICollection<FrontedLayoutValidationMessage> messages)
-    {
-        if (_controlRegistry?.GetPluginDescriptor(item.Config.ControlType) is not { } descriptor)
-        {
-            return;
-        }
-
-        var validate = descriptor.GetType()
-            .GetProperty(nameof(FrontedPluginControlDescriptor<FrontedControlConfigBase>.Validate))
-            ?.GetValue(descriptor) as Delegate;
-        if (validate is null)
-        {
-            return;
-        }
-
-        if (validate.DynamicInvoke(item.Config) is not IEnumerable<FrontedLayoutValidationMessage> pluginMessages)
-        {
-            return;
-        }
-
-        foreach (var message in pluginMessages)
-        {
-            message.ControlName ??= item.Name;
-            messages.Add(message);
         }
     }
 
@@ -266,7 +236,7 @@ public class FrontedLayoutValidator
                 item.Name,
                 nameof(FrontedControlConfigBase.ControlType)));
         }
-        else if (_controlRegistry is not null && _controlRegistry.GetControl(item.Config.ControlType) is null)
+        else if (_v3ControlRegistry is not null && _v3ControlRegistry.GetRegistration(item.Config.ControlType) is null)
         {
             messages.Add(FrontedPluginControlType.IsPluginControlType(item.Config.ControlType)
                 ? Warning(
