@@ -127,6 +127,12 @@
   <data name="Designer.PropertyEditor.ApplyLayoutTemplate">
     <value>按模板重新分配</value>
   </data>
+  <data name="Designer.PropertyEditor.LayoutTemplate.BO3">
+    <value>按 BO3 模板重新分配</value>
+  </data>
+  <data name="Designer.PropertyEditor.LayoutTemplate.BO5">
+    <value>按 BO5 模板重新分配</value>
+  </data>
   <data name="Designer.PropertyEditor.InheritFromParent">
     <value>跟随父控件</value>
   </data>

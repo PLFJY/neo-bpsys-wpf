@@ -2,8 +2,10 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.PluginSdk;
@@ -71,11 +73,28 @@ public static class FrontedV3BuiltInControlRegistryExtensions
         var sampleConfig = new TConfig { ControlType = canonicalControlType };
         var properties = BuiltInPropertyDefinitionResolver.GetProperties(sampleConfig);
 
+        // 内置控件通过 BuiltInPartDefinitionResolver / BuiltInPartCollectionDefinitionResolver 提供固定 Part 与集合定义，
+        // 让内置控件与插件控件在 Registration 上的 FixedParts/PartCollections 字段保持同一形态，
+        // Designer 选择 Part/集合项时即可统一从 Registration 查找，无需按控件类型分支。
+        var fixedParts = BuiltInPartDefinitionResolver.GetParts(sampleConfig);
+        var partCollections = BuiltInPartCollectionDefinitionResolver.GetCollections(sampleConfig);
+
         Func<FrontedControlConfigBase> defaultConfigFactory = () =>
         {
             var config = createDefaultConfig();
             config.ControlType = canonicalControlType;
             return config;
+        };
+
+        var metadata = new FrontedV3ControlMetadata
+        {
+            DisplayNameKey = attribute.DisplayNameKey,
+            DescriptionKey = attribute.DescriptionKey,
+            Icon = attribute.Icon,
+            // Attribute 使用 double.NaN 作为"未设置"哨兵，转换为 Metadata 的 double? 时规范化为 null。
+            DefaultWidth = double.IsNaN(attribute.DefaultWidth) ? null : attribute.DefaultWidth,
+            DefaultHeight = double.IsNaN(attribute.DefaultHeight) ? null : attribute.DefaultHeight,
+            DisplayOrder = attribute.DisplayOrder
         };
 
         var registration = new FrontedV3ControlRegistration
@@ -88,7 +107,10 @@ public static class FrontedV3BuiltInControlRegistryExtensions
             ControlType = controlType,
             ConfigType = configType,
             Properties = properties,
-            CreateDefaultConfig = defaultConfigFactory
+            CreateDefaultConfig = defaultConfigFactory,
+            FixedParts = fixedParts,
+            PartCollections = partCollections,
+            Metadata = metadata
         };
 
         return services.AddSingleton(registration);

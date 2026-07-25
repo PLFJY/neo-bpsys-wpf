@@ -22,9 +22,10 @@ namespace neo_bpsys_wpf.ExamplePlugin;
 /// 声明两个属性：
 /// <list type="bullet">
 /// <item><c>Appearance.BadgeColor</c>：徽章背景颜色字符串，存储到 ExtensionData 的 <c>BadgeColor</c> 键，
-/// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播。</item>
+/// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播，
+/// 默认值为 <c>#2D7DD2</c>。</item>
 /// <item><c>Content.StatusText</c>：徽章文本，存储到 ExtensionData 的 <c>StatusText</c> 键，
-/// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与传播。</item>
+/// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与传播，默认值为 <c>Status</c>。</item>
 /// </list>
 /// </para>
 /// <para>
@@ -32,25 +33,38 @@ namespace neo_bpsys_wpf.ExamplePlugin;
 /// <see cref="OnInitializeFrontedV3"/> 中以纯 C# 构建 <see cref="Border"/> + <see cref="TextBlock"/>
 /// 视觉树，并通过 <see cref="BindingOperations.SetBinding"/> 建立与 Options 视图的绑定。
 /// </para>
+/// <para>
+/// 基类已统一设置 <c>DataContext = context</c>，绑定路径使用 <c>Options.*</c> 根命名空间。
+/// </para>
 /// </remarks>
-[FrontedV3Control("StatusBadge")]
+[FrontedV3Control("StatusBadge", DefaultWidth = 120, DefaultHeight = 32)]
 public class StatusBadgeControl : FrontedV3ControlBase
 {
     /// <summary>
     /// 徽章背景颜色属性，逻辑路径 <c>Appearance.BadgeColor</c>，存储到 ExtensionData 的 <c>BadgeColor</c> 键，
-    /// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播。
+    /// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播，
+    /// 默认值为 <c>#2D7DD2</c>。
     /// </summary>
     public static readonly FrontedV3Property<string> BadgeColorProperty =
         new("Appearance.BadgeColor", FrontedV3Storage.ExtensionData("BadgeColor"),
-            new FrontedV3PropertyMetadata { Semantic = FrontedV3PropertySemantic.Appearance });
+            new FrontedV3PropertyMetadata
+            {
+                Semantic = FrontedV3PropertySemantic.Appearance,
+                DefaultValue = "#2D7DD2"
+            });
 
     /// <summary>
     /// 徽章文本属性，逻辑路径 <c>Content.StatusText</c>，存储到 ExtensionData 的 <c>StatusText</c> 键，
-    /// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与 StyleTransfer 传播。
+    /// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与 StyleTransfer 传播，
+    /// 默认值为 <c>Status</c>。
     /// </summary>
     public static readonly FrontedV3Property<string> StatusTextProperty =
         new("Content.StatusText", FrontedV3Storage.ExtensionData("StatusText"),
-            new FrontedV3PropertyMetadata { Semantic = FrontedV3PropertySemantic.Other });
+            new FrontedV3PropertyMetadata
+            {
+                Semantic = FrontedV3PropertySemantic.Other,
+                DefaultValue = "Status"
+            });
 
     /// <summary>
     /// 初始化 <see cref="StatusBadgeControl"/>。该控件不使用 XAML，视觉树在
@@ -61,10 +75,11 @@ public class StatusBadgeControl : FrontedV3ControlBase
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// 基类已统一设置 <c>DataContext = context</c>，绑定路径使用 <c>Options.*</c> 根命名空间。
+    /// </remarks>
     protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        DataContext = context.Options;
-
         var border = new Border
         {
             CornerRadius = new CornerRadius(8),
@@ -81,10 +96,10 @@ public class StatusBadgeControl : FrontedV3ControlBase
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        var textBinding = new Binding("Content.StatusText");
+        var textBinding = new Binding("Options.Content.StatusText");
         BindingOperations.SetBinding(textBlock, TextBlock.TextProperty, textBinding);
 
-        var backgroundBinding = new Binding("Appearance.BadgeColor")
+        var backgroundBinding = new Binding("Options.Appearance.BadgeColor")
         {
             Converter = new StringToBrushConverter()
         };

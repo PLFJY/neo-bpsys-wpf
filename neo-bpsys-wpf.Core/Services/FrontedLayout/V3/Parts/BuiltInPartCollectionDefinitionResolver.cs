@@ -105,24 +105,74 @@ internal static class BuiltInPartCollectionDefinitionResolver
             // 因此子级外观属性 OptionsPath 也直接使用属性名，不添加前缀。
             ItemPropertiesFactory = itemKey => BuildGlobalScoreCellAppearanceProperties(
                 collectionGetter, itemKeySelector, itemKey),
-            // 暴露"按模板重新分配"能力：调用 BO5 模板补齐 + 可见性模板 + 间距自动排列。
-            // 设计器在选中根控件且该回调非 null 时显示通用"按模板重新分配"按钮。
-            // 这里固定使用 BO5 模板（与 EnsureTemplateItems 的 isBo3Mode: false 保持一致）。
-            ApplyTemplate = config => ApplyGlobalScoreRowTemplate((GlobalScoreRowControlConfig)config)
+            // 暴露 BO3/BO5 两个具名模板：用户点击对应按钮时，回调通过 context.TemplateId 接收被点击模板 Id
+            // 并应用对应布局；点击通用按钮（无 Templates 时）则会按 CurrentBoModeState 选择。
+            // 这里同时声明 Templates 让 Designer 渲染两个独立按钮，避免在 BO3 编辑状态下点击单一按钮却套 BO5 的歧义。
+            Templates =
+            [
+                new FrontedV3LayoutTemplate("BO3", "Designer.PropertyEditor.LayoutTemplate.BO3"),
+                new FrontedV3LayoutTemplate("BO5", "Designer.PropertyEditor.LayoutTemplate.BO5")
+            ],
+            ApplyTemplate = (config, context) => ApplyGlobalScoreRowTemplate(
+                (GlobalScoreRowControlConfig)config,
+                context)
         };
     }
 
     /// <summary>
-    /// 对 GlobalScoreRow 应用 BO5 布局模板：补齐缺失 Cell、按 BO5 模板设置可见性、按间距自动排列位置。
+    /// 对 GlobalScoreRow 应用 BO3 或 BO5 布局模板：补齐缺失 Cell、按对应模板设置可见性、按间距自动排列位置。
+    /// 模板选择规则：优先使用 <paramref name="context"/> 的 <see cref="FrontedV3TemplateContext.TemplateId"/>
+    /// （BO3/BO5）；为 <see langword="null"/> 时回退到 <see cref="FrontedV3TemplateContext.CurrentBoModeState"/>。
     /// </summary>
     /// <param name="config">GlobalScoreRow 配置实例。</param>
-    /// <returns>是否发生了修改。</returns>
-    private static bool ApplyGlobalScoreRowTemplate(GlobalScoreRowControlConfig config)
+    /// <param name="context">模板分配上下文，提供 <see cref="FrontedV3TemplateContext.TemplateId"/> 与
+    /// <see cref="FrontedV3TemplateContext.CurrentBoModeState"/>。</param>
+    /// <returns>是否发生了修改；当前实现总是返回 <see langword="true"/> 表示已应用模板。</returns>
+    private static bool ApplyGlobalScoreRowTemplate(
+        GlobalScoreRowControlConfig config,
+        FrontedV3TemplateContext context)
     {
         ArgumentNullException.ThrowIfNull(config);
-        GlobalScoreRowCellLayoutHelper.ApplyBo5VisibilityTemplate(config);
-        GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing(config, isBo3Mode: false);
+        ArgumentNullException.ThrowIfNull(context);
+
+        var isBo3 = ResolveIsBo3Mode(context);
+        if (isBo3)
+        {
+            GlobalScoreRowCellLayoutHelper.ApplyBo3VisibilityTemplate(config);
+            GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing(config, isBo3Mode: true);
+        }
+        else
+        {
+            GlobalScoreRowCellLayoutHelper.ApplyBo5VisibilityTemplate(config);
+            GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing(config, isBo3Mode: false);
+        }
+
         return true;
+    }
+
+    /// <summary>
+    /// 根据模板上下文解析应使用的 BO3 模式：优先 <see cref="FrontedV3TemplateContext.TemplateId"/>
+    /// （匹配 BO3/BO5），其次回退到 <see cref="FrontedV3TemplateContext.CurrentBoModeState"/>。
+    /// </summary>
+    /// <param name="context">模板分配上下文。</param>
+    /// <returns>当应使用 BO3 模板时返回 <see langword="true"/>；否则返回 <see langword="false"/>（BO5）。</returns>
+    private static bool ResolveIsBo3Mode(FrontedV3TemplateContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (!string.IsNullOrEmpty(context.TemplateId))
+        {
+            if (string.Equals(context.TemplateId, "BO3", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(context.TemplateId, "BO5", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return context.CurrentBoModeState == FrontedCanvasBoModeState.Bo3;
     }
 
     /// <summary>

@@ -94,6 +94,10 @@ public class FrontedV3DesignSelectionBuilder
     /// <param name="onVisualSync">可选的视觉同步回调，在几何值变更后由调用方触发视觉更新。</param>
     /// <returns>固定 Part 选中目标；Part 不存在时返回 <see langword="null"/>。</returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="designItem"/> 或 <paramref name="partId"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 查找顺序：优先从 Registry 中控件的 <see cref="FrontedV3ControlRegistration.FixedParts"/> 查找（统一链路，
+    /// 覆盖插件与内置控件）；Registry 不可用时回退到 <see cref="BuiltInPartDefinitionResolver"/>（迁移期桥梁）。
+    /// </remarks>
     public FrontedV3DesignSelection? BuildFixedPartSelection(
         FrontedControlDesignItem designItem,
         string partId,
@@ -102,7 +106,7 @@ public class FrontedV3DesignSelectionBuilder
         ArgumentNullException.ThrowIfNull(designItem);
         ArgumentNullException.ThrowIfNull(partId);
 
-        var part = BuiltInPartDefinitionResolver.FindPart(designItem.Config, partId);
+        var part = FindPart(designItem.Config, partId);
         if (part is null)
         {
             return null;
@@ -122,6 +126,10 @@ public class FrontedV3DesignSelectionBuilder
     /// <param name="onVisualSync">可选的视觉同步回调，在几何值变更后由调用方触发视觉更新。</param>
     /// <returns>集合项选中目标；集合或项不存在时返回 <see langword="null"/>。</returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="designItem"/>、<paramref name="collectionId"/> 或 <paramref name="itemKey"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 查找顺序：优先从 Registry 中控件的 <see cref="FrontedV3ControlRegistration.PartCollections"/> 查找（统一链路，
+    /// 覆盖插件与内置控件）；Registry 不可用时回退到 <see cref="BuiltInPartCollectionDefinitionResolver"/>（迁移期桥梁）。
+    /// </remarks>
     public FrontedV3DesignSelection? BuildCollectionItemSelection(
         FrontedControlDesignItem designItem,
         string collectionId,
@@ -132,7 +140,7 @@ public class FrontedV3DesignSelectionBuilder
         ArgumentNullException.ThrowIfNull(collectionId);
         ArgumentNullException.ThrowIfNull(itemKey);
 
-        var collection = BuiltInPartCollectionDefinitionResolver.FindCollection(designItem.Config, collectionId);
+        var collection = FindCollection(designItem.Config, collectionId);
         if (collection is null)
         {
             return null;
@@ -154,10 +162,14 @@ public class FrontedV3DesignSelectionBuilder
     /// <param name="designItem">设计项。</param>
     /// <returns>Part 定义列表；无可用 Part 时返回空列表。</returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="designItem"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 查找顺序：优先从 Registry 中控件的 <see cref="FrontedV3ControlRegistration.FixedParts"/> 查找；
+    /// Registry 不可用时回退到 <see cref="BuiltInPartDefinitionResolver"/>。
+    /// </remarks>
     public IReadOnlyList<FrontedV3PartDefinition> GetAvailableParts(FrontedControlDesignItem designItem)
     {
         ArgumentNullException.ThrowIfNull(designItem);
-        return BuiltInPartDefinitionResolver.GetParts(designItem.Config);
+        return GetPartsCore(designItem.Config);
     }
 
     /// <summary>
@@ -226,10 +238,120 @@ public class FrontedV3DesignSelectionBuilder
     /// <param name="designItem">设计项。</param>
     /// <returns>集合定义列表；无可用集合时返回空列表。</returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="designItem"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 查找顺序：优先从 Registry 中控件的 <see cref="FrontedV3ControlRegistration.PartCollections"/> 查找；
+    /// Registry 不可用时回退到 <see cref="BuiltInPartCollectionDefinitionResolver"/>。
+    /// </remarks>
     public IReadOnlyList<FrontedV3PartCollectionDefinition> GetAvailableCollections(FrontedControlDesignItem designItem)
     {
         ArgumentNullException.ThrowIfNull(designItem);
-        return BuiltInPartCollectionDefinitionResolver.GetCollections(designItem.Config);
+        return GetCollectionsCore(designItem.Config);
+    }
+
+    /// <summary>
+    /// 查找给定 Config 与 partId 的固定 Part 定义。优先从 Registration 查找，回退到内置 Resolver。
+    /// </summary>
+    /// <param name="config">控件配置实例。</param>
+    /// <param name="partId">Part 标识。</param>
+    /// <returns>匹配的 Part 定义；未找到时为 <see langword="null"/>。</returns>
+    /// <remarks>
+    /// 该方法供 Designer ViewModel 在能力解析、几何补丁等场景复用统一查找链路，避免在 ViewModel 中直接依赖
+    /// <see cref="BuiltInPartDefinitionResolver"/>。
+    /// </remarks>
+    public FrontedV3PartDefinition? FindPart(FrontedControlConfigBase config, string partId)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(partId);
+
+        foreach (var part in GetPartsCore(config))
+        {
+            if (string.Equals(part.Id, partId, StringComparison.Ordinal))
+            {
+                return part;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 查找给定 Config 与 collectionId 的 PartCollection 定义。优先从 Registration 查找，回退到内置 Resolver。
+    /// </summary>
+    /// <param name="config">控件配置实例。</param>
+    /// <param name="collectionId">集合标识。</param>
+    /// <returns>匹配的集合定义；未找到时为 <see langword="null"/>。</returns>
+    /// <remarks>
+    /// 该方法供 Designer ViewModel 在能力解析、继承派发等场景复用统一查找链路，避免在 ViewModel 中直接依赖
+    /// <see cref="BuiltInPartCollectionDefinitionResolver"/>。
+    /// </remarks>
+    public FrontedV3PartCollectionDefinition? FindCollection(FrontedControlConfigBase config, string collectionId)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(collectionId);
+
+        foreach (var collection in GetCollectionsCore(config))
+        {
+            if (string.Equals(collection.Id, collectionId, StringComparison.Ordinal))
+            {
+                return collection;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 获取给定 Config 的固定 Part 列表。优先从 Registration 查找（统一链路），
+    /// Registry 不可用时回退到 <see cref="BuiltInPartDefinitionResolver"/>（迁移期桥梁）。
+    /// </summary>
+    /// <param name="config">控件配置实例。</param>
+    /// <returns>Part 定义列表。</returns>
+    /// <remarks>
+    /// 该方法供 Designer ViewModel 在几何补丁等场景复用统一查找链路。
+    /// </remarks>
+    public IReadOnlyList<FrontedV3PartDefinition> GetParts(FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        return GetPartsCore(config);
+    }
+
+    /// <summary>
+    /// 获取给定 Config 的 PartCollection 列表。优先从 Registration 查找（统一链路），
+    /// Registry 不可用时回退到 <see cref="BuiltInPartCollectionDefinitionResolver"/>（迁移期桥梁）。
+    /// </summary>
+    /// <param name="config">控件配置实例。</param>
+    /// <returns>集合定义列表。</returns>
+    /// <remarks>
+    /// 该方法供 Designer ViewModel 在子控件派发、模板分配等场景复用统一查找链路。
+    /// </remarks>
+    public IReadOnlyList<FrontedV3PartCollectionDefinition> GetCollections(FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        return GetCollectionsCore(config);
+    }
+
+    private IReadOnlyList<FrontedV3PartDefinition> GetPartsCore(FrontedControlConfigBase config)
+    {
+        if (_v3Registry is not null
+            && _v3Registry.GetRegistration(config.ControlType) is { } registration
+            && registration.FixedParts.Count > 0)
+        {
+            return registration.FixedParts;
+        }
+
+        return BuiltInPartDefinitionResolver.GetParts(config);
+    }
+
+    private IReadOnlyList<FrontedV3PartCollectionDefinition> GetCollectionsCore(FrontedControlConfigBase config)
+    {
+        if (_v3Registry is not null
+            && _v3Registry.GetRegistration(config.ControlType) is { } registration
+            && registration.PartCollections.Count > 0)
+        {
+            return registration.PartCollections;
+        }
+
+        return BuiltInPartCollectionDefinitionResolver.GetCollections(config);
     }
 
     private IReadOnlyList<FrontedV3PropertyDefinition> ResolveRootProperties(FrontedControlConfigBase config)

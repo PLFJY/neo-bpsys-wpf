@@ -2,6 +2,7 @@ using System.Collections;
 using System.Reflection;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 
@@ -145,16 +146,72 @@ public sealed class FrontedV3Parts
     }
 
     /// <summary>
+    /// 设置集合项外观属性的工厂。工厂参数 <paramref name="itemKey"/> 为选中集合项的唯一键，
+    /// 工厂返回的属性定义应使用 <see cref="FrontedV3Storage.CollectionItemProperty"/> 绑定到该 itemKey 对应的项属性。
+    /// </summary>
+    /// <param name="itemPropertiesFactory">集合项外观属性工厂。</param>
+    /// <returns>当前 <see cref="FrontedV3Parts"/> 实例，支持链式配置。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="itemPropertiesFactory"/> 为 <see langword="null"/> 时抛出。</exception>
+    public FrontedV3Parts WithItemPropertiesFactory(Func<string, IReadOnlyList<FrontedV3PropertyDefinition>> itemPropertiesFactory)
+    {
+        ArgumentNullException.ThrowIfNull(itemPropertiesFactory);
+        _definition.ItemPropertiesFactory = itemPropertiesFactory;
+        return this;
+    }
+
+    /// <summary>
+    /// 设置按模板重新分配集合项位置/可见性的回调。
+    /// </summary>
+    /// <param name="applyTemplate">模板分配回调，接收父控件 Config 与 <see cref="FrontedV3TemplateContext"/>，返回是否发生修改。</param>
+    /// <returns>当前 <see cref="FrontedV3Parts"/> 实例，支持链式配置。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="applyTemplate"/> 为 <see langword="null"/> 时抛出。</exception>
+    public FrontedV3Parts WithApplyTemplate(Func<FrontedControlConfigBase, FrontedV3TemplateContext, bool> applyTemplate)
+    {
+        ArgumentNullException.ThrowIfNull(applyTemplate);
+        _definition.ApplyTemplate = applyTemplate;
+        return this;
+    }
+
+    /// <summary>
+    /// 设置该集合支持的具名布局模板列表（如 BO3、BO5、Default、Compact）。
+    /// </summary>
+    /// <param name="templates">具名模板列表；为空列表时 Designer 渲染单一通用按钮。</param>
+    /// <returns>当前 <see cref="FrontedV3Parts"/> 实例，支持链式配置。</returns>
+    /// <exception cref="ArgumentNullException">当 <paramref name="templates"/> 为 <see langword="null"/> 时抛出。</exception>
+    public FrontedV3Parts WithTemplates(IEnumerable<FrontedV3LayoutTemplate> templates)
+    {
+        ArgumentNullException.ThrowIfNull(templates);
+        _definition.Templates = templates is IReadOnlyList<FrontedV3LayoutTemplate> list
+            ? list
+            : templates.ToArray();
+        return this;
+    }
+
+    /// <summary>
     /// 将该集合声明转换为 <see cref="FrontedV3PartCollectionDefinition"/>。
     /// </summary>
     /// <returns>与该声明等价的 <see cref="FrontedV3PartCollectionDefinition"/>。</returns>
-    public FrontedV3PartCollectionDefinition ToDefinition() => new(
-        _definition.Id,
-        _definition.Strategy,
-        _definition.ItemCapabilities,
-        _definition.CollectionGetter,
-        _definition.ItemKeySelector,
-        _definition.EnsureTemplateItems);
+    /// <remarks>
+    /// 返回的定义会复制 <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/>、
+    /// <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 与
+    /// <see cref="FrontedV3PartCollectionDefinition.Templates"/>，确保声明链路上配置的字段不会丢失。
+    /// </remarks>
+    public FrontedV3PartCollectionDefinition ToDefinition()
+    {
+        var copy = new FrontedV3PartCollectionDefinition(
+            _definition.Id,
+            _definition.Strategy,
+            _definition.ItemCapabilities,
+            _definition.CollectionGetter,
+            _definition.ItemKeySelector,
+            _definition.EnsureTemplateItems)
+        {
+            ItemPropertiesFactory = _definition.ItemPropertiesFactory,
+            ApplyTemplate = _definition.ApplyTemplate,
+            Templates = _definition.Templates
+        };
+        return copy;
+    }
 
     /// <summary>
     /// 从控件类型上发现所有 <c>public static readonly FrontedV3Parts</c> 字段并转换为定义列表。

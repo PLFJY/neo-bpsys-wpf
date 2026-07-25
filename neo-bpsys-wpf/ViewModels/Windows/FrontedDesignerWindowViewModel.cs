@@ -482,8 +482,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             OnPropertyChanged(nameof(HasSelectedTarget));
             OnPropertyChanged(nameof(IsSubControlSelected));
             OnPropertyChanged(nameof(HasChildAppearanceProperties));
+            OnPropertyChanged(nameof(HasLayoutTemplate));
+            OnPropertyChanged(nameof(HasNamedLayoutTemplates));
+            RefreshLayoutTemplates();
             ApplyParentStyleToChildrenCommand.NotifyCanExecuteChanged();
             ClearChildStyleOverridesCommand.NotifyCanExecuteChanged();
+            ApplyLayoutTemplateCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -576,7 +580,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return false;
             }
 
-            foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+            foreach (var collection in _selectionBuilder.GetCollections(sourceConfig))
             {
                 if (collection.ItemPropertiesFactory is not null)
                 {
@@ -597,8 +601,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// 非 <see langword="null"/> 的 PartCollection 定义时为 <see langword="true"/>。
     /// </para>
     /// <para>
-    /// 该属性驱动 Designer 中"按模板重新分配"按钮的可见性；
+    /// 该属性驱动 Designer 中"按模板重新分配"通用按钮的可见性；
     /// 按钮的启用状态由 <see cref="CanApplyLayoutTemplate"/> 决定。
+    /// 当 <see cref="HasNamedLayoutTemplates"/> 为 <see langword="true"/> 时，
+    /// 通用按钮不再显示，改为渲染 <see cref="LayoutTemplates"/> 中的具名模板按钮。
     /// </para>
     /// </remarks>
     public bool HasLayoutTemplate
@@ -615,7 +621,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return false;
             }
 
-            foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+            foreach (var collection in _selectionBuilder.GetCollections(sourceConfig))
             {
                 if (collection.ApplyTemplate is not null)
                 {
@@ -624,6 +630,74 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
 
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取当前选中根控件是否声明了具名布局模板列表（<see cref="FrontedV3PartCollectionDefinition.Templates"/>）。
+    /// </summary>
+    /// <remarks>
+    /// 当为 <see langword="true"/> 时，Designer 渲染 <see cref="LayoutTemplates"/> 中的具名模板按钮，
+    /// 不再显示单一通用"按模板重新分配"按钮。每个按钮点击后通过
+    /// <see cref="ApplyLayoutTemplateByNameCommand"/> 调用 <see cref="ApplyLayoutTemplateByName"/>
+    /// 并以模板 Id 作为 <see cref="FrontedV3TemplateContext.TemplateId"/> 传入回调。
+    /// </remarks>
+    public bool HasNamedLayoutTemplates => LayoutTemplates.Count > 0;
+
+    /// <summary>
+    /// 获取当前选中根控件的具名布局模板视图列表，供 Designer 渲染独立模板按钮。
+    /// </summary>
+    public ObservableCollection<FrontedV3LayoutTemplateViewModel> LayoutTemplates { get; } = [];
+
+    /// <summary>
+    /// 刷新 <see cref="LayoutTemplates"/> 列表，根据当前选中根控件的
+    /// <see cref="FrontedV3PartCollectionDefinition.Templates"/> 与本地化服务构建按钮视图。
+    /// </summary>
+    private void RefreshLayoutTemplates()
+    {
+        LayoutTemplates.Clear();
+
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return;
+        }
+
+        if (SelectedDesignItem?.Config is not { } sourceConfig)
+        {
+            return;
+        }
+
+        foreach (var collection in _selectionBuilder.GetCollections(sourceConfig))
+        {
+            if (collection.ApplyTemplate is null)
+            {
+                continue;
+            }
+
+            if (collection.Templates is null || collection.Templates.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (var template in collection.Templates)
+            {
+                var displayName = _localizationService.GetDesignerText(
+                    template.DisplayNameKey,
+                    fallback: template.Id);
+                var description = string.IsNullOrEmpty(template.DescriptionKey)
+                    ? null
+                    : _localizationService.GetDesignerText(
+                        template.DescriptionKey,
+                        fallback: null);
+                LayoutTemplates.Add(new FrontedV3LayoutTemplateViewModel
+                {
+                    Id = template.Id,
+                    DisplayName = displayName,
+                    ToolTip = description
+                });
+            }
+
+            break;
         }
     }
 
@@ -813,9 +887,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasSameTypePeers));
         OnPropertyChanged(nameof(CanShowPeerStyleTransferButton));
         OnPropertyChanged(nameof(HasChildAppearanceProperties));
+        OnPropertyChanged(nameof(HasLayoutTemplate));
+        OnPropertyChanged(nameof(HasNamedLayoutTemplates));
+        RefreshLayoutTemplates();
         ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
         ApplyParentStyleToChildrenCommand.NotifyCanExecuteChanged();
         ClearChildStyleOverridesCommand.NotifyCanExecuteChanged();
+        ApplyLayoutTemplateCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnAreBehaviorsDirtyChanged(bool value)
@@ -893,9 +971,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasSameTypePeers));
         OnPropertyChanged(nameof(CanShowPeerStyleTransferButton));
         OnPropertyChanged(nameof(HasChildAppearanceProperties));
+        OnPropertyChanged(nameof(HasLayoutTemplate));
+        OnPropertyChanged(nameof(HasNamedLayoutTemplates));
+        RefreshLayoutTemplates();
         ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
         ApplyParentStyleToChildrenCommand.NotifyCanExecuteChanged();
         ClearChildStyleOverridesCommand.NotifyCanExecuteChanged();
+        ApplyLayoutTemplateCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -2323,7 +2405,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+        foreach (var collection in _selectionBuilder.GetCollections(sourceConfig))
         {
             if (collection.ApplyTemplate is not null)
             {
@@ -2335,15 +2417,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 对当前选中根控件的子控件集合应用布局模板（如 GlobalScoreRow 的 BO5 模板），
+    /// 对当前选中根控件的子控件集合应用布局模板（如 GlobalScoreRow 的 BO3/BO5 模板），
     /// 重新分配子控件的位置与可见性。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// 实现要点：通过 <see cref="BuiltInPartCollectionDefinitionResolver"/> 查找选中控件 Config 上
+    /// 实现要点：通过 <see cref="FrontedV3DesignSelectionBuilder"/> 查找选中控件 Config 上
     /// <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 非 <see langword="null"/> 的集合定义，
     /// 调用其 <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 回调。
     /// 该回调由控件自身实现，决定如何按模板分配位置与可见性（不修改外观属性）。
+    /// </para>
+    /// <para>
+    /// 通用按钮路径：<see cref="FrontedV3TemplateContext.TemplateId"/> 为 <see langword="null"/>，
+    /// 控件应回退到基于 <see cref="FrontedV3TemplateContext.CurrentBoModeState"/> 的默认模板。
+    /// 具名模板按钮路径：通过 <see cref="ApplyLayoutTemplateByName"/> 调用，
+    /// <see cref="FrontedV3TemplateContext.TemplateId"/> 为被点击模板的 Id。
     /// </para>
     /// <para>
     /// 完成分配后触发：Undo 快照已先于分配捕获、属性面板重建、预览刷新、文档标记为脏。
@@ -2351,6 +2439,29 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// </remarks>
     [RelayCommand(CanExecute = nameof(CanApplyLayoutTemplate))]
     private void ApplyLayoutTemplate()
+        => ApplyLayoutTemplateCore(templateId: null);
+
+    /// <summary>
+    /// 对当前选中根控件的子控件集合应用指定具名布局模板（如 <c>BO3</c>、<c>BO5</c>），
+    /// 重新分配子控件的位置与可见性。
+    /// </summary>
+    /// <param name="templateId">被点击的具名模板 Id；为 <see langword="null"/> 或空字符串时回退到通用按钮行为。</param>
+    /// <remarks>
+    /// 该命令由 Designer 中具名模板按钮（<see cref="LayoutTemplates"/>）触发，
+    /// 将 <paramref name="templateId"/> 作为 <see cref="FrontedV3TemplateContext.TemplateId"/>
+    /// 传递给 <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 回调。
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanApplyLayoutTemplate))]
+    private void ApplyLayoutTemplateByName(string? templateId)
+        => ApplyLayoutTemplateCore(templateId);
+
+    /// <summary>
+    /// "按模板重新分配"通用/具名模板共享实现。查找首个支持 <c>ApplyTemplate</c> 的 PartCollection，
+    /// 构建 <see cref="FrontedV3TemplateContext"/>（携带当前 BO 状态与 <paramref name="templateId"/>），
+    /// 调用回调并触发属性面板/预览刷新。
+    /// </summary>
+    /// <param name="templateId">具名模板 Id；为 <see langword="null"/> 时表示通用按钮路径。</param>
+    private void ApplyLayoutTemplateCore(string? templateId)
     {
         if (CurrentDocument is null)
         {
@@ -2369,7 +2480,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         FrontedV3PartCollectionDefinition? targetCollection = null;
-        foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+        foreach (var collection in _selectionBuilder.GetCollections(sourceConfig))
         {
             if (collection.ApplyTemplate is not null)
             {
@@ -2383,8 +2494,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        var context = BuildTemplateContext(templateId);
+
         CaptureUndoSnapshot();
-        applyTemplate(sourceConfig);
+        applyTemplate(sourceConfig, context);
 
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
@@ -2393,16 +2506,50 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 构建调用 <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 时使用的
+    /// <see cref="FrontedV3TemplateContext"/>，携带当前编辑的 BO 状态、窗口/Canvas 信息、
+    /// Designer 文档实例、DI 服务提供器与可选的具名模板 Id。
+    /// </summary>
+    /// <param name="templateId">具名模板 Id；为 <see langword="null"/> 时表示通用按钮路径。</param>
+    /// <returns>用于调用模板分配回调的上下文实例。</returns>
+    private FrontedV3TemplateContext BuildTemplateContext(string? templateId)
+    {
+        var document = CurrentDocument;
+        var boModeState = document?.EditingBoModeState ?? FrontedCanvasBoModeState.Bo5;
+        var windowTypeName = document?.WindowTypeName ?? string.Empty;
+        var canvasName = document?.CanvasName ?? string.Empty;
+        var services = IAppHost.Host?.Services ?? (IServiceProvider)EmptyServiceProvider.Instance;
+
+        return new FrontedV3TemplateContext(
+            services,
+            boModeState,
+            windowTypeName,
+            canvasName,
+            document,
+            templateId);
+    }
+
+    /// <summary>
+    /// 不解析任何服务的空 <see cref="IServiceProvider"/>，作为 Designer 默认服务提供器。
+    /// </summary>
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public static readonly EmptyServiceProvider Instance = new();
+
+        public object? GetService(Type serviceType) => null;
+    }
+
+    /// <summary>
     /// 返回给定 Config 上首个 <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/>
     /// 非 <see langword="null"/> 的 PartCollection 定义；无则返回 <see langword="null"/>。
     /// </summary>
     /// <param name="config">根控件配置实例。</param>
     /// <returns>支持外观属性派发的集合定义；无则 <see langword="null"/>。</returns>
-    private static FrontedV3PartCollectionDefinition? ResolveChildAppearanceCollection(FrontedControlConfigBase config)
+    private FrontedV3PartCollectionDefinition? ResolveChildAppearanceCollection(FrontedControlConfigBase config)
     {
         ArgumentNullException.ThrowIfNull(config);
 
-        foreach (var candidate in BuiltInPartCollectionDefinitionResolver.GetCollections(config))
+        foreach (var candidate in _selectionBuilder.GetCollections(config))
         {
             if (candidate.ItemPropertiesFactory is not null)
             {
@@ -3045,19 +3192,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         };
     }
 
-    private static FrontedV3PartCapabilities ResolvePartCapabilities(
+    private FrontedV3PartCapabilities ResolvePartCapabilities(
         FrontedControlDesignItem designItem,
         string partId)
     {
-        var part = BuiltInPartDefinitionResolver.FindPart(designItem.Config, partId);
+        var part = _selectionBuilder.FindPart(designItem.Config, partId);
         return part?.Capabilities ?? FrontedV3PartCapabilities.None;
     }
 
-    private static FrontedV3PartCapabilities ResolveCollectionItemCapabilities(
+    private FrontedV3PartCapabilities ResolveCollectionItemCapabilities(
         FrontedControlDesignItem designItem,
         string collectionId)
     {
-        var collection = BuiltInPartCollectionDefinitionResolver.FindCollection(designItem.Config, collectionId);
+        var collection = _selectionBuilder.FindCollection(designItem.Config, collectionId);
         return collection?.ItemCapabilities ?? FrontedV3PartCapabilities.None;
     }
 
@@ -4639,7 +4786,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return null;
         }
 
-        return BuiltInPartCollectionDefinitionResolver.FindCollection(selection.DesignItem.Config, collectionId);
+        return _selectionBuilder.FindCollection(selection.DesignItem.Config, collectionId);
     }
 
     private static FrontedV3PropertyDefinition? FindPropertyByOptionsPath(
@@ -6412,7 +6559,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    private static bool ApplyGeometryPatch(
+    private bool ApplyGeometryPatch(
         FrontedControlConfigBase current,
         FrontedControlConfigBase target)
     {
@@ -6451,9 +6598,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         // geometry values from target to current via storage accessors.
         // This replaces control-specific branches (e.g. BorderedImage ImageWidth/ImageHeight)
         // with a unified Part-driven approach.
+        // 通过 _selectionBuilder.GetParts 走统一 Registry 链路，让插件 Part 也能被回滚时正确补齐几何。
         if (current.GetType() == target.GetType())
         {
-            foreach (var part in BuiltInPartDefinitionResolver.GetParts(current))
+            foreach (var part in _selectionBuilder.GetParts(current))
             {
                 changed |= PatchPartGeometry(part, current, target);
             }
@@ -7127,6 +7275,28 @@ public sealed class FrontedCanvasBoModeStateOption(
     public FrontedCanvasBoModeState State { get; } = state;
 
     public string DisplayName { get; } = displayName;
+}
+
+/// <summary>
+/// Designer 中具名布局模板按钮的视图模型，包装模板 Id 与本地化显示名/描述，
+/// 供 <see cref="FrontedDesignerWindowViewModel.LayoutTemplates"/> 绑定渲染。
+/// </summary>
+public sealed class FrontedV3LayoutTemplateViewModel
+{
+    /// <summary>
+    /// 获取或设置模板唯一标识，作为 <see cref="FrontedV3TemplateContext.TemplateId"/> 传给回调。
+    /// </summary>
+    public string Id { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 获取或设置模板按钮的本地化显示文本。
+    /// </summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 获取或设置模板按钮的本地化工具提示；无描述时为 <see langword="null"/>。
+    /// </summary>
+    public string? ToolTip { get; init; }
 }
 
 public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(

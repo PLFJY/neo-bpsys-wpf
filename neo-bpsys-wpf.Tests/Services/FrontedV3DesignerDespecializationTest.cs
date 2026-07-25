@@ -77,15 +77,17 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Null(selection.SubTarget);
         Assert.True(selection.HasEditableSchema);
 
-        // Schema 中应包含布局属性与外观属性，证明由反射生成而非控件类型特判
+        // Schema 中应包含外观属性，证明由反射生成而非控件类型特判
         var optionsPaths = selection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
-        Assert.Contains(nameof(TextFrontedControlConfig.Left), optionsPaths);
-        Assert.Contains(nameof(TextFrontedControlConfig.Top), optionsPaths);
-        Assert.Contains(nameof(TextFrontedControlConfig.Width), optionsPaths);
         Assert.Contains(nameof(TextFrontedControlConfig.Color), optionsPaths);
         Assert.Contains(nameof(TextFrontedControlConfig.FontSize), optionsPaths);
 
-        // 保留字段 BehaviorGuid/ControlType 不得出现在 Schema 中
+        // 根几何字段（Left/Top/Width/Height）属于 FrontedV3ControlHost 统一管理，
+        // 不得出现在控件自身 Options Schema 中；保留字段 BehaviorGuid/ControlType 同样排除。
+        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Left), optionsPaths);
+        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Top), optionsPaths);
+        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Width), optionsPaths);
+        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Height), optionsPaths);
         Assert.DoesNotContain(nameof(FrontedControlConfigBase.BehaviorGuid), optionsPaths);
         Assert.DoesNotContain(nameof(FrontedControlConfigBase.ControlType), optionsPaths);
     }
@@ -809,12 +811,15 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Equal(FrontedV3DesignSelectionKind.Root, rootSelection!.Kind);
         Assert.Null(rootSelection.SubTarget);
 
-        // Root Schema 应包含根控件布局属性（Left/Top/Width/Height）
+        // Root Schema 应包含根控件外观属性（ImageWidth/ImageHeight），证明 Esc 后回到根选中重建了 Schema。
+        // 根几何字段（Left/Top/Width/Height）属于 FrontedV3ControlHost 统一管理，不得出现在 Options Schema 中。
         var optionsPaths = rootSelection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Left), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Top), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Width), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Height), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.ImageWidth), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.ImageHeight), optionsPaths);
+        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Left), optionsPaths);
+        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Top), optionsPaths);
+        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Width), optionsPaths);
+        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Height), optionsPaths);
     }
 
     // -------------------------------------------------------------------

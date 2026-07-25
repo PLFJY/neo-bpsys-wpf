@@ -19,8 +19,8 @@
                 VerticalAlignment="Center"
                 Margin="0,0,10,0" />
             <TextBlock
-                Text="{Binding Content.TeamName}"
-                Foreground="{Binding Appearance.TextColor, Converter={StaticResource StringToBrush}}"
+                Text="{Binding Options.Content.TeamName}"
+                Foreground="{Binding Options.Appearance.TextColor, Converter={StaticResource StringToBrush}}"
                 FontSize="24"
                 FontWeight="Bold"
                 VerticalAlignment="Center"

@@ -122,6 +122,14 @@ internal static class BuiltInPropertyDefinitionResolver
             return false;
         }
 
+        // 根级几何与可见性由 FrontedV3ControlHost 统一负责，不得成为控件自身 Options。
+        // 这些字段的编辑通过 Designer 的根 Move/Resize 柄与可见性切换完成，不走属性网格。
+        if (LayoutPropertyNames.Contains(property.Name)
+            || property.Name == nameof(FrontedControlConfigBase.Visibility))
+        {
+            return false;
+        }
+
         if (property.GetIndexParameters().Length > 0 || !property.CanRead)
         {
             return false;

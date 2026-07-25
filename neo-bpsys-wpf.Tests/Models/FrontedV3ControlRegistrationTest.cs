@@ -573,7 +573,7 @@ public sealed class ControlWithReservedStorage : FrontedV3ControlBase
     /// 试图覆盖保留字段 Left 的属性。
     /// </summary>
     public static readonly FrontedV3Property<double> LeftProperty =
-        new("Geometry.Left", FrontedV3Storage.ClrProperty("Left"));
+        new("Custom.Left", FrontedV3Storage.ClrProperty("Left"));
 }
 
 /// <summary>

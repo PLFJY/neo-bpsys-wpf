@@ -127,6 +127,12 @@
   <data name="Designer.PropertyEditor.ApplyLayoutTemplate">
     <value>Apply layout template</value>
   </data>
+  <data name="Designer.PropertyEditor.LayoutTemplate.BO3">
+    <value>Apply BO3 layout template</value>
+  </data>
+  <data name="Designer.PropertyEditor.LayoutTemplate.BO5">
+    <value>Apply BO5 layout template</value>
+  </data>
   <data name="Designer.PropertyEditor.InheritFromParent">
     <value>Inherit from parent</value>
   </data>

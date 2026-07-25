@@ -3,11 +3,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry;
+using neo_bpsys_wpf.PluginSdk;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 
@@ -135,12 +137,12 @@ public sealed class FrontedV3ControlHost : Decorator
     /// </list>
     /// </para>
     /// <para>
-    /// 失败时：Runtime 记录 warning 并显示安全占位；Designer 通过 <see cref="IsDesignerPreview"/>
-    /// 显示带 Designer 标识的错误占位；原 <see cref="Config"/> 保留，不写默认值覆盖。
+    /// 控件通过 <see cref="ActivatorUtilities.CreateInstance"/> 创建，支持构造函数依赖注入；
+    /// 随后直接调用 <see cref="FrontedV3ControlBase.InitializeFrontedV3"/> 完成上下文注入。
     /// </para>
     /// <para>
-    /// 由于 <c>FrontedV3ControlBase</c> 定义在 PluginSdk 而 Host 在 Core，本方法通过反射调用
-    /// <c>InitializeFrontedV3(FrontedV3ControlContext)</c>。Phase 7 删除旧架构后可考虑统一基类位置。
+    /// 失败时：Runtime 记录 warning 并显示安全占位；Designer 通过 <see cref="IsDesignerPreview"/>
+    /// 显示带 Designer 标识的错误占位；原 <see cref="Config"/> 保留，不写默认值覆盖。
     /// </para>
     /// </remarks>
     /// <param name="context">控件运行时上下文，将传递给 <c>InitializeFrontedV3</c>。</param>
@@ -153,32 +155,19 @@ public sealed class FrontedV3ControlHost : Decorator
 
         try
         {
-            var control = Activator.CreateInstance(_registration.ControlType);
-            if (control is not FrameworkElement frameworkElement)
+            // 通过 ActivatorUtilities 创建控件，支持构造函数 DI；当控件无 DI 依赖时回退到无参构造。
+            var control = ActivatorUtilities.CreateInstance(context.Services, _registration.ControlType);
+
+            if (control is not FrontedV3ControlBase v3Control)
             {
                 throw new InvalidOperationException(
-                    $"Control type '{_registration.ControlType.FullName}' did not produce a FrameworkElement instance. " +
+                    $"Control type '{_registration.ControlType.FullName}' did not produce a FrontedV3ControlBase instance. " +
                     "Ensure the type inherits from FrontedV3ControlBase.");
             }
 
-            var initializeMethod = _registration.ControlType.GetMethod(
-                "InitializeFrontedV3",
-                BindingFlags.Public | BindingFlags.Instance,
-                null,
-                new[] { typeof(FrontedV3ControlContext) },
-                null);
+            v3Control.InitializeFrontedV3(context);
 
-            if (initializeMethod is null)
-            {
-                throw new InvalidOperationException(
-                    $"Control type '{_registration.ControlType.FullName}' does not expose " +
-                    "InitializeFrontedV3(FrontedV3ControlContext). " +
-                    "Ensure the type inherits from FrontedV3ControlBase.");
-            }
-
-            initializeMethod.Invoke(control, new object[] { context });
-
-            AttachControl(frameworkElement);
+            AttachControl(v3Control);
             ApplyRootLayout();
             return true;
         }

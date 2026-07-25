@@ -29,6 +29,10 @@ public sealed class FrontedV3OptionsView : INotifyPropertyChanged, ICustomTypeDe
     private readonly FrontedControlConfigBase _config;
     private readonly IReadOnlyList<FrontedV3PropertyDefinition> _properties;
     private readonly string _pathPrefix;
+    /// <summary>
+    /// 该视图所属的根视图。根视图的 <c>_root</c> 指向自身，
+    /// 子视图的 <c>_root</c> 指向创建它的根视图，确保叶子属性变更通知能正确冒泡到真正的根视图。
+    /// </summary>
     private readonly FrontedV3OptionsView _root;
     private Dictionary<string, FrontedV3OptionsView>? _subViews;
 
@@ -36,12 +40,13 @@ public sealed class FrontedV3OptionsView : INotifyPropertyChanged, ICustomTypeDe
         FrontedControlConfigBase config,
         IReadOnlyList<FrontedV3PropertyDefinition> properties,
         string pathPrefix,
-        FrontedV3OptionsView root)
+        FrontedV3OptionsView? root)
     {
         _config = config;
         _properties = properties;
         _pathPrefix = pathPrefix;
-        _root = root;
+        // root 为 null 时表示自身是根视图，自引用以保证 NotifyLeafChanged 的冒泡逻辑统一。
+        _root = root ?? this;
     }
 
     /// <summary>
@@ -57,9 +62,9 @@ public sealed class FrontedV3OptionsView : INotifyPropertyChanged, ICustomTypeDe
     {
         ArgumentNullException.ThrowIfNull(config);
         ArgumentNullException.ThrowIfNull(properties);
-        var view = new FrontedV3OptionsView(config, properties, string.Empty, null!);
-        // root 指向自身
-        return new FrontedV3OptionsView(config, properties, string.Empty, view);
+        // 传入 root: null，构造函数内部会自引用为根视图，
+        // 确保返回的实例本身就是根，且其 _root 指向自身。
+        return new FrontedV3OptionsView(config, properties, string.Empty, null);
     }
 
     /// <summary>

@@ -23,9 +23,10 @@ namespace neo_bpsys_wpf.ExamplePlugin;
 /// 声明两个属性：
 /// <list type="bullet">
 /// <item><c>Appearance.TextColor</c>：颜色字符串，存储到 ExtensionData 的 <c>TextColor</c> 键，
-/// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播。</item>
+/// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播，
+/// 默认值为 <c>White</c>。</item>
 /// <item><c>Content.TeamName</c>：队伍名称，存储到 ExtensionData 的 <c>TeamName</c> 键，
-/// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与传播。</item>
+/// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与传播，默认值为 <c>Team</c>。</item>
 /// </list>
 /// </para>
 /// <para>
@@ -34,29 +35,39 @@ namespace neo_bpsys_wpf.ExamplePlugin;
 /// <c>fronted:FrontedV3.PartId="Logo"</c> 将 <c>&lt;Image&gt;</c> 标记为该 Part 的 Visual。
 /// </para>
 /// <para>
-/// XAML 中将 <c>DataContext</c> 设置为 <see cref="FrontedV3ControlBase.Options"/>，通过
-/// <c>{Binding Content.TeamName}</c> 与 <c>{Binding Appearance.TextColor}</c> 直接读写当前 Config，
-/// 不缓存独立值。
+/// 基类已在 <see cref="FrontedV3ControlBase.InitializeFrontedV3"/> 中将 <c>DataContext</c> 统一设置为
+/// 完整 <see cref="FrontedV3ControlContext"/>，XAML 通过 <c>Options.*</c> 根命名空间访问 V3 属性
+/// （例如 <c>{Binding Options.Content.TeamName}</c>），派生控件无需自行设置 DataContext。
 /// </para>
 /// </remarks>
-[FrontedV3Control("TeamCard")]
+[FrontedV3Control("TeamCard", DefaultWidth = 220, DefaultHeight = 64)]
 public partial class TeamCardControl : FrontedV3ControlBase
 {
     /// <summary>
     /// 文本颜色属性，逻辑路径 <c>Appearance.TextColor</c>，存储到 ExtensionData 的 <c>TextColor</c> 键，
-    /// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播。
+    /// 语义为 <see cref="FrontedV3PropertySemantic.Appearance"/>，参与 StyleTransfer 传播，
+    /// 默认值为 <c>White</c>。
     /// </summary>
     public static readonly FrontedV3Property<string> TextColorProperty =
         new("Appearance.TextColor", FrontedV3Storage.ExtensionData("TextColor"),
-            new FrontedV3PropertyMetadata { Semantic = FrontedV3PropertySemantic.Appearance });
+            new FrontedV3PropertyMetadata
+            {
+                Semantic = FrontedV3PropertySemantic.Appearance,
+                DefaultValue = "White"
+            });
 
     /// <summary>
     /// 队伍名称属性，逻辑路径 <c>Content.TeamName</c>，存储到 ExtensionData 的 <c>TeamName</c> 键，
-    /// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与 StyleTransfer 传播。
+    /// 语义为 <see cref="FrontedV3PropertySemantic.Other"/>，不参与 StyleTransfer 传播，
+    /// 默认值为 <c>Team</c>。
     /// </summary>
     public static readonly FrontedV3Property<string> TeamNameProperty =
         new("Content.TeamName", FrontedV3Storage.ExtensionData("TeamName"),
-            new FrontedV3PropertyMetadata { Semantic = FrontedV3PropertySemantic.Other });
+            new FrontedV3PropertyMetadata
+            {
+                Semantic = FrontedV3PropertySemantic.Other,
+                DefaultValue = "Team"
+            });
 
     /// <summary>
     /// Logo 固定 Part 声明，标识为 <c>Logo</c>，能力为 <see cref="FrontedV3PartCapabilities.Resize"/>，
@@ -82,10 +93,12 @@ public partial class TeamCardControl : FrontedV3ControlBase
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// 基类已统一设置 <c>DataContext = context</c>，派生控件无需自行设置。
+    /// 此处仅应用 Logo Part 的运行时几何（Designer V3 运行时几何接管尚未实现，由控件自行读取 Part Storage）。
+    /// </remarks>
     protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
-        DataContext = context.Options;
-
         if (context.Config is PluginFrontedControlConfig pluginConfig)
         {
             if (pluginConfig.ExtensionData.TryGetValue("LogoWidth", out var widthElement)

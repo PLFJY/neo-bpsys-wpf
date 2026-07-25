@@ -74,10 +74,11 @@ public class FrontedControlDefaultConfigFactory
 
         var builtInItems = registrations
             .Where(registration => registration.IsBuiltIn)
+            .OrderBy(registration => registration.Metadata.DisplayOrder ?? int.MaxValue)
             .Select(registration => new FrontedAddControlCatalogItem
             {
                 ControlType = registration.CanonicalControlType,
-                DisplayName = _localizationService.GetControlTypeDisplayName(registration.CanonicalControlType),
+                DisplayName = ResolveControlDisplayName(registration),
                 IsAvailable = true
             })
             .ToArray();
@@ -93,7 +94,7 @@ public class FrontedControlDefaultConfigFactory
             .Select(registration => new FrontedAddControlCatalogItem
             {
                 ControlType = registration.CanonicalControlType,
-                DisplayName = _localizationService.GetControlTypeDisplayName(registration.CanonicalControlType),
+                DisplayName = ResolveControlDisplayName(registration),
                 IsPlugin = true,
                 PackageId = registration.PackageId,
                 PluginDisplayName = registration.PackageId,
@@ -111,6 +112,23 @@ public class FrontedControlDefaultConfigFactory
             .ToArray();
 
         return [builtIn, .. pluginGroups];
+    }
+
+    /// <summary>
+    /// 解析控件在目录中的显示名称：优先使用 <see cref="FrontedV3ControlMetadata.DisplayNameKey"/>，
+    /// 其次回退到本地化服务按 CanonicalControlType 推导，最后回退到 LocalControlId。
+    /// </summary>
+    /// <param name="registration">控件注册信息。</param>
+    /// <returns>控件的本地化显示名称。</returns>
+    private string ResolveControlDisplayName(FrontedV3ControlRegistration registration)
+    {
+        var key = registration.Metadata.DisplayNameKey;
+        if (!string.IsNullOrWhiteSpace(key))
+        {
+            return _localizationService.GetDesignerText(key, registration.LocalControlId);
+        }
+
+        return _localizationService.GetControlTypeDisplayName(registration.CanonicalControlType);
     }
 
     /// <summary>
@@ -134,6 +152,18 @@ public class FrontedControlDefaultConfigFactory
         var config = registration.CreateDefaultConfig();
         config.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
         config.ZIndex = GetNextZIndex(document);
+
+        // 应用 Attribute 声明的默认根尺寸；未声明时保持 null，由 ApplyPlacement 按最小命中框回退。
+        if (config.Width is null && registration.Metadata.DefaultWidth is { } defaultWidth)
+        {
+            config.Width = defaultWidth;
+        }
+
+        if (config.Height is null && registration.Metadata.DefaultHeight is { } defaultHeight)
+        {
+            config.Height = defaultHeight;
+        }
+
         ApplyPlacement(config, document, centerX, centerY);
         return config;
     }

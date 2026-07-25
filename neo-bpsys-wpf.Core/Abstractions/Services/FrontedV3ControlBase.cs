@@ -16,12 +16,19 @@ namespace neo_bpsys_wpf.PluginSdk;
 /// </para>
 /// <para>
 /// 控件 <b>不</b>管理自身的 Canvas 坐标（<c>Left</c>/<c>Top</c>/<c>Width</c>/<c>Height</c>/
-/// <c>ZIndex</c>/<c>Visibility</c>/<c>GaussianBlur</c>），这些由 Phase 2 引入的
+/// <c>ZIndex</c>/<c>Visibility</c>/<c>GaussianBlur</c>），这些由
 /// <c>FrontedV3ControlHost</c> 统一负责。控件只负责矩形区域内的视觉内容。
 /// </para>
 /// <para>
+/// <b>DataContext 命名空间约定</b>：基类在 <see cref="InitializeFrontedV3"/> 中将
+/// <see cref="FrameworkElement.DataContext"/> 统一设置为完整的 <see cref="FrontedV3ControlContext"/>，
+/// 派生控件无需自行设置 DataContext。XAML 与代码绑定应通过 <c>Options.*</c> 根命名空间访问 V3 属性，
+/// 例如 <c>{Binding Options.Appearance.TextColor}</c>，以明确隔离 WPF 自带属性与 V3 注册属性，
+/// 避免误绑定到 FrameworkElement 的内建属性。
+/// </para>
+/// <para>
 /// 属性编辑通过 <see cref="Options"/> 动态代理视图完成：XAML 绑定
-/// <c>{Binding Appearance.TextColor}</c> 最终委托到对应
+/// <c>{Binding Options.Appearance.TextColor}</c> 最终委托到对应
 /// <see cref="neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties.FrontedV3PropertyDefinition"/> 的 Storage 访问器，
 /// 读写直接作用于当前 <see cref="Core.Models.FrontedLayout.FrontedControlConfigBase"/>，不缓存独立值。
 /// </para>
@@ -43,8 +50,14 @@ public abstract class FrontedV3ControlBase : UserControl
     /// 获取由属性 Schema 构建的 Options 动态代理视图；未初始化时为 <see langword="null"/>。
     /// </summary>
     /// <remarks>
-    /// XAML 中可将 <c>DataContext</c> 设置为 <see cref="Options"/>，使绑定路径
-    /// <c>{Binding Appearance.TextColor}</c> 通过 <see cref="ICustomTypeDescriptor"/> 发现动态属性。
+    /// <para>
+    /// 基类已在 <see cref="InitializeFrontedV3"/> 中将 <see cref="FrameworkElement.DataContext"/>
+    /// 设置为完整的 <see cref="FrontedV3ControlContext"/>，XAML 与代码绑定应通过
+    /// <c>Options.*</c> 根命名空间访问该视图，例如 <c>{Binding Options.Appearance.TextColor}</c>。
+    /// </para>
+    /// <para>
+    /// 派生控件通常无需直接读取该属性；仅在需要把 Options 视图作为子元素 DataContext 时使用。
+    /// </para>
     /// </remarks>
     public FrontedV3OptionsView? Options => _context?.Options;
 
@@ -53,18 +66,27 @@ public abstract class FrontedV3ControlBase : UserControl
     /// </summary>
     /// <param name="context">控件运行时上下文。</param>
     /// <exception cref="ArgumentNullException">当 <paramref name="context"/> 为 <see langword="null"/> 时抛出。</exception>
+    /// <remarks>
+    /// 基类在该方法中将 <see cref="FrameworkElement.DataContext"/> 统一设置为 <paramref name="context"/>，
+    /// 使 XAML 绑定可通过 <c>Options.*</c> 根命名空间访问 V3 属性。派生控件无需自行设置 DataContext。
+    /// </remarks>
     public void InitializeFrontedV3(FrontedV3ControlContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
         _context = context;
+        // 统一把 DataContext 设置为完整 Context（而非仅 Options），让 XAML 绑定强制走 Options.* 根命名空间，
+        // 明确隔离 WPF 自带属性与 V3 注册属性，避免误绑定到 FrameworkElement 内建属性。
+        DataContext = context;
         OnInitializeFrontedV3(context);
     }
 
     /// <summary>
-    /// 派生类重写此方法以在上下文注入后执行自定义初始化，例如设置 <c>DataContext</c>、
-    /// 建立绑定或解析资源。
+    /// 派生类重写此方法以在上下文注入后执行自定义初始化，例如建立绑定或解析资源。
     /// </summary>
     /// <param name="context">控件运行时上下文。</param>
+    /// <remarks>
+    /// 派生控件 <b>无需</b> 在重写中设置 <c>DataContext</c>，基类已统一完成；只需关注自身的视觉树与绑定构建。
+    /// </remarks>
     protected virtual void OnInitializeFrontedV3(FrontedV3ControlContext context)
     {
     }

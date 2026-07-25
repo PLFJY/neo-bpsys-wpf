@@ -127,6 +127,12 @@
   <data name="Designer.PropertyEditor.ApplyLayoutTemplate">
     <value>テンプレートで再配置</value>
   </data>
+  <data name="Designer.PropertyEditor.LayoutTemplate.BO3">
+    <value>BO3 テンプレートで再配置</value>
+  </data>
+  <data name="Designer.PropertyEditor.LayoutTemplate.BO5">
+    <value>BO5 テンプレートで再配置</value>
+  </data>
   <data name="Designer.PropertyEditor.InheritFromParent">
     <value>親から継承</value>
   </data>

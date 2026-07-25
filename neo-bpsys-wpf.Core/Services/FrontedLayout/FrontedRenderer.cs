@@ -95,6 +95,9 @@ public class FrontedRenderer(
                     CanvasWidth = buildContext.CanvasWidth,
                     CanvasHeight = buildContext.CanvasHeight,
                     Config = controlConfig,
+                    // ControlName 用于动画部件注册等运行时身份场景（如 MapV2 的 PickingBorder RegisteredName）。
+                    // 必须传入与 Canvas 注册名一致的值，否则多个同类型控件会产生空名称冲突与动画目标错绑。
+                    ControlName = name,
                     Options = FrontedV3OptionsView.Create(controlConfig, v3Registration.Properties),
                     IsDesignerPreview = buildContext.IsDesignerPreview,
                     Logger = buildContext.Logger

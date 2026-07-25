@@ -132,20 +132,43 @@ public sealed class FrontedV3PartCollectionDefinition
     /// <remarks>
     /// <para>
     /// 这是通用机制，控件可通过此回调暴露"按模板重新分配布局"能力。
-    /// 回调接收父控件 Config，由控件自身实现决定如何分配位置与可见性。
+    /// 回调接收父控件 Config 与 <see cref="FrontedV3TemplateContext"/>，由控件自身实现决定如何分配位置与可见性。
     /// </para>
     /// <para>
     /// 例如 GlobalScoreRow 在此回调中调用
     /// <see cref="neo_bpsys_wpf.Core.Services.FrontedLayout.GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing"/>
-    /// 与可见性模板方法，按 BO5 模板重新分配 Cell 的 <c>X</c>/<c>Y</c> 与 <c>Visibility</c>。
+    /// 与可见性模板方法，按 <see cref="FrontedV3TemplateContext.CurrentBoModeState"/> 或
+    /// <see cref="FrontedV3TemplateContext.TemplateId"/> 指定的模板重新分配 Cell 的 <c>X</c>/<c>Y</c> 与 <c>Visibility</c>。
     /// </para>
     /// <para>
     /// 该回调只负责位置/可见性的模板分配，不修改外观属性（Color/FontFamily 等）。
     /// 回调返回 <see langword="true"/> 表示发生了修改；<see langword="false"/> 表示无变更。
     /// </para>
     /// <para>
-    /// Designer 在选中根控件且该回调非 <see langword="null"/> 时显示"按模板重新分配"按钮。
+    /// Designer 在选中根控件且该回调非 <see langword="null"/> 时显示"按模板重新分配"按钮：
+    /// 当 <see cref="Templates"/> 非空时按模板逐个渲染；否则渲染单一通用按钮（无 <see cref="FrontedV3TemplateContext.TemplateId"/>）。
     /// </para>
     /// </remarks>
-    public Func<FrontedControlConfigBase, bool>? ApplyTemplate { get; set; }
+    public Func<FrontedControlConfigBase, FrontedV3TemplateContext, bool>? ApplyTemplate { get; set; }
+
+    /// <summary>
+    /// 获取或设置该集合支持的具名布局模板列表（如 BO3、BO5、Default、Compact）；
+    /// 为空列表时 Designer 渲染单一通用"按模板重新分配"按钮，由控件基于
+    /// <see cref="FrontedV3TemplateContext.CurrentBoModeState"/> 决定具体模板。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 非空列表时 Designer 不再渲染通用按钮，而是为每个 <see cref="FrontedV3LayoutTemplate"/> 渲染独立按钮，
+    /// 用户点击后调用 <see cref="ApplyTemplate"/> 并通过 <see cref="FrontedV3TemplateContext.TemplateId"/>
+    /// 传递被点击模板的 <see cref="FrontedV3LayoutTemplate.Id"/>。
+    /// </para>
+    /// <para>
+    /// 列表为空但 <see cref="ApplyTemplate"/> 非 <see langword="null"/> 时，
+    /// Designer 渲染单一通用按钮，<see cref="FrontedV3TemplateContext.TemplateId"/> 为 <see langword="null"/>。
+    /// </para>
+    /// <para>
+    /// 默认为空列表，控件无需显式声明具名模板即可使用基于 BO 状态的默认行为。
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<FrontedV3LayoutTemplate> Templates { get; set; } = Array.Empty<FrontedV3LayoutTemplate>();
 }

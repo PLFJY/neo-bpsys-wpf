@@ -1,5 +1,6 @@
 using System.Windows;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
@@ -93,4 +94,54 @@ public sealed class FrontedV3ControlRegistration
     /// </para>
     /// </remarks>
     public FrontedV3PropertyTransfer StyleTransfer { get; init; } = FrontedV3PropertyTransfer.Default;
+
+    /// <summary>
+    /// 控件声明的固定 Part 定义列表，由控件类上的 <c>public static readonly FrontedV3Part</c> 字段发现，
+    /// 或由内置控件的 <c>BuiltInPartDefinitionResolver</c> 提供。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 插件控件通过 <c>FrontedV3Part.Register&lt;TControl&gt;</c> 声明固定 Part，
+    /// 框架在注册时通过 <see cref="neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts.FrontedV3Part.Discover"/>
+    /// 反射发现并转换为 <see cref="FrontedV3PartDefinition"/>。
+    /// </para>
+    /// <para>
+    /// 内置控件（如 BorderedImage、MapV2Display）通过 <c>BuiltInPartDefinitionResolver</c>
+    /// 在注册时填充，无需在控件类上声明静态字段。
+    /// </para>
+    /// <para>
+    /// Designer 选择 Part 时优先从该字段查找，确保插件 Part 与内置 Part 走统一链路。
+    /// 默认为空列表，表示控件无可编辑的固定 Part。
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<FrontedV3PartDefinition> FixedParts { get; init; } = Array.Empty<FrontedV3PartDefinition>();
+
+    /// <summary>
+    /// 控件声明的 PartCollection 定义列表，由控件类上的 <c>public static readonly FrontedV3Parts</c> 字段发现，
+    /// 或由内置控件的 <c>BuiltInPartCollectionDefinitionResolver</c> 提供。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 插件控件通过 <c>FrontedV3Parts.RegisterCollection&lt;TControl&gt;</c> 声明 PartCollection，
+    /// 框架在注册时通过 <see cref="neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts.FrontedV3Parts.Discover"/>
+    /// 反射发现并转换为 <see cref="FrontedV3PartCollectionDefinition"/>。
+    /// </para>
+    /// <para>
+    /// 内置控件（如 GlobalScoreRow）通过 <c>BuiltInPartCollectionDefinitionResolver</c>
+    /// 在注册时填充，无需在控件类上声明静态字段。
+    /// </para>
+    /// <para>
+    /// Designer 选择集合项时优先从该字段查找，确保插件与内置走统一链路。
+    /// 默认为空列表，表示控件无可编辑的 PartCollection。
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<FrontedV3PartCollectionDefinition> PartCollections { get; init; } = Array.Empty<FrontedV3PartCollectionDefinition>();
+
+    /// <summary>
+    /// 控件在 Designer 与运行时的元数据，由 <see cref="FrontedV3ControlAttribute"/> 推导。
+    /// </summary>
+    /// <remarks>
+    /// 默认为空 <see cref="FrontedV3ControlMetadata"/>，调用方按字段 null 情况回退到合理默认值。
+    /// </remarks>
+    public FrontedV3ControlMetadata Metadata { get; init; } = new();
 }

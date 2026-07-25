@@ -1092,10 +1092,47 @@
                                         <DataTrigger Binding="{Binding HasLayoutTemplate}" Value="True">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </ui:Button.Style>
                         </ui:Button>
+                        <ItemsControl
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,12,0"
+                            ItemsSource="{Binding LayoutTemplates}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:FrontedV3LayoutTemplateViewModel}">
+                                    <ui:Button
+                                        Margin="4,0,0,0"
+                                        Appearance="Secondary"
+                                        Icon="{ui:SymbolIcon Symbol=Table24}"
+                                        Content="{Binding DisplayName}"
+                                        ToolTip="{Binding ToolTip}"
+                                        Command="{Binding DataContext.ApplyLayoutTemplateByNameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding Id}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.Style>
+                                <Style TargetType="{x:Type ItemsControl}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Style>
+                        </ItemsControl>
                         <Grid Grid.Row="2" Margin="0,8,0,8">
 
                             <ItemsControl ItemsSource="{Binding PropertyEditorItems}">

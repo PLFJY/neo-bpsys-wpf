@@ -1,7 +1,7 @@
 namespace neo_bpsys_wpf.PluginSdk;
 
 /// <summary>
-/// 标注一个 v3 前台控件类型，并携带控件局部标识（ControlId）。
+/// 标注一个 v3 前台控件类型，并携带控件局部标识（ControlId）与 Designer 展示元数据。
 /// </summary>
 /// <remarks>
 /// <para>
@@ -20,6 +20,13 @@ namespace neo_bpsys_wpf.PluginSdk;
 /// <para>
 /// <see cref="IsBuiltIn"/> 仅供宿主注册代码使用。插件在插件初始化作用域内设置
 /// <see cref="IsBuiltIn"/> 为 <see langword="true"/> 会被拒绝，插件控件无法通过该标记逃离自己的命名空间。
+/// </para>
+/// <para>
+/// Designer 展示元数据（<see cref="DisplayNameKey"/>、<see cref="DescriptionKey"/>、<see cref="Icon"/>、
+/// <see cref="DefaultWidth"/>、<see cref="DefaultHeight"/>、<see cref="DisplayOrder"/>）
+/// 由 Attribute 直接声明，注册时通过 <c>FrontedV3ControlRegistryExtensions.BuildMetadata</c>
+/// 推导为 <c>FrontedV3ControlMetadata</c> 暴露到 Registration。
+/// 所有元数据字段可选，缺失时由调用方按合理默认值回退。
 /// </para>
 /// <para>
 /// 该类型定义在 Core 程序集中（命名空间 <c>neo_bpsys_wpf.PluginSdk</c> 以保持插件 API 兼容）。
@@ -63,4 +70,41 @@ public sealed class FrontedV3ControlAttribute : Attribute
     /// </para>
     /// </remarks>
     public bool SupportsPeerStyleTransfer { get; set; }
+
+    /// <summary>
+    /// 控件在 Designer 控件目录中显示的本地化键；为 <see langword="null"/> 时回退到 <see cref="ControlId"/>。
+    /// </summary>
+    public string? DisplayNameKey { get; set; }
+
+    /// <summary>
+    /// 控件描述的本地化键；为 <see langword="null"/> 时 Designer 不显示描述。
+    /// </summary>
+    public string? DescriptionKey { get; set; }
+
+    /// <summary>
+    /// 控件在 Designer 控件目录中显示的图标资源名（WPF-UI Symbol 或资源键）；
+    /// 为 <see langword="null"/> 时显示默认图标。
+    /// </summary>
+    public string? Icon { get; set; }
+
+    /// <summary>
+    /// 新添加控件时的默认根宽度；为 <see cref="double.NaN"/> 时由 Designer 按最小命中框回退。
+    /// </summary>
+    /// <remarks>
+    /// 由于特性属性类型限制，使用 <see cref="double.NaN"/> 作为"未设置"哨兵值，而非 <c>null</c>。
+    /// </remarks>
+    public double DefaultWidth { get; set; } = double.NaN;
+
+    /// <summary>
+    /// 新添加控件时的默认根高度；为 <see cref="double.NaN"/> 时由 Designer 按最小命中框回退。
+    /// </summary>
+    /// <remarks>
+    /// 由于特性属性类型限制，使用 <see cref="double.NaN"/> 作为"未设置"哨兵值，而非 <c>null</c>。
+    /// </remarks>
+    public double DefaultHeight { get; set; } = double.NaN;
+
+    /// <summary>
+    /// 控件在 Designer 控件目录中的显示顺序；为 <see langword="null"/> 时按注册顺序追加。
+    /// </summary>
+    public int? DisplayOrder { get; set; }
 }

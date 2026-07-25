@@ -102,4 +102,28 @@ public sealed class FrontedV3PropertyMetadata
     /// 默认 <see cref="FrontedV3StyleComponent.None"/>（未分类）。
     /// </summary>
     public FrontedV3StyleComponent StyleComponent { get; init; } = FrontedV3StyleComponent.None;
+
+    /// <summary>
+    /// 属性的静态默认值；为 <see langword="null"/> 且 <see cref="DefaultValueFactory"/> 也为
+    /// <see langword="null"/> 时不在默认 Config 中写入该属性。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 当 <see cref="DefaultValueFactory"/> 非 <see langword="null"/> 时，工厂优先级高于本字段。
+    /// </para>
+    /// <para>
+    /// 默认值仅在通过 <c>CreateDefaultConfig</c> 创建新控件时写入一次，之后由用户编辑覆盖；
+    /// 它不参与运行时回退逻辑（运行时回退由 Storage 访问器与 Options 视图决定）。
+    /// </para>
+    /// </remarks>
+    public object? DefaultValue { get; init; }
+
+    /// <summary>
+    /// 属性默认值的工厂函数；为 <see langword="null"/> 时回退到 <see cref="DefaultValue"/>。
+    /// </summary>
+    /// <remarks>
+    /// 工厂优先级高于 <see cref="DefaultValue"/>，适用于需要每次创建新实例的默认值
+    /// （如集合、复杂对象等引用类型）。
+    /// </remarks>
+    public Func<object?>? DefaultValueFactory { get; init; }
 }
