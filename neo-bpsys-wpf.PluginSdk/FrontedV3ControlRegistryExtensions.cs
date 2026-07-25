@@ -118,7 +118,9 @@ public static class FrontedV3ControlRegistryExtensions
             // 转换为 Metadata 的 double? 时将 NaN 规范化为 null。
             DefaultWidth = double.IsNaN(attribute.DefaultWidth) ? null : attribute.DefaultWidth,
             DefaultHeight = double.IsNaN(attribute.DefaultHeight) ? null : attribute.DefaultHeight,
-            DisplayOrder = attribute.DisplayOrder
+            // Attribute 使用 int.MaxValue 作为"未设置"哨兵（int? 不是合法的特性属性类型），
+            // 转换为 Metadata 的 int? 时将 MaxValue 规范化为 null。
+            DisplayOrder = attribute.DisplayOrder == int.MaxValue ? null : attribute.DisplayOrder
         };
     }
 

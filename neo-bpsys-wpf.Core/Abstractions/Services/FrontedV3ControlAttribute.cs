@@ -104,7 +104,12 @@ public sealed class FrontedV3ControlAttribute : Attribute
     public double DefaultHeight { get; set; } = double.NaN;
 
     /// <summary>
-    /// 控件在 Designer 控件目录中的显示顺序；为 <see langword="null"/> 时按注册顺序追加。
+    /// 控件在 Designer 控件目录中的显示顺序；为 <see cref="int.MaxValue"/> 时按注册顺序追加。
     /// </summary>
-    public int? DisplayOrder { get; set; }
+    /// <remarks>
+    /// 由于特性属性类型限制，使用 <see cref="int.MaxValue"/> 作为"未设置"哨兵值，而非 <c>null</c>。
+    /// 注册时通过 <c>FrontedV3ControlRegistryExtensions.BuildMetadata</c> 转换为
+    /// <c>FrontedV3ControlMetadata.DisplayOrder</c>（<c>int?</c>）时规范化为 <see langword="null"/>。
+    /// </remarks>
+    public int DisplayOrder { get; set; } = int.MaxValue;
 }

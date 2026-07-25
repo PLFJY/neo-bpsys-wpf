@@ -2496,8 +2496,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var context = BuildTemplateContext(templateId);
 
+        // CaptureUndoSnapshot 在 applyTemplate 之前调用，捕获修改前快照，
+        // 这样 Undo 时能回到调用前状态。若回调返回 false（无变更），
+        // 需丢弃刚捕获的快照，避免无变化操作污染 Undo 与 dirty 状态。
+        var undoCountBefore = _undoStack.Count;
         CaptureUndoSnapshot();
-        applyTemplate(sourceConfig, context);
+        var pushedNewSnapshot = _undoStack.Count > undoCountBefore;
+
+        var modified = applyTemplate(sourceConfig, context);
+        if (!modified)
+        {
+            if (pushedNewSnapshot)
+            {
+                _undoStack.Pop();
+                NotifyUndoRedoCommands();
+            }
+
+            return;
+        }
 
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();

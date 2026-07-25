@@ -79,6 +79,8 @@ public class FrontedControlDefaultConfigFactory
             {
                 ControlType = registration.CanonicalControlType,
                 DisplayName = ResolveControlDisplayName(registration),
+                Description = ResolveControlDescription(registration),
+                Icon = registration.Metadata.Icon,
                 IsAvailable = true
             })
             .ToArray();
@@ -95,6 +97,8 @@ public class FrontedControlDefaultConfigFactory
             {
                 ControlType = registration.CanonicalControlType,
                 DisplayName = ResolveControlDisplayName(registration),
+                Description = ResolveControlDescription(registration),
+                Icon = registration.Metadata.Icon,
                 IsPlugin = true,
                 PackageId = registration.PackageId,
                 PluginDisplayName = registration.PackageId,
@@ -129,6 +133,23 @@ public class FrontedControlDefaultConfigFactory
         }
 
         return _localizationService.GetControlTypeDisplayName(registration.CanonicalControlType);
+    }
+
+    /// <summary>
+    /// 解析控件在目录中的描述：仅当 <see cref="FrontedV3ControlMetadata.DescriptionKey"/> 非空时
+    /// 通过本地化服务查询；未声明时返回空字符串（目录不显示描述）。
+    /// </summary>
+    /// <param name="registration">控件注册信息。</param>
+    /// <returns>控件的本地化描述；未声明时为 <see cref="string.Empty"/>。</returns>
+    private string ResolveControlDescription(FrontedV3ControlRegistration registration)
+    {
+        var key = registration.Metadata.DescriptionKey;
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
+        return _localizationService.GetDesignerText(key, string.Empty);
     }
 
     /// <summary>

@@ -141,6 +141,12 @@ public sealed class FrontedV3ControlHost : Decorator
     /// 随后直接调用 <see cref="FrontedV3ControlBase.InitializeFrontedV3"/> 完成上下文注入。
     /// </para>
     /// <para>
+    /// 根布局（<see cref="ApplyRootLayout"/>）在创建控件之前应用，确保无论成功还是失败 Host 都具备
+    /// <c>Left</c>/<c>Top</c>/<c>Width</c>/<c>Height</c>/<c>ZIndex</c>/<c>Visibility</c>、
+    /// <c>BehaviorGuid</c> 与 <c>IsGeneratedControl</c> 标记。失败路径的错误占位同样可被
+    /// <c>FrontedRenderer</c> 通过 <c>IsGeneratedControl</c> 识别并清理，避免重复堆积。
+    /// </para>
+    /// <para>
     /// 失败时：Runtime 记录 warning 并显示安全占位；Designer 通过 <see cref="IsDesignerPreview"/>
     /// 显示带 Designer 标识的错误占位；原 <see cref="Config"/> 保留，不写默认值覆盖。
     /// </para>
@@ -152,6 +158,10 @@ public sealed class FrontedV3ControlHost : Decorator
     public bool TryInitialize(FrontedV3ControlContext context, ILogger? logger = null)
     {
         ArgumentNullException.ThrowIfNull(context);
+
+        // 先应用根布局：确保无论后续创建/初始化是否成功，Host 自身都具备根级字段与 generated 标记。
+        // 错误占位也需被 Renderer 通过 IsGeneratedControl 识别并清理。
+        ApplyRootLayout();
 
         try
         {
@@ -168,7 +178,6 @@ public sealed class FrontedV3ControlHost : Decorator
             v3Control.InitializeFrontedV3(context);
 
             AttachControl(v3Control);
-            ApplyRootLayout();
             return true;
         }
         catch (Exception ex)

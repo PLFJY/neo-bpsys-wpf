@@ -102,13 +102,10 @@ public partial class TeamCardControl : FrontedV3ControlBase
     {
         InitializeComponent();
     }
-
-    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
-    {
-        DataContext = context.Options;
-    }
 }
 ```
+
+基类 `FrontedV3ControlBase.InitializeFrontedV3` 已统一将 `DataContext` 设置为完整 `FrontedV3ControlContext`，派生控件无需自行设置 `DataContext`。XAML 通过 `Options.*` 根命名空间访问 V3 属性（例如 `{Binding Options.Appearance.TextColor}`）。
 
 ### 声明属性
 
@@ -134,7 +131,7 @@ public static readonly FrontedV3Property<string> TeamNameProperty =
 
 ### Options 动态代理视图
 
-`Options` 是由属性 Schema 构建的动态代理视图，**不进入 JSON**，**不缓存独立值**。XAML 中将 `DataContext` 设置为 `Options`，绑定路径 `{Binding Appearance.TextColor}` 通过 `ICustomTypeDescriptor` 发现动态属性，最终委托到对应存储访问器，直接读写当前 Config 的根级字段。
+`Options` 是由属性 Schema 构建的动态代理视图，**不进入 JSON**，**不缓存独立值**。基类已将 `DataContext` 设置为完整 `FrontedV3ControlContext`，XAML 通过 `Options.*` 路径访问属性（例如 `{Binding Options.Appearance.TextColor}`），`Options` 通过 `ICustomTypeDescriptor` 发现动态属性，最终委托到对应存储访问器，直接读写当前 Config 的根级字段。
 
 ### 固定 Part（内部区域）
 
@@ -144,8 +141,8 @@ public static readonly FrontedV3Property<string> TeamNameProperty =
 public static readonly FrontedV3Part LogoPart =
     FrontedV3Part.Register<TeamCardControl>("Logo")
         .WithSize(
-            FrontedV3Storage.ClrProperty("LogoWidth"),
-            FrontedV3Storage.ClrProperty("LogoHeight"))
+            FrontedV3Storage.ExtensionData("LogoWidth"),
+            FrontedV3Storage.ExtensionData("LogoHeight"))
         .WithCapabilities(FrontedV3PartCapabilities.Resize);
 ```
 
