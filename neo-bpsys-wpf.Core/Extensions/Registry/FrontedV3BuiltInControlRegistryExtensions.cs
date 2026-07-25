@@ -37,7 +37,8 @@ public static class FrontedV3BuiltInControlRegistryExtensions
     /// <param name="createDefaultConfig">创建默认配置实例的工厂。</param>
     /// <returns>服务容器，支持链式调用。</returns>
     /// <exception cref="FrontedLayoutConfigException">当控件类型缺少 <see cref="FrontedV3ControlAttribute"/>、
-    /// 未设置 <c>IsBuiltIn</c>、在插件作用域内调用、或 ControlId 不合法时抛出。</exception>
+    /// 未设置 <c>IsBuiltIn</c>、在插件作用域内调用、ControlId 不合法、Part/PartCollection Id 非法或重复、
+    /// Part Capabilities 与 Storage 配对不一致、或 PartCollection 策略/Templates 与回调配对不一致时抛出。</exception>
     public static IServiceCollection AddBuiltInFrontedV3Control<TControl, TConfig>(
         this IServiceCollection services,
         Func<TConfig> createDefaultConfig)
@@ -78,6 +79,7 @@ public static class FrontedV3BuiltInControlRegistryExtensions
         // Designer 选择 Part/集合项时即可统一从 Registration 查找，无需按控件类型分支。
         var fixedParts = BuiltInPartDefinitionResolver.GetParts(sampleConfig);
         var partCollections = BuiltInPartCollectionDefinitionResolver.GetCollections(sampleConfig);
+        FrontedV3PartDefinitionValidator.Validate(fixedParts, partCollections, controlType);
 
         Func<FrontedControlConfigBase> defaultConfigFactory = () =>
         {

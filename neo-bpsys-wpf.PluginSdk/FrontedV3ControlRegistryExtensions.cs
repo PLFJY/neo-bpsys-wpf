@@ -35,7 +35,8 @@ public static class FrontedV3ControlRegistryExtensions
     /// <returns>服务容器，支持链式调用。</returns>
     /// <exception cref="FrontedLayoutConfigException">当控件类型缺少 <see cref="FrontedV3ControlAttribute"/>、
     /// ControlId 不合法、插件试图注册为内置控件、属性 OptionsPath 重复、属性 Storage 指向保留字段、
-    /// 或 OptionsPath 使用禁止路径时抛出。</exception>
+    /// OptionsPath 使用禁止路径、Part/PartCollection Id 非法或重复、Part Capabilities 与 Storage 配对不一致、
+    /// 或 PartCollection 策略/Templates 与回调配对不一致时抛出。</exception>
     public static IServiceCollection AddFrontedV3Control<TControl>(this IServiceCollection services)
         where TControl : FrontedV3ControlBase
     {
@@ -70,8 +71,7 @@ public static class FrontedV3ControlRegistryExtensions
         // 把声明式 Part/PartCollection 接入统一 Registration，使插件作者可以与内置控件走同一链路。
         var fixedParts = FrontedV3Part.Discover(controlType);
         var partCollections = FrontedV3Parts.Discover(controlType);
-        ValidateParts(fixedParts, controlType);
-        ValidatePartCollections(partCollections, controlType);
+        FrontedV3PartDefinitionValidator.Validate(fixedParts, partCollections, controlType);
 
         var configType = typeof(PluginFrontedControlConfig);
         Func<FrontedControlConfigBase> createDefaultConfig = () =>
@@ -151,54 +151,6 @@ public static class FrontedV3ControlRegistryExtensions
             }
 
             property.SetValue(config, defaultValue);
-        }
-    }
-
-    /// <summary>
-    /// 校验固定 Part 列表的 Id 唯一性。
-    /// </summary>
-    /// <param name="parts">Part 定义列表。</param>
-    /// <param name="controlType">控件类型，用于错误消息。</param>
-    private static void ValidateParts(IReadOnlyList<FrontedV3PartDefinition> parts, Type controlType)
-    {
-        if (parts.Count <= 1)
-        {
-            return;
-        }
-
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var part in parts)
-        {
-            if (!seen.Add(part.Id))
-            {
-                throw new FrontedLayoutConfigException(
-                    $"Control '{controlType.FullName}' has duplicate Part Id '{part.Id}'. " +
-                    "Each Part Id must be unique within a control.");
-            }
-        }
-    }
-
-    /// <summary>
-    /// 校验 PartCollection 列表的 Id 唯一性。
-    /// </summary>
-    /// <param name="collections">PartCollection 定义列表。</param>
-    /// <param name="controlType">控件类型，用于错误消息。</param>
-    private static void ValidatePartCollections(IReadOnlyList<FrontedV3PartCollectionDefinition> collections, Type controlType)
-    {
-        if (collections.Count <= 1)
-        {
-            return;
-        }
-
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var collection in collections)
-        {
-            if (!seen.Add(collection.Id))
-            {
-                throw new FrontedLayoutConfigException(
-                    $"Control '{controlType.FullName}' has duplicate PartCollection Id '{collection.Id}'. " +
-                    "Each PartCollection Id must be unique within a control.");
-            }
         }
     }
 
