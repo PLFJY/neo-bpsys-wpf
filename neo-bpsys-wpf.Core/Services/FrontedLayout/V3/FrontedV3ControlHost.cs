@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.PluginSdk;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
@@ -100,6 +101,15 @@ public sealed class FrontedV3ControlHost : Decorator
     public bool HasError => InitializationError is not null;
 
     /// <summary>
+    /// 获取控件初始化成功后由 <see cref="FrontedV3PartVisualRuntimeBinder"/> 产生的 Part Visual 发现结果；
+    /// 未初始化或控件无固定 Part 时为 <see langword="null"/>。
+    /// </summary>
+    /// <remarks>
+    /// Designer 可据此读取 Missing/Duplicate Visual 诊断并展示给用户；Runtime 仅用于日志。
+    /// </remarks>
+    public FrontedV3PartVisualDiscoveryResult? PartVisualDiscovery { get; private set; }
+
+    /// <summary>
     /// 将成功创建并初始化的 v3 控件附加到 Host。
     /// </summary>
     /// <param name="control">要包装的 v3 控件实例。</param>
@@ -178,6 +188,32 @@ public sealed class FrontedV3ControlHost : Decorator
             v3Control.InitializeFrontedV3(context);
 
             AttachControl(v3Control);
+
+            // 控件附加后，框架统一接管 Part Visual 的运行时几何绑定：
+            // 通过 FrontedV3PartVisualResolver 发现 PartId → Visual 映射，
+            // 并将 Storage 中的 Width/Height/X/Y 应用到对应 FrameworkElement。
+            // 插件作者无需在 OnInitializeFrontedV3 中手写几何读取代码。
+            if (_registration.FixedParts.Count > 0)
+            {
+                PartVisualDiscovery = FrontedV3PartVisualRuntimeBinder.Bind(
+                    v3Control,
+                    _registration.FixedParts,
+                    _config,
+                    logger);
+
+                if (PartVisualDiscovery.HasDiagnostics)
+                {
+                    foreach (var diagnostic in PartVisualDiscovery.Diagnostics)
+                    {
+                        logger?.LogWarning(
+                            "Part visual diagnostic for {CanonicalControlType} PartId {PartId}: {Message}",
+                            _registration.CanonicalControlType,
+                            diagnostic.PartId,
+                            diagnostic.Message);
+                    }
+                }
+            }
+
             return true;
         }
         catch (Exception ex)

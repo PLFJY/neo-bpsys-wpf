@@ -1,11 +1,15 @@
 using System;
 using System.IO;
 using System.Linq;
+using neo_bpsys_wpf.Controls.FrontedLayout;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
@@ -69,7 +73,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
         var selection = builder.BuildRootSelection(designItem);
 
         Assert.NotNull(selection);
@@ -93,28 +97,27 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     /// <summary>
-    /// 无 Schema 属性的根控件调用 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
+    /// 未在 Registry 中注册的控件调用 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
     /// 时返回 <see langword="null"/>，表示该控件无可编辑 Schema 属性。
     /// </summary>
+    /// <remarks>
+    /// Designer 去特化后，属性 Schema 仅从 Registration 读取，不再回退到 CLR 反射。
+    /// 未注册的 ControlType（如缺失插件）返回 <see langword="null"/>，由调用方决定如何呈现。
+    /// </remarks>
     [Fact]
     public void RootSelectionReturnsNullWhenSchemaIsEmpty()
     {
-        // FrontedControlConfigBase 基类自身只有保留字段与布局字段，
-        // 但布局字段（Left/Top/Width/Height）属于支持范围，会出现在 Schema 中。
-        // 这里用一个空 Config 验证 Schema 构造路径至少不抛异常。
         var designItem = new FrontedControlDesignItem
         {
             Name = "Empty",
             Config = new FrontedControlConfigBase { ControlType = "Unknown" }
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
         var selection = builder.BuildRootSelection(designItem);
 
-        // FrontedControlConfigBase 的 Left/Top/Width/Height/BindingPath 等会被反射发现，
-        // 因此 selection 不为 null；这里验证构造不抛异常且 Kind 为 Root。
-        Assert.NotNull(selection);
-        Assert.Equal(FrontedV3DesignSelectionKind.Root, selection!.Kind);
+        // "Unknown" 未注册，Registry 返回 null Registration，Properties 为空，selection 为 null。
+        Assert.Null(selection);
     }
 
     // -------------------------------------------------------------------
@@ -140,7 +143,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
         var selection = builder.BuildFixedPartSelection(designItem, partId: "Image");
 
         Assert.NotNull(selection);
@@ -185,7 +188,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
         var selection = builder.BuildFixedPartSelection(designItem, partId: "NonExistent");
 
         Assert.Null(selection);
@@ -210,7 +213,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
 
         // 先获取可用集合，验证 Cells 存在
         var collections = builder.GetAvailableCollections(designItem);
@@ -272,7 +275,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
         var selection = builder.BuildCollectionItemSelection(
             designItem, collectionId: "NonExistent", itemKey: "SomeKey");
 
@@ -298,7 +301,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
 
         // 通过 EnsureTemplateItems 补齐 BO5 模板 Cell
         var collections = builder.GetAvailableCollections(designItem);
@@ -356,7 +359,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
 
         // 选中 TeamName 部件
         var selection = builder.BuildFixedPartSelection(
@@ -399,7 +402,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
 
         var collections = builder.GetAvailableCollections(designItem);
         var cellsCollection = Assert.Single(collections);
@@ -797,7 +800,7 @@ public class FrontedV3DesignerDespecializationTest
             Config = config
         };
 
-        var builder = new FrontedV3DesignSelectionBuilder();
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
 
         // 先构建 FixedPart 选中（模拟用户点击内部 Image 部件）
         var partSelection = builder.BuildFixedPartSelection(designItem, partId: "Image");
@@ -902,5 +905,56 @@ public class FrontedV3DesignerDespecializationTest
         }
 
         throw new DirectoryNotFoundException("Could not locate repository root.");
+    }
+
+    /// <summary>
+    /// 创建包含本测试所需内置控件（Text、BorderedImage、GlobalScoreRow、MapV2Display）
+    /// 的 <see cref="IFrontedV3ControlRegistry"/>，属性 Schema、FixedParts、PartCollections
+    /// 通过 <see cref="BuiltInPropertyDefinitionResolver"/>、<see cref="BuiltInPartDefinitionResolver"/>、
+    /// <see cref="BuiltInPartCollectionDefinitionResolver"/> 生成，与生产注册路径保持一致。
+    /// </summary>
+    /// <returns>用于测试的 <see cref="IFrontedV3ControlRegistry"/> 实例。</returns>
+    private static IFrontedV3ControlRegistry CreateTestRegistry()
+    {
+        return new FrontedV3ControlRegistry(
+        [
+            CreateBuiltInRegistration("Text", typeof(TextFrontedControl), typeof(TextFrontedControlConfig), () => new TextFrontedControlConfig { Text = "Text" }),
+            CreateBuiltInRegistration("BorderedImage", typeof(BorderedImageFrontedControl), typeof(BorderedImageFrontedControlConfig), () => new BorderedImageFrontedControlConfig()),
+            CreateBuiltInRegistration("GlobalScoreRow", typeof(GlobalScoreRowFrontedControl), typeof(GlobalScoreRowControlConfig), () => new GlobalScoreRowControlConfig()),
+            CreateBuiltInRegistration("MapV2Display", typeof(MapV2DisplayControlConfig), typeof(MapV2DisplayControlConfig), () => new MapV2DisplayControlConfig())
+        ]);
+    }
+
+    /// <summary>
+    /// 创建一个内置控件的 <see cref="FrontedV3ControlRegistration"/>，
+    /// 属性 Schema、FixedParts、PartCollections 由内置 Resolver 反射生成。
+    /// </summary>
+    /// <param name="controlId">控件局部标识，同时作为 CanonicalControlType。</param>
+    /// <param name="controlType">控件 <see cref="Type"/>。</param>
+    /// <param name="configType">配置 <see cref="Type"/>。</param>
+    /// <param name="createDefaultConfig">创建默认配置的工厂。</param>
+    /// <returns>填充完整的 <see cref="FrontedV3ControlRegistration"/>。</returns>
+    private static FrontedV3ControlRegistration CreateBuiltInRegistration(
+        string controlId,
+        Type controlType,
+        Type configType,
+        Func<FrontedControlConfigBase> createDefaultConfig)
+    {
+        var sampleConfig = (FrontedControlConfigBase)Activator.CreateInstance(configType)!;
+        sampleConfig.ControlType = controlId;
+
+        return new FrontedV3ControlRegistration
+        {
+            CanonicalControlType = controlId,
+            LocalControlId = controlId,
+            PackageId = null,
+            IsBuiltIn = true,
+            ControlType = controlType,
+            ConfigType = configType,
+            Properties = BuiltInPropertyDefinitionResolver.GetProperties(sampleConfig),
+            FixedParts = BuiltInPartDefinitionResolver.GetParts(sampleConfig),
+            PartCollections = BuiltInPartCollectionDefinitionResolver.GetCollections(sampleConfig),
+            CreateDefaultConfig = createDefaultConfig
+        };
     }
 }

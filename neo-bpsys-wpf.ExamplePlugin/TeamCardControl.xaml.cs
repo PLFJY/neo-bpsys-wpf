@@ -1,6 +1,4 @@
-using System.Text.Json;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
@@ -33,6 +31,11 @@ namespace neo_bpsys_wpf.ExamplePlugin;
 /// 声明一个固定 Part <c>Logo</c>（<see cref="LogoPart"/>），能力为 <see cref="FrontedV3PartCapabilities.Resize"/>，
 /// 宽高存储到 ExtensionData 的 <c>LogoWidth</c>/<c>LogoHeight</c> 键。XAML 中通过
 /// <c>fronted:FrontedV3.PartId="Logo"</c> 将 <c>&lt;Image&gt;</c> 标记为该 Part 的 Visual。
+/// </para>
+/// <para>
+/// Part 的运行时几何绑定由框架统一接管：<c>FrontedV3ControlHost</c> 在控件创建后调用
+/// <c>FrontedV3PartVisualRuntimeBinder</c>，根据 Part Storage 中的 LogoWidth/LogoHeight
+/// 自动应用到 LogoImage，派生控件无需在 <c>OnInitializeFrontedV3</c> 中手写几何读取代码。
 /// </para>
 /// <para>
 /// 基类已在 <see cref="FrontedV3ControlBase.InitializeFrontedV3"/> 中将 <c>DataContext</c> 统一设置为
@@ -76,6 +79,7 @@ public partial class TeamCardControl : FrontedV3ControlBase
     /// <remarks>
     /// XAML 中通过 <c>fronted:FrontedV3.PartId="Logo"</c> 将 <c>&lt;Image x:Name="LogoImage"/&gt;</c>
     /// 标记为该 Part 的 Visual；Designer 中用户可拖拽缩放该 Image，几何值持久化到 Config 的 ExtensionData。
+    /// 运行时由 <c>FrontedV3PartVisualRuntimeBinder</c> 自动将 LogoWidth/LogoHeight 应用到 LogoImage。
     /// </remarks>
     public static readonly FrontedV3Part LogoPart =
         FrontedV3Part.Register<TeamCardControl>("Logo")
@@ -90,28 +94,5 @@ public partial class TeamCardControl : FrontedV3ControlBase
     public TeamCardControl()
     {
         InitializeComponent();
-    }
-
-    /// <inheritdoc />
-    /// <remarks>
-    /// 基类已统一设置 <c>DataContext = context</c>，派生控件无需自行设置。
-    /// 此处仅应用 Logo Part 的运行时几何（Designer V3 运行时几何接管尚未实现，由控件自行读取 Part Storage）。
-    /// </remarks>
-    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
-    {
-        if (context.Config is PluginFrontedControlConfig pluginConfig)
-        {
-            if (pluginConfig.ExtensionData.TryGetValue("LogoWidth", out var widthElement)
-                && widthElement.ValueKind == JsonValueKind.Number)
-            {
-                LogoImage.Width = widthElement.GetDouble();
-            }
-
-            if (pluginConfig.ExtensionData.TryGetValue("LogoHeight", out var heightElement)
-                && heightElement.ValueKind == JsonValueKind.Number)
-            {
-                LogoImage.Height = heightElement.GetDouble();
-            }
-        }
     }
 }

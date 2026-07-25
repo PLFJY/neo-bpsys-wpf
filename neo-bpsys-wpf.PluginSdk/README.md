@@ -148,6 +148,14 @@ public static readonly FrontedV3Part LogoPart =
 
 XAML 中通过 `fronted:FrontedV3.PartId="Logo"` 附加属性标记 Part Visual，与 C# 特性 `[FrontedV3PartVisual("Logo")]` 等价。Part 只管理控件内部固定区域的几何，不管理根布局。
 
+框架在 `FrontedV3ControlHost.TryInitialize` 中统一调用 `FrontedV3PartVisualRuntimeBinder`，自动完成以下工作：
+
+- 通过 `FrontedV3PartVisualResolver` 发现控件视觉树中标注的 Part Visual（XAML 附加属性或 C# 特性）。
+- 根据 Part 的 `WidthStorage`/`HeightStorage`/`XStorage`/`YStorage` 读取 Config 中的几何值，应用到对应 `FrameworkElement`。
+- 输出 Missing/Duplicate Visual 诊断，不阻止控件初始化。
+
+派生控件**无需**在 `OnInitializeFrontedV3` 中手写几何读取代码。声明完 `FrontedV3Part` 与 XAML `fronted:FrontedV3.PartId` 后，运行时几何绑定由框架接管。
+
 ### PartCollection（模板或动态子项）
 
 PartCollection 系统管理模板或动态集合（如 GlobalScoreRow 的 Cells）。通过控件类上的 `public static readonly FrontedV3Parts` 字段声明：

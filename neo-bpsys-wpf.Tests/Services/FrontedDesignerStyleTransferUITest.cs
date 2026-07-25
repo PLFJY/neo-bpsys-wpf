@@ -1,7 +1,9 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
+using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
@@ -10,7 +12,9 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.ViewModels.Windows;
 using Xunit;
@@ -164,7 +168,7 @@ public class FrontedDesignerStyleTransferUITest
             }
         };
         var document = CreateDocument([source, otherType]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         Assert.False(viewModel.HasSameTypePeers);
@@ -266,7 +270,7 @@ public class FrontedDesignerStyleTransferUITest
             Config = new TextFrontedControlConfig()
         };
         var document = CreateDocument([source, peer]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
 
         // 未调用 SelectDesignItem
         Assert.False(viewModel.HasSameTypePeers);
@@ -301,7 +305,7 @@ public class FrontedDesignerStyleTransferUITest
             Config = new TextFrontedControlConfig { Color = "#00FF00" }
         };
         var document = CreateDocument([source, peer]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         // 存在同类型 peer
@@ -430,7 +434,7 @@ public class FrontedDesignerStyleTransferUITest
         var config = CreateGlobalScoreRowConfig(fontFamily: "Consolas");
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         Assert.True(viewModel.HasChildAppearanceProperties);
@@ -465,7 +469,7 @@ public class FrontedDesignerStyleTransferUITest
 
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         viewModel.ApplyParentStyleToChildrenCommand.Execute(null);
@@ -499,7 +503,7 @@ public class FrontedDesignerStyleTransferUITest
 
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         viewModel.ApplyParentStyleToChildrenCommand.Execute(null);
@@ -533,7 +537,7 @@ public class FrontedDesignerStyleTransferUITest
 
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         Assert.True(viewModel.ClearChildStyleOverridesCommand.CanExecute(null));
@@ -566,7 +570,7 @@ public class FrontedDesignerStyleTransferUITest
                 ImagePath = "test.png"
             });
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         Assert.False(viewModel.HasChildAppearanceProperties);
@@ -588,7 +592,7 @@ public class FrontedDesignerStyleTransferUITest
         var config = CreateGlobalScoreRowConfig();
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         Assert.True(viewModel.HasChildAppearanceProperties);
@@ -619,7 +623,7 @@ public class FrontedDesignerStyleTransferUITest
         var config = CreateGlobalScoreRowConfig();
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         // 选中第一个 Cell 子控件
@@ -701,7 +705,7 @@ public class FrontedDesignerStyleTransferUITest
         };
         var source = CreateDesignItem("BorderedImage_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         // 选中 Image 固定 Part
@@ -751,7 +755,7 @@ public class FrontedDesignerStyleTransferUITest
 
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         // 选中第一个 Cell
@@ -832,7 +836,7 @@ public class FrontedDesignerStyleTransferUITest
 
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         var firstCellKey = config.Cells[0].Id;
@@ -890,7 +894,7 @@ public class FrontedDesignerStyleTransferUITest
 
         var source = CreateDesignItem("ScoreRow_1", config);
         var document = CreateDocument([source]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var viewModel = new FrontedDesignerWindowViewModel(CreateMapV2Registry()) { CurrentDocument = document };
         viewModel.SelectDesignItem(source);
 
         // GlobalScoreRow 支持模板分配
@@ -1005,22 +1009,48 @@ public class FrontedDesignerStyleTransferUITest
     /// <returns>包含 MapV2Display 注册的 <see cref="IFrontedV3ControlRegistry"/>。</returns>
     private static IFrontedV3ControlRegistry CreateMapV2Registry()
     {
-        var sampleConfig = new MapV2DisplayControlConfig { ControlType = "MapV2Display" };
-        var properties = BuiltInPropertyDefinitionResolver.GetProperties(sampleConfig);
+        return new FrontedV3ControlRegistry(
+        [
+            CreateBuiltInRegistration("MapV2Display", typeof(MapV2DisplayFrontedControl), typeof(MapV2DisplayControlConfig), () => new MapV2DisplayControlConfig { ControlType = "MapV2Display" }, supportsPeerStyleTransfer: true),
+            CreateBuiltInRegistration("BorderedImage", typeof(BorderedImageFrontedControl), typeof(BorderedImageFrontedControlConfig), () => new BorderedImageFrontedControlConfig()),
+            CreateBuiltInRegistration("GlobalScoreRow", typeof(GlobalScoreRowFrontedControl), typeof(GlobalScoreRowControlConfig), () => new GlobalScoreRowControlConfig()),
+            CreateBuiltInRegistration("Text", typeof(TextFrontedControl), typeof(TextFrontedControlConfig), () => new TextFrontedControlConfig { Text = "Text" })
+        ]);
+    }
 
-        var registration = new FrontedV3ControlRegistration
+    /// <summary>
+    /// 创建一个内置控件的 <see cref="FrontedV3ControlRegistration"/>，
+    /// 属性 Schema、FixedParts、PartCollections 由内置 Resolver 反射生成。
+    /// </summary>
+    /// <param name="controlId">控件局部标识，同时作为 CanonicalControlType。</param>
+    /// <param name="controlType">控件 <see cref="Type"/>。</param>
+    /// <param name="configType">配置 <see cref="Type"/>。</param>
+    /// <param name="createDefaultConfig">创建默认配置的工厂。</param>
+    /// <param name="supportsPeerStyleTransfer">是否声明 peer 样式传播能力。</param>
+    /// <returns>填充完整的 <see cref="FrontedV3ControlRegistration"/>。</returns>
+    private static FrontedV3ControlRegistration CreateBuiltInRegistration(
+        string controlId,
+        Type controlType,
+        Type configType,
+        Func<FrontedControlConfigBase> createDefaultConfig,
+        bool supportsPeerStyleTransfer = false)
+    {
+        var sampleConfig = (FrontedControlConfigBase)Activator.CreateInstance(configType)!;
+        sampleConfig.ControlType = controlId;
+
+        return new FrontedV3ControlRegistration
         {
-            CanonicalControlType = "MapV2Display",
-            LocalControlId = "MapV2Display",
+            CanonicalControlType = controlId,
+            LocalControlId = controlId,
             PackageId = null,
             IsBuiltIn = true,
-            SupportsPeerStyleTransfer = true,
-            ControlType = typeof(Border),
-            ConfigType = typeof(MapV2DisplayControlConfig),
-            Properties = properties,
-            CreateDefaultConfig = () => new MapV2DisplayControlConfig { ControlType = "MapV2Display" }
+            SupportsPeerStyleTransfer = supportsPeerStyleTransfer,
+            ControlType = controlType,
+            ConfigType = configType,
+            Properties = BuiltInPropertyDefinitionResolver.GetProperties(sampleConfig),
+            FixedParts = BuiltInPartDefinitionResolver.GetParts(sampleConfig),
+            PartCollections = BuiltInPartCollectionDefinitionResolver.GetCollections(sampleConfig),
+            CreateDefaultConfig = createDefaultConfig
         };
-
-        return new FrontedV3ControlRegistry([registration]);
     }
 }

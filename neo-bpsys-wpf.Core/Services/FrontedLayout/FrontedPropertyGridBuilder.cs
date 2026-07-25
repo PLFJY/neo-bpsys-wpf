@@ -150,6 +150,317 @@ public class FrontedPropertyGridBuilder
     }
 
     /// <summary>
+    /// 基于 v3 Schema 属性定义构建属性编辑器行，不通过反射扫描 Config 类型。
+    /// </summary>
+    /// <param name="document">当前设计文档，用于校验。</param>
+    /// <param name="selectedItem">选中的设计项。</param>
+    /// <param name="validator">布局校验器。</param>
+    /// <param name="referenceScanner">引用扫描器。</param>
+    /// <param name="properties">选中目标的 Schema 属性定义列表。</param>
+    /// <param name="schemaByPath">输出字典，填充 OptionsPath → 属性定义的映射，供 ApplyPropertyEdit 查找。</param>
+    /// <returns>属性编辑器行集合。</returns>
+    /// <remarks>
+    /// <para>
+    /// 该方法是 Root 控件属性网格的 Schema 驱动路径：属性行由
+    /// <see cref="FrontedV3PropertyDefinition"/> 列表构造，属性值通过
+    /// <see cref="FrontedV3PropertyDefinition.GetValue"/> 读取，编辑时通过
+    /// <see cref="FrontedV3PropertyDefinition.SetValue"/> 写入，不通过 propertyName 字符串反射。
+    /// </para>
+    /// <para>
+    /// 身份行（Name、ControlType）和缺失插件诊断行仍由本方法构造，因为它们不属于 Schema 属性。
+    /// 其余 Config 级属性全部来自 Schema。
+    /// </para>
+    /// </remarks>
+    public ObservableCollection<FrontedPropertyEditorItem> BuildFromSchema(
+        FrontedCanvasDesignDocument document,
+        FrontedControlDesignItem selectedItem,
+        FrontedLayoutValidator validator,
+        FrontedLayoutReferenceScanner referenceScanner,
+        IReadOnlyList<FrontedV3PropertyDefinition> properties,
+        IDictionary<string, FrontedV3PropertyDefinition> schemaByPath)
+    {
+        ArgumentNullException.ThrowIfNull(properties);
+        ArgumentNullException.ThrowIfNull(schemaByPath);
+
+        var messages = validator.Validate(document);
+        referenceScanner.SetControls(document.Controls);
+
+        var rows = new List<FrontedPropertyEditorItem>();
+        AddIdentityRows(rows, selectedItem, messages);
+        var firstConfigRowIndex = rows.Count;
+
+        // 缺失插件：Registration 不存在时显示诊断行，不走 Schema。
+        if (selectedItem.Config is PluginFrontedControlConfig missingPlugin
+            && _v3ControlRegistry?.GetRegistration(selectedItem.Config.ControlType) is null)
+        {
+            AddMissingPluginRows(rows, selectedItem, missingPlugin, messages);
+        }
+        else
+        {
+            AddSchemaConfigRows(rows, selectedItem, messages, properties, schemaByPath);
+        }
+
+        OrderConfigRows(rows, firstConfigRowIndex);
+        MarkGroupHeaders(rows);
+        return new ObservableCollection<FrontedPropertyEditorItem>(rows);
+    }
+
+    private void AddSchemaConfigRows(
+        List<FrontedPropertyEditorItem> rows,
+        FrontedControlDesignItem selectedItem,
+        IReadOnlyList<FrontedLayoutValidationMessage> messages,
+        IReadOnlyList<FrontedV3PropertyDefinition> properties,
+        IDictionary<string, FrontedV3PropertyDefinition> schemaByPath)
+    {
+        foreach (var property in properties)
+        {
+            if (!property.Metadata.IsVisible)
+            {
+                continue;
+            }
+
+            var row = CreateSchemaPropertyRow(selectedItem, messages, property);
+            if (row is null)
+            {
+                continue;
+            }
+
+            schemaByPath[property.OptionsPath] = property;
+            rows.Add(row);
+        }
+    }
+
+    private FrontedPropertyEditorItem? CreateSchemaPropertyRow(
+        FrontedControlDesignItem selectedItem,
+        IReadOnlyList<FrontedLayoutValidationMessage> messages,
+        FrontedV3PropertyDefinition property)
+    {
+        var config = selectedItem.Config;
+        var propertyName = property.Metadata.DisplayNameKey ?? property.OptionsPath;
+
+        // 类型相关动态可见性（如 Shape 渐变关闭时隐藏渐变属性）。
+        if (!IsVisibleProperty(config, propertyName))
+        {
+            return null;
+        }
+
+        var kind = property.Metadata.EditorKind ?? ResolveEditorKindFromType(property.PropertyType, propertyName);
+        var isReadOnly = !selectedItem.IsEditableInEditor
+                         || property.Metadata.IsReadOnly
+                         || (propertyName == nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                             && !config.IsGaussianBlurEnabled);
+        var groupName = property.Metadata.GroupName;
+        var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, propertyName).ToList();
+        var validationErrors = validationMessages.Select(message => message.Message).ToList();
+        var value = property.GetValue(config);
+
+        if (kind == FrontedPropertyEditorKind.Color
+            && value is string color
+            && !string.IsNullOrWhiteSpace(color)
+            && !IsColorOverriddenByBinding(config, propertyName)
+            && !FrontedPropertyColorHelper.TryParseArgbColor(color, out _))
+        {
+            var message = _localizationService.GetDesignerText(
+                "Designer.Validation.InvalidArgbColor",
+                "Invalid color. Use #RRGGBB, #AARRGGBB, or a WPF color name.");
+            validationErrors.Add(message);
+            validationMessages.Add(CreatePropertyError(message, selectedItem.Name, propertyName));
+        }
+
+        var canBrowseBinding = !isReadOnly && IsBindingPathProperty(propertyName);
+        var canBrowseResource = !isReadOnly
+                                && !canBrowseBinding
+                                && IsResourcePathProperty(propertyName);
+        var bindingTargetKind = canBrowseBinding
+            ? ResolveBindingTargetKindByName(config, propertyName)
+            : FrontedBindingTargetKind.Any;
+        var requiresExplicitCommit = RequiresExplicitCommit(propertyName, kind, canBrowseBinding, canBrowseResource);
+
+        return new FrontedPropertyEditorItem
+        {
+            DisplayName = _localizationService.GetPropertyDisplayName(propertyName),
+            PropertyName = property.OptionsPath,
+            Description = NullIfEmpty(_localizationService.GetPropertyDescription(propertyName)) ?? string.Empty,
+            PropertyType = property.PropertyType,
+            EditorKind = isReadOnly && propertyName != nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                ? FrontedPropertyEditorKind.ReadOnly
+                : kind,
+            Value = value,
+            DisplayValue = GetDisplayValue(value, isReadOnly),
+            EditText = GetEditTextValue(value, kind),
+            IsReadOnly = isReadOnly,
+            IsRequired = propertyName is nameof(FrontedControlConfigBase.Left)
+                or nameof(FrontedControlConfigBase.Top),
+            Options = ResolveSchemaOptions(property, kind, propertyName),
+            GroupName = groupName,
+            ValidationErrors = validationErrors,
+            ValidationMessages = validationMessages,
+            CanBrowseBinding = canBrowseBinding,
+            CanBrowseResource = canBrowseResource,
+            RequiresExplicitCommit = requiresExplicitCommit,
+            BrowseButtonText = "...",
+            BrowseDialogTitle = canBrowseBinding
+                ? _localizationService.GetDesignerText("Designer.Editor.BindingBrowser", "Binding Browser")
+                : canBrowseResource
+                    ? _localizationService.GetDesignerText("Designer.Editor.ResourceBrowser", "Resource Browser")
+                    : null,
+            BindingTargetKind = bindingTargetKind,
+            ExpectedBindingTypeName = _localizationService.GetBindingTypeDisplayName(ResolveBindingTargetTypeName(bindingTargetKind)),
+            AllowedBindingTypeNames = ResolveAllowedBindingTypeNames(bindingTargetKind)
+        };
+    }
+
+    private static FrontedPropertyEditorKind ResolveEditorKindFromType(Type propertyType, string propertyName)
+    {
+        var type = GetCoreType(propertyType);
+
+        if (type == typeof(FrontedTextBindingExpression))
+        {
+            return FrontedPropertyEditorKind.TextBinding;
+        }
+
+        if (propertyType == typeof(string) && IsColorProperty(propertyName))
+        {
+            return FrontedPropertyEditorKind.Color;
+        }
+
+        if (propertyType == typeof(string) && IsFontFamilyProperty(propertyName))
+        {
+            return FrontedPropertyEditorKind.FontFamily;
+        }
+
+        if (propertyType == typeof(string) && TryGetStringOptions(propertyName, out _))
+        {
+            return FrontedPropertyEditorKind.Enum;
+        }
+
+        if (propertyName == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
+        }
+
+        if (type == typeof(bool))
+        {
+            return FrontedPropertyEditorKind.Boolean;
+        }
+
+        if (type.IsEnum)
+        {
+            return FrontedPropertyEditorKind.Enum;
+        }
+
+        if (IsNumericType(type))
+        {
+            return FrontedPropertyEditorKind.Number;
+        }
+
+        return type == typeof(string)
+            ? FrontedPropertyEditorKind.Text
+            : FrontedPropertyEditorKind.ReadOnly;
+    }
+
+    private IReadOnlyList<object>? ResolveSchemaOptions(
+        FrontedV3PropertyDefinition property,
+        FrontedPropertyEditorKind kind,
+        string propertyName)
+    {
+        // 显式声明的 Options 优先（插件控件常用）。
+        if (property.Metadata.Options is { } metadataOptions)
+        {
+            return metadataOptions.Cast<object>().ToArray();
+        }
+
+        if (kind == FrontedPropertyEditorKind.FontFamily)
+        {
+            return GetFontFamilyOptions();
+        }
+
+        if (kind == FrontedPropertyEditorKind.Boolean)
+        {
+            return [CreateBooleanOption(true), CreateBooleanOption(false)];
+        }
+
+        if (kind != FrontedPropertyEditorKind.Enum)
+        {
+            return null;
+        }
+
+        // 字符串枚举（HorizontalAlignment 等）：按属性名查找预定义选项。
+        if (property.PropertyType == typeof(string)
+            && TryGetStringOptions(propertyName, out var stringOptions))
+        {
+            return stringOptions
+                .Select(value => CreateOption(GetOptionPropertyName(propertyName), value))
+                .Cast<object>()
+                .ToArray();
+        }
+
+        var enumType = GetCoreType(property.PropertyType);
+        if (!enumType.IsEnum)
+        {
+            return null;
+        }
+
+        var values = Enum.GetValues(enumType).Cast<object>();
+
+        if (property.PropertyType == typeof(GameProgressTextDisplayMode))
+        {
+            values = GameProgressDisplayModeOptions.Cast<object>();
+        }
+
+        // DisplayLanguage 使用共用的 LanguageKey 枚举，但排除全局的 System 值。
+        if (propertyName == nameof(GameProgressTextControlConfig.DisplayLanguage))
+        {
+            values = values.Where(v => v is not LanguageKey.System);
+        }
+
+        return values
+            .Select(value => CreateOption(propertyName, value))
+            .Cast<object>()
+            .ToArray();
+    }
+
+    private static FrontedBindingTargetKind ResolveBindingTargetKindByName(
+        FrontedControlConfigBase config,
+        string propertyName)
+    {
+        if (!IsBindingPathProperty(propertyName))
+        {
+            return FrontedBindingTargetKind.Any;
+        }
+
+        if (propertyName == nameof(ImageFrontedControlConfig.LockVisibilityBindingPath))
+        {
+            return FrontedBindingTargetKind.Boolean;
+        }
+
+        if (propertyName.EndsWith("ColorBindingPath", StringComparison.Ordinal))
+        {
+            return FrontedBindingTargetKind.String;
+        }
+
+        if (config is ShapeFrontedControlConfigBase)
+        {
+            return FrontedBindingTargetKind.String;
+        }
+
+        if (config is BackgroundTintFrontedControlConfigBase)
+        {
+            return FrontedBindingTargetKind.String;
+        }
+
+        return config switch
+        {
+            TextFrontedControlConfig => FrontedBindingTargetKind.Text,
+            LocalizedTextControlConfig => FrontedBindingTargetKind.Text,
+            ImageFrontedControlConfig => FrontedBindingTargetKind.Image,
+            GameProgressTextControlConfig => FrontedBindingTargetKind.GameProgress,
+            MapNameTextControlConfig => FrontedBindingTargetKind.Map,
+            _ => FrontedBindingTargetKind.Any
+        };
+    }
+
+    /// <summary>
     /// 获取字体编辑器的当前字体系列选项。
     /// </summary>
     /// <returns>字体系列选项。</returns>

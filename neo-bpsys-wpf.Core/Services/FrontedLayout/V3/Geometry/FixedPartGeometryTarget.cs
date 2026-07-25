@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
@@ -244,11 +246,23 @@ public sealed class FixedPartGeometryTarget : IFrontedV3GeometryTarget
             return d;
         }
 
+        // ExtensionData 存储返回 JsonElement，需单独处理（JsonElement 不实现 IConvertible）。
+        if (value is JsonElement jsonElement)
+        {
+            if (jsonElement.ValueKind == JsonValueKind.Number
+                && jsonElement.TryGetDouble(out var jsonDouble))
+            {
+                return jsonDouble;
+            }
+
+            return defaultValue;
+        }
+
         if (value is IConvertible convertible)
         {
             try
             {
-                return System.Convert.ToDouble(convertible, System.Globalization.CultureInfo.InvariantCulture);
+                return System.Convert.ToDouble(convertible, CultureInfo.InvariantCulture);
             }
             catch
             {
@@ -279,11 +293,29 @@ public sealed class FixedPartGeometryTarget : IFrontedV3GeometryTarget
             return d;
         }
 
+        // ExtensionData 存储返回 JsonElement，需单独处理（JsonElement 不实现 IConvertible）。
+        if (value is JsonElement jsonElement)
+        {
+            if (jsonElement.ValueKind == JsonValueKind.Null
+                || jsonElement.ValueKind == JsonValueKind.Undefined)
+            {
+                return null;
+            }
+
+            if (jsonElement.ValueKind == JsonValueKind.Number
+                && jsonElement.TryGetDouble(out var jsonDouble))
+            {
+                return jsonDouble;
+            }
+
+            return null;
+        }
+
         if (value is IConvertible convertible)
         {
             try
             {
-                return System.Convert.ToDouble(convertible, System.Globalization.CultureInfo.InvariantCulture);
+                return System.Convert.ToDouble(convertible, CultureInfo.InvariantCulture);
             }
             catch
             {

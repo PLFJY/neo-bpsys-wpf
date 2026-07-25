@@ -13,6 +13,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
@@ -168,7 +169,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _localizationService);
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         _settingsHostService = null;
-        _selectionBuilder = new FrontedV3DesignSelectionBuilder();
+        // 设计时/测试构造：使用空注册表，避免与生产 DI 容器耦合。
+        // 测试需要真实注册表时使用接收 IFrontedV3ControlRegistry 的构造重载。
+        _selectionBuilder = new FrontedV3DesignSelectionBuilder(
+            new FrontedV3ControlRegistry(Array.Empty<FrontedV3ControlRegistration>()));
         BehaviorPanel = CreateBehaviorPanel();
         InitializeZoomPresets();
     }
@@ -4253,15 +4257,43 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
         }
 
+        // 多选编辑：通过相同 OptionsPath 和 Schema Storage 写入所有同类型选中控件。
+        var editTargets = GetPropertyEditTargets(item.PropertyName);
+        var changedTargets = editTargets
+            .Where(target => !ValuesEqual(schemaProperty.GetValue(target.Config), convertedValue))
+            .ToList();
+
+        if (changedTargets.Count == 0)
+        {
+            ClearPropertyEditError(item.PropertyName);
+            item.Value = convertedValue;
+            item.EditText = GetCommittedEditText(item, convertedValue);
+            return true;
+        }
+
         CaptureUndoSnapshot();
-        schemaProperty.SetValue(config, convertedValue);
+        foreach (var target in changedTargets)
+        {
+            schemaProperty.SetValue(target.Config, convertedValue);
+        }
+
         CurrentDocument.IsDirty = true;
 
         var refreshedValue = schemaProperty.GetValue(config);
         item.Value = refreshedValue;
-        item.EditText = Convert.ToString(refreshedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+        item.EditText = GetCommittedEditText(item, refreshedValue);
 
         ClearPropertyEditError(item.PropertyName);
+
+        if (IsGeometryProperty(item.PropertyName))
+        {
+            foreach (var target in changedTargets)
+            {
+                SyncLinkedOverlays(target);
+            }
+        }
+
+        FinishPropertyEdit(item.PropertyName);
         OnDesignItemGeometryChanged(renderPreview: true);
         return true;
     }
@@ -4666,11 +4698,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return;
             }
 
-            IEnumerable<FrontedPropertyEditorItem> rows = _propertyGridBuilder.Build(
+            // Root 选中时同样走 Schema 驱动路径：属性网格由 FrontedV3PropertyDefinition 列表构造，
+            // 属性值通过 Storage 读写，不通过反射扫描 Config。
+            // SelectedTarget 为 null 时（无 Schema 属性的边缘情况）回退到旧反射路径。
+            IEnumerable<FrontedPropertyEditorItem> rows;
+            if (_selectedTarget is { Kind: FrontedV3DesignSelectionKind.Root } rootTarget)
+            {
+                rows = _propertyGridBuilder.BuildFromSchema(
+                    CurrentDocument,
+                    SelectedDesignItem,
+                    _validator,
+                    _referenceScanner,
+                    rootTarget.Properties,
+                    _schemaPropertiesByPath);
+            }
+            else
+            {
+                rows = _propertyGridBuilder.Build(
                     CurrentDocument,
                     SelectedDesignItem,
                     _validator,
                     _referenceScanner);
+            }
 
             foreach (var row in rows)
             {
@@ -4958,6 +5007,25 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var controlType = SelectedDesignItem.Config.ControlType;
+
+        // Schema 驱动路径：通过 Schema Storage 检查属性是否可批量编辑，不通过反射。
+        if (_schemaPropertiesByPath.TryGetValue(row.PropertyName, out var schemaProperty))
+        {
+            return SelectedDesignItems.All(item =>
+            {
+                if (!item.IsEditableInEditor
+                    || !item.IsSelectableInEditor
+                    || !string.Equals(item.Config.ControlType, controlType, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+
+                return !schemaProperty.Metadata.IsReadOnly
+                       && IsBatchEditablePropertyType(schemaProperty.PropertyType);
+            });
+        }
+
+        // 反射回退（无 Schema 的边缘情况）。
         return SelectedDesignItems.All(item =>
         {
             if (!item.IsEditableInEditor
@@ -4981,6 +5049,31 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         commonValue = null;
         var hasValue = false;
+
+        // Schema 驱动路径：通过 Schema Storage 读取值，不通过反射。
+        if (_schemaPropertiesByPath.TryGetValue(propertyName, out var schemaProperty))
+        {
+            foreach (var item in SelectedDesignItems)
+            {
+                var value = schemaProperty.GetValue(item.Config);
+                if (!hasValue)
+                {
+                    commonValue = value;
+                    hasValue = true;
+                    continue;
+                }
+
+                if (!ValuesEqual(commonValue, value))
+                {
+                    commonValue = null;
+                    return false;
+                }
+            }
+
+            return hasValue;
+        }
+
+        // 反射回退（无 Schema 的边缘情况）。
         foreach (var item in SelectedDesignItems)
         {
             var property = item.Config.GetType().GetProperty(

@@ -5,6 +5,10 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 
+// Suppressing warning about using LogicalTreeHelper instead of VisualTreeHelper:
+// Part Visual 必须在控件创建后立即被发现（在布局完成之前），因此使用 LogicalTreeHelper
+// 而非 VisualTreeHelper。LogicalTreeHelper 在 Content/Child 设置后立即可用。
+
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
 
 /// <summary>
@@ -303,13 +307,21 @@ public static class FrontedV3PartVisualResolver
 
     private static IEnumerable<DependencyObject> EnumerateDescendants(DependencyObject parent)
     {
-        var childCount = VisualTreeHelper.GetChildrenCount(parent);
-        for (var i = 0; i < childCount; i++)
+        // 使用 LogicalTreeHelper 而非 VisualTreeHelper：
+        // UserControl 的视觉树在模板应用（布局）后才构建，单元测试中不会发生布局，
+        // 因此 VisualTreeHelper.GetChildrenCount 对 UserControl 返回 0。
+        // LogicalTreeHelper 在 Content/Child/Children 设置后立即可用，
+        // 能在控件创建后即刻发现 Part Visual，无需等待布局。
+        foreach (var child in LogicalTreeHelper.GetChildren(parent))
         {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            yield return child;
+            if (child is not DependencyObject dependencyObject)
+            {
+                continue;
+            }
 
-            foreach (var descendant in EnumerateDescendants(child))
+            yield return dependencyObject;
+
+            foreach (var descendant in EnumerateDescendants(dependencyObject))
             {
                 yield return descendant;
             }
