@@ -184,6 +184,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 使用指定的 v3 控件注册表初始化面向测试的实例。
+    /// </summary>
+    /// <param name="v3ControlRegistry">测试使用的 v3 控件注册表；用于在缺少生产 DI 容器时为 SelectionBuilder 提供真实注册信息。</param>
+    public FrontedDesignerWindowViewModel(IFrontedV3ControlRegistry v3ControlRegistry)
+        : this()
+    {
+        _selectionBuilder = new FrontedV3DesignSelectionBuilder(v3ControlRegistry);
+    }
+
+    /// <summary>
     /// 使用指定的默认配置工厂初始化面向测试的实例。
     /// </summary>
     /// <param name="defaultConfigFactory">测试使用的默认配置工厂。</param>
@@ -471,6 +481,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             OnPropertyChanged();
             OnPropertyChanged(nameof(HasSelectedTarget));
             OnPropertyChanged(nameof(IsSubControlSelected));
+            OnPropertyChanged(nameof(HasChildAppearanceProperties));
+            ApplyParentStyleToChildrenCommand.NotifyCanExecuteChanged();
+            ClearChildStyleOverridesCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -496,6 +509,84 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// Config 引用不等，避免在源控件自身上报真。
     /// </remarks>
     public bool HasSameTypePeers => TryGetSameTypePeerDesignItems().Count > 0;
+
+    /// <summary>
+    /// 获取当前选中根控件是否声明了 <c>SupportsPeerStyleTransfer</c>，
+    /// 用于驱动"应用到同类型控件"按钮的可见性。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 仅当根控件选中且对应 Registration 的
+    /// <see cref="FrontedV3ControlRegistration.SupportsPeerStyleTransfer"/>
+    /// 为 <see langword="true"/> 时返回 <see langword="true"/>。
+    /// 子控件选中时（Part/CollectionItem）始终返回 <see langword="false"/>。
+    /// </para>
+    /// <para>
+    /// 该属性只决定按钮的可见性；按钮的启用状态由
+    /// <see cref="CanApplyAppearanceToSameType"/>（同时检查 attribute 与 peer）决定。
+    /// </para>
+    /// </remarks>
+    public bool CanShowPeerStyleTransferButton
+    {
+        get
+        {
+            if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+            {
+                return false;
+            }
+
+            if (SelectedDesignItem?.Config is not { } sourceConfig)
+            {
+                return false;
+            }
+
+            return _selectionBuilder.ResolveRegistration(sourceConfig)?.SupportsPeerStyleTransfer == true;
+        }
+    }
+
+    /// <summary>
+    /// 获取当前选中的根控件是否拥有可派发外观属性的子控件集合，
+    /// 用于驱动"应用到所有子控件"与"清除子控件外观覆盖"按钮的可见性。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 仅当根控件选中（<see cref="SelectedTarget"/> 为 <see langword="null"/> 或
+    /// <see cref="FrontedV3DesignSelectionKind.Root"/>）且其 Config 在
+    /// <see cref="BuiltInPartCollectionDefinitionResolver"/> 中存在至少一个
+    /// <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/> 非 <see langword="null"/>
+    /// 的 PartCollection 定义时返回 <see langword="true"/>。
+    /// </para>
+    /// <para>
+    /// 该属性只决定按钮的可见性；按钮的启用状态由
+    /// <see cref="CanApplyParentStyleToChildren"/>/<see cref="CanClearChildStyleOverrides"/> 决定。
+    /// </para>
+    /// </remarks>
+    public bool HasChildAppearanceProperties
+    {
+        get
+        {
+            // 子控件选中时（Part/CollectionItem）不显示父到子派发按钮。
+            if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+            {
+                return false;
+            }
+
+            if (SelectedDesignItem?.Config is not { } sourceConfig)
+            {
+                return false;
+            }
+
+            foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+            {
+                if (collection.ItemPropertiesFactory is not null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
@@ -681,7 +772,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         PasteControlCommand.NotifyCanExecuteChanged();
         NotifyLayoutCommandState();
         OnPropertyChanged(nameof(HasSameTypePeers));
+        OnPropertyChanged(nameof(CanShowPeerStyleTransferButton));
+        OnPropertyChanged(nameof(HasChildAppearanceProperties));
         ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
+        ApplyParentStyleToChildrenCommand.NotifyCanExecuteChanged();
+        ClearChildStyleOverridesCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnAreBehaviorsDirtyChanged(bool value)
@@ -757,7 +852,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanRemovePolygonVertex));
         RemovePolygonVertexCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(HasSameTypePeers));
+        OnPropertyChanged(nameof(CanShowPeerStyleTransferButton));
+        OnPropertyChanged(nameof(HasChildAppearanceProperties));
         ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
+        ApplyParentStyleToChildrenCommand.NotifyCanExecuteChanged();
+        ClearChildStyleOverridesCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -1753,6 +1852,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     /// <summary>
     /// 判断"应用到同类型控件"命令是否可执行：需要存在当前文档、选中根控件、
+    /// 源控件 Registration 声明了 <see cref="FrontedV3ControlRegistration.SupportsPeerStyleTransfer"/>、
     /// 且文档中存在与源控件 <see cref="FrontedControlConfigBase.ControlType"/> 相同的其他控件。
     /// </summary>
     /// <returns>当可执行同类型样式传播时返回 <see langword="true"/>。</returns>
@@ -1771,6 +1871,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var sourceConfig = SelectedDesignItem?.Config;
         if (sourceConfig is null)
+        {
+            return false;
+        }
+
+        // 仅当控件显式声明 SupportsPeerStyleTransfer 时才允许同类型样式传播。
+        if (_selectionBuilder.ResolveRegistration(sourceConfig)?.SupportsPeerStyleTransfer != true)
         {
             return false;
         }
@@ -1815,6 +1921,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var sourceRegistration = _selectionBuilder.ResolveRegistration(sourceConfig);
         if (sourceRegistration is null)
+        {
+            return;
+        }
+
+        // 仅当控件显式声明 SupportsPeerStyleTransfer 时才允许同类型样式传播。
+        // 该检查与 CanApplyAppearanceToSameType 保持一致，防止 Execute 被绕过 CanExecute 直接调用时
+        // 对未声明该能力的控件类型意外传播样式。
+        if (!sourceRegistration.SupportsPeerStyleTransfer)
         {
             return;
         }
@@ -1901,6 +2015,210 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         return peers;
+    }
+
+    /// <summary>
+    /// 判断"应用到所有子控件"命令是否可执行：需要选中根控件且其 Config 存在
+    /// <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/> 非 <see langword="null"/>
+    /// 的 PartCollection 定义。
+    /// </summary>
+    /// <returns>当可执行父到子外观派发时返回 <see langword="true"/>。</returns>
+    private bool CanApplyParentStyleToChildren() => HasChildAppearanceProperties;
+
+    /// <summary>
+    /// 将当前选中根控件的外观属性（按 <see cref="FrontedV3StyleTransferProfile.Default"/>）
+    /// 派发到所有子控件集合项（如 GlobalScoreRow 的 Cells）。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 实现要点：
+    /// <list type="bullet">
+    /// <item>通过 <see cref="BuiltInPartCollectionDefinitionResolver"/> 查找选中控件 Config 上
+    /// <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/> 非 <see langword="null"/> 的集合定义。</item>
+    /// <item>对每个集合项，使用 <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/>
+    /// 构建绑定到该项 <c>itemKey</c> 的子属性列表（<see cref="FrontedV3Storage.CollectionItemProperty"/> 存储）。</item>
+    /// <item>调用 <see cref="FrontedV3StyleTransferService.ApplyParentStyle"/>，按 OptionsPath 匹配父子属性，
+    /// 仅传播 <see cref="FrontedV3PropertySemantic.Appearance"/> 语义属性。</item>
+    /// <item>由于 <see cref="FrontedV3Storage.CollectionItemProperty"/> 存储以父 Config 为载体按 itemKey 定位子项，
+    /// 此处将父 Config 同时作为 parentConfig 与 childConfigs 元素传入。</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// 完成派发后触发：Undo 快照已先于派发捕获、属性面板重建、预览刷新、文档标记为脏。
+    /// </para>
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanApplyParentStyleToChildren))]
+    private void ApplyParentStyleToChildren()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        // 子控件选中时禁用，仅根控件选中可派发外观到子控件。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return;
+        }
+
+        var sourceConfig = SelectedDesignItem?.Config;
+        if (sourceConfig is null)
+        {
+            return;
+        }
+
+        var registration = _selectionBuilder.ResolveRegistration(sourceConfig);
+        if (registration is null)
+        {
+            return;
+        }
+
+        var collection = ResolveChildAppearanceCollection(sourceConfig);
+        if (collection?.ItemPropertiesFactory is null || collection.CollectionGetter is null)
+        {
+            return;
+        }
+
+        var childItems = collection.CollectionGetter(sourceConfig);
+        if (childItems is null || childItems.Count == 0)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+
+        // 对每个子项构建绑定到其 itemKey 的子属性列表，并以父 Config 作为 ApplyParentStyle 的 childConfig 载体
+        // （CollectionItemProperty 存储通过 itemKey 在父 Config 的集合中定位实际子项）。
+        foreach (var childItem in childItems)
+        {
+            if (childItem is null)
+            {
+                continue;
+            }
+
+            var itemKey = collection.ItemKeySelector(childItem);
+            var childProperties = collection.ItemPropertiesFactory(itemKey);
+            if (childProperties.Count == 0)
+            {
+                continue;
+            }
+
+            StyleTransferService.ApplyParentStyle(
+                registration.Properties,
+                sourceConfig,
+                childProperties,
+                [sourceConfig],
+                FrontedV3StyleTransferProfile.Default);
+        }
+
+        CurrentDocument.IsDirty = true;
+        RebuildPropertyEditorItems();
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+    }
+
+    /// <summary>
+    /// 判断"清除子控件外观覆盖"命令是否可执行：需要选中根控件且其 Config 存在
+    /// <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/> 非 <see langword="null"/>
+    /// 的 PartCollection 定义。
+    /// </summary>
+    /// <returns>当可清除子控件外观覆盖时返回 <see langword="true"/>。</returns>
+    private bool CanClearChildStyleOverrides() => HasChildAppearanceProperties;
+
+    /// <summary>
+    /// 清除所有子控件集合项的外观属性 override（<see cref="FrontedV3PropertyInheritance.ParentFallback"/>
+    /// 与 <see cref="FrontedV3PropertyInheritance.LockedToParent"/> 模式属性），
+    /// 使子控件回退到父值。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 实现要点与 <see cref="ApplyParentStyleToChildren"/> 类似，通过
+    /// <see cref="BuiltInPartCollectionDefinitionResolver"/> 查找集合定义，对每个子项构建子属性列表，
+    /// 调用 <see cref="FrontedV3StyleTransferService.ClearChildOverrides"/> 将可清空属性写 <see langword="null"/>。
+    /// </para>
+    /// <para>
+    /// 完成清除后触发：Undo 快照已先于清除捕获、属性面板重建、预览刷新、文档标记为脏。
+    /// </para>
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanClearChildStyleOverrides))]
+    private void ClearChildStyleOverrides()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        // 子控件选中时禁用，仅根控件选中可清除子控件外观覆盖。
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return;
+        }
+
+        var sourceConfig = SelectedDesignItem?.Config;
+        if (sourceConfig is null)
+        {
+            return;
+        }
+
+        var collection = ResolveChildAppearanceCollection(sourceConfig);
+        if (collection?.ItemPropertiesFactory is null || collection.CollectionGetter is null)
+        {
+            return;
+        }
+
+        var childItems = collection.CollectionGetter(sourceConfig);
+        if (childItems is null || childItems.Count == 0)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+
+        foreach (var childItem in childItems)
+        {
+            if (childItem is null)
+            {
+                continue;
+            }
+
+            var itemKey = collection.ItemKeySelector(childItem);
+            var childProperties = collection.ItemPropertiesFactory(itemKey);
+            if (childProperties.Count == 0)
+            {
+                continue;
+            }
+
+            StyleTransferService.ClearChildOverrides(
+                childProperties,
+                [sourceConfig],
+                FrontedV3StyleTransferProfile.Default);
+        }
+
+        CurrentDocument.IsDirty = true;
+        RebuildPropertyEditorItems();
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+    }
+
+    /// <summary>
+    /// 返回给定 Config 上首个 <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/>
+    /// 非 <see langword="null"/> 的 PartCollection 定义；无则返回 <see langword="null"/>。
+    /// </summary>
+    /// <param name="config">根控件配置实例。</param>
+    /// <returns>支持外观属性派发的集合定义；无则 <see langword="null"/>。</returns>
+    private static FrontedV3PartCollectionDefinition? ResolveChildAppearanceCollection(FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+
+        foreach (var candidate in BuiltInPartCollectionDefinitionResolver.GetCollections(config))
+        {
+            if (candidate.ItemPropertiesFactory is not null)
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     [RelayCommand]

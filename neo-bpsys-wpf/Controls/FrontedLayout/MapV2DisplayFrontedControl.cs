@@ -17,7 +17,7 @@ namespace neo_bpsys_wpf.Controls.FrontedLayout;
 /// <summary>
 /// 内置 v3 地图 BP v2 展示控件。
 /// </summary>
-[FrontedV3Control("MapV2Display", IsBuiltIn = true)]
+[FrontedV3Control("MapV2Display", IsBuiltIn = true, SupportsPeerStyleTransfer = true)]
 public class MapV2DisplayFrontedControl : FrontedV3ControlBase
 {
     /// <inheritdoc />

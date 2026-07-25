@@ -47,4 +47,20 @@ public sealed class FrontedV3ControlAttribute : Attribute
     /// 插件在插件作用域内设置该值为 <see langword="true"/> 会被拒绝。
     /// </summary>
     public bool IsBuiltIn { get; set; }
+
+    /// <summary>
+    /// 是否在 Designer 中显示"应用到同类型控件"按钮。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 默认为 <see langword="false"/>。仅声明 <see cref="SupportsPeerStyleTransfer"/> 为
+    /// <see langword="true"/> 的控件在 Designer 属性面板中可见"应用到同类型控件"按钮，
+    /// 并可参与同类型 peer 之间的外观样式传播。
+    /// </para>
+    /// <para>
+    /// 业务上目前仅 <c>MapV2Display</c> 内置控件需要此入口；其他内置控件与插件控件
+    /// 不应设置该属性，按钮不出现。
+    /// </para>
+    /// </remarks>
+    public bool SupportsPeerStyleTransfer { get; set; }
 }

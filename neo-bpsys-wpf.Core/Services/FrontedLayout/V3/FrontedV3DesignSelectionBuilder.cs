@@ -108,7 +108,7 @@ public class FrontedV3DesignSelectionBuilder
             return null;
         }
 
-        var properties = BuildPartGeometryProperties(part);
+        var properties = BuildPartSelectionProperties(part);
         var geometryTarget = new FixedPartGeometryTarget(part, designItem.Config, onVisualSync);
         return FrontedV3DesignSelection.ForFixedPart(designItem, geometryTarget, properties, partId);
     }
@@ -138,7 +138,7 @@ public class FrontedV3DesignSelectionBuilder
             return null;
         }
 
-        var properties = BuildCollectionItemGeometryProperties(collection, itemKey);
+        var properties = BuildCollectionItemSelectionProperties(collection, itemKey);
         var geometryTarget = new CollectionItemGeometryTarget(collection, designItem.Config, itemKey, onVisualSync);
         return FrontedV3DesignSelection.ForCollectionItem(
             designItem,
@@ -275,6 +275,24 @@ public class FrontedV3DesignSelectionBuilder
         return properties;
     }
 
+    /// <summary>
+    /// 构建固定 Part 选中目标的属性列表，合并几何属性与 <see cref="FrontedV3PartDefinition.Properties"/>。
+    /// </summary>
+    /// <param name="part">Part 定义。</param>
+    /// <returns>几何属性在前、外观属性在后的合并属性列表。</returns>
+    private static IReadOnlyList<FrontedV3PropertyDefinition> BuildPartSelectionProperties(FrontedV3PartDefinition part)
+    {
+        var geometry = BuildPartGeometryProperties(part);
+        if (part.Properties is null || part.Properties.Count == 0)
+        {
+            return geometry;
+        }
+
+        var combined = new List<FrontedV3PropertyDefinition>(geometry);
+        combined.AddRange(part.Properties);
+        return combined;
+    }
+
     private static IReadOnlyList<FrontedV3PropertyDefinition> BuildCollectionItemGeometryProperties(
         FrontedV3PartCollectionDefinition collection,
         string itemKey)
@@ -290,6 +308,34 @@ public class FrontedV3DesignSelectionBuilder
             CreateGeometryProperty("Height", FrontedV3Storage.CollectionItemProperty(
                 collection.CollectionGetter, collection.ItemKeySelector, itemKey, "Height"))
         ];
+    }
+
+    /// <summary>
+    /// 构建集合项选中目标的属性列表，合并几何属性与
+    /// <see cref="FrontedV3PartCollectionDefinition.ItemPropertiesFactory"/> 返回的外观属性。
+    /// </summary>
+    /// <param name="collection">集合定义。</param>
+    /// <param name="itemKey">选中集合项的唯一键。</param>
+    /// <returns>几何属性在前、外观属性在后的合并属性列表。</returns>
+    private static IReadOnlyList<FrontedV3PropertyDefinition> BuildCollectionItemSelectionProperties(
+        FrontedV3PartCollectionDefinition collection,
+        string itemKey)
+    {
+        var geometry = BuildCollectionItemGeometryProperties(collection, itemKey);
+        if (collection.ItemPropertiesFactory is null)
+        {
+            return geometry;
+        }
+
+        var appearance = collection.ItemPropertiesFactory(itemKey);
+        if (appearance is null || appearance.Count == 0)
+        {
+            return geometry;
+        }
+
+        var combined = new List<FrontedV3PropertyDefinition>(geometry);
+        combined.AddRange(appearance);
+        return combined;
     }
 
     private static FrontedV3PropertyDefinition CreateGeometryProperty(

@@ -1,6 +1,7 @@
 using System.Collections;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 
@@ -97,4 +98,30 @@ public sealed class FrontedV3PartCollectionDefinition
     /// <see cref="neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry.CollectionItemGeometryTarget"/> 完成。
     /// </remarks>
     public Action<FrontedControlConfigBase>? EnsureTemplateItems { get; set; }
+
+    /// <summary>
+    /// 获取或设置集合项外观属性的工厂；为 <see langword="null"/> 时表示集合项仅支持几何编辑。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 当 PartCollection 集合项在 Designer 中被选中时，
+    /// <see cref="neo_bpsys_wpf.Core.Services.FrontedLayout.V3.FrontedV3DesignSelectionBuilder.BuildCollectionItemSelection"/>
+    /// 会将几何属性（<c>X</c>/<c>Y</c>/<c>Width</c>/<c>Height</c>）与该工厂返回的外观属性合并，
+    /// 作为选中目标的 <c>Properties</c> 返回。
+    /// </para>
+    /// <para>
+    /// 工厂参数 <paramref name="itemKey"/> 为选中集合项的唯一键（仅在选中时确定），
+    /// 工厂返回的 <see cref="FrontedV3PropertyDefinition"/> 必须使用
+    /// <see cref="FrontedV3Storage.CollectionItemProperty"/> 绑定到该 itemKey 对应的集合项 CLR 属性。
+    /// </para>
+    /// <para>
+    /// 采用工厂而非预构建列表的原因：<see cref="FrontedV3Storage.CollectionItemProperty"/>
+    /// 在构造时即需要 <c>itemKey</c> 参数，而 <c>itemKey</c> 仅在 Designer 选中具体集合项时才确定。
+    /// 工厂模式将 Storage 构造延迟到选中时，避免引入额外描述类型。
+    /// </para>
+    /// <para>
+    /// 默认 <see langword="null"/> 表示集合项只支持几何编辑。
+    /// </para>
+    /// </remarks>
+    public Func<string, IReadOnlyList<FrontedV3PropertyDefinition>>? ItemPropertiesFactory { get; set; }
 }

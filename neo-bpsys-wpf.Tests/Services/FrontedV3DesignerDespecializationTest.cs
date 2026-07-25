@@ -4,6 +4,8 @@ using System.Linq;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
@@ -273,6 +275,169 @@ public class FrontedV3DesignerDespecializationTest
             designItem, collectionId: "NonExistent", itemKey: "SomeKey");
 
         Assert.Null(selection);
+    }
+
+    // -------------------------------------------------------------------
+    // 3a. SelectCollectionItem_IncludesAppearanceProperties
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 选中 GlobalScoreRow 的 Cell 后，<see cref="FrontedV3DesignSelection.Properties"/>
+    /// 必须包含几何属性（X/Y/Width/Height）与外观属性（Color/FontFamily/FontWeight/
+    /// FontSize/ShowCampIcon/CampIconColor/Visibility），证明子控件外观属性 Schema 已合并。
+    /// </summary>
+    [Fact]
+    public void SelectCollectionItem_IncludesAppearanceProperties()
+    {
+        var config = new GlobalScoreRowControlConfig();
+        var designItem = new FrontedControlDesignItem
+        {
+            Name = "GlobalScoreRow1",
+            Config = config
+        };
+
+        var builder = new FrontedV3DesignSelectionBuilder();
+
+        // 通过 EnsureTemplateItems 补齐 BO5 模板 Cell
+        var collections = builder.GetAvailableCollections(designItem);
+        var cellsCollection = Assert.Single(collections);
+        cellsCollection.EnsureTemplateItems?.Invoke(config);
+        Assert.True(config.Cells.Count > 0);
+
+        var firstCell = config.Cells[0];
+        var itemKey = cellsCollection.ItemKeySelector(firstCell);
+
+        // 构造 CollectionItem selection
+        var selection = builder.BuildCollectionItemSelection(
+            designItem, collectionId: "Cells", itemKey: itemKey);
+
+        Assert.NotNull(selection);
+        Assert.Equal(FrontedV3DesignSelectionKind.CollectionItem, selection!.Kind);
+
+        // 收集所有 OptionsPath，断言几何与外观属性同时存在
+        var optionsPaths = selection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
+
+        // 几何属性
+        Assert.Contains("X", optionsPaths);
+        Assert.Contains("Y", optionsPaths);
+        Assert.Contains("Width", optionsPaths);
+        Assert.Contains("Height", optionsPaths);
+
+        // 外观属性
+        Assert.Contains(nameof(GlobalScoreCellConfig.Color), optionsPaths);
+        Assert.Contains(nameof(GlobalScoreCellConfig.FontFamily), optionsPaths);
+        Assert.Contains(nameof(GlobalScoreCellConfig.FontWeight), optionsPaths);
+        Assert.Contains(nameof(GlobalScoreCellConfig.FontSize), optionsPaths);
+        Assert.Contains(nameof(GlobalScoreCellConfig.ShowCampIcon), optionsPaths);
+        Assert.Contains(nameof(GlobalScoreCellConfig.CampIconColor), optionsPaths);
+        Assert.Contains(nameof(GlobalScoreCellConfig.Visibility), optionsPaths);
+
+        // 总数应为 4（几何） + 7（外观） = 11
+        Assert.Equal(11, selection.Properties.Count);
+    }
+
+    /// <summary>
+    /// 选中 MapV2 的固定 Part（如 TeamName）后，<see cref="FrontedV3DesignSelection.Properties"/>
+    /// 只包含几何属性（X/Y/Width/Height），不包含外观属性，证明 MapV2 Part 仍为几何编辑模式。
+    /// </summary>
+    [Fact]
+    public void SelectFixedPart_OnlyGeometryForMapV2()
+    {
+        var config = new MapV2DisplayControlConfig
+        {
+            Width = 200,
+            Height = 155
+        };
+        var designItem = new FrontedControlDesignItem
+        {
+            Name = "MapV2Display1",
+            Config = config
+        };
+
+        var builder = new FrontedV3DesignSelectionBuilder();
+
+        // 选中 TeamName 部件
+        var selection = builder.BuildFixedPartSelection(
+            designItem,
+            partId: MapV2InternalStylePart.TeamName.ToString());
+
+        Assert.NotNull(selection);
+        Assert.Equal(FrontedV3DesignSelectionKind.FixedPart, selection!.Kind);
+
+        // 仅包含几何属性
+        var optionsPaths = selection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("X", optionsPaths);
+        Assert.Contains("Y", optionsPaths);
+        Assert.Contains("Width", optionsPaths);
+        Assert.Contains("Height", optionsPaths);
+
+        // 不包含外观属性
+        Assert.DoesNotContain("Color", optionsPaths);
+        Assert.DoesNotContain("FontFamily", optionsPaths);
+        Assert.DoesNotContain("FontWeight", optionsPaths);
+        Assert.DoesNotContain("FontSize", optionsPaths);
+        Assert.DoesNotContain("Visibility", optionsPaths);
+
+        // 总数应为 4（仅几何）
+        Assert.Equal(4, selection.Properties.Count);
+    }
+
+    /// <summary>
+    /// GlobalScoreRow Cell 外观属性的 <see cref="FrontedV3PropertyMetadata.Inheritance"/>
+    /// 必须为 <see cref="FrontedV3PropertyInheritance.ParentFallback"/>（Visibility 除外），
+    /// 语义必须为 <see cref="FrontedV3PropertySemantic.Appearance"/>，GroupName 必须为 "Appearance"。
+    /// </summary>
+    [Fact]
+    public void CellAppearanceProperties_HaveParentFallbackInheritance()
+    {
+        var config = new GlobalScoreRowControlConfig();
+        var designItem = new FrontedControlDesignItem
+        {
+            Name = "GlobalScoreRow1",
+            Config = config
+        };
+
+        var builder = new FrontedV3DesignSelectionBuilder();
+
+        var collections = builder.GetAvailableCollections(designItem);
+        var cellsCollection = Assert.Single(collections);
+        cellsCollection.EnsureTemplateItems?.Invoke(config);
+
+        var firstCell = config.Cells[0];
+        var itemKey = cellsCollection.ItemKeySelector(firstCell);
+
+        var selection = builder.BuildCollectionItemSelection(
+            designItem, collectionId: "Cells", itemKey: itemKey);
+
+        Assert.NotNull(selection);
+
+        // ParentFallback 属性集合
+        var parentFallbackNames = new[]
+        {
+            nameof(GlobalScoreCellConfig.Color),
+            nameof(GlobalScoreCellConfig.FontFamily),
+            nameof(GlobalScoreCellConfig.FontWeight),
+            nameof(GlobalScoreCellConfig.FontSize),
+            nameof(GlobalScoreCellConfig.ShowCampIcon),
+            nameof(GlobalScoreCellConfig.CampIconColor)
+        };
+
+        foreach (var name in parentFallbackNames)
+        {
+            var property = selection!.Properties.FirstOrDefault(p =>
+                string.Equals(p.OptionsPath, name, StringComparison.Ordinal));
+            Assert.NotNull(property);
+            Assert.Equal(FrontedV3PropertyInheritance.ParentFallback, property!.Metadata.Inheritance);
+            Assert.Equal(FrontedV3PropertySemantic.Appearance, property.Metadata.Semantic);
+            Assert.Equal("Appearance", property.Metadata.GroupName);
+        }
+
+        // Visibility 属性：Inheritance=None，Semantic=Appearance
+        var visibilityProperty = selection!.Properties.First(p =>
+            string.Equals(p.OptionsPath, nameof(GlobalScoreCellConfig.Visibility), StringComparison.Ordinal));
+        Assert.Equal(FrontedV3PropertyInheritance.None, visibilityProperty.Metadata.Inheritance);
+        Assert.Equal(FrontedV3PropertySemantic.Appearance, visibilityProperty.Metadata.Semantic);
+        Assert.Equal("Appearance", visibilityProperty.Metadata.GroupName);
     }
 
     // -------------------------------------------------------------------

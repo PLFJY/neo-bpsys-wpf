@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 
@@ -83,4 +84,26 @@ public sealed class FrontedV3PartDefinition
     /// 获取或设置 Y 坐标存储访问器；为 <see langword="null"/> 时 Y 不可持久化。
     /// </summary>
     public IFrontedV3StorageAccessor? YStorage { get; set; }
+
+    /// <summary>
+    /// 获取或设置 Part 的外观属性定义列表；为 <see langword="null"/> 时表示该 Part 仅支持几何编辑。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 当 Part 在 Designer 中被选中时，<see cref="FrontedV3DesignSelectionBuilder.BuildFixedPartSelection"/>
+    /// 会将几何属性（<see cref="XStorage"/>/<see cref="YStorage"/>/<see cref="WidthStorage"/>/<see cref="HeightStorage"/>
+    /// 对应的属性）与该列表中的外观属性合并，作为选中目标的 <c>Properties</c> 返回。
+    /// </para>
+    /// <para>
+    /// 该列表中的 <see cref="FrontedV3PropertyDefinition"/> 必须已配置好
+    /// <see cref="FrontedV3PropertyDefinition.Storage"/>（通常使用
+    /// <see cref="FrontedV3Storage.ClrProperty"/> 读写父 Config 的 CLR 属性，
+    /// 或使用 <see cref="FrontedV3Storage.CollectionItemProperty"/> 读写 Part 在父 Config 列表中的项属性），
+    /// 因为固定 Part 不需要 itemKey 参数。
+    /// </para>
+    /// <para>
+    /// 默认 <see langword="null"/> 表示该 Part 只支持几何编辑（如 MapV2 的内部部件、BorderedImage 的 Image）。
+    /// </para>
+    /// </remarks>
+    public IReadOnlyList<FrontedV3PropertyDefinition>? Properties { get; set; }
 }

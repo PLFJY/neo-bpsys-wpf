@@ -84,6 +84,7 @@ public static class FrontedV3BuiltInControlRegistryExtensions
             LocalControlId = attribute.ControlId,
             PackageId = null,
             IsBuiltIn = true,
+            SupportsPeerStyleTransfer = attribute.SupportsPeerStyleTransfer,
             ControlType = controlType,
             ConfigType = configType,
             Properties = properties,

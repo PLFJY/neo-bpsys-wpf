@@ -1028,7 +1028,47 @@
                                 <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="True">
+                                        <DataTrigger Binding="{Binding CanShowPeerStyleTransferButton}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,4,0"
+                            Appearance="Secondary"
+                            Icon="{ui:SymbolIcon Symbol=PaintBrush24}"
+                            Command="{Binding ApplyParentStyleToChildrenCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToChildren}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,8,0"
+                            Appearance="Secondary"
+                            Icon="{ui:SymbolIcon Symbol=Eraser24}"
+                            Command="{Binding ClearChildStyleOverridesCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ClearChildOverrides}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                     </Style.Triggers>

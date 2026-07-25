@@ -43,6 +43,22 @@ public sealed class FrontedV3ControlRegistration
     public bool IsBuiltIn { get; init; }
 
     /// <summary>
+    /// 是否在 Designer 中显示"应用到同类型控件"按钮并允许同类型 peer 之间传播外观样式。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 默认为 <see langword="false"/>。该字段由 Registry 在注册时从
+    /// <c>FrontedV3ControlAttribute.SupportsPeerStyleTransfer</c>
+    /// 复制而来，用于在 Designer 中门控同类型 peer 样式传播入口的可见性与可用性。
+    /// </para>
+    /// <para>
+    /// 仅当该字段为 <see langword="true"/> 时，Designer 才会显示"应用到同类型控件"按钮；
+    /// 按钮的启用还需满足存在同类型 peer 等其他条件。
+    /// </para>
+    /// </remarks>
+    public bool SupportsPeerStyleTransfer { get; init; }
+
+    /// <summary>
     /// 控件类型，必须继承 <see cref="FrameworkElement"/>（通常是 <c>FrontedV3ControlBase</c>）。
     /// </summary>
     public required Type ControlType { get; init; }

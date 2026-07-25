@@ -115,6 +115,12 @@
   <data name="Designer.PropertyEditor.ApplyToSameType">
     <value>同タイプのコントロールに適用</value>
   </data>
+  <data name="Designer.PropertyEditor.ApplyToChildren">
+    <value>すべての子コントロールに適用</value>
+  </data>
+  <data name="Designer.PropertyEditor.ClearChildOverrides">
+    <value>子コントロールの外観オーバーライドをクリア</value>
+  </data>
   <data name="EditTextBindingSource">
     <value>バインド元を編集</value>
   </data>
