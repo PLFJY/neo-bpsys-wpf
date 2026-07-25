@@ -33,6 +33,8 @@ public class FrontedPropertyEditorItem : ObservableObject
     private bool _isMultiSelectionMixedValue;
     private bool _isMultiSelectionBatchEditable = true;
     private bool _requiresExplicitCommit;
+    private bool _canToggleInheritance;
+    private bool _isInheritedFromParent;
     private string? _browseButtonText;
     private string? _browseDialogTitle;
     private FrontedBindingTargetKind _bindingTargetKind = FrontedBindingTargetKind.Any;
@@ -168,6 +170,22 @@ public class FrontedPropertyEditorItem : ObservableObject
         set => SetProperty(ref _isReadOnly, value);
     }
 
+    private bool _isEditingDisabled;
+
+    /// <summary>
+    /// 指示该行的编辑器控件是否完全禁用交互（IsEnabled=false）。
+    /// </summary>
+    /// <remarks>
+    /// 与 <see cref="IsReadOnly"/> 的区别：<see cref="IsReadOnly"/> 主要针对文本输入（光标可进入但不可修改），
+    /// 而 <see cref="IsEditingDisabled"/> 通过 <c>IsEnabled=false</c> 完全禁用编辑器（包括 ComboBox/CheckBox/ColorPicker 等）。
+    /// 典型场景：子控件属性"跟随父控件"时，编辑器应完全禁用，仅显示从父控件继承的值。
+    /// </remarks>
+    public bool IsEditingDisabled
+    {
+        get => _isEditingDisabled;
+        set => SetProperty(ref _isEditingDisabled, value);
+    }
+
     /// <summary>
     /// 指示该属性是否为必需。
     /// </summary>
@@ -292,6 +310,34 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _requiresExplicitCommit;
         set => SetProperty(ref _requiresExplicitCommit, value);
+    }
+
+    /// <summary>
+    /// 获取或设置指示该属性是否支持"跟随父控件 / 独立设定"切换的值。
+    /// </summary>
+    /// <remarks>
+    /// 仅对 <see cref="neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer.FrontedV3PropertyInheritance.ParentFallback"/>
+    /// 继承模式的子控件属性为 <see langword="true"/>。PropertyGrid 在该值为 <see langword="true"/> 时
+    /// 显示一个 CheckBox，允许用户切换 override 与跟随父控件两种状态。
+    /// </remarks>
+    public bool CanToggleInheritance
+    {
+        get => _canToggleInheritance;
+        set => SetProperty(ref _canToggleInheritance, value);
+    }
+
+    /// <summary>
+    /// 获取或设置指示该属性当前是否从父控件继承（即子控件未设置 override）的值。
+    /// </summary>
+    /// <remarks>
+    /// 当 <see cref="CanToggleInheritance"/> 为 <see langword="true"/> 时，该值驱动 PropertyGrid 中
+    /// 切换 CheckBox 的选中状态：选中表示跟随父控件（无 override），未选中表示独立设定（有 override）。
+    /// 切换该值时不会直接修改底层 Config，需由 ViewModel 命令处理清除或写入 override。
+    /// </remarks>
+    public bool IsInheritedFromParent
+    {
+        get => _isInheritedFromParent;
+        set => SetProperty(ref _isInheritedFromParent, value);
     }
 
     /// <summary>

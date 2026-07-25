@@ -115,11 +115,23 @@
   <data name="Designer.PropertyEditor.ApplyToSameType">
     <value>Apply to same type controls</value>
   </data>
+  <data name="Designer.PropertyEditor.ApplyToSameType.ToolTip">
+    <value>Apply current control's appearance properties to all same-type controls in the current window</value>
+  </data>
   <data name="Designer.PropertyEditor.ApplyToChildren">
     <value>Apply to all children</value>
   </data>
   <data name="Designer.PropertyEditor.ClearChildOverrides">
     <value>Clear child style overrides</value>
+  </data>
+  <data name="Designer.PropertyEditor.ApplyLayoutTemplate">
+    <value>Apply layout template</value>
+  </data>
+  <data name="Designer.PropertyEditor.InheritFromParent">
+    <value>Inherit from parent</value>
+  </data>
+  <data name="Designer.PropertyEditor.InheritFromParent.ToolTip">
+    <value>When checked, inherits value from parent control; when unchecked, sets independently</value>
   </data>
   <data name="EditTextBindingSource">
     <value>Edit binding source</value>

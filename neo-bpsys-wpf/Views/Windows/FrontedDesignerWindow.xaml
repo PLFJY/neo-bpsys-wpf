@@ -1021,9 +1021,10 @@
                             VerticalAlignment="Bottom"
                             Margin="0,8,0,0"
                             Appearance="Secondary"
+                            Content="{lex:Loc Designer.PropertyEditor.ApplyToSameType}"
                             Icon="{ui:SymbolIcon Symbol=Copy24}"
                             Command="{Binding ApplyAppearanceToSameTypeCommand}"
-                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToSameType}">
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToSameType.ToolTip}">
                             <ui:Button.Style>
                                 <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                                     <Setter Property="Visibility" Value="Collapsed" />
@@ -1075,6 +1076,26 @@
                                 </Style>
                             </ui:Button.Style>
                         </ui:Button>
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,12,0"
+                            Appearance="Secondary"
+                            Icon="{ui:SymbolIcon Symbol=Table24}"
+                            Command="{Binding ApplyLayoutTemplateCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyLayoutTemplate}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasLayoutTemplate}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
                         <Grid Grid.Row="2" Margin="0,8,0,8">
 
                             <ItemsControl ItemsSource="{Binding PropertyEditorItems}">
@@ -1098,6 +1119,26 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                             </TextBlock>
+                                            <CheckBox
+                                                Margin="0,0,0,4"
+                                                Padding="0,0,0,0"
+                                                FontSize="11"
+                                                IsChecked="{Binding IsInheritedFromParent, Mode=OneWay}"
+                                                Command="{Binding DataContext.TogglePropertyInheritanceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding PropertyName}"
+                                                Content="{lex:Loc Designer.PropertyEditor.InheritFromParent}"
+                                                ToolTip="{lex:Loc Designer.PropertyEditor.InheritFromParent.ToolTip}">
+                                                <CheckBox.Style>
+                                                    <Style BasedOn="{StaticResource {x:Type CheckBox}}" TargetType="{x:Type CheckBox}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding CanToggleInheritance}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </CheckBox.Style>
+                                            </CheckBox>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="112" />
@@ -1111,8 +1152,17 @@
                                                     ToolTip="{Binding Description}" />
                                                 <ContentControl
                                                     Grid.Column="1"
-                                                    Content="{Binding}"
-                                                    Style="{StaticResource PropertyEditorContentControlStyle}" />
+                                                    Content="{Binding}">
+                                                    <ContentControl.Style>
+                                                        <Style BasedOn="{StaticResource PropertyEditorContentControlStyle}" TargetType="ContentControl">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsEditingDisabled}" Value="True">
+                                                                    <Setter Property="IsEnabled" Value="False" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
                                             </Grid>
                                             <ItemsControl Margin="112,4,0,0" ItemsSource="{Binding ValidationMessages}">
                                                 <ItemsControl.ItemTemplate>

@@ -104,8 +104,25 @@ internal static class BuiltInPartCollectionDefinitionResolver
             // 取 property.Name（如 "FontFamily"/"Color"/"FontSize" 等），不添加 "Appearance." 前缀。
             // 因此子级外观属性 OptionsPath 也直接使用属性名，不添加前缀。
             ItemPropertiesFactory = itemKey => BuildGlobalScoreCellAppearanceProperties(
-                collectionGetter, itemKeySelector, itemKey)
+                collectionGetter, itemKeySelector, itemKey),
+            // 暴露"按模板重新分配"能力：调用 BO5 模板补齐 + 可见性模板 + 间距自动排列。
+            // 设计器在选中根控件且该回调非 null 时显示通用"按模板重新分配"按钮。
+            // 这里固定使用 BO5 模板（与 EnsureTemplateItems 的 isBo3Mode: false 保持一致）。
+            ApplyTemplate = config => ApplyGlobalScoreRowTemplate((GlobalScoreRowControlConfig)config)
         };
+    }
+
+    /// <summary>
+    /// 对 GlobalScoreRow 应用 BO5 布局模板：补齐缺失 Cell、按 BO5 模板设置可见性、按间距自动排列位置。
+    /// </summary>
+    /// <param name="config">GlobalScoreRow 配置实例。</param>
+    /// <returns>是否发生了修改。</returns>
+    private static bool ApplyGlobalScoreRowTemplate(GlobalScoreRowControlConfig config)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        GlobalScoreRowCellLayoutHelper.ApplyBo5VisibilityTemplate(config);
+        GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing(config, isBo3Mode: false);
+        return true;
     }
 
     /// <summary>

@@ -124,4 +124,28 @@ public sealed class FrontedV3PartCollectionDefinition
     /// </para>
     /// </remarks>
     public Func<string, IReadOnlyList<FrontedV3PropertyDefinition>>? ItemPropertiesFactory { get; set; }
+
+    /// <summary>
+    /// 获取或设置根据控件自身模板（如 BO3/BO5、列表项间距等）重新分配集合项位置/可见性的回调；
+    /// 为 <see langword="null"/> 时表示该集合不支持模板分配。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 这是通用机制，控件可通过此回调暴露"按模板重新分配布局"能力。
+    /// 回调接收父控件 Config，由控件自身实现决定如何分配位置与可见性。
+    /// </para>
+    /// <para>
+    /// 例如 GlobalScoreRow 在此回调中调用
+    /// <see cref="neo_bpsys_wpf.Core.Services.FrontedLayout.GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing"/>
+    /// 与可见性模板方法，按 BO5 模板重新分配 Cell 的 <c>X</c>/<c>Y</c> 与 <c>Visibility</c>。
+    /// </para>
+    /// <para>
+    /// 该回调只负责位置/可见性的模板分配，不修改外观属性（Color/FontFamily 等）。
+    /// 回调返回 <see langword="true"/> 表示发生了修改；<see langword="false"/> 表示无变更。
+    /// </para>
+    /// <para>
+    /// Designer 在选中根控件且该回调非 <see langword="null"/> 时显示"按模板重新分配"按钮。
+    /// </para>
+    /// </remarks>
+    public Func<FrontedControlConfigBase, bool>? ApplyTemplate { get; set; }
 }

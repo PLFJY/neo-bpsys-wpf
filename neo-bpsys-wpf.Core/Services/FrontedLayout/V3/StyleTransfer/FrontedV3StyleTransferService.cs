@@ -393,7 +393,7 @@ public sealed class FrontedV3StyleTransferService
     /// 对于 ExtensionData 存储，缺失键返回 <see langword="null"/>；存在的 null 值返回 <see cref="JsonValueKind.Null"/> 的 <see cref="JsonElement"/>。
     /// 两种情况都视为 override 缺失，应回退到父值。
     /// </remarks>
-    private static bool IsOverrideMissing(object? childValue)
+    public static bool IsOverrideMissing(object? childValue)
     {
         if (childValue is null)
         {

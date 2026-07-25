@@ -6,7 +6,9 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.StyleTransfer;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Properties;
@@ -592,6 +594,320 @@ public class FrontedDesignerStyleTransferUITest
         Assert.True(viewModel.HasChildAppearanceProperties);
         Assert.True(viewModel.ApplyParentStyleToChildrenCommand.CanExecute(null));
         Assert.True(viewModel.ClearChildStyleOverridesCommand.CanExecute(null));
+    }
+
+    // -------------------------------------------------------------------
+    // 6. SelectCollectionItem_PropertyGridOptionsPopulated
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 选中 <c>GlobalScoreRow</c> 的 Cell 子控件后，<see cref="FrontedDesignerWindowViewModel.PropertyEditorItems"/>
+    /// 必须由 Schema 驱动构建，且 Enum/Boolean/FontFamily 编辑器行的 <c>Options</c> 必须非空：
+    /// <list type="bullet">
+    /// <item><c>Visibility</c>（Enum）：3 个 <see cref="FrontedControlVisibility"/> 枚举值。</item>
+    /// <item><c>CampIconColor</c>（Nullable Enum）：2 个 <c>GlobalScoreCampIconColor</c> 枚举值。</item>
+    /// <item><c>FontWeight</c>（Enum with metadata options）：6 个字体粗细选项。</item>
+    /// <item><c>ShowCampIcon</c>（Nullable Boolean）：true/false 两个选项。</item>
+    /// <item><c>FontFamily</c>：字体列表非空。</item>
+    /// <item><c>Color</c>/<c>FontSize</c>/<c>X</c> 等非 Enum/Boolean/FontFamily 行：<c>Options</c> 为 <see langword="null"/>。</item>
+    /// </list>
+    /// 该测试回归 <c>BuildSchemaPropertyEditorItems</c> 未填充 <c>Options</c> 导致下拉框空的缺陷。
+    /// </summary>
+    [Fact]
+    public void SelectCollectionItem_PropertyGridOptionsPopulated()
+    {
+        var config = CreateGlobalScoreRowConfig();
+        var source = CreateDesignItem("ScoreRow_1", config);
+        var document = CreateDocument([source]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(source);
+
+        // 选中第一个 Cell 子控件
+        var firstCellKey = config.Cells[0].Id;
+        viewModel.SelectCollectionItem(source, "Cells", firstCellKey);
+
+        Assert.True(viewModel.IsSubControlSelected);
+
+        // Visibility（Enum）行：3 个枚举值
+        var visibilityRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.Visibility));
+        Assert.NotNull(visibilityRow.Options);
+        Assert.Equal(3, visibilityRow.Options!.Count);
+        var visibilityValues = visibilityRow.Options
+            .OfType<FrontedPropertyEditorOption>()
+            .Select(o => o.Value)
+            .OfType<FrontedControlVisibility>()
+            .ToHashSet();
+        Assert.Equal(3, visibilityValues.Count);
+        Assert.Contains(FrontedControlVisibility.Visible, visibilityValues);
+
+        // CampIconColor（Nullable Enum）行：2 个枚举值
+        var campIconColorRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.CampIconColor));
+        Assert.NotNull(campIconColorRow.Options);
+        Assert.Equal(2, campIconColorRow.Options!.Count);
+
+        // FontWeight（Enum with metadata options）行：6 个字体粗细选项
+        var fontWeightRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.FontWeight));
+        Assert.NotNull(fontWeightRow.Options);
+        Assert.Equal(6, fontWeightRow.Options!.Count);
+
+        // ShowCampIcon（Nullable Boolean）行：true/false 两个选项
+        var showCampIconRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.ShowCampIcon));
+        Assert.NotNull(showCampIconRow.Options);
+        Assert.Equal(2, showCampIconRow.Options!.Count);
+
+        // FontFamily 行：字体列表非空
+        var fontFamilyRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.FontFamily));
+        Assert.NotNull(fontFamilyRow.Options);
+        Assert.NotEmpty(fontFamilyRow.Options!);
+
+        // Color 行：Options 为 null（Color 编辑器不需要 Options）
+        var colorRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.Color));
+        Assert.Null(colorRow.Options);
+
+        // FontSize 行：Options 为 null（Number 编辑器不需要 Options）
+        var fontSizeRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.FontSize));
+        Assert.Null(fontSizeRow.Options);
+
+        // X 行：Options 为 null（Number 编辑器不需要 Options）
+        var xRow = Assert.Single(viewModel.PropertyEditorItems, item => item.PropertyName == "X");
+        Assert.Null(xRow.Options);
+    }
+
+    // -------------------------------------------------------------------
+    // 7. SelectFixedPart_PropertyGridPopulated
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 选中 <c>BorderedImage</c> 的 <c>Image</c> 固定 Part 后，
+    /// <see cref="FrontedDesignerWindowViewModel.PropertyEditorItems"/>
+    /// 必须包含 <c>Width</c>/<c>Height</c> 几何属性行（Schema 驱动），
+    /// 验证 FixedPart 选择路径不会产生空的 PropertyGrid。
+    /// </summary>
+    [Fact]
+    public void SelectFixedPart_PropertyGridPopulated()
+    {
+        var config = new BorderedImageFrontedControlConfig
+        {
+            ControlType = "BorderedImage",
+            ImageWidth = 60,
+            ImageHeight = 40
+        };
+        var source = CreateDesignItem("BorderedImage_1", config);
+        var document = CreateDocument([source]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(source);
+
+        // 选中 Image 固定 Part
+        viewModel.SelectFixedPart(source, "Image");
+
+        Assert.True(viewModel.IsSubControlSelected);
+        Assert.NotEmpty(viewModel.PropertyEditorItems);
+
+        var optionsPaths = viewModel.PropertyEditorItems
+            .Select(item => item.PropertyName)
+            .ToHashSet(System.StringComparer.Ordinal);
+        Assert.Contains("Width", optionsPaths);
+        Assert.Contains("Height", optionsPaths);
+    }
+
+    // -------------------------------------------------------------------
+    // 8. SelectCollectionItem_AppearancePropertiesInheritFromParent
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 选中 GlobalScoreRow 的 Cell 子控件后，ParentFallback 继承属性（Color/FontFamily 等）
+    /// 必须从父控件回退读取值：当 Cell 未设置 override（值为 null）时，PropertyGrid 显示父控件的值。
+    /// 同时验证 CanToggleInheritance 为 true、IsInheritedFromParent 为 true。
+    /// </summary>
+    [Fact]
+    public void SelectCollectionItem_AppearancePropertiesInheritFromParent()
+    {
+        var config = new GlobalScoreRowControlConfig
+        {
+            ControlType = "GlobalScoreRow",
+            FontFamily = "Consolas",
+            Color = "#FF0000",
+            FontSize = 24
+        };
+        config.Cells.Add(new GlobalScoreCellConfig
+        {
+            Id = "Game1FirstHalf",
+            GameNumber = 1,
+            GameKind = ScoreGameKind.Normal,
+            HalfKind = ScoreHalfKind.FirstHalf,
+            X = 10,
+            Y = 20,
+            Width = 75,
+            Height = 32,
+            // Cell 未设置 Color/FontFamily/FontSize override（均为 null）
+        });
+
+        var source = CreateDesignItem("ScoreRow_1", config);
+        var document = CreateDocument([source]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(source);
+
+        // 选中第一个 Cell
+        var firstCellKey = config.Cells[0].Id;
+        viewModel.SelectCollectionItem(source, "Cells", firstCellKey);
+
+        Assert.True(viewModel.IsSubControlSelected);
+
+        // Color 行：Cell.Color 为 null，应回退到父控件 Color="#FF0000"
+        var colorRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.Color));
+        Assert.True(colorRow.CanToggleInheritance);
+        Assert.True(colorRow.IsInheritedFromParent);
+        Assert.True(colorRow.IsReadOnly);
+        Assert.True(colorRow.IsEditingDisabled);
+        Assert.Equal("#FF0000", colorRow.Value);
+
+        // FontFamily 行：Cell.FontFamily 为 null，应回退到父控件 FontFamily="Consolas"
+        var fontFamilyRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.FontFamily));
+        Assert.True(fontFamilyRow.CanToggleInheritance);
+        Assert.True(fontFamilyRow.IsInheritedFromParent);
+        Assert.True(fontFamilyRow.IsReadOnly);
+        Assert.True(fontFamilyRow.IsEditingDisabled);
+        Assert.Equal("Consolas", fontFamilyRow.Value);
+
+        // FontSize 行：Cell.FontSize 为 null，应回退到父控件 FontSize=24
+        var fontSizeRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.FontSize));
+        Assert.True(fontSizeRow.CanToggleInheritance);
+        Assert.True(fontSizeRow.IsInheritedFromParent);
+        Assert.True(fontSizeRow.IsReadOnly);
+        Assert.True(fontSizeRow.IsEditingDisabled);
+        Assert.Equal(24D, fontSizeRow.Value);
+
+        // Visibility 行：Inheritance=None，不应支持切换
+        var visibilityRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.Visibility));
+        Assert.False(visibilityRow.CanToggleInheritance);
+        Assert.False(visibilityRow.IsReadOnly);
+        Assert.False(visibilityRow.IsEditingDisabled);
+
+        // X 行：几何属性，不应支持切换
+        var xRow = Assert.Single(viewModel.PropertyEditorItems, item => item.PropertyName == "X");
+        Assert.False(xRow.CanToggleInheritance);
+        Assert.False(xRow.IsReadOnly);
+        Assert.False(xRow.IsEditingDisabled);
+    }
+
+    // -------------------------------------------------------------------
+    // 9. TogglePropertyInheritance_InheritToOverride_WritesParentValue
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 当继承属性从"跟随父控件"切换到"独立设定"时，应将父控件的当前值写入子控件作为 override。
+    /// 切换后 IsInheritedFromParent 变为 false，且 Cell 的 CLR 属性被写入父值。
+    /// </summary>
+    [Fact]
+    public void TogglePropertyInheritance_InheritToOverride_WritesParentValue()
+    {
+        var config = new GlobalScoreRowControlConfig
+        {
+            ControlType = "GlobalScoreRow",
+            Color = "#FF0000"
+        };
+        config.Cells.Add(new GlobalScoreCellConfig
+        {
+            Id = "Game1FirstHalf",
+            GameNumber = 1,
+            GameKind = ScoreGameKind.Normal,
+            HalfKind = ScoreHalfKind.FirstHalf,
+            X = 10,
+            Y = 20,
+            Width = 75,
+            Height = 32
+            // Cell.Color 为 null（继承）
+        });
+
+        var source = CreateDesignItem("ScoreRow_1", config);
+        var document = CreateDocument([source]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(source);
+
+        var firstCellKey = config.Cells[0].Id;
+        viewModel.SelectCollectionItem(source, "Cells", firstCellKey);
+
+        // 初始状态：继承
+        Assert.Null(config.Cells[0].Color);
+
+        // 切换到独立设定
+        viewModel.TogglePropertyInheritanceCommand.Execute(nameof(GlobalScoreCellConfig.Color));
+
+        // Cell.Color 应被写入父值 "#FF0000"
+        Assert.Equal("#FF0000", config.Cells[0].Color);
+
+        // PropertyGrid 重建后，IsInheritedFromParent 应为 false
+        var colorRow = Assert.Single(viewModel.PropertyEditorItems,
+            item => item.PropertyName == nameof(GlobalScoreCellConfig.Color));
+        Assert.False(colorRow.IsInheritedFromParent);
+        Assert.True(colorRow.CanToggleInheritance);
+        Assert.False(colorRow.IsReadOnly);
+        Assert.False(colorRow.IsEditingDisabled);
+
+        // 文档标记为脏
+        Assert.True(document.IsDirty);
+    }
+
+    // -------------------------------------------------------------------
+    // 10. ApplyLayoutTemplate_ReassignsCellPositions
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 对 GlobalScoreRow 执行 ApplyLayoutTemplateCommand 后，Cell 的 X/Y 位置应被按 BO5 模板重新分配。
+    /// 验证 HasLayoutTemplate 为 true，命令可执行，且执行后 Cell 位置发生变化。
+    /// </summary>
+    [Fact]
+    public void ApplyLayoutTemplate_ReassignsCellPositions()
+    {
+        var config = new GlobalScoreRowControlConfig
+        {
+            ControlType = "GlobalScoreRow",
+            MajorGameGap = 180,
+            HalfGameGap = 90
+        };
+        config.Cells.Add(new GlobalScoreCellConfig
+        {
+            Id = "Game1FirstHalf",
+            GameNumber = 1,
+            GameKind = ScoreGameKind.Normal,
+            HalfKind = ScoreHalfKind.FirstHalf,
+            X = 999,  // 故意使用非模板位置
+            Y = 999,
+            Width = 75,
+            Height = 32
+        });
+
+        var source = CreateDesignItem("ScoreRow_1", config);
+        var document = CreateDocument([source]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(source);
+
+        // GlobalScoreRow 支持模板分配
+        Assert.True(viewModel.HasLayoutTemplate);
+        Assert.True(viewModel.ApplyLayoutTemplateCommand.CanExecute(null));
+
+        // 执行前 Cell 在非模板位置
+        Assert.Equal(999, config.Cells[0].X);
+
+        viewModel.ApplyLayoutTemplateCommand.Execute(null);
+
+        // 执行后 Cell 位置应被重新分配（Game1FirstHalf 的 X = 0 * MajorGameGap + 0 * HalfGameGap = 0）
+        Assert.Equal(0D, config.Cells[0].X);
+        Assert.Equal(0D, config.Cells[0].Y);
+
+        // 文档标记为脏
+        Assert.True(document.IsDirty);
     }
 
     // -------------------------------------------------------------------

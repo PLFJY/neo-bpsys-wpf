@@ -588,6 +588,45 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// 获取当前选中根控件是否支持"按模板重新分配"布局能力。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 当选中根控件且其 Config 存在 <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/>
+    /// 非 <see langword="null"/> 的 PartCollection 定义时为 <see langword="true"/>。
+    /// </para>
+    /// <para>
+    /// 该属性驱动 Designer 中"按模板重新分配"按钮的可见性；
+    /// 按钮的启用状态由 <see cref="CanApplyLayoutTemplate"/> 决定。
+    /// </para>
+    /// </remarks>
+    public bool HasLayoutTemplate
+    {
+        get
+        {
+            if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+            {
+                return false;
+            }
+
+            if (SelectedDesignItem?.Config is not { } sourceConfig)
+            {
+                return false;
+            }
+
+            foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+            {
+                if (collection.ApplyTemplate is not null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
     /// <summary>
@@ -2193,6 +2232,159 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 [sourceConfig],
                 FrontedV3StyleTransferProfile.Default);
         }
+
+        CurrentDocument.IsDirty = true;
+        RebuildPropertyEditorItems();
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+    }
+
+    /// <summary>
+    /// 切换子控件继承属性的"跟随父控件 / 独立设定"状态。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 当 <paramref name="propertyName"/> 对应的属性为 <see cref="FrontedV3PropertyInheritance.ParentFallback"/> 继承属性时：
+    /// <list type="bullet">
+    /// <item>若当前为跟随父控件（<c>IsInheritedFromParent=true</c>），切换为独立设定：将当前显示值写入子控件作为 override。</item>
+    /// <item>若当前为独立设定（<c>IsInheritedFromParent=false</c>），切换为跟随父控件：清除子控件 override（写 null）。</item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// 非继承属性调用此命令为 no-op。
+    /// </para>
+    /// </remarks>
+    /// <param name="propertyName">属性行的 OptionsPath（<see cref="FrontedPropertyEditorItem.PropertyName"/>）。</param>
+    [RelayCommand]
+    private void TogglePropertyInheritance(string? propertyName)
+    {
+        if (string.IsNullOrEmpty(propertyName)
+            || CurrentDocument is null
+            || _selectedTarget is null
+            || _selectedTarget.DesignItem is not { } designItem)
+        {
+            return;
+        }
+
+        if (!_schemaPropertiesByPath.TryGetValue(propertyName, out var schemaProperty))
+        {
+            return;
+        }
+
+        if (schemaProperty.Metadata.Inheritance != FrontedV3PropertyInheritance.ParentFallback)
+        {
+            return;
+        }
+
+        var config = designItem.Config;
+        var childValue = schemaProperty.GetValue(config);
+        var wasMissing = FrontedV3StyleTransferService.IsOverrideMissing(childValue);
+
+        CaptureUndoSnapshot();
+
+        if (wasMissing)
+        {
+            // 跟随父控件 → 独立设定：将当前继承显示值（父值）写入子控件作为 override。
+            var parentProperties = ResolveParentPropertiesForInheritance(_selectedTarget);
+            var parentProperty = parentProperties is not null
+                ? FindPropertyByOptionsPath(parentProperties, schemaProperty.OptionsPath)
+                : null;
+            var inheritedValue = parentProperty is not null
+                ? parentProperty.GetValue(config)
+                : childValue;
+            StyleTransferService.TrySetChildValue(schemaProperty, config, inheritedValue);
+        }
+        else
+        {
+            // 独立设定 → 跟随父控件：清除子控件 override（写 null）。
+            schemaProperty.SetValue(config, null);
+        }
+
+        CurrentDocument.IsDirty = true;
+        RebuildPropertyEditorItems();
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+    }
+
+    /// <summary>
+    /// 判断"按模板重新分配"命令是否可执行：需要选中根控件且其 Config 存在
+    /// <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 非 <see langword="null"/> 的 PartCollection 定义。
+    /// </summary>
+    /// <returns>当可执行模板分配时返回 <see langword="true"/>。</returns>
+    private bool CanApplyLayoutTemplate()
+    {
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return false;
+        }
+
+        if (SelectedDesignItem?.Config is not { } sourceConfig)
+        {
+            return false;
+        }
+
+        foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+        {
+            if (collection.ApplyTemplate is not null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 对当前选中根控件的子控件集合应用布局模板（如 GlobalScoreRow 的 BO5 模板），
+    /// 重新分配子控件的位置与可见性。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 实现要点：通过 <see cref="BuiltInPartCollectionDefinitionResolver"/> 查找选中控件 Config 上
+    /// <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 非 <see langword="null"/> 的集合定义，
+    /// 调用其 <see cref="FrontedV3PartCollectionDefinition.ApplyTemplate"/> 回调。
+    /// 该回调由控件自身实现，决定如何按模板分配位置与可见性（不修改外观属性）。
+    /// </para>
+    /// <para>
+    /// 完成分配后触发：Undo 快照已先于分配捕获、属性面板重建、预览刷新、文档标记为脏。
+    /// </para>
+    /// </remarks>
+    [RelayCommand(CanExecute = nameof(CanApplyLayoutTemplate))]
+    private void ApplyLayoutTemplate()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            return;
+        }
+
+        var sourceConfig = SelectedDesignItem?.Config;
+        if (sourceConfig is null)
+        {
+            return;
+        }
+
+        FrontedV3PartCollectionDefinition? targetCollection = null;
+        foreach (var collection in BuiltInPartCollectionDefinitionResolver.GetCollections(sourceConfig))
+        {
+            if (collection.ApplyTemplate is not null)
+            {
+                targetCollection = collection;
+                break;
+            }
+        }
+
+        if (targetCollection?.ApplyTemplate is not { } applyTemplate)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        applyTemplate(sourceConfig);
 
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
@@ -4358,32 +4550,177 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedV3DesignSelection selection)
     {
         var config = selection.DesignItem.Config;
+        var parentProperties = ResolveParentPropertiesForInheritance(selection);
+        var inheritance = selection.Kind == FrontedV3DesignSelectionKind.CollectionItem
+            ? ResolveCollectionInheritance(selection)
+            : null;
+
         foreach (var property in selection.Properties)
         {
             _schemaPropertiesByPath[property.OptionsPath] = property;
 
-            var value = property.GetValue(config);
+            var value = ResolvePropertyValueWithInheritance(property, config, parentProperties, inheritance, out var isMissingOverride);
             var displayText = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
             var groupName = property.Metadata.GroupName ?? "Layout";
+            var editorKind = property.Metadata.EditorKind ?? FrontedPropertyEditorKind.Text;
 
             var row = new FrontedPropertyEditorItem
             {
                 DisplayName = ResolveSchemaPropertyDisplayName(property),
                 PropertyName = property.OptionsPath,
                 PropertyType = property.PropertyType,
-                EditorKind = property.Metadata.EditorKind ?? FrontedPropertyEditorKind.Text,
+                EditorKind = editorKind,
                 Value = value,
                 DisplayValue = displayText,
                 EditText = displayText,
                 GroupName = groupName,
                 GroupDisplayName = _localizationService.GetGroupDisplayName(groupName),
                 IsGroupHeaderVisible = true,
-                IsReadOnly = false
+                // 跟随父控件（无 override）时只读且禁用编辑器，切换为独立设定后允许编辑。
+                IsReadOnly = isMissingOverride == true,
+                IsEditingDisabled = isMissingOverride == true,
+                Options = ResolveSchemaPropertyOptions(property, editorKind),
+                // 仅 ParentFallback 继承属性支持"跟随父控件 / 独立设定"切换。
+                CanToggleInheritance = isMissingOverride is not null,
+                // 选中（true）= 跟随父控件（无 override）；未选中（false）= 独立设定（有 override）。
+                IsInheritedFromParent = isMissingOverride == true
             };
 
             yield return row;
         }
     }
+
+    /// <summary>
+    /// 读取子控件属性值，对 ParentFallback 继承属性通过 StyleTransferService 动态回退到父控件值。
+    /// </summary>
+    private object? ResolvePropertyValueWithInheritance(
+        FrontedV3PropertyDefinition property,
+        FrontedControlConfigBase config,
+        IReadOnlyList<FrontedV3PropertyDefinition>? parentProperties,
+        FrontedV3PartCollectionDefinition? inheritance,
+        out bool? isMissingOverride)
+    {
+        var isInherited = property.Metadata.Inheritance == FrontedV3PropertyInheritance.ParentFallback
+                          && inheritance is not null;
+        var parentProperty = isInherited && parentProperties is not null
+            ? FindPropertyByOptionsPath(parentProperties, property.OptionsPath)
+            : null;
+
+        if (isInherited && parentProperty is not null)
+        {
+            var childValue = property.GetValue(config);
+            var missing = FrontedV3StyleTransferService.IsOverrideMissing(childValue);
+            isMissingOverride = missing;
+            return StyleTransferService.ReadValueWithInheritance(
+                property, config, config, parentProperty);
+        }
+
+        isMissingOverride = null;
+        return property.GetValue(config);
+    }
+
+    private IReadOnlyList<FrontedV3PropertyDefinition>? ResolveParentPropertiesForInheritance(
+        FrontedV3DesignSelection selection)
+    {
+        if (selection.DesignItem is not { } designItem)
+        {
+            return null;
+        }
+
+        return _selectionBuilder.ResolveRegistration(designItem.Config)?.Properties;
+    }
+
+    private FrontedV3PartCollectionDefinition? ResolveCollectionInheritance(
+        FrontedV3DesignSelection selection)
+    {
+        if (selection.SubTarget is not FrontedV3CollectionItemTarget { CollectionId: { } collectionId }
+            || selection.DesignItem is null)
+        {
+            return null;
+        }
+
+        return BuiltInPartCollectionDefinitionResolver.FindCollection(selection.DesignItem.Config, collectionId);
+    }
+
+    private static FrontedV3PropertyDefinition? FindPropertyByOptionsPath(
+        IReadOnlyList<FrontedV3PropertyDefinition> properties,
+        string optionsPath)
+    {
+        foreach (var property in properties)
+        {
+            if (string.Equals(property.OptionsPath, optionsPath, StringComparison.Ordinal))
+            {
+                return property;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 为 Schema 驱动的子控件属性解析下拉框选项。
+    /// 优先使用属性元数据中显式声明的 <see cref="FrontedV3PropertyMetadata.Options"/>；
+    /// 否则按 <paramref name="editorKind"/> 生成：
+    /// <see cref="FrontedPropertyEditorKind.FontFamily"/> 复用 <see cref="FrontedPropertyGridBuilder"/> 的字体列表；
+    /// <see cref="FrontedPropertyEditorKind.Boolean"/> 生成 true/false 选项；
+    /// <see cref="FrontedPropertyEditorKind.Enum"/> 从属性类型（解包 <see cref="Nullable{T}"/>）生成枚举值列表。
+    /// 其余编辑器类型返回 <see langword="null"/>。
+    /// </summary>
+    /// <param name="property">属性定义。</param>
+    /// <param name="editorKind">属性使用的编辑器类型。</param>
+    /// <returns>选项列表；无需选项的编辑器返回 <see langword="null"/>。</returns>
+    private IReadOnlyList<object>? ResolveSchemaPropertyOptions(
+        FrontedV3PropertyDefinition property,
+        FrontedPropertyEditorKind editorKind)
+    {
+        if (property.Metadata.Options is { } metadataOptions)
+        {
+            return metadataOptions.Cast<object>().ToArray();
+        }
+
+        if (editorKind == FrontedPropertyEditorKind.FontFamily)
+        {
+            return _propertyGridBuilder.GetFontFamilyOptions();
+        }
+
+        if (editorKind == FrontedPropertyEditorKind.Boolean)
+        {
+            return [CreateSchemaBooleanOption(true), CreateSchemaBooleanOption(false)];
+        }
+
+        if (editorKind == FrontedPropertyEditorKind.Enum)
+        {
+            var enumType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            if (!enumType.IsEnum)
+            {
+                return null;
+            }
+
+            return Enum.GetValues(enumType)
+                .Cast<object>()
+                .Select(value => CreateSchemaEnumOption(property.OptionsPath, value))
+                .Cast<object>()
+                .ToArray();
+        }
+
+        return null;
+    }
+
+    private FrontedPropertyEditorOption CreateSchemaBooleanOption(bool value) =>
+        new()
+        {
+            Value = value,
+            DisplayName = _localizationService.GetDesignerText(
+                value ? "Designer.Value.True" : "Designer.Value.False",
+                value ? "true" : "false")
+        };
+
+    private FrontedPropertyEditorOption CreateSchemaEnumOption(string propertyName, object? value) =>
+        new()
+        {
+            Value = value,
+            DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
+        };
 
     /// <summary>
     /// 解析 Schema 属性的显示名称。优先使用本地化键，回退到 OptionsPath 末段。
