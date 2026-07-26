@@ -59,6 +59,7 @@ public sealed class SmartBpModuleManager
     private static readonly Dictionary<string, IntPtr> PreloadedNativeLibraries = new(StringComparer.OrdinalIgnoreCase);
     private ISmartBpModuleEntryPoint? _entryPoint;
     private IReadOnlyList<SmartBpFeatureCommand> _featureCommands = [];
+    private bool _isModuleVersionOutdated;
 
     /// <summary>
     /// 初始化 <see cref="SmartBpModuleManager"/> 类的新实例。
@@ -102,9 +103,20 @@ public sealed class SmartBpModuleManager
     public string ModuleRoot { get; private set; }
 
     /// <summary>
-    /// 获取模块是否已加载。
+    /// 获取模块是否已加载且版本未过时。
+    /// 版本过旧时返回 <see langword="false"/>，使全局表现为模块未加载。
     /// </summary>
-    public bool IsModuleLoaded => _entryPoint != null && ModuleContent != null;
+    public bool IsModuleLoaded => _entryPoint != null && ModuleContent != null && !_isModuleVersionOutdated;
+
+    /// <summary>
+    /// 获取已加载模块的版本是否低于远程发布标签要求的版本。
+    /// </summary>
+    public bool IsModuleVersionOutdated => _isModuleVersionOutdated;
+
+    /// <summary>
+    /// 获取远程发布标签要求的最小兼容版本号；版本未过旧时为 <see langword="null"/>。
+    /// </summary>
+    public string? RequiredModuleVersion { get; private set; }
 
     /// <summary>
     /// 获取最近一次模块加载或校验失败消息。
@@ -385,6 +397,9 @@ public sealed class SmartBpModuleManager
             moduleRoot,
             installKind);
 
+        _isModuleVersionOutdated = false;
+        RequiredModuleVersion = null;
+
         if (!ValidateModuleDirectory(moduleRoot, allowDevelopmentDirectory: IsDebugBuild(), out var manifest, out var error))
         {
             LastFailureMessage = error;
@@ -553,7 +568,9 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// 异步比较本地模块版本与远程发布标签要求的版本，过时时触发 <see cref="ModuleVersionOutdated"/> 事件。
+    /// 异步比较本地模块版本与远程发布标签要求的版本，过旧时设置版本过旧状态、
+    /// 触发 <see cref="ModuleVersionOutdated"/> 事件并通过 <see cref="ModuleStateChanged"/>
+    /// 通知全局表现为模块未加载。
     /// </summary>
     /// <param name="localVersion">已加载模块的本地版本号；为空时跳过检查。</param>
     /// <returns>异步检查完成后结束的任务。</returns>
@@ -575,7 +592,10 @@ public sealed class SmartBpModuleManager
                 "SmartBP module version is too old. Local={LocalVersion}, Required={RequiredVersion}",
                 localVersion,
                 requiredManifest.ModuleVersion);
+            _isModuleVersionOutdated = true;
+            RequiredModuleVersion = requiredManifest.ModuleVersion;
             ModuleVersionOutdated?.Invoke(this, new ModuleVersionOutdatedEventArgs(localVersion, requiredManifest.ModuleVersion));
+            ModuleStateChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -772,6 +792,9 @@ public sealed class SmartBpModuleManager
     /// <returns>表示异步操作的任务。</returns>
     public Task ExecuteFeatureCommandAsync(string commandId, CancellationToken cancellationToken)
     {
+        if (!IsModuleLoaded)
+            return Task.CompletedTask;
+
         var command = _featureCommands.FirstOrDefault(c => c.CommandId == commandId);
         return command?.ExecuteAsync(cancellationToken) ?? Task.CompletedTask;
     }

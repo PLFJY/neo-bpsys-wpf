@@ -395,37 +395,33 @@ public partial class SmartBpPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 模块版本过时事件处理：在 UI 线程上通过 InfoBar 提示用户更新 SmartBP 模块。
+    /// 模块版本过时事件处理：版本过旧时通过 <see cref="SmartBpModuleManager.ModuleStateChanged"/>
+    /// 触发 <see cref="SyncModuleState"/> 显示更新遮罩，此处无需额外处理。
     /// </summary>
     /// <param name="sender">事件发送者。</param>
     /// <param name="args">包含本地版本与要求版本的事件参数。</param>
     private void OnModuleVersionOutdated(object? sender, ModuleVersionOutdatedEventArgs args)
     {
-        if (_infoBarService == null)
-            return;
-
-        var message = string.Format(L("SmartBpModuleOutdatedFormat"), args.RequiredVersion);
-        if (Application.Current?.Dispatcher is { } dispatcher)
-        {
-            if (dispatcher.CheckAccess())
-                _infoBarService.ShowWarningInfoBar(message);
-            else
-                dispatcher.Invoke(() => _infoBarService.ShowWarningInfoBar(message));
-        }
-        else
-        {
-            _infoBarService.ShowWarningInfoBar(message);
-        }
     }
 
     /// <summary>
     /// 将模块管理器当前加载状态同步到页面可绑定属性。
+    /// 版本过旧时同步显示更新遮罩文案。
     /// </summary>
     private void SyncModuleState()
     {
         IsModuleLoaded = _moduleManager.IsModuleLoaded;
         ModuleContent = _moduleManager.ModuleContent;
         SyncModuleVersionText();
+
+        if (_moduleManager.IsModuleVersionOutdated)
+        {
+            var requiredVersion = _moduleManager.RequiredModuleVersion ?? string.Empty;
+            PrimaryActionText = L("SmartBpModuleUpdateAndInstall");
+            OverlayMessage = string.Format(L("SmartBpModuleOutdatedFormat"), requiredVersion);
+            IsSelectInstalledModuleButtonVisible = true;
+        }
+
         var persistedRoot = _moduleManager.GetPreferredModuleRoot();
         if (!IsModuleLoaded &&
             !string.IsNullOrWhiteSpace(persistedRoot) &&
