@@ -451,6 +451,12 @@
                         Command="{Binding ImportSmartBpModuleArchiveCommand}"
                         Content="{lex:Loc SmartBpModuleImportArchive}"
                         Icon="{ui:SymbolIcon Symbol=Archive24}" />
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        Command="{Binding ToggleSmartBpVersionOutdatedDebugCommand}"
+                        Content="调试：切换版本过旧状态"
+                        Icon="{ui:SymbolIcon Symbol=Bug24}"
+                        Visibility="{Binding IsDebugBuild, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <TextBlock
                         VerticalAlignment="Center"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"

@@ -28,6 +28,36 @@ public partial class SettingPageViewModel
     public partial bool IsModuleExtracting { get; set; } = false;
 
     /// <summary>
+    /// 获取是否为调试构建，用于控制 SmartBP 调试工具的可见性。
+    /// </summary>
+    public bool IsDebugBuild
+    {
+        get
+        {
+#if DEBUG
+            return true;
+#else
+            return false;
+#endif
+        }
+    }
+
+    /// <summary>
+    /// 调试用：切换 SmartBP 模块版本过旧状态。
+    /// </summary>
+    [RelayCommand]
+    private void ToggleSmartBpVersionOutdatedDebug()
+    {
+#if DEBUG
+        var target = !_smartBpModuleManager.IsModuleVersionOutdated;
+        _smartBpModuleManager.SetVersionOutdatedForDebug(target);
+        SmartBpModulePathStatus = target
+            ? "[DEBUG] SmartBP 模块已标记为版本过旧"
+            : "[DEBUG] SmartBP 模块版本过旧标记已清除";
+#endif
+    }
+
+    /// <summary>
     /// 选择 SmartBP 模块目录。
     /// </summary>
     [RelayCommand]

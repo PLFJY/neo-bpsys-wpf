@@ -109,6 +109,12 @@ public sealed class SmartBpModuleManager
     public bool IsModuleLoaded => _entryPoint != null && ModuleContent != null && !_isModuleVersionOutdated;
 
     /// <summary>
+    /// 获取模块程序集是否已物理加载（不考虑版本是否过时）。
+    /// 仅用于内部安装/替换流程中判断是否需要暂存到下次重启。
+    /// </summary>
+    private bool IsModulePhysicallyLoaded => _entryPoint != null && ModuleContent != null;
+
+    /// <summary>
     /// 获取已加载模块的版本是否低于远程发布标签要求的版本。
     /// </summary>
     public bool IsModuleVersionOutdated => _isModuleVersionOutdated;
@@ -117,6 +123,21 @@ public sealed class SmartBpModuleManager
     /// 获取远程发布标签要求的最小兼容版本号；版本未过旧时为 <see langword="null"/>。
     /// </summary>
     public string? RequiredModuleVersion { get; private set; }
+
+    /// <summary>
+    /// 调试用：手动设置模块版本过旧状态，用于验证更新遮罩和全局降级表现。
+    /// 仅在调试构建下有效。
+    /// </summary>
+    /// <param name="outdated">是否标记为版本过旧。</param>
+    /// <param name="requiredVersion">模拟的要求版本号。</param>
+    public void SetVersionOutdatedForDebug(bool outdated, string requiredVersion = "999.0.0")
+    {
+#if DEBUG
+        _isModuleVersionOutdated = outdated;
+        RequiredModuleVersion = outdated ? requiredVersion : null;
+        ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+#endif
+    }
 
     /// <summary>
     /// 获取最近一次模块加载或校验失败消息。
@@ -755,7 +776,7 @@ public sealed class SmartBpModuleManager
                 return false;
             }
 
-            if (IsModuleLoaded &&
+            if (IsModulePhysicallyLoaded &&
                 string.Equals(Path.GetFullPath(ModuleRoot), normalizedTargetRoot, StringComparison.OrdinalIgnoreCase))
             {
                 PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest);

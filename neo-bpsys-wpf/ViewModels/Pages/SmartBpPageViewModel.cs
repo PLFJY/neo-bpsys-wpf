@@ -406,12 +406,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
     /// <summary>
     /// 将模块管理器当前加载状态同步到页面可绑定属性。
-    /// 版本过旧时同步显示更新遮罩文案。
+    /// 版本过旧时移除模块内容、显示更新遮罩文案，表现为模块未加载。
     /// </summary>
     private void SyncModuleState()
     {
         IsModuleLoaded = _moduleManager.IsModuleLoaded;
-        ModuleContent = _moduleManager.ModuleContent;
+        ModuleContent = _moduleManager.IsModuleVersionOutdated ? null : _moduleManager.ModuleContent;
         SyncModuleVersionText();
 
         if (_moduleManager.IsModuleVersionOutdated)
