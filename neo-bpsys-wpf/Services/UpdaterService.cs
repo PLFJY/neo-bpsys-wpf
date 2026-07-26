@@ -62,7 +62,8 @@ public class UpdaterService : IUpdaterService
     /// </summary>
     public bool IsDownloadFinished { get; private set; }
 
-    private const string ApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
+    private const string ApiUrl = "https://api.github.com/repos/PLFJY/neo-bpsys-wpf/releases";
+    private const string BackupApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
     private const string InstallerFileName = "neo-bpsys-wpf_Installer.exe";
     private const string InstallerSha256FileName = InstallerFileName + ".sha256";
     private readonly HttpClient _httpClient;
@@ -317,26 +318,53 @@ public class UpdaterService : IUpdaterService
     public event EventHandler? DownloadStateChanged;
 
     /// <summary>
-    /// 获取新版本信息
+    /// 获取新版本信息。优先请求 <see cref="ApiUrl"/>，失败时回退到 <see cref="BackupApiUrl"/>；
+    /// 仅当两个地址均失败时才向用户提示错误。
     /// </summary>
-    /// <returns></returns>
+    /// <returns>异步任务。</returns>
     private async Task GetNewVersionInfoAsync()
     {
         NewVersionInfo = new ReleaseInfo();
+
+        var (success, errorMessage) = await TryFetchReleaseInfoAsync(ApiUrl, "/latest");
+        if (success) return;
+
+        (success, errorMessage) = await TryFetchReleaseInfoAsync(BackupApiUrl, "&latest=true");
+        if (success) return;
+
+        if (!string.IsNullOrEmpty(errorMessage))
+        {
+            await MessageBoxHelper.ShowErrorAsync(errorMessage);
+        }
+    }
+
+    /// <summary>
+    /// 尝试从指定的 API 地址获取发布信息并写入 <see cref="NewVersionInfo"/>。
+    /// </summary>
+    /// <param name="apiUrl">API 地址。</param>
+    /// <param name="latestSuffix">非预发布模式下追加到 <paramref name="apiUrl"/> 末尾的后缀，主线路为 <c>/latest</c>，备份线路为 <c>&amp;latest=true</c>。</param>
+    /// <returns>
+    /// 元组：第一项表示是否成功获取到有效发布信息；第二项为失败时的错误消息（成功时为 <c>null</c>）。
+    /// 异常会被记录到日志，不会向外抛出。
+    /// </returns>
+    private async Task<(bool Success, string? ErrorMessage)> TryFetchReleaseInfoAsync(string apiUrl, string latestSuffix)
+    {
         try
         {
             var response =
                 await _httpClient.GetAsync(
-                    $"{ApiUrl}{(IsFindPreRelease ? string.Empty : "&latest=true")}");
+                    $"{apiUrl}{(IsFindPreRelease ? string.Empty : latestSuffix)}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrEmpty(content)) return;
+            if (string.IsNullOrEmpty(content)) return (false, null);
+
             if (!IsFindPreRelease)
             {
                 var releaseInfo = JsonSerializer.Deserialize<ReleaseInfo>(content);
                 if (releaseInfo != null)
                 {
                     NewVersionInfo = releaseInfo;
+                    return (true, null);
                 }
             }
             else
@@ -345,23 +373,26 @@ public class UpdaterService : IUpdaterService
                 if (releaseInfoArray != null && releaseInfoArray.Length > 0)
                 {
                     NewVersionInfo = releaseInfoArray[0];
+                    return (true, null);
                 }
             }
+
+            return (false, null);
         }
         catch (HttpRequestException ex)
         {
             _logger.LogError($"HTTP request error: {ex.Message}");
-            await MessageBoxHelper.ShowErrorAsync($"HTTP request error: {ex.Message}");
+            return (false, $"HTTP request error: {ex.Message}");
         }
         catch (JsonException ex)
         {
             _logger.LogError($"JSON parsing error: {ex.Message}");
-            await MessageBoxHelper.ShowErrorAsync($"JSON parsing error: {ex.Message}");
+            return (false, $"JSON parsing error: {ex.Message}");
         }
         catch (Exception ex)
         {
             _logger.LogError($"Unknown error: {ex.Message}");
-            await MessageBoxHelper.ShowErrorAsync($"Unknown error: {ex.Message}");
+            return (false, $"Unknown error: {ex.Message}");
         }
     }
 
