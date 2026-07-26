@@ -1,6 +1,6 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
-using neo_bpsys_wpf.PluginSdk;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Windows;
 using System.Windows.Controls;
 

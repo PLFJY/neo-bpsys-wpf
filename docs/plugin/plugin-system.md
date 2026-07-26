@@ -110,7 +110,7 @@ plugin:plfjy.ExamplePlugin/TeamCard
 
 ### 创建与注册控件
 
-插件控件必须继承 `FrontedV3ControlBase`（定义在 Core 程序集，命名空间为 `neo_bpsys_wpf.PluginSdk`）并标注 `[FrontedV3Control("ControlId")]`：
+插件控件必须继承 `FrontedV3ControlBase`（定义在 Core 程序集，命名空间 `neo_bpsys_wpf.Core.Abstractions.Services`）并标注 `[FrontedV3Control("ControlId")]`：
 
 ```csharp
 [FrontedV3Control("TeamCard")]

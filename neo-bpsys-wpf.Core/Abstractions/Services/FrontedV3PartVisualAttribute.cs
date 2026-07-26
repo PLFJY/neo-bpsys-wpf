@@ -1,4 +1,4 @@
-namespace neo_bpsys_wpf.PluginSdk;
+namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
 /// 标注控件上返回固定 Part Visual 的属性，用于 C# 代码声明 Part Visual。
@@ -25,9 +25,6 @@ namespace neo_bpsys_wpf.PluginSdk;
 /// <item>声明了 Part 但未找到对应 Visual → 输出 warning，不崩溃 Designer。</item>
 /// <item>多个 Visual 映射到同一个 PartId → 输出 warning，使用第一个匹配项。</item>
 /// </list>
-/// </para>
-/// <para>
-/// 该类型定义在 Core 程序集中（命名空间 <c>neo_bpsys_wpf.PluginSdk</c> 以保持插件 API 兼容）。
 /// </para>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]

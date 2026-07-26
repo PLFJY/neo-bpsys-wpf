@@ -15,7 +15,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
-using neo_bpsys_wpf.PluginSdk;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;

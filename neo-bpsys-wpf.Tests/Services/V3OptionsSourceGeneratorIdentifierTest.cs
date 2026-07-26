@@ -51,7 +51,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
             }
         }
 
-        namespace neo_bpsys_wpf.PluginSdk
+        namespace neo_bpsys_wpf.Core.Abstractions.Services
         {
             [AttributeUsage(AttributeTargets.Class)]
             public sealed class FrontedV3ControlAttribute : Attribute
@@ -78,7 +78,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
 
             namespace TestPlugin
             {
-                [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Team Card")]
+                [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("Team Card")]
                 public sealed class TeamCardControl
                 {
                     public static readonly FrontedV3Property<string> TextProperty =
@@ -116,7 +116,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
 
             namespace TestPlugin
             {
-                [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Test")]
+                [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("Test")]
                 public sealed class TestControl
                 {
                     public static readonly FrontedV3Property<string> ValueProperty =
@@ -147,7 +147,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
 
             namespace TestPlugin
             {
-                [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Test")]
+                [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("Test")]
                 public sealed class TestControl
                 {
                     public static readonly FrontedV3Property<string> FirstProperty =
@@ -180,7 +180,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
 
             namespace TestPlugin
             {
-                [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Test")]
+                [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("Test")]
                 public sealed class TestControl
                 {
                     public static readonly FrontedV3Property<string> ValueProperty =
@@ -210,7 +210,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
 
             namespace TestPlugin
             {
-                [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Test")]
+                [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("Test")]
                 public sealed class TestControl
                 {
                     public static readonly FrontedV3Property<string> ValueProperty =
@@ -240,7 +240,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
 
             namespace TestPlugin
             {
-                [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Team Card")]
+                [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("Team Card")]
                 public sealed class TeamCardControl
                 {
                     public static readonly FrontedV3Property<string> TextProperty =
@@ -268,7 +268,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
         var source = $$"""
             using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
-            [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Test")]
+            [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("Test")]
             public sealed class TestControl
             {
                 public static readonly FrontedV3Property<string> TextProperty =
@@ -297,7 +297,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
 
             namespace TestPlugin
             {
-                [neo_bpsys_wpf.PluginSdk.FrontedV3Control("1Card")]
+                [neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3Control("1Card")]
                 public sealed class FirstCardControl
                 {
                     public static readonly FrontedV3Property<string> TextProperty =

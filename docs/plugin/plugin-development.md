@@ -90,7 +90,7 @@ Canonical Control Type 由 `ControlId` 和来源自动推导：
 
 ### 创建控件
 
-控件类继承 `FrontedV3ControlBase`（定义在 Core 程序集，命名空间为 `neo_bpsys_wpf.PluginSdk` 以保持插件 API 兼容）。该基类继承自 `UserControl`，支持 XAML 声明式视觉树。宿主在创建后通过 `InitializeFrontedV3` 注入运行时上下文，控件通过 `Context` 访问服务、共享数据、资源解析器与当前配置。
+控件类继承 `FrontedV3ControlBase`（定义在 Core 程序集，命名空间 `neo_bpsys_wpf.Core.Abstractions.Services`）。该基类继承自 `UserControl`，支持 XAML 声明式视觉树。宿主在创建后通过 `InitializeFrontedV3` 注入运行时上下文，控件通过 `Context` 访问服务、共享数据、资源解析器与当前配置。
 
 控件 **不** 管理自身的 Canvas 坐标（`Left`/`Top`/`Width`/`Height`/`ZIndex`/`Visibility`/`GaussianBlur`），这些由 `FrontedV3ControlHost` 统一负责。控件只负责矩形区域内的视觉内容。
 

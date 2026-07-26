@@ -15,7 +15,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.ExamplePlugin;
 using neo_bpsys_wpf.Models.Plugins;
-using neo_bpsys_wpf.PluginSdk;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Pages;

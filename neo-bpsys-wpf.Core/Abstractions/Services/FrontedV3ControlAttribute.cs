@@ -1,4 +1,4 @@
-namespace neo_bpsys_wpf.PluginSdk;
+namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
 /// 标注一个 v3 前台控件类型，并携带控件局部标识（ControlId）与 Designer 展示元数据。
@@ -27,9 +27,6 @@ namespace neo_bpsys_wpf.PluginSdk;
 /// 由 Attribute 直接声明，注册时通过 <c>FrontedV3ControlRegistryExtensions.BuildMetadata</c>
 /// 推导为 <c>FrontedV3ControlMetadata</c> 暴露到 Registration。
 /// 所有元数据字段可选，缺失时由调用方按合理默认值回退。
-/// </para>
-/// <para>
-/// 该类型定义在 Core 程序集中（命名空间 <c>neo_bpsys_wpf.PluginSdk</c> 以保持插件 API 兼容）。
 /// </para>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]

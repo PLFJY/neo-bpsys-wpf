@@ -7,7 +7,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.PluginSdk;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;

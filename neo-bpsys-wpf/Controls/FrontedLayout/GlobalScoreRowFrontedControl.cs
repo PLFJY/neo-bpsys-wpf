@@ -3,7 +3,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
-using neo_bpsys_wpf.PluginSdk;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
