@@ -1,6 +1,8 @@
-format issig-v1
-file-size 1552016
-file-hash 2c230c3e99bc42215221b2c847356fbbe9eae33a15a842be429e94fd26e7c436
+format issig-v2
+file-name "ISCmplr.dll"
+file-size 1524880
+file-hash 85a1e3090d3a5b85319f001b7c8f9ecfad45f37eff030a67bbe29ef58b7aa2c3
+file-tag ""
 key-id def020edee3c4835fd54d85eff8b66d4d899b22a777353ca4a114b652e5e7a28
-sig-r c41f0498b857eb9b0c2db7bc4b26ee48fd9bf625d833f601455b8a3e01222e8a
-sig-s 37bcddd584ca932ed1a534bbdff4e2d3834eb932b0b78e53b1505965c14a3232
+sig-r 74d4b751add5e1b7277ee975d90e77778ab8d2681caead3f1f233b67deb7ddaf
+sig-s bfc8c7f0ef9ae4604c791b6db707deb7b5b3b6d2f75d78e7531da0e5c6a6f86d
