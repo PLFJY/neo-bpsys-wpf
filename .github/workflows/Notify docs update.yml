@@ -1,0 +1,19 @@
+name: Notify docs update
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  notify-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify docs repo to update
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          repository: PLFJY/neo-bpsys-docs-next
+          event-type: docs-update
+          client-payload: '{"source_repo": "${{ github.repository }}", "source_sha": "${{ github.sha }}"}'
