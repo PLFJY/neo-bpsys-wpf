@@ -8,16 +8,20 @@
     <Platform Name="x64" />
   </Configurations>
   <Folder Name="/Built-inPlugins/">
-    <Project Path="Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/neo-bpsys-wpf.TeamJsonMaker.csproj">
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.FocusKeeper/neo-bpsys-wpf.FocusKeeper.csproj">
+      <BuildType Solution="Beta|*" Project="Debug" />
+      <BuildType Solution="Preview|*" Project="Release" />
+    </Project>
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.GameStopwatch/neo-bpsys-wpf.GameStopwatch.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
-    <Project Path="Built-inPlugins/neo-bpsys-wpf.WebRenderer/neo-bpsys-wpf.WebRenderer.csproj">
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/neo-bpsys-wpf.TeamJsonMaker.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
     <Project Path="Built-inPlugins/neo-bpsys-wpf.WebRenderer/Host/neo-bpsys-wpf.WebRenderer.Host.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
-    <Project Path="Built-inPlugins/neo-bpsys-wpf.GameStopwatch/neo-bpsys-wpf.GameStopwatch.csproj">
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.WebRenderer/neo-bpsys-wpf.WebRenderer.csproj">
       <Platform Solution="*|x64" Project="x64" />
     </Project>
   </Folder>

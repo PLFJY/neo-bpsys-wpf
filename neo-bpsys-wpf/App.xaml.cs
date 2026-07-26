@@ -210,6 +210,54 @@ public partial class App : AppBase
     }
 
     /// <summary>
+    /// 以管理员权限（UAC 提升）重启应用程序。
+    /// </summary>
+    /// <remarks>
+    /// 通过 ShellExecute 配合 <c>Verb=runas</c> 唤起 UAC 提权提示。
+    /// 若用户在 UAC 提示中拒绝，将抛出 <see cref="System.ComponentModel.Win32Exception"/>
+    /// （错误码 <c>ERROR_CANCELLED</c> = 1223），调用方应捕获并提示用户。
+    /// 重启流程与 <see cref="Restart()"/> 一致：释放单实例互斥锁后启动新进程，再关闭当前进程。
+    /// </remarks>
+    /// <exception cref="System.ComponentModel.Win32Exception">
+    /// 用户拒绝 UAC 提权，或系统无法启动提升后的进程。
+    /// </exception>
+    public void RestartAsAdmin()
+    {
+        var exePath = ResourceAssembly.Location.Replace(".dll", ".exe");
+
+        // 保留当前进程的命令行参数（跳过可执行文件路径）
+        var args = Environment.GetCommandLineArgs().Skip(1);
+
+        // 释放互斥锁，允许新进程获取单实例锁
+        _mutex?.Close();
+
+        // UseShellExecute=true 配合 Verb=runas 唤起 UAC 提权提示；
+        // 此时 ArgumentList 不可用，必须手动拼装并转义参数到 Arguments
+        var startInfo = new ProcessStartInfo(exePath)
+        {
+            UseShellExecute = true,
+            Verb = "runas",
+            Arguments = string.Join(' ', args.Select(QuoteArgument))
+        };
+
+        Process.Start(startInfo);
+
+        Current.Shutdown();
+    }
+
+    /// <summary>
+    /// 对命令行参数进行转义，使其在 <see cref="ProcessStartInfo.Arguments"/> 中保持原义。
+    /// </summary>
+    /// <param name="arg">原始参数。</param>
+    /// <returns>转义后的参数。</returns>
+    private static string QuoteArgument(string arg)
+    {
+        if (string.IsNullOrEmpty(arg)) return "\"\"";
+        if (arg.IndexOfAny(new[] { ' ', '\t', '"' }) < 0) return arg;
+        return "\"" + arg.Replace("\"", "\\\"") + "\"";
+    }
+
+    /// <summary>
     /// 当应用抛出异常但未被处理时发生。
     /// </summary>
     private async void OnDispatcherUnhandledException(

@@ -75,6 +75,10 @@
             <FolderName>top.plfjy.bpsys.GameStopwatch</FolderName>
             <PluginTargetFramework>net10.0-windows</PluginTargetFramework>
         </BuiltinPlugin>
+        <BuiltinPlugin Include="..\Built-inPlugins\neo-bpsys-wpf.FocusKeeper\neo-bpsys-wpf.FocusKeeper.csproj">
+            <FolderName>top.plfjy.bpsys.FocusKeeper</FolderName>
+            <PluginTargetFramework>net10.0-windows</PluginTargetFramework>
+        </BuiltinPlugin>
     </ItemGroup>
 
     <ItemGroup Condition="'$(Configuration)'=='Debug'">

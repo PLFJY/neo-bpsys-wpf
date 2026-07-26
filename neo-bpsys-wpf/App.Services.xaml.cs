@@ -53,6 +53,9 @@ public partial class App
         services.AddSingleton<IUpdaterService, UpdaterService>();
         services.AddSingleton<IGlobalRestartService, GlobalRestartService>();
 
+        // 进程权限检测（供 FocusKeeper 等需要跨进程注入的插件使用）
+        services.AddSingleton<IElevationService, ElevationService>();
+
         // Service containing navigation, same as INavigationWindow... but without window
         services.AddSingleton<Services.NavigationService>();
         services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<Services.NavigationService>());
