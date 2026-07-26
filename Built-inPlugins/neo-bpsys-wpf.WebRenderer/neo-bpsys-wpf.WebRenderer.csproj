@@ -19,7 +19,7 @@
     <None Include="..\..\icon.png" Link="icon.png" CopyToOutputDirectory="Always" />
   </ItemGroup>
   <Target Name="BuildWebRendererSidecar" BeforeTargets="Build">
-    <MSBuild Projects="Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Targets="Build" Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=false;WebRendererSkipWebBuild=$(WebRendererSkipWebBuild)" />
+    <MSBuild Projects="Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=false;WebRendererSkipWebBuild=$(WebRendererSkipWebBuild)" />
   </Target>
   <Target Name="CopyWebRendererSidecar" AfterTargets="Build">
     <RemoveDir Directories="$(OutDir)Host" />
