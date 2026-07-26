@@ -39,6 +39,17 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.33.3
+        run_install: false
+
     - name: Resolve build options
       id: build_options
       shell: pwsh
