@@ -216,6 +216,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
     /// <summary>
     /// 执行遮罩主操作：加载本地模块、下载并安装发布模块，或提示当前无法继续的原因。
+    /// 版本过旧时跳过本地加载，直接进入下载安装流程。
     /// </summary>
     /// <returns>加载或安装尝试完成后结束的任务。</returns>
     [RelayCommand]
@@ -224,17 +225,30 @@ public partial class SmartBpPageViewModel : ViewModelBase
         IsProgressVisible = true;
         IsProgressIndeterminate = false;
         ProgressValue = 0;
-        if (await _moduleManager.LoadModuleFromDirectoryAsync(SelectedModulePath))
+
+        if (!_moduleManager.IsModuleVersionOutdated)
         {
-            IsProgressVisible = false;
-            return;
+            if (await _moduleManager.LoadModuleFromDirectoryAsync(SelectedModulePath))
+            {
+                IsProgressVisible = false;
+                return;
+            }
         }
 
         if (IsDebugMode)
         {
             IsProgressVisible = false;
-            OverlayMessage = BuildLocalLoadFailureMessage(
-                L("SmartBpModuleDebugLocalLoadFailed"));
+            if (_moduleManager.IsModuleVersionOutdated)
+            {
+                _moduleManager.SetVersionOutdatedForDebug(false);
+                await _moduleManager.LoadModuleFromDirectoryAsync(SelectedModulePath);
+                OverlayMessage = "[DEBUG] 版本过旧标记已清除，模块已加载";
+            }
+            else
+            {
+                OverlayMessage = BuildLocalLoadFailureMessage(
+                    L("SmartBpModuleDebugLocalLoadFailed"));
+            }
             return;
         }
 
