@@ -9,10 +9,6 @@
         <RootNamespace>neo_bpsys_wpf.V3SourceGenerator</RootNamespace>
         <AssemblyName>neo-bpsys-wpf.V3SourceGenerator</AssemblyName>
         <Platforms>AnyCPU;x64</Platforms>
-        <!-- netstandard2.0 下自动生成 AssemblyInfo 会引用 System.Reflection / System.Runtime.Versioning
-             中的 attribute 类型，但 .NET 10 SDK 在还原 netstandard2.0 时不再自动带入这些 facade。
-             Source Generator 是工具程序集，不需要这些程序集元数据，直接禁用即可。 -->
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     </PropertyGroup>
 
     <ItemGroup>
