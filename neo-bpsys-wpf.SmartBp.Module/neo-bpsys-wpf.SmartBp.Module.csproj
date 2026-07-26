@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Configurations>Debug;Release;Beta;Preview</Configurations>
     <Platforms>AnyCPU;x64</Platforms>
     <AssemblyName>neo-bpsys-wpf.SmartBp.Module</AssemblyName>

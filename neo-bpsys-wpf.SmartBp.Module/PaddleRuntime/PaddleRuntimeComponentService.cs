@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 
-namespace neo_bpsys_wpf.Services.PaddleRuntime;
+namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
 /// <summary>
 /// Paddle CUDA runtime 组件安装 manifest，序列化写入 <c>install.json</c>。
@@ -56,6 +56,7 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
 
     private readonly ILogger<PaddleRuntimeComponentService> _logger;
     private readonly IPaddleRuntimeManifestProvider _manifestProvider;
+    private readonly ISmartBpModuleStorageProvider _moduleStorage;
 
     private readonly Lock _downloadLock = new();
     private readonly DownloadService _downloader;
@@ -98,16 +99,20 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
     /// <summary>
     /// 初始化 <see cref="PaddleRuntimeComponentService"/> 类的新实例。
     /// 创建长生命周期的 <see cref="DownloadService"/> 并订阅其进度与完成事件。
+    /// CUDA runtime 下载与安装到模块目录（<see cref="ISmartBpModuleStorageProvider.ModuleRoot"/>）下。
     /// </summary>
     /// <param name="logger">日志记录器。</param>
     /// <param name="manifestProvider">Paddle runtime manifest 提供者，用于构造 NuGet 下载 URL。</param>
-    /// <exception cref="ArgumentNullException"><paramref name="logger"/> 或 <paramref name="manifestProvider"/> 为 <see langword="null"/>。</exception>
+    /// <param name="moduleStorage">模块存储提供者，提供模块根目录用于存放下载与安装的 runtime 组件。</param>
+    /// <exception cref="ArgumentNullException">任一参数为 <see langword="null"/>。</exception>
     public PaddleRuntimeComponentService(
         ILogger<PaddleRuntimeComponentService> logger,
-        IPaddleRuntimeManifestProvider manifestProvider)
+        IPaddleRuntimeManifestProvider manifestProvider,
+        ISmartBpModuleStorageProvider moduleStorage)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
+        _moduleStorage = moduleStorage ?? throw new ArgumentNullException(nameof(moduleStorage));
 
         var downloadOpt = new DownloadConfiguration
         {
@@ -240,7 +245,7 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
         RaiseDownloadStateChanged();
 
         var downloadUrl = _manifestProvider.GetNuGetDownloadUrl(package);
-        var tempDownloadDir = Path.Combine(AppConstants.AppTempPath, TempDownloadFolderName);
+        var tempDownloadDir = Path.Combine(_moduleStorage.ModuleRoot, TempDownloadFolderName);
         Directory.CreateDirectory(tempDownloadDir);
         _pendingDownloadPath = Path.Combine(tempDownloadDir, $"{package.PackageId}.{package.Version}.nupkg");
 
@@ -623,13 +628,16 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
     }
 
     /// <summary>
-    /// 计算最终安装目录：<c>{CudaPaddleRuntimeBasePath}/cuda/{PaddleInferenceRuntimeVersion}/{PackageId}</c>。
+    /// 计算最终安装目录：<c>{ModuleRoot}/Runtime/Paddle/cuda/{PaddleInferenceRuntimeVersion}/{PackageId}</c>。
+    /// CUDA runtime 安装在模块目录下，与模块版本绑定。
     /// </summary>
     /// <param name="packageId">包 ID。</param>
     /// <returns>最终安装目录绝对路径。</returns>
-    private static string GetFinalInstallDirectory(string packageId)
+    private string GetFinalInstallDirectory(string packageId)
         => Path.Combine(
-            AppConstants.CudaPaddleRuntimeBasePath,
+            _moduleStorage.ModuleRoot,
+            "Runtime",
+            "Paddle",
             "cuda",
             AppConstants.PaddleInferenceRuntimeVersion,
             packageId);
@@ -665,13 +673,13 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
     }
 
     /// <summary>
-    /// 在 <c>{CudaPaddleRuntimeBasePath}/cuda/</c> 下查找已安装的组件。
+    /// 在 <c>{ModuleRoot}/Runtime/Paddle/cuda/</c> 下查找已安装的组件。
     /// 优先返回版本匹配的条目；其次返回版本不匹配的条目；都没有时返回 <see langword="null"/>。
     /// </summary>
     /// <returns>找到的安装条目（目录、manifest、版本是否匹配）；未找到时为 <see langword="null"/>。</returns>
     private FoundInstall? FindInstalledPackage()
     {
-        var cudaRoot = Path.Combine(AppConstants.CudaPaddleRuntimeBasePath, "cuda");
+        var cudaRoot = Path.Combine(_moduleStorage.ModuleRoot, "Runtime", "Paddle", "cuda");
         if (!Directory.Exists(cudaRoot))
             return null;
 

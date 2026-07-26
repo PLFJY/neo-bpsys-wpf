@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using CUresult = System.Int32;
 using CUdevice = System.Int32;
 
-namespace neo_bpsys_wpf.Services.Cuda;
+namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
 /// <summary>
 /// 通过 <see cref="LibraryImportAttribute"/> 源生成器声明 NVIDIA CUDA Driver API（<c>nvcuda.dll</c>）的 P/Invoke 入口。

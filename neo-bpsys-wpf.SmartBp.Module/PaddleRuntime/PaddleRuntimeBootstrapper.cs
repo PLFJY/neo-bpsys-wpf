@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 
-namespace neo_bpsys_wpf.Services.PaddleRuntime;
+namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
 /// <summary>
 /// <see cref="IPaddleRuntimeBootstrapper"/> 的实现。在 SmartBP 模块加载前、
@@ -265,8 +265,27 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
         if (TryLoadNativeRuntime(cudaRuntimeDirectory, out var cudaModulePath))
         {
             _logger.LogInformation(
-                "CUDA Paddle runtime loaded successfully. ModulePath={ModulePath}",
-                cudaModulePath);
+                "CUDA Paddle runtime native DLL loaded. ModulePath={ModulePath}", cudaModulePath);
+
+            // 真实 GPU Predictor probe：LoadLibrary 成功 ≠ Predictor 能在 GPU 上跑。
+            // runtime 与驱动/cuDNN 不匹配、显存初始化失败等只在实际创建 Predictor 时才暴露。
+            // probe 失败则回退 CPU，避免 UI 显示 CUDA 启用但实际推理走 CPU 的假状态。
+            if (!PaddleRuntimeProbe.TryProbeCudaPredictor(selectedDevice.DeviceId, _logger))
+            {
+                _logger.LogWarning(
+                    "CUDA Predictor probe failed. Falling back to CPU. DeviceId={DeviceId}",
+                    selectedDevice.DeviceId);
+                LoadCpuAndCommit(
+                    devices: devices,
+                    selectedDevice: selectedDevice,
+                    cudaInstalled: cudaInstalled,
+                    cudaCompatible: cudaCompatible,
+                    error: "CUDA Predictor probe failed. Runtime may not match the installed driver or cuDNN.");
+                return;
+            }
+
+            _logger.LogInformation(
+                "CUDA Paddle runtime ready (probe passed). ModulePath={ModulePath}", cudaModulePath);
             _state.SetDetectedDevices(devices, selectedDevice);
             _state.SetCudaRuntimeStatus(cudaInstalled, cudaCompatible);
             _state.SetActiveBackend(OcrInferenceBackend.Cuda, selectedDevice.DeviceId, cudaModulePath);

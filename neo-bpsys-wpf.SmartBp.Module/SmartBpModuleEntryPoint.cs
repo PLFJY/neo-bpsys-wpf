@@ -35,6 +35,10 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         var logger = hostServices.GetService<ILogger<SmartBpModuleEntryPoint>>();
         logger?.LogInformation("Creating SmartBP module content.");
         _serviceProvider ??= BuildServices(hostServices);
+        // 在创建任何 OCR 服务前完成 Paddle native runtime 的选择与加载。
+        // 参照原 App.OnStartup 的 bootstrap，但所有权归 Module。
+        // forceCpuOcr 恒为 false：移除 --force-cpu-ocr 强制机制，靠 bootstrap 探测回退。
+        _serviceProvider.GetRequiredService<IPaddleRuntimeBootstrapper>().Bootstrap(forceCpu: false);
         var view = ActivatorUtilities.CreateInstance<SmartBpModuleContentView>(_serviceProvider);
         view.DataContext = _serviceProvider.GetRequiredService<SmartBpModuleContentViewModel>();
         logger?.LogInformation("SmartBP module content created.");
@@ -75,12 +79,14 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton(hostServices.GetRequiredService<IFilePickerService>());
         services.AddSingleton(hostServices.GetRequiredService<IInfoBarService>());
         services.AddSingleton(hostServices.GetRequiredService<ISettingsHostService>());
-        services.AddSingleton(hostServices.GetRequiredService<IPaddleRuntimeState>());
         services.AddSingleton(hostServices.GetRequiredService<IGlobalRestartService>());
-        // CUDA / Paddle runtime 组件管理服务，用于 SmartBP 页面 CUDA 硬件加速设置卡片。
-        services.AddSingleton(hostServices.GetRequiredService<ICudaDeviceDetector>());
-        services.AddSingleton(hostServices.GetRequiredService<IPaddleRuntimeComponentService>());
-        services.AddSingleton(hostServices.GetRequiredService<IPaddleRuntimeManifestProvider>());
+        // Paddle / CUDA runtime 实现由 Module 自持（不再从宿主桥接）。
+        // 实现类位于 neo_bpsys_wpf.SmartBp.Module.PaddleRuntime 命名空间，接口位于 Core。
+        services.AddSingleton<ICudaDeviceDetector, PaddleRuntime.CudaDeviceDetector>();
+        services.AddSingleton<IPaddleRuntimeManifestProvider, PaddleRuntime.PaddleRuntimeManifestProvider>();
+        services.AddSingleton<IPaddleRuntimeComponentService, PaddleRuntime.PaddleRuntimeComponentService>();
+        services.AddSingleton<IPaddleRuntimeState, PaddleRuntime.PaddleRuntimeState>();
+        services.AddSingleton<IPaddleRuntimeBootstrapper, PaddleRuntime.PaddleRuntimeBootstrapper>();
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpModuleStorageProvider>());
         services.AddSingleton(hostServices.GetRequiredService<IGitHubDownloadUrlResolver>());

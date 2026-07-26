@@ -2,7 +2,7 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 
-namespace neo_bpsys_wpf.Services.Cuda;
+namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
 /// <summary>
 /// 可 mock 的 CUDA Driver API 调用抽象，供 <see cref="CudaDeviceDetector"/> 间接调用 <see cref="CudaNativeMethods"/>。

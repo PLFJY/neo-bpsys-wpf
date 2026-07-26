@@ -502,9 +502,11 @@ public sealed class PaddleOcrProvider : IOcrProvider
     }
 
     /// <summary>
-    /// 在 CUDA 后端下检测到 CUDA 相关异常时，记录故障信息并标记需要重启。
+    /// 在 CUDA 后端下检测到明确的 CUDA runtime 故障时，记录故障信息并标记需要重启。
     /// 仅当 <see cref="IPaddleRuntimeState.ActiveBackend"/> 为 <see cref="OcrInferenceBackend.Cuda"/>
-    /// 且异常符合 CUDA 相关特征时才触发，避免普通 OCR 失误误触发重启。
+    /// （bootstrap 已通过 GPU Predictor probe）且异常明确指向 CUDA 库加载/初始化失败时才触发。
+    /// 普通的 OCR 推理失败（模型问题、图像格式、内存不足、SEHException 等）不触发重启，
+    /// 避免误判导致用户被反复要求重启。
     /// </summary>
     /// <param name="ex">捕获的异常。</param>
     private void RecordCudaFailureIfNeeded(Exception ex)
@@ -512,32 +514,33 @@ public sealed class PaddleOcrProvider : IOcrProvider
         if (_runtimeState.ActiveBackend != OcrInferenceBackend.Cuda)
             return;
 
-        if (!IsCudaRelatedException(ex))
+        if (!IsCudaRuntimeFailure(ex))
             return;
 
         _settingsHostService.Settings.LastCudaFailure = ex.Message;
         _settingsHostService.Settings.LastCudaFailureRuntimeVersion = AppConstants.PaddleInferenceRuntimeVersion;
         _ = _settingsHostService.SaveConfigAsync();
         _globalRestartService.IsRestartRequired = true;
-        _logger.LogError(ex, "CUDA-related OCR failure detected, restart required.");
+        _logger.LogError(ex, "CUDA runtime failure detected, restart required.");
     }
 
     /// <summary>
-    /// 判断异常是否与 CUDA 相关。匹配异常类型名、消息文本中的 CUDA 关键字，
-    /// 以及 <see cref="System.Runtime.InteropServices.SEHException"/>（原生 CUDA 调用崩溃常见）。
+    /// 判断异常是否明确指向 CUDA runtime 库加载或初始化失败。
+    /// 仅匹配确定性的 CUDA 库缺失/加载失败关键字，不把 <see cref="System.Runtime.InteropServices.SEHException"/>
+    /// 或泛义的 "cuda" 子串匹配当作 CUDA 故障——这些可能来自任何 native 崩溃或无关异常消息。
     /// </summary>
     /// <param name="ex">待判断的异常。</param>
-    /// <returns>属于 CUDA 相关异常返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
-    private static bool IsCudaRelatedException(Exception ex)
+    /// <returns>明确为 CUDA runtime 库故障返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
+    private static bool IsCudaRuntimeFailure(Exception ex)
     {
-        if (ex is System.Runtime.InteropServices.SEHException)
-            return true;
-
         var text = ex.GetType().Name + " " + (ex.Message ?? string.Empty);
-        return text.Contains("cuda", StringComparison.OrdinalIgnoreCase)
+        return text.Contains("cublas", StringComparison.OrdinalIgnoreCase)
             || text.Contains("cudnn", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("cublas", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("cudart", StringComparison.OrdinalIgnoreCase);
+            || text.Contains("cudart", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("cudart64", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("nvcuda", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("unable to load", StringComparison.OrdinalIgnoreCase)
+               && text.Contains("cuda", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

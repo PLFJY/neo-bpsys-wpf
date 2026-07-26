@@ -133,12 +133,6 @@ public partial class App : AppBase
         Application.Current.Resources["CurrentLanguage"] = XmlLanguage.GetLanguage(settingService.Settings.CultureInfo.Name);
         ProductTourFontResourceHelper.Apply(settingService.Settings.CultureInfo);
 
-        // 在 Host 启动前选择并加载 Paddle native runtime（CPU 或 CUDA），
-        // 确保后续 SmartBP 模块加载与 OCR 推理时 native runtime 已就绪
-        var paddleBootstrapper = IAppHost.Host.Services.GetRequiredService<IPaddleRuntimeBootstrapper>();
-        var forceCpuOcr = Array.IndexOf(e.Args, "--force-cpu-ocr") >= 0;
-        paddleBootstrapper.Bootstrap(forceCpuOcr);
-
         //启动host
         await IAppHost.Host.StartAsync();
         var bpuiFileActivationService = IAppHost.Host.Services.GetRequiredService<IBpuiFileActivationService>();
@@ -181,12 +175,7 @@ public partial class App : AppBase
     /// <summary>
     /// 重启应用程序，可附加额外的命令行参数。
     /// </summary>
-    /// <param name="additionalArgs">要附加到新进程的命令行参数；为 <see langword="null"/> 时不附加额外参数。</param>
-    /// <remarks>
-    /// 当 <paramref name="additionalArgs"/> 为 <see langword="null"/> 且设置中存在 CUDA 故障记录
-    /// （<see cref="Core.Models.Settings.LastCudaFailure"/> 非空）时，自动附加 <c>--force-cpu-ocr</c> 参数，
-    /// 使重启后强制使用 CPU OCR 后端，避免 CUDA 故障循环。已存在的 <c>--force-cpu-ocr</c> 不会重复添加。
-    /// </remarks>
+    /// <param name="additionalArgs">要附加到新进程的命令行参数；为 <see langword="null"/> 时不附加额外参数，直接用当前进程参数重启。</param>
     public void Restart(string[]? additionalArgs)
     {
         var exePath = ResourceAssembly.Location.Replace(".dll", ".exe");
@@ -194,28 +183,10 @@ public partial class App : AppBase
         // 保留当前进程的命令行参数（跳过可执行文件路径）
         var args = new List<string>(Environment.GetCommandLineArgs().Skip(1));
 
-        if (additionalArgs is null)
-        {
-            // 无显式附加参数时，若存在 CUDA 故障记录则自动附加 --force-cpu-ocr
-            var lastCudaFailure = IAppHost.Host.Services
-                .GetRequiredService<ISettingsHostService>()
-                .Settings.LastCudaFailure;
-            if (!string.IsNullOrEmpty(lastCudaFailure)
-                && !args.Contains("--force-cpu-ocr", StringComparer.Ordinal))
-            {
-                args.Add("--force-cpu-ocr");
-            }
-        }
-        else
+        if (additionalArgs is not null)
         {
             foreach (var arg in additionalArgs)
             {
-                // 避免重复包含已有的 --force-cpu-ocr
-                if (arg == "--force-cpu-ocr"
-                    && args.Contains("--force-cpu-ocr", StringComparer.Ordinal))
-                {
-                    continue;
-                }
                 args.Add(arg);
             }
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 
-namespace neo_bpsys_wpf.Services.PaddleRuntime;
+namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
 /// <summary>
 /// <see cref="IPaddleRuntimeState"/> 的实现。持有当前进程实际加载的 Paddle runtime 状态，

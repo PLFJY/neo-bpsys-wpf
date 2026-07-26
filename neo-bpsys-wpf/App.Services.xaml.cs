@@ -11,9 +11,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.Services.Cuda;
 using neo_bpsys_wpf.Services.FrontedDesigner;
-using neo_bpsys_wpf.Services.PaddleRuntime;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
@@ -97,13 +95,6 @@ public partial class App
         services.AddSingleton<ISnackbarService, SnackbarService>();
         services.AddSingleton<IContentDialogService, ContentDialogService>();
         services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
-
-        // Paddle runtime bootstrap：必须在 SmartBP 模块加载前完成 native runtime 选择与加载
-        services.AddSingleton<ICudaDeviceDetector, CudaDeviceDetector>();
-        services.AddSingleton<IPaddleRuntimeManifestProvider, PaddleRuntimeManifestProvider>();
-        services.AddSingleton<IPaddleRuntimeComponentService, PaddleRuntimeComponentService>();
-        services.AddSingleton<IPaddleRuntimeState, PaddleRuntimeState>();
-        services.AddSingleton<IPaddleRuntimeBootstrapper, PaddleRuntimeBootstrapper>();
 
         services.AddSingleton<SmartBpModuleManager>();
         services.AddSingleton<ISmartBpFeatureService, SmartBpFeatureService>();

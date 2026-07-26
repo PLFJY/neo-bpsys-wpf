@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 
 // NOTE: PackageHashSha256 占位值，需在有网络环境时通过 Phase 5 脚本计算填入
 
-namespace neo_bpsys_wpf.Services.PaddleRuntime;
+namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
 /// <summary>
 /// Paddle runtime 固定 manifest 提供者。维护 GPU Compute Capability 到
