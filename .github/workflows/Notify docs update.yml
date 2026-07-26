@@ -10,10 +10,32 @@ jobs:
   notify-docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Notify docs repo to update
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.DOCS_REPO_PAT }}
-          repository: PLFJY/neo-bpsys-docs-next
-          event-type: docs-update
-          client-payload: '{"source_repo": "${{ github.repository }}", "source_sha": "${{ github.sha }}"}'
+      - name: Trigger docs repo workflow
+        shell: pwsh
+        env:
+          TOKEN: ${{ secrets.TRIGGER_DOCS_BUILD }}
+          OWNER: PLFJY
+          REPO: neo-bpsys-docs-next
+          WORKFLOW_FILE: deploy-docs.yml
+          REF: main
+        run: |
+          $uri = "https://api.github.com/repos/$env:OWNER/$env:REPO/actions/workflows/$env:WORKFLOW_FILE/dispatches"
+
+          $body = @{
+            ref    = $env:REF
+            inputs = @{
+              source_repo = "${{ github.repository }}"
+              source_sha  = "${{ github.sha }}"
+            }
+          } | ConvertTo-Json -Depth 10
+
+          $headers = @{
+            "Accept"        = "application/vnd.github+json"
+            "Authorization" = "Bearer $env:TOKEN"
+            "User-Agent"    = "gh-actions-trigger"
+          }
+
+          Write-Host "Dispatching workflow to: $uri"
+          Write-Host "Body: $body"
+
+          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body -ContentType "application/json"
