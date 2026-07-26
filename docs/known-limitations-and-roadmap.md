@@ -8,6 +8,7 @@
 | --- | --- |
 | 赛后数据 OCR 自动回填 | 成熟且可用；整表 OCR 后按文本边界框重建行列 |
 | PaddleOCR BP 状态识别 | 默认 OCR Provider；读取文字与边界框，本地解析阶段、禁用、选择与玩家 ID |
+| PaddleOCR NVIDIA CUDA 加速 | 可选；拥有受支持的 NVIDIA GPU 时，用户可在 SmartBP 设置卡片下载匹配的 CUDA runtime 组件并启用 GPU 推理；CPU/GPU native runtime 物理隔离，故障自动回退 CPU，不预装进主安装包 |
 | Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
 | 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 模块移除；BP 状态识别仅支持 OCR Provider |
 | GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |

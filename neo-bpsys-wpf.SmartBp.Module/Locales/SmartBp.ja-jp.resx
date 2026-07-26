@@ -951,4 +951,67 @@
   <data name="UnknownError" xml:space="preserve">
     <value>不明なエラー</value>
   </data>
+  <data name="CudaHardwareAcceleration" xml:space="preserve">
+    <value>CUDA ハードウェア アクセラレーション</value>
+  </data>
+  <data name="CudaDescription" xml:space="preserve">
+    <value>NVIDIA GPU を使用して Paddle OCR を加速</value>
+  </data>
+  <data name="CudaDetectedGpu" xml:space="preserve">
+    <value>検出された GPU</value>
+  </data>
+  <data name="CudaCurrentStatus" xml:space="preserve">
+    <value>現在の状態</value>
+  </data>
+  <data name="CudaEnableAcceleration" xml:space="preserve">
+    <value>CUDA ハードウェア アクセラレーションを有効化</value>
+  </data>
+  <data name="CudaCancelDownload" xml:space="preserve">
+    <value>ダウンロードをキャンセル</value>
+  </data>
+  <data name="CudaRestartRequiredHint" xml:space="preserve">
+    <value>変更を適用するには再起動が必要です</value>
+  </data>
+  <data name="CudaRestartNow" xml:space="preserve">
+    <value>今すぐ再起動</value>
+  </data>
+  <data name="CudaStatusEnabled" xml:space="preserve">
+    <value>CUDA 有効</value>
+  </data>
+  <data name="CudaStatusRestartRequired" xml:space="preserve">
+    <value>再起動待ち</value>
+  </data>
+  <data name="CudaStatusDownloading" xml:space="preserve">
+    <value>ダウンロード中</value>
+  </data>
+  <data name="CudaStatusVersionMismatch" xml:space="preserve">
+    <value>コンポーネントのバージョンが互換性なし、再ダウンロードが必要</value>
+  </data>
+  <data name="CudaStatusSupportedNotInstalled" xml:space="preserve">
+    <value>サポート済み、コンポーネント未インストール</value>
+  </data>
+  <data name="CudaStatusFailedFallback" xml:space="preserve">
+    <value>CUDA 初期化失敗、CPU にフォールバック</value>
+  </data>
+  <data name="CudaStatusUnavailable" xml:space="preserve">
+    <value>利用不可</value>
+  </data>
+  <data name="CudaStatusUsingCpu" xml:space="preserve">
+    <value>現在 CPU 使用中</value>
+  </data>
+  <data name="CudaInstallFailed" xml:space="preserve">
+    <value>インストール失敗</value>
+  </data>
+  <data name="CudaDownloadDependency" xml:space="preserve">
+    <value>CUDA ランタイム依存関係をダウンロード</value>
+  </data>
+  <data name="CudaDependencyRequiredHint" xml:space="preserve">
+    <value>ハードウェア アクセラレーションを有効化する前に CUDA ランタイム依存関係をダウンロードしてください</value>
+  </data>
+  <data name="CudaStatusDependencyReady" xml:space="preserve">
+    <value>依存関係の準備完了、ハードウェア アクセラレーションを有効化できます</value>
+  </data>
+  <data name="CudaStatusDownloadFailed" xml:space="preserve">
+    <value>ダウンロード失敗、再試行してください</value>
+  </data>
 </root>

@@ -951,4 +951,67 @@
   <data name="UnknownError" xml:space="preserve">
     <value>未知错误</value>
   </data>
+  <data name="CudaHardwareAcceleration" xml:space="preserve">
+    <value>CUDA 硬件加速</value>
+  </data>
+  <data name="CudaDescription" xml:space="preserve">
+    <value>使用 NVIDIA GPU 加速 Paddle OCR</value>
+  </data>
+  <data name="CudaDetectedGpu" xml:space="preserve">
+    <value>检测到的显卡</value>
+  </data>
+  <data name="CudaCurrentStatus" xml:space="preserve">
+    <value>当前状态</value>
+  </data>
+  <data name="CudaEnableAcceleration" xml:space="preserve">
+    <value>启用 CUDA 硬件加速</value>
+  </data>
+  <data name="CudaCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="CudaRestartRequiredHint" xml:space="preserve">
+    <value>需要重启应用以应用更改</value>
+  </data>
+  <data name="CudaRestartNow" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="CudaStatusEnabled" xml:space="preserve">
+    <value>CUDA 已启用</value>
+  </data>
+  <data name="CudaStatusRestartRequired" xml:space="preserve">
+    <value>等待重启</value>
+  </data>
+  <data name="CudaStatusDownloading" xml:space="preserve">
+    <value>正在下载</value>
+  </data>
+  <data name="CudaStatusVersionMismatch" xml:space="preserve">
+    <value>组件版本不兼容，需要重新下载</value>
+  </data>
+  <data name="CudaStatusSupportedNotInstalled" xml:space="preserve">
+    <value>支持，但组件未安装</value>
+  </data>
+  <data name="CudaStatusFailedFallback" xml:space="preserve">
+    <value>CUDA 初始化失败，已回退 CPU</value>
+  </data>
+  <data name="CudaStatusUnavailable" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="CudaStatusUsingCpu" xml:space="preserve">
+    <value>当前使用 CPU</value>
+  </data>
+  <data name="CudaInstallFailed" xml:space="preserve">
+    <value>安装失败</value>
+  </data>
+  <data name="CudaDownloadDependency" xml:space="preserve">
+    <value>下载 CUDA 运行时依赖</value>
+  </data>
+  <data name="CudaDependencyRequiredHint" xml:space="preserve">
+    <value>需要先下载 CUDA 运行时依赖才能启用硬件加速</value>
+  </data>
+  <data name="CudaStatusDependencyReady" xml:space="preserve">
+    <value>依赖已就绪，可启用硬件加速</value>
+  </data>
+  <data name="CudaStatusDownloadFailed" xml:space="preserve">
+    <value>下载失败，请重试</value>
+  </data>
 </root>

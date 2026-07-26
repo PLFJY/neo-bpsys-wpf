@@ -96,6 +96,24 @@ public static class AppConstants
     /// </summary>
     public static readonly string PluginConfigsPath = Path.Combine(AppDataPath, "PluginConfigs");
 
+    /// <summary>
+    /// Paddle runtime 根目录（随主程序发布，包含 CPU native DLL）。
+    /// </summary>
+    public static readonly string PaddleRuntimeBasePath =
+        Path.Combine(AppContext.BaseDirectory, "Components", "PaddleRuntime");
+
+    /// <summary>
+    /// 用户下载的 Paddle CUDA runtime 根目录（AppData 下）。
+    /// </summary>
+    public static readonly string CudaPaddleRuntimeBasePath =
+        Path.Combine(AppDataPath, "Components", "PaddleRuntime");
+
+    /// <summary>
+    /// 当前 Sdcb.PaddleInference runtime 的固定版本号。
+    /// 必须与 <c>Sdcb.PaddleInference.runtime.win64.mkl</c> NuGet 包版本一致。
+    /// </summary>
+    public const string PaddleInferenceRuntimeVersion = "3.3.1.70";
+
     #endregion
 
     #region Counts

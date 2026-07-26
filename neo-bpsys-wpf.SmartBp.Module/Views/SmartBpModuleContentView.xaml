@@ -359,6 +359,110 @@
         </Border>
 
         <Border
+            x:Name="SmartBpCudaSettingsCard"
+            Margin="0,0,0,10"
+            d:Visibility="Visible"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsCudaCardVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc CudaHardwareAcceleration}" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc CudaDescription}"
+                    TextWrapping="Wrap" />
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{lex:Loc CudaDetectedGpu}" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Text="{Binding CudaDeviceName}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{lex:Loc CudaCurrentStatus}" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        FontWeight="SemiBold"
+                        Text="{Binding CudaStatusText}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <ui:ToggleSwitch
+                    Margin="0,10,0,0"
+                    Command="{Binding ToggleCudaCommand}"
+                    Content="{lex:Loc CudaEnableAcceleration}"
+                    IsChecked="{Binding IsCudaEnabled, Mode=TwoWay}"
+                    IsEnabled="{Binding CanToggleCuda}" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    d:Visibility="Visible"
+                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                    Text="{Binding CudaUnsupportedReason}"
+                    TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CudaUnsupportedReason}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <StackPanel
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Visibility="{Binding CanDownloadCudaDependency, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc CudaDependencyRequiredHint}"
+                        TextWrapping="Wrap" />
+                    <ui:Button
+                        Margin="0,8,0,0"
+                        Command="{Binding DownloadCudaDependencyCommand}"
+                        Content="{lex:Loc CudaDownloadDependency}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                </StackPanel>
+                <StackPanel
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Orientation="Horizontal"
+                    Visibility="{Binding IsCudaDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ui:ProgressRing
+                        Width="26"
+                        Height="26"
+                        IsIndeterminate="True" />
+                    <ProgressBar
+                        Width="175"
+                        Height="20"
+                        Margin="10,0,0,0"
+                        Maximum="100"
+                        Value="{Binding CudaDownloadProgress}" />
+                    <TextBlock
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding CudaDownloadProgressText}" />
+                    <TextBlock
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding CudaDownloadSpeedText}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding CancelCudaDownloadCommand}"
+                        Content="{lex:Loc CudaCancelDownload}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                </StackPanel>
+                <TextBlock
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                    Text="{lex:Loc CudaRestartRequiredHint}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding IsCudaRestartRequired, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Border
             x:Name="SmartBpPostGamePreviewPanel"
             Margin="0,0,0,10"
             Style="{StaticResource Card}">

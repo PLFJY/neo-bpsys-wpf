@@ -24,6 +24,8 @@ public sealed class PaddleOcrProvider : IOcrProvider
 {
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<PaddleOcrProvider> _logger;
+    private readonly IPaddleRuntimeState _runtimeState;
+    private readonly IGlobalRestartService _globalRestartService;
     private readonly Lock _ocrLock = new();
     private readonly Lock _downloadLock = new();
 
@@ -79,13 +81,19 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// <param name="settingsHostService">设置服务。</param>
     /// <param name="logger">日志记录器。</param>
     /// <param name="modelPathProvider">OCR 模型路径提供器。</param>
+    /// <param name="runtimeState">Paddle runtime 运行时状态，用于决定推理后端（CPU/CUDA）。</param>
+    /// <param name="globalRestartService">全局重启服务，用于在 CUDA 故障时标记需要重启。</param>
     public PaddleOcrProvider(
         ISettingsHostService settingsHostService,
         ILogger<PaddleOcrProvider> logger,
-        ISmartBpOcrModelPathProvider modelPathProvider)
+        ISmartBpOcrModelPathProvider modelPathProvider,
+        IPaddleRuntimeState runtimeState,
+        IGlobalRestartService globalRestartService)
     {
         _settingsHostService = settingsHostService;
         _logger = logger;
+        _runtimeState = runtimeState;
+        _globalRestartService = globalRestartService;
         SmartBpOcrModelRegistry.ConfigurePathProvider(modelPathProvider);
     }
 
@@ -315,6 +323,22 @@ public sealed class PaddleOcrProvider : IOcrProvider
     }
 
     /// <summary>
+    /// 基于 <see cref="IPaddleRuntimeState.ActiveBackend"/> 创建 Paddle 设备配置。
+    /// 统一所有 PaddleOcrAll 创建路径的后端决策，避免分散硬编码 Mkldnn。
+    /// </summary>
+    /// <returns>Paddle 设备配置委托。</returns>
+    private Action<PaddleConfig> CreatePaddleDevice()
+    {
+        return _runtimeState.ActiveBackend switch
+        {
+            OcrInferenceBackend.Cuda => PaddleDevice.Gpu(
+                initialMemoryMB: 1024,
+                deviceId: _runtimeState.ActiveCudaDeviceId),
+            _ => PaddleDevice.Mkldnn()
+        };
+    }
+
+    /// <summary>
     /// 尝试切换当前 OCR 模型并加载推理实例。
     /// </summary>
     /// <param name="modelKey">模型键。</param>
@@ -339,7 +363,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
         try
         {
             var fullModel = BuildLocalFullModel(modelKey, definition);
-            var nextOcr = new PaddleOcrAll(fullModel, PaddleDevice.Mkldnn());
+            var nextOcr = new PaddleOcrAll(fullModel, CreatePaddleDevice());
 
             lock (_ocrLock)
             {
@@ -457,6 +481,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "OCR run failed, trying to rebuild OCR predictor and retry once.");
+            RecordCudaFailureIfNeeded(ex);
             if (!TryRebuildCurrentOcrUnsafe())
             {
                 _logger.LogError("OCR rebuild failed, recognition aborted.");
@@ -470,9 +495,49 @@ public sealed class PaddleOcrProvider : IOcrProvider
             catch (Exception retryEx)
             {
                 _logger.LogError(retryEx, "OCR retry failed after rebuild.");
+                RecordCudaFailureIfNeeded(retryEx);
                 return null;
             }
         }
+    }
+
+    /// <summary>
+    /// 在 CUDA 后端下检测到 CUDA 相关异常时，记录故障信息并标记需要重启。
+    /// 仅当 <see cref="IPaddleRuntimeState.ActiveBackend"/> 为 <see cref="OcrInferenceBackend.Cuda"/>
+    /// 且异常符合 CUDA 相关特征时才触发，避免普通 OCR 失误误触发重启。
+    /// </summary>
+    /// <param name="ex">捕获的异常。</param>
+    private void RecordCudaFailureIfNeeded(Exception ex)
+    {
+        if (_runtimeState.ActiveBackend != OcrInferenceBackend.Cuda)
+            return;
+
+        if (!IsCudaRelatedException(ex))
+            return;
+
+        _settingsHostService.Settings.LastCudaFailure = ex.Message;
+        _settingsHostService.Settings.LastCudaFailureRuntimeVersion = AppConstants.PaddleInferenceRuntimeVersion;
+        _ = _settingsHostService.SaveConfigAsync();
+        _globalRestartService.IsRestartRequired = true;
+        _logger.LogError(ex, "CUDA-related OCR failure detected, restart required.");
+    }
+
+    /// <summary>
+    /// 判断异常是否与 CUDA 相关。匹配异常类型名、消息文本中的 CUDA 关键字，
+    /// 以及 <see cref="System.Runtime.InteropServices.SEHException"/>（原生 CUDA 调用崩溃常见）。
+    /// </summary>
+    /// <param name="ex">待判断的异常。</param>
+    /// <returns>属于 CUDA 相关异常返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
+    private static bool IsCudaRelatedException(Exception ex)
+    {
+        if (ex is System.Runtime.InteropServices.SEHException)
+            return true;
+
+        var text = ex.GetType().Name + " " + (ex.Message ?? string.Empty);
+        return text.Contains("cuda", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("cudnn", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("cublas", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("cudart", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -564,7 +629,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
         try
         {
             var fullModel = BuildLocalFullModel(CurrentOcrModelKey, definition);
-            var rebuilt = new PaddleOcrAll(fullModel, PaddleDevice.Mkldnn())
+            var rebuilt = new PaddleOcrAll(fullModel, CreatePaddleDevice())
             {
                 AllowRotateDetection = false,
                 Enable180Classification = false

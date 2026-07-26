@@ -951,4 +951,67 @@
   <data name="UnknownError" xml:space="preserve">
     <value>Unknown error</value>
   </data>
+  <data name="CudaHardwareAcceleration" xml:space="preserve">
+    <value>CUDA Hardware Acceleration</value>
+  </data>
+  <data name="CudaDescription" xml:space="preserve">
+    <value>Use NVIDIA GPU to accelerate Paddle OCR</value>
+  </data>
+  <data name="CudaDetectedGpu" xml:space="preserve">
+    <value>Detected GPU</value>
+  </data>
+  <data name="CudaCurrentStatus" xml:space="preserve">
+    <value>Current Status</value>
+  </data>
+  <data name="CudaEnableAcceleration" xml:space="preserve">
+    <value>Enable CUDA Hardware Acceleration</value>
+  </data>
+  <data name="CudaCancelDownload" xml:space="preserve">
+    <value>Cancel Download</value>
+  </data>
+  <data name="CudaRestartRequiredHint" xml:space="preserve">
+    <value>Restart required to apply changes</value>
+  </data>
+  <data name="CudaRestartNow" xml:space="preserve">
+    <value>Restart Now</value>
+  </data>
+  <data name="CudaStatusEnabled" xml:space="preserve">
+    <value>CUDA Enabled</value>
+  </data>
+  <data name="CudaStatusRestartRequired" xml:space="preserve">
+    <value>Restart Required</value>
+  </data>
+  <data name="CudaStatusDownloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="CudaStatusVersionMismatch" xml:space="preserve">
+    <value>Component version incompatible, re-download required</value>
+  </data>
+  <data name="CudaStatusSupportedNotInstalled" xml:space="preserve">
+    <value>Supported, but component not installed</value>
+  </data>
+  <data name="CudaStatusFailedFallback" xml:space="preserve">
+    <value>CUDA initialization failed, fell back to CPU</value>
+  </data>
+  <data name="CudaStatusUnavailable" xml:space="preserve">
+    <value>Unavailable</value>
+  </data>
+  <data name="CudaStatusUsingCpu" xml:space="preserve">
+    <value>Currently using CPU</value>
+  </data>
+  <data name="CudaInstallFailed" xml:space="preserve">
+    <value>Installation Failed</value>
+  </data>
+  <data name="CudaDownloadDependency" xml:space="preserve">
+    <value>Download CUDA Runtime Dependency</value>
+  </data>
+  <data name="CudaDependencyRequiredHint" xml:space="preserve">
+    <value>Download the CUDA runtime dependency before enabling hardware acceleration</value>
+  </data>
+  <data name="CudaStatusDependencyReady" xml:space="preserve">
+    <value>Dependency ready, hardware acceleration can be enabled</value>
+  </data>
+  <data name="CudaStatusDownloadFailed" xml:space="preserve">
+    <value>Download failed, please retry</value>
+  </data>
 </root>

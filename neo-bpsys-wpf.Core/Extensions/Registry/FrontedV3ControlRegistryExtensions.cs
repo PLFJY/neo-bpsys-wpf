@@ -24,6 +24,10 @@ namespace neo_bpsys_wpf.PluginSdk;
 /// 属性通过控件类上的 <c>public static readonly FrontedV3Property&lt;T&gt;</c> 字段声明，
 /// 框架在注册时通过反射发现并转换为 <see cref="FrontedV3PropertyDefinition"/>。
 /// </para>
+/// <para>
+/// 本类型定义在 Core 程序集，命名空间为 <c>neo_bpsys_wpf.PluginSdk</c> 以保持插件 API 兼容。
+/// PluginSdk 项目本身只是构建期空壳（提供 .targets 与打包工具），不携带运行时程序集。
+/// </para>
 /// </remarks>
 public static class FrontedV3ControlRegistryExtensions
 {

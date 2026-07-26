@@ -28,6 +28,7 @@
         第三位是有新 Feature 就会跟进
         最后由构建时传入，为 git 的提交号，没有本地构建为 local
         -->
+        <PaddleInferenceRuntimeVersion>3.3.1.70</PaddleInferenceRuntimeVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'=='Beta'">
@@ -236,8 +237,15 @@
         <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
+        <!-- Sdcb.PaddleInference CPU (MKL) runtime: 引用此包仅为让 CopyPaddleCpuRuntime Target 通过
+             $(PkgSdcb_PaddleInference_runtime_win64_mkl) 拿到包解压目录，将 native DLL 显式复制到
+             Components\PaddleRuntime\cpu\<ver>\native\ 下；ExcludeAssets=all 防止它自动落入
+             runtimes\win-x64\native\（SmartBp 模块那边已用 ExcludeAssets=native 排除）。
+             GeneratePathProperty=true 是生成 $(Pkg...) 路径属性的前提。 -->
+        <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="$(PaddleInferenceRuntimeVersion)" ExcludeAssets="all" GeneratePathProperty="true" />
         <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
         <PackageReference Include="WPF-UI.DependencyInjection" Version="4.3.0" />
         <PackageReference Include="WPF-UI.Markdown" Version="4.0.2" />
@@ -356,4 +364,16 @@
         <EmbeddedResource Update="Locales\TourContent.en-us.resx"><DependentUpon>TourContent.resx</DependentUpon></EmbeddedResource>
         <EmbeddedResource Update="Locales\TourContent.ja-jp.resx"><DependentUpon>TourContent.resx</DependentUpon></EmbeddedResource>
     </ItemGroup>
+
+    <!-- Copy Paddle CPU (MKL) native runtime into a versioned Components\PaddleRuntime\cpu\<ver>\native\ layout
+         so it is not auto-copied to runtimes\win-x64\native\ (ExcludedAssets=all on the PackageReference). -->
+    <Target Name="CopyPaddleCpuRuntime" AfterTargets="AfterBuild">
+        <PropertyGroup>
+            <PaddleCpuRuntimeDest>$(OutputPath)Components\PaddleRuntime\cpu\$(PaddleInferenceRuntimeVersion)\native\</PaddleCpuRuntimeDest>
+        </PropertyGroup>
+        <ItemGroup>
+            <PaddleCpuNativeFiles Include="$(PkgSdcb_PaddleInference_runtime_win64_mkl)\runtimes\win-x64\native\**\*.*" />
+        </ItemGroup>
+        <Copy SourceFiles="@(PaddleCpuNativeFiles)" DestinationFolder="$(PaddleCpuRuntimeDest)%(RecursiveDir)" SkipUnchangedFiles="true" />
+    </Target>
 </Project>

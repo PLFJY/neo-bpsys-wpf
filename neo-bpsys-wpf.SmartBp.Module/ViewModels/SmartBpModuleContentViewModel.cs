@@ -50,6 +50,13 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
     private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
     private readonly IGameDataRecognitionDebugState _gameDataRecognitionDebugState = null!;
+    // CUDA / Paddle runtime 设置卡片依赖的服务，由 SmartBpModuleContentViewModel.Cuda.cs 使用。
+    private readonly ICudaDeviceDetector _cudaDeviceDetector = null!;
+    private readonly IPaddleRuntimeComponentService _paddleRuntimeComponentService = null!;
+    private readonly IPaddleRuntimeManifestProvider _paddleRuntimeManifestProvider = null!;
+    private readonly IPaddleRuntimeState _paddleRuntimeState = null!;
+    private readonly ISettingsHostService _settingsHostService = null!;
+    private readonly IGlobalRestartService _globalRestartService = null!;
     private readonly object _debugLogBufferLock = new();
     private readonly StringBuilder _debugLogBuffer = new();
     private DispatcherTimer? _debugLogFlushTimer;
@@ -90,6 +97,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpOcrBpRecognitionService ocrBpRecognitionService,
         ISmartBpModuleStorageProvider smartBpModuleStorage,
         IGameDataRecognitionDebugState gameDataRecognitionDebugState,
+        ICudaDeviceDetector cudaDeviceDetector,
+        IPaddleRuntimeComponentService paddleRuntimeComponentService,
+        IPaddleRuntimeManifestProvider paddleRuntimeManifestProvider,
+        IPaddleRuntimeState paddleRuntimeState,
+        ISettingsHostService settingsHostService,
+        IGlobalRestartService globalRestartService,
         ILogger<SmartBpModuleContentViewModel> logger)
     {
         _logger = logger;
@@ -111,6 +124,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _ocrBpRecognitionService = ocrBpRecognitionService;
         _smartBpModuleStorage = smartBpModuleStorage;
         _gameDataRecognitionDebugState = gameDataRecognitionDebugState;
+        _cudaDeviceDetector = cudaDeviceDetector;
+        _paddleRuntimeComponentService = paddleRuntimeComponentService;
+        _paddleRuntimeManifestProvider = paddleRuntimeManifestProvider;
+        _paddleRuntimeState = paddleRuntimeState;
+        _settingsHostService = settingsHostService;
+        _globalRestartService = globalRestartService;
         _gameDataRecognitionDebugState.SnapshotChanged += (_, _) => BeginOnUiThread(RefreshGameDataRecognitionDebugText);
         RefreshGameDataRecognitionDebugText();
         InitializeRecognition();
@@ -129,6 +148,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         RefreshOcrModelStatus();
         SyncDownloadStateFromService();
         IsOcrModelLoading = _ocrService.IsModelLoading;
+
+        // 初始化 CUDA 硬件加速设置卡片状态、检测设备并订阅运行时与下载事件。
+        InitializeCuda();
 
         // 在 UI 空闲后触发后台模型加载，避免与 View 渲染竞争 loader lock。
         Application.Current?.Dispatcher?.BeginInvoke(

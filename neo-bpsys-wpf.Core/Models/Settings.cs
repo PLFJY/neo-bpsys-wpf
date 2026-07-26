@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using System.Globalization;
 using System.Text.Json.Serialization;
@@ -68,6 +69,27 @@ public partial class Settings : ObservableObjectBase
     /// 当前选择的 OCR 模型标识键。
     /// </summary>
     public string? OcrModelKey { get; set; }
+
+    /// <summary>
+    /// 用户偏好的 Paddle OCR 推理后端。实际加载的后端由 Bootstrap 根据硬件和组件状态决定。
+    /// </summary>
+    public OcrInferenceBackend PreferredOcrBackend { get; set; } = OcrInferenceBackend.Cpu;
+
+    /// <summary>
+    /// 用户偏好的 CUDA 设备 ID；为 <see langword="null"/> 时自动选择。
+    /// </summary>
+    public int? PreferredCudaDeviceId { get; set; }
+
+    /// <summary>
+    /// 最近一次 CUDA 故障描述；为 <see langword="null"/> 表示无故障。
+    /// </summary>
+    public string? LastCudaFailure { get; set; }
+
+    /// <summary>
+    /// 最近一次 CUDA 故障发生时的 PaddleInference runtime 版本。
+    /// 用于版本升级后清除旧故障状态。
+    /// </summary>
+    public string? LastCudaFailureRuntimeVersion { get; set; }
 
     [ObservableProperty]
     public partial string GhProxyMirror { get; set; } = "https://ghproxy.net/";

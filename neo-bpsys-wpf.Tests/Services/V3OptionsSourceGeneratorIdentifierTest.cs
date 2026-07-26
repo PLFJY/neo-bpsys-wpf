@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,8 +29,19 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// </remarks>
 public class V3OptionsSourceGeneratorIdentifierTest
 {
-    private const string FrontedV3PropertySource = """
-        using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
+    /// <summary>
+    /// 引用编译中定义的基础类型源代码（FrontedV3Property 与 FrontedV3ControlAttribute）。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Roslyn 的 <c>ForAttributeWithMetadataName</c> 在属性类型于当前编译中刚刚定义时可能无法匹配，
+    /// 因此需要将属性类型与 <c>FrontedV3Property&lt;T&gt;</c> 放在单独的引用编译中，编译后再以
+    /// MetadataReference 形式注入主编译。这是 Source Generator 单元测试的常见模式。
+    /// </para>
+    /// </remarks>
+    private const string ReferenceSources = """
+        #nullable enable
+        using System;
 
         namespace neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties
         {
@@ -40,13 +50,11 @@ public class V3OptionsSourceGeneratorIdentifierTest
                 public FrontedV3Property(string optionsPath, object? metadata = null) { }
             }
         }
-        """;
 
-    private const string FrontedV3ControlAttributeSource = """
         namespace neo_bpsys_wpf.PluginSdk
         {
-            [System.AttributeUsage(System.AttributeTargets.Class)]
-            public sealed class FrontedV3ControlAttribute : System.Attribute
+            [AttributeUsage(AttributeTargets.Class)]
+            public sealed class FrontedV3ControlAttribute : Attribute
             {
                 public FrontedV3ControlAttribute(string controlId) { }
                 public bool IsBuiltIn { get; set; }
@@ -66,8 +74,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_UsesClassNameInsteadOfControlIdForTypePrefix()
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             namespace TestPlugin
             {
@@ -105,8 +112,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_KeywordSegmentGetsAtPrefix(string keyword)
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             namespace TestPlugin
             {
@@ -137,8 +143,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_SameSegmentUnderDifferentPathsGeneratesUniqueTypeNames()
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             namespace TestPlugin
             {
@@ -171,8 +176,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_NonIdentifierCharactersAreSanitized()
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             namespace TestPlugin
             {
@@ -202,8 +206,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_DigitLeadingSegmentGetsUnderscorePrefix()
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             namespace TestPlugin
             {
@@ -233,8 +236,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_HintNameUsesClassNameNotControlId()
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             namespace TestPlugin
             {
@@ -264,8 +266,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_GlobalNamespaceControlHasValidHintName()
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             [neo_bpsys_wpf.PluginSdk.FrontedV3Control("Test")]
             public sealed class TestControl
@@ -292,8 +293,7 @@ public class V3OptionsSourceGeneratorIdentifierTest
     public void Emit_DigitLeadingControlIdUsesClassNameForTypes()
     {
         var source = $$"""
-            {{FrontedV3PropertySource}}
-            {{FrontedV3ControlAttributeSource}}
+            using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 
             namespace TestPlugin
             {
@@ -318,53 +318,60 @@ public class V3OptionsSourceGeneratorIdentifierTest
     /// <summary>
     /// 执行 Source Generator 并返回所有生成源代码。
     /// </summary>
-    /// <param name="source">输入源代码。</param>
+    /// <param name="source">输入源代码（仅包含控件类，引用编译提供基础类型）。</param>
     /// <returns>生成源代码列表（HintName + Source）。</returns>
     private static (string HintName, string Source)[] RunGenerator(string source)
     {
-        // 需要引用 System.Runtime 以支持基础类型解析
-        var references = new[]
+        // 基础引用：System.Private.CoreLib / System.Runtime
+        var baseReferences = new[]
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
             MetadataReference.CreateFromFile(System.Reflection.Assembly.Load("System.Runtime").Location),
         };
 
+        // 引用编译：将 FrontedV3Property<T> 与 FrontedV3ControlAttribute 编译为单独程序集，
+        // 以 MetadataReference 形式注入主编译。这是 ForAttributeWithMetadataName 匹配当前
+        // 编译外属性类型的必要条件。
+        var referenceCompilation = CSharpCompilation.Create(
+            "ReferenceAssembly",
+            [CSharpSyntaxTree.ParseText(ReferenceSources)],
+            baseReferences,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var referenceErrors = referenceCompilation.GetDiagnostics()
+            .Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
+        Assert.Empty(referenceErrors);
+
+        var referenceImage = referenceCompilation.ToMetadataReference();
+
+        var allReferences = new List<MetadataReference>(baseReferences) { referenceImage };
+
         var compilation = CSharpCompilation.Create(
             "TestAssembly",
             [CSharpSyntaxTree.ParseText(source)],
-            references,
+            allReferences,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
         var generator = new neo_bpsys_wpf.V3SourceGenerator.V3OptionsSourceGenerator();
-        var driver = CSharpGeneratorDriver.Create(generator);
-
-        driver.RunGeneratorsAndUpdateCompilation(
-            compilation,
-            out var outputCompilation,
-            out var diagnostics);
+        // 注意：GeneratorDriver 是 struct，RunGeneratorsAndUpdateCompilation 返回更新后的 driver，
+        // 必须捕获返回值才能通过 GetRunResult 获取生成结果。
+        var driver = CSharpGeneratorDriver.Create(generator)
+            .RunGeneratorsAndUpdateCompilation(
+                compilation,
+                out _,
+                out var diagnostics);
 
         // 确保没有编译诊断错误（Generator 输入本身应该合法）
         var errors = diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
         Assert.Empty(errors);
 
         var result = driver.GetRunResult();
-        var generated = result.GeneratedTrees
-            .Select(tree => (tree.FilePath, tree.GetText().ToString()))
+        // 使用 GeneratedSources.HintName 而非 SyntaxTree.FilePath，
+        // 因为 FilePath 在某些 Roslyn 版本中会包含 Generator 程序集名前缀。
+        return result.Results
+            .SelectMany(r => r.GeneratedSources)
+            .Select(src => (src.HintName, src.SourceText.ToString()))
             .ToArray();
-
-        // 调试：如果生成树为空，给出诊断信息
-        if (generated.Length == 0)
-        {
-            var generatorDiags = result.Diagnostics;
-            // 输出输出编译的所有诊断（可能包含 Generator 内部错误）
-            var outputDiags = outputCompilation.GetDiagnostics();
-            throw new Xunit.Sdk.XunitException(
-                $"Source Generator 未产生任何输出。Diagnostics: {string.Join(", ", diagnostics.Select(d => d.ToString()))}. " +
-                $"Generator Diagnostics: {string.Join(", ", generatorDiags.Select(d => d.ToString()))}. " +
-                $"Output Compilation Diagnostics: {string.Join(", ", outputDiags.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()))}");
-        }
-
-        return generated!;
     }
 }

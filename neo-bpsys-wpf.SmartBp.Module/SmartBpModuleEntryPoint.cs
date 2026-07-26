@@ -75,6 +75,12 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton(hostServices.GetRequiredService<IFilePickerService>());
         services.AddSingleton(hostServices.GetRequiredService<IInfoBarService>());
         services.AddSingleton(hostServices.GetRequiredService<ISettingsHostService>());
+        services.AddSingleton(hostServices.GetRequiredService<IPaddleRuntimeState>());
+        services.AddSingleton(hostServices.GetRequiredService<IGlobalRestartService>());
+        // CUDA / Paddle runtime 组件管理服务，用于 SmartBP 页面 CUDA 硬件加速设置卡片。
+        services.AddSingleton(hostServices.GetRequiredService<ICudaDeviceDetector>());
+        services.AddSingleton(hostServices.GetRequiredService<IPaddleRuntimeComponentService>());
+        services.AddSingleton(hostServices.GetRequiredService<IPaddleRuntimeManifestProvider>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpModuleStorageProvider>());
         services.AddSingleton(hostServices.GetRequiredService<IGitHubDownloadUrlResolver>());

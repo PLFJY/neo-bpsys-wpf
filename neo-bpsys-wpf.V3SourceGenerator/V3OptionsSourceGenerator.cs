@@ -282,6 +282,7 @@ public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
         var hintName = string.IsNullOrEmpty(control.Namespace)
             ? $"{control.ClassName}.Options.g.cs"
             : $"{control.Namespace.Replace('.', '_')}.{control.ClassName}.Options.g.cs";
+
         ctx.AddSource(hintName, sb.ToString());
     }
 
@@ -442,8 +443,9 @@ public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
 
     /// <summary>
     /// 将 OptionsPath segment 转换为可用于类型名的合法标识符片段：
-    /// 替换非标识符字符为下划线，确保不以数字开头，但不加 <c>@</c> 前缀
-    /// （类型名总带有前缀如 <c>{ClassName}_</c>，关键字作为片段不会与 C# 关键字冲突）。
+    /// 替换非标识符字符为下划线，但不加 <c>@</c> 前缀，也不为数字开头加 <c>_</c> 前缀
+    /// （类型名总带有前缀如 <c>{ClassName}_</c>，整体类型名不会以数字开头；
+    /// 关键字作为片段不会与 C# 关键字冲突）。
     /// </summary>
     /// <param name="segment">OptionsPath 的某一段。</param>
     /// <returns>可用于类型名的 sanitized 标识符片段。</returns>
@@ -467,7 +469,9 @@ public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
             }
         }
 
-        if (result.Length == 0 || char.IsDigit(result[0]))
+        // 仅在结果为空时占位；不为数字开头加 _ 前缀，
+        // 因为 segment 是类型名片段（如 TestControl_1CardOptions），整体类型名总以 ClassName 开头。
+        if (result.Length == 0)
         {
             result.Insert(0, '_');
         }
