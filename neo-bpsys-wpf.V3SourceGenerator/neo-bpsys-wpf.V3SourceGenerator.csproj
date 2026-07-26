@@ -9,7 +9,6 @@
         <RootNamespace>neo_bpsys_wpf.V3SourceGenerator</RootNamespace>
         <AssemblyName>neo-bpsys-wpf.V3SourceGenerator</AssemblyName>
         <Platforms>AnyCPU;x64</Platforms>
-        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
