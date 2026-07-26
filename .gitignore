@@ -364,6 +364,16 @@ FodyWeavers.xsd
 
 # build Path
 build/
+!docs/build/
 
 #Jetbrains Rider
 .idea/
+
+diff.txt
+
+.trae/
+
+# 7-Zip fetch cache and extraction temp dirs
+# (committed canonical binaries live in third_party/7zip/win-x64/)
+third_party/7zip/.cache/
+third_party/7zip/.extract/

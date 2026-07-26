@@ -2,6 +2,7 @@ using Microsoft.Win32;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tutorial;
 using System.IO;
 
 namespace neo_bpsys_wpf.Services;
@@ -21,7 +22,18 @@ public class FilePickerService : IFilePickerService
         OpenFileDialog openFileDialog = new()
         {
             Filter =
-                $"{I18nHelper.GetLocalizedString("ImageFiles")} (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageFiles")} (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    /// <inheritdoc />
+    public string? PickFontFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "FontFiles")} (*.ttf;*.otf;*.ttc)|*.ttf;*.otf;*.ttc",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -31,15 +43,34 @@ public class FilePickerService : IFilePickerService
     /// 选择JSON文件
     /// </summary>
     /// <returns>返回JSON文件路径</returns>
-    public string? PickJsonFile()
+    public string? PickJsonFile(string? initialDirectory = null)
     {
+        var tutorialHint = TutorialFilePickerHints.ConsumeNextJsonPickerHint();
+        var resolvedInitialDirectory = ResolveExistingDirectory(
+            initialDirectory
+            ?? tutorialHint.InitialDirectory
+            ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Examples"));
+
         OpenFileDialog openFileDialog = new()
         {
-            Filter = $"{I18nHelper.GetLocalizedString("JSONFiles")} (*.json) | *.json",
-            DefaultDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"),
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JSONFiles")} (*.json) | *.json",
+            DefaultDirectory = resolvedInitialDirectory,
+            InitialDirectory = resolvedInitialDirectory,
         };
 
+        if (!string.IsNullOrWhiteSpace(tutorialHint.Title))
+        {
+            openFileDialog.Title = tutorialHint.Title;
+        }
+
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    private static string ResolveExistingDirectory(string directory)
+    {
+        return Directory.Exists(directory)
+            ? directory
+            : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources");
     }
 
     /// <summary>
@@ -50,10 +81,51 @@ public class FilePickerService : IFilePickerService
     {
         OpenFileDialog openFileDialog = new()
         {
-            Filter = $"{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip) | *.zip",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip) | *.zip",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    /// <inheritdoc />
+    public string? PickSmartBpModuleArchiveFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter =
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "SmartBpModuleArchiveFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AllFiles")} (*.*)|*.*",
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    /// <inheritdoc />
+    public string? PickPluginPackageFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter =
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginPackageFiles")} (*.7z;*.zip)|*.7z;*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SevenZipArchiveFiles")} (*.7z)|*.7z|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip)|*.zip|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AllFiles")} (*.*)|*.*",
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    /// <inheritdoc />
+    public string? PickExecutableFile()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ExecutableFiles")} (*.exe)|*.exe|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AllFiles")} (*.*)|*.*"
+        };
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
+    /// <inheritdoc />
+    public string? PickFolder()
+    {
+        var dialog = new OpenFolderDialog();
+        return dialog.ShowDialog() == true ? dialog.FolderName : null;
     }
 
     /// <summary>
@@ -64,7 +136,7 @@ public class FilePickerService : IFilePickerService
     {
         OpenFileDialog openFileDialog = new()
         {
-            Filter = $"{I18nHelper.GetLocalizedString("BpuiFiles")} (*.bpui) |*.bpui|{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip) | *.zip|All Files(*.*)|*.*",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "BpuiFiles")} (*.bpui) |*.bpui|{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ZipFiles")} (*.zip) | *.zip|All Files(*.*)|*.*",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
@@ -79,7 +151,7 @@ public class FilePickerService : IFilePickerService
     {
         var dialog = new SaveFileDialog
         {
-            Filter = $"{I18nHelper.GetLocalizedString("JSONFiles")} (*.json) | *.json",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "JSONFiles")} (*.json) | *.json",
             FileName = string.IsNullOrWhiteSpace(defaultFileName) ? "config.json" : defaultFileName,
             DefaultExt = ".json",
             AddExtension = true
@@ -97,11 +169,11 @@ public class FilePickerService : IFilePickerService
     {
         var dialog = new SaveFileDialog
         {
-            Filter = $"{I18nHelper.GetLocalizedString("BpuiFiles")} (*.bpui) |*.bpui|All Files(*.*)|*.*",
+            Filter = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "BpuiFiles")} (*.bpui) |*.bpui|All Files(*.*)|*.*",
             DefaultExt = ".bpui",
             AddExtension = true,
             DefaultDirectory = AppConstants.AppOutputPath,
-            Title = I18nHelper.GetLocalizedString("SaveAs"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "SaveAs"),
             FileName = string.IsNullOrWhiteSpace(defaultFileName) ? "saved_ui" : defaultFileName,
             OverwritePrompt = false
         };

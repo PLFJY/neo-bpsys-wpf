@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.20348</TargetFramework>
+    <RootNamespace>neo_bpsys_wpf</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Debug;Release;Beta;Preview</Configurations>
+    <Platforms>AnyCPU;x64</Platforms>
+    <AssemblyName>neo-bpsys-wpf.SmartBp.Module</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Downloader" Version="5.9.5" ExcludeAssets="runtime" />
+    <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260627" />
+    <PackageReference Include="RapidOcrNet" Version="3.0.0" />
+    <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.3.1.70" ExcludeAssets="native" />
+    <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />
+    <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.3.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" ExcludeAssets="runtime" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" ExcludeAssets="runtime" />
+    <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" ExcludeAssets="runtime" />
+    <!-- SharpCompress 是 Sdcb.PaddleOCR.Models.Online 的传递依赖,本模块不使用其 API:
+         模型下载用 Downloader 包,解压用 System.IO.Compression.TarFile(.NET 内置)。
+         显式排除以避免 SharpCompress.dll 被打包进 SmartBpModule.7z。 -->
+    <PackageReference Include="SharpCompress" Version="0.50.1" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" Private="false" />
+    <ProjectReference Include="..\neo-bpsys-wpf.ProductTour\neo-bpsys-wpf.ProductTour.csproj" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\**" />
+    <Content Include="component.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="PlayerName">
+    <value>选手名称</value>
+  </data>
+  <data name="InGameName">
+    <value>游戏内名称</value>
+  </data>
+  <data name="More">
+    <value>更多</value>
+  </data>
+  <data name="PlayerDetails">
+    <value>选手详情</value>
+  </data>
+  <data name="ChangePhoto">
+    <value>更换定妆照</value>
+  </data>
+  <data name="PhotoPreview">
+    <value>预览：</value>
+  </data>
+  <data name="HomeTeamInformation">
+    <value>主场队伍信息</value>
+  </data>
+  <data name="ImportFromJsonFile">
+    <value>从 JSON 文件导入</value>
+  </data>
+  <data name="JsonImportTip">
+    <value>这是用于快速导入队伍信息使用的，示例文件是软件目录下的neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json，有其它问题请查阅文档</value>
+  </data>
+  <data name="TeamName">
+    <value>队伍名称</value>
+  </data>
+  <data name="SetTeamLogo">
+    <value>设置队伍logo</value>
+  </data>
+  <data name="CurrentStatusColon">
+    <value>当前状态：</value>
+  </data>
+  <data name="SurvivorPlayer">
+    <value>求生者选手</value>
+  </data>
+  <data name="SetPhoto">
+    <value>设置定妆照</value>
+  </data>
+  <data name="RemovePhoto">
+    <value>清除定妆照</value>
+  </data>
+  <data name="Enter">
+    <value>上场</value>
+  </data>
+  <data name="Exit">
+    <value>下场</value>
+  </data>
+  <data name="AddPlayer">
+    <value>添加选手</value>
+  </data>
+  <data name="HunterPlayer">
+    <value>监管者选手</value>
+  </data>
+  <data name="AwayTeamInformation">
+    <value>客场队伍信息</value>
+  </data>
+  <data name="CurrentPlayerOnStage">
+    <value>当前上场选手</value>
+  </data>
+  <data name="TeamInfo">
+    <value>队伍信息</value>
+  </data>
+  <data name="PlayerID">
+    <value>选手 ID</value>
+  </data>
+  <data name="TeamNameInScoreStatistics">
+    <value>队伍名称（分数统计）</value>
+  </data>
+  <data name="TeamNameInMapBP">
+    <value>队伍名称（地图BP）</value>
+  </data>
+  <data name="TeamNameInMapBPV2">
+    <value>队伍名称（地图BP V2）</value>
+  </data>
+  <data name="TeamNameInBPOverview">
+    <value>队伍名称（BP概览）</value>
+  </data>
+  <data name="ImageMaybeDamagedOrUnsupported">
+    <value>图片可能损坏或不受支持</value>
+  </data>
+  <data name="DeleteConfirmation">
+    <value>删除确认</value>
+  </data>
+  <data name="AreYouSureToDelete">
+    <value>是否删除</value>
+  </data>
+  <data name="ClearTip">
+    <value>清楚提示</value>
+  </data>
+  <data name="AreYouSureToRemoveTheFileLookPhoto">
+    <value>是否清除选手定妆照？</value>
+  </data>
+  <data name="LogoFileIsNotValid">
+    <value>Logo 文件不合法</value>
+  </data>
+  <data name="ImageFileTooLarge">
+    <value>图片文件过大（{0}），最大支持 {1}。请压缩图片或更换更小的文件后重试。</value>
+  </data>
+  <data name="HexColor">
+    <value>十六进制颜色</value>
+  </data>
+  <data name="TeamColor">
+    <value>队伍颜色</value>
+  </data>
+  <data name="InvalidTeamColorHex">
+    <value>颜色格式无效，请输入 #RRGGBB 或 #AARRGGBB。</value>
+  </data>
+  <data name="ResetDefaultColor">
+    <value>恢复默认</value>
+  </data>
+  <data name="JsonFileFormatError">
+    <value>JSON 文件格式错误</value>
+  </data>
+</root>

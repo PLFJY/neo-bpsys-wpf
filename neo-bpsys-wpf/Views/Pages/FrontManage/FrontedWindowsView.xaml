@@ -1,0 +1,145 @@
+<UserControl
+    x:Class="neo_bpsys_wpf.Views.Pages.FrontManage.FrontedWindowsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    d:DataContext="{d:DesignInstance Type=vm:FrontManagePageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="900"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.FrontManage"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/neo-bpsys-wpf.Core;component/Styles/Card.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="10,10,10,0">
+            <Border Margin="0,0,0,10" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0"
+                        FontSize="18"
+                        FontWeight="DemiBold"
+                        Text="{lex:Loc AllFrontendWindows}" />
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
+                        <ui:Button
+                            x:Name="OpenFrontedDesignerButton"
+                            Height="50"
+                            Command="{Binding OpenFrontedDesignerCommand}"
+                            Content="{lex:Loc OpenFrontedDesigner}"
+                            Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                        <ui:Button
+                            x:Name="OpenAllFrontedWindowsButton"
+                            Height="50"
+                            Margin="10,0,0,0"
+                            Command="{Binding ShowAllWindowsCommand}"
+                            Content="{lex:Loc OpenAll}"
+                            Icon="{ui:SymbolIcon Symbol=Eye24}" />
+                        <ui:Button
+                            x:Name="CloseAllFrontedWindowsButton"
+                            Height="50"
+                            Margin="10,0,0,0"
+                            Command="{Binding HideAllWindowsCommand}"
+                            Content="{lex:Loc CloseAll}"
+                            Icon="{ui:SymbolIcon Symbol=EyeOff24}" />
+                        <ui:Button
+                            x:Name="StopAllLoopAnimationsButton"
+                            Height="50"
+                            Margin="10,0,0,0"
+                            Command="{Binding StopAllLoopAnimationsCommand}"
+                            Content="{lex:Loc StopAllLoopAnimations}"
+                            Icon="{ui:SymbolIcon Symbol=DismissCircle24}" />
+                    </StackPanel>
+                    <TextBlock
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Left"
+                        Text="{lex:Loc DesignerUnlockNote}"
+                        TextWrapping="WrapWithOverflow" />
+                </Grid>
+            </Border>
+
+            <ItemsControl x:Name="ManageableWindowGroupsPanel" ItemsSource="{Binding ManageableWindowGroups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,16">
+                            <TextBlock
+                                Margin="0,0,0,8"
+                                FontSize="16"
+                                FontWeight="DemiBold"
+                                Text="{Binding DisplayName}" />
+                            <ItemsControl ItemsSource="{Binding Windows}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border x:Name="FirstManageableWindowCard" Margin="0,0,10,10" Style="{StaticResource Card}">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock
+                                                    Grid.Row="0"
+                                                    FontSize="18"
+                                                    FontWeight="DemiBold"
+                                                    Text="{Binding DisplayName}" />
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Margin="0,6,0,0"
+                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                    Text="{Binding KindDisplay}" />
+                                                <StackPanel
+                                                    Grid.Row="2"
+                                                    Margin="0,10,0,0"
+                                                    Orientation="Horizontal">
+                                                    <ui:Button
+                                                        Command="{Binding DataContext.ShowWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding WindowId}"
+                                                        Content="{lex:Loc Open}"
+                                                        Tag="{Binding WindowId}" />
+                                                    <ui:Button
+                                                        Margin="10,0,0,0"
+                                                        Command="{Binding DataContext.HideWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding WindowId}"
+                                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                                        Content="{lex:Loc Close}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,171 @@
+<Page
+    x:Class="neo_bpsys_wpf.FocusKeeper.Views.FocusKeeperPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.FocusKeeper.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:FocusKeeperPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf.FocusKeeper"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.FocusKeeper.Locales.FocusKeeper"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </Page.Resources>
+
+    <StackPanel Margin="10">
+
+        <!--  标题  -->
+        <TextBlock
+            FontSize="20"
+            FontWeight="SemiBold"
+            Text="{lex:Loc Title}" />
+        <TextBlock
+            Margin="0,6,0,14"
+            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+            Text="{lex:Loc Description}"
+            TextWrapping="Wrap" />
+
+        <!--  反作弊警告  -->
+        <ui:InfoBar
+            Title="{lex:Loc WarningTitle}"
+            Margin="0,0,0,12"
+            IsClosable="False"
+            IsOpen="True"
+            Message="{lex:Loc WarningText}"
+            Severity="Warning" />
+
+        <!--  管理员权限提示（主程序未提权时显示）  -->
+        <ui:InfoBar
+            Title="{lex:Loc ElevationTitle}"
+            Margin="0,0,0,8"
+            IsClosable="False"
+            IsOpen="{Binding NeedsElevation}"
+            Message="{lex:Loc ElevationText}"
+            Severity="Informational" />
+
+        <!--  以管理员权限重启按钮（独立放置，确保可见）  -->
+        <ui:Button
+            Margin="0,0,0,12"
+            HorizontalAlignment="Left"
+            Appearance="Caution"
+            Command="{Binding RestartAsAdminCommand}"
+            Content="{lex:Loc RestartAsAdmin}"
+            Icon="{ui:SymbolIcon Symbol=Shield24}"
+            Visibility="{Binding NeedsElevation, Converter={StaticResource BoolToVis}}" />
+
+        <!--  状态卡片  -->
+        <ui:Card Margin="0,0,0,12" Padding="14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!--  状态  -->
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="0,0,8,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc StatusLabel}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Text="{Binding StatusText}" />
+
+                <!--  目标进程  -->
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Margin="0,4,8,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc TargetLabel}" />
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Margin="0,4,0,0"
+                    Text="{Binding TargetDisplay}" />
+
+                <!--  错误信息  -->
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Margin="0,8,0,0"
+                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                    Text="{Binding ErrorMessage}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}" />
+            </Grid>
+        </ui:Card>
+
+        <!--  启用开关  -->
+        <ui:ToggleSwitch
+            Margin="0,0,0,12"
+            Content="{lex:Loc EnableLabel}"
+            IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+            IsEnabled="{Binding IsInstalled}" />
+
+        <!--  操作按钮  -->
+        <WrapPanel>
+            <ui:Button
+                Margin="0,0,8,8"
+                Command="{Binding AutoAttachCommand}"
+                Content="{lex:Loc AutoAttach}"
+                Icon="{ui:SymbolIcon Symbol=TargetArrow24}" />
+            <ui:Button
+                Margin="0,0,8,8"
+                Command="{Binding RefreshListCommand}"
+                Content="{lex:Loc RefreshList}"
+                Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+            <ui:Button
+                Margin="0,0,8,8"
+                Command="{Binding DetachCommand}"
+                Content="{lex:Loc Detach}"
+                Icon="{ui:SymbolIcon Symbol=PlugDisconnected24}"
+                IsEnabled="{Binding IsInstalled}" />
+        </WrapPanel>
+
+        <!--  窗口列表  -->
+        <TextBlock
+            Margin="0,8,0,4"
+            FontWeight="SemiBold"
+            Text="{lex:Loc WindowListHeader}" />
+        <ui:ListView
+            Height="220"
+            ItemsSource="{Binding GameWindows}"
+            SelectedItem="{Binding SelectedWindow, Mode=TwoWay}">
+            <ui:ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon
+                            Margin="0,0,6,0"
+                            Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                            Symbol="Tag24"
+                            Visibility="{Binding IsLikelyIdentityV, Converter={StaticResource BoolToVis}}" />
+                        <TextBlock Text="{Binding}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ui:ListView.ItemTemplate>
+        </ui:ListView>
+
+        <ui:Button
+            Margin="0,8,0,0"
+            Command="{Binding AttachToSelectedCommand}"
+            Content="{lex:Loc AttachSelected}"
+            Icon="{ui:SymbolIcon Symbol=PlugConnected24}"
+            IsEnabled="{Binding CanAttachSelected}" />
+
+    </StackPanel>
+</Page>

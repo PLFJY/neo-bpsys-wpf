@@ -1,0 +1,9 @@
+id: neo_bpsys_wpf.FocusKeeper
+name: Focus Keeper
+description: 拦截窗口焦点丢失消息，使游戏在后台继续运行而不暂停。
+entranceAssembly: "neo-bpsys-wpf.FocusKeeper.dll"
+url: https://github.com/PLFJY/neo-bpsys-wpf
+version: 1.0.0.0
+apiVersion: 3.0.0.0
+author: Zero PLFJY
+icon: icon.png

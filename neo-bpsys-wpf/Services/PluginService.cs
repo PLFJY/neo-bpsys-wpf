@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
 using System.IO;
 using System.Reflection;
@@ -20,8 +20,6 @@ public class PluginService : IPluginService
     public static readonly string PluginManifestFileName = "manifest.yml";
 
     internal static List<PluginInfo> InstalledPlugins { get; } = [];
-
-    internal static Dictionary<Type, string> FrontedWindowAssemblyFolder { get; } = [];
 
     private static ILogger<PluginService>? Logger => IAppHost.TryGetService<ILogger<PluginService>>();
 
@@ -181,17 +179,6 @@ public class PluginService : IPluginService
                     continue;
                 }
 
-                // 通过反射获取插件程序集中带有 FrontedWindowInfo 特性的前台窗口类型
-                foreach (var type in assembly.GetTypes())
-                {
-                    var frontedWindowInfoAttr = type.GetCustomAttribute<FrontedWindowInfo>();
-                    if (frontedWindowInfoAttr != null)
-                    {
-                        // 将前台窗口类型和插件文件夹路径存储到字典中
-                        FrontedWindowAssemblyFolder[type] = pluginDir;
-                    }
-                }
-
                 entranceObj.PluginConfigFolder = pluginDir;
                 if (!Directory.Exists(entranceObj.PluginConfigFolder))
                     Directory.CreateDirectory(entranceObj.PluginConfigFolder);
@@ -199,7 +186,10 @@ public class PluginService : IPluginService
 
                 entranceObj.Info = info;
                 entranceObj.PluginConfigFolder = Path.Combine(AppConstants.PluginConfigsPath, info.Manifest.Id);
-                entranceObj.Initialize(context, services);
+                using (FrontedPluginRegistrationContext.BeginScope(info.Manifest.Id))
+                {
+                    entranceObj.Initialize(context, services);
+                }
                 services.AddSingleton(entranceObj);
                 services.AddSingleton(entrance, entranceObj);
                 info.LoadStatus = PluginLoadStatus.Loaded;

@@ -1,0 +1,172 @@
+{
+  "Version": 3,
+  "WindowSettings": {
+    "WindowWidth": 480,
+    "WindowHeight": 152,
+    "WindowLeft": null,
+    "WindowTop": null,
+    "AllowsTransparency": true,
+    "BackgroundColor": "#00000000",
+    "Topmost": false,
+    "ViewboxStretch": "Fill"
+  },
+  "CanvasSettings": {
+    "CanvasWidth": 480,
+    "CanvasHeight": 152,
+    "BackgroundImage": "Resources/scoreHun.png",
+    "EnableBoModeStates": false,
+    "BoModeStates": {}
+  },
+  "ControlLayout": {
+    "RequiredPlugins": [],
+    "Controls": {
+      "HunTeamName": {
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.HunTeam.Name",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": "WrapWithOverflow",
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 32,
+        "ControlType": "Text",
+        "Left": 99,
+        "Top": 33,
+        "Width": 207,
+        "Height": 32,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "HunTeamMajorPoint": {
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorText",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Top",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 38,
+        "ControlType": "Text",
+        "Left": 150.5,
+        "Top": 85,
+        "Width": null,
+        "Height": null,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "GameScoresHun": {
+        "Text": null,
+        "TextBinding": {
+          "Sources": [
+            {
+              "Path": "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText",
+              "DisplayName": null,
+              "Format": null
+            }
+          ],
+          "StringFormat": null,
+          "JoinSeparator": "",
+          "NullText": "",
+          "FallbackText": ""
+        },
+        "HorizontalAlignment": "Center",
+        "VerticalAlignment": "Center",
+        "TextAlignment": "Center",
+        "TextWrapping": null,
+        "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+        "FontWeight": "Normal",
+        "Color": "#FF000000",
+        "ColorBindingPath": null,
+        "FontSize": 100,
+        "ControlType": "Text",
+        "Left": 21,
+        "Top": 10,
+        "Width": 64,
+        "Height": 130,
+        "ZIndex": 2,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "BackgroundTintHun": {
+        "RadiusX": 0,
+        "RadiusY": 0,
+        "TintColor": "#FFFFFFFF",
+        "TintBindingPath": "CurrentGame.HunTeam.ColorHex",
+        "TintMode": 2,
+        "TintStrength": 1,
+        "TextureStrength": 0.45,
+        "ShowMissingBackgroundPlaceholder": true,
+        "BehaviorGuid": "019ecc1e-3a88-747b-9ab0-1d23540e8e1f",
+        "ControlType": "BackgroundTintRectangle",
+        "Left": 307,
+        "Top": 0.5,
+        "Width": 172.5,
+        "Height": 154.5,
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": null
+      },
+      "HunTeamLogo": {
+        "SizingMode": "FillContainer",
+        "ImagePath": null,
+        "Stretch": "Fill",
+        "HorizontalAlignment": null,
+        "VerticalAlignment": null,
+        "ClipToBounds": false,
+        "CornerRadius": 8,
+        "Lockable": false,
+        "LockImagePath": null,
+        "LockVisibilityBindingPath": null,
+        "LockVisibleWhen": "Always",
+        "LockZIndexOffset": 1,
+        "PickingBorderAvailable": false,
+        "PickingBorderImagePath": null,
+        "PickingBorderName": null,
+        "PickingBorderZIndexOffset": 2,
+        "PickingBorder": false,
+        "BanLockAvailable": false,
+        "BanLockImagePath": null,
+        "ControlType": "Image",
+        "Left": 352,
+        "Top": 18,
+        "Width": 116,
+        "Height": 114,
+        "ZIndex": 1,
+        "Visibility": "Visible",
+        "BindingPath": "CurrentGame.HunTeam.Logo"
+      }
+    }
+  }
+}

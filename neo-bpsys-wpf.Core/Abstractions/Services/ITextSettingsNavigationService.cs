@@ -11,7 +11,7 @@ public interface ITextSettingsNavigationService
     /// <summary>
     /// 关闭设置
     /// </summary>
-    /// <param name="windowType"></param>
+    /// <param name="windowType">窗口类型</param>
     void Close(FrontedWindowType windowType);
     /// <summary>
     /// 导航到设置

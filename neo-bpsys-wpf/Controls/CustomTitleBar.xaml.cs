@@ -11,48 +11,119 @@ namespace neo_bpsys_wpf.Controls;
 /// </summary>
 public partial class CustomTitleBar : UserControl
 {
+    private Window? _hostWindow;
+
     public CustomTitleBar()
     {
         InitializeComponent();
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
         WindowIcon.MouseDown += WindowIcon_MouseDown;
+        TitleBar.MouseDown += TitleBar_MouseDown;
+        MaximizeButton.Click += MaximizeButton_OnClick;
+        MinimizeButton.Click += MinimizeButton_OnClick;
+        ExitButton.Click += ExitButton_OnClick;
+        IsRestartRequiredButton.Click += IsRestartRequiredButton_OnClick;
+    }
+
+    private void IsRestartRequiredButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        App.Current.Restart();
     }
 
     private void WindowIcon_MouseDown(object sender, MouseButtonEventArgs e)
     {
         // 获取宿主窗口
-        var window = Window.GetWindow(this);
-        SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
+        if (_hostWindow is { } window)
+        {
+            SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         // 获取宿主窗口
-        var window = Window.GetWindow(this);
-        if (window is FluentWindow fluentWindow)
+        AttachHostWindow(Window.GetWindow(this));
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        AttachHostWindow(null);
+    }
+
+    private void AttachHostWindow(Window? window)
+    {
+        if (ReferenceEquals(_hostWindow, window))
         {
-            // 绑定窗口状态变化
-            window.StateChanged += (_, _) => UpdateMaximizeButtonIcon(window);
+            return;
         }
 
-        // 事件绑定
-        TitleBar.MouseDown += (_, e) =>
+        if (_hostWindow is not null)
         {
-            if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left && IsMaximizeVisible)
-                ToggleWindowState(window);
+            _hostWindow.StateChanged -= HostWindow_OnStateChanged;
+        }
 
-            if (e.LeftButton == MouseButtonState.Pressed)
-                DragMoveWindow(window);
+        _hostWindow = window;
+        if (_hostWindow is not null)
+        {
+            _hostWindow.StateChanged += HostWindow_OnStateChanged;
+            UpdateMaximizeButtonIcon(_hostWindow);
+        }
+    }
 
-            if (e.ChangedButton == MouseButton.Right)
-            {
-                SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
-            }
-        };
+    private void HostWindow_OnStateChanged(object? sender, EventArgs e)
+    {
+        if (sender is Window window)
+        {
+            UpdateMaximizeButtonIcon(window);
+        }
+    }
 
-        MaximizeButton.Click += (_, _) => ToggleWindowState(window);
-        MinimizeButton.Click += (_, _) => window.WindowState = WindowState.Minimized;
-        ExitButton.Click += (_, _) => ConfirmExit(window);
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_hostWindow is not { } window)
+        {
+            return;
+        }
+
+        if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left && IsMaximizeVisible)
+        {
+            ToggleWindowState(window);
+        }
+
+        if (e.LeftButton == MouseButtonState.Pressed)
+        {
+            DragMoveWindow(window);
+        }
+
+        if (e.ChangedButton == MouseButton.Right)
+        {
+            SystemCommands.ShowSystemMenu(window, window.PointToScreen(e.GetPosition(this)));
+        }
+    }
+
+    private void MaximizeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_hostWindow is { } window)
+        {
+            ToggleWindowState(window);
+        }
+    }
+
+    private void MinimizeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_hostWindow is { } window)
+        {
+            window.WindowState = WindowState.Minimized;
+        }
+    }
+
+    private void ExitButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_hostWindow is { } window)
+        {
+            ConfirmExit(window);
+        }
     }
 
     private static void DragMoveWindow(Window window)
@@ -63,9 +134,12 @@ public partial class CustomTitleBar : UserControl
 
     private void ToggleWindowState(Window window)
     {
-        window.WindowState = window.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        window.WindowState = ToggleWindowStateOnce(window.WindowState);
         UpdateMaximizeButtonIcon(window);
     }
+
+    internal static WindowState ToggleWindowStateOnce(WindowState currentState) =>
+        currentState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
 
     private void UpdateMaximizeButtonIcon(Window window)
     {
@@ -79,74 +153,127 @@ public partial class CustomTitleBar : UserControl
         window.Close();
     }
 
+    /// <summary>
+    /// 获取或设置一个值，指示主题切换按钮是否已选中。
+    /// </summary>
     public bool IsThemeChangeChecked
     {
         get => (bool)GetValue(IsThemeChangeCheckedProperty);
         set => SetValue(IsThemeChangeCheckedProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsThemeChangeChecked.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsThemeChangeChecked"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsThemeChangeCheckedProperty =
         DependencyProperty.Register(nameof(IsThemeChangeChecked), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置一个值，指示主题切换按钮是否可见。
+    /// </summary>
     public bool IsThemeChangeVisible
     {
         get => (bool)GetValue(IsThemeChangeButtonVisibleProperty);
         set => SetValue(IsThemeChangeButtonVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsThemeChangeVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsThemeChangeVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsThemeChangeButtonVisibleProperty =
         DependencyProperty.Register(nameof(IsThemeChangeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置主题切换按钮点击时执行的命令。
+    /// </summary>
     public ICommand ThemeChangeCommand
     {
         get => (ICommand)GetValue(ThemeChangeCommandProperty);
         set => SetValue(ThemeChangeCommandProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for ThemeChangeCommand.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="ThemeChangeCommand"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ThemeChangeCommandProperty =
         DependencyProperty.Register(nameof(ThemeChangeCommand), typeof(ICommand), typeof(CustomTitleBar), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置一个值，指示最大化按钮是否可见。
+    /// </summary>
     public bool IsMaximizeVisible
     {
         get => (bool)GetValue(IsMaximizeVisibleProperty);
         set => SetValue(IsMaximizeVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsMaximizeVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsMaximizeVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsMaximizeVisibleProperty =
         DependencyProperty.Register(nameof(IsMaximizeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置一个值，指示最小化按钮是否可见。
+    /// </summary>
     public bool IsMinimizeVisible
     {
         get => (bool)GetValue(IsMinimizeVisibleProperty);
         set => SetValue(IsMinimizeVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsMinimizeVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsMinimizeVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsMinimizeVisibleProperty =
         DependencyProperty.Register(nameof(IsMinimizeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
+    /// <summary>
+    /// 获取或设置一个值，指示置顶按钮是否可见。
+    /// </summary>
     public bool IsTopMostVisible
     {
         get => (bool)GetValue(IsTopMostVisibleProperty);
         set => SetValue(IsTopMostVisibleProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsTopMostVisible.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsTopMostVisible"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsTopMostVisibleProperty =
         DependencyProperty.Register(nameof(IsTopMostVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
 
+    /// <summary>
+    /// 获取或设置标题栏的图标。
+    /// </summary>
     public ImageSource Icon
     {
         get => (ImageSource)GetValue(IconProperty);
         set => SetValue(IconProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for Icon.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="Icon"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IconProperty =
         DependencyProperty.Register(nameof(Icon), typeof(ImageSource), typeof(CustomTitleBar), new PropertyMetadata(null));
+
+
+    /// <summary>
+    /// 是否需要重启
+    /// </summary>
+    public bool IsRestartRequired
+    {
+        get { return (bool)GetValue(IsRestartRequiredProperty); }
+        set { SetValue(IsRestartRequiredProperty, value); }
+    }
+
+    /// <summary>
+    /// <see cref="IsRestartRequired"/> 依赖属性的标识符。
+    /// </summary>
+    public static readonly DependencyProperty IsRestartRequiredProperty =
+        DependencyProperty.Register(nameof(IsRestartRequired), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(false));
+
+
 }

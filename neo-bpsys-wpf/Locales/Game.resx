@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="NewGame">
+    <value>新对局（重置）</value>
+  </data>
+  <data name="GameProgressColon">
+    <value>对局进度：</value>
+  </data>
+  <data name="DecodingProgress">
+    <value>破译进度</value>
+  </data>
+  <data name="PalletStrikes">
+    <value>砸板命中次数</value>
+  </data>
+  <data name="Rescues">
+    <value>救人次数</value>
+  </data>
+  <data name="Heals">
+    <value>治疗次数</value>
+  </data>
+  <data name="ContainmentTime">
+    <value>牵制时长 (秒)</value>
+  </data>
+  <data name="RemainingCiphers">
+    <value>剩余密码机数量</value>
+  </data>
+  <data name="PalletsDestroyed">
+    <value>破坏板子数</value>
+  </data>
+  <data name="SurvivorHits">
+    <value>命中求生者次数</value>
+  </data>
+  <data name="TerrorShocks">
+    <value>恐惧震慑次数</value>
+  </data>
+  <data name="Knockdowns">
+    <value>击倒次数</value>
+  </data>
+  <data name="GameProgress">
+    <value>对局进度</value>
+  </data>
+  <data name="GameProgressInBPOverview">
+    <value>对局进度（BP总览）</value>
+  </data>
+  <data name="GameRuleFileNotFound">
+    <value>对局规则文件不存在</value>
+  </data>
+  <data name="GameAlreadyStarted">
+    <value>对局已开始</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree">
+    <value>自由对局不支持引导</value>
+  </data>
+  <data name="GameRuleFileError">
+    <value>对局规则文件异常</value>
+  </data>
+  <data name="PleaseStartGameFirst">
+    <value>请先开始对局</value>
+  </data>
+  <data name="AlreadyLastStep">
+    <value>已经是最后一步</value>
+  </data>
+  <data name="GameInfoError">
+    <value>对局信息状态异常</value>
+  </data>
+  <data name="AlreadyFirstStep">
+    <value>已经是第一步</value>
+  </data>
+  <data name="GameRuleFileNotFoundError">
+    <value>对局规则文件不存在</value>
+  </data>
+  <data name="GameRuleFileStatusError">
+    <value>对局规则文件状态异常</value>
+  </data>
+  <data name="NewGameHasBeenCreated">
+    <value>新对局已创建</value>
+  </data>
+  <data name="GameProgressFree">
+    <value>自由对局</value>
+  </data>
+  <data name="GameProgressGameOnlyFormat">
+    <value>第{0}局</value>
+  </data>
+  <data name="GameProgressGameOvertimeOnlyFormat">
+    <value>第{0}局加赛</value>
+  </data>
+  <data name="GameProgressGameHalfFormat">
+    <value>第{0}局 {1}</value>
+  </data>
+  <data name="GameProgressGameOvertimeHalfFormat">
+    <value>第{0}局加赛 {1}</value>
+  </data>
+  <data name="GameProgressBinding">
+    <value>对局进度绑定</value>
+  </data>
+  <data name="ArmsFactory">
+    <value>军工厂</value>
+  </data>
+  <data name="TheRedChurch">
+    <value>红教堂</value>
+  </data>
+  <data name="SacredHeartHospital">
+    <value>圣心医院</value>
+  </data>
+  <data name="LeosMemory">
+    <value>里奥的回忆</value>
+  </data>
+  <data name="MoonlitRiverPark">
+    <value>月亮河公园</value>
+  </data>
+  <data name="LakesideVillage">
+    <value>湖景村</value>
+  </data>
+  <data name="EversleepingTown">
+    <value>永眠镇</value>
+  </data>
+  <data name="ChinaTown">
+    <value>唐人街</value>
+  </data>
+  <data name="Darkwoods">
+    <value>不归林</value>
+  </data>
+  <data name="FirstHalf">
+    <value>上半场</value>
+  </data>
+  <data name="SecondHalf">
+    <value>下半场</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData">
+    <value>自动识别并填充赛后数据</value>
+  </data>
+  <data name="CharacterName">
+    <value>角色名称</value>
+  </data>
+  <data name="CreateTip">
+    <value>创建提示</value>
+  </data>
+  <data name="DistributeCharacters">
+    <value>分配角色</value>
+  </data>
+</root>

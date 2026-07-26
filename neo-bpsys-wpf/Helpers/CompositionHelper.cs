@@ -28,6 +28,9 @@ using Windows.UI.Composition;
 
 namespace Composition.WindowsRuntimeHelpers
 {
+    /// <summary>
+    /// 提供 Windows.UI.Composition 与桌面窗口之间的互操作辅助方法。
+    /// </summary>
     public static class CompositionHelper
     {
         [ComImport]
@@ -54,6 +57,13 @@ namespace Composition.WindowsRuntimeHelpers
         {
             Windows.UI.Composition.Desktop.DesktopWindowTarget CreateDesktopWindowTarget(
                 IntPtr hwnd,
+        /// <summary>
+        /// 为指定桌面窗口创建 CompositionTarget。
+        /// </summary>
+        /// <param name="compositor">Compositor 实例。</param>
+        /// <param name="hwnd">目标窗口句柄。</param>
+        /// <param name="isTopmost">是否为最顶层窗口。</param>
+        /// <returns>创建的 CompositionTarget。</returns>
                 bool isTopmost);
         }
 
@@ -63,6 +73,12 @@ namespace Composition.WindowsRuntimeHelpers
             return desktopInterop.CreateDesktopWindowTarget(hwnd, isTopmost);
         }
 
+        /// <summary>
+        /// 为 SwapChain 创建 CompositionSurface。
+        /// </summary>
+        /// <param name="compositor">Compositor 实例。</param>
+        /// <param name="swapChain">SharpDX DXGI SwapChain1。</param>
+        /// <returns>创建的 ICompositionSurface。</returns>
         public static ICompositionSurface CreateCompositionSurfaceForSwapChain(this Compositor compositor, SharpDX.DXGI.SwapChain1 swapChain)
         {
             var interop = (ICompositorInterop)(object)compositor;

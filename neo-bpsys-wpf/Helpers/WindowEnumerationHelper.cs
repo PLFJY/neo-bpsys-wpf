@@ -2,6 +2,9 @@
 
 namespace neo_bpsys_wpf.Helpers;
 
+/// <summary>
+/// 提供窗口枚举和验证的辅助方法，用于屏幕捕获时过滤无效窗口。
+/// </summary>
 static class WindowEnumerationHelper
 {
     enum GetAncestorFlags

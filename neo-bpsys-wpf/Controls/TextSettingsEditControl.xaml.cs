@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using TextSettings = neo_bpsys_wpf.Core.Models.TextSettings;
+using TextSettings = neo_bpsys_wpf.Core.Models.Legacy.LegacyTextSettings;
 
 namespace neo_bpsys_wpf.Controls;
 
@@ -39,16 +39,16 @@ public partial class TextSettingsEditControl : UserControl
     public List<FontFamily> FontList { get; }
 
     [ObservableProperty]
-    private Color _selectedColor = Color.FromArgb(255, 255, 255, 255);
+    public partial Color SelectedColor { get; set; } = Color.FromArgb(255, 255, 255, 255);
 
     [ObservableProperty]
-    private FontFamily _selectedFontFamily = new("Arial");
+    public partial FontFamily SelectedFontFamily { get; set; } = new("Arial");
 
     [ObservableProperty]
-    private string _selectedFontSize = "16.0";
+    public partial string SelectedFontSize { get; set; } = "16.0";
 
     [ObservableProperty]
-    private FontWeight _selectedFontWeight = FontWeights.Normal;
+    public partial FontWeight SelectedFontWeight { get; set; } = FontWeights.Normal;
 
     [RelayCommand]
     private void Apply()
@@ -91,6 +91,9 @@ public partial class TextSettingsEditControl : UserControl
         _closeAction?.Invoke();
     }
 
+    /// <summary>
+    /// 获取字体粗细列表。
+    /// </summary>
     public List<FontWeight> FontWeightList { get; } =
     [
         FontWeights.Thin,

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="NewGame">
+    <value>New game (Reset)</value>
+  </data>
+  <data name="GameProgressColon">
+    <value>Game progress: </value>
+  </data>
+  <data name="DecodingProgress">
+    <value>Decoding progress</value>
+  </data>
+  <data name="PalletStrikes">
+    <value>Pallet strikes</value>
+  </data>
+  <data name="Rescues">
+    <value>Rescues</value>
+  </data>
+  <data name="Heals">
+    <value>Heals</value>
+  </data>
+  <data name="ContainmentTime">
+    <value>Containment time (s)</value>
+  </data>
+  <data name="RemainingCiphers">
+    <value>Remaining ciphers</value>
+  </data>
+  <data name="PalletsDestroyed">
+    <value>Pallets destroyed</value>
+  </data>
+  <data name="SurvivorHits">
+    <value>Survivor hits</value>
+  </data>
+  <data name="TerrorShocks">
+    <value>Terror shocks</value>
+  </data>
+  <data name="Knockdowns">
+    <value>Knockdowns</value>
+  </data>
+  <data name="GameProgress">
+    <value>Game progress</value>
+  </data>
+  <data name="GameProgressInBPOverview">
+    <value>Game progress(BP Overview)</value>
+  </data>
+  <data name="GameRuleFileNotFound">
+    <value>Game rule file not found</value>
+  </data>
+  <data name="GameAlreadyStarted">
+    <value>Game already started</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree">
+    <value>Guidance not available in free game</value>
+  </data>
+  <data name="GameRuleFileError">
+    <value>Game rule file error</value>
+  </data>
+  <data name="PleaseStartGameFirst">
+    <value>Please start game first</value>
+  </data>
+  <data name="AlreadyLastStep">
+    <value>It's already the last step</value>
+  </data>
+  <data name="GameInfoError">
+    <value>Game information error</value>
+  </data>
+  <data name="AlreadyFirstStep">
+    <value>It's already the first step</value>
+  </data>
+  <data name="GameRuleFileNotFoundError">
+    <value>Game rule file not found error</value>
+  </data>
+  <data name="GameRuleFileStatusError">
+    <value>Game rule file status error</value>
+  </data>
+  <data name="NewGameHasBeenCreated">
+    <value>New game has been created</value>
+  </data>
+  <data name="GameProgressFree">
+    <value>FREE GAME</value>
+  </data>
+  <data name="GameProgressGameOnlyFormat">
+    <value>GAME {0}</value>
+  </data>
+  <data name="GameProgressGameOvertimeOnlyFormat">
+    <value>GAME {0} OVERTIME</value>
+  </data>
+  <data name="GameProgressGameHalfFormat">
+    <value>GAME {0} {1}</value>
+  </data>
+  <data name="GameProgressGameOvertimeHalfFormat">
+    <value>GAME {0} OVERTIME {1}</value>
+  </data>
+  <data name="GameProgressBinding">
+    <value>GameProgress binding</value>
+  </data>
+  <data name="ArmsFactory">
+    <value>Arms Factory</value>
+  </data>
+  <data name="TheRedChurch">
+    <value>The Red Church</value>
+  </data>
+  <data name="SacredHeartHospital">
+    <value>Sacred Heart Hospital</value>
+  </data>
+  <data name="LeosMemory">
+    <value>Leo's Memory</value>
+  </data>
+  <data name="MoonlitRiverPark">
+    <value>Moonlit River Park</value>
+  </data>
+  <data name="LakesideVillage">
+    <value>Lakeside Village</value>
+  </data>
+  <data name="EversleepingTown">
+    <value>Eversleeping Town</value>
+  </data>
+  <data name="ChinaTown">
+    <value>China Town</value>
+  </data>
+  <data name="Darkwoods">
+    <value>Darkwoods</value>
+  </data>
+  <data name="FirstHalf">
+    <value>FIRST HALF</value>
+  </data>
+  <data name="SecondHalf">
+    <value>SECOND HALF</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData">
+    <value>Auto-Detect and Fill Post-Game Data</value>
+  </data>
+  <data name="CharacterName">
+    <value>Character name</value>
+  </data>
+  <data name="CreateTip">
+    <value>Create tip</value>
+  </data>
+  <data name="DistributeCharacters">
+    <value>Distribute Characters</value>
+  </data>
+</root>

@@ -1,8 +1,44 @@
+using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
+
+/// <summary>
+/// 角色文本解析结果。
+/// </summary>
+/// <param name="RawText">原始输入文本。</param>
+/// <param name="Camp">限定匹配的角色阵营。</param>
+/// <param name="Character">解析到的角色；未解析或歧义时为 <see langword="null"/>。</param>
+/// <param name="CanonicalName">角色规范名称。</param>
+/// <param name="CharacterKey">角色稳定标识，优先使用图片文件名。</param>
+/// <param name="Score">匹配分数。</param>
+/// <param name="MatchMode">匹配模式。</param>
+/// <param name="IsAutoApplySafe">是否足够安全，可由上层自动应用。</param>
+/// <param name="Reason">解析原因或拒绝原因。</param>
+public sealed record CharacterResolveResult(
+    string RawText,
+    Camp Camp,
+    Character? Character,
+    string? CanonicalName,
+    string? CharacterKey,
+    double Score,
+    string MatchMode,
+    bool IsAutoApplySafe,
+    string Reason);
+
+/// <summary>
+/// 从文本解析并应用角色选择的结果。
+/// </summary>
+/// <param name="ResolveResult">角色文本解析结果。</param>
+/// <param name="Applied">是否已应用到当前对局。</param>
+/// <param name="Message">应用结果说明。</param>
+public sealed record CharacterResolveApplyResult(
+    CharacterResolveResult ResolveResult,
+    bool Applied,
+    string Message);
 
 /// <summary>
 /// 角色选择服务接口
@@ -10,6 +46,70 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// </summary>
 public interface ICharacterSelectionService
 {
+    /// <summary>
+    /// 根据识别文本和阵营返回详细角色匹配信息。
+    /// </summary>
+    /// <param name="text">待匹配的 OCR 或外部识别文本。</param>
+    /// <param name="camp">角色阵营。</param>
+    /// <returns>详细角色匹配结果。</returns>
+    CharacterResolveResult ResolveCharacterDetailed(string text, Camp camp);
+
+    /// <summary>
+    /// 根据识别文本和阵营返回规范角色名。
+    /// </summary>
+    /// <param name="text">待匹配的 OCR 或外部识别文本。</param>
+    /// <param name="camp">角色阵营。</param>
+    /// <returns>规范角色名；没有安全解析结果时返回 <see langword="null"/>。</returns>
+    string? ResolveCharacterName(string text, Camp camp);
+
+    /// <summary>
+    /// 根据识别文本和阵营匹配角色字典中相似度最高的角色。
+    /// </summary>
+    /// <param name="text">待匹配的 OCR 或外部识别文本。</param>
+    /// <param name="camp">角色阵营。</param>
+    /// <returns>相似度不低于匹配阈值的最佳角色；没有有效候选时返回 <see langword="null"/>。</returns>
+    Character? ResolveCharacter(string text, Camp camp);
+
+    /// <summary>
+    /// 从文本解析并选择求生者角色。
+    /// </summary>
+    /// <param name="playerIndex">玩家索引。</param>
+    /// <param name="text">待解析文本。</param>
+    /// <param name="playAnimation">是否播放动画。</param>
+    /// <param name="isRecordGlobalBan">是否记录全局禁用。</param>
+    /// <returns>解析与应用结果。</returns>
+    Task<CharacterResolveApplyResult> SelectSurvivorFromTextAsync(
+        int playerIndex,
+        string text,
+        bool playAnimation = true,
+        bool isRecordGlobalBan = true);
+
+    /// <summary>
+    /// 从文本解析并选择监管者角色。
+    /// </summary>
+    /// <param name="text">待解析文本。</param>
+    /// <param name="playAnimation">是否播放动画。</param>
+    /// <param name="isRecordGlobalBan">是否记录全局禁用。</param>
+    /// <returns>解析与应用结果。</returns>
+    Task<CharacterResolveApplyResult> SelectHunterFromTextAsync(
+        string text,
+        bool playAnimation = true,
+        bool isRecordGlobalBan = true);
+
+    /// <summary>
+    /// 从文本解析并禁用角色。
+    /// </summary>
+    /// <param name="camp">角色阵营。</param>
+    /// <param name="index">禁用位索引。</param>
+    /// <param name="text">待解析文本。</param>
+    /// <param name="playAnimation">是否播放动画。</param>
+    /// <returns>解析与应用结果。</returns>
+    Task<CharacterResolveApplyResult> BanCharacterFromTextAsync(
+        Camp camp,
+        int index,
+        string text,
+        bool playAnimation = true);
+
     /// <summary>
     /// 选择求生者角色
     /// </summary>
@@ -47,10 +147,16 @@ public interface ICharacterSelectionService
     /// <summary>
     /// 角色选择事件
     /// </summary>
+    [FrontedBehaviorEvent("Selection.CharacterSelected", DisplayNameKey = "Designer.Behaviors.Event.CharacterSelected", DescriptionKey = "Designer.Behaviors.Event.CharacterSelected.Description", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]
+    [FrontedBehaviorEventPayload("Event.Camp", DisplayNameKey = "Designer.Behaviors.Payload.Camp", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterSelectedEventArgs.Camp), TypeName = "Camp")]
+    [FrontedBehaviorEventPayload("Event.Index", DisplayNameKey = "Designer.Behaviors.Payload.Index", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterSelectedEventArgs.PlayerIndex), TypeName = "int")]
     event EventHandler<CharacterSelectedEventArgs> CharacterSelected;
 
     /// <summary>
     /// 角色禁用事件
     /// </summary>
+    [FrontedBehaviorEvent("Selection.CharacterBanned", DisplayNameKey = "Designer.Behaviors.Event.CharacterBanned", DescriptionKey = "Designer.Behaviors.Event.CharacterBanned.Description", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]
+    [FrontedBehaviorEventPayload("Event.Camp", DisplayNameKey = "Designer.Behaviors.Payload.Camp", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterBannedEventArgs.Camp), TypeName = "Camp")]
+    [FrontedBehaviorEventPayload("Event.Index", DisplayNameKey = "Designer.Behaviors.Payload.Index", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterBannedEventArgs.Index), TypeName = "int")]
     event EventHandler<CharacterBannedEventArgs> CharacterBanned;
 }

@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
 using Game = neo_bpsys_wpf.Core.Models.Game;
@@ -66,7 +67,6 @@ public partial class SharedDataService : ISharedDataService
         CanGlobalHunBannedList.CollectionChanged += (_, e) =>
             HandleBanCollectionChanged(BanListName.CanGlobalHunBanned, e);
 
-        GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
         _timer.Interval = TimeSpan.FromSeconds(1);
         _timer.Tick += Timer_Tick;
 
@@ -145,20 +145,29 @@ public partial class SharedDataService : ISharedDataService
         {
             if (_currentGame == value) return;
             var oldPickedMap = _currentGame.PickedMap;
+            var oldGameProgress = _currentGame.GameProgress;
             var isMapV2BannedChanged = IsMapV2BannedChanged(_currentGame, value);
             UnsubscribeCurrentGameRelatedEvents(_currentGame);
             _currentGame = value;
             SubscribeCurrentGameRelatedEvents(CurrentGame);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentGame)));
             CurrentGameChanged?.Invoke(this, EventArgs.Empty);
             if (oldPickedMap != CurrentGame.PickedMap)
             {
                 PickedMapChanged?.Invoke(this, EventArgs.Empty);
             }
 
+            if (oldGameProgress != CurrentGame.GameProgress)
+            {
+                GameProgressChanged?.Invoke(this, EventArgs.Empty);
+            }
+
             if (isMapV2BannedChanged)
             {
                 MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
             }
+
+            PublishMapV2PickingBorderStateForAllMaps();
         }
     }
 
@@ -181,13 +190,14 @@ public partial class SharedDataService : ISharedDataService
         var bannedMap = CurrentGame.BannedMap;
         var mapV2Dictionary = CurrentGame.MapV2Dictionary;
         var gameProgress = CurrentGame.GameProgress;
+        var matchScore = CurrentGame.MatchScore.Clone();
 
         CurrentGame =
-            new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary);
+            new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary, matchScore: matchScore);
 
         _ = MessageBoxHelper.ShowInfoAsync(
-            $"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
-            I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
+            $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "CreateTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
     }
 
     public async Task ImportGameAsync(string filePath)
@@ -195,6 +205,8 @@ public partial class SharedDataService : ISharedDataService
         try
         {
             var json = await File.ReadAllTextAsync(filePath);
+            var hasSerializedMatchScore = HasSerializedMatchScore(json);
+            var legacyScoreSnapshot = LegacyScoreSnapshot.FromJson(json);
 
             // Use a custom converter to resolve Character instances to the global shared instances
             var options = new JsonSerializerOptions(_jsonSerializerOptions);
@@ -215,6 +227,10 @@ public partial class SharedDataService : ISharedDataService
                 AwayTeam.ImportTeamInfo(importedGame.SurTeam);
             }
 
+            // 导入的是当前生效状态；清除旧暂存记录，避免创建 Game 时覆盖导入的全局禁选。
+            HomeTeam.ClearGlobalBanRecords();
+            AwayTeam.ClearGlobalBanRecords();
+
             if (HomeTeam.Camp == AwayTeam.Camp) throw new OperationCanceledException("Invalid game record");
 
             Team surTeam, hunTeam;
@@ -231,18 +247,45 @@ public partial class SharedDataService : ISharedDataService
 
             foreach (var pair in CurrentGame.MapV2Dictionary)
             {
-                pair.Value.IsPicked = importedGame.MapV2Dictionary[pair.Key].IsPicked;
-                pair.Value.IsBanned = importedGame.MapV2Dictionary[pair.Key].IsBanned;
-                pair.Value.IsCampVisible = importedGame.MapV2Dictionary[pair.Key].IsCampVisible;
-                pair.Value.IsBreathing = importedGame.MapV2Dictionary[pair.Key].IsBreathing;
-                pair.Value.OperationTeam = importedGame.MapV2Dictionary[pair.Key].OperationTeam;
+                if (!importedGame.MapV2Dictionary.TryGetValue(pair.Key, out var importedMapV2))
+                {
+                    _logger.LogWarning(
+                        "Imported game {FilePath} is missing MapV2 key {MapKey}; keeping current default map state.",
+                        filePath,
+                        pair.Key);
+                    continue;
+                }
+
+                pair.Value.IsPicked = importedMapV2.IsPicked;
+                pair.Value.IsBanned = importedMapV2.IsBanned;
+                pair.Value.IsGloballyDisabled = importedMapV2.IsGloballyDisabled;
+                pair.Value.IsCampVisible = importedMapV2.IsCampVisible;
+                pair.Value.IsBreathing = importedMapV2.IsBreathing;
+                pair.Value.OperationTeam = importedMapV2.OperationTeam;
+            }
+
+            var importedMatchScore = importedGame.MatchScore.Clone();
+            var shouldKeepLegacyScoreMirror = !hasSerializedMatchScore || !HasRecordedMatchScore(importedMatchScore);
+            if (shouldKeepLegacyScoreMirror && legacyScoreSnapshot.HasScore)
+            {
+                _logger.LogWarning(
+                    "Imported game {FilePath} contains legacy Team.Score without usable MatchScore. " +
+                    "Keeping MatchScore default because per-half history cannot be reconstructed; legacy score mirror is preserved.",
+                    filePath);
             }
 
             CurrentGame = new Game(surTeam, hunTeam, importedGame.GameProgress, importedGame.PickedMap,
                 importedGame.BannedMap,
                 CurrentGame.MapV2Dictionary, importedGame.Guid, importedGame.StartTime,
                 importedGame.SurPlayersData, importedGame.HunPlayerData,
-                importedGame.CurrentSurBannedList, importedGame.CurrentHunBannedList);
+                NormalizeBanList(importedGame.CurrentSurBannedList),
+                NormalizeBanList(importedGame.CurrentHunBannedList),
+                importedMatchScore);
+
+            if (shouldKeepLegacyScoreMirror)
+            {
+                legacyScoreSnapshot.ApplyTo(CurrentGame);
+            }
 
             _logger.LogInformation("Game imported successfully from {FilePath}", filePath);
         }
@@ -281,14 +324,49 @@ public partial class SharedDataService : ISharedDataService
         {
             PickedMapChanged?.Invoke(this, EventArgs.Empty);
         }
+
+        if (args.PropertyName == nameof(Game.GameProgress))
+        {
+            GameProgressChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void OnMapV2PropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == nameof(MapV2.IsBanned))
+        if (args.PropertyName == nameof(MapV2.IsBanned) || args.PropertyName == nameof(MapV2.IsGloballyDisabled))
         {
             MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
+            if (sender is MapV2 mapV2)
+            {
+                PublishMapV2PickingBorderState(mapV2);
+            }
         }
+    }
+
+    private void PublishMapV2PickingBorderStateForAllMaps()
+    {
+        foreach (var mapV2 in CurrentGame.MapV2Dictionary.Values)
+        {
+            PublishMapV2PickingBorderState(mapV2);
+        }
+    }
+
+    private void PublishMapV2PickingBorderState(MapV2 mapV2)
+    {
+        var mapKey = CurrentGame.MapV2Dictionary
+            .FirstOrDefault(pair => ReferenceEquals(pair.Value, mapV2))
+            .Key;
+        if (string.IsNullOrWhiteSpace(mapKey))
+        {
+            return;
+        }
+
+        MapV2PickingBorderStateChanged?.Invoke(
+            this,
+            new MapV2PickingBorderStateChangedEventArgs(
+                mapKey,
+                IsMapV2Breathing,
+                mapV2.IsVisuallyBanned));
     }
 
     private static bool IsMapV2BannedChanged(Game oldGame, Game newGame)
@@ -311,6 +389,11 @@ public partial class SharedDataService : ISharedDataService
             }
 
             if (oldMapV2.IsBanned != newMapV2.IsBanned)
+            {
+                return true;
+            }
+
+            if (oldMapV2.IsGloballyDisabled != newMapV2.IsGloballyDisabled)
             {
                 return true;
             }
@@ -384,6 +467,7 @@ public partial class SharedDataService : ISharedDataService
                     CanGlobalHunBannedList[i] = i < count;
                 break;
             default:
+                _logger.LogWarning("Invalid ban list name: {ListName}", listName);
                 throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
         }
     }
@@ -407,6 +491,13 @@ public partial class SharedDataService : ISharedDataService
     private readonly DispatcherTimer _timer = new();
 
     private int _remainingSeconds = -1;
+    private int _countDownTotalSeconds;
+
+    /// <inheritdoc />
+    public int CountDownTotalSeconds => _countDownTotalSeconds;
+
+    /// <inheritdoc />
+    public int CountDownRemainingSeconds => Math.Max(0, _remainingSeconds);
 
     /// <summary>
     /// 倒计时剩余时间
@@ -419,8 +510,79 @@ public partial class SharedDataService : ISharedDataService
             if (!int.TryParse(value, out _remainingSeconds))
                 _remainingSeconds = 0;
 
-            CountDownValueChanged?.Invoke(this, EventArgs.Empty);
+            NotifyCountDownValueChanged();
         }
+    }
+
+    private static ObservableCollection<Character?>? NormalizeBanList(ObservableCollection<Character?>? banList) =>
+        banList is { Count: > 0 } ? banList : null;
+
+    private static bool HasSerializedMatchScore(string json)
+    {
+        var root = JsonNode.Parse(json)?.AsObject();
+        return root?.ContainsKey(nameof(Game.MatchScore)) == true;
+    }
+
+    private static bool HasRecordedMatchScore(neo_bpsys_wpf.Core.Models.ScoreSystem.MatchScoreState matchScore) =>
+        matchScore.Games
+            .SelectMany(game => new[] { game.FirstHalf, game.SecondHalf })
+            .Any(half => half.Result != null);
+
+    private sealed record LegacyScoreSnapshot(ScoreSnapshot? SurScore, ScoreSnapshot? HunScore)
+    {
+        public bool HasScore => SurScore?.HasScore == true || HunScore?.HasScore == true;
+
+        public static LegacyScoreSnapshot FromJson(string json)
+        {
+            try
+            {
+                var root = JsonNode.Parse(json)?.AsObject();
+                return new LegacyScoreSnapshot(
+                    ScoreSnapshot.FromTeamNode(root?[nameof(Game.SurTeam)]),
+                    ScoreSnapshot.FromTeamNode(root?[nameof(Game.HunTeam)]));
+            }
+            catch (JsonException)
+            {
+                return new LegacyScoreSnapshot(null, null);
+            }
+        }
+
+        public void ApplyTo(Game game)
+        {
+            SurScore?.ApplyTo(game.SurTeam.Score);
+            HunScore?.ApplyTo(game.HunTeam.Score);
+        }
+    }
+
+    private sealed record ScoreSnapshot(int Win, int Tie, int GameScores)
+    {
+        public bool HasScore => Win != 0 || Tie != 0 || GameScores != 0;
+
+        public static ScoreSnapshot? FromTeamNode(JsonNode? teamNode)
+        {
+            var scoreNode = teamNode?["Score"];
+            if (scoreNode is null)
+            {
+                return null;
+            }
+
+            return new ScoreSnapshot(
+                ReadInt(scoreNode["Win"]),
+                ReadInt(scoreNode["Tie"]),
+                ReadInt(scoreNode["GameScores"]));
+        }
+
+        public void ApplyTo(Score score)
+        {
+            score.Win = Win;
+            score.Tie = Tie;
+            score.GameScores = GameScores;
+        }
+
+        private static int ReadInt(JsonNode? node) =>
+            node is JsonValue jsonValue && jsonValue.TryGetValue<int>(out var value)
+                ? value
+                : 0;
     }
 
     private void Timer_Tick(object? sender, EventArgs e)
@@ -428,7 +590,7 @@ public partial class SharedDataService : ISharedDataService
         if (_remainingSeconds >= 0)
         {
             _remainingSeconds--;
-            CountDownValueChanged?.Invoke(this, EventArgs.Empty);
+            NotifyCountDownValueChanged();
         }
         else
         {
@@ -440,14 +602,24 @@ public partial class SharedDataService : ISharedDataService
     {
         if (seconds == null) return;
         _remainingSeconds = (int)seconds;
+        _countDownTotalSeconds = Math.Max(0, (int)seconds);
         _timer.Start();
-        CountDownValueChanged?.Invoke(this, EventArgs.Empty);
+        NotifyCountDownValueChanged();
     }
 
     public void TimerStop()
     {
         _remainingSeconds = -1;
+        _countDownTotalSeconds = 0;
         _timer.Stop();
+        NotifyCountDownValueChanged();
+    }
+
+    private void NotifyCountDownValueChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RemainingSeconds)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CountDownRemainingSeconds)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CountDownTotalSeconds)));
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -489,24 +661,6 @@ public partial class SharedDataService : ISharedDataService
         }
     }
 
-    /// <summary>
-    /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
-    /// </summary>
-    private double _globalScoreTotalMargin = 370;
-
-    public double GlobalScoreTotalMargin
-    {
-        get => _globalScoreTotalMargin;
-        set
-        {
-            var oldValue = _globalScoreTotalMargin;
-            if (Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
-            _globalScoreTotalMargin = value;
-
-            GlobalScoreTotalMarginChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
     private bool _isMapV2Breathing;
 
     /// <summary>
@@ -519,11 +673,13 @@ public partial class SharedDataService : ISharedDataService
         {
             if (_isMapV2Breathing == value) return;
             _isMapV2Breathing = value;
-            IsMapV2BreathingChanged?.Invoke(this, EventArgs.Empty);
             foreach (var mapValue in CurrentGame.MapV2Dictionary.Values)
             {
                 mapValue.IsBreathing = value;
             }
+
+            IsMapV2BreathingChanged?.Invoke(this, EventArgs.Empty);
+            PublishMapV2PickingBorderStateForAllMaps();
         }
     }
 
@@ -555,9 +711,12 @@ public partial class SharedDataService : ISharedDataService
     public event EventHandler? CurrentGameChanged;
 
     /// <summary>
-    /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离改变事件
+    /// 当前对局进度改变事件
     /// </summary>
-    public event EventHandler? GlobalScoreTotalMarginChanged;
+    public event EventHandler? GameProgressChanged;
+
+    /// <inheritdoc />
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>
     /// Ban位数量改变事件
@@ -588,6 +747,11 @@ public partial class SharedDataService : ISharedDataService
     /// 地图V2呼吸灯改变事件
     /// </summary>
     public event EventHandler? IsMapV2BreathingChanged;
+
+    /// <summary>
+    /// 地图 BP v2 选图边框状态改变事件
+    /// </summary>
+    public event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
 
     /// <summary>
     /// 地图V2阵营是否可见改变事件

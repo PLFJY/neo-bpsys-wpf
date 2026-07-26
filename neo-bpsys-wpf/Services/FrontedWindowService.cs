@@ -1,1088 +1,839 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.AttachedBehaviors;
+using neo_bpsys_wpf.Core.Controls;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Core.Services.Registry;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.ViewModels.Windows;
-using neo_bpsys_wpf.Views.Windows;
+using System.Diagnostics;
 using System.IO;
-using System.ComponentModel;
-using System.Text.Json;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using static neo_bpsys_wpf.Core.Helpers.FrontedWindowHelper;
 
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// 前台窗口服务, 实现了 <see cref="IFrontedWindowService"/> 接口，负责与前台窗口进行交互
+/// 前台窗口服务，负责与前台窗口进行交互。
 /// </summary>
 public class FrontedWindowService : IFrontedWindowService
 {
-    /// <summary>
-    /// 前台窗口列表
-    /// </summary>
-    public Dictionary<string, Window> FrontedWindows { get; private set; } = [];
-
-    /// <summary>
-    /// 前台窗口状态列表
-    /// </summary>
-    public Dictionary<string, bool> FrontedWindowStates { get; private set; } = [];
-
-    /// <summary>
-    /// 前台画布列表
-    /// </summary>
-    public List<(string, string)> FrontedCanvas { get; private set; } = []; // 窗口ID, 画布名称
-
-    /// <summary>
-    /// 全局分数控件列表
-    /// </summary>
-    private readonly Dictionary<GameProgress, FrameworkElement> _mainGlobalScoreControls = [];
-
-    /// <summary>
-    /// 客队分数控件列表
-    /// </summary>
-    private readonly Dictionary<GameProgress, FrameworkElement> _awayGlobalScoreControls = [];
-
-    /// <summary>
-    /// 外部控件默认位置列表
-    /// </summary>
-    private readonly Dictionary<FrameworkElement, ElementInfo> _externalControlDefaultPosition = [];
-
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
-    private readonly ISharedDataService _sharedDataService;
-    private readonly ISettingsHostService _settingsHostService;
-    private readonly ILogger<FrontedWindowService> _logger;
-    private Settings? _windowSizeSettings;
-
-    public FrontedWindowService(
-        BpWindow bpWindow,
-        CutSceneWindow cutSceneWindow,
-        GameDataWindow gameDataWindow,
-        ScoreSurWindow scoreSurWindow,
-        ScoreHunWindow scoreHunWindow,
-        ScoreGlobalWindow scoreGlobalWindow,
-        WidgetsWindow widgetsWindow,
-        ISharedDataService sharedDataService,
-        ISettingsHostService settingsHostService,
-        ILogger<FrontedWindowService> logger
-    )
+#if DEBUG
+    static FrontedWindowService()
     {
-        _sharedDataService = sharedDataService;
-        _settingsHostService = settingsHostService;
+        Debug.WriteLine($"[DIAG] FrontedWindowService: static ctor at {DateTimeOffset.Now:HH:mm:ss.fff}");
+    }
+#endif
+    private readonly IServiceProvider _services;
+    private readonly IFrontedWindowRegistry _windowRegistry;
+    private readonly IFrontedWindowLayoutOptionsService _windowLayoutOptionsService;
+    private readonly ILogger<FrontedWindowService> _logger;
+    private readonly IFrontedEventBus? _eventBus;
+
+    /// <summary>
+    /// 前台窗口可变字典（私有），键为窗口 Canonical ID。使用 <see cref="StringComparer.OrdinalIgnoreCase"/>
+    /// 与注册表的比较语义保持一致，避免调用方传入大小写不同的 ID 时无法命中缓存。
+    /// </summary>
+    private readonly Dictionary<string, Window> _frontedWindows = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 前台窗口状态可变字典（私有），键为窗口 Canonical ID，值为窗口是否可见。
+    /// 比较语义与 <see cref="_frontedWindows"/> 一致。
+    /// </summary>
+    private readonly Dictionary<string, bool> _frontedWindowStates = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 获取前台窗口的只读视图，键为窗口 Canonical ID。使用 <see cref="StringComparer.OrdinalIgnoreCase"/>
+    /// 与注册表的比较语义保持一致，避免调用方传入大小写不同的 ID 时无法命中缓存。
+    /// </summary>
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改缓存。
+    /// 需要修改窗口缓存必须通过服务方法（如 <see cref="EnsureWindowCreated"/>、
+    /// <see cref="ShowWindow(string)"/>、<see cref="HideWindow(string)"/> 等）。
+    /// </remarks>
+    public IReadOnlyDictionary<string, Window> FrontedWindows => _frontedWindows;
+
+    /// <summary>
+    /// 获取前台窗口状态的只读视图，键为窗口 Canonical ID，值为窗口是否可见。
+    /// 比较语义与 <see cref="FrontedWindows"/> 一致。
+    /// </summary>
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改状态缓存。
+    /// 需要修改窗口状态必须通过服务方法。
+    /// </remarks>
+    public IReadOnlyDictionary<string, bool> FrontedWindowStates => _frontedWindowStates;
+
+    /// <summary>
+    /// 初始化前台窗口服务。
+    /// </summary>
+    /// <param name="services">服务提供者。</param>
+    /// <param name="windowRegistry">窗口注册表。</param>
+    /// <param name="windowLayoutOptionsService">窗口布局选项服务。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="eventBus">前台事件总线（可选）。</param>
+    public FrontedWindowService(
+        IServiceProvider services,
+        IFrontedWindowRegistry windowRegistry,
+        IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
+        ILogger<FrontedWindowService> logger,
+        IFrontedEventBus? eventBus = null)
+    {
+        _services = services;
+        _windowRegistry = windowRegistry;
+        _windowLayoutOptionsService = windowLayoutOptionsService;
         _logger = logger;
-        if (!Directory.Exists(AppConstants.AppDataPath)) Directory.CreateDirectory(AppConstants.AppDataPath);
-
-        // 注册窗口和画布
-        RegisterFrontedWindowAndCanvas();
-
-        //注册分数统计界面的分数控件
-        GlobalScoreControlsReg();
-
-        //加载后期注入的控件
-        LoadInjectedControl();
+        _eventBus = eventBus;
+        if (!Directory.Exists(AppConstants.AppDataPath))
+        {
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+        }
 
 #if DEBUG
-        //记录初始位置 (仅DEBUG生效)
-        foreach (var i in FrontedCanvas)
-        {
-            RecordInitialPositions(i.Item1, i.Item2, true);
-        }
+        Debug.WriteLine($"[DIAG] FrontedWindowService: lazy fronted window creation enabled at {DateTimeOffset.Now:HH:mm:ss.fff}");
 #endif
-
-        //从文件加载位置信息
-        _ = LoadElementsPositionOnStartup();
-
-        //分数统计部分的消息订阅和部分参数
-        _isBo3Mode = sharedDataService.IsBo3Mode;
-        _globalScoreTotalMargin = sharedDataService.GlobalScoreTotalMargin;
-        sharedDataService.GlobalScoreTotalMarginChanged += OnGlobalScoreTotalMarginChanged;
-        sharedDataService.IsBo3ModeChanged += OnBo3ModeChanged;
-        OnBo3ModeChanged(this, EventArgs.Empty);
-
-        //AttachWindowSizeHandlers(_settingsHostService.Settings);
-        //_settingsHostService.SettingsChanged += (_, settings) => AttachWindowSizeHandlers(settings);
     }
 
     /// <summary>
-    /// 加载后期注入的控件
+    /// 将调用方传入的窗口 ID 规范化为注册表中的 Canonical ID。
     /// </summary>
-    private void LoadInjectedControl()
+    /// <param name="windowId">调用方传入的窗口 ID（可能是任意大小写）。</param>
+    /// <returns>
+    /// 当 <paramref name="windowId"/> 在注册表中存在时，返回 <see cref="FrontedWindowRegistration.Id"/>；
+    /// 否则返回原始 <paramref name="windowId"/>，由调用方按未注册路径处理。
+    /// </returns>
+    /// <remarks>
+    /// 该方法保证整条调用链只使用注册表中的 Canonical ID 作为缓存键和事件 payload，
+    /// 避免调用方传入的大小写变体导致缓存孤立或事件 payload 不一致。
+    /// </remarks>
+    private string NormalizeWindowId(string windowId)
     {
-        foreach (var info in FrontedWindowRegistryService.InjectedControls)
+        return _windowRegistry.TryGet(windowId, out var registration)
+            ? registration.Id
+            : windowId;
+    }
+
+    /// <inheritdoc/>
+    public Window? EnsureWindowCreated(string windowId)
+    {
+        // 入口先规范化为 Canonical ID，整条调用链使用规范化后的值作为缓存键。
+        var canonicalId = NormalizeWindowId(windowId);
+
+        if (_frontedWindows.TryGetValue(canonicalId, out var existingWindow))
         {
-            InjectControl(info.TargetWindow, info.TargetCanvas, info.Control, info.DefaultInfo);
+            return existingWindow;
+        }
+
+        if (!_windowRegistry.TryGet(canonicalId, out var registration))
+        {
+            return null;
+        }
+
+        try
+        {
+            var window = CreateWindow(registration);
+            RegisterFrontedWindow(registration.Id, window);
+            return window;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to create fronted window {WindowId}.",
+                registration.Id);
+            return null;
+        }
+    }
+
+    private void RegisterFrontedWindow(string windowId, Window window)
+    {
+        if (_frontedWindows.TryAdd(windowId, window))
+        {
+            _frontedWindowStates[windowId] = false;
         }
     }
 
     /// <summary>
-    /// 从文件加载位置信息
+    /// 根据窗口注册的承载方式创建对应的前台窗口实例。
     /// </summary>
-    /// <returns></returns>
-    private async Task LoadElementsPositionOnStartup()
+    /// <param name="registration">窗口注册，携带承载方式（Xaml/V3Layout）和来源信息。</param>
+    /// <returns>创建的 <see cref="Window"/> 实例。</returns>
+    /// <exception cref="InvalidOperationException">当 <paramref name="registration"/> 不是
+    /// <see cref="FrontedV3LayoutWindowRegistration"/> 或 <see cref="FrontedXamlWindowRegistration"/> 时抛出。
+    /// 系统只有这两个 sealed registration 模型，未知类型表示编程错误。</exception>
+    /// <remarks>
+    /// 分派依据 <see cref="FrontedWindowRegistration.Kind"/>：
+    /// <list type="number">
+    ///   <item><description><see cref="FrontedWindowRegistrationKind.V3Layout"/> —
+    /// v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口），走 <see cref="CreateV3LayoutHostWindow"/>。</description></item>
+    ///   <item><description><see cref="FrontedWindowRegistrationKind.Xaml"/> —
+    /// XAML 窗口（含内置与插件），通过 DI 解析窗口实例。DataContext 已由
+    /// <c>AddFrontedWindow</c> 注册 factory 设置，此处不再重复处理。</description></item>
+    ///   <item><description>其他未知类型 — 抛出 <see cref="InvalidOperationException"/>，
+    /// 系统只有两个 sealed registration 模型，未知类型表示编程错误。</description></item>
+    /// </list>
+    /// </remarks>
+    private Window CreateWindow(FrontedWindowRegistration registration)
     {
-        foreach (var i in FrontedCanvas)
+        return registration switch
         {
-            await LoadWindowElementsPositionOnStartupAsync(i.Item1, i.Item2);
-        }
+            // 模式 1：v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口）
+            FrontedV3LayoutWindowRegistration v3 => CreateV3LayoutHostWindow(v3),
+
+            // 模式 2：XAML 窗口（含内置与插件）— 通过 DI 解析窗口实例。
+            // DataContext 已由 AddFrontedWindow 注册 factory 设置，此处不再重复处理。
+            FrontedXamlWindowRegistration xaml => CreateXamlWindow(xaml.WindowType),
+
+            // 模式 3：系统只有两个 sealed registration 模型，未知类型表示编程错误。
+            _ => throw new InvalidOperationException(
+                $"Unsupported registration type: {registration.GetType().Name}. " +
+                $"Only {nameof(FrontedV3LayoutWindowRegistration)} and {nameof(FrontedXamlWindowRegistration)} are supported.")
+        };
+    }
+
+    private Window CreateV3LayoutHostWindow(FrontedWindowRegistration registration)
+    {
+        var window = new FrontedWindowBase();
+        // 只向渲染层传递渲染所需的最小信息（Canonical ID 和显示名），
+        // 不传递整个 registration，避免 Registry/UI 元数据泄漏到渲染层。
+        // 显示名使用 Core 回退解析（DisplayName 为空时回退到 LocalId），
+        // 内置窗口的本地化显示名由 UI 层通过 resx 覆盖。
+        var displayName = FrontedWindowDisplayNameResolver.GetFallbackDisplayName(registration);
+        window.InitializeV3LayoutHost(
+            registration.Id,
+            displayName,
+            _services.GetRequiredService<IFrontedLayoutService>(),
+            _services.GetRequiredService<IFrontedRenderer>(),
+            _services.GetRequiredService<ISharedDataService>(),
+            _services.GetService<IFrontedBehaviorRuntime>(),
+            _services.GetService<ILogger<FrontedWindowBase>>(),
+            _services.GetService<ISettingsHostService>());
+        return window;
     }
 
     /// <summary>
-    /// 注册窗口和画布
+    /// 通过 DI 解析 XAML 前台窗口实例。
     /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="window">窗口</param>
-    /// <param name="canvasNames">画布名称</param>
-    public void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[]? canvasNames = null)
+    /// <param name="windowType">WPF 窗口 CLR 类型，必须可赋值给 <see cref="Window"/>。</param>
+    /// <returns>由 DI 容器提供的 <see cref="Window"/> 实例，DataContext 已由
+    /// <c>AddFrontedWindow</c> 注册 factory 设置。</returns>
+    /// <exception cref="InvalidOperationException">当 <paramref name="windowType"/> 为 <see langword="null"/>
+    /// 或不可赋值给 <see cref="Window"/> 时抛出。</exception>
+    /// <remarks>
+    /// 仅通过 <see cref="ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider, Type)"/> 解析窗口实例，
+    /// 不再使用 <c>ActivatorUtilities.CreateInstance</c> fallback，避免掩盖 DI 配置错误。
+    /// ViewModel 与 DataContext 的关联由 <c>AddFrontedWindow</c> 注册 factory 一次性完成。
+    /// </remarks>
+    private Window CreateXamlWindow(Type windowType)
     {
-        canvasNames ??= ["BaseCanvas"];
-
-        if (FrontedWindows.TryAdd(windowId, window))
+        if (windowType is null || !typeof(Window).IsAssignableFrom(windowType))
         {
-            FrontedWindowStates[windowId] = false;
+            throw new InvalidOperationException(
+                $"XAML window registration has invalid WindowType: " +
+                $"{windowType?.FullName ?? "(null)"}. Type must be assignable to Window.");
         }
 
-        foreach (var canvasName in canvasNames)
-        {
-            if (!FrontedCanvas.Contains((windowId, canvasName)))
-                FrontedCanvas.Add((windowId, canvasName));
-        }
+        return (Window)_services.GetRequiredService(windowType);
     }
 
-    private void RegisterFrontedWindowAndCanvas()
-    {
-        var windowInfos = FrontedWindowRegistryService.RegisteredWindow;
-
-        foreach (var info in windowInfos)
-        {
-            if (info.WindowType != null)
-                RegisterFrontedWindowAndCanvas(info.Id,
-                    IAppHost.Host?.Services.GetRequiredService(info.WindowType) as Window ??
-                    throw new InvalidOperationException(),
-                    info.Canvas.Select(x => x.Name).ToArray());
-        }
-    }
-
-
+    /// <summary>
+    /// 获取指定前台窗口类型的显示名称。
+    /// </summary>
+    /// <param name="windowType">窗口类型。</param>
+    /// <returns>显示名称；未找到时返回 <see langword="null"/>。</returns>
     public string? GetWindowName(FrontedWindowType windowType)
     {
-        return GetWindowName(GetFrontedWindowGuid(windowType));
+        return GetWindowName(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
 
     public string? GetWindowName(string windowId)
     {
-        FrontedWindows.TryGetValue(windowId, out var window);
+        if (_windowRegistry.TryGet(windowId, out var registration))
+        {
+            var settings = _services.GetService<ISettingsHostService>()?.Settings;
+            return FrontedWindowDisplayNameResolver.ResolveDisplayName(
+                registration,
+                settings?.Language ?? LanguageKey.System,
+                settings?.CultureInfo);
+        }
+
+        // 未注册时回退查缓存：缓存已使用 OrdinalIgnoreCase，可命中大小写不同的变体。
+        _frontedWindows.TryGetValue(windowId, out var window);
         return window?.GetType().Name;
     }
 
-    public FrameworkElement GetInjectedControl(string guid)
-    {
-        var control = FrontedWindowRegistryService.InjectedControls
-            .First(x => x.Id == guid).Control;
-
-        return control;
-    }
-
-    //private void AttachWindowSizeHandlers(Settings settings)
-    //{
-    //    if (_windowSizeSettings != null)
-    //    {
-    //        _windowSizeSettings.BpWindowSettings.PropertyChanged -= OnBpWindowSettingsChanged;
-    //        _windowSizeSettings.CutSceneWindowSettings.PropertyChanged -= OnCutSceneWindowSettingsChanged;
-    //        _windowSizeSettings.GameDataWindowSettings.PropertyChanged -= OnGameDataWindowSettingsChanged;
-    //        _windowSizeSettings.WidgetsWindowSettings.PropertyChanged -= OnWidgetsWindowSettingsChanged;
-    //        _windowSizeSettings.ScoreWindowSettings.PropertyChanged -= OnScoreWindowSettingsChanged;
-    //    }
-
-    //    _windowSizeSettings = settings;
-    //    settings.BpWindowSettings.PropertyChanged += OnBpWindowSettingsChanged;
-    //    settings.CutSceneWindowSettings.PropertyChanged += OnCutSceneWindowSettingsChanged;
-    //    settings.GameDataWindowSettings.PropertyChanged += OnGameDataWindowSettingsChanged;
-    //    settings.WidgetsWindowSettings.PropertyChanged += OnWidgetsWindowSettingsChanged;
-    //    settings.ScoreWindowSettings.PropertyChanged += OnScoreWindowSettingsChanged;
-
-    //    ApplyWindowSizes(settings);
-    //}
-
-    //private void ApplyWindowSizes(Settings settings)
-    //{
-    //    UpdateWindowSize(FrontedWindowType.BpWindow, settings.BpWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.CutSceneWindow, settings.CutSceneWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.GameDataWindow, settings.GameDataWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.WidgetsWindow, settings.WidgetsWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.ScoreGlobalWindow, settings.ScoreWindowSettings.ScoreGlobalWindowSize);
-    //    UpdateWindowSize(FrontedWindowType.ScoreSurWindow, settings.ScoreWindowSettings.ScoreInGameWindowSize);
-    //    UpdateWindowSize(FrontedWindowType.ScoreHunWindow, settings.ScoreWindowSettings.ScoreInGameWindowSize);
-    //}
-
-    //private void OnBpWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(BpWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.BpWindow, _settingsHostService.Settings.BpWindowSettings.WindowSize);
-    //}
-
-    //private void OnCutSceneWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(CutSceneWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.CutSceneWindow, _settingsHostService.Settings.CutSceneWindowSettings.WindowSize);
-    //}
-
-    //private void OnGameDataWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(GameDataWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.GameDataWindow, _settingsHostService.Settings.GameDataWindowSettings.WindowSize);
-    //}
-
-    //private void OnWidgetsWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(WidgetsWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.WidgetsWindow, _settingsHostService.Settings.WidgetsWindowSettings.WindowSize);
-    //}
-
-    //private void OnScoreWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(ScoreWindowSettings.ScoreInGameWindowSize))
-    //    {
-    //        var size = _settingsHostService.Settings.ScoreWindowSettings.ScoreInGameWindowSize;
-    //        UpdateWindowSize(FrontedWindowType.ScoreSurWindow, size);
-    //        UpdateWindowSize(FrontedWindowType.ScoreHunWindow, size);
-    //    }
-
-    //    if (e.PropertyName == nameof(ScoreWindowSettings.ScoreGlobalWindowSize))
-    //        UpdateWindowSize(FrontedWindowType.ScoreGlobalWindow, _settingsHostService.Settings.ScoreWindowSettings.ScoreGlobalWindowSize);
-    //}
-
-    //private void UpdateWindowSize(FrontedWindowType windowType, Size size)
-    //{
-    //    if (!FrontedWindows.TryGetValue(GetFrontedWindowGuid(windowType), out var window))
-    //        return;
-
-    //    void ApplySize()
-    //    {
-    //        window.Width = size.Width;
-    //        window.Height = size.Height;
-    //    }
-
-    //    if (window.Dispatcher.CheckAccess())
-    //        ApplySize();
-    //    else
-    //        window.Dispatcher.Invoke(ApplySize);
-    //}
-
     /// <summary>
-    /// 注入控件
+    /// 显示所有前台窗口。同步入口：内部以 fire-and-forget 方式调度安全异步流程，
+    /// 单窗口失败不会阻止后续窗口打开，也不会向调用方传播异常。
     /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName">画布名称</param>
-    /// <param name="control">控件</param>
-    /// <param name="defaultInfo">默认位置信息</param>
-    public void InjectControl(string windowId, string canvasName, FrameworkElement control, ElementInfo defaultInfo)
-    {
-        if (FrontedWindows.TryGetValue(windowId, out var window))
-        {
-            var canvas = window.FindName(canvasName) as Canvas;
-            if (defaultInfo.Width != null)
-                control.Width = (double)defaultInfo.Width;
-            if (defaultInfo.Height != null)
-                control.Height = (double)defaultInfo.Height;
-            if (defaultInfo.Top != null)
-                Canvas.SetTop(control, (double)defaultInfo.Top);
-            if (defaultInfo.Left != null)
-                Canvas.SetLeft(control, (double)defaultInfo.Left);
-            _externalControlDefaultPosition[control] = defaultInfo;
-
-            var designerModeBinding = new Binding("IsDesignerMode")
-            {
-                Source = canvas?.DataContext,
-            };
-            BindingOperations.SetBinding(control, DesignBehavior.IsDesignerModeProperty, designerModeBinding);
-
-            canvas?.Children.Add(control);
-        }
-        else
-        {
-            _logger.LogError("Window {WindowId} not found.", windowId);
-        }
-    }
-
-    #region 窗口显示/隐藏管理
-
     public void AllWindowShow()
     {
-        foreach (var window in FrontedWindows.Where(pair => !FrontedWindowStates[pair.Key]))
+        _ = ShowAllWindowsSafelyAsync();
+    }
+
+    /// <summary>
+    /// 安全地显示所有已注册窗口。单窗口失败被捕获并记录，不阻止后续窗口。
+    /// </summary>
+    /// <returns>表示异步操作的任务。</returns>
+    private async Task ShowAllWindowsSafelyAsync()
+    {
+        foreach (var registration in _windowRegistry.GetWindows())
         {
-            window.Value.Show();
-            FrontedWindowStates[window.Key] = true;
+            try
+            {
+                await ShowWindowCoreAsync(registration.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to show window {WindowId}", registration.Id);
+                // 单窗口失败不阻止后续窗口。
+            }
         }
     }
 
+    /// <summary>
+    /// 隐藏所有前台窗口。
+    /// </summary>
     public void AllWindowHide()
     {
-        foreach (var window in FrontedWindows.Where(pair => FrontedWindowStates[pair.Key]))
+        foreach (var window in _frontedWindows.Where(pair => _frontedWindowStates[pair.Key]))
         {
             window.Value.Hide();
-            FrontedWindowStates[window.Key] = false;
+            _frontedWindowStates[window.Key] = false;
+            PublishWindowHidden(window.Key);
         }
     }
 
     /// <summary>
-    /// 隐藏窗口
+    /// 隐藏指定类型的前台窗口。
     /// </summary>
-    /// <param name="windowType"></param>
+    /// <param name="windowType">窗口类型。</param>
+    /// <remarks>
+    /// <see cref="FrontedWindowType.ScoreWindow"/> 是复合操作，会同时隐藏三个比分窗口，
+    /// 不会进入普通 Canonical ID 解析（其 Canonical ID 为 <see cref="Guid.Empty"/> 字符串形式，非真实窗口）。
+    /// </remarks>
     public void HideWindow(FrontedWindowType windowType)
     {
-        HideWindow(GetFrontedWindowGuid(windowType));
+        // ScoreWindow 是复合操作：同时隐藏三个比分窗口，不进入普通 Canonical ID 解析。
+        if (windowType == FrontedWindowType.ScoreWindow)
+        {
+            HideWindow(FrontedWindowType.ScoreSurWindow);
+            HideWindow(FrontedWindowType.ScoreHunWindow);
+            HideWindow(FrontedWindowType.ScoreGlobalWindow);
+            return;
+        }
+
+        HideWindow(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
 
-    /// <inheritdoc/>
     public void HideWindow(string windowId)
     {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
+        // 入口先规范化为 Canonical ID，整条调用链使用规范化后的值。
+        var canonicalId = NormalizeWindowId(windowId);
+
+        if (!_frontedWindows.TryGetValue(canonicalId, out var window))
         {
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowCloseError"));
+            if (!_windowRegistry.TryGet(canonicalId, out _))
+            {
+                _ = MessageBoxHelper.ShowErrorAsync(
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {canonicalId}",
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowCloseError"));
+            }
+
             return;
         }
 
-        if (!FrontedWindowStates[windowId]) return;
+        if (!_frontedWindowStates.GetValueOrDefault(canonicalId))
+        {
+            return;
+        }
+
         window.Hide();
-        FrontedWindowStates[windowId] = false;
+        _frontedWindowStates[canonicalId] = false;
+        PublishWindowHidden(canonicalId);
     }
 
     /// <summary>
-    /// 显示窗口
+    /// 显示指定类型的前台窗口。
     /// </summary>
-    /// <param name="windowType"></param>
+    /// <param name="windowType">窗口类型。</param>
+    /// <remarks>
+    /// <see cref="FrontedWindowType.ScoreWindow"/> 是复合操作，会同时显示三个比分窗口，
+    /// 不会进入普通 Canonical ID 解析（其 Canonical ID 为 <see cref="Guid.Empty"/> 字符串形式，非真实窗口）。
+    /// </remarks>
     public void ShowWindow(FrontedWindowType windowType)
     {
-        ShowWindow(GetFrontedWindowGuid(windowType));
-    }
-
-    /// <inheritdoc/>
-    public void ShowWindow(string windowId)
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
+        // ScoreWindow 是复合操作：同时显示三个比分窗口，不进入普通 Canonical ID 解析。
+        if (windowType == FrontedWindowType.ScoreWindow)
         {
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowLaunchError"));
-            _logger.LogError("Unregistered window type{WindowId}", windowId);
+            ShowWindow(FrontedWindowType.ScoreSurWindow);
+            ShowWindow(FrontedWindowType.ScoreHunWindow);
+            ShowWindow(FrontedWindowType.ScoreGlobalWindow);
             return;
         }
 
-        if (FrontedWindowStates[windowId])
-        {
-            window.Activate();
-            return;
-        }
-        else
-        {
-            window.Show();
-            FrontedWindowStates[windowId] = true;
-        }
+        ShowWindow(FrontedWindowHelper.GetFrontedWindowCanonicalId(windowType));
     }
-
-    #endregion
-
-    #region 设计者模式
 
     /// <summary>
-    /// 记录窗口中元素的初始位置 (仅在DEBUG下有效)
+    /// 显示指定 ID 的前台窗口。同步入口：内部以 fire-and-forget 方式调度安全异步流程，
+    /// 窗口显示失败被捕获并提示用户，不会向调用方传播异常。
     /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName">画布名称</param>
-    private void RecordInitialPositions(string windowId, string canvasName = "BaseCanvas", bool isInitial = false)
+    /// <param name="windowId">窗口 ID（可以是任意大小写变体，内部规范化为 Canonical ID）。</param>
+    public void ShowWindow(string windowId)
     {
-        if (!FrontedWindows.TryGetValue(windowId, out var window)) return;
-        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.default.json");
+        _ = ShowWindowSafelyAsync(windowId);
+    }
 
-        if (File.Exists(path)) return;
-
-        var positions = GetElementsPositions(window, canvasName, isInitial);
-        if (positions == null) return;
-        var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
+    /// <summary>
+    /// 安全地显示指定 ID 的窗口。捕获所有异常并提示用户，不向 SynchronizationContext 传播。
+    /// </summary>
+    /// <param name="windowId">调用方传入的窗口 ID（可能是任意大小写）。</param>
+    /// <returns>表示异步操作的任务。</returns>
+    private async Task ShowWindowSafelyAsync(string windowId)
+    {
         try
         {
-            File.WriteAllText(path, output);
+            await ShowWindowCoreAsync(windowId);
         }
         catch (Exception ex)
         {
-            _ = MessageBoxHelper.ShowErrorAsync(ex.Message, I18nHelper.GetLocalizedString("ErrorWhenGeneratingFrontendConfigurationFile"));
+            _logger.LogError(ex, "Failed to show window {WindowId}", windowId);
+            _ = MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError")}\n{ex.Message}");
         }
     }
 
     /// <summary>
-    /// 获取窗口中元素的位置信息
+    /// 实际执行窗口显示的核心逻辑。调用方应通过 <see cref="ShowWindowSafelyAsync"/> 或
+    /// <see cref="ShowAllWindowsSafelyAsync"/> 间接调用，避免异常逃逸到 SynchronizationContext。
     /// </summary>
-    /// <param name="window"></param>
-    /// <param name="canvasName"></param>
-    /// <returns></returns>
-    private Dictionary<string, ElementInfo>? GetElementsPositions(Window window, string canvasName,
-        bool isInitial = false)
+    /// <param name="windowId">调用方传入的窗口 ID（可能是任意大小写）。</param>
+    /// <returns>表示异步操作的任务。</returns>
+    private async Task ShowWindowCoreAsync(string windowId)
     {
-        if (window.FindName(canvasName) is not Canvas canvas)
-            return null;
+        // 入口先规范化为 Canonical ID，整条调用链使用规范化后的值作为缓存键和事件 payload。
+        var canonicalId = NormalizeWindowId(windowId);
 
-        var positions = new Dictionary<string, ElementInfo>();
-        foreach (UIElement child in canvas.Children)
+        var window = EnsureWindowCreated(canonicalId);
+        if (window is null)
         {
-            if (child is not FrameworkElement fe || string.IsNullOrEmpty(fe.Name)) continue;
-            if (fe.Tag?.ToString() == "nv") continue;
+            _ = MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnregisteredWindowType")}: {canonicalId}",
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError"));
+            _logger.LogError("Unregistered window type {WindowId}", canonicalId);
+            return;
+        }
 
-            if (isInitial && _externalControlDefaultPosition.ContainsKey(fe))
+        if (_frontedWindowStates.GetValueOrDefault(canonicalId))
+        {
+            window.Show();
+            window.Activate();
+            return;
+        }
+
+        if (window is FrontedWindowBase frontedWindow)
+        {
+            await frontedWindow.EnsureInitialWindowSettingsAppliedAsync();
+        }
+
+        ApplyWindowLayoutOptions(canonicalId, window);
+        window.Show();
+        _frontedWindowStates[canonicalId] = true;
+        PublishWindowShown(canonicalId);
+
+        if (window is FrontedWindowBase shownFrontedWindow)
+        {
+            _ = LoadFrontedContentAfterShowAsync(canonicalId, shownFrontedWindow);
+        }
+    }
+
+    private async Task LoadFrontedContentAfterShowAsync(string windowId, FrontedWindowBase frontedWindow)
+    {
+        try
+        {
+            await frontedWindow.LoadOrReloadContentAsync(force: false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to load v3 fronted window content after show. WindowId: {WindowId}",
+                windowId);
+        }
+    }
+
+    private void ApplyWindowLayoutOptions(string windowId, Window window)
+    {
+        if (!_windowRegistry.TryGet(windowId, out var registration))
+        {
+            return;
+        }
+
+        if (registration.Kind == FrontedWindowRegistrationKind.V3Layout)
+        {
+            return;
+        }
+
+        if (!File.Exists(_windowLayoutOptionsService.GetUserOptionsPath(registration.Id)))
+        {
+            return;
+        }
+
+        var options = _windowLayoutOptionsService.LoadOptions(registration.Id);
+        try
+        {
+            window.AllowsTransparency = options.AllowTransparency;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogDebug(
+                ex,
+                "Fronted window transparency option could not be applied after source creation. Window: {WindowId}",
+                registration.Id);
+        }
+
+        if (!TryCreateBackgroundBrush(options.BackgroundColor, out var brush))
+        {
+            return;
+        }
+
+        window.SetCurrentValue(Window.BackgroundProperty, brush);
+    }
+
+    /// <summary>
+    /// 应用指定窗口的背景色。
+    /// </summary>
+    /// <param name="fullWindowType">完整窗口类型名。</param>
+    /// <returns>成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
+    public async Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !_frontedWindows.TryGetValue(registration.Id, out var window))
+        {
+            return false;
+        }
+
+        var isV3 = registration.Kind == FrontedWindowRegistrationKind.V3Layout;
+        var backgroundColor = isV3
+            ? (await LoadV3WindowSettingsAsync(registration.Id))?.BackgroundColor
+            : _windowLayoutOptionsService.LoadOptions(registration.Id).BackgroundColor;
+        if (!TryCreateBackgroundBrush(backgroundColor, out var brush))
+        {
+            brush = Brushes.Transparent;
+        }
+
+        void Apply() => window.SetCurrentValue(Window.BackgroundProperty, brush);
+
+        if (window.Dispatcher.CheckAccess())
+        {
+            Apply();
+        }
+        else
+        {
+            await window.Dispatcher.InvokeAsync(Apply);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// 应用指定窗口的尺寸。
+    /// </summary>
+    /// <param name="fullWindowType">完整窗口类型名。</param>
+    /// <returns>成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
+    public async Task<bool> ApplyWindowSizeAsync(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !_frontedWindows.TryGetValue(registration.Id, out var window))
+        {
+            return false;
+        }
+
+        var isV3 = registration.Kind == FrontedWindowRegistrationKind.V3Layout;
+        var v3Settings = isV3
+            ? await LoadV3WindowSettingsAsync(registration.Id)
+            : null;
+        var options = isV3
+            ? null
+            : _windowLayoutOptionsService.LoadOptions(registration.Id);
+        var width = v3Settings?.WindowWidth ?? options?.WindowWidth;
+        var height = v3Settings?.WindowHeight ?? options?.WindowHeight;
+        if (width is null && height is null)
+        {
+            return false;
+        }
+
+        void Apply()
+        {
+            if (width is { } w && w > 0 && double.IsFinite(w))
+            {
+                window.Width = w;
+            }
+
+            if (height is { } h && h > 0 && double.IsFinite(h))
+            {
+                window.Height = h;
+            }
+        }
+
+        if (window.Dispatcher.CheckAccess())
+        {
+            Apply();
+        }
+        else
+        {
+            await window.Dispatcher.InvokeAsync(Apply);
+        }
+
+        return true;
+    }
+
+    /// <inheritdoc/>
+    public async Task<bool> RestartWindowForTransparencyChangeAsync(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !_frontedWindows.TryGetValue(registration.Id, out var oldWindow))
+        {
+            return false;
+        }
+
+        // 静默重建只支持宿主创建的 v3 Window。
+        // XAML 窗口在 DI 中注册为 singleton，Close() 后 DI 仍返回同一已关闭实例，
+        // WPF Window 关闭后无法再次 Show，因此必须直接拒绝，避免破坏窗口状态。
+        if (registration is not FrontedV3LayoutWindowRegistration)
+        {
+            return false;
+        }
+
+        if (oldWindow.Dispatcher.CheckAccess())
+        {
+            return await RestartWindowForTransparencyChangeOnDispatcherAsync(registration, oldWindow);
+        }
+
+        return await oldWindow.Dispatcher
+            .InvokeAsync(() => RestartWindowForTransparencyChangeOnDispatcherAsync(registration, oldWindow))
+            .Task
+            .Unwrap();
+    }
+
+    private async Task<bool> RestartWindowForTransparencyChangeOnDispatcherAsync(
+        FrontedWindowRegistration registration,
+        Window oldWindow)
+    {
+        var windowId = registration.Id;
+        if (!_frontedWindows.TryGetValue(windowId, out var currentWindow)
+            || !ReferenceEquals(currentWindow, oldWindow))
+        {
+            return false;
+        }
+
+        var wasShown = _frontedWindowStates.GetValueOrDefault(windowId);
+
+        _frontedWindows.Remove(windowId);
+        _frontedWindowStates.Remove(windowId);
+
+        if (wasShown)
+        {
+            PublishWindowHidden(windowId);
+        }
+
+        CloseFrontedWindowInstance(oldWindow);
+
+        if (!wasShown)
+        {
+            return true;
+        }
+
+        var newWindow = EnsureWindowCreated(windowId);
+        if (newWindow is null)
+        {
+            _logger.LogWarning(
+                "Failed to recreate fronted window after transparency change. WindowId: {WindowId}",
+                windowId);
+            return true;
+        }
+
+        if (newWindow is FrontedWindowBase frontedWindow)
+        {
+            await frontedWindow.EnsureInitialWindowSettingsAppliedAsync();
+        }
+
+        ApplyWindowLayoutOptions(windowId, newWindow);
+        newWindow.Show();
+        _frontedWindowStates[windowId] = true;
+        PublishWindowShown(windowId);
+
+        if (newWindow is FrontedWindowBase shownFrontedWindow)
+        {
+            _ = LoadFrontedContentAfterShowAsync(windowId, shownFrontedWindow);
+        }
+
+        return true;
+    }
+
+    private static void CloseFrontedWindowInstance(Window window)
+    {
+        if (window is FrontedWindowBase frontedWindow)
+        {
+            frontedWindow.RequestServiceClose();
+            return;
+        }
+
+        window.Close();
+    }
+
+    private async Task<FrontedWindowSettings?> LoadV3WindowSettingsAsync(string fullWindowType)
+    {
+        try
+        {
+            var config = await _services.GetRequiredService<IFrontedLayoutService>()
+                .LoadWindowConfigAsync(fullWindowType);
+            return config?.WindowSettings;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load v3 fronted window settings. Window: {FullWindowType}", fullWindowType);
+            return null;
+        }
+    }
+
+    public (double Width, double Height)? GetWindowSize(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGet(fullWindowType, out var registration)
+            || !_frontedWindows.TryGetValue(registration.Id, out var window))
+        {
+            return null;
+        }
+
+        var width = window.Width;
+        var height = window.Height;
+
+        if (double.IsNaN(width) || double.IsNaN(height)
+            || width <= 0 || height <= 0)
+        {
+            return null;
+        }
+
+        return (width, height);
+    }
+
+    private static bool TryCreateBackgroundBrush(string? colorText, out Brush brush)
+    {
+        brush = Brushes.Transparent;
+        if (string.IsNullOrWhiteSpace(colorText))
+        {
+            return false;
+        }
+
+        try
+        {
+            brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorText)!);
+            if (brush.CanFreeze)
+            {
+                brush.Freeze();
+            }
+
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (NotSupportedException)
+        {
+            return false;
+        }
+    }
+
+    public async Task ReloadFrontedLayoutsAsync()
+    {
+        _services.GetService<IFrontedResourceResolver>()?.ClearCache();
+
+        foreach (var pair in _frontedWindows.ToArray())
+        {
+            if (pair.Value is not FrontedWindowBase frontedWindow
+                || !_windowRegistry.TryGet(pair.Key, out var registration)
+                || registration.Kind != FrontedWindowRegistrationKind.V3Layout)
             {
                 continue;
             }
 
-            positions[fe.Name] = new ElementInfo(
-                double.IsNaN(fe.Width) ? null : fe.Width,
-                double.IsNaN(fe.Height) ? null : fe.Height,
-                double.IsNaN(Canvas.GetLeft(fe)) ? 0 : Canvas.GetLeft(fe),
-                double.IsNaN(Canvas.GetTop(fe)) ? 0 : Canvas.GetTop(fe));
+            try
+            {
+                var requestedTransparency = await frontedWindow.GetRequestedAllowsTransparencyAsync();
+                if (requestedTransparency.HasValue
+                    && requestedTransparency.Value != frontedWindow.AllowsTransparency)
+                {
+                    await RestartWindowForTransparencyChangeAsync(registration.Id);
+                    continue;
+                }
+
+                await frontedWindow.ReloadFrontedLayoutAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowId}.", registration.Id);
+            }
         }
-
-        return positions;
     }
 
-
-    /// <summary>
-    /// 保存指定窗口的指定Canvas中元素的位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName">画布名称</param>
-    public void SaveWindowCanvasElementsPosition(FrontedWindowType windowType, string canvasName = "BaseCanvas")
+    /// <inheritdoc/>
+    public void MarkWindowLayoutDirty(string windowIdOrFullWindowType)
     {
-        SaveWindowCanvasElementsPosition(GetFrontedWindowGuid(windowType), canvasName);
-    }
-
-    public void SaveWindowCanvasElementsPosition(string windowId, string canvasName = "BaseCanvas")
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
+        if (string.IsNullOrWhiteSpace(windowIdOrFullWindowType))
         {
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}",
-                I18nHelper.GetLocalizedString("ConfigurationFileSaveError"));
             return;
         }
 
-        if (windowId == GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow) &&
-            canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
+        // 规范化为 Canonical ID，保证与缓存键一致。
+        var windowId = NormalizeWindowId(windowIdOrFullWindowType);
 
-        var positions = GetElementsPositions(window, canvasName);
-        if (positions == null) return;
+        if (_frontedWindows.TryGetValue(windowId, out var window)
+            && window is FrontedWindowBase frontedWindow)
+        {
+            frontedWindow.MarkLayoutDirty();
+        }
+    }
 
-        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
+    private void PublishWindowShown(string windowId)
+    {
         try
         {
-            var jsonContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
-            File.WriteAllText(path, jsonContent);
-        }
-        catch (Exception ex)
-        {
-            _ = MessageBoxHelper.ShowInfoAsync(
-                $"{I18nHelper.GetLocalizedString("SaveFrontendConfigurationFileFailed")}\n{ex.Message}",
-                I18nHelper.GetLocalizedString("SaveInfo"));
-        }
-    }
-
-    /// <summary>
-    /// 保存指定窗口的元素位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    public void SaveWindowElementsPosition(FrontedWindowType windowType)
-    {
-        SaveWindowElementsPosition(GetFrontedWindowGuid(windowType));
-    }
-
-    public void SaveWindowElementsPosition(string windowId)
-    {
-        if (windowId == GetFrontedWindowGuid(FrontedWindowType.ScoreWindow))
-        {
-            SaveWindowElementsPosition(FrontedWindowType.ScoreSurWindow);
-            SaveWindowElementsPosition(FrontedWindowType.ScoreHunWindow);
-            SaveWindowElementsPosition(FrontedWindowType.ScoreGlobalWindow);
-        }
-
-        foreach (var tuple in FrontedCanvas.Where(x =>
-                     x.Item1 == windowId))
-        {
-            SaveWindowCanvasElementsPosition(tuple.Item1, tuple.Item2);
-        }
-    }
-
-
-    /// <summary>
-    /// 批量保存所有窗口中元素位置信息
-    /// </summary>
-    public void SaveAllWindowElementsPosition()
-    {
-        foreach (var i in FrontedCanvas)
-        {
-            SaveWindowCanvasElementsPosition(i.Item1, i.Item2);
-        }
-    }
-
-    /// <summary>
-    /// 程序启动时从JSON中加载窗口中元素的位置信息
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName">画布名称</param>
-    private async Task LoadWindowElementsPositionOnStartupAsync(string windowId,
-        string canvasName = "BaseCanvas")
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
-        {
-            await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}",
-                I18nHelper.GetLocalizedString("ConfigurationFileLoadingError"));
-            return;
-        }
-
-        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
-        if (!File.Exists(path)) return;
-
-        try
-        {
-            var jsonContent = await File.ReadAllTextAsync(path);
-            LoadElementsPositions(canvasName, jsonContent, window);
-        }
-        catch (Exception ex)
-        {
-            File.Move(path, $"{path}.disabled", true);
-            await MessageBoxHelper.ShowErrorAsync(ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// 从JSON中加载窗口中元素位置信息
-    /// </summary>
-    /// <param name="canvasName">画布名称</param>
-    /// <param name="jsonContent">JSON内容</param>
-    /// <param name="window">窗口实例</param>
-    private void LoadElementsPositions(string canvasName, string jsonContent, Window window)
-    {
-        var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(jsonContent);
-
-        if (window.FindName(canvasName) is not Canvas canvas || positions == null) return;
-        foreach (UIElement child in canvas.Children)
-        {
-            if (child is not FrameworkElement fe) continue;
-            if (fe.Tag?.ToString() == "nv") continue;
-
-            if (positions.TryGetValue(fe.Name, out var value))
+            _eventBus?.Publish(new FrontedBehaviorEvent
             {
-                if (value.Width != null)
-                    fe.Width = (double)value.Width;
-                if (value.Height != null)
-                    fe.Height = (double)value.Height;
-                if (value.Left != null)
-                    Canvas.SetLeft(fe, (double)value.Left);
-                if (value.Top != null)
-                    Canvas.SetTop(fe, (double)value.Top);
-            }
-            else if (_externalControlDefaultPosition.TryGetValue(fe, out var info))
-            {
-                if (info.Width != null)
-                    fe.Width = (double)info.Width;
-                if (info.Height != null)
-                    fe.Height = (double)info.Height;
-                if (info.Left != null)
-                    Canvas.SetLeft(fe, (double)info.Left);
-                if (info.Top != null)
-                    Canvas.SetTop(fe, (double)info.Top);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 还原窗口中的元素到初始位置
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName">画布名称</param>
-    public async Task RestoreInitialPositions(FrontedWindowType windowType, string canvasName = "BaseCanvas")
-    {
-        await RestoreInitialPositions(GetFrontedWindowGuid(windowType), canvasName);
-    }
-
-    public async Task RestoreInitialPositions(string windowId, string canvasName = "BaseCanvas")
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
-        {
-            await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}",
-                I18nHelper.GetLocalizedString("FrontendDefaultConfigurationRestoreError"));
-            return;
-        }
-
-        if (!await MessageBoxHelper.ShowConfirmAsync($"{I18nHelper.GetLocalizedString("ConfigurationResetConfirmation")}: {window.GetType().Name}-{canvasName}",
-            I18nHelper.GetLocalizedString("ResetTip"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
-            return;
-
-
-        // Built in fronted window
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-            "Resources", "FrontedDefaultPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
-
-        if (!File.Exists(path))
-        {
-            // Find Plugin Path
-            var type = window.GetType();
-            if (PluginService.FrontedWindowAssemblyFolder
-                .TryGetValue(type, out var folderPath))
-            {
-                path = Path.Combine(folderPath, "FrontedDefaultPositions",
-                    $"{type.Name}Config-{canvasName}.default.json");
-            }
-            else
-            {
-                await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("UnknownWindowSource"));
-                return;
-            }
-        }
-
-        try
-        {
-            var json = await File.ReadAllTextAsync(path);
-            LoadElementsPositions(canvasName, json, window);
-
-            var customFilePath =
-                Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
-
-            if (File.Exists(customFilePath))
-                File.Move(customFilePath, $"{customFilePath}.disabled", true);
-
-            if (File.Exists(path) && Directory.Exists(AppConstants.AppDataPath))
-                File.Copy(path, customFilePath, true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Reading frontend default configuration error");
-            await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("ReadFrontendDefaultConfigurationError")}\n{I18nHelper.GetLocalizedString("CannotFindDefaultLayoutConfigurationFromWindowProvider")}",
-                I18nHelper.GetLocalizedString("ReadFrontendDefaultConfigurationError"));
-        }
-    }
-
-    #endregion
-
-    #region 分数统计
-
-    private bool _isBo3Mode;
-
-    /// <summary>
-    /// 注册全局计分板控件
-    /// </summary>
-    private void GlobalScoreControlsReg()
-    {
-        if (FrontedWindows[GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow)].FindName("BaseCanvas") is not
-            Canvas canvas) return;
-        //主队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress == GameProgress.Free) continue;
-            var control = new GlobalScorePresenter();
-            RegisterScoreGlobalControl(nameof(TeamType.HomeTeam), progress, _mainGlobalScoreControls, control);
-        }
-
-        //客队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress == GameProgress.Free) continue;
-            var control = new GlobalScorePresenter();
-            RegisterScoreGlobalControl(nameof(TeamType.AwayTeam), progress, _awayGlobalScoreControls, control);
-        }
-
-        //添加控件到 Canvas 并设置位置
-        foreach (var item in _mainGlobalScoreControls)
-        {
-            AddScoreGlobalControlToCanvas(item.Value, canvas, item.Key, 93);
-            SetBinding(item.Value, TextBlock.FontSizeProperty, "Settings.TextSettings.ScoreGlobal_Data.FontSize");
-            SetBinding(item.Value, TextBlock.FontFamilyProperty, "Settings.TextSettings.ScoreGlobal_Data.FontFamily");
-            SetBinding(item.Value, TextBlock.FontWeightProperty, "Settings.TextSettings.ScoreGlobal_Data.FontWeight");
-            SetBinding(item.Value, TextBlock.ForegroundProperty, "Settings.TextSettings.ScoreGlobal_Data.Foreground");
-        }
-
-        foreach (var item in _awayGlobalScoreControls)
-        {
-            AddScoreGlobalControlToCanvas(item.Value, canvas, item.Key, 150);
-            SetBinding(item.Value, TextBlock.FontSizeProperty, "Settings.TextSettings.ScoreGlobal_Data.FontSize");
-            SetBinding(item.Value, TextBlock.FontFamilyProperty, "Settings.TextSettings.ScoreGlobal_Data.FontFamily");
-            SetBinding(item.Value, TextBlock.FontWeightProperty, "Settings.TextSettings.ScoreGlobal_Data.FontWeight");
-            SetBinding(item.Value, TextBlock.ForegroundProperty, "Settings.TextSettings.ScoreGlobal_Data.Foreground");
-        }
-
-        return;
-
-        void SetBinding(UIElement textBlock, DependencyProperty dependencyProperty, string bindingPath)
-        {
-            BindingOperations.SetBinding(textBlock, dependencyProperty, new Binding(bindingPath)
-            {
-                Source = canvas.DataContext
+                EventType = "WindowShown",
+                WindowId = windowId,
+                Source = "WindowLifecycle",
+                Timestamp = DateTimeOffset.UtcNow
             });
         }
-    }
-
-    /// <summary>
-    /// 设置分数统计
-    /// </summary>
-    /// <param name="team"></param>
-    /// <param name="gameProgress"></param>
-    /// <param name="camp"></param>
-    /// <param name="score"></param>
-    public void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score)
-    {
-        GlobalScorePresenter presenter = new();
-
-        if (team == TeamType.HomeTeam)
+        catch (Exception ex)
         {
-            if (_mainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
-                presenter = item;
-        }
-        else
-        {
-            if (_awayGlobalScoreControls[gameProgress] is GlobalScorePresenter item1)
-                presenter = item1;
-        }
-
-        presenter.IsCampVisible = true;
-        presenter.IsHunIcon = camp == Camp.Hun;
-        presenter.Text = score.ToString();
-    }
-
-    public void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress)
-    {
-        GlobalScorePresenter presenter = new();
-
-        if (team == TeamType.HomeTeam)
-        {
-            if (_mainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
-                presenter = item;
-        }
-        else
-        {
-            if (_awayGlobalScoreControls[gameProgress] is GlobalScorePresenter item1)
-                presenter = item1;
-        }
-
-        presenter.IsCampVisible = false;
-        presenter.Text = "-";
-    }
-
-    /// <summary>
-    /// 重置全局分数统计
-    /// </summary>
-    public void ResetGlobalScore()
-    {
-        //主队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress != GameProgress.Free)
-            {
-                SetGlobalScoreToBar(TeamType.HomeTeam, progress);
-            }
-        }
-
-        //客队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress != GameProgress.Free)
-            {
-                SetGlobalScoreToBar(TeamType.AwayTeam, progress);
-            }
+            _logger.LogDebug(ex, "Failed to publish WindowShown event for {WindowId}.", windowId);
         }
     }
 
-    private double _globalScoreTotalMargin;
-
-    private double _lastMove;
-
-
-    /// <summary>
-    /// 赛制切换
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="args"></param>
-    private void OnBo3ModeChanged(object? sender, EventArgs args)
+    private void PublishWindowHidden(string windowId)
     {
-        _isBo3Mode = _sharedDataService.IsBo3Mode;
-        if (FrontedWindows[GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow)] is not ScoreGlobalWindow
-            scoreWindow) return;
-        if (_isBo3Mode)
+        try
         {
-            foreach (var item in
-                     _mainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
+            _eventBus?.Publish(new FrontedBehaviorEvent
             {
-                item.Value.Visibility = Visibility.Hidden;
-            }
-
-            foreach (var item in
-                     _awayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
-            {
-                item.Value.Visibility = Visibility.Hidden;
-            }
-
-            Canvas.SetLeft(scoreWindow.MainScoreTotal,
-                Canvas.GetLeft(scoreWindow.MainScoreTotal) - _globalScoreTotalMargin);
-            Canvas.SetLeft(scoreWindow.AwayScoreTotal,
-                Canvas.GetLeft(scoreWindow.AwayScoreTotal) - _globalScoreTotalMargin);
-            _lastMove = _globalScoreTotalMargin;
+                EventType = "WindowHidden",
+                WindowId = windowId,
+                Source = "WindowLifecycle",
+                Timestamp = DateTimeOffset.UtcNow
+            });
         }
-        else
+        catch (Exception ex)
         {
-            foreach (var item in
-                     _mainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
-            {
-                item.Value.Visibility = Visibility.Visible;
-            }
-
-            foreach (var item in
-                     _awayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
-            {
-                item.Value.Visibility = Visibility.Visible;
-            }
-
-            Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
-            Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
+            _logger.LogDebug(ex, "Failed to publish WindowHidden event for {WindowId}.", windowId);
         }
     }
 
-
-    /// <summary>
-    /// 接收GlobalScoreTotalMargin变更
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="args"></param>
-    private void OnGlobalScoreTotalMarginChanged(object? sender, EventArgs args)
-    {
-        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
-        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
-    }
-
-    /// <summary>
-    /// 将控件添加到 Canvas 并设置位置
-    /// </summary>
-    private static void AddScoreGlobalControlToCanvas(FrameworkElement control, Canvas canvas, GameProgress progress,
-        int top)
-    {
-        // 设置控件位置
-        var left = CalculateLeftPosition(progress);
-
-        Canvas.SetLeft(control, left);
-        Canvas.SetTop(control, top);
-
-        //创建绑定
-
-        //设计者模式
-        var designerModeBinding =
-            new Binding(nameof(ScoreWindowViewModel.IsDesignerMode))
-            {
-                Source = canvas.DataContext,
-            };
-        //文本设置
-        var fontFamilyBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontFamily")
-            {
-                Source = canvas.DataContext,
-            };
-        var fontSizeBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontSize")
-            {
-                Source = canvas.DataContext,
-            };
-        var fontWeightBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontWeight")
-            {
-                Source = canvas.DataContext,
-            };
-        var foregroundBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.Foreground")
-            {
-                Source = canvas.DataContext,
-            };
-
-        BindingOperations.SetBinding(control, DesignBehavior.IsDesignerModeProperty, designerModeBinding);
-        BindingOperations.SetBinding(control, Control.FontFamilyProperty, fontFamilyBinding);
-        BindingOperations.SetBinding(control, Control.FontSizeProperty, fontSizeBinding);
-        BindingOperations.SetBinding(control, Control.FontWeightProperty, fontWeightBinding);
-        BindingOperations.SetBinding(control, Control.ForegroundProperty, foregroundBinding);
-
-        canvas.Children.Add(control);
-    }
-
-    /// <summary>
-    /// 计算控件左侧距离
-    /// </summary>
-    /// <param name="progress"></param>
-    /// <returns></returns>
-    private static double CalculateLeftPosition(GameProgress progress) =>
-        175 + (int)progress / 2 * 180 + ((int)progress % 2) * 90; // 左端点 + 大场间间隔 + 第一场和第二场之间小场间隔
-
-    /// <summary>
-    /// 注册控件
-    /// </summary>
-    /// <param name="nameHeader">控件名头</param>
-    /// <param name="key">控件序号 (在字典中查找用的Key)</param>
-    /// <param name="elementDict">控件所在的字典</param>
-    /// <param name="control">控件</param>
-    /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
-    /// <typeparam name="T">控件的Key类型</typeparam>
-    /// <exception cref="ArgumentException">添加控件时，Key值已经存在</exception>
-    private static void RegisterScoreGlobalControl<T>(string nameHeader, T key,
-        Dictionary<T, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true)
-        where T : notnull
-    {
-        var name = nameHeader + key.ToString();
-        control.Name = name;
-        if (elementDict.TryAdd(key, control)) return;
-        if (!isOverride)
-            throw new ArgumentException(
-                $"Control with key '{key}' already exists. Set isOverride to true to replace.");
-        elementDict[key] = control;
-    }
-
-    #endregion
-
-    #region 动画
-
-    /// <summary>
-    /// 渐显动画
-    /// </summary>
-    /// <param name="windowType">窗体类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在 3.0.0 中移除。")]
-    public void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
-    {
-        FadeInAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
-    }
-
-    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在 3.0.0 中移除。")]
-    public void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
-    {
-        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!FrontedWindows.TryGetValue(windowId, out var window)) return;
-
-        if (window.FindName(ctrName) is FrameworkElement element)
-        {
-            element.BeginAnimation(UIElement.OpacityProperty,
-                new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
-        }
-    }
-
-    /// <summary>
-    /// 渐隐动画
-    /// </summary>
-    /// <param name="windowType">窗体类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    [Obsolete("请使用 IAnimationService.PlayPickFadeOut 替代。此方法将在未来版本中移除。")]
-    public void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
-    {
-        FadeOutAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
-    }
-
-    [Obsolete("请使用 IAnimationService.PlayPickFadeOut 替代。此方法将在未来版本中移除。")]
-    public void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
-    {
-        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!FrontedWindows.TryGetValue(windowId, out var window)) return;
-        if (window.FindName(ctrName) is FrameworkElement element)
-        {
-            element.BeginAnimation(UIElement.OpacityProperty,
-                new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.5))));
-        }
-    }
-
-    /// <summary>
-    /// 呼吸动画开始
-    /// </summary>
-    /// <param name="windowType">窗体类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    [Obsolete("请使用 IAnimationService.StartPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
-    public async Task BreathingStart(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
-    {
-        await BreathingStart(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
-    }
-
-    [Obsolete("请使用 IAnimationService.StartPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
-    public async Task BreathingStart(string windowId, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
-    {
-        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!FrontedWindows.TryGetValue(windowId, out var window)) return;
-        if (window.FindName(ctrName) is not FrameworkElement element) return;
-
-        element.Opacity = 0;
-        element.Visibility = Visibility.Visible;
-        element.BeginAnimation(UIElement.OpacityProperty,
-            new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.25))));
-        await Task.Delay(250);
-
-        // 如果已有动画，先停止
-        await BreathingStop(windowId, controlNameHeader, controlIndex, controlNameFooter);
-
-        var animation = new DoubleAnimation
-        {
-            From = 1.0,
-            To = 0.25,
-            Duration = TimeSpan.FromSeconds(1),
-            AutoReverse = true,
-            RepeatBehavior = RepeatBehavior.Forever
-        };
-
-        Storyboard.SetTarget(animation, element);
-        Storyboard.SetTargetProperty(animation, new PropertyPath(UIElement.OpacityProperty));
-
-        var storyboard = new Storyboard();
-        storyboard.Children.Add(animation);
-        storyboard.Begin(element);
-        element.Tag = storyboard; // 用于后续停止动画
-    }
-
-    /// <summary>
-    /// 停止呼吸动画
-    /// </summary>
-    /// <param name="windowType">窗体类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    [Obsolete("请使用 IAnimationService.StopPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
-    public async Task BreathingStop(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
-    {
-        await BreathingStop(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
-    }
-
-    [Obsolete("请使用 IAnimationService.StopPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
-    public async Task BreathingStop(string windowId, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
-    {
-        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!FrontedWindows.TryGetValue(windowId, out var window)) return;
-        if (window.FindName(ctrName) is not FrameworkElement element) return;
-        if (element.Tag is not Storyboard storyboard) return;
-
-        storyboard.Stop();
-        element.BeginAnimation(UIElement.OpacityProperty,
-            new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.25))));
-        await Task.Delay(250);
-
-        element.Opacity = 0; // 恢复初始状态
-        element.Tag = null;
-        element.Visibility = Visibility.Hidden;
-    }
-
-    #endregion
 }

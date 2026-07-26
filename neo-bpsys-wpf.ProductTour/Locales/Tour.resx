@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Previous" xml:space="preserve">
+    <value>上一步</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一步</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Skip" xml:space="preserve">
+    <value>跳过</value>
+  </data>
+  <data name="WaitingForAction" xml:space="preserve">
+    <value>等待操作...</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>继续</value>
+  </data>
+  <data name="ClickToContinue" xml:space="preserve">
+    <value>点击继续</value>
+  </data>
+  <data name="WelcomeTitle" xml:space="preserve">
+    <value>欢迎使用 neo-bpsys-wpf！</value>
+  </data>
+  <data name="WelcomeDescription" xml:space="preserve">
+    <value>在开始之前，请先完成一次简短的功能导览。</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="StartTour" xml:space="preserve">
+    <value>开始导览</value>
+  </data>
+  <data name="RestartAvailableHint" xml:space="preserve">
+    <value>之后可以在设置中重新启动导览。</value>
+  </data>
+  <data name="SkipConfirmTitle" xml:space="preserve">
+    <value>跳过首次导览？</value>
+  </data>
+  <data name="SkipConfirmDescription" xml:space="preserve">
+    <value>确定要跳过首次导览吗？之后可以在设置中重新启动。</value>
+  </data>
+  <data name="SkipConfirmContinue" xml:space="preserve">
+    <value>继续导览</value>
+  </data>
+  <data name="SkipConfirmConfirm" xml:space="preserve">
+    <value>确认跳过</value>
+  </data>
+  <data name="SkipForCurrentSession" xml:space="preserve">
+    <value>本次跳过</value>
+  </data>
+  <data name="SkipPermanently" xml:space="preserve">
+    <value>永久跳过</value>
+  </data>
+  <data name="SuppressUntilNextStartup" xml:space="preserve">
+    <value>下次启动前不再展示新手教程</value>
+  </data>
+  <data name="FirstRunSkipConfirmDescription" xml:space="preserve">
+    <value>本次跳过不会保存选择；永久跳过会关闭首次标准 BP 导览。</value>
+  </data>
+  <data name="SequenceSkipConfirmDescription" xml:space="preserve">
+    <value>本次跳过会在本次启动内跳过本页面队列中后续的教程；永久跳过会将它们全部标记为已完成。</value>
+  </data>
+</root>

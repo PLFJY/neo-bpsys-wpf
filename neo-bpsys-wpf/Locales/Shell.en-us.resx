@@ -1,0 +1,1024 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+<data name="ExportUIConfig">
+    <value>Export UI configuration</value>
+  </data>
+  <data name="ImportUIConfig">
+    <value>Import UI configuration</value>
+  </data>
+  <data name="EditImage">
+    <value>Edit image</value>
+  </data>
+  <data name="CurrentBanLock">
+    <value>Current ban lock</value>
+  </data>
+  <data name="GlobalBanLock">
+    <value>Global ban lock</value>
+  </data>
+  <data name="BPWindowImages">
+    <value>BP background</value>
+  </data>
+<data name="EditTextProperty">
+    <value>Edit text property</value>
+  </data>
+  <data name="ResetAllPersonalizationSettingsOfTheWindow">
+    <value>Reset all personalization settings of the window</value>
+  </data>
+  <data name="CustomizeIntercludeWindow">
+    <value>Customize interclude window</value>
+  </data>
+  <data name="ColorOfTalentAndTraitIcon">
+    <value>Color of talent and trait icon</value>
+  </data>
+  <data name="CustomizeScoreWindow">
+    <value>Customize score window</value>
+  </data>
+  <data name="SurvivorScoreInGame">
+    <value>Survivor score in game</value>
+  </data>
+  <data name="HunterScoreInGame">
+    <value>Hunter score in game</value>
+  </data>
+  <data name="CampIconColorInScoreStatistics">
+    <value>Camp icon color in score statistics</value>
+  </data>
+  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode">
+    <value>Shift distance of total score when switching between BO3 and BO5 mode</value>
+  </data>
+  <data name="CustomizeGameDataWindow">
+    <value>Customize game data window</value>
+  </data>
+  <data name="EditIntercludeBackgroundImage">
+    <value>Edit interclude background image</value>
+  </data>
+  <data name="CustomizeFrontendUI">
+    <value>Customize frontend UI</value>
+  </data>
+  <data name="CustomizeBPWindow">
+    <value>Customize BP window</value>
+  </data>
+  <data name="EditGameDataBackgroundImage">
+    <value>Edit game data background image</value>
+  </data>
+  <data name="CustomizeWidgetWindow">
+    <value>Cutsomize widget window</value>
+  </data>
+  <data name="SurvivorIconOfMapBPV2">
+    <value>Survivor icon(Map BP V2)</value>
+  </data>
+  <data name="HunterIconOfMapBPV2">
+    <value>Hunter icon(Map BP V2)</value>
+  </data>
+  <data name="BPOverview">
+    <value>BP overview</value>
+  </data>
+  <data name="CurrentBanLockOfBPOverview">
+    <value>Current ban lock(BP overview)</value>
+  </data>
+  <data name="GlobalBanLockOfBPOverview">
+    <value>Global ban lock(BP overview)</value>
+  </data>
+  <data name="CampIconColorOfMapBPV2">
+    <value>Camp icon color(MapBPV2)</value>
+  </data>
+  <data name="ResetAllPersonalizationSettings">
+    <value>Reset all personalization settings</value>
+  </data>
+<data name="BPWindow">
+    <value>BP window</value>
+  </data>
+  <data name="DesignerMode">
+    <value>Designer mode</value>
+  </data>
+  <data name="ResetLayout">
+    <value>Reset layout</value>
+  </data>
+  <data name="CutSceneWindow">
+    <value>Cut Scene window</value>
+  </data>
+  <data name="NoteScoreStatisticsNotSaveInBO3Mode">
+    <value>Note: All layout changes of score statistics will NOT be saved in BO3 mode</value>
+  </data>
+  <data name="ResetSurvivorScoreLayoutInGame">
+    <value>Reset survivor score layout in game</value>
+  </data>
+  <data name="ResetHunterScoreLayoutInGame">
+    <value>Reset hunter score layout in game</value>
+  </data>
+  <data name="ResetScoreStatisticsLayout">
+    <value>Reset score statistics layout</value>
+  </data>
+  <data name="GameStatisticsWindow">
+    <value>Game statistics window</value>
+  </data>
+  <data name="Widgets">
+    <value>Widgets(e.g. map BP)</value>
+  </data>
+  <data name="ResetMapBPLayout">
+    <value>Reset map BP layout</value>
+  </data>
+  <data name="ResetBPOverviewLayout">
+    <value>Reset BP Overview Layout</value>
+  </data>
+  <data name="ResetMapBPV2Layout">
+    <value>Reset map BP V2 layout</value>
+  </data>
+<data name="AModernIdentityVBPSoftware">
+    <value>A modern Identity V BP Software</value>
+  </data>
+  <data name="OfficialWebsite">
+    <value>Official website</value>
+  </data>
+  <data name="Documentations">
+    <value>Documentations</value>
+  </data>
+<data name="OpenPickingBorder">
+    <value>Open picking border | </value>
+  </data>
+  <data name="ControlFirst2PickingBorderSeparately">
+    <value>Control first 2 picking border separately</value>
+  </data>
+  <data name="SurvivorPickingBorder1">
+    <value>Survivor picking border 1st</value>
+  </data>
+  <data name="SurvivorPickingBorder2">
+    <value>Survivor picking border 2nd</value>
+  </data>
+  <data name="SurvivorPickingBorder1and2">
+    <value>Survivor picking border 1st &amp; 2nd</value>
+  </data>
+  <data name="SurvivorPickingBorder3">
+    <value>Survivor picking border 3rd</value>
+  </data>
+  <data name="SurvivorPickingBorder4">
+    <value>Survivor picking border 4th</value>
+  </data>
+  <data name="HunterPickingBorder">
+    <value>Hunter picking border</value>
+  </data>
+<data name="ResetGameScores">
+    <value>Reset game scores</value>
+  </data>
+  <data name="ControlManually">
+    <value>Control manually</value>
+  </data>
+  <data name="HomeTeamName">
+    <value>Home team name</value>
+  </data>
+  <data name="GameSelection">
+    <value>Game selection</value>
+  </data>
+  <data name="Next">
+    <value>Next</value>
+  </data>
+  <data name="IsGameFinished">
+    <value>Is game finished</value>
+  </data>
+  <data name="SynchronizeToFrontend">
+    <value>Synchronize to frontend</value>
+  </data>
+  <data name="CampOfHomeTeam">
+    <value>Camp of home team</value>
+  </data>
+  <data name="CampOfAwayTeam">
+    <value>Camp of away team</value>
+  </data>
+  <data name="GameResult">
+    <value>Game result</value>
+  </data>
+<data name="IsVisible">
+    <value>Is visible</value>
+  </data>
+<data name="Backend">
+    <value>Backend</value>
+  </data>
+  <data name="CurrentSurvivorTeamColon">
+    <value>Current survivor team: </value>
+  </data>
+  <data name="Swap">
+    <value>Swap</value>
+  </data>
+  <data name="CurrentHunterTeamColon">
+    <value>Current hunter team:   </value>
+  </data>
+  <data name="Countdown">
+    <value>Countdown</value>
+  </data>
+  <data name="SaveGameInformation">
+    <value>Save current game state</value>
+  </data>
+  <data name="FormatColon">
+    <value>Format: </value>
+  </data>
+  <data name="StartGameGuidance">
+    <value>Start game guidance</value>
+  </data>
+  <data name="LastStep">
+    <value>Last step</value>
+  </data>
+  <data name="NextStep">
+    <value>Next step</value>
+  </data>
+  <data name="EndGameGuidance">
+    <value>End game guidance</value>
+  </data>
+  <data name="MadeByZeroPLFJY">
+    <value>Made by Zero PLFJY</value>
+  </data>
+  <data name="HomePage">
+    <value>Home</value>
+  </data>
+  <data name="GameData">
+    <value>Game statistics</value>
+  </data>
+  <data name="FrontendManagement">
+    <value>Frontend Management</value>
+  </data>
+  <data name="Free">
+    <value>Free Game</value>
+  </data>
+  <data name="Game1FirstHalf">
+    <value>Game 1 First Half</value>
+  </data>
+  <data name="Game1SecondHalf">
+    <value>Game 1 Second Half</value>
+  </data>
+  <data name="Game2FirstHalf">
+    <value>Game 2 First Half</value>
+  </data>
+  <data name="Game2SecondHalf">
+    <value>Game 2 Second Half</value>
+  </data>
+  <data name="Game3FirstHalf">
+    <value>Game 3 First Half</value>
+  </data>
+  <data name="Game3SecondHalf">
+    <value>Game 3 Second Half</value>
+  </data>
+  <data name="Game3OvertimeFirstHalf">
+    <value>Game 3 Overtime First Half</value>
+  </data>
+  <data name="Game3OvertimeSecondHalf">
+    <value>Game 3 Overtime Second Half</value>
+  </data>
+  <data name="Game4FirstHalf">
+    <value>Game 4 First Half</value>
+  </data>
+  <data name="Game4SecondHalf">
+    <value>Game 4 Second Half</value>
+  </data>
+  <data name="Game5FirstHalf">
+    <value>Game 5 First Half</value>
+  </data>
+  <data name="Game5SecondHalf">
+    <value>Game 5 Second Half</value>
+  </data>
+  <data name="Game5OvertimeFirstHalf">
+    <value>Game 5 Overtime First Half</value>
+  </data>
+  <data name="Game5OvertimeSecondHalf">
+    <value>Game 5 Overtime Second Half</value>
+  </data>
+  <data name="AreYouSureYouWantToExit">
+    <value>Are you sure you want to exit?</value>
+  </data>
+  <data name="ComingSoon">
+    <value>How about we explore the area ahead of us later~</value>
+  </data>
+  <data name="GameScores">
+    <value>Game scores</value>
+  </data>
+  <data name="FrontendBP">
+    <value>Frontend - BP</value>
+  </data>
+  <data name="FrontendCutScene">
+    <value>Frontend - Cut Scene Window</value>
+  </data>
+  <data name="HomeTeamWinPlus1">
+    <value>Home team win+1</value>
+  </data>
+  <data name="HomeTeamTiePlus1">
+    <value>Home team tie+1</value>
+  </data>
+  <data name="HomeTeamGameScorePlus1">
+    <value>Home team game score+1</value>
+  </data>
+  <data name="HomeTeamWinMinus1">
+    <value>Home team win-1</value>
+  </data>
+  <data name="HomeTeamTieMinus1">
+    <value>Home team tie-1</value>
+  </data>
+  <data name="HomeTeamGameScoreMinus1">
+    <value>Home team game score-1</value>
+  </data>
+  <data name="AwayTeamWinPlus1">
+    <value>Away team win+1</value>
+  </data>
+  <data name="AwayTeamTiePlus1">
+    <value>Away team tie+1</value>
+  </data>
+  <data name="AwayTeamGameScorePlus1">
+    <value>Away team game score+1</value>
+  </data>
+  <data name="AwayTeamWinMinus1">
+    <value>Away team win-1</value>
+  </data>
+  <data name="AwayTeamTieMinus1">
+    <value>Away team tie-1</value>
+  </data>
+  <data name="AwayTeamGameScoreMinus1">
+    <value>Away team game score-1</value>
+  </data>
+  <data name="FrontendWidgets">
+    <value>Frontend - Widgets</value>
+  </data>
+<data name="Timer">
+    <value>Timer</value>
+  </data>
+  <data name="MatchScore">
+    <value>Match score</value>
+  </data>
+  <data name="MapName">
+    <value>Map Name</value>
+  </data>
+  <data name="SurvivorPlayerID">
+    <value>Survivor player ID</value>
+  </data>
+  <data name="HunterPlayerID">
+    <value>Hunter player ID</value>
+  </data>
+  <data name="MatchScores">
+    <value>Match scores</value>
+  </data>
+  <data name="GameScoresInScoreStatistics">
+    <value>Game scores(Score Statistics)</value>
+  </data>
+  <data name="TotalGameScoresInScoreStatistics">
+    <value>Total game scores(Score Statistics)</value>
+  </data>
+  <data name="SurvivorData">
+    <value>Survivor data</value>
+  </data>
+  <data name="HunterData">
+    <value>Hunter data</value>
+  </data>
+  <data name="MapNameInMapBP">
+    <value>Map name(Map BP)</value>
+  </data>
+  <data name="MapNameInMapBPV2">
+    <value>Map name(Map BP V2)</value>
+  </data>
+  <data name="CampNameInMapBPV2">
+    <value>Camp name(Map BP V2)</value>
+  </data>
+  <data name="GameScoresInBPOverview">
+    <value>Game scores(BP Overview)</value>
+  </data>
+<data name="CurrentStepFormat">
+    <value>Current step: {0}</value>
+  </data>
+  <data name="Tip">
+    <value>Tip</value>
+  </data>
+  <data name="FrontendSurvivorScoreInGame">
+    <value>Frontend - Survivor Score in Game</value>
+  </data>
+  <data name="FrontendHunterScoreInGame">
+    <value>Frontend - Hunter Score in Game</value>
+  </data>
+  <data name="Installed">
+    <value>Installed</value>
+  </data>
+  <data name="Notification">
+    <value>Notification</value>
+  </data>
+  <data name="AfterUpdateTip">
+    <value>If layouts appear broken after an update, switching to the built-in layout will fix it.</value>
+  </data>
+  <data name="DontRemindMeAgainUntilTheNextUpdate">
+    <value>Don’t remind me again until the next update</value>
+  </data>
+  <data name="GoToFolder">
+    <value>Go to folder</value>
+  </data>
+  <data name="RestartNeeded">
+    <value>Restart Needed</value>
+  </data>
+  <data name="SomeSettingsRequireRestartingTheApplication">
+    <value>Some settings require restarting the application</value>
+  </data>
+  <data name="ResetLayoutFormat">
+    <value>Reset {0}layout</value>
+  </data>
+  <data name="SaveInfo">
+    <value>Save Information</value>
+  </data>
+  <data name="SaveSuccessfullyTo">
+    <value>Save successfully to</value>
+  </data>
+  <data name="SaveFailed">
+    <value>Save failed</value>
+  </data>
+  <data name="InvalidInput">
+    <value>Invalid input</value>
+  </data>
+  <data name="SaveFrontendConfigurationFileFailed">
+    <value>Save Frontend configuration file failed</value>
+  </data>
+  <data name="UnregisteredWindowType">
+    <value>Unregistered window type</value>
+  </data>
+  <data name="ConfigurationFileLoadingError">
+    <value>Configuration file loading error</value>
+  </data>
+  <data name="FrontendDefaultConfigurationRestoreError">
+    <value>Frontend default configuration restore error</value>
+  </data>
+  <data name="ResetTip">
+    <value>Reset tip</value>
+  </data>
+<data name="WindowLaunchError">
+    <value>Window launch error</value>
+  </data>
+  <data name="WindowCloseError">
+    <value>Window close error</value>
+  </data>
+  <data name="ErrorWhenGeneratingFrontendConfigurationFile">
+    <value>Error when generating frontend configuration file</value>
+  </data>
+  <data name="ConfigurationResetConfirmation">
+    <value>Configuration reset confirmation</value>
+  </data>
+  <data name="UnknownWindowSource">
+    <value>Unknown windows source</value>
+  </data>
+  <data name="ReadFrontendDefaultConfigurationError">
+    <value>Read frontend default configuration error</value>
+  </data>
+  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider">
+    <value>Cannot find the default layout configuration from window provider</value>
+  </data>
+  <data name="UIConfigurationHasBeenSavedTo">
+    <value>UI configuration has been saved to</value>
+  </data>
+  <data name="UIPackingError">
+    <value>UI packing error</value>
+  </data>
+  <data name="UIImportIsFinished">
+    <value>UI import is finished. Application will restart automatically</value>
+  </data>
+  <data name="UIImportTip">
+    <value>UI import tip</value>
+  </data>
+  <data name="UIPackLoadingError">
+    <value>UI pack loading error</value>
+  </data>
+<data name="CleanupUpdateResidueError">
+    <value>Cleanup update residue error</value>
+  </data>
+  <data name="DownloadFailed">
+    <value>Download failed</value>
+  </data>
+  <data name="GettingUpdateError">
+    <value>Getting update error</value>
+  </data>
+  <data name="NewVersionFound">
+    <value>New version found</value>
+  </data>
+  <data name="GoToSettingPageToUpdate">
+    <value>Go to setting page to update</value>
+  </data>
+  <data name="AlreadyTheLatestVersion">
+    <value>Already the latest version</value>
+  </data>
+  <data name="HttpRequestError">
+    <value>Http request error</value>
+  </data>
+  <data name="JsonParsingError">
+    <value>Json parsing error</value>
+  </data>
+  <data name="UnknownError">
+    <value>Unknown error</value>
+  </data>
+  <data name="ImageFiles">
+    <value>Image files</value>
+  </data>
+  <data name="FontFiles">
+    <value>Font files</value>
+  </data>
+  <data name="JSONFiles">
+    <value>JSON Files</value>
+  </data>
+  <data name="ZipFiles">
+    <value>Zip files</value>
+  </data>
+  <data name="TheProgramIsAlreadyRunning">
+    <value>The program is already running</value>
+  </data>
+  <data name="AlreadyTheLastStep">
+    <value>Already the last step</value>
+  </data>
+  <data name="GameInfoStatusError">
+    <value>Game info status error</value>
+  </data>
+  <data name="AlreadyTheFirstStep">
+    <value>Already the first step</value>
+  </data>
+  <data name="EmptyBan">
+    <value>Empty ban</value>
+  </data>
+  <data name="CurrentStep">
+    <value>Current step</value>
+  </data>
+<data name="RestartToApply">
+    <value>Restart to apply</value>
+  </data>
+  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore">
+    <value>Are you sure to save the shift distance of Total Score</value>
+  </data>
+  <data name="AreYouSureToSetCampIconTo">
+    <value>Are you sure to set camp icon to</value>
+  </data>
+  <data name="AreYouSureToSetTalentAndTraitIconTo">
+    <value>Are you sure to set talent and trait icon to</value>
+  </data>
+  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow">
+    <value>Are you sure to reset all personal settings of this window?</value>
+  </data>
+  <data name="AreYouSureToResetPersonalSettingsOfAllWindows">
+    <value>Are you sure to reset personal settings of all windows?</value>
+  </data>
+  <data name="CoverTip">
+    <value>Cover tip</value>
+  </data>
+  <data name="PathHasAlreadyExistAreYouSureToCoverIt">
+    <value>has already exist. Are you sure to cover it?</value>
+  </data>
+<data name="Restart">
+    <value>Restart</value>
+  </data>
+  <data name="NotNow">
+    <value>Not now</value>
+  </data>
+  <data name="Loaded">
+    <value>Loaded</value>
+  </data>
+  <data name="Disabled">
+    <value>Disabled</value>
+  </data>
+  <data name="Character">
+    <value>Character</value>
+  </data>
+  <data name="FrontedScoreStatistics">
+    <value>Fronted - Score statistics</value>
+  </data>
+  <data name="FrontedGameStatistics">
+    <value>Fronted - Game statistics</value>
+  </data>
+  <data name="ImportGameInformation">
+    <value>Import Game Information</value>
+  </data>
+  <data name="ImportSuccessfullyFrom">
+    <value>Successfully imported from: </value>
+  </data>
+  <data name="ImportInfo">
+    <value>Import Info</value>
+  </data>
+  <data name="ImportFailed">
+    <value>Import Failed: </value>
+  </data>
+  <data name="ReleaseNotes">
+    <value>Release Notes (Chinese Only)</value>
+  </data>
+  <data name="LoadingFailed">
+    <value>Loading Failed</value>
+  </data>
+  <data name="BpuiFiles">
+    <value>bpui Files</value>
+  </data>
+  <data name="AllowsWindowTransparency">
+    <value>Allows window transparency</value>
+  </data>
+  <data name="AllowsScoreGlobalWindowTransparency">
+    <value>Allow score statistics window transparency</value>
+  </data>
+  <data name="WindowSize">
+    <value>Window size</value>
+  </data>
+<data name="UnexpectedExceptionMessage">
+    <value>Some unexpected errors have occurred. Please contact the developer with the log file below for solutions</value>
+  </data>
+<data name="SevenZipArchiveFiles">
+    <value>7z archives</value>
+  </data>
+  <data name="AllFiles">
+    <value>All files</value>
+  </data>
+<data name="SaveAs">
+    <value>Save As</value>
+  </data>
+  <data name="QueuePending">
+    <value>Queued</value>
+  </data>
+  <data name="QueueDownloading">
+    <value>Downloading</value>
+  </data>
+  <data name="QueueDownloaded">
+    <value>Downloaded, waiting to install</value>
+  </data>
+  <data name="QueueInstalledRestartRequired">
+    <value>Installed, restart to apply changes</value>
+  </data>
+  <data name="QueueFailed">
+    <value>Download failed</value>
+  </data>
+  <data name="QueueCanceled">
+    <value>Canceled</value>
+  </data>
+  <data name="FrontedDesignerWindow">
+    <value>Frontend Designer</value>
+  </data>
+  <data name="Canvas">
+    <value>Canvas</value>
+  </data>
+  <data name="LayoutSource">
+    <value>Layout Source</value>
+  </data>
+  <data name="Validation">
+    <value>Validation</value>
+  </data>
+  <data name="ValidateLayout">
+    <value>Validate</value>
+  </data>
+  <data name="BuiltInLayout">
+    <value>Built-in Layout</value>
+  </data>
+<data name="FitToWindow">
+    <value>Fit to Window</value>
+  </data>
+  <data name="ControlType">
+    <value>Control Type</value>
+  </data>
+  <data name="Property">
+    <value>Property</value>
+  </data>
+  <data name="Value">
+    <value>Value</value>
+  </data>
+  <data name="Identity">
+    <value>Identity</value>
+  </data>
+  <data name="Binding">
+    <value>Binding</value>
+  </data>
+  <data name="Appearance">
+    <value>Appearance</value>
+  </data>
+  <data name="ControlSpecific">
+    <value>Control-specific</value>
+  </data>
+  <data name="ReadOnly">
+    <value>Read-only</value>
+  </data>
+  <data name="Color">
+    <value>Color</value>
+  </data>
+  <data name="BasicControls">
+    <value>Basic controls</value>
+  </data>
+  <data name="BusinessControls">
+    <value>Business controls</value>
+  </data>
+  <data name="FontFamily">
+    <value>Font family</value>
+  </data>
+  <data name="BuiltInFont">
+    <value>Built-in font</value>
+  </data>
+  <data name="SystemFont">
+    <value>System font</value>
+  </data>
+  <data name="Placeholder">
+    <value>Placeholder</value>
+  </data>
+  <data name="ConfirmDeleteControl">
+    <value>Delete the selected control?</value>
+  </data>
+  <data name="PlaceholderPreview">
+    <value>Placeholder Preview</value>
+  </data>
+  <data name="DesignerPlaceholderData">
+    <value>Designer Placeholder Data</value>
+  </data>
+<data name="UnsavedChangesMessage">
+    <value>The current layout has unsaved changes.</value>
+  </data>
+<data name="SnapGridSize">
+    <value>Snap grid size</value>
+  </data>
+  <data name="BindingBrowser">
+    <value>Binding Browser</value>
+  </data>
+  <data name="ResourceBrowser">
+    <value>Resource Browser</value>
+  </data>
+  <data name="SelectBindingPath">
+    <value>Select Binding Path</value>
+  </data>
+  <data name="SelectResource">
+    <value>Select Resource</value>
+  </data>
+  <data name="SearchBindings">
+    <value>Search bindings</value>
+  </data>
+  <data name="SearchResources">
+    <value>Search resources</value>
+  </data>
+  <data name="SelectedPath">
+    <value>Selected Path</value>
+  </data>
+  <data name="BuiltInResources">
+    <value>Built-in Resources</value>
+  </data>
+  <data name="AppAssets">
+    <value>App Assets</value>
+  </data>
+  <data name="AbsoluteFile">
+    <value>Absolute File</value>
+  </data>
+<data name="NoBindingResults">
+    <value>No matching bindings.</value>
+  </data>
+  <data name="NoResourceResults">
+    <value>No matching resources.</value>
+  </data>
+  <data name="ExpectedBindingType">
+    <value>Expected binding type</value>
+  </data>
+  <data name="AnyBinding">
+    <value>Any binding</value>
+  </data>
+  <data name="TextBinding">
+    <value>Text binding</value>
+  </data>
+  <data name="ImageBinding">
+    <value>Image binding</value>
+  </data>
+  <data name="MapBinding">
+    <value>Map binding</value>
+  </data>
+  <data name="BooleanBinding">
+    <value>Boolean binding</value>
+  </data>
+  <data name="NumberBinding">
+    <value>Number binding</value>
+  </data>
+  <data name="StringBinding">
+    <value>String binding</value>
+  </data>
+  <data name="UseSelected">
+    <value>Use Selected</value>
+  </data>
+  <data name="Window">
+    <value>Window</value>
+  </data>
+  <data name="RestartRequired">
+    <value>Restart required</value>
+  </data>
+  <data name="SaveBeforeRestart">
+    <value>Save the current layout before restarting?</value>
+  </data>
+  <data name="FrontendWindows">
+    <value>Frontend Windows</value>
+  </data>
+  <data name="FrontendDesigner">
+    <value>Frontend Designer</value>
+  </data>
+  <data name="InstalledPackages">
+    <value>Installed Packages</value>
+  </data>
+  <data name="BuiltInPackage">
+    <value>Built-in Package</value>
+  </data>
+  <data name="PackageCreatedAt">
+    <value>Created At</value>
+  </data>
+  <data name="PackageSource">
+    <value>Source</value>
+  </data>
+  <data name="PackageValidationStatus">
+    <value>Validation</value>
+  </data>
+  <data name="PackageInstallPath">
+    <value>Install Path</value>
+  </data>
+  <data name="PackageNotImplemented">
+    <value>v3 package import will be implemented in a future version.</value>
+  </data>
+  <data name="PackageActivated">
+    <value>Package activated.</value>
+  </data>
+  <data name="ShortcutDelete">
+    <value>Delete (Del)</value>
+  </data>
+  <data name="ExportScope">
+    <value>Export Scope</value>
+  </data>
+  <data name="ExportCurrentCanvas">
+    <value>Current Canvas</value>
+  </data>
+  <data name="ExportCurrentWindow">
+    <value>Current Window</value>
+  </data>
+  <data name="ExportAllFrontendLayouts">
+    <value>All Frontend Layouts</value>
+  </data>
+  <data name="ActivateImportedPackage">
+    <value>The package was imported. Activate it now?</value>
+  </data>
+  <data name="LegacyPackageDetected">
+    <value>Legacy .bpui package detected</value>
+  </data>
+  <data name="LegacyPackageConversionNotImplemented">
+    <value>Legacy .bpui conversion is not implemented yet.</value>
+  </data>
+  <data name="InvalidPackageManifest">
+    <value>Invalid package manifest.</value>
+  </data>
+  <data name="InvalidPackageArchive">
+    <value>Invalid package archive.</value>
+  </data>
+  <data name="CrossPackageResourceReference">
+    <value>The package contains a cross-package resource reference.</value>
+  </data>
+  <data name="MissingPackageResource">
+    <value>The package is missing a resource file.</value>
+  </data>
+  <data name="SwitchToBuiltIn">
+    <value>Switch to built-in</value>
+  </data>
+  <data name="UnknownLegacyLayoutFile">
+    <value>Unknown legacy layout file</value>
+  </data>
+  <data name="LegacyFieldIgnored">
+    <value>Legacy field ignored</value>
+  </data>
+  <data name="LegacyResourceCopied">
+    <value>Legacy resource copied</value>
+  </data>
+  <data name="LegacyResourceMissing">
+    <value>Legacy resource missing</value>
+  </data>
+  <data name="ActivateConvertedPackage">
+    <value>Activate the converted package now?</value>
+  </data>
+<data name="InputTooLong">
+    <value>Input is too long</value>
+  </data>
+  <data name="ImageTooLarge">
+    <value>Image file is too large</value>
+  </data>
+  <data name="ImageTooManyPixels">
+    <value>Image dimensions are too large</value>
+  </data>
+  <data name="UnsupportedImageFormat">
+    <value>Unsupported image format</value>
+  </data>
+  <data name="PackageTooLarge">
+    <value>Package archive is too large</value>
+  </data>
+  <data name="PackageExtractedTooLarge">
+    <value>Extracted package content is too large</value>
+  </data>
+  <data name="PackageTooManyEntries">
+    <value>Package contains too many entries</value>
+  </data>
+  <data name="PackageEntryTooLarge">
+    <value>Package entry is too large</value>
+  </data>
+  <data name="ManifestTooLarge">
+    <value>manifest.json is too large</value>
+  </data>
+  <data name="LayoutJsonTooLarge">
+    <value>Layout JSON is too large</value>
+  </data>
+  <data name="WindowOptionsTooLarge">
+    <value>Window options JSON is too large</value>
+  </data>
+  <data name="TooManyControls">
+    <value>Too many controls on this canvas</value>
+  </data>
+  <data name="ControlCountWarning">
+    <value>This canvas has many controls</value>
+  </data>
+  <data name="MaxControlsPerCanvas">
+    <value>Max controls per canvas</value>
+  </data>
+<data name="TextTooLong">
+    <value>Text is too long</value>
+  </data>
+  <data name="BindingPathTooLong">
+    <value>Binding path is too long</value>
+  </data>
+  <data name="MissingPluginMarketLater">
+    <value>Plugin marketplace install/update guidance will be available in a future version.</value>
+  </data>
+  <data name="ForceImportRemoveMissingControls">
+    <value>Force import and remove missing controls</value>
+  </data>
+  <data name="RemovedPluginControlCount">
+    <value>Removed plugin controls</value>
+  </data>
+  <data name="RemovedPluginControlsReport">
+    <value>Plugin controls removed by force import</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.DisplayName">
+    <value>Example Team Card</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.Description">
+    <value>DEBUG example plugin control that displays a team name and logo from shared data bindings.</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath">
+    <value>Team name binding</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoBindingPath">
+    <value>Logo binding</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.BackgroundColor">
+    <value>Background color</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.ForegroundColor">
+    <value>Foreground color</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.CornerRadius">
+    <value>Corner radius</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoSize">
+    <value>Logo size</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontSize">
+    <value>Font size</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontWeight">
+    <value>Font weight</value>
+  </data>
+  <data name="ClassicBackendShell">
+    <value>Classic Backend Shell</value>
+  </data>
+  <data name="ModernBackendShell">
+    <value>Modern Backend Shell</value>
+  </data>
+  <data name="FrontendQuickControls">
+    <value>Frontend quick controls</value>
+  </data>
+  <data name="ClassicManagementEntries">
+    <value>Management entries</value>
+  </data>
+  <data name="OpenFrontendManagement">
+    <value>Frontend Management</value>
+  </data>
+  <data name="OpenSettings">
+    <value>Settings</value>
+  </data>
+  <data name="OpenPlugins">
+    <value>Plugins</value>
+  </data>
+  <data name="GameDataWindow">
+    <value>Game data window</value>
+  </data>
+  <data name="WidgetsWindow">
+    <value>Widgets window</value>
+  </data>
+<data name="ExecutableFiles">
+    <value>Executable files</value>
+  </data>
+  <data name="SmartBp">
+    <value>Smart BP</value>
+  </data>
+  <data name="StartNewGame">
+    <value>Start a new game</value>
+  </data>
+  <data name="ResetAndMoveToNextGame">
+    <value>Reset and move to the next game</value>
+  </data>
+  <data name="ResetAndMoveToNextGameQuestion">
+    <value>Reset the current game and move to the next game?</value>
+  </data>
+  <data name="ResetOnly">
+    <value>Reset only</value>
+  </data>
+  <data name="ClickedByMistake">
+    <value>Clicked by mistake</value>
+  </data>
+  <data name="DoNotAskNextGameAgain">
+    <value>Do not ask again until the next startup</value>
+  </data>
+  <data name="DoNotAskGameStateSaveDirectoryAgain">
+    <value>Do not ask for the save location again?</value>
+  </data>
+</root>

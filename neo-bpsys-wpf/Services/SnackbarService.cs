@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Windows;
 using System.Windows.Controls;
@@ -5,8 +6,9 @@ using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Services;
 
-public class SnackbarService : ISnackbarService
+public class SnackbarService(ILogger<SnackbarService> logger) : ISnackbarService
 {
+    private readonly ILogger<SnackbarService> _logger = logger;
     private SnackbarPresenter? _presenter;
     private Snackbar? _snackbar;
 
@@ -44,7 +46,10 @@ public class SnackbarService : ISnackbarService
         bool isCloseButtonEnabled)
     {
         if (_presenter == null)
+        {
+            _logger.LogError("SnackbarPresenter was never set before Show() was called.");
             throw new InvalidOperationException("The SnackbarPresenter was never set");
+        }
         _snackbar ??= new Snackbar(_presenter);
         _snackbar.SetCurrentValue(Snackbar.TitleProperty, (object)title);
         _snackbar.SetCurrentValue(ContentControl.ContentProperty, (object)content);

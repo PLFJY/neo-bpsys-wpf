@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="ScoreStatisticsBO5">
+    <value>スコア統計 (BO5)</value>
+  </data>
+  <data name="ScoreStatisticsBO3">
+    <value>スコア統計 (BO3)</value>
+  </data>
+  <data name="ScoreComponent">
+    <value>スコアコンポーネント</value>
+  </data>
+  <data name="ScoreStatistics">
+    <value>スコア統計</value>
+  </data>
+  <data name="ScoreInBPWindowAndGame">
+    <value>BP画面およびゲーム内スコア</value>
+  </data>
+  <data name="ScoreSettlement">
+    <value>対戦スコア精算</value>
+  </data>
+  <data name="ScoreControl">
+    <value>スコア制御</value>
+  </data>
+  <data name="ScorePreview">
+    <value>{0}  勝:{1} 分:{2}  得点: {3}</value>
+  </data>
+  <data name="ScorePreviewTable">
+    <value>スコアプレビュー</value>
+  </data>
+  <data name="ScorePreviewCurrent">
+    <value>現在</value>
+  </data>
+  <data name="ScorePreviewRecorded">
+    <value>入力済み</value>
+  </data>
+  <data name="ScorePreviewEmpty">
+    <value>未入力</value>
+  </data>
+  <data name="ScorePreviewGame">
+    <value>ゲーム</value>
+  </data>
+  <data name="ScorePreviewHalf">
+    <value>ハーフ</value>
+  </data>
+  <data name="ScorePreviewStatus">
+    <value>状態</value>
+  </data>
+  <data name="ScorePreviewResult">
+    <value>結果</value>
+  </data>
+  <data name="ScorePreviewHomeCamp">
+    <value>ホーム陣営</value>
+  </data>
+  <data name="ScorePreviewAwayCamp">
+    <value>アウェイ陣営</value>
+  </data>
+  <data name="ScorePreviewHomeMinorScore">
+    <value>ホーム小スコア</value>
+  </data>
+  <data name="ScorePreviewAwayMinorScore">
+    <value>アウェイ小スコア</value>
+  </data>
+  <data name="ScorePreviewFirstHalf">
+    <value>前半</value>
+  </data>
+  <data name="ScorePreviewSecondHalf">
+    <value>後半</value>
+  </data>
+  <data name="ScorePreviewGameFormat">
+    <value>ゲーム {0}</value>
+  </data>
+  <data name="ScorePreviewGameOvertimeFormat">
+    <value>ゲーム {0} 延長</value>
+  </data>
+  <data name="ScorePreviewProgressFormat">
+    <value>{0} {1}</value>
+  </data>
+  <data name="ScoresInScoreStatistics">
+    <value>スコア (スコア統計)</value>
+  </data>
+  <data name="ScoreGlobalWindowBackgroundColor">
+    <value>スコア統計の背景色</value>
+  </data>
+  <data name="ScoreInGameWindowSize">
+    <value>試合内スコアウィンドウサイズ</value>
+  </data>
+  <data name="ScoreGlobalWindowSize">
+    <value>スコア統計ウィンドウサイズ</value>
+  </data>
+  <data name="ScoreBpControls">
+    <value>スコア/BP コントロール</value>
+  </data>
+  <data name="ScoreSurWindow">
+    <value>サバイバー得点</value>
+  </data>
+  <data name="ScoreHunWindow">
+    <value>ハンター得点</value>
+  </data>
+  <data name="ScoreGlobalWindow">
+    <value>得点統計</value>
+  </data>
+  <data name="ClearCurrentHalfScore">
+    <value>現在のハーフスコアを消去</value>
+  </data>
+  <data name="FourEliminate">
+    <value>4吊り</value>
+  </data>
+  <data name="FourEscape">
+    <value>4逃げ</value>
+  </data>
+  <data name="ResetAllScores">
+    <value>全スコアリセット</value>
+  </data>
+  <data name="RestoreDefaultSort">
+    <value>既定の並び順に戻す</value>
+  </data>
+  <data name="ThreeEliminate">
+    <value>3吊り</value>
+  </data>
+  <data name="ThreeEscape">
+    <value>3逃げ</value>
+  </data>
+  <data name="Tie">
+    <value>引き分け</value>
+  </data>
+</root>

@@ -1,13 +1,13 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.PickPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
-    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="PickPage"
@@ -15,12 +15,12 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
             <Setter Property="Spacing" Value="20" />
             <Setter Property="Margin" Value="5,10,0,0" />
@@ -29,18 +29,32 @@
             <Setter Property="IsReadOnly" Value="True" />
         </Style>
     </Page.Resources>
-    <WrapPanel Orientation="Horizontal">
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
+    <WrapPanel modernScroll:GuidanceAutoScrollScope.IsEnabled="True" Orientation="Horizontal">
+        <Border
+            x:Name="SurvivorPickSelectorGroupBorder"
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
+            <Grid x:Name="SurvivorPickSelectorPanel">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc PickSurvivor}" />
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock
+                        Grid.Row="0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource Title}"
+                        Text="{lex:Loc PickSurvivor}" />
+                    <ui:ToggleSwitch
+                        x:Name="AllowCharacterReselectToggle"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                        Content="{lex:Loc AllowCharacterReselect}"
+                        IsChecked="{Binding IsAllowCharacterReselect}" />
+                </StackPanel>
                 <ItemsControl
+                    x:Name="FirstSurvivorPickSelectorHost"
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     ItemsSource="{Binding SurPickViewModelList}">
@@ -53,17 +67,24 @@
                         <DataTemplate>
                             <StackPanel Margin="0,0,10,10">
                                 <ui:TextBox
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
                                     IsReadOnly="True"
                                     PlaceholderText="{lex:Loc PlayerName}"
                                     Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
+                                    modernScroll:GuidanceScrollTarget.Action="PickSur"
+                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                     Command="{Binding ConfirmCommand}"
+                                    DisabledKeys="{Binding DisabledKeys}"
                                     ImageSource="{Binding PreviewImage}"
                                     IsHighlighted="{Binding IsHighlighted}"
                                     ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding SelectedChara}" />
                                 <cc:CharacterChanger
+                                    x:Name="SurvivorCharacterChangerPanel"
+                                    modernScroll:GuidanceScrollTarget.Action="DistributeChara"
+                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                     Command="{Binding SwapCharacterInPlayersCommand}"
                                     Index="{Binding Index}"
                                     IsHighlighted="{Binding IsCharaChangerHighlighted}" />
@@ -84,97 +105,22 @@
                     Style="{StaticResource Title}"
                     Text="{lex:Loc PickHunter}" />
                 <cc:CharacterSelector
+                    x:Name="HunterPickSelectorHost"
                     Grid.Row="1"
                     Margin="0,10,0,0"
+                    modernScroll:GuidanceScrollTarget.Action="PickHun"
                     Command="{Binding HunPickVm.ConfirmCommand}"
+                    DisabledKeys="{Binding HunPickVm.DisabledKeys}"
                     ImageSource="{Binding HunPickVm.PreviewImage}"
                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
                     ItemsSource="{Binding HunPickVm.CharaDict}"
                     SelectedValue="{Binding HunPickVm.SelectedChara}" />
             </Grid>
         </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Border.Resources>
-                <cv:BooleanMultiConverter x:Key="BooleanMultiConverter" />
-            </Border.Resources>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock
-                        VerticalAlignment="Center"
-                        Style="{StaticResource Title}"
-                        Text="{lex:Loc OpenPickingBorder}" />
-                    <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
-                    <TextBlock
-                        Margin="10,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{lex:Loc ControlFirst2PickingBorderSeparately}" />
-                </StackPanel>
-                <StackPanel Grid.Row="1">
-                    <StackPanel
-                        Margin="0,10,0,0"
-                        d:Visibility="Visible"
-                        Orientation="Horizontal"
-                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="0"
-                            IsChecked="{Binding SurPickingBorderList[0]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder1}" />
-                    </StackPanel>
-                    <StackPanel
-                        Margin="0,10,0,0"
-                        d:Visibility="Visible"
-                        Orientation="Horizontal"
-                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="1"
-                            IsChecked="{Binding SurPickingBorderList[1]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder2}" />
-                    </StackPanel>
-                    <StackPanel
-                        Margin="0,10,0,0"
-                        Orientation="Horizontal"
-                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
-                        <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0and1">
-                            <ui:ToggleSwitch.IsChecked>
-                                <MultiBinding Converter="{StaticResource BooleanMultiConverter}" Mode="TwoWay">
-                                    <Binding Path="SurPickingBorderList[0]" />
-                                    <Binding Path="SurPickingBorderList[1]" />
-                                </MultiBinding>
-                            </ui:ToggleSwitch.IsChecked>
-                        </ui:ToggleSwitch>
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder1and2}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="2"
-                            IsChecked="{Binding SurPickingBorderList[2]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder3}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="3"
-                            IsChecked="{Binding SurPickingBorderList[3]}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder4}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch
-                            Command="{Binding PickingBorderSwitchCommand}"
-                            CommandParameter="Hun"
-                            IsChecked="{Binding HunPickingBorder}" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc HunterPickingBorder}" />
-                    </StackPanel>
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+        <Border
+            x:Name="GlobalBanRecordPanel"
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -182,21 +128,30 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc GlobalBanRecord}" />
+
                 <StackPanel
                     Grid.Row="1"
-                    Margin="0,10,0,0"
+                    Margin="0,0,0,0"
                     Orientation="Horizontal">
-                    <ui:ToggleSwitch
-                        Margin="0,0,0,0"
+                    <TextBlock
+                        Grid.Row="0"
                         VerticalAlignment="Center"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                        Style="{StaticResource Title}"
+                        Text="{lex:Loc GlobalBanRecord}" />
+                    <ui:ToggleSwitch
+                        x:Name="GlobalBanAutoRecordToggle"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
                         Content="{lex:Loc AutoRecord}"
                         IsChecked="{Binding IsGlobalBanAutoRecord}" />
                 </StackPanel>
-                <Grid Grid.Row="2" Margin="0,10,0,0">
+                <Grid
+                    x:Name="HomeGlobalBanRecordPanel"
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Tag="{Binding HomeSurGlobalBanRecordTargetTag}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -205,11 +160,14 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" d:Text="主队: 主队名称">
+                    <TextBlock
+                        Grid.Row="0"
+                        d:Text="主队: 主队名称"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
-                                <lex:BLoc Key="HomeTeam" />
-                                <Binding Path="MainTeam.Name" />
+                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:HomeTeam" />
+                                <Binding Path="HomeTeam.Name" />
                             </MultiBinding>
                         </TextBlock.Text>
                     </TextBlock>
@@ -260,7 +218,11 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>
-                <Grid Grid.Row="3" Margin="0,20,0,0">
+                <Grid
+                    x:Name="AwayGlobalBanRecordPanel"
+                    Grid.Row="3"
+                    Margin="0,20,0,0"
+                    Tag="{Binding AwaySurGlobalBanRecordTargetTag}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -269,10 +231,13 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" d:Text="客队: 主队名称">
+                    <TextBlock
+                        Grid.Row="0"
+                        d:Text="客队: 主队名称"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
-                                <lex:BLoc Key="AwayTeam" />
+                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:AwayTeam" />
                                 <Binding Path="AwayTeam.Name" />
                             </MultiBinding>
                         </TextBlock.Text>

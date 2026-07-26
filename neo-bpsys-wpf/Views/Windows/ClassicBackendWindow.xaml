@@ -1,0 +1,1230 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.ClassicBackendWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc ClassicBackendShell}"
+    Width="1280"
+    Height="720"
+    MinWidth="1200"
+    MinHeight="760"
+    lex:LocalizeDictionary.DesignCulture="zh"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+    ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    RenderOptions.BitmapScalingMode="HighQuality"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <ui:FluentWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <cv:DictionaryLocalizationConverter x:Key="ShellDictionaryLocalizationConverter" />
+        <cv:DictionaryLocalizationConverter x:Key="GameDictionaryLocalizationConverter" />
+        <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
+        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
+        <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
+        <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
+        <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
+        <Thickness x:Key="ClassicInlineControlMargin">0,0,8,8</Thickness>
+        <Thickness x:Key="ClassicCardMargin">0,10,0,0</Thickness>
+        <Thickness x:Key="ClassicSectionSpacing">0,10,0,0</Thickness>
+        <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
+            <Setter Property="MinWidth" Value="90" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ui:ToggleSwitch}}" TargetType="ui:ToggleSwitch">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
+            <Setter Property="Spacing" Value="14" />
+            <Setter Property="Margin" Value="4,8,0,0" />
+        </Style>
+    </ui:FluentWindow.Resources>
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid
+        x:Name="ClassicRoot"
+        modernScroll:GuidanceAutoScrollScope.IsEnabled="True"
+        Background="{DynamicResource ApplicationBackgroundBrush}"
+        PreviewMouseLeftButtonDown="ClassicRoot_PreviewMouseLeftButtonDown">
+        <ui:InfoBar
+            x:Name="InfoBar"
+            Margin="0,35,0,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Panel.ZIndex="1" />
+        <ui:ContentDialogHost
+            x:Name="ContentDialogHost"
+            Panel.ZIndex="2"
+            d:Visibility="Collapsed" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <controls:CustomTitleBar
+                Grid.Row="0"
+                Icon="/Assets/icon.png"
+                IsRestartRequired="{Binding IsRestartRequired}"
+                IsThemeChangeChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
+                ThemeChangeCommand="{Binding ThemeSwitchCommand}" />
+
+            <Border
+                x:Name="TopBarRoot"
+                Grid.Row="1"
+                Margin="10"
+                Style="{StaticResource Card}">
+                <WrapPanel Orientation="Horizontal">
+                    <StackPanel
+                        Margin="0,0,12,12"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal">
+                        <StackPanel>
+                            <TextBlock Text="{lex:Loc CurrentSurvivorTeamColon}" />
+                            <TextBlock
+                                Margin="0,10,0,0"
+                                HorizontalAlignment="Center"
+                                FontSize="16"
+                                FontWeight="DemiBold"
+                                Text="{Binding CurrentGame.SurTeam.Name}" />
+                        </StackPanel>
+                        <ui:Button
+                            Margin="8,8,8,8"
+                            modernScroll:GuidanceScrollTarget.Action="PickCamp"
+                            Command="{Binding SwapCommand}"
+                            Content="{lex:Loc Swap}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSwap24}">
+                            <i:Interaction.Triggers>
+                                <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="true">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedButton}" />
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="false">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ui:Button}}" />
+                                </i:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </ui:Button>
+                        <StackPanel>
+                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc CurrentHunterTeamColon}" />
+                            <TextBlock
+                                Margin="0,10,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="16"
+                                FontWeight="DemiBold"
+                                Text="{Binding CurrentGame.HunTeam.Name}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel
+                        Width="360"
+                        Margin="0,0,12,12"
+                        VerticalAlignment="Bottom">
+                        <TextBlock Text="{lex:Loc Countdown}" />
+                        <StackPanel
+                            Margin="0,8,0,0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <ComboBox
+                                Width="95"
+                                IsEditable="True"
+                                IsTextSearchEnabled="False"
+                                ItemsSource="{Binding RecommendTimerList}"
+                                MaxDropDownHeight="150"
+                                SelectedIndex="0"
+                                Text="{Binding TimerTime}" />
+                            <ui:Button
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                Command="{Binding TimerStartCommand}"
+                                Content="{lex:Loc Start}"
+                                Icon="{ui:SymbolIcon Symbol=Play24}" />
+                            <ui:Button
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                Command="{Binding TimerStopCommand}"
+                                Content="{lex:Loc Stop}"
+                                Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                            <TextBlock
+                                Margin="0,5,8,8"
+                                VerticalAlignment="Center"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                Text="{lex:Loc PreviewColon}" />
+                            <TextBlock
+                                Margin="0,5,8,8"
+                                VerticalAlignment="Center"
+                                Text="{Binding RemainingSeconds}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,12,12" VerticalAlignment="Bottom">
+                        <TextBlock
+                            Margin="0,5,8,8"
+                            VerticalAlignment="Center"
+                            Text="{lex:Loc FormatColon}" />
+                        <StackPanel
+                            Margin="0,0,12,12"
+                            VerticalAlignment="Bottom"
+                            Orientation="Horizontal">
+                            <RadioButton
+                                Margin="0,5,8,8"
+                                Content="BO5"
+                                GroupName="ClassicBo3Mode"
+                                IsChecked="True"
+                                IsEnabled="{Binding CanGameProgressChange}" />
+                            <RadioButton
+                                Margin="0,5,8,8"
+                                Content="BO3"
+                                GroupName="ClassicBo3Mode"
+                                IsChecked="{Binding IsBo3Mode}"
+                                IsEnabled="{Binding CanGameProgressChange}" />
+                        </StackPanel>
+
+                    </StackPanel>
+                    <StackPanel
+                        Margin="0,0,12,12"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Margin="0,0,8,8"
+                            VerticalAlignment="Center"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
+                            Text="{lex:Loc GameProgressColon}" />
+                        <ComboBox
+                            Width="210"
+                            IsEnabled="{Binding CanGameProgressChange}"
+                            ItemsSource="{Binding GameList}"
+                            MaxDropDownHeight="190"
+                            SelectedIndex="0"
+                            SelectedValue="{Binding SelectedGameProgress}"
+                            SelectedValuePath="Key">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Value, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Shell}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ui:Button
+                            Command="{Binding StartNavigationCommand}"
+                            Content="{lex:Loc StartGameGuidance}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <ui:Button
+                            Command="{Binding NextGameCommand}"
+                            Content="{lex:Loc Next}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowNext24}"
+                            IsEnabled="{Binding CanGameProgressChange}" />
+                        <ui:Button
+                            Command="{Binding NavigateToPreviousStepCommand}"
+                            Content="{lex:Loc LastStep}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <ui:Button
+                            Command="{Binding NavigateToNextStepCommand}"
+                            Content="{lex:Loc NextStep}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <ui:Button
+                            modernScroll:GuidanceScrollTarget.Action="EndGuidance"
+                            Command="{Binding StopNavigationCommand}"
+                            Content="{lex:Loc EndGameGuidance}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <i:Interaction.Triggers>
+                                <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="true">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedButton}" />
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="false">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ui:Button}}" />
+                                </i:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </ui:Button>
+                        <TextBlock Margin="0,5,8,8" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{lex:StringFormatConverter}">
+                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Shell:CurrentStepFormat" />
+                                    <Binding Path="ActionName" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <StackPanel
+                        Margin="0,0,12,12"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <ui:Button
+                            Command="{Binding SaveGameInfoCommand}"
+                            Content="{lex:Loc SaveGameInformation}"
+                            Icon="{ui:SymbolIcon Symbol=Save24}" />
+                        <ui:Button
+                            Command="{Binding ImportGameInfoCommand}"
+                            Content="{lex:Loc ImportGameInformation}"
+                            Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+
+            <Grid Grid.Row="2" Margin="10,0,10,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="360" MinWidth="320" />
+                    <ColumnDefinition Width="*" MinWidth="520" />
+                    <ColumnDefinition Width="380" MinWidth="360" />
+                </Grid.ColumnDefinitions>
+
+                <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,10,0">
+                        <Grid x:Name="TeamRoot" Visibility="Collapsed" />
+                        <Border
+                            x:Name="ManagementRoot"
+                            Margin="{StaticResource ClassicCardMargin}"
+                            Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ClassicManagementEntries}" />
+                                <WrapPanel x:Name="ManagementButtonsPanel" Margin="{StaticResource ClassicSectionSpacing}">
+                                    <ui:Button
+                                        Click="OpenFrontendManagement_Click"
+                                        Content="{lex:Loc OpenFrontendManagement}"
+                                        Icon="{ui:SymbolIcon Symbol=WindowApps24}" />
+                                    <ui:Button
+                                        Click="OpenSettings_Click"
+                                        Content="{lex:Loc OpenSettings}"
+                                        Icon="{ui:SymbolIcon Symbol=Settings24}" />
+                                    <ui:Button
+                                        Click="OpenPlugins_Click"
+                                        Content="{lex:Loc OpenPlugins}"
+                                        Icon="{ui:SymbolIcon Symbol=Cube24}" />
+                                    <ui:Button
+                                        Click="OpenSmartBp_Click"
+                                        Content="{lex:Loc SmartBp}"
+                                        Icon="{ui:SymbolIcon Symbol=BrainCircuit24}" />
+                                    <ui:Button
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                        Click="OpenTeamInfo_Click"
+                                        Content="{lex:Loc TeamInfo}"
+                                        Icon="{ui:SymbolIcon Symbol=PeopleTeam24}" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            x:Name="MapRoot"
+                            Margin="{StaticResource ClassicCardMargin}"
+                            modernScroll:GuidanceScrollTarget.Action="PickMap"
+                            Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc MapBP}" />
+                                <WrapPanel Margin="{StaticResource ClassicSectionSpacing}" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp">
+                                    <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
+                                    <ui:ToggleSwitch Content="{lex:Loc ShowCamp}" IsChecked="{Binding IsCampVisible}" />
+                                    <ui:Button
+                                        Command="{Binding ResetMapBpCommand}"
+                                        Content="{lex:Loc ResetMapBP}"
+                                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                                </WrapPanel>
+                                <TextBlock
+                                    Margin="0,10,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc PickMap}" />
+                                <ComboBox
+                                    Margin="0,8,0,0"
+                                    ItemsSource="{Binding MapSelectTeamsList}"
+                                    SelectedIndex="0"
+                                    SelectedValue="{Binding PickMapTeam}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock>
+                                                    <Run Text="{Binding TeamType, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Common}" /><Run Text=" - " />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Team.Name}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ComboBox
+                                    Width="300"
+                                    Margin="0,8,0,0"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding PickedMapSelections}"
+                                    SelectedValue="{Binding PickedMap}"
+                                    SelectedValuePath="Map.MapName">
+                                    <ComboBox.ItemContainerStyle>
+                                        <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="ComboBoxItem">
+                                            <Setter Property="IsEnabled" Value="{Binding Map.CanBePicked}" />
+                                        </Style>
+                                    </ComboBox.ItemContainerStyle>
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:Image
+                                                    Width="150"
+                                                    CornerRadius="4"
+                                                    Source="{Binding ImageSource}" />
+                                                <TextBlock
+                                                    Margin="12,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Text="{Binding Map.MapName, Mode=OneWay, Converter={StaticResource GameDictionaryLocalizationConverter}, ConverterParameter=Locales.Game, TargetNullValue=null}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock
+                                    Margin="0,14,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc BanMap}" />
+                                <ComboBox
+                                    Margin="0,8,0,0"
+                                    ItemsSource="{Binding MapSelectTeamsList}"
+                                    SelectedIndex="0"
+                                    SelectedValue="{Binding BanMapTeam}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock>
+                                                    <Run Text="{Binding TeamType, Mode=OneWay, Converter={StaticResource ShellDictionaryLocalizationConverter}, ConverterParameter=Locales.Common}" /><Run Text=" - " />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Team.Name}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="SelectionChanged">
+                                            <i:InvokeCommandAction Command="{Binding BanMapCommand}" />
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </ComboBox>
+                                <ItemsControl
+                                    Margin="0,8,0,0"
+                                    modernScroll:GuidanceScrollTarget.Action="BanMap"
+                                    ItemsSource="{Binding BannedMap}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <ToggleButton
+                                                Margin="0,0,8,8"
+                                                Command="{Binding DataContext.BanMapCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding Map.MapName}"
+                                                IsChecked="{Binding Map.IsBanned}"
+                                                IsEnabled="{Binding Map.CanBeBanned}">
+                                                <StackPanel>
+                                                    <Image
+                                                        Width="130"
+                                                        Height="38"
+                                                        Source="{Binding ImageSource}"
+                                                        Stretch="UniformToFill" />
+                                                    <TextBlock HorizontalAlignment="Center" Text="{Binding Map.MapName, Mode=OneWay, Converter={StaticResource GameDictionaryLocalizationConverter}, ConverterParameter=Locales.Game}" />
+                                                </StackPanel>
+                                            </ToggleButton>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <Expander
+                            Margin="0,10,10,0"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                            Header="{lex:Loc BanNumberControl}"
+                            IsExpanded="False">
+                            <StackPanel>
+                                <Border
+                                    x:Name="BanHunNumberRoot"
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
+                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
+                                        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunCurrentViewModelList}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
+                                                        <ui:ToggleSwitch IsChecked="{Binding IsEnabled}" />
+                                                        <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
+                                                                    <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
+                                        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunGlobalViewModelList}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
+                                                        <ui:ToggleSwitch IsChecked="{Binding IsEnabled}" />
+                                                        <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
+                                                                    <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                                <Border
+                                    x:Name="BanSurNumberRoot"
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
+                                        <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
+                                        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurCurrentViewModelList}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
+                                                        <ui:ToggleSwitch IsChecked="{Binding IsEnabled}" />
+                                                        <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
+                                                                    <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
+                                        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurGlobalViewModelList}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
+                                                        <ui:ToggleSwitch IsChecked="{Binding IsEnabled}" />
+                                                        <TextBlock Margin="8,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock.Text>
+                                                                <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                                                    <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Bp:IndexFormat" />
+                                                                    <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Expander>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Border
+                            x:Name="BanHunRoot"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                            modernScroll:GuidanceScrollTarget.Action="BanHun"
+                            Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
+                                <WrapPanel Margin="0,10,0,0">
+                                    <ItemsControl Focusable="False" ItemsSource="{Binding BanHunCurrentViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <ItemsControl Focusable="False" ItemsSource="{Binding BanHunGlobalViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            x:Name="BanSurRoot"
+                            Margin="0,0,10,0"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                            modernScroll:GuidanceScrollTarget.Action="BanSur"
+                            Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
+                                <WrapPanel Margin="0,10,0,0">
+                                    <ItemsControl Focusable="False" ItemsSource="{Binding BanSurCurrentViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <ItemsControl Focusable="False" ItemsSource="{Binding BanSurGlobalViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            x:Name="PickRoot"
+                            Margin="0,10,10,0"
+                            Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc PickSurvivor}" />
+                                <ItemsControl
+                                    Margin="0,10,0,0"
+                                    modernScroll:GuidanceScrollTarget.Action="PickSur"
+                                    ItemsSource="{Binding SurPickViewModelList}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Margin="0,0,12,12">
+                                                <ui:TextBox
+                                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+                                                    IsReadOnly="True"
+                                                    PlaceholderText="{lex:Loc PlayerName}"
+                                                    Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
+                                                <cc:CharacterSelector
+                                                    Margin="0,8,0,0"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
+                                                <cc:CharacterChanger
+                                                    modernScroll:GuidanceScrollTarget.Action="DistributeChara"
+                                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
+                                                    Command="{Binding SwapCharacterInPlayersCommand}"
+                                                    Index="{Binding Index}"
+                                                    IsHighlighted="{Binding IsCharaChangerHighlighted}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock
+                                    Margin="0,12,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc PickHunter}" />
+                                <cc:CharacterSelector
+                                    Margin="0,10,0,0"
+                                    modernScroll:GuidanceScrollTarget.Action="PickHun"
+                                    Command="{Binding HunPickVm.ConfirmCommand}"
+                                    DisabledKeys="{Binding HunPickVm.DisabledKeys}"
+                                    ImageSource="{Binding HunPickVm.PreviewImage}"
+                                    IsHighlighted="{Binding HunPickVm.IsHighlighted}"
+                                    ItemsSource="{Binding HunPickVm.CharaDict}"
+                                    SelectedValue="{Binding HunPickVm.SelectedChara}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <Border x:Name="ScoreRoot" Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc ScoreControl}" />
+                                <Grid
+                                    Margin="0,10,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                                    IsEnabled="{Binding IsScoreControlEnabled}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.Resources>
+                                        <Style BasedOn="{StaticResource {x:Type controls:ToggleStyledRadioButton}}" TargetType="controls:ToggleStyledRadioButton">
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="IsImageVisible" Value="False" />
+                                            <Setter Property="TagNameFontSize" Value="12" />
+                                            <Setter Property="Width" Value="80" />
+                                            <Setter Property="Height" Value="40" />
+                                        </Style>
+                                        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                        </Style>
+                                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                        </Style>
+                                    </Grid.Resources>
+                                    <StackPanel>
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape4}, Mode=TwoWay}"
+                                            TagName="{lex:Loc FourEscape}" />
+                                        <controls:ToggleStyledRadioButton
+                                            Grid.Column="0"
+                                            Margin="0,10,0,0"
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape3}, Mode=TwoWay}"
+                                            TagName="{lex:Loc ThreeEscape}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,28,4,0">
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Tie}, Mode=TwoWay}"
+                                            TagName="{lex:Loc Tie}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out4}, Mode=TwoWay}"
+                                            TagName="{lex:Loc FourEliminate}" />
+                                        <controls:ToggleStyledRadioButton
+                                            Grid.Column="0"
+                                            Margin="0,10,0,0"
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out3}, Mode=TwoWay}"
+                                            TagName="{lex:Loc ThreeEliminate}" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        Grid.ColumnSpan="3"
+                                        Margin="0,10,0,0"
+                                        HorizontalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <Button
+                                            Margin="0,0,0,0"
+                                            Command="{Binding ResetCommand}"
+                                            Content="{lex:Loc ResetAllScores}" />
+                                        <Button
+                                            Margin="8,0,0,0"
+                                            Command="{Binding ClearCurrentHalfScoreCommand}"
+                                            Content="{lex:Loc ClearCurrentHalfScore}" />
+                                        <ui:Button
+                                            Margin="8,0,0,0"
+                                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                                            Click="ToggleScorePreviewDrawer_Click"
+                                            Content="{lex:Loc ScorePreviewTable}"
+                                            Icon="{ui:SymbolIcon Symbol=NumberRow24}" />
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock
+                                    Margin="0,8,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                                    TextAlignment="Center"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{lex:StringFormatConverter}">
+                                            <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
+                                            <Binding Path="HomeTeam.Name" />
+                                            <Binding Path="CurrentGame.MatchScore.HomeMajorWin" />
+                                            <Binding Path="CurrentGame.MatchScore.HomeMajorTie" />
+                                            <Binding Path="CurrentGame.MatchScore.HomeTotalMinorScore" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                                    TextAlignment="Center"
+                                    TextWrapping="Wrap">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{lex:StringFormatConverter}">
+                                            <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
+                                            <Binding Path="AwayTeam.Name" />
+                                            <Binding Path="CurrentGame.MatchScore.AwayMajorWin" />
+                                            <Binding Path="CurrentGame.MatchScore.AwayMajorTie" />
+                                            <Binding Path="CurrentGame.MatchScore.AwayTotalMinorScore" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                        <Expander
+                            Margin="0,10,10,0"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                            Header="{lex:Loc Talent}"
+                            IsExpanded="True">
+                            <Border
+                                x:Name="TalentRoot"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SurvivorTalent}" />
+                                    <WrapPanel Margin="0,10,0,0" modernScroll:GuidanceScrollTarget.Action="PickSurTalent">
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[0]}" />
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[1].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[1]}" />
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[2].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[2]}" />
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[3].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[3]}" />
+                                    </WrapPanel>
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc HunterTalent}" />
+                                    <controls:TalentPicker
+                                        Margin="0,10,0,10"
+                                        HorizontalAlignment="Left"
+                                        modernScroll:GuidanceScrollTarget.Action="PickHunTalent"
+                                        CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
+                                        IsHighlighted="{Binding IsHunTalentHighlighted}"
+                                        IsTypeHun="True"
+                                        Player="{Binding CurrentGame.HunPlayer}" />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc HunterTrait}" />
+                                    <ui:ToggleSwitch
+                                        x:Name="IsTraitVisible"
+                                        Margin="0,10,0,0"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                        Content="{lex:Loc Enable}"
+                                        IsChecked="{Binding IsTraitVisible}" />
+                                    <WrapPanel Margin="0,10,0,0" Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Listen}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Listen}}"
+                                            TagName="{lex:Loc Listen}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Abnormal}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Abnormal}}"
+                                            TagName="{lex:Loc Abnormal}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Excitement}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Excitement}}"
+                                            TagName="{lex:Loc Excitement}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Patroller}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Patroller}}"
+                                            TagName="{lex:Loc Patroller}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Teleport}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Teleport}}"
+                                            TagName="{lex:Loc Teleport}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Peeper}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Peeper}}"
+                                            TagName="{lex:Loc Peeper}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Blink}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Blink}}"
+                                            TagName="{lex:Loc Blink}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Warp}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Warp}}"
+                                            TagName="{lex:Loc Warp}" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+                        </Expander>
+
+                        <Expander
+                            Margin="0,10,10,0"
+                            Header="{lex:Loc GameData}"
+                            IsExpanded="False">
+                            <Border
+                                x:Name="GameDataRoot"
+                                Margin="0,10,0,0"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
+                                Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <ui:Button
+                                        Command="{Binding AutoFillGameDataCommand}"
+                                        Content="{lex:Loc AutoDetectAndFillPostGameData}"
+                                        Icon="{ui:SymbolIcon Symbol=ScanText24}" />
+                                    <TextBlock
+                                        Margin="0,10,0,0"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc Survivor}" />
+                                    <WrapPanel Margin="0,8,0,0">
+                                        <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[0].Data}" />
+                                        <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[1].Data}" />
+                                        <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[2].Data}" />
+                                        <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[3].Data}" />
+                                    </WrapPanel>
+                                    <TextBlock
+                                        Margin="0,10,0,0"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc Hunter}" />
+                                    <controls:GameDataEditor
+                                        Margin="0,8,0,0"
+                                        IsHunMode="True"
+                                        PlayerData="{Binding HunPlayer.Data}" />
+                                </StackPanel>
+                            </Border>
+                        </Expander>
+
+                        <Expander
+                            Margin="0,10,10,0"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                            Header="{lex:Loc GlobalBanRecord}"
+                            IsExpanded="False">
+                            <Border
+                                x:Name="GlobalBanRecordRoot"
+                                Margin="0,10,10,0"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <ui:ToggleSwitch
+                                        Margin="0,10,0,0"
+                                        Content="{lex:Loc AutoRecord}"
+                                        IsChecked="{Binding IsGlobalBanAutoRecord}" />
+                                    <ui:ToggleSwitch
+                                        Margin="0,10,0,0"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                                        Content="{lex:Loc AllowCharacterReselect}"
+                                        IsChecked="{Binding IsAllowCharacterReselect}" />
+                                    <TextBlock Margin="0,12,0,0">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0}: {1}">
+                                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:HomeTeam" />
+                                                <Binding Path="HomeTeam.Name" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc Survivor}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeSurGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc Hunter}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeHunGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Margin="0,12,0,0">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0}: {1}">
+                                                <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:AwayTeam" />
+                                                <Binding Path="AwayTeam.Name" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc Survivor}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwaySurGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc Hunter}" />
+                                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwayHunGlobalBanRecordViewModelList}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <cc:CharacterSelector
+                                                    Margin="0,0,8,8"
+                                                    IsSimpleModeEnabled="True"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding RecordedChara}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </Expander>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+        <Border
+            x:Name="ScorePreviewDrawerRoot"
+            Width="860"
+            Margin="0,45,10,10"
+            Padding="16"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Stretch"
+            Panel.ZIndex="8"
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Visibility="Collapsed">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc ScorePreviewTable}" />
+                        <Button
+                            Margin="16,0,0,0"
+                            Padding="12,4"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                            Click="RestoreClassicScorePreviewDefaultSort_Click"
+                            Content="{lex:Loc RestoreDefaultSort}" />
+                    </StackPanel>
+                    <ui:Button
+                        Grid.Column="1"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Click="CloseScorePreviewDrawer_Click"
+                        Content="{lex:Loc Close}"
+                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                </Grid>
+                <ui:DataGrid
+                    x:Name="ClassicScorePreviewDataGrid"
+                    Grid.Row="1"
+                    Margin="0,12,0,0"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    HeadersVisibility="Column"
+                    HorizontalScrollBarVisibility="Auto"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding ScorePreviewRows}"
+                    SelectionMode="Single"
+                    VerticalScrollBarVisibility="Auto">
+                    <ui:DataGrid.RowStyle>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCurrentProgress}" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:DataGrid.RowStyle>
+                    <ui:DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="90"
+                            Binding="{Binding GameLabel}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewGame}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding HalfLabel}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHalf}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding RowStatusText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewStatus}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding ResultText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewResult}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding HomeCampText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHomeCamp}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding AwayCampText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayCamp}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding HomeMinorScoreText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHomeMinorScore}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding AwayMinorScoreText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayMinorScore}" />
+                    </ui:DataGrid.Columns>
+                </ui:DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</ui:FluentWindow>

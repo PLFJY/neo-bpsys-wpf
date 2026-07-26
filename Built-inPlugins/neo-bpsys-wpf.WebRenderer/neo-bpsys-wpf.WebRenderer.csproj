@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>neo_bpsys_wpf.WebRenderer</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <SelfContained>false</SelfContained>
+    <Configurations>Debug;Release;Beta;Preview</Configurations>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Host\**\*.cs" />
+    <EmbeddedResource Remove="Host\**\*" />
+    <None Remove="Host\**\*" />
+    <ProjectReference Include="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
+    <PackageReference Include="Downloader" Version="5.9.5" ExcludeAssets="runtime" />
+    <None Update="manifest.yml" CopyToOutputDirectory="Always" />
+    <None Include="..\..\icon.png" Link="icon.png" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+  <Target Name="BuildWebRendererSidecar" BeforeTargets="Build">
+    <MSBuild Projects="Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Targets="Build" Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=false;WebRendererSkipWebBuild=$(WebRendererSkipWebBuild)" />
+  </Target>
+  <Target Name="CopyWebRendererSidecar" AfterTargets="Build">
+    <RemoveDir Directories="$(OutDir)Host" />
+    <MakeDir Directories="$(OutDir)Host" />
+    <ItemGroup>
+      <WebRendererHostFiles Include="Host\bin\$(Configuration)\net10.0\win-x64\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WebRendererHostFiles)" DestinationFiles="@(WebRendererHostFiles->'$(OutDir)Host\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+  <Import Project="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
+</Project>

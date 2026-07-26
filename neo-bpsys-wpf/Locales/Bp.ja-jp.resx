@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="BanNumberControl">
+    <value>BAN数制御</value>
+  </data>
+  <data name="PickingBorderImage">
+    <value>ピック枠画像</value>
+  </data>
+  <data name="PickingBorderImageColor">
+    <value>ピック枠の境界色（画像の色を上書き）</value>
+  </data>
+  <data name="MapBP">
+    <value>マップBP</value>
+  </data>
+  <data name="MapBPBackground">
+    <value>マップBP背景</value>
+  </data>
+  <data name="MapBPV2Background">
+    <value>マップBP V2背景</value>
+  </data>
+  <data name="PickingBorderOfMapBPV2">
+    <value>ピック枠 (マップBP V2)</value>
+  </data>
+  <data name="PickingBorderColorOfMapBPV2">
+    <value>ピック枠色 (マップBP V2)</value>
+  </data>
+  <data name="PickMap">
+    <value>マップ選択</value>
+  </data>
+  <data name="OperateTeam">
+    <value>操作チーム：</value>
+  </data>
+  <data name="BanMap">
+    <value>マップBAN</value>
+  </data>
+  <data name="GlobalDisableMap">
+    <value>マップ全体無効化</value>
+  </data>
+  <data name="PickSurvivor">
+    <value>サバイバー選択</value>
+  </data>
+  <data name="PickHunter">
+    <value>ハンター選択</value>
+  </data>
+  <data name="GlobalBanSurvivor">
+    <value>グローバルBANサバイバー</value>
+  </data>
+  <data name="GlobalBanHunter">
+    <value>グローバルBANハンター</value>
+  </data>
+  <data name="BanHunter">
+    <value>ハンターBAN</value>
+  </data>
+  <data name="BanSurvivor">
+    <value>サバイバーBAN</value>
+  </data>
+  <data name="PickCharacter">
+    <value>キャラクター選択</value>
+  </data>
+  <data name="TalentAndTrait">
+    <value>人格と特質</value>
+  </data>
+  <data name="IndexFormat">
+    <value> {0} 番</value>
+  </data>
+  <data name="PickWordInMapBP">
+    <value>「選択」文字 (マップBP)</value>
+  </data>
+  <data name="BanWordInMapBP">
+    <value>「BAN」文字 (マップBP)</value>
+  </data>
+  <data name="Pick">
+    <value>ピック</value>
+  </data>
+  <data name="Ban">
+    <value>BAN</value>
+  </data>
+  <data name="PickCamp">
+    <value>陣営選択</value>
+  </data>
+  <data name="PickSurTalent">
+    <value>サバイバー人格選択</value>
+  </data>
+  <data name="PickHunTalent">
+    <value>ハンター人格選択</value>
+  </data>
+  <data name="AreYouSureToResetMapBP">
+    <value>マップBPをリセットしてもよろしいですか？</value>
+  </data>
+  <data name="TalentBinding">
+    <value>人格バインド</value>
+  </data>
+  <data name="TraitBinding">
+    <value>補助特質バインド</value>
+  </data>
+  <data name="Talent">
+    <value>人格</value>
+  </data>
+  <data name="CurrentBan">
+    <value>現在のBAN</value>
+  </data>
+  <data name="GlobalBan">
+    <value>グローバルBAN</value>
+  </data>
+  <data name="GlobalBanRecord">
+    <value>グローバルBAN記録</value>
+  </data>
+  <data name="AutoRecord">
+    <value>自動記録</value>
+  </data>
+  <data name="AllowCharacterReselect">
+    <value>再選択を許可</value>
+  </data>
+  <data name="ShowPickingBorder">
+    <value>ピック枠を表示</value>
+  </data>
+  <data name="ShowCamp">
+    <value>陣営を表示</value>
+  </data>
+  <data name="ResetMapBP">
+    <value>マップBPをリセット</value>
+  </data>
+  <data name="Abnormal">
+    <value>異常</value>
+  </data>
+  <data name="Blink">
+    <value>神出鬼没</value>
+  </data>
+  <data name="Excitement">
+    <value>興奮</value>
+  </data>
+  <data name="HunterTalent">
+    <value>ハンターの内在人格</value>
+  </data>
+  <data name="HunterTrait">
+    <value>ハンターの補助特質</value>
+  </data>
+  <data name="Listen">
+    <value>リッスン</value>
+  </data>
+  <data name="Patroller">
+    <value>巡視者</value>
+  </data>
+  <data name="Peeper">
+    <value>監視者</value>
+  </data>
+  <data name="SurvivorTalent">
+    <value>サバイバーの内在人格</value>
+  </data>
+  <data name="Teleport">
+    <value>瞬間移動</value>
+  </data>
+  <data name="Warp">
+    <value>移形</value>
+  </data>
+  <data name="CharacterSelectorSearchNoMatch">
+    <value>一致するキャラクターがないか、無効化されています</value>
+  </data>
+</root>

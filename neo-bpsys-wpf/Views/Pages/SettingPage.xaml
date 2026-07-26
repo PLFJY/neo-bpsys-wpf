@@ -16,12 +16,15 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="2500"
     d:DesignWidth="685"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <cv:LatencyToBrushConverter x:Key="LatencyToBrushConverter" />
         <Style x:Key="Title" TargetType="TextBlock">
             <Setter Property="FontWeight" Value="DemiBold" />
             <Setter Property="FontSize" Value="18" />
@@ -43,7 +46,7 @@
                 SelectedValuePath="Value">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{lex:Loc {Binding Key}}" />
+                        <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc {Binding Key}}" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
@@ -65,14 +68,17 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition />
                                 <RowDefinition />
+                                <RowDefinition />
                             </Grid.RowDefinitions>
                             <ui:TextBlock
                                 Grid.Row="0"
                                 FontSize="18"
-                                FontTypography="Body"
-                                Text="neo-bpsys-wpf" />
+                                FontTypography="Body">
+                                <Run Text="neo-bpsys-wpf --" />
+                                <Run lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc VersionName}" />
+                            </ui:TextBlock>
                             <ui:TextBlock
-                                Grid.Row="1"
+                                Grid.Row="2"
                                 Margin="0,5,0,0"
                                 VerticalAlignment="Center"
                                 FontSize="12"
@@ -110,13 +116,13 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Source="/Assets/logo_net.jpg " />
-                            <TextBlock Text="9.0 &amp; " />
+                            <TextBlock Text="10.0 &amp; " />
                             <ui:ImageIcon
                                 Width="25"
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Source="/Assets/wpfui.png" />
-                            <TextBlock Text="WPF UI 4.2.0" />
+                            <TextBlock Text="WPF UI 4.3.0" />
                         </StackPanel>
                     </Grid>
                     <Grid Margin="0,10,0,0">
@@ -136,25 +142,53 @@
                             FontSize="16"
                             FontWeight="Bold"
                             Text="{lex:Loc SoftwareUpdates}" />
-                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc DownloadSource}" />
-                            <ComboBox
-                                Margin="10,0,0,0"
-                                ItemsSource="{Binding MirrorList}"
-                                SelectedValue="{Binding Mirror}"
-                                SelectedValuePath="Value">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                        <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
+                            <StackPanel
+                                Margin="0,0,10,8"
+                                d:Visibility="Visible"
+                                Orientation="Horizontal"
+                                Visibility="{Binding IsGitHubMirrorSettingVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc DownloadSource}" />
+                                <ComboBox
+                                    Margin="10,0,0,0"
+                                    ItemsSource="{Binding MirrorList}"
+                                    SelectedValue="{Binding Mirror}"
+                                    SelectedValuePath="Value">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                                    Text="{lex:Loc {Binding DisplayNameKey},
+                                                                   FallbackBehavior=Key}" />
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="8,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Foreground="{Binding LatencyMs, Converter={StaticResource LatencyToBrushConverter}}"
+                                                    Text="{Binding LatencyDisplayText}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    Command="{Binding TestMirrorLatencyCommand}"
+                                    Content="{lex:Loc TestMirrorLatency}"
+                                    Icon="{ui:SymbolIcon Symbol=Flash24}"
+                                    IsEnabled="{Binding IsTestingLatency, Converter={StaticResource InverseBooleanConverter}}" />
+                            </StackPanel>
                             <TextBlock
-                                Margin="10,0,0,0"
+                                Margin="0,0,10,8"
                                 VerticalAlignment="Center"
                                 Text="{lex:Loc DownloadPreviewVersion}" />
-                            <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding IsFindPreRelease, Mode=TwoWay}" />
-                        </StackPanel>
+                            <ui:ToggleSwitch Margin="0,0,10,8" IsChecked="{Binding IsFindPreRelease, Mode=TwoWay}" />
+                        </WrapPanel>
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                             <ui:Button
                                 Command="{Binding UpdateCheckCommand}"
@@ -192,6 +226,7 @@
                                 <ui:Button
                                     Margin="10,10,0,0"
                                     HorizontalAlignment="Left"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                     Command="{Binding CancelDownloadCommand}"
                                     Content="{lex:Loc Stop}"
                                     Icon="{ui:SymbolIcon Symbol=Stop24}"
@@ -235,28 +270,235 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <ui:HyperlinkButton Content=".Net Runtime" NavigateUri="https://github.com/dotnet/runtime/" />
-                            <ui:HyperlinkButton Content="hyjiacan.pinyin4net" NavigateUri="https://gitee.com/hyjiacan/Pinyin4Net/" />
-                            <ui:HyperlinkButton Content="PixiEditor.ColorPicker" NavigateUri="https://github.com/PixiEditor/ColorPicker/" />
-                            <ui:HyperlinkButton Content="Windows Presentation Foundation (WPF)" NavigateUri="https://github.com/dotnet/wpf/" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet/" />
-                            <ui:HyperlinkButton Content="OpenCvSharp" NavigateUri="https://github.com/shimat/opencvsharp/" />
-                            <ui:HyperlinkButton Content="Sdcb.PaddleOCR" NavigateUri="https://github.com/sdcb/PaddleSharp/" />
-                            <ui:HyperlinkButton Content="WpfGorgeousThemeSwitch" NavigateUri="https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch/" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader/" />
-                            <ui:HyperlinkButton Content="WPF UI" NavigateUri="https://github.com/lepoco/wpfui/" />
-                            <ui:HyperlinkButton Content="WPFLocalizeExtension" NavigateUri="https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" />
-                            <ui:HyperlinkButton Content="XamlBehaviors for WPF" NavigateUri="https://github.com/microsoft/XamlBehaviorsWpf/" />
-                        </StackPanel>
+                        <ItemsControl Grid.Column="0" ItemsSource="{Binding OpenSourceRepoColumn1}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:HyperlinkButton Content="{Binding Name}" NavigateUri="{Binding Url}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding OpenSourceRepoColumn2}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:HyperlinkButton Content="{Binding Name}" NavigateUri="{Binding Url}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl Grid.Column="2" ItemsSource="{Binding OpenSourceRepoColumn3}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:HyperlinkButton Content="{Binding Name}" NavigateUri="{Binding Url}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
                 </StackPanel>
             </ui:CardExpander>
         </StackPanel>
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="DemiBold"
+                        Text="{lex:Loc ClassicMode}" />
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc ClassicModeDescription}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <ui:ToggleSwitch
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding IsClassicMode, Mode=TwoWay}" />
+            </Grid>
+        </Border>
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="DemiBold"
+                        Text="{lex:Loc BpuiFileAssociation}" />
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc BpuiFileAssociationDescription}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <CheckBox
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding AssociateBpuiFiles, Mode=TwoWay}" />
+            </Grid>
+        </Border>
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="DemiBold"
+                        Text="{lex:Loc PageTransitionAnimation}" />
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc PageTransitionAnimationDescription}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <ui:ToggleSwitch
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding IsPageTransitionAnimationEnabled, Mode=TwoWay}" />
+            </Grid>
+        </Border>
+
+        <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
+            Text="教程与导览" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock
+                    FontSize="16"
+                    FontWeight="DemiBold"
+                    Text="首次启动导览与页面教程" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="可以重新启动首次导览，或清空所有页面教程、总导览和 CoveredByFlow 记录。"
+                    TextWrapping="Wrap" />
+                <WrapPanel Margin="0,12,0,0">
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding RestartFirstRunTutorialCommand}"
+                        Content="重新启动首次导览"
+                        Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding ResetAllTutorialStateCommand}"
+                        Content="重置全部教程状态"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding RunRealTargetProbeTutorialCommand}"
+                        Content="运行真实目标验证"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
+            Text="{lex:Loc SmartBpModuleSettingsTitle}" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock
+                    FontSize="16"
+                    FontWeight="DemiBold"
+                    Text="{lex:Loc SmartBpModulePath}" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpModulePathDescription}"
+                    TextWrapping="Wrap" />
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        Grid.Column="0"
+                        MinWidth="320"
+                        VerticalAlignment="Center"
+                        Text="{Binding SmartBpModuleRoot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:Button
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        Command="{Binding BrowseSmartBpModuleRootCommand}"
+                        Content="{lex:Loc SmartBpModuleBrowseFolder}"
+                        Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                </Grid>
+                <WrapPanel Margin="0,10,0,0">
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Command="{Binding SaveSmartBpModuleRootCommand}"
+                        Content="{lex:Loc Save}"
+                        Icon="{ui:SymbolIcon Symbol=Save24}" />
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Command="{Binding ResetSmartBpModuleRootCommand}"
+                        Content="{lex:Loc ResetToBuiltIn}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        Command="{Binding ImportSmartBpModuleArchiveCommand}"
+                        Content="{lex:Loc SmartBpModuleImportArchive}"
+                        Icon="{ui:SymbolIcon Symbol=Archive24}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding SmartBpModulePathStatus}" />
+                    <ui:ProgressRing
+                        Width="20"
+                        Height="20"
+                        Margin="10,0,0,0"
+                        IsIndeterminate="True"
+                        Visibility="{Binding IsModuleExtracting, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
+            Text="{lex:Loc GameStateSaveSettingsTitle}" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock
+                    FontSize="16"
+                    FontWeight="DemiBold"
+                    Text="{lex:Loc GameStateSaveDirectory}" />
+                <TextBlock
+                    Margin="0,6,0,10"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc GameStateSaveDirectoryDescription}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        Grid.Column="0"
+                        MinWidth="320"
+                        VerticalAlignment="Center"
+                        Text="{Binding GameStateSaveDirectory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:Button
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        Command="{Binding BrowseGameStateSaveDirectoryCommand}"
+                        Content="{lex:Loc BrowseGameStateSaveDirectory}"
+                        Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
@@ -277,553 +519,6 @@
                     Content="{lex:Loc OpenGameFileDirectory}"
                     Icon="{ui:SymbolIcon Symbol=Games24}" />
             </WrapPanel>
-        </Border>
-        <TextBlock
-            Margin="0,10,0,10"
-            Style="{StaticResource Title}"
-            Text="{lex:Loc CustomizeFrontendUI}" />
-        <Border Style="{StaticResource Card}">
-            <Grid>
-                <StackPanel Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ExportUiConfigCommand}"
-                        Content="{lex:Loc ExportUIConfig}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ImportUiConfigCommand}"
-                        Content="{lex:Loc ImportUIConfig}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border
-            Margin="0,10,0,0"
-            Padding="10,10,10,10"
-            Style="{StaticResource Card}">
-            <Border.Resources>
-                <Style
-                    x:Key="DictionaryComboBoxStyle"
-                    BasedOn="{StaticResource {x:Type ComboBox}}"
-                    TargetType="ComboBox">
-                    <Setter Property="SelectedValuePath" Value="Value" />
-                    <Setter Property="ItemTemplate">
-                        <Setter.Value>
-                            <DataTemplate>
-                                <TextBlock Text="{lex:Loc {Binding Key}}" />
-                            </DataTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-                <cv:StringToDoubleConverter x:Key="StringToDoubleConverter" />
-            </Border.Resources>
-            <StackPanel>
-                <ui:CardExpander ContentPadding="10,10,0,10" Icon="{ui:SymbolIcon Symbol=WindowPlay20}">
-                    <ui:CardExpander.Header>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Text="{lex:Loc CustomizeBPWindow}" />
-                    </ui:CardExpander.Header>
-                    <ui:CardExpander.Content>
-                        <StackPanel>
-                            <ui:DropDownButton Content="{lex:Loc EditImage}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
-                                <ui:DropDownButton.Flyout>
-                                    <ContextMenu>
-                                        <MenuItem
-                                            Command="{Binding EditBpWindowImagesCommand}"
-                                            CommandParameter="BgImageUri"
-                                            Header="{lex:Loc BPWindowImages}" />
-                                        <MenuItem
-                                            Command="{Binding EditBpWindowImagesCommand}"
-                                            CommandParameter="CurrentBanLockImageUri"
-                                            Header="{lex:Loc CurrentBanLock}" />
-                                        <MenuItem
-                                            Command="{Binding EditBpWindowImagesCommand}"
-                                            CommandParameter="GlobalBanLockImageUri"
-                                            Header="{lex:Loc GlobalBanLock}" />
-                                        <MenuItem
-                                            Command="{Binding EditBpWindowImagesCommand}"
-                                            CommandParameter="PickingBorderImageUri"
-                                            Header="{lex:Loc PickingBorderImage}" />
-                                    </ContextMenu>
-                                </ui:DropDownButton.Flyout>
-                            </ui:DropDownButton>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc PickingBorderImageColor}" />
-                                <colorpicker:PortableColorPicker
-                                    Width="60"
-                                    Height="30"
-                                    Margin="10,0,0,0"
-                                    SelectedColor="{Binding BpWindowPickingColorSettings, Mode=TwoWay}"
-                                    Style="{StaticResource DefaultColorPickerStyle}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding SaveBpWindowPickingBorderColorCommand}"
-                                    Content="{lex:Loc SaveAndApply}"
-                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
-                            </StackPanel>
-                            <StackPanel
-                                Margin="0,10,0,0"
-                                IsEnabled="{Binding AllowsBpWindowTransparency, Converter={StaticResource InverseBooleanConverter}}"
-                                Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc BackgroundColor}" />
-                                <colorpicker:PortableColorPicker
-                                    Width="60"
-                                    Height="30"
-                                    Margin="10,0,0,0"
-                                    SelectedColor="{Binding BpWindowBackgroundColorSettings, Mode=TwoWay}"
-                                    Style="{StaticResource DefaultColorPickerStyle}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding SaveBpWindowBackgroundColorCommand}"
-                                    Content="{lex:Loc SaveAndApply}"
-                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc AllowsWindowTransparency}" />
-                                <ui:ToggleSwitch
-                                    Margin="10,0,0,0"
-                                    VerticalAlignment="Center"
-                                    IsChecked="{Binding AllowsBpWindowTransparency}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
-                                <ComboBox
-                                    Width="250"
-                                    Margin="10,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    ItemsSource="{Binding RegularWindowSizesSelectionList}"
-                                    SelectedItem="{Binding SelectedBpWindowSize}" />
-                            </StackPanel>
-                            <Grid Margin="0,10,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
-                                    <ComboBox
-                                        Width="250"
-                                        Margin="0,10,0,0"
-                                        HorizontalAlignment="Left"
-                                        ItemsSource="{Binding BpWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedBpWindowTextSettings}"
-                                        Style="{StaticResource DictionaryComboBoxStyle}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
-                                        Content="{lex:Loc Edit}"
-                                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
-                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
-                                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                                </StackPanel>
-                                <Frame x:Name="BpWindowTextSettingFrame" Grid.Column="1" />
-                            </Grid>
-                        </StackPanel>
-                    </ui:CardExpander.Content>
-                </ui:CardExpander>
-                <ui:CardExpander Margin="0,10,0,0" Icon="{ui:SymbolIcon Symbol=WindowInprivateAccount20}">
-                    <ui:CardExpander.Header>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Text="{lex:Loc CustomizeIntercludeWindow}" />
-                    </ui:CardExpander.Header>
-                    <ui:CardExpander.Content>
-                        <StackPanel>
-                            <ui:Button
-                                Command="{Binding EditCutSceneWindowImagesCommand}"
-                                Content="{lex:Loc EditIntercludeBackgroundImage}"
-                                Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ColorOfTalentAndTraitIcon}" />
-                                <RadioButton
-                                    Margin="10,0,0,0"
-                                    Content="{lex:Loc White}"
-                                    IsChecked="True" />
-                                <RadioButton
-                                    Margin="10,0,0,0"
-                                    Content="{lex:Loc Black}"
-                                    IsChecked="{Binding IsTalentAndTraitBlackVerEnable}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
-                                <ComboBox
-                                    Width="250"
-                                    Margin="10,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    ItemsSource="{Binding RegularWindowSizesSelectionList}"
-                                    SelectedItem="{Binding SelectedCutSceneWindowSize}" />
-                            </StackPanel>
-                            <Grid Margin="0,10,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
-                                    <ComboBox
-                                        Width="250"
-                                        Margin="0,10,0,0"
-                                        HorizontalAlignment="Left"
-                                        ItemsSource="{Binding CutSceneWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedCutSceneWindowTextSettings}"
-                                        Style="{StaticResource DictionaryComboBoxStyle}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
-                                        Content="{lex:Loc Edit}"
-                                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
-                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
-                                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                                </StackPanel>
-                                <Frame x:Name="CutSceneWindowTextSettingFrame" Grid.Column="1" />
-                            </Grid>
-                        </StackPanel>
-                    </ui:CardExpander.Content>
-                </ui:CardExpander>
-                <ui:CardExpander Margin="0,10,0,0" Icon="{ui:SymbolIcon Symbol=NumberRow24}">
-                    <ui:CardExpander.Header>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Text="{lex:Loc CustomizeScoreWindow}" />
-                    </ui:CardExpander.Header>
-                    <ui:CardExpander.Content>
-                        <StackPanel>
-                            <ui:DropDownButton Content="{lex:Loc EditImage}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
-                                <ui:DropDownButton.Flyout>
-                                    <ContextMenu>
-                                        <MenuItem
-                                            Command="{Binding EditScoreWindowImagesCommand}"
-                                            CommandParameter="SurScoreBgImageUri"
-                                            Header="{lex:Loc SurvivorScoreInGame}" />
-                                        <MenuItem
-                                            Command="{Binding EditScoreWindowImagesCommand}"
-                                            CommandParameter="HunScoreBgImageUri"
-                                            Header="{lex:Loc HunterScoreInGame}" />
-                                        <MenuItem
-                                            Command="{Binding EditScoreWindowImagesCommand}"
-                                            CommandParameter="GlobalScoreBgImageUri"
-                                            Header="{lex:Loc ScoreStatisticsBO5}" />
-                                        <MenuItem
-                                            Command="{Binding EditScoreWindowImagesCommand}"
-                                            CommandParameter="GlobalScoreBgImageUriBo3"
-                                            Header="{lex:Loc ScoreStatisticsBO3}" />
-                                    </ContextMenu>
-                                </ui:DropDownButton.Flyout>
-                            </ui:DropDownButton>
-                            <TextBlock Margin="0,10,0,0" Text="{lex:Loc ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode}" />
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <ui:TextBox
-                                    Width="200"
-                                    HorizontalAlignment="Left"
-                                    PlaceholderText="{lex:Loc Distance}"
-                                    Text="{Binding GlobalScoreTotalMargin, Converter={StaticResource StringToDoubleConverter}}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding SaveGlobalScoreTotalMarginCommand}"
-                                    Content="{lex:Loc Save}"
-                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CampIconColorInScoreStatistics}" />
-                                <RadioButton
-                                    Margin="10,0,0,0"
-                                    Content="{lex:Loc White}"
-                                    IsChecked="True" />
-                                <RadioButton
-                                    Margin="10,0,0,0"
-                                    Content="{lex:Loc Black}"
-                                    IsChecked="{Binding IsScoreGlobalCampIconBlackVerEnable}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreInGameWindowSize}" />
-                                <ComboBox
-                                    Width="250"
-                                    Margin="10,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    ItemsSource="{Binding ScoreInGameWindowSizesList}"
-                                    SelectedItem="{Binding ScoreInGameWindowSize}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreGlobalWindowSize}" />
-                                <ComboBox
-                                    Width="250"
-                                    Margin="10,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    ItemsSource="{Binding ScoreGlobalWindowSizeList}"
-                                    SelectedItem="{Binding ScoreGlobalWindowSize}" />
-                            </StackPanel>
-                            <StackPanel
-                                Margin="0,10,0,0"
-                                IsEnabled="{Binding AllowsScoreGlobalWindowTransparency, Converter={StaticResource InverseBooleanConverter}}"
-                                Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreGlobalWindowBackgroundColor}" />
-                                <colorpicker:PortableColorPicker
-                                    Width="60"
-                                    Height="30"
-                                    Margin="10,0,0,0"
-                                    SelectedColor="{Binding ScoreGlobalWindowBackgroundColorSettings, Mode=TwoWay}"
-                                    Style="{StaticResource DefaultColorPickerStyle}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding SaveScoreGlobalWindowBackgroundColorCommand}"
-                                    Content="{lex:Loc SaveAndApply}"
-                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc AllowsScoreGlobalWindowTransparency}" />
-                                <ui:ToggleSwitch
-                                    Margin="10,0,0,0"
-                                    VerticalAlignment="Center"
-                                    IsChecked="{Binding AllowsScoreGlobalWindowTransparency}" />
-                            </StackPanel>
-                            <Grid Margin="0,10,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
-                                    <ComboBox
-                                        Width="250"
-                                        Margin="0,10,0,0"
-                                        HorizontalAlignment="Left"
-                                        ItemsSource="{Binding ScoreWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedScoreWindowTextSettings}"
-                                        Style="{StaticResource DictionaryComboBoxStyle}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
-                                        Content="{lex:Loc Edit}"
-                                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
-                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
-                                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                                </StackPanel>
-                                <Frame x:Name="ScoreWindowTextSettingFrame" Grid.Column="1" />
-                            </Grid>
-                        </StackPanel>
-                    </ui:CardExpander.Content>
-                </ui:CardExpander>
-                <ui:CardExpander Margin="0,10,0,0" Icon="{ui:SymbolIcon Symbol=TextNumberListLtr24}">
-                    <ui:CardExpander.Header>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Text="{lex:Loc CustomizeGameDataWindow}" />
-                    </ui:CardExpander.Header>
-                    <ui:CardExpander.Content>
-                        <StackPanel>
-                            <ui:Button
-                                Command="{Binding EditGameDataWindowImagesCommand}"
-                                Content="{lex:Loc EditGameDataBackgroundImage}"
-                                Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
-                                <ComboBox
-                                    Width="250"
-                                    Margin="10,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    ItemsSource="{Binding RegularWindowSizesSelectionList}"
-                                    SelectedItem="{Binding SelectedGameDataWindowSize}" />
-                            </StackPanel>
-                            <Grid Margin="0,10,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
-                                    <ComboBox
-                                        Width="250"
-                                        Margin="0,10,0,0"
-                                        HorizontalAlignment="Left"
-                                        ItemsSource="{Binding GameDataWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedGameDataWindowTextSettings}"
-                                        Style="{StaticResource DictionaryComboBoxStyle}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
-                                        Content="{lex:Loc Edit}"
-                                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
-                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
-                                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                                </StackPanel>
-                                <Frame x:Name="GameDataWindowTextSettingFrame" Grid.Column="1" />
-                            </Grid>
-                        </StackPanel>
-                    </ui:CardExpander.Content>
-                </ui:CardExpander>
-                <ui:CardExpander Margin="0,10,0,0" Icon="{ui:SymbolIcon Symbol=WindowApps24}">
-                    <ui:CardExpander.Header>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Text="{lex:Loc CustomizeWidgetWindow}" />
-                    </ui:CardExpander.Header>
-                    <ui:CardExpander.Content>
-                        <StackPanel>
-                            <ui:DropDownButton Content="{lex:Loc EditImage}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
-                                <ui:DropDownButton.Flyout>
-                                    <ContextMenu>
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="MapBpBgUri"
-                                            Header="{lex:Loc MapBPBackground}" />
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="MapBpV2BgUri"
-                                            Header="{lex:Loc MapBPV2Background}" />
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="MapBpV2PickingBorderImageUri"
-                                            Header="{lex:Loc PickingBorderOfMapBPV2}" />
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="MapBpV2SurIconUri"
-                                            Header="{lex:Loc SurvivorIconOfMapBPV2}" />
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="MapBpV2HunIconUri"
-                                            Header="{lex:Loc HunterIconOfMapBPV2}" />
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="BpOverviewBgUri"
-                                            Header="{lex:Loc BPOverview}" />
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="CurrentBanLockImageUri"
-                                            Header="{lex:Loc CurrentBanLockOfBPOverview}" />
-                                        <MenuItem
-                                            Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="GlobalBanLockImageUri"
-                                            Header="{lex:Loc GlobalBanLockOfBPOverview}" />
-                                    </ContextMenu>
-                                </ui:DropDownButton.Flyout>
-                            </ui:DropDownButton>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CampIconColorOfMapBPV2}" />
-                                <RadioButton
-                                    Margin="10,0,0,0"
-                                    Content="{lex:Loc White}"
-                                    IsChecked="True" />
-                                <RadioButton
-                                    Margin="10,0,0,0"
-                                    Content="{lex:Loc Black}"
-                                    IsChecked="{Binding IsMapBpV2CampIconBlackVerEnable}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc PickingBorderColorOfMapBPV2}" />
-                                <colorpicker:PortableColorPicker
-                                    Width="60"
-                                    Height="30"
-                                    Margin="10,0,0,0"
-                                    SelectedColor="{Binding MapBpV2PickingColorSettings, Mode=TwoWay}"
-                                    Style="{StaticResource DefaultColorPickerStyle}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding SaveMapBpV2PickingBorderColorCommand}"
-                                    Content="{lex:Loc SaveAndApply}"
-                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
-                            </StackPanel>
-                            <StackPanel
-                                Margin="0,10,0,0"
-                                IsEnabled="{Binding AllowsWidgetsTransparency, Converter={StaticResource InverseBooleanConverter}}"
-                                Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc BackgroundColor}" />
-                                <colorpicker:PortableColorPicker
-                                    Width="60"
-                                    Height="30"
-                                    Margin="10,0,0,0"
-                                    SelectedColor="{Binding WidgetsWindowBackgroundColorSettings, Mode=TwoWay}"
-                                    Style="{StaticResource DefaultColorPickerStyle}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding SaveWidgetsWindowBackgroundColorCommand}"
-                                    Content="{lex:Loc SaveAndApply}"
-                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc AllowsWindowTransparency}" />
-                                <ui:ToggleSwitch
-                                    Margin="10,0,0,0"
-                                    VerticalAlignment="Center"
-                                    IsChecked="{Binding AllowsWidgetsTransparency}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
-                                <ComboBox
-                                    Width="250"
-                                    Margin="10,0,0,0"
-                                    HorizontalAlignment="Left"
-                                    ItemsSource="{Binding WidgetsWindowSizesList}"
-                                    SelectedItem="{Binding WidgetsWindowSize}" />
-                            </StackPanel>
-                            <Grid Margin="0,10,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
-                                    <ComboBox
-                                        Width="250"
-                                        Margin="0,10,0,0"
-                                        HorizontalAlignment="Left"
-                                        ItemsSource="{Binding WidgetsWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedWidgetsWindowTextSettings}"
-                                        Style="{StaticResource DictionaryComboBoxStyle}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
-                                        Content="{lex:Loc Edit}"
-                                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                                    <ui:Button
-                                        Margin="0,10,0,0"
-                                        Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
-                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
-                                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                                </StackPanel>
-                                <Frame x:Name="WidgetsWindowTextSettingFrame" Grid.Column="1" />
-                            </Grid>
-                        </StackPanel>
-                    </ui:CardExpander.Content>
-                </ui:CardExpander>
-                <ui:Button
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetAllCommand}"
-                    Content="{lex:Loc ResetAllPersonalizationSettings}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-            </StackPanel>
         </Border>
         <ui:CardExpander Margin="0,10,0,0" Icon="{ui:SymbolIcon Symbol=Star24}">
             <ui:CardExpander.Header>
@@ -940,15 +635,23 @@
                     <ComboBox
                         Width="220"
                         Margin="10,0,0,0"
+                        IsEnabled="{Binding IsLogLevelConfigurable}"
                         ItemsSource="{Binding LogLevelOptions}"
                         SelectedValue="{Binding SelectedLogLevel, Mode=TwoWay}"
                         SelectedValuePath="Value">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{lex:Loc {Binding Key}}" />
+                                <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings" Text="{lex:Loc {Binding Key}}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
+                </StackPanel>
+                <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc ProductTourDebugger}" />
+                    <ui:ToggleSwitch
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding IsProductTourDebugEnabled, Mode=TwoWay}" />
                 </StackPanel>
                 <WrapPanel Orientation="Horizontal">
                     <Button
@@ -957,17 +660,18 @@
                         Content="{lex:Loc TriggerGCCollectionManually}" />
                     <ui:Button
                         Margin="0,0,10,10"
-                        Command="{Binding SwitchDebugGlobalScoreCommand}"
-                        Content="切换分数统计调试表格" />
-                    <ui:Button
-                        Margin="0,0,10,10"
                         Command="{Binding OpenTipCommand}"
-                        Content="打开启动时无作者UI提示" />
+                        Content="打开启动时 SnackBar 提示" />
                     <ui:Button
                         Margin="0,0,10,10"
                         Command="{Binding HopToLogDirCommand}"
                         Content="{lex:Loc OpenLogDirectory}"
                         Icon="{ui:SymbolIcon Symbol=DocumentText24}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding OpenBehaviorEventDebuggerCommand}"
+                        Content="{lex:Loc OpenBehaviorEventDebugger}"
+                        Icon="{ui:SymbolIcon Symbol=Bug24}" />
                 </WrapPanel>
             </StackPanel>
         </Border>

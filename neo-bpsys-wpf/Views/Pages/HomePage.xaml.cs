@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Tutorial;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
@@ -20,6 +21,7 @@ public partial class HomePage : Page
     public HomePage()
     {
         InitializeComponent();
+        Loaded += (_, _) => TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationHomeOpened);
     }
 
     private void ReleaseNotesMarkdownViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)

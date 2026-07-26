@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "id": "ppocr-v5-zh-mobile",
+      "displayName": "PP-OCRv5 中文",
+      "description": "RapidOCR 官方中文移动端模型。",
+      "version": "v3.8.0",
+      "det": {
+        "fileName": "ch_PP-OCRv5_det_mobile.onnx",
+        "remotePath": "ch_PP-OCRv5_det_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv5/det/ch_PP-OCRv5_det_mobile.onnx",
+        "sha256": "4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae"
+      },
+      "cls": {
+        "fileName": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "remotePath": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv4/cls/ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+      },
+      "rec": {
+        "fileName": "ch_PP-OCRv5_rec_mobile.onnx",
+        "remotePath": "ch_PP-OCRv5_rec_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv5/rec/ch_PP-OCRv5_rec_mobile.onnx",
+        "sha256": "5825fc7ebf84ae7a412be049820b4d86d77620f204a041697b0494669b1742c5"
+      },
+      "dict": {
+        "fileName": "ppocrv5_dict.txt",
+        "remotePath": "ppocrv5_dict.txt",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/paddle/PP-OCRv5/rec/ch_PP-OCRv5_rec_mobile/ppocrv5_dict.txt",
+        "sha256": "d1979e9f794c464c0d2e0b70a7fe14dd978e9dc644c0e71f14158cdf8342af1b"
+      }
+    },
+    {
+      "id": "ppocr-v4-ja-mobile",
+      "displayName": "PP-OCRv4 日本語",
+      "description": "RapidOCR 官方日文移动端模型。",
+      "version": "v3.8.0",
+      "det": {
+        "fileName": "ch_PP-OCRv5_det_mobile.onnx",
+        "remotePath": "ch_PP-OCRv5_det_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv5/det/ch_PP-OCRv5_det_mobile.onnx",
+        "sha256": "4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae"
+      },
+      "cls": {
+        "fileName": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "remotePath": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv4/cls/ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+      },
+      "rec": {
+        "fileName": "japan_PP-OCRv4_rec_mobile.onnx",
+        "remotePath": "japan_PP-OCRv4_rec_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv4/rec/japan_PP-OCRv4_rec_mobile.onnx",
+        "sha256": "e1075a67dba758ecfc7ebc78a10ae61c95ac8fb66a9c86fab5541e33f085cb7a"
+      },
+      "dict": {
+        "fileName": "japan_dict.txt",
+        "remotePath": "japan_dict.txt",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/paddle/PP-OCRv4/rec/japan_PP-OCRv4_rec_mobile/japan_dict.txt",
+        "sha256": "1dcfcb41eec90576a945b3084f22ade11ced506e24f14879245b071698f308e8"
+      }
+    },
+    {
+      "id": "ppocr-v5-en-mobile",
+      "displayName": "PP-OCRv5 English",
+      "description": "RapidOCR official English mobile model.",
+      "version": "v3.8.0",
+      "det": {
+        "fileName": "ch_PP-OCRv5_det_mobile.onnx",
+        "remotePath": "ch_PP-OCRv5_det_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv5/det/ch_PP-OCRv5_det_mobile.onnx",
+        "sha256": "4d97c44a20d30a81aad087d6a396b08f786c4635742afc391f6621f5c6ae78ae"
+      },
+      "cls": {
+        "fileName": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "remotePath": "ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv4/cls/ch_ppocr_mobile_v2.0_cls_mobile.onnx",
+        "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+      },
+      "rec": {
+        "fileName": "en_PP-OCRv5_rec_mobile.onnx",
+        "remotePath": "en_PP-OCRv5_rec_mobile.onnx",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv5/rec/en_PP-OCRv5_rec_mobile.onnx",
+        "sha256": "c3461add59bb4323ecba96a492ab75e06dda42467c9e3d0c18db5d1d21924be8"
+      },
+      "dict": {
+        "fileName": "ppocrv5_en_dict.txt",
+        "remotePath": "ppocrv5_en_dict.txt",
+        "downloadUrl": "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/paddle/PP-OCRv5/rec/en_PP-OCRv5_rec_mobile/ppocrv5_en_dict.txt",
+        "sha256": "e025a66d31f327ba0c232e03f407ae8d105e1e709e7ccb3f408aa778c24e70d6"
+      }
+    }
+  ]
+}

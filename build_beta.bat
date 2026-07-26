@@ -2,4 +2,4 @@
 :: switch dir
 cd /d %~dp0
 
-powershell .\build_beta.ps1
+powershell .\build.ps1 -Configuration Beta

@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.Windows;
@@ -14,6 +15,7 @@ namespace neo_bpsys_wpf.Services;
 public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedService
 {
     private INavigationWindow? _navigationWindow;
+    private ClassicBackendWindow? _classicBackendWindow;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -29,19 +31,34 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
     {
         await Task.CompletedTask;
 
-        if (!Application.Current.Windows.OfType<MainWindow>().Any())
+        var settingsHostService = serviceProvider.GetRequiredService<ISettingsHostService>();
+        _ = serviceProvider.GetRequiredService<ProductTourRegistrationMarker>();
+        if (settingsHostService.Settings.IsClassicMode)
+        {
+            if (!Application.Current.Windows.OfType<ClassicBackendWindow>().Any()
+                && !Application.Current.Windows.OfType<MainWindow>().Any())
+            {
+                _classicBackendWindow = serviceProvider.GetRequiredService<ClassicBackendWindow>();
+                _classicBackendWindow.Show();
+            }
+
+            return;
+        }
+
+        if (!Application.Current.Windows.OfType<MainWindow>().Any()
+            && !Application.Current.Windows.OfType<ClassicBackendWindow>().Any())
         {
             _navigationWindow = serviceProvider.GetRequiredService<INavigationWindow>();
             _navigationWindow.ShowWindow();
 
             //提前加载调用了CharaSelector的页面，避免使用过程中卡顿
-            await Task.Delay(250);
-            _ = _navigationWindow.Navigate(typeof(PickPage));
-            await Task.Delay(750);
-            _ = _navigationWindow.Navigate(typeof(BanSurPage));
-            await Task.Delay(550);
-            _ = _navigationWindow.Navigate(typeof(BanHunPage));
-            await Task.Delay(250);
+            //await Task.Delay(250);
+            //_ = _navigationWindow.Navigate(typeof(PickPage));
+            //await Task.Delay(750);
+            //_ = _navigationWindow.Navigate(typeof(BanSurPage));
+            //await Task.Delay(550);
+            //_ = _navigationWindow.Navigate(typeof(BanHunPage));
+            //await Task.Delay(250);
 
             _ = _navigationWindow.Navigate(typeof(HomePage));
         }

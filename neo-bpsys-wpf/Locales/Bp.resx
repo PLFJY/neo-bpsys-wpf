@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="BanNumberControl">
+    <value>禁用数量控制</value>
+  </data>
+  <data name="PickingBorderImage">
+    <value>待选框</value>
+  </data>
+  <data name="PickingBorderImageColor">
+    <value>待选框边缘颜色（覆盖贴图颜色）</value>
+  </data>
+  <data name="MapBP">
+    <value>地图禁选</value>
+  </data>
+  <data name="MapBPBackground">
+    <value>地图BP背景</value>
+  </data>
+  <data name="MapBPV2Background">
+    <value>地图BPV2背景</value>
+  </data>
+  <data name="PickingBorderOfMapBPV2">
+    <value>待选框（地图BP V2）</value>
+  </data>
+  <data name="PickingBorderColorOfMapBPV2">
+    <value>待选框颜色（地图BP V2）</value>
+  </data>
+  <data name="PickMap">
+    <value>地图选择</value>
+  </data>
+  <data name="OperateTeam">
+    <value>操作队伍：</value>
+  </data>
+  <data name="BanMap">
+    <value>地图禁用</value>
+  </data>
+  <data name="GlobalDisableMap">
+    <value>全局禁用地图</value>
+  </data>
+  <data name="PickSurvivor">
+    <value>选择求生者</value>
+  </data>
+  <data name="PickHunter">
+    <value>选择监管者</value>
+  </data>
+  <data name="GlobalBanSurvivor">
+    <value>全局禁用求生者</value>
+  </data>
+  <data name="GlobalBanHunter">
+    <value>全局禁用监管者</value>
+  </data>
+  <data name="BanHunter">
+    <value>禁用监管者</value>
+  </data>
+  <data name="BanSurvivor">
+    <value>禁用求生者</value>
+  </data>
+  <data name="PickCharacter">
+    <value>选择角色</value>
+  </data>
+  <data name="TalentAndTrait">
+    <value>天赋特质</value>
+  </data>
+  <data name="IndexFormat">
+    <value> {0} 号位</value>
+    <comment>报错为正常现象</comment>
+  </data>
+  <data name="PickWordInMapBP">
+    <value>“选用”文字（地图BP）</value>
+  </data>
+  <data name="BanWordInMapBP">
+    <value>“禁用”文字（地图BP）</value>
+  </data>
+  <data name="Pick">
+    <value>选择</value>
+  </data>
+  <data name="Ban">
+    <value>禁用</value>
+  </data>
+  <data name="PickCamp">
+    <value>选择阵营</value>
+  </data>
+  <data name="PickSurTalent">
+    <value>选择求生者天赋</value>
+  </data>
+  <data name="PickHunTalent">
+    <value>选择监管者天赋</value>
+  </data>
+  <data name="AreYouSureToResetMapBP">
+    <value>是否重置地图BP？</value>
+  </data>
+  <data name="TalentBinding">
+    <value>天赋绑定</value>
+  </data>
+  <data name="TraitBinding">
+    <value>辅助特质绑定</value>
+  </data>
+  <data name="Talent">
+    <value>天赋</value>
+  </data>
+  <data name="CurrentBan">
+    <value>当局禁用</value>
+  </data>
+  <data name="GlobalBan">
+    <value>全局禁用</value>
+  </data>
+  <data name="GlobalBanRecord">
+    <value>全局禁选记录</value>
+  </data>
+  <data name="AutoRecord">
+    <value>是否自动记录</value>
+  </data>
+  <data name="AllowCharacterReselect">
+    <value>允许角色复选</value>
+  </data>
+  <data name="ShowPickingBorder">
+    <value>待选框开关</value>
+  </data>
+  <data name="ShowCamp">
+    <value>显示阵营</value>
+  </data>
+  <data name="ResetMapBP">
+    <value>重置地图BP</value>
+  </data>
+  <data name="Abnormal">
+    <value>失常</value>
+  </data>
+  <data name="Blink">
+    <value>闪现</value>
+  </data>
+  <data name="Excitement">
+    <value>兴奋</value>
+  </data>
+  <data name="HunterTalent">
+    <value>监管者天赋</value>
+  </data>
+  <data name="HunterTrait">
+    <value>监管者辅助特质</value>
+  </data>
+  <data name="Listen">
+    <value>聆听</value>
+  </data>
+  <data name="Patroller">
+    <value>巡视者</value>
+  </data>
+  <data name="Peeper">
+    <value>窥视者</value>
+  </data>
+  <data name="SurvivorTalent">
+    <value>求生者天赋</value>
+  </data>
+  <data name="Teleport">
+    <value>传送</value>
+  </data>
+  <data name="Warp">
+    <value>移形</value>
+  </data>
+  <data name="CharacterSelectorSearchNoMatch">
+    <value>未找到匹配角色或该角色已被禁选</value>
+  </data>
+</root>

@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <!-- MainWindow.Tutorials.cs -->
+  <data name="Step.MainNavigationFrontManage.0.Title">
+    <value>フロントエンド管理へ進む</value>
+  </data>
+  <data name="Step.MainNavigationFrontManage.0.Description">
+    <value>まずフロントエンド管理ページに進み、OBS がキャプチャするための BP フロントウィンドウを開きます。</value>
+  </data>
+  <data name="Step.MainNavigationTeamInfo.0.Title">
+    <value>チーム管理へ進む</value>
+  </data>
+  <data name="Step.MainNavigationTeamInfo.0.Description">
+    <value>チーム管理ページに進み、チュートリアルで使用するチーム情報を設定します。</value>
+  </data>
+  <data name="Step.MainNavigationScore.0.Title">
+    <value>スコアページへ進む</value>
+  </data>
+  <data name="Step.MainNavigationScore.0.Description">
+    <value>スコアページに進み、現在の半のスコア結果を選択します。</value>
+  </data>
+  <data name="Step.MainNavigationSmartBp.0.Title">
+    <value>スマート BP へ進む</value>
+  </data>
+  <data name="Step.MainNavigationSmartBp.0.Description">
+    <value>スマート BP は独立したモジュールで、初めて進むと専用のチュートリアルがあります。</value>
+  </data>
+  <data name="Step.MainNavigationDesignerV3.0.Title">
+    <value>フロントエンド画面編集</value>
+  </data>
+  <data name="Step.MainNavigationDesignerV3.0.Description">
+    <value>フロントエンド画面編集、レイアウト編集、アニメーション動作編集は、初めて v3 エディターを開いた時に別途チュートリアルを行います。</value>
+  </data>
+  <data name="Step.MainTeamSummaryBasic.0.Title">
+    <value>チーム情報を確認</value>
+  </data>
+  <data name="Step.MainTeamSummaryBasic.0.Description">
+    <value>チーム名はすでに MainWindow の上部機能エリアに表示されています。ここでも陣営交代ができます。</value>
+  </data>
+  <data name="Step.MainNavigationBasic.0.Title">
+    <value>チーム管理へ進む</value>
+  </data>
+  <data name="Step.MainNavigationBasic.0.Description">
+    <value>まずチーム管理ページに進み、今回のチュートリアルで使用するチームを設定します。</value>
+  </data>
+  <data name="Step.GameManageGameProgressBo1FirstHalf.0.Title">
+    <value>試合を選択</value>
+  </data>
+  <data name="Step.GameManageGameProgressBo1FirstHalf.0.Description">
+    <value>今回のチュートリアルで使用する試合を選択します。まず BO1 前半から始めます。</value>
+  </data>
+  <data name="Step.GameManageNewGameBasic.0.Title">
+    <value>新しい試合</value>
+  </data>
+  <data name="Step.GameManageNewGameBasic.0.Description">
+    <value>新しい試合を作成すると現在の試合の選択結果はクリアされますが、グローバル BAN の記録は保持されます。</value>
+  </data>
+  <data name="Step.GameManageGlobalBanCarryOver.0.Title">
+    <value>グローバル BAN の引き継ぎ</value>
+  </data>
+  <data name="Step.GameManageGlobalBanCarryOver.0.Description">
+    <value>試合を切り替え後、再度試合ガイドを開始すると、ソフトウェアが以前のグローバル BAN 記録を自動的にインポートし、対応する BAN スロットを設定します。</value>
+  </data>
+  <data name="Step.GameManageBasic.0.Title">
+    <value>試合を確認</value>
+  </data>
+  <data name="Step.GameManageBasic.0.Description">
+    <value>今回のチュートリアルで使用する試合を選択します。まず BO1 前半から始めます。</value>
+  </data>
+  <data name="Step.BpGameGuidanceStartBasic.0.Title">
+    <value>試合ガイドを開始</value>
+  </data>
+  <data name="Step.BpGameGuidanceStartBasic.0.Description">
+    <value>試合ガイドは現在の試合に従って、マップ、Ban/Pick、および後続のフローを案内します。</value>
+  </data>
+  <data name="Step.BpGameGuidanceCurrentStepBasic.0.Title">
+    <value>現在のステップを確認</value>
+  </data>
+  <data name="Step.BpGameGuidanceCurrentStepBasic.0.Description">
+    <value>ここに現在の試合ガイドで進行中のステップが表示されます。各ステージに入るたびに、まずここを確認して今行うべき操作を把握してください。</value>
+  </data>
+  <data name="Step.MapBpBanMapOperationBasic.0.Title">
+    <value>マップ BAN 操作エリア</value>
+  </data>
+  <data name="Step.MapBpBanMapOperationBasic.0.Description">
+    <value>ここでマップ BAN を完了します。試合ガイドが現在操作が必要なエリアをハイライトします。ここでマップの BAN を完了してください。</value>
+  </data>
+  <data name="Step.MapBpNextToPickMapBasic.0.Title">
+    <value>マップ選択へ進む</value>
+  </data>
+  <data name="Step.MapBpNextToPickMapBasic.0.Description">
+    <value>マップ BAN 完了後、次へをクリックしてマップ選択に進みます。</value>
+  </data>
+  <data name="Step.MapBpPickMapOperationBasic.0.Title">
+    <value>マップ選択</value>
+  </data>
+  <data name="Step.MapBpPickMapOperationBasic.0.Description">
+    <value>ここでマップ選択を完了します</value>
+  </data>
+  <data name="Step.BpGameGuidanceEndBasic.0.Title">
+    <value>試合ガイドを終了</value>
+  </data>
+  <data name="Step.BpGameGuidanceEndBasic.0.Description">
+    <value>現在の試合ガイドが完了しました。ここをクリックしてガイドを終了し、その後スコアページに進んで結果を記録できます。</value>
+  </data>
+  <data name="Step.BpGameGuidanceBasic.0.Title">
+    <value>試合ガイドを続行</value>
+  </data>
+  <data name="Step.BpGameGuidanceBasic.0.Description">
+    <value>試合ガイドは現在の試合に従って、マップ、Ban/Pick、および後続のフローを案内します。</value>
+  </data>
+  <data name="Step.NextGameBasic.0.Title">
+    <value>クリックして次の試合へ進む</value>
+  </data>
+  <data name="Step.NextGameBasic.0.Description">
+    <value>現在の試合終了後にクリックすると、試合を次の試合に切り替えます</value>
+  </data>
+  <!-- FrontedDesignerWindow.Tutorials.cs -->
+  <data name="Step.DesignerV3LayoutEditBasic.0.Title">
+    <value>レイヤーリスト</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.0.Description">
+    <value>レイヤーリストは現在のレイアウト内のコントロールを表示します。レイヤーの順序はコントロールの表示順に影響します。</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.1.Title">
+    <value>レイヤー順序の調整</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.1.Description">
+    <value>ドラッグでレイヤー順序を調整できます。本チュートリアルではレイヤーのドラッグを強制しません。</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.2.Title">
+    <value>プレビューキャンバス</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.2.Description">
+    <value>中央のキャンバスは最終的なフロントエンドの効果を表示します。試しにキャンバス上のコントロールをクリックして選択し、位置を移動してみてください。そのまま続けることもできます。</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.3.Title">
+    <value>プレビューキャンバス</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.3.Description">
+    <value>Ctrl キーを押しながら / 左ボタンを長押ししてドラッグすると、複数のコントロールを選択できます</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.4.Title">
+    <value>プレビューキャンバス</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.4.Description">
+    <value>Shift キーを押しながら操作すると、一時的にスナップとガイドラインが有効になります</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.5.Title">
+    <value>プレビューキャンバス</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.5.Description">
+    <value>Ctrl キーを押しながらマウスホイールでキャンバスをズームできます。右ボタンを押しながらキャンバスを移動できます</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.6.Title">
+    <value>レイアウトを保存</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.6.Description">
+    <value>レイアウト調整後、上部ツールバーで現在のレイアウトを保存できます。または Ctrl+S で直接保存できます</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.0.Title">
+    <value>プロパティグリッド</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.0.Description">
+    <value>コントロールを選択すると、右側にプロパティが表示されます。テキスト、色、画像、フォントなどはすべてここで変更します。</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.1.Title">
+    <value>プロパティエディター</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.1.Description">
+    <value>プロパティによって異なるエディターが表示されます。一部のプロパティは確認ボタンをクリックして初めて適用されます。</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.2.Title">
+    <value>プロパティの適用</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.2.Description">
+    <value>プロパティが不正な場合は、エラー状態が表示されます。本チュートリアルではプロパティの変更や適用を強制しません。</value>
+  </data>
+  <data name="Step.DesignerV3HelpBasic.0.Title">
+    <value>詳細説明を確認</value>
+  </data>
+  <data name="Step.DesignerV3HelpBasic.0.Description">
+    <value>右下のヘルプボタンで v3 エディターの詳細説明を開けます。プロパティ、動作、アニメーション、またはレイアウトパッケージのルールが不明な場合は、ここをクリックして詳細 / 応用ガイドを確認できます。</value>
+  </data>
+  <data name="Dialogue.DesignerV3Overview.Lines">
+    <value>v3 デザイナーへようこそ。&#10;ここではフロントエンド画面の詳細な変更（レイアウト位置、コントロールプロパティ、画像リソース、アニメーション動作）ができます。</value>
+  </data>
+  <!-- FrontedBehaviorAnimationEditorWindow.Tutorials.cs -->
+  <data name="Step.DesignerV3AnimationEditorOverview.0.Title">
+    <value>アニメーションエディター</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.0.Description">
+    <value>ここでは動作に対応するアニメーションアクションを編集します。アニメーションは時間、ステップ、パラメーターの変化で構成されます。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.1.Title">
+    <value>アニメーションエディター</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.1.Description">
+    <value>左ボタンを長押ししてドラッグすると、複数のノードを選択できます</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.2.Title">
+    <value>アニメーションエディター</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.2.Description">
+    <value>Ctrl キーを押しながらマウスホイールでキャンバスをズームできます。右ボタンを押しながらキャンバスを移動できます</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Title">
+    <value>ノードステップ</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Description">
+    <value>アニメーションはノードステップの順序に従って実行されます。まず構造を理解してください。チュートリアルを完了するためにキーフレームを作成する必要はありません。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Title">
+    <value>ノードステップ</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Description">
+    <value>アニメーションはステップ順に実行されます。異なるステージでは、進入、ループ、停止のアクションをそれぞれ編集できます。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Title">
+    <value>ノードステップ</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Description">
+    <value>各アニメーションは「開始ノード」から始まり、「終了ノード」で終わります</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Title">
+    <value>アニメーションプロパティノード</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Description">
+    <value>試しに左側のノードカタログから「アニメーションプロパティ」ノードをドラッグしてキャンバスに配置し、選択してみてください。選択後チュートリアルが自動的に続行します。すでに該当ノードがある場合は、直接クリックして選択してください。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Title">
+    <value>アクションパラメーター</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Description">
+    <value>パラメーターは位置、不透明度、サイズ、色などの変化を記述するために使用します。本チュートリアルではパラメーターの作成や保存を要求しません。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Title">
+    <value>アクションパラメーター</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Description">
+    <value>ノードを選択後、ここで位置、不透明度、サイズ、色などの変化パラメーターを編集できます。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Title">
+    <value>アニメーションをプレビュー</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Description">
+    <value>プレビューはアクションの順序とパラメーターの効果を確認するために使用します。本チュートリアルではアニメーションの保存を強制しません。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Title">
+    <value>アニメーションをプレビュー</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Description">
+    <value>本番使用前にアニメーション効果をプレビューし、アクション順序とパラメーターが期待通りか確認することをお勧めします。確認後、現在のウィンドウの保存プロンプトに従って保存または適用できます。本チュートリアルでは保存を強制しません。</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Title">
+    <value>アニメーションをプレビュー</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Description">
+    <value>Ctrl キーを押しながらマウスホイールでプレビュー領域をズームできます。右ボタンを押しながらキャンバスを移動できます</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Title">
+    <value>アニメーション応用ガイド</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Description">
+    <value>右下のヘルプボタンでアニメーションエディターの詳細 / 応用ガイドを確認できます。</value>
+  </data>
+  <data name="Dialogue.DesignerV3AnimationEditorOverview.Lines">
+    <value>アニメーションエディターへようこそ。&#10;ここではフロントエンドのコントロールにアニメーションを設定できます</value>
+  </data>
+  <!-- SmartBpModuleContentView.Tutorials.cs -->
+  <data name="Step.SmartBpOcrModelDownloadBasic.0.Title">
+    <value>認識モデル管理</value>
+  </data>
+  <data name="Step.SmartBpOcrModelDownloadBasic.0.Description">
+    <value>スマート BP の OCR 認識にはローカルモデルが必要です。ここで認識エンジンを選択し、スマート BP が使用する OCR モデルの確認、ダウンロード、更新、切り替えを行います。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.0.Title">
+    <value>ゲームウィンドウを選択</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.0.Description">
+    <value>まず Identity V のゲームウィンドウを選択します。Identity V のゲームプロセスは通常 dwrg.exe です。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.1.Title">
+    <value>キャプチャを開始</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.1.Description">
+    <value>ウィンドウ選択後、SmartBP がゲーム画面をキャプチャできます。本チュートリアルではキャプチャの開始を強制せず、キャプチャ成功を待機しません。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.2.Title">
+    <value>キャプチャをプレビュー</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.2.Description">
+    <value>プレビューをクリックすると、キャプチャ画面が正しいか確認できます。dwrg.exe が見つからなくても、チュートリアルを続けられます。</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.3.Title">
+    <value>キャプチャを停止</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.3.Description">
+    <value>キャプチャが異常な場合は、キャプチャを停止できます。</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorEntryBasic.0.Title">
+    <value>認識領域</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorEntryBasic.0.Description">
+    <value>認識領域は OCR またはビジョンモデルが画面のどの位置を読み取るかを決定します。異なるステージには異なる領域があります（例：サバイバー BAN、ハンター BAN、Pick、戦績データ）。このボタンをクリックすると認識領域エディターを開けます。&#10;BP ステージの認識領域</value>
+  </data>
+  <data name="Step.SmartBpFullBpFlowBasic.0.Title">
+    <value>フルフロー BP</value>
+  </data>
+  <data name="Step.SmartBpFullBpFlowBasic.0.Description">
+    <value>フルフロー BP は現在の試合ステージに基づいて自動的に認識します。起動前にウィンドウキャプチャと認識領域が正しいか確認してください。本番の試合では、まずプレビューで確認してから起動することをお勧めします。クリック後、スマート BP の自動 BP フローが開始されます。</value>
+  </data>
+  <data name="Dialogue.SmartBpOcrModelDownloadBasic.Lines">
+    <value>スマート BP はゲーム画面を認識し、BP と戦績データの入力を補助します。&#10;使用順序は：OCR モデルをダウンロード -&gt; ウィンドウをキャプチャ -&gt; 認識領域を設定 -&gt; 関連機能の使用を開始</value>
+  </data>
+  <data name="Dialogue.SmartBpPostGameAutoFill.Lines">
+    <value>試合終了後、スマート BP は戦績データを認識して入力を補助します。戦績データページには「戦績データを自動認識して入力」ボタンがあります&#10;認識された戦績データは自動的にキャラクターとマッチングします</value>
+  </data>
+  <!-- RegionEditorWindow.Tutorials.cs -->
+  <data name="Step.SmartBpRegionEditorBasic.0.Title">
+    <value>領域プレビュー</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.0.Description">
+    <value>認識が不正確な場合、まず認識領域が位置合わせされているか確認してください。プレビュー画面で領域を調整できます。</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.1.Title">
+    <value>領域リスト</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.1.Description">
+    <value>ここに設定可能な認識領域がリストされます。本チュートリアルでは領域のドラッグを強制しません。</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.2.Title">
+    <value>領域を保存</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.2.Description">
+    <value>領域を保存してから認識を開始します。本チュートリアルでは保存を強制せず、保存完了も待機しません。</value>
+  </data>
+  <!-- FrontedWindowsView.Tutorials.cs -->
+  <data name="Step.FrontManageWindowsBasic.0.Title">
+    <value>フロントウィンドウ</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.0.Description">
+    <value>ここですべてのフロントウィンドウを管理します。導播がウィンドウのトラブルシューティングや制御を行う際、ここでウィンドウリストを確認できます。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.1.Title">
+    <value>デザイナーを開く</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.1.Description">
+    <value>ここをクリックすると v3 フロントエンドデザイナーを開けます。フロントエンドのレイアウト、コントロールプロパティ、アニメーション動作を編集するために使用します。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.2.Title">
+    <value>すべてのウィンドウを開く</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.2.Description">
+    <value>「すべて開く」はすべてのフロントウィンドウを一度に開きます。導播が配信開始前に OBS のキャプチャソースを確認するのに適しています。複数のウィンドウが同時に表示される可能性があり、本チュートリアルではクリックを必須としません。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.3.Title">
+    <value>すべてのウィンドウを閉じる</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.3.Description">
+    <value>「すべて閉じる」はすべてのフロントウィンドウを一度に閉じます。導播の配信終了やウィンドウ状態のトラブルシューティングに適しています。本チュートリアルでは閉じる操作の完了を待機しません。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.4.Title">
+    <value>ループアニメーションを停止</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.4.Description">
+    <value>フロントエンドのループアニメーションが異常な場合、「すべてのループアニメーションを停止」を使用できます。これは導播がアニメーション状態をトラブルシューティングする際の制御機能です。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.5.Title">
+    <value>ウィンドウグループ</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.5.Description">
+    <value>ここにグループごとに管理可能なフロントウィンドウがリストされます。各ウィンドウは個別に開閉できます。</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.6.Title">
+    <value>個別ウィンドウ</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.6.Description">
+    <value>個別ウィンドウカードで対応するフロントウィンドウを独立して開閉できます。</value>
+  </data>
+  <data name="Step.FrontManageOpenDesigner.0.Title">
+    <value>v3 エディターを開く</value>
+  </data>
+  <data name="Step.FrontManageOpenDesigner.0.Description">
+    <value>v3 エディターはフロントエンドのレイアウト、コントロールプロパティ、アニメーション動作を編集するために使用します。ここをクリックするとフロントエンドデザイナーを開けます。開くと独立した v3 エディターのチュートリアルに入ります。</value>
+  </data>
+  <data name="Step.FrontManageBpWindowLaunchBasic.0.Title">
+    <value>BP フロントウィンドウを起動</value>
+  </data>
+  <data name="Step.FrontManageBpWindowLaunchBasic.0.Description">
+    <value>導播時、視聴者が見るのはフロントウィンドウです。まず BP フロントページのみを起動します。</value>
+  </data>
+  <!-- TeamInfoPage.Tutorials.cs -->
+  <data name="Step.TeamInfoTeamNameBasic.0.Title">
+    <value>チーム名を入力</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.0.Description">
+    <value>ここでチーム名を設定できます。試しにチーム名を入力してみてください。</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.1.Title">
+    <value>チーム名を確認</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.1.Description">
+    <value>確認をクリックすると、チーム名が現在の試合データに書き込まれます。</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.2.Title">
+    <value>チームロゴを設定</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.2.Description">
+    <value>ここでホームチームロゴを設定できます。今回のガイドでは、そのまま次へをクリックして続行できます。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.0.Title">
+    <value>ウルブズプリセットをインポート</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.0.Description">
+    <value>インポートをクリック後、開いたファイルダイアログで「队伍信息导入示例-Wolves.json」を選択します。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.1.Title">
+    <value>ウルブズの入場退場を調整</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.1.Description">
+    <value>インポート後、ここでウルブズメンバーの入場および退場状態を調整します。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.2.Title">
+    <value>GR プリセットをインポート</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.2.Description">
+    <value>インポートをクリック後、開いたファイルダイアログで「队伍信息导入示例-GR.json」を選択します。</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.3.Title">
+    <value>GR の入場退場を調整</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.3.Description">
+    <value>インポート後、ここで GR メンバーの入場および退場状態を調整します。</value>
+  </data>
+  <data name="Step.TeamInfoPlayerManage.0.Title">
+    <value>チームメンバーの順序を調整</value>
+  </data>
+  <data name="Step.TeamInfoPlayerManage.0.Description">
+    <value>ここで現在入場している選手の順序を調整できます。フロントエンドと BP フローでこれらの情報が使用されます。</value>
+  </data>
+  <data name="Hint.TeamInfoJsonImportPreset.HomePickerTitle">
+    <value>ウルブズ情報をインポートしてください：「队伍信息导入示例-Wolves.json」を選択</value>
+  </data>
+  <data name="Hint.TeamInfoJsonImportPreset.AwayPickerTitle">
+    <value>GR 情報をインポートしてください：「队伍信息导入示例-GR.json」を選択</value>
+  </data>
+  <!-- TalentPage.Tutorials.cs -->
+  <data name="Step.BpTalentTraitBasic.0.Title">
+    <value>人格と特質を設定</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.0.Description">
+    <value>ここで現在の試合のキャラクターの人格と特質を設定します。これらの情報はフロントエンド表示と戦績記録に使用されます。試合の実際の状況に従って選択し、ガイドを続行してください。</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.1.Title">
+    <value>サバイバーの人格</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.1.Description">
+    <value>ここで 4 名のサバイバーの人格を設定します。本チュートリアルでは完全な入力を強制しません。</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.2.Title">
+    <value>ハンターの特質</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.2.Description">
+    <value>ここでハンターの人格とハンターの補助特質を設定します。実際の試合情報を確認後、試合ガイドを続行してください。</value>
+  </data>
+  <!-- ScorePage.Tutorials.cs -->
+  <data name="Step.ScoreBasic.0.Title">
+    <value>スコアを選択</value>
+  </data>
+  <data name="Step.ScoreBasic.0.Description">
+    <value>試合終了後、ここでスコアを選択できます。スコアは試合状態とフロントエンド表示に同期されます。</value>
+  </data>
+  <!-- PickPage.Tutorials.cs -->
+  <data name="Step.BpPickSelectFourSurvivorsBasic.0.Title">
+    <value>4 名のサバイバー選択を完了</value>
+  </data>
+  <data name="Step.BpPickSelectFourSurvivorsBasic.0.Description">
+    <value>残りのサバイバーキャラクターを選択し続けます。4 名のサバイバーすべてを選択完了後、キャラクター調整のチュートリアルに進みます。</value>
+  </data>
+  <data name="Step.BpGlobalBanRecordBasic.0.Title">
+    <value>グローバル BAN 記録</value>
+  </data>
+  <data name="Step.BpGlobalBanRecordBasic.0.Description">
+    <value>先ほど選択したキャラクターはグローバル BAN に記録されます。後続の新しい試合では現在の試合の選択はクリアされますが、これらのグローバル BAN 記録は保持されます。</value>
+  </data>
+  <data name="Step.BpCharacterChangerBasic.0.Title">
+    <value>選択済みキャラクターの順序を調整</value>
+  </data>
+  <data name="Step.BpCharacterChangerBasic.0.Description">
+    <value>キャラクター選択終了後、キャラクター分配ステージで、ここでキャラクター調整機能を使用できます。調整後、現在の BP 状態が同期更新されます。&#10;数字ボタンをクリックすると、現在の選手のサバイバーキャラクターと対応する位置のサバイバーキャラクターを入れ替えできます</value>
+  </data>
+  <!-- FrontManagePage.Tutorials.cs -->
+  <data name="Step.FrontManageOverview.0.Title">
+    <value>フロントエンド管理</value>
+  </data>
+  <data name="Step.FrontManageOverview.0.Description">
+    <value>ここはフロントエンド管理ページです。フロントエンド管理は「フロントウィンドウ」と「レイアウトパッケージ」の 2 つのエリアに分かれています。フロントウィンドウは視聴者が見るウィンドウの開閉を担当します。レイアウトパッケージはフロントエンド画面プランのインポート、切り替え、管理を担当します。</value>
+  </data>
+  <!-- BanSurPage.Tutorials.cs -->
+  <data name="Step.BpCharacterSelectorBasic.0.Title">
+    <value>キャラクターセレクターのチュートリアル</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.0.Description">
+    <value>これからキャラクターセレクターの使用方法をチュートリアルします</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.1.Title">
+    <value>まずスペースでキャラクターをマッチング</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.1.Description">
+    <value>これはキャラクターセレクターで、通常のドロップダウンではありません。まずキャラクターの正式名称、ピンイン全文、またはピンイン略称を入力し、スペースを押してマッチングをトリガーしてください。このステップではまだ確認をクリックしないでください。</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.2.Title">
+    <value>キャラクター選択を確認</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.2.Description">
+    <value>キャラクターがマッチングされたら、Enter / Tab を押すか確認ボタンをクリックして選択を完了します。</value>
+  </data>
+  <!-- BehaviorPanelView.Tutorials.cs -->
+  <data name="Step.DesignerV3BehaviorPanelOverview.0.Title">
+    <value>動作パネル</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.0.Description">
+    <value>動作エリアを展開後、現在のコントロールに「トリガー + アクション」を設定できます。単発動作、ループ動作、トランジション動作は用途が異なり、クリック後のアニメーション、持続ループ、状態遷移トランジションをそれぞれ処理できます。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.1.Title">
+    <value>動作を追加</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.1.Description">
+    <value>ここで単発 / ループ / トランジション動作を追加できます。本チュートリアルでは動作の作成を強制しません。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.2.Title">
+    <value>動作リスト</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.2.Description">
+    <value>各動作は有効化、複製、削除ができ、展開してトリガーとアクション設定を確認できます。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Title">
+    <value>トリガー</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Description">
+    <value>トリガーはアニメーションがいつ実行されるかを決定します。動作を作成していない場合は、まず概念を理解し、後で具体的な動作を展開してから編集してください。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Title">
+    <value>トリガー</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Description">
+    <value>トリガーはアニメーションがいつ実行されるかを決定します。例えば状態、イベント、または payload フィールドでフィルターします。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Title">
+    <value>アクション編集</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Description">
+    <value>アクションはコントロールがどのように変化するかを決定します。必要な時にアニメーションエディターに進めます。チュートリアルを完了するためにアニメーションを作成または保存する必要はありません。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Title">
+    <value>アクション編集</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Description">
+    <value>クリック後、アニメーションエディターに進み、具体的なアクション、キーフレーム、パラメーターを編集します。本チュートリアルではアニメーションエディターを開くことを強制しません。</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Title">
+    <value>動作システムの説明</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Description">
+    <value>右下のヘルプボタンで動作システムの詳細 / 応用ガイドを確認できます。</value>
+  </data>
+  <!-- FirstRun Dialogues (App.Tour.xaml.cs) -->
+  <data name="Dialogue.FirstRun.Opening">
+    <value>neo-bpsys-wpf へようこそ。&#10;これから簡単な導播チュートリアルを行います。</value>
+  </data>
+  <data name="Dialogue.FirstRun.Ending">
+    <value>フロントエンド画面編集は初めて v3 エディターを開いた時に別途チュートリアルを行います。&#10;スマート BP は初めてスマート BP ページに進んだ時に別途チュートリアルを行います。&#10;導播の旅を始めましょう。</value>
+  </data>
+  <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
+  <data name="Dialogue.Probe.Navigation.Opening.Lines">
+    <value>これから左側ナビゲーションバーのチュートリアルガイドを検証します。</value>
+  </data>
+  <data name="Dialogue.Probe.Navigation.Closing.Lines">
+    <value>ナビゲーションガイドの検証が完了しました。</value>
+  </data>
+  <data name="Dialogue.Probe.RealTarget.Opening.Lines">
+    <value>これから実際のページターゲットと操作シグナルの検証を開始します。</value>
+  </data>
+  <data name="Dialogue.Probe.RealTarget.Closing.Lines">
+    <value>実ターゲットの検証が完了しました。完全なチュートリアルフローは今後のバージョンで提供されます。</value>
+  </data>
+  <!-- FrontedLayoutPackagesView.Tutorials.cs -->
+  <data name="Step.FrontManageLayoutPackagesBasic.0.Title">
+    <value>レイアウトパッケージリスト</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.0.Description">
+    <value>ここにすべての利用可能なレイアウトパッケージがリストされます。ビルトインレイアウトは直接変更できません。</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.1.Title">
+    <value>レイアウトパッケージを変更</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.1.Description">
+    <value>ビルトインレイアウトを変更しようとすると、自動的に新しいユーザーカスタムレイアウトに切り替わります。</value>
+  </data>
+  <!-- FrontedDesignerWindow.Tutorials.cs — PropertyPanelBasic step 3 -->
+  <data name="Step.DesignerV3PropertyPanelBasic.3.Title">
+    <value>動作とアニメーションの入口</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.3.Description">
+    <value>プロパティグリッドの下に動作とアニメーションの入口があります。動作追加ボタンをクリックすると、コントロールに動作とアニメーションを追加できます。</value>
+  </data>
+</root>

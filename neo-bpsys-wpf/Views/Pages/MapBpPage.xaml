@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.MapBpPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,6 +9,7 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="MapBpPage"
@@ -16,14 +17,19 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
     </Page.Resources>
-    <StackPanel Margin="10,0,10,0">
-        <Border Style="{StaticResource Card}">
+    <StackPanel
+        x:Name="MapBpPanel"
+        Margin="10,0,10,0"
+        modernScroll:GuidanceAutoScrollScope.IsEnabled="True">
+        <Border modernScroll:GuidanceScrollTarget.Action="PickCamp" Style="{StaticResource Card}">
             <StackPanel Orientation="Horizontal">
                 <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
                 <ui:ToggleSwitch
@@ -37,7 +43,10 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
-        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+        <Border
+            x:Name="MapSelectorPanel"
+            Margin="0,10,0,0"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -58,7 +67,7 @@
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock>
+                                        <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common">
                                             <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
                                         </TextBlock>
                                         <TextBlock Text="{Binding Team.Name}" />
@@ -74,6 +83,7 @@
                     Width="400"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left"
+                    modernScroll:GuidanceScrollTarget.Action="PickMap"
                     ItemsSource="{Binding PickedMapSelections}"
                     SelectedValue="{Binding PickedMap}"
                     SelectedValuePath="Map.MapName">
@@ -92,8 +102,10 @@
                                 <TextBlock
                                     Margin="20,0,0,0"
                                     VerticalAlignment="Center"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
                                     FontSize="16"
-                                    Text="{lex:Loc {Binding Map.MapName, TargetNullValue=null}}" />
+                                    Text="{lex:Loc {Binding Map.MapName, TargetNullValue=null},
+                                                   FallbackBehavior=EmptyString}" />
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -108,18 +120,28 @@
                 </ComboBox>
             </Grid>
         </Border>
-        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
-            <Grid>
+        <Border
+            x:Name="MapBpCurrentOperationBorder"
+            Margin="0,10,0,0"
+            Style="{StaticResource Card}">
+            <Grid x:Name="MapBanOperationBorder" modernScroll:GuidanceScrollTarget.Action="BanMap">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc BanMap}" />
-                <Grid Grid.Row="1" Margin="0,10,0,0">
+                <Grid Grid.Row="0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc BanMap}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Command="{Binding OpenGlobalDisableMapDialogCommand}"
+                            Content="{lex:Loc GlobalDisableMap}"
+                            Icon="{ui:SymbolIcon Symbol=Prohibited24}" />
+                    </StackPanel>
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
                         <ComboBox
@@ -129,7 +151,7 @@
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock>
+                                        <TextBlock lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common">
                                             <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
                                         </TextBlock>
                                         <TextBlock Text="{Binding Team.Name}" />
@@ -171,6 +193,7 @@
                                         Stretch="UniformToFill" />
                                     <TextBlock
                                         HorizontalAlignment="Center"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
                                         Focusable="False"
                                         FontSize="14"
                                         Text="{lex:Loc {Binding Map.MapName}}">

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Plugins">
+    <value>プラグイン</value>
+  </data>
+  <data name="PluginManagement">
+    <value>プラグイン管理</value>
+  </data>
+  <data name="PluginMarket">
+    <value>プラグイン市場</value>
+  </data>
+  <data name="RestartToApplyChanges">
+    <value>再起動して変更を適用</value>
+  </data>
+  <data name="Uninstall">
+    <value>アンインストール</value>
+  </data>
+  <data name="CancelUninstall">
+    <value>アンインストール取消</value>
+  </data>
+  <data name="ClickToRestart">
+    <value>クリックして再起動</value>
+  </data>
+  <data name="ProjectUrl">
+    <value>プロジェクトURL：</value>
+  </data>
+  <data name="InstallPluginFromFile">
+    <value>ファイルからプラグインをインストール</value>
+  </data>
+  <data name="CannotFindManifest">
+    <value>manifest.yml が見つかりません</value>
+  </data>
+  <data name="ManifestNotValid">
+    <value>マニフェストが無効です</value>
+  </data>
+  <data name="PluginStatus">
+    <value>プラグイン状態：</value>
+  </data>
+  <data name="PluginNotRemovable">
+    <value>内蔵プラグインは削除不可</value>
+  </data>
+  <data name="PluginsThirdPartyWarning">
+    <value>プラグインはサードパーティによって提供されています。可用性と完全性は保証されません。</value>
+  </data>
+  <data name="PluginPackageFiles">
+    <value>プラグインパッケージ</value>
+  </data>
+  <data name="PluginMarketAuthorLabel">
+    <value>作者: </value>
+  </data>
+  <data name="PluginMarketVersionLabel">
+    <value>バージョン: </value>
+  </data>
+  <data name="PluginMarketSettingsTitle">
+    <value>プラグインマーケット設定</value>
+  </data>
+  <data name="PluginMarketMirrorLabel">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketSourceLabel">
+    <value>プラグインソース</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint">
+    <value>この設定はアプリ更新にも同期されます</value>
+  </data>
+  <data name="PluginMarketDownloadQueue">
+    <value>ダウンロードキュー</value>
+  </data>
+  <data name="PluginMarketDownloadQueueTitle">
+    <value>ダウンロードキュー</value>
+  </data>
+  <data name="PluginMarketDownloadQueueEmpty">
+    <value>現在キューに入っているプラグインのダウンロードはありません</value>
+  </data>
+  <data name="PluginMarketCancelDownload">
+    <value>ダウンロードをキャンセル</value>
+  </data>
+<data name="PluginMarketVersionTooLow">
+    <value>バージョンが低すぎます</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible">
+    <value>互換性のないバージョン</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow">
+    <value>現在のソフトのバージョンが低すぎます</value>
+  </data>
+  <data name="PluginMarketApiIncompatible">
+    <value>API に互換性がありません</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable">
+    <value>更新があります</value>
+  </data>
+  <data name="PluginMarketInstalledRestartRequired">
+    <value>インストール済み、再起動して変更を適用</value>
+  </data>
+  <data name="PluginMarketPendingUninstall">
+    <value>アンインストール待ち</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow">
+    <value>現在のソフトのバージョンではこのプラグインをインストールできません。</value>
+  </data>
+  <data name="PluginMarketSha256Mismatch">
+    <value>{0} の整合性チェックに失敗しました。安全のためインストールを拒否しました。</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress">
+    <value>他のプラグインのダウンロードが進行中です。</value>
+  </data>
+  <data name="PluginDependencyInstallAvailableMessage">
+    <value>プラグインマーケットからインストールまたは更新できるプラグインは、ユーザーの確認が必要です。</value>
+  </data>
+  <data name="PluginDependencyInstallButton">
+    <value>プラグインをインストール/更新</value>
+  </data>
+  <data name="PluginDependencyForceImportMessage">
+    <value>強制インポートしてこれらのプラグインコントロールを削除できます。元の .bpui ファイルは変更されません。</value>
+  </data>
+  <data name="PluginDependencyMarketOffline">
+    <value>マーケットはオフライン</value>
+  </data>
+  <data name="PluginDependencyMarketAvailable">
+    <value>マーケットで利用可能</value>
+  </data>
+  <data name="PluginDependencyUpdateRequired">
+    <value>更新が必要</value>
+  </data>
+  <data name="PluginDependencyNotFoundInMarket">
+    <value>マーケットに見つかりません</value>
+  </data>
+  <data name="PluginDependencyInstalledVersion">
+    <value>インストール済み</value>
+  </data>
+  <data name="PluginDependencyMinVersion">
+    <value>最小バージョン</value>
+  </data>
+  <data name="PluginDependencyAffectedControls">
+    <value>影響を受けるコントロール</value>
+  </data>
+  <data name="PluginDependencyInstallRestartNotice">
+    <value>プラグインのインストールまたは更新後は通常再起動が必要で、現在のインポートは自動的には続行されません。</value>
+  </data>
+  <data name="PluginDependencyInstallIncomplete">
+    <value>プラグインのインストールキューが終了しましたが、未完了の依存関係があります</value>
+  </data>
+  <data name="PluginDependencyInstallFailed">
+    <value>プラグイン依存関係のインストールに失敗しました</value>
+  </data>
+  <data name="MarketInstall">
+    <value>インストール</value>
+  </data>
+  <data name="MarketUpdate">
+    <value>更新</value>
+  </data>
+  <data name="MarketInstalled">
+    <value>インストール済み</value>
+  </data>
+</root>

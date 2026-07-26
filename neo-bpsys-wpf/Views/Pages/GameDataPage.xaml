@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.GameDataPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -16,16 +16,26 @@
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
     mc:Ignorable="d">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
     <StackPanel>
         <StackPanel>
-            <Border Style="{StaticResource Card}">
+            <Border
+                Style="{StaticResource Card}"
+                Visibility="{Binding IsSmartBpAutoFillVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBp}" />
+                    <TextBlock
+                        Style="{StaticResource Title}"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                        Text="{lex:Loc SmartBp}" />
                     <ui:Button
                         Grid.Row="1"
                         Margin="0,10,0,0"
@@ -35,7 +45,8 @@
                 </Grid>
             </Border>
         </StackPanel>
-        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc Survivor}" />
+        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc Survivor}"
+                   lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
         <WrapPanel Margin="0,10,0,0">
             <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                 <Grid>
@@ -109,7 +120,8 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="{lex:Loc Hunter}" />
+            Text="{lex:Loc Hunter}"
+            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
         <Border
             Margin="0,10,0,0"
             HorizontalAlignment="Left"

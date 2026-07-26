@@ -1,0 +1,9 @@
+id: top.plfjy.bpsys.WebRenderer
+name: Web Renderer Experimental
+description: 实验性 Web Renderer 状态页面。
+entranceAssembly: neo-bpsys-wpf.WebRenderer.dll
+url: https://github.com/PLFJY/neo-bpsys-wpf/
+version: 0.1.0.0
+apiVersion: 3.0.0.0
+author: Zero PLFJY
+icon: icon.png

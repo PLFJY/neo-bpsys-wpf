@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="PlayerName">
+    <value>Player name</value>
+  </data>
+  <data name="InGameName">
+    <value>In-game name</value>
+  </data>
+  <data name="More">
+    <value>More</value>
+  </data>
+  <data name="PlayerDetails">
+    <value>Player details</value>
+  </data>
+  <data name="ChangePhoto">
+    <value>Change photo</value>
+  </data>
+  <data name="PhotoPreview">
+    <value>Preview:</value>
+  </data>
+  <data name="HomeTeamInformation">
+    <value>Home team information</value>
+  </data>
+  <data name="ImportFromJsonFile">
+    <value>Import from json file</value>
+  </data>
+  <data name="JsonImportTip">
+    <value>This is used for fast import. The example files are  neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json. Check the documentations for more details. </value>
+  </data>
+  <data name="TeamName">
+    <value>Team name</value>
+  </data>
+  <data name="SetTeamLogo">
+    <value>Set team logo</value>
+  </data>
+  <data name="CurrentStatusColon">
+    <value>Current status: </value>
+  </data>
+  <data name="SurvivorPlayer">
+    <value>Survivor player</value>
+  </data>
+  <data name="SetPhoto">
+    <value>Set photo</value>
+  </data>
+  <data name="RemovePhoto">
+    <value>Remove photo</value>
+  </data>
+  <data name="Enter">
+    <value>Enter</value>
+  </data>
+  <data name="Exit">
+    <value>Exit</value>
+  </data>
+  <data name="AddPlayer">
+    <value>Add player</value>
+  </data>
+  <data name="HunterPlayer">
+    <value>Hunter player</value>
+  </data>
+  <data name="AwayTeamInformation">
+    <value>Away team information</value>
+  </data>
+  <data name="CurrentPlayerOnStage">
+    <value>Current player on stage</value>
+  </data>
+  <data name="TeamInfo">
+    <value>Team Information</value>
+  </data>
+  <data name="PlayerID">
+    <value>Player ID</value>
+  </data>
+  <data name="TeamNameInScoreStatistics">
+    <value>Team name(Score Statistics)</value>
+  </data>
+  <data name="TeamNameInMapBP">
+    <value>Team name(MapBP)</value>
+  </data>
+  <data name="TeamNameInMapBPV2">
+    <value>Team name(Map BP V2)</value>
+  </data>
+  <data name="TeamNameInBPOverview">
+    <value>Team name(BP Overview)</value>
+  </data>
+  <data name="ImageMaybeDamagedOrUnsupported">
+    <value>Image may be damaged or unsupported</value>
+  </data>
+  <data name="DeleteConfirmation">
+    <value>Delete confirmation</value>
+  </data>
+  <data name="AreYouSureToDelete">
+    <value>Are you sure to delete</value>
+  </data>
+  <data name="ClearTip">
+    <value>Clear tip</value>
+  </data>
+  <data name="AreYouSureToRemoveTheFileLookPhoto">
+    <value>Are you sure to remove the final look photo?</value>
+  </data>
+  <data name="LogoFileIsNotValid">
+    <value>Logo file is not valid</value>
+  </data>
+  <data name="ImageFileTooLarge">
+    <value>The image file is too large ({0}). The maximum supported size is {1}. Please compress the image or choose a smaller file.</value>
+  </data>
+  <data name="HexColor">
+    <value>Hex Color</value>
+  </data>
+  <data name="TeamColor">
+    <value>Team Color</value>
+  </data>
+  <data name="InvalidTeamColorHex">
+    <value>Invalid color. Use #RRGGBB or #AARRGGBB.</value>
+  </data>
+  <data name="JsonFileFormatError">
+    <value>Json file format error</value>
+  </data>
+  <data name="ResetDefaultColor">
+    <value>Reset to default</value>
+  </data>
+</root>

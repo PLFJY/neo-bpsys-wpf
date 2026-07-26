@@ -1,6 +1,6 @@
 # neo-bpsys-wpf
 
-powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="25px" height="25px"> 9.0 & <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="25px" height="25px">
+powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="25px" height="25px"> 10.0 & <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="25px" height="25px"> 4.3.0
 
 ![GitHub License](https://img.shields.io/github/license/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/plfjy/neo-bpsys-wpf) ![GitHub forks](https://img.shields.io/github/forks/plfjy/neo-bpsys-wpf?style=flat) ![GitHub Repo stars](https://img.shields.io/github/stars/plfjy/neo-bpsys-wpf?style=flat)
 
@@ -39,11 +39,12 @@ neo-bpsys-wpf 是一个基于 .NET WPF 的**专为第五人格民间赛**开发�
 - [x] 自定义扩展插件及插件市场
 - [x] OCR识别自动填充赛后数据
 - [x] 全局禁选根据对局进度联动
+- [x] OCR 识别实现全自动 BP 画面切换
+- [x] Web 流渲染
 
 ## ✅ To Do
 
-- [ ] OCR 识别实现全自动 BP 画面切换
-- [ ] 应用自带的 3D 展示画面（已有社区插件支持，可前往插件市场下载）
+- [ ] 应用自带的 3D 展示画面（已有社区插件支持，可前往插件市场下载，但是不保证更新速度和使用体验）
 
 ## 📌 开始使用
 
@@ -55,7 +56,7 @@ neo-bpsys-wpf 是一个基于 .NET WPF 的**专为第五人格民间赛**开发�
 
 **Release有提前编译好的安装包可以直接下载并安装**
 
-手动构建前需要安装好[.NET 9 SDK](https://dotnet.microsoft.com/zh-cn/download/dotnet/9.0)。
+手动构建前需要安装好[.Net 10 SDK](https://dotnet.microsoft.com/zh-cn/download/dotnet/10.0)。
 
 ```cmd
 git clone https://github.com/PLFJY/neo-bpsys-wpf.git

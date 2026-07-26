@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="NewGame">
+    <value>新しい試合（リセット）</value>
+  </data>
+  <data name="GameProgressColon">
+    <value>試合進行：</value>
+  </data>
+  <data name="DecodingProgress">
+    <value>暗号解読進捗</value>
+  </data>
+  <data name="PalletStrikes">
+    <value>板命中回数</value>
+  </data>
+  <data name="Rescues">
+    <value>救助回数</value>
+  </data>
+  <data name="Heals">
+    <value>治療回数</value>
+  </data>
+  <data name="ContainmentTime">
+    <value>牽制時間（秒）</value>
+  </data>
+  <data name="RemainingCiphers">
+    <value>残り暗号機数</value>
+  </data>
+  <data name="PalletsDestroyed">
+    <value>板破壊数</value>
+  </data>
+  <data name="SurvivorHits">
+    <value>命中回数</value>
+  </data>
+  <data name="TerrorShocks">
+    <value>恐怖の一撃回数</value>
+  </data>
+  <data name="Knockdowns">
+    <value>ダウン回数</value>
+  </data>
+  <data name="GameProgress">
+    <value>試合進行</value>
+  </data>
+  <data name="GameProgressInBPOverview">
+    <value>試合進行 (BP概要)</value>
+  </data>
+  <data name="GameRuleFileNotFound">
+    <value>ルールファイルが見つかりません</value>
+  </data>
+  <data name="GameAlreadyStarted">
+    <value>試合は既に開始されています</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree">
+    <value>フリー対戦ではガイドは利用できません</value>
+  </data>
+  <data name="GameRuleFileError">
+    <value>ルールファイルエラー</value>
+  </data>
+  <data name="PleaseStartGameFirst">
+    <value>先に試合を開始してください</value>
+  </data>
+  <data name="AlreadyLastStep">
+    <value>既に最後のステップです</value>
+  </data>
+  <data name="GameInfoError">
+    <value>試合情報エラー</value>
+  </data>
+  <data name="AlreadyFirstStep">
+    <value>既に最初のステップです</value>
+  </data>
+  <data name="GameRuleFileNotFoundError">
+    <value>ルールファイルが見つかりません</value>
+  </data>
+  <data name="GameRuleFileStatusError">
+    <value>ルールファイル状態異常</value>
+  </data>
+  <data name="NewGameHasBeenCreated">
+    <value>新しい試合が作成されました</value>
+  </data>
+  <data name="GameProgressFree">
+    <value>フリーマッチ</value>
+  </data>
+  <data name="GameProgressGameOnlyFormat">
+    <value>第{0}試合</value>
+  </data>
+  <data name="GameProgressGameOvertimeOnlyFormat">
+    <value>第{0}試合 延長</value>
+  </data>
+  <data name="GameProgressGameHalfFormat">
+    <value>第{0}試合 {1}</value>
+  </data>
+  <data name="GameProgressGameOvertimeHalfFormat">
+    <value>第{0}試合 延長 {1}</value>
+  </data>
+  <data name="GameProgressBinding">
+    <value>ゲーム進行バインド</value>
+  </data>
+  <data name="ArmsFactory">
+    <value>軍需工場</value>
+  </data>
+  <data name="TheRedChurch">
+    <value>赤の教会</value>
+  </data>
+  <data name="SacredHeartHospital">
+    <value>聖心病院</value>
+  </data>
+  <data name="LeosMemory">
+    <value>レオの思い出</value>
+  </data>
+  <data name="MoonlitRiverPark">
+    <value>月の河公園</value>
+  </data>
+  <data name="LakesideVillage">
+    <value>湖景村</value>
+  </data>
+  <data name="EversleepingTown">
+    <value>永眠町</value>
+  </data>
+  <data name="ChinaTown">
+    <value>中華街</value>
+  </data>
+  <data name="Darkwoods">
+    <value>罪の森</value>
+  </data>
+  <data name="FirstHalf">
+    <value>前半</value>
+  </data>
+  <data name="SecondHalf">
+    <value>後半</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData">
+    <value>試合後データを自動検出して入力</value>
+  </data>
+  <data name="CharacterName">
+    <value>キャラクター名</value>
+  </data>
+  <data name="CreateTip">
+    <value>作成のヒント</value>
+  </data>
+  <data name="DistributeCharacters">
+    <value>キャラクター分配</value>
+  </data>
+</root>

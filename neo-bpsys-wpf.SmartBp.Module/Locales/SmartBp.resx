@@ -1,0 +1,1023 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SmartBpWindowCaptureSettings" xml:space="preserve">
+    <value>窗口捕获设置</value>
+  </data>
+  <data name="SmartBpOpenWindowPickerOnlyWgc" xml:space="preserve">
+    <value>打开窗口选择器（仅 WGC 可用）</value>
+  </data>
+  <data name="SmartBpCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="SmartBpOcrModelDownloadFailed" xml:space="preserve">
+    <value>OCR 模型下载失败：{0}</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelConfirmFormat" xml:space="preserve">
+    <value>确定删除 OCR 模型：{0}？</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelTitle" xml:space="preserve">
+    <value>删除模型</value>
+  </data>
+  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
+    <value>OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。</value>
+  </data>
+  <data name="SmartBpValidationCaptureNotRunning" xml:space="preserve">
+    <value>请先开启窗口捕获后再启动识别。</value>
+  </data>
+  <data name="SmartBpValidationCaptureFrameUnavailable" xml:space="preserve">
+    <value>当前没有可用的捕获画面，请确认捕获窗口仍然存在。</value>
+  </data>
+  <data name="SmartBpValidationRegionProfileInvalid" xml:space="preserve">
+    <value>当前赛后数据识别区域配置无效，请重置为内置默认配置或重新导入有效配置。</value>
+  </data>
+  <data name="SmartBpValidationGameDataRecognitionNoResult" xml:space="preserve">
+    <value>未能从当前捕获画面识别到赛后数据，请确认画面和识别区域配置正确。</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行必须包含 6 个小框。</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行大框超出范围。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
+    <value>重置失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
+    <value>识别区域编辑</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
+    <value>当前节点未处于模板组。</value>
+  </data>
+  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
+    <value>一键应用到同模板元素</value>
+  </data>
+  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
+    <value>操作说明： 1. 拖动框内部可移动 2. 拖动边缘8个点可缩放 3. 小框会被限制在所属大框内 4. 仅当前帧预览，不实时捕获</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行第 {1} 个小框超出大框范围。</value>
+  </data>
+  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
+    <value>保存配置失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
+    <value>当前框相对坐标</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
+    <value>节点选择</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
+    <value>当前规则：每行1个大框 + 6个小框</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
+    <value>配置无效：scene 必须为 GameData。</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
+    <value>导入失败：配置文件不存在。</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
+    <value>配置无效：必须包含 5 个大框。</value>
+  </data>
+  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
+    <value>导入赛后区域配置</value>
+  </data>
+  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
+    <value>导入失败：配置文件内容为空。</value>
+  </data>
+  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
+    <value>导出配置失败：{0}</value>
+  </data>
+  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
+    <value>导出赛后区域配置</value>
+  </data>
+  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
+    <value>导出失败：目标路径不能为空。</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="SmartBpRecognizeTestFrame" xml:space="preserve">
+    <value>识别所选测试图全图</value>
+  </data>
+  <data name="SmartBpEnableAutoApply" xml:space="preserve">
+    <value>自动应用识别结果</value>
+  </data>
+  <data name="SmartBpResetLedger" xml:space="preserve">
+    <value>重置 SmartBP 识别记录</value>
+  </data>
+  <data name="SmartBpEnableDebugLog" xml:space="preserve">
+    <value>启用调试日志</value>
+  </data>
+  <data name="SmartBpOcrUseContactSheet" xml:space="preserve">
+    <value>使用 OCR 合并识别图</value>
+  </data>
+  <data name="SmartBpOcrDebugOverlay" xml:space="preserve">
+    <value>启用 OCR 调试覆盖层</value>
+  </data>
+  <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve">
+    <value>OCR 识别间隔毫秒</value>
+  </data>
+  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve">
+    <value>OCR 字段陈旧刷新毫秒</value>
+  </data>
+  <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve">
+    <value>OCR 回看工作流步数</value>
+  </data>
+  <data name="SmartBpTransitionReplayWindow" xml:space="preserve">
+    <value>阶段切换回看窗口（毫秒）</value>
+  </data>
+  <data name="SmartBpTransitionReplayMinimumConfidence" xml:space="preserve">
+    <value>阶段切换回看纠正最低置信度</value>
+  </data>
+  <data name="SmartBpOcrProviderSection" xml:space="preserve">
+    <value>OCR 提供程序</value>
+  </data>
+  <data name="SmartBpOcrTesseractLanguages" xml:space="preserve">
+    <value>Tesseract 语言</value>
+  </data>
+  <data name="SmartBpOcrOpenTessdataFolder" xml:space="preserve">
+    <value>打开 tessdata 文件夹</value>
+  </data>
+  <data name="SmartBpOcrTesseractPsm" xml:space="preserve">
+    <value>Tesseract 页面分割模式（PSM）</value>
+  </data>
+  <data name="SmartBpOcrTesseractVariants" xml:space="preserve">
+    <value>最大预处理变体数</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>下载</value>
+  </data>
+  <data name="Switch" xml:space="preserve">
+    <value>切换</value>
+  </data>
+  <data name="SmartBpAutomaticRecognitionAndApply" xml:space="preserve">
+    <value>全流程 BP 自动识别</value>
+  </data>
+  <data name="SmartBpRecognitionAreaConfiguration" xml:space="preserve">
+    <value>识别区域配置</value>
+  </data>
+  <data name="SmartBpBpRecognitionRegions" xml:space="preserve">
+    <value>BP 自动识别区域</value>
+  </data>
+  <data name="SmartBpGameDataRecognitionRegions" xml:space="preserve">
+    <value>赛后数据识别区域</value>
+  </data>
+  <data name="SmartBpOpenBpRecognitionRegionEditor" xml:space="preserve">
+    <value>编辑 BP 识别区域</value>
+  </data>
+  <data name="SmartBpResetBpRecognitionRegionConfig" xml:space="preserve">
+    <value>重置为内置</value>
+  </data>
+  <data name="SmartBpShowBpRecognitionRegionExample" xml:space="preserve">
+    <value>显示区域调整示例</value>
+  </data>
+  <data name="SmartBpBpRecognitionRegionExampleDialogTitle" xml:space="preserve">
+    <value>区域调整示例</value>
+  </data>
+  <data name="SmartBpNotification" xml:space="preserve">
+    <value>提示</value>
+  </data>
+  <data name="SmartBpClose" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="SmartBpEditGameDataRegionConfig" xml:space="preserve">
+    <value>编辑赛后数据区域</value>
+  </data>
+  <data name="SmartBpResetGameDataRegionConfig" xml:space="preserve">
+    <value>重置为内置 16:9 默认</value>
+  </data>
+  <data name="SmartBpRegionConfigCurrentPath" xml:space="preserve">
+    <value>当前配置路径</value>
+  </data>
+  <data name="SmartBpRegionConfigConfiguredAspectRatio" xml:space="preserve">
+    <value>配置比例</value>
+  </data>
+  <data name="SmartBpRegionConfigCurrentCaptureAspectRatio" xml:space="preserve">
+    <value>当前捕获比例</value>
+  </data>
+  <data name="SmartBpRegionConfigAspectStatus" xml:space="preserve">
+    <value>比例匹配状态</value>
+  </data>
+  <data name="SmartBpAdvancedParameters" xml:space="preserve">
+    <value>高级参数</value>
+  </data>
+  <data name="SmartBpDebugOptions" xml:space="preserve">
+    <value>调试选项</value>
+  </data>
+  <data name="SmartBpGameDataRecognitionDebug" xml:space="preserve">
+    <value>赛后数据识别 DEBUG</value>
+  </data>
+  <data name="SmartBpGameDataRecognitionDebugDescription" xml:space="preserve">
+    <value>展示最近一次整表 OCR 重建结果、括号中分离出的角色文本以及角色字典解析结果。</value>
+  </data>
+  <data name="SmartBpGameDataDebugOcrLineCountFormat" xml:space="preserve">
+    <value>OCR 文本行：{0}</value>
+  </data>
+  <data name="SmartBpGameDataDebugTableHeader" xml:space="preserve">
+    <value>行	玩家 ID	括号角色文本	解析角色	数据列</value>
+  </data>
+  <data name="SmartBpGameDataDebugRowFormat" xml:space="preserve">
+    <value>{0}	{1}	{2}	{3}	{4}</value>
+  </data>
+  <data name="SmartBpGameDataDebugUnresolved" xml:space="preserve">
+    <value>未匹配</value>
+  </data>
+  <data name="SmartBpGameDataDebugNoRows" xml:space="preserve">
+    <value>未重建出玩家（角色）行。</value>
+  </data>
+  <data name="SmartBpGameDataDebugDiagnostics" xml:space="preserve">
+    <value>解析诊断：</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnRow" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnPlayerName" xml:space="preserve">
+    <value>玩家 ID</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnExtractedCharacter" xml:space="preserve">
+    <value>括号角色文本</value>
+  </data>
+  <data name="SmartBpGameDataDebugColumnResolvedCharacter" xml:space="preserve">
+    <value>解析角色</value>
+  </data>
+  <data name="SmartBpFullRecognitionTest" xml:space="preserve">
+    <value>识别全图</value>
+  </data>
+  <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve">
+    <value>识别当前阶段</value>
+  </data>
+  <data name="SmartBpDebugTools" xml:space="preserve">
+    <value>调试工具</value>
+  </data>
+  <data name="SmartBpRecognizeSelectedPhase" xml:space="preserve">
+    <value>识别所选测试图阶段</value>
+  </data>
+  <data name="SmartBpRecognizeCurrentPhase" xml:space="preserve">
+    <value>识别当前阶段</value>
+  </data>
+  <data name="SmartBpDebugStrategySummary" xml:space="preserve">
+    <value>策略</value>
+  </data>
+  <data name="SmartBpDebugPhaseScene" xml:space="preserve">
+    <value>阶段 / 场景</value>
+  </data>
+  <data name="SmartBpDebugCandidateOperations" xml:space="preserve">
+    <value>候选操作</value>
+  </data>
+  <data name="SmartBpTesseractDownloadData" xml:space="preserve">
+    <value>下载所选语言数据</value>
+  </data>
+  <data name="SmartBpTesseractDeleteData" xml:space="preserve">
+    <value>删除所选语言数据</value>
+  </data>
+  <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
+    <value>启用 GameGuidance 自动同步</value>
+  </data>
+  <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
+    <value>同步步骤时跟随页面导航</value>
+  </data>
+  <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
+    <value>智能诊断并自动同步进度</value>
+  </data>
+  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve">
+    <value>自动识别发现对局引导步骤与画面状态明显不一致时，使用全量 OCR 确认后自动向前同步。</value>
+  </data>
+  <data name="SmartBpForceSyncGameState" xml:space="preserve">
+    <value>强制同步对局状态</value>
+  </data>
+  <data name="SmartBpForceSyncGameStateDescription" xml:space="preserve">
+    <value>根据当前画面同步对局进度、禁用角色、选择角色和求生者角色分配。</value>
+  </data>
+  <data name="SmartBpGameStateSyncAppliedFormat" xml:space="preserve">
+    <value>{2} 已应用 {0} 项，跳过 {1} 项。</value>
+  </data>
+  <data name="SmartBpOperationFailedFormat" xml:space="preserve">
+    <value>操作失败：{0}</value>
+  </data>
+  <data name="SmartBpAlreadyRunning" xml:space="preserve">
+    <value>SmartBP 已在运行，请勿重复启动。</value>
+  </data>
+  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
+    <value>自由全同步为实验功能，可能在没有工作流上下文时写入识别槽位。推荐使用引导工作流。</value>
+  </data>
+  <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
+    <value>自动识别运行时会保持窗口捕获；请先停止自动识别再停止捕获。</value>
+  </data>
+  <data name="SmartBpStartAutomaticRecognition" xml:space="preserve">
+    <value>启动自动识别</value>
+  </data>
+  <data name="SmartBpRecognizeCurrentFrame" xml:space="preserve">
+    <value>识别当前捕获画面全图</value>
+  </data>
+  <data name="SmartBpTooltipContactSheet" xml:space="preserve">
+    <value>把多个 BP 裁剪区域拼成一次 OCR 输入，通常能减少调用开销。关闭后逐区域识别更容易排查映射问题，但一次 tick 更慢。普通用户建议开启；若文字被错误归到其他区域再关闭。</value>
+  </data>
+  <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
+    <value>控制 OCR 自动识别两次截图之间的间隔。间隔低于实际处理耗时时会造成结果滞后和界面卡顿。建议先运行“测试识别速度”，最低值会设为实测最大耗时 + 250ms。</value>
+  </data>
+  <data name="SmartBpTooltipFieldStale" xml:space="preserve">
+    <value>字段超过此时间未刷新就重新 OCR。太短会重复识别并增加 CPU 占用，太长可能保留旧结果。建议 1000–3000ms，并应大于单次 OCR 耗时。</value>
+  </data>
+  <data name="SmartBpTooltipBackfill" xml:space="preserve">
+    <value>允许回看并补录的工作流步骤数量。数值越大越能补快节奏遗漏，但也更可能把旧画面误配到更早步骤。通常建议 1–3；流程稳定时保持 2。</value>
+  </data>
+  <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
+    <value>输出 OCR 区域、文字框和匹配调试信息，便于定位识别问题。会增加磁盘写入和少量处理开销；日常使用建议关闭，排障时临时开启。</value>
+  </data>
+  <data name="SmartBpTooltipTesseractLanguages" xml:space="preserve">
+    <value>控制 Tesseract 加载的语言，例如 chi_sim+eng。缺少对应 traineddata 会识别失败；加载过多语言会更慢并增加误判。中文赛事建议 chi_sim+eng。</value>
+  </data>
+  <data name="SmartBpTooltipTesseractPsm" xml:space="preserve">
+    <value>控制 Tesseract 页面分割模式。错误模式会漏字或把多行粘连。SmartBP 默认 6 适合统一文本块；除非根据调试图确认布局不同，否则保持 6。</value>
+  </data>
+  <data name="SmartBpTooltipTesseractVariants" xml:space="preserve">
+    <value>每个区域尝试的预处理版本数量。更多版本可能提高复杂背景下的识别率，但耗时近似成倍增加。安全范围 1–3；自动识别卡顿时降低。</value>
+  </data>
+  <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
+    <value>测试识别速度</value>
+  </data>
+  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
+    <value>引导工作流（推荐）</value>
+  </data>
+  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
+    <value>自由全同步（实验性）</value>
+  </data>
+  <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
+    <value>自动识别间隔</value>
+  </data>
+  <data name="SmartBpRecognizing" xml:space="preserve">
+    <value>正在识别…</value>
+  </data>
+  <data name="SmartBpCurrentInterval" xml:space="preserve">
+    <value>当前间隔</value>
+  </data>
+  <data name="SmartBpMinimumInterval" xml:space="preserve">
+    <value>测速允许的最低间隔</value>
+  </data>
+  <data name="SmartBpRapidOcrModelManagement" xml:space="preserve">
+    <value>RapidOCR 中文模型</value>
+  </data>
+  <data name="SmartBpRapidOcrMaxSideLen" xml:space="preserve">
+    <value>最大图像边长</value>
+  </data>
+  <data name="SmartBpRapidOcrPadding" xml:space="preserve">
+    <value>检测边缘留白</value>
+  </data>
+  <data name="SmartBpRapidOcrBoxScoreThreshold" xml:space="preserve">
+    <value>文本框评分阈值</value>
+  </data>
+  <data name="SmartBpRapidOcrBoxThreshold" xml:space="preserve">
+    <value>文本框检测阈值</value>
+  </data>
+  <data name="SmartBpRapidOcrUnclipRatio" xml:space="preserve">
+    <value>文本框扩张比例</value>
+  </data>
+  <data name="SmartBpRapidOcrAngleClassifier" xml:space="preserve">
+    <value>启用文字方向分类</value>
+  </data>
+  <data name="SmartBpRapidOcrPreprocessingVariants" xml:space="preserve">
+    <value>尝试对比度增强版本</value>
+  </data>
+  <data name="SmartBpTooltipRapidOcrMaxSideLen" xml:space="preserve">
+    <value>较大的边长可能改善小字识别，但会增加内存和推理时间。建议保持 1024。</value>
+  </data>
+  <data name="SmartBpTooltipRapidOcrThresholds" xml:space="preserve">
+    <value>提高阈值可减少误识别，但也可能漏掉较弱或较小的文字。</value>
+  </data>
+  <data name="SmartBpRapidOcrCheckUpdate" xml:space="preserve">
+    <value>检查模型更新</value>
+  </data>
+  <data name="SmartBpRapidOcrInstalledVersion" xml:space="preserve">
+    <value>已安装版本：</value>
+  </data>
+  <data name="SmartBpRapidOcrLatestVersion" xml:space="preserve">
+    <value>清单版本：</value>
+  </data>
+  <data name="SmartBpIncrementalRecognitionTest" xml:space="preserve">
+    <value>识别当前阶段的增量</value>
+  </data>
+  <data name="SmartBpRecognizeSelectedIncremental" xml:space="preserve">
+    <value>识别所选测试图增量</value>
+  </data>
+  <data name="SmartBpRecognizeCurrentIncremental" xml:space="preserve">
+    <value>识别当前捕获画面增量</value>
+  </data>
+  <data name="SmartBpDebugFinalBusinessState" xml:space="preserve">
+    <value>最终业务状态</value>
+  </data>
+  <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
+    <value>打开识别日志窗口</value>
+  </data>
+  <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
+    <value>SmartBP 识别调试日志</value>
+  </data>
+  <data name="SmartBpRecognitionDebugLogAutoScroll" xml:space="preserve">
+    <value>自动滚动</value>
+  </data>
+  <data name="SmartBpCopyRecognitionDebugLog" xml:space="preserve">
+    <value>复制日志</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SmartBp" xml:space="preserve">
+    <value>智慧 BP</value>
+  </data>
+  <data name="SaveSuccessfullyTo" xml:space="preserve">
+    <value>成功保存到</value>
+  </data>
+  <data name="SmartBpLedgerResetCompleted" xml:space="preserve">
+    <value>已重置当前对局的 SmartBP AI 识别记录。</value>
+  </data>
+  <data name="SmartBpRegionEditor" xml:space="preserve">
+    <value>SmartBP OCR 识别区域编辑器</value>
+  </data>
+  <data name="SmartBpRegionLeftBottom" xml:space="preserve">
+    <value>左下：求生者选择与分配</value>
+  </data>
+  <data name="SmartBpRegionLeftTop" xml:space="preserve">
+    <value>左上：禁用监管者</value>
+  </data>
+  <data name="SmartBpRegionPhaseTop" xml:space="preserve">
+    <value>顶部阶段识别区域</value>
+  </data>
+  <data name="SmartBpRegionProfileReset" xml:space="preserve">
+    <value>SmartBP OCR 识别区域已恢复为内置默认值。</value>
+  </data>
+  <data name="SmartBpRegionProfileSaved" xml:space="preserve">
+    <value>SmartBP OCR 识别区域配置已保存。</value>
+  </data>
+  <data name="SmartBpRegionRightBottom" xml:space="preserve">
+    <value>右下：监管者选择</value>
+  </data>
+  <data name="SmartBpRegionRightTop" xml:space="preserve">
+    <value>右上：禁用求生者</value>
+  </data>
+  <data name="SmartBpRegionTopCenterStatus" xml:space="preserve">
+    <value>顶部中央 BP 生命周期状态区域</value>
+  </data>
+  <data name="SmartBpRegionTopLeftStatus" xml:space="preserve">
+    <value>左上角赛后状态区域</value>
+  </data>
+  <data name="SmartBpAutoRecognitionStartConfirm" xml:space="preserve">
+    <value>请确认当前对局进度和半场已正确设置。设置错误可能导致识别结果写入错误对局。</value>
+  </data>
+  <data name="SmartBpAutoRecognitionStartTitle" xml:space="preserve">
+    <value>启动自动识别</value>
+  </data>
+  <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
+    <value>Bitblt</value>
+  </data>
+  <data name="SmartBpCaptureMethodWgc" xml:space="preserve">
+    <value>Windows Graphics Capture（Windows 10 1903 或更高）</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelDisabled" xml:space="preserve">
+    <value>当前 OCR 模型：未启用</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
+    <value>当前 OCR 模型：{0}</value>
+  </data>
+  <data name="SmartBpDownloadCancelled" xml:space="preserve">
+    <value>下载已取消</value>
+  </data>
+  <data name="SmartBpDownloadFailedSimple" xml:space="preserve">
+    <value>下载失败</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
+    <value>模型压缩包中未找到可用模型文件（期望 inference.pdmodel 或 inference.json，且需包含 inference.pdiparams）。样例文件：{0}</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 分类模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrContactSheet" xml:space="preserve">
+    <value>合并识别图</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
+    <value>下载进行中，无法删除模型。</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
+    <value>删除 OCR 模型失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 检测模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
+    <value>OCR 字典名称为空。</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
+    <value>已有 OCR 模型下载任务正在进行。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
+    <value>下载已取消。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
+    <value>OCR 模型下载完成。</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
+    <value>下载失败。</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
+    <value>准备下载 OCR 模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
+    <value>正在下载方向分类模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
+    <value>正在下载检测模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
+    <value>正在下载识别模型...</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
+    <value>加载 OCR 模型失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDescription" xml:space="preserve">
+    <value>英文场景优化，适合英文与数字识别。</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDisplayName" xml:space="preserve">
+    <value>English V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
+    <value>模型文件未完整下载，请先下载。</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDescription" xml:space="preserve">
+    <value>日文场景优化，适合日文与数字识别。</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDisplayName" xml:space="preserve">
+    <value>Japanese V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
+    <value>体积更小，适合低配置设备。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDisplayName" xml:space="preserve">
+    <value>中文 V3 Slim（轻量）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4Description" xml:space="preserve">
+    <value>兼容性稳定，部署体积适中。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4DisplayName" xml:space="preserve">
+    <value>中文 V4</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDescription" xml:space="preserve">
+    <value>精度与速度平衡，优先建议。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDisplayName" xml:space="preserve">
+    <value>中文 V5 Mobile（推荐）</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 识别模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrStatusInstalled" xml:space="preserve">
+    <value>已安装</value>
+  </data>
+  <data name="SmartBpOcrStatusMissing" xml:space="preserve">
+    <value>缺失</value>
+  </data>
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
+    <value>不支持的 OCR 模型：{0}</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisAligned" xml:space="preserve">
+    <value>最近进度诊断：已对齐</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisInsufficient" xml:space="preserve">
+    <value>最近进度诊断：证据不足</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisMisalignedFormat" xml:space="preserve">
+    <value>最近进度诊断：当前 Step {0} {1}[{2}]，画面更符合 Step {3} {4}[{5}]</value>
+  </data>
+  <data name="SmartBpProgressDiagnosisSyncedFormat" xml:space="preserve">
+    <value>最近进度诊断：已同步到 Step {0} {1}[{2}]</value>
+  </data>
+  <data name="SmartBpProgressForceSyncFailedFormat" xml:space="preserve">
+    <value>强制同步对局进度失败：{0}</value>
+  </data>
+  <data name="SmartBpProgressForceSyncForwardOnly" xml:space="preserve">
+    <value>自动进度同步只会向前移动，已跳过本次同步。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncGuidanceStartFailed" xml:space="preserve">
+    <value>未能启动对局引导，无法同步对局进度。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncNoSnapshot" xml:space="preserve">
+    <value>未能识别完整 BP 快照，无法同步对局进度。</value>
+  </data>
+  <data name="SmartBpProgressForceSyncRecognitionBusy" xml:space="preserve">
+    <value>当前识别任务尚未结束，暂时无法获取完整 BP 快照。请稍后再试。</value>
+  </data>
+  <data name="SmartBpRapidOcrBundledManifestOutdatedFormat" xml:space="preserve">
+    <value>官方模型清单已更新（内置 {0}，官方 {1}）。请先更新 SmartBP 模块，避免安装旧模型。</value>
+  </data>
+  <data name="SmartBpRapidOcrDownloading" xml:space="preserve">
+    <value>正在下载 RapidOCR 模型</value>
+  </data>
+  <data name="SmartBpRapidOcrUpdate" xml:space="preserve">
+    <value>更新模型</value>
+  </data>
+  <data name="SmartBpRapidOcrUpdateAvailableFormat" xml:space="preserve">
+    <value>RapidOCR 模型可更新：{0} → {1}</value>
+  </data>
+  <data name="SmartBpRapidOcrUpToDateFormat" xml:space="preserve">
+    <value>RapidOCR 模型已是最新版本（{0}）</value>
+  </data>
+  <data name="SmartBpRapidOcrVersionUnknown" xml:space="preserve">
+    <value>未知（旧版安装）</value>
+  </data>
+  <data name="SmartBpRecognitionIntervalReady" xml:space="preserve">
+    <value>测速结果与当前配置匹配，可以编辑识别间隔。</value>
+  </data>
+  <data name="SmartBpRecognitionIntervalRequiresSpeedTest" xml:space="preserve">
+    <value>请先运行识别速度测试。最低间隔将设为“实测最大耗时 + 250ms”。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedBpEnded" xml:space="preserve">
+    <value>SmartBP 已因 BP 流程结束或进入区域选择而暂停自动识别。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedCaptureStopped" xml:space="preserve">
+    <value>窗口捕获已停止，自动识别已暂停。</value>
+  </data>
+  <data name="SmartBpRecognitionPausedFrameUnavailable" xml:space="preserve">
+    <value>无法获取当前捕获画面，自动识别已暂停。</value>
+  </data>
+  <data name="SmartBpRecommendedProviderFormat" xml:space="preserve">
+    <value>{0}（推荐）</value>
+  </data>
+  <data name="SmartBpRefreshStatus" xml:space="preserve">
+    <value>刷新状态</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMatched" xml:space="preserve">
+    <value>当前比例匹配，可直接使用。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMismatched" xml:space="preserve">
+    <value>当前捕获比例与配置不一致，建议打开“编辑识别区域（GameData）”手动调整后保存。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintNotStarted" xml:space="preserve">
+    <value>请先启动捕获后再检查比例。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame" xml:space="preserve">
+    <value>捕获已启动，正在等待首帧用于比例匹配。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMatched" xml:space="preserve">
+    <value>匹配</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMismatched" xml:space="preserve">
+    <value>不匹配</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusNotStarted" xml:space="preserve">
+    <value>未开始捕获</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame" xml:space="preserve">
+    <value>等待首帧</value>
+  </data>
+  <data name="SmartBpRegionCellHunterKnockdowns" xml:space="preserve">
+    <value>击倒次数</value>
+  </data>
+  <data name="SmartBpRegionCellHunterPalletsDestroyed" xml:space="preserve">
+    <value>踩板总数</value>
+  </data>
+  <data name="SmartBpRegionCellHunterRemainingCipher" xml:space="preserve">
+    <value>剩余密码机</value>
+  </data>
+  <data name="SmartBpRegionCellHunterSurvivorHits" xml:space="preserve">
+    <value>攻击命中</value>
+  </data>
+  <data name="SmartBpRegionCellHunterTerrorShocks" xml:space="preserve">
+    <value>恐惧震慑</value>
+  </data>
+  <data name="SmartBpRegionCellName" xml:space="preserve">
+    <value>名称框</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorContainmentTime" xml:space="preserve">
+    <value>牵制时间</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorDecodingProgress" xml:space="preserve">
+    <value>破译进度</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorHeals" xml:space="preserve">
+    <value>治疗次数</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorPalletStrikes" xml:space="preserve">
+    <value>砸板命中</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorRescues" xml:space="preserve">
+    <value>救人次数</value>
+  </data>
+  <data name="SmartBpRegionConfigImported" xml:space="preserve">
+    <value>已导入配置文件。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetConfirm" xml:space="preserve">
+    <value>确认重置为内置 16:9 默认配置？当前配置将被覆盖。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetDone" xml:space="preserve">
+    <value>已重置为 16:9 默认配置。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetTitle" xml:space="preserve">
+    <value>重置配置</value>
+  </data>
+  <data name="SmartBpRegionConfigSaved" xml:space="preserve">
+    <value>识别区域配置已保存。</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectChildFormat" xml:space="preserve">
+    <value>节点：{0}`n相对坐标（相对父节点）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectRootFormat" xml:space="preserve">
+    <value>节点：{0}`n相对坐标（相对整帧）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionEditorRequireCaptureFirst" xml:space="preserve">
+    <value>请先启动捕获再编辑识别区域。</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleRuntimeFormat" xml:space="preserve">
+    <value>当前结构：{0}个可编辑节点（支持任意层级与数量）</value>
+  </data>
+  <data name="SmartBpRegionEditorSceneTitleFormat" xml:space="preserve">
+    <value>识别区域编辑（{0}）</value>
+  </data>
+  <data name="SmartBpRegionEditorSelectNodeFirst" xml:space="preserve">
+    <value>请先选择一个节点</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateAppliedFormat" xml:space="preserve">
+    <value>已应用到 {0} 个同模板元素（保留大元素位置）。</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat" xml:space="preserve">
+    <value>当前模板组：{0}，共 {1} 个元素。</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateMarkFormat" xml:space="preserve">
+    <value> [模板:{0}]</value>
+  </data>
+  <data name="SmartBpRegionHunterRow" xml:space="preserve">
+    <value>监管者行</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat" xml:space="preserve">
+    <value>结构不匹配：第 {0} 行期望 {1} 个小框，实际 {2} 个。</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat" xml:space="preserve">
+    <value>结构不匹配：期望 {0} 个大框，实际 {1} 个。</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
+    <value>结构不匹配：第 {0} 个大元素应为 {1}，实际 {2}。</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow1" xml:space="preserve">
+    <value>求生者行1</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow2" xml:space="preserve">
+    <value>求生者行2</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow3" xml:space="preserve">
+    <value>求生者行3</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow4" xml:space="preserve">
+    <value>求生者行4</value>
+  </data>
+  <data name="SmartBpSceneGameData" xml:space="preserve">
+    <value>GameData</value>
+  </data>
+  <data name="SmartBpStopAutomaticRecognition" xml:space="preserve">
+    <value>停止智慧 BP 识别</value>
+  </data>
+  <data name="SmartBpStopCaptureWhileRecognizing" xml:space="preserve">
+    <value>自动识别正在运行。请先停止自动识别，再停止窗口捕获。</value>
+  </data>
+  <data name="SmartBpTesseractDataDownloading" xml:space="preserve">
+    <value>正在下载 Tesseract 语言数据</value>
+  </data>
+  <data name="SmartBpTesseractDataInstalled" xml:space="preserve">
+    <value>Tesseract 语言数据已安装</value>
+  </data>
+  <data name="SmartBpTesseractDataMissing" xml:space="preserve">
+    <value>Tesseract 语言数据缺失</value>
+  </data>
+  <data name="SmartBpTesseractLanguageChineseSimplified" xml:space="preserve">
+    <value>简体中文（chi_sim）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageEnglish" xml:space="preserve">
+    <value>英语（eng）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageInstalled" xml:space="preserve">
+    <value>已安装</value>
+  </data>
+  <data name="SmartBpTesseractLanguageJapanese" xml:space="preserve">
+    <value>日语（jpn）</value>
+  </data>
+  <data name="SmartBpTesseractLanguageMissing" xml:space="preserve">
+    <value>缺失</value>
+  </data>
+  <data name="SmartBpTesseractNoLanguageSelected" xml:space="preserve">
+    <value>请至少选择一个 Tesseract 语言。</value>
+  </data>
+  <data name="SmartBpValidationOcrNotReady" xml:space="preserve">
+    <value>请先下载并切换可用的 OCR 模型后再启动识别。</value>
+  </data>
+  <data name="QueueCanceled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>确认</value>
+  </data>
+  <data name="UnknownError" xml:space="preserve">
+    <value>未知错误</value>
+  </data>
+  <data name="CudaHardwareAcceleration" xml:space="preserve">
+    <value>CUDA 硬件加速</value>
+  </data>
+  <data name="CudaDescription" xml:space="preserve">
+    <value>使用 NVIDIA GPU 加速 Paddle OCR</value>
+  </data>
+  <data name="CudaDetectedGpu" xml:space="preserve">
+    <value>检测到的显卡</value>
+  </data>
+  <data name="CudaCurrentStatus" xml:space="preserve">
+    <value>当前状态</value>
+  </data>
+  <data name="CudaEnableAcceleration" xml:space="preserve">
+    <value>启用 CUDA 硬件加速</value>
+  </data>
+  <data name="CudaCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="CudaRestartRequiredHint" xml:space="preserve">
+    <value>需要重启应用以应用更改</value>
+  </data>
+  <data name="CudaRestartNow" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="CudaStatusEnabled" xml:space="preserve">
+    <value>CUDA 已启用</value>
+  </data>
+  <data name="CudaStatusRestartRequired" xml:space="preserve">
+    <value>等待重启</value>
+  </data>
+  <data name="CudaStatusDownloading" xml:space="preserve">
+    <value>正在下载</value>
+  </data>
+  <data name="CudaStatusVersionMismatch" xml:space="preserve">
+    <value>组件版本不兼容，需要重新下载</value>
+  </data>
+  <data name="CudaStatusSupportedNotInstalled" xml:space="preserve">
+    <value>支持，但组件未安装</value>
+  </data>
+  <data name="CudaStatusFailedFallback" xml:space="preserve">
+    <value>CUDA 初始化失败，已回退 CPU</value>
+  </data>
+  <data name="CudaStatusUnavailable" xml:space="preserve">
+    <value>不可用</value>
+  </data>
+  <data name="CudaStatusUsingCpu" xml:space="preserve">
+    <value>当前使用 CPU</value>
+  </data>
+  <data name="CudaStatusReadyButNotPaddle" xml:space="preserve">
+    <value>CUDA runtime 已就绪，但当前 OCR 引擎未使用 Paddle CUDA</value>
+  </data>
+  <data name="CudaStatusPendingVerify" xml:space="preserve">
+    <value>CUDA runtime 已加载，等待模型推理验证</value>
+  </data>
+  <data name="CudaInstallFailed" xml:space="preserve">
+    <value>安装失败</value>
+  </data>
+  <data name="CudaDownloadDependency" xml:space="preserve">
+    <value>下载 CUDA 运行时依赖</value>
+  </data>
+  <data name="CudaDependencyRequiredHint" xml:space="preserve">
+    <value>需要先下载 CUDA 运行时依赖才能启用硬件加速</value>
+  </data>
+  <data name="CudaStatusDependencyReady" xml:space="preserve">
+    <value>依赖已就绪，可启用硬件加速</value>
+  </data>
+  <data name="CudaStatusDownloadFailed" xml:space="preserve">
+    <value>下载失败，请重试</value>
+  </data>
+</root>

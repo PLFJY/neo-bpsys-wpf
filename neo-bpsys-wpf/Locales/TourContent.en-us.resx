@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <!-- MainWindow.Tutorials.cs -->
+  <data name="Step.MainNavigationFrontManage.0.Title">
+    <value>Enter Frontend Management</value>
+  </data>
+  <data name="Step.MainNavigationFrontManage.0.Description">
+    <value>First enter the Frontend Management page, then open the BP frontend window for OBS to capture.</value>
+  </data>
+  <data name="Step.MainNavigationTeamInfo.0.Title">
+    <value>Enter Team Management</value>
+  </data>
+  <data name="Step.MainNavigationTeamInfo.0.Description">
+    <value>Enter the Team Management page to set up the Team Information used for this tutorial.</value>
+  </data>
+  <data name="Step.MainNavigationScore.0.Title">
+    <value>Enter the Score page</value>
+  </data>
+  <data name="Step.MainNavigationScore.0.Description">
+    <value>Enter the Score page to select the Score result for the current Half.</value>
+  </data>
+  <data name="Step.MainNavigationSmartBp.0.Title">
+    <value>Enter Smart BP</value>
+  </data>
+  <data name="Step.MainNavigationSmartBp.0.Description">
+    <value>Smart BP is a standalone module; a separate tutorial will start when you enter it for the first time.</value>
+  </data>
+  <data name="Step.MainNavigationDesignerV3.0.Title">
+    <value>Frontend interface editing</value>
+  </data>
+  <data name="Step.MainNavigationDesignerV3.0.Description">
+    <value>Frontend interface editing, layout editing, and animation behavior editing will be covered in a separate tutorial when you first open the v3 editor.</value>
+  </data>
+  <data name="Step.MainTeamSummaryBasic.0.Title">
+    <value>Confirm Team Information</value>
+  </data>
+  <data name="Step.MainTeamSummaryBasic.0.Description">
+    <value>The team name is already shown in the function area at the top of the MainWindow. You can also Swap here.</value>
+  </data>
+  <data name="Step.MainNavigationBasic.0.Title">
+    <value>Enter Team Management</value>
+  </data>
+  <data name="Step.MainNavigationBasic.0.Description">
+    <value>First enter the Team Management page, then we will set up the team used for this tutorial.</value>
+  </data>
+  <data name="Step.GameManageGameProgressBo1FirstHalf.0.Title">
+    <value>Select Game</value>
+  </data>
+  <data name="Step.GameManageGameProgressBo1FirstHalf.0.Description">
+    <value>Now select the Game used for this tutorial. Let's start with BO1 first half.</value>
+  </data>
+  <data name="Step.GameManageNewGameBasic.0.Title">
+    <value>New game</value>
+  </data>
+  <data name="Step.GameManageNewGameBasic.0.Description">
+    <value>A New game will clear the selection results of the current game, but will keep the Global ban records.</value>
+  </data>
+  <data name="Step.GameManageGlobalBanCarryOver.0.Title">
+    <value>Global ban carry over</value>
+  </data>
+  <data name="Step.GameManageGlobalBanCarryOver.0.Description">
+    <value>After switching Games, when you start Game guidance again, the software will automatically import the previous Global ban records and set the corresponding Ban slots.</value>
+  </data>
+  <data name="Step.GameManageBasic.0.Title">
+    <value>Confirm Game</value>
+  </data>
+  <data name="Step.GameManageBasic.0.Description">
+    <value>Now select the Game used for this tutorial. Let's start with BO1 first half.</value>
+  </data>
+  <data name="Step.BpGameGuidanceStartBasic.0.Title">
+    <value>Start Game guidance</value>
+  </data>
+  <data name="Step.BpGameGuidanceStartBasic.0.Description">
+    <value>Game guidance will walk you through the Map, Ban/Pick and subsequent steps based on the current Game.</value>
+  </data>
+  <data name="Step.BpGameGuidanceCurrentStepBasic.0.Title">
+    <value>View current step</value>
+  </data>
+  <data name="Step.BpGameGuidanceCurrentStepBasic.0.Description">
+    <value>The current step of Game guidance is shown here. Each time you enter a stage, first check here to confirm what action you should complete now.</value>
+  </data>
+  <data name="Step.MapBpBanMapOperationBasic.0.Title">
+    <value>Ban map operation area</value>
+  </data>
+  <data name="Step.MapBpBanMapOperationBasic.0.Description">
+    <value>Now complete the Ban map. Game guidance will highlight the area that needs to be operated. Please complete the map ban here.</value>
+  </data>
+  <data name="Step.MapBpNextToPickMapBasic.0.Title">
+    <value>Enter Pick map</value>
+  </data>
+  <data name="Step.MapBpNextToPickMapBasic.0.Description">
+    <value>After Ban map is complete, click Next to enter Pick map.</value>
+  </data>
+  <data name="Step.MapBpPickMapOperationBasic.0.Title">
+    <value>Pick map</value>
+  </data>
+  <data name="Step.MapBpPickMapOperationBasic.0.Description">
+    <value>Now complete Pick map</value>
+  </data>
+  <data name="Step.BpGameGuidanceEndBasic.0.Title">
+    <value>End Game guidance</value>
+  </data>
+  <data name="Step.BpGameGuidanceEndBasic.0.Description">
+    <value>Current Game guidance is complete. Click here to end the guidance, then you can enter the Score page to record the result.</value>
+  </data>
+  <data name="Step.BpGameGuidanceBasic.0.Title">
+    <value>Continue Game guidance</value>
+  </data>
+  <data name="Step.BpGameGuidanceBasic.0.Description">
+    <value>Game guidance will walk you through the Map, Ban/Pick and subsequent steps based on the current Game.</value>
+  </data>
+  <data name="Step.NextGameBasic.0.Title">
+    <value>Click to enter the next game</value>
+  </data>
+  <data name="Step.NextGameBasic.0.Description">
+    <value>After the current game ends, click to switch the Game to the next one</value>
+  </data>
+  <!-- FrontedDesignerWindow.Tutorials.cs -->
+  <data name="Step.DesignerV3LayoutEditBasic.0.Title">
+    <value>Layer list</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.0.Description">
+    <value>The Layer list shows the controls in the current Layout. The Layer Order affects the display Z-order of controls.</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.1.Title">
+    <value>Adjust Layer Order</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.1.Description">
+    <value>You can adjust the Layer Order by dragging. This tutorial does not require you to drag Layers.</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.2.Title">
+    <value>Preview Canvas</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.2.Description">
+    <value>The middle Canvas shows the final Frontend result. Try clicking a control on the Canvas to select it and move its Position; you can also just continue.</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.3.Title">
+    <value>Preview Canvas</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.3.Description">
+    <value>Hold Ctrl / long-press left button to drag-select multiple controls</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.4.Title">
+    <value>Preview Canvas</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.4.Description">
+    <value>Hold Shift to temporarily enable nearby Snapping and Guides</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.5.Title">
+    <value>Preview Canvas</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.5.Description">
+    <value>Hold Ctrl + mouse wheel to Zoom the Canvas, hold the right button to move the Canvas</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.6.Title">
+    <value>Save layout</value>
+  </data>
+  <data name="Step.DesignerV3LayoutEditBasic.6.Description">
+    <value>After adjusting the layout, you can save the current layout in the Top toolbar. Or press Ctrl+S directly to save</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.0.Title">
+    <value>PropertyGrid</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.0.Description">
+    <value>After selecting a control, the properties are shown on the right. Text, Color, Image, Font, etc. can all be modified here.</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.1.Title">
+    <value>Property editor</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.1.Description">
+    <value>Different properties show different editors. Some properties require clicking the Confirm button to be applied.</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.2.Title">
+    <value>Apply Property</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.2.Description">
+    <value>If a property is invalid, an Error state will be shown. This tutorial does not require you to modify or apply properties.</value>
+  </data>
+  <data name="Step.DesignerV3HelpBasic.0.Title">
+    <value>View detailed guide</value>
+  </data>
+  <data name="Step.DesignerV3HelpBasic.0.Description">
+    <value>This Help button in the bottom right can open the detailed guide for the v3 editor. When you are unclear about Property, Behavior, Animation, or Layout Packages rules, click here to view the detailed / Advanced guide.</value>
+  </data>
+  <data name="Dialogue.DesignerV3Overview.Lines">
+    <value>Welcome to the v3 designer.&#10;Here you can modify the Frontend interface in detail, including layout positions, control properties, image resources, and animation behaviors.</value>
+  </data>
+  <!-- FrontedBehaviorAnimationEditorWindow.Tutorials.cs -->
+  <data name="Step.DesignerV3AnimationEditorOverview.0.Title">
+    <value>Animation editor</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.0.Description">
+    <value>Here you edit the Animation actions for behaviors. An Animation consists of time, steps, and Parameter changes.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.1.Title">
+    <value>Animation editor</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.1.Description">
+    <value>Long-press left button to drag-select multiple nodes</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.2.Title">
+    <value>Animation editor</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorOverview.2.Description">
+    <value>Hold Ctrl + mouse wheel to Zoom the Canvas, hold the right button to move the Canvas</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Title">
+    <value>Node steps</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.0.Description">
+    <value>Animations execute in Node step Order. You can first understand the Structure; you don't need to create Keyframes to complete the tutorial.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Title">
+    <value>Node steps</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.1.Description">
+    <value>Animations execute in step Order. Different stages can separately edit Enter, Loop, and stop actions.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Title">
+    <value>Node steps</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.2.Description">
+    <value>Each Animation starts from the "Start node" and ends at the "End node"</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Title">
+    <value>Animation property node</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorTimelineBasic.3.Description">
+    <value>Now try dragging an "Animation property" node from the Node catalog on the left onto the Canvas and select it. The tutorial will continue automatically after selection; if you already have this node, just click to select it.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Title">
+    <value>Action Parameter</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.0.Description">
+    <value>Parameters describe changes such as Position, Opacity, Size, and Color. This tutorial does not require you to create or save Parameters.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Title">
+    <value>Action Parameter</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorKeyFrameBasic.1.Description">
+    <value>After selecting a node, you can edit the change Parameters for Position, Opacity, Size, Color, etc. here.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Title">
+    <value>Preview Animation</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.0.Description">
+    <value>Preview is used to confirm the Action Order and Parameter effects. This tutorial does not require you to save the Animation.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Title">
+    <value>Preview Animation</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.1.Description">
+    <value>Before formal use, it is recommended to Preview the Animation effect to confirm that the Action Order and Parameters meet expectations. After confirming, you can save or apply according to the save prompt in the current window; this tutorial does not require you to save.</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Title">
+    <value>Preview Animation</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorPreviewBasic.2.Description">
+    <value>Hold Ctrl + mouse wheel to Zoom the preview area, hold the right button to move the Canvas</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Title">
+    <value>Animation Advanced guide</value>
+  </data>
+  <data name="Step.DesignerV3AnimationEditorHelpBasic.0.Description">
+    <value>This Help button in the bottom right can view the detailed / Advanced guide for the Animation editor.</value>
+  </data>
+  <data name="Dialogue.DesignerV3AnimationEditorOverview.Lines">
+    <value>Welcome to the Animation editor.&#10;Here you can set up Animations for Frontend controls</value>
+  </data>
+  <!-- SmartBpModuleContentView.Tutorials.cs -->
+  <data name="Step.SmartBpOcrModelDownloadBasic.0.Title">
+    <value>Recognition model management</value>
+  </data>
+  <data name="Step.SmartBpOcrModelDownloadBasic.0.Description">
+    <value>Smart BP OCR recognition requires a local model. Here you can select the Recognition engine, and check, Download, Update, or Switch the OCR model used by Smart BP.</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.0.Title">
+    <value>Select game window</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.0.Description">
+    <value>First select the Identity V game window. The Identity V game process is usually dwrg.exe.</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.1.Title">
+    <value>Start Capture</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.1.Description">
+    <value>After selecting the window, SmartBP can Capture the game screen. This tutorial does not require you to start Capture, and will not wait for Capture to succeed.</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.2.Title">
+    <value>Preview Capture</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.2.Description">
+    <value>Click Preview to confirm whether the captured screen is correct. If dwrg.exe is not found, you can still continue the tutorial.</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.3.Title">
+    <value>Stop Capture</value>
+  </data>
+  <data name="Step.SmartBpCaptureBasic.3.Description">
+    <value>If Capture is abnormal, you can stop Capture.</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorEntryBasic.0.Title">
+    <value>Recognition Area</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorEntryBasic.0.Description">
+    <value>Recognition Area determines which positions on the screen the OCR or Vision model reads. Different stages have different areas, such as Ban Survivor, Ban Hunter, Pick, and Game statistics. Click this button to open the Recognition Area editor.&#10;Recognition Area for the BP stage</value>
+  </data>
+  <data name="Step.SmartBpFullBpFlowBasic.0.Title">
+    <value>Full-flow BP</value>
+  </data>
+  <data name="Step.SmartBpFullBpFlowBasic.0.Description">
+    <value>Full-flow BP will automatically recognize based on the current Match stage. Before starting, please confirm that window Capture and Recognition Area are correct. In formal matches, it is recommended to Preview and confirm first, then start. After clicking, the Smart BP automatic BP flow will begin.</value>
+  </data>
+  <data name="Dialogue.SmartBpOcrModelDownloadBasic.Lines">
+    <value>Smart BP is used to recognize the game screen and assist in filling in BP and Game statistics.&#10;The usage order is: Download OCR model -&gt; Capture window -&gt; configure Recognition Area -&gt; start using related features</value>
+  </data>
+  <data name="Dialogue.SmartBpPostGameAutoFill.Lines">
+    <value>After the game ends, Smart BP can recognize Game statistics and assist in filling them in. On the Game statistics page there is an "Auto recognize and fill Game statistics" button&#10;Recognized Game statistics will automatically match Characters</value>
+  </data>
+  <!-- RegionEditorWindow.Tutorials.cs -->
+  <data name="Step.SmartBpRegionEditorBasic.0.Title">
+    <value>Area Preview</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.0.Description">
+    <value>If recognition is inaccurate, first check whether the Recognition Area is Aligned. You can adjust the area through the Preview screen.</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.1.Title">
+    <value>Area list</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.1.Description">
+    <value>The configurable Recognition Areas are listed here. This tutorial does not require you to drag areas.</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.2.Title">
+    <value>Save area</value>
+  </data>
+  <data name="Step.SmartBpRegionEditorBasic.2.Description">
+    <value>Save the area before starting recognition. This tutorial does not require you to save, and will not wait for saving to complete.</value>
+  </data>
+  <!-- FrontedWindowsView.Tutorials.cs -->
+  <data name="Step.FrontManageWindowsBasic.0.Title">
+    <value>Frontend Windows</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.0.Description">
+    <value>All Frontend Windows are managed here. When Broadcast troubleshoots and controls windows, you can view the window list here.</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.1.Title">
+    <value>Open Designer</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.1.Description">
+    <value>Click here to open the v3 Frontend Designer, used to edit Frontend layout, control properties, and Animation behaviors.</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.2.Title">
+    <value>Open all windows</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.2.Description">
+    <value>"Open all" will open all Frontend Windows at once, suitable for Broadcast to check OBS Capture sources before going live. It may pop up multiple windows at the same time, and this tutorial will not require you to click it.</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.3.Title">
+    <value>Close all windows</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.3.Description">
+    <value>"Close all" will close all Frontend Windows at once, suitable for Broadcast to wrap up or troubleshoot window states. This tutorial will not wait for the close operation to complete.</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.4.Title">
+    <value>Stop Loop Animation</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.4.Description">
+    <value>If the Frontend Loop Animation is abnormal, you can use "Stop all Loop Animations". This is a control function for Broadcast to troubleshoot Animation states.</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.5.Title">
+    <value>Window groups</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.5.Description">
+    <value>The manageable Frontend Windows are listed here by Window groups. Each window can be opened or closed individually.</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.6.Title">
+    <value>Single window</value>
+  </data>
+  <data name="Step.FrontManageWindowsBasic.6.Description">
+    <value>A single window card can independently open or close the corresponding Frontend window.</value>
+  </data>
+  <data name="Step.FrontManageOpenDesigner.0.Title">
+    <value>Open v3 editor</value>
+  </data>
+  <data name="Step.FrontManageOpenDesigner.0.Description">
+    <value>The v3 editor is used to edit Frontend layout, control properties, and Animation behaviors. Click here to open the Frontend Designer. After opening, a separate v3 editor tutorial will start.</value>
+  </data>
+  <data name="Step.FrontManageBpWindowLaunchBasic.0.Title">
+    <value>Launch BP frontend window</value>
+  </data>
+  <data name="Step.FrontManageBpWindowLaunchBasic.0.Description">
+    <value>During Broadcast, what the audience sees is the Frontend window. Let's only launch the BP Frontend page first.</value>
+  </data>
+  <!-- TeamInfoPage.Tutorials.cs -->
+  <data name="Step.TeamInfoTeamNameBasic.0.Title">
+    <value>Fill in Team name</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.0.Description">
+    <value>You can set the Team name here. First try entering a team name.</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.1.Title">
+    <value>Confirm Team name</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.1.Description">
+    <value>After clicking Confirm, the Team name will be written into the current match data.</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.2.Title">
+    <value>Set Team Logo</value>
+  </data>
+  <data name="Step.TeamInfoTeamNameBasic.2.Description">
+    <value>You can set the Home Team Logo here. For this tour, you can just click Next to continue.</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.0.Title">
+    <value>Import Wolves Preset</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.0.Description">
+    <value>After clicking Import, select "队伍信息导入示例-Wolves.json" in the opened File dialog.</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.1.Title">
+    <value>Adjust Wolves Enter and Exit</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.1.Description">
+    <value>After importing, adjust the Enter and Exit status of Wolves members here.</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.2.Title">
+    <value>Import GR Preset</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.2.Description">
+    <value>After clicking Import, select "队伍信息导入示例-GR.json" in the opened File dialog.</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.3.Title">
+    <value>Adjust GR Enter and Exit</value>
+  </data>
+  <data name="Step.TeamInfoJsonImportPreset.3.Description">
+    <value>After importing, adjust the Enter and Exit status of GR members here.</value>
+  </data>
+  <data name="Step.TeamInfoPlayerManage.0.Title">
+    <value>Adjust Team member Order</value>
+  </data>
+  <data name="Step.TeamInfoPlayerManage.0.Description">
+    <value>You can adjust the Order of the Players currently on the field here; the Frontend and BP flow will use this information.</value>
+  </data>
+  <data name="Hint.TeamInfoJsonImportPreset.HomePickerTitle">
+    <value>Please import Wolves information: select "队伍信息导入示例-Wolves.json"</value>
+  </data>
+  <data name="Hint.TeamInfoJsonImportPreset.AwayPickerTitle">
+    <value>Please import GR information: select "队伍信息导入示例-GR.json"</value>
+  </data>
+  <!-- TalentPage.Tutorials.cs -->
+  <data name="Step.BpTalentTraitBasic.0.Title">
+    <value>Set Talent and Trait</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.0.Description">
+    <value>This is used to set the Talent and Trait of the Characters in this game. This information will be used for Frontend display and post-game records. Select according to the actual match situation, then continue the guidance.</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.1.Title">
+    <value>Survivor Talent</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.1.Description">
+    <value>Here you set the Talents of the four Survivors. This tutorial does not require you to fill them in completely.</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.2.Title">
+    <value>Hunter Trait</value>
+  </data>
+  <data name="Step.BpTalentTraitBasic.2.Description">
+    <value>Here you set the Hunter Talent and Hunter trait. After confirming the actual match information, continue the Game guidance.</value>
+  </data>
+  <!-- ScorePage.Tutorials.cs -->
+  <data name="Step.ScoreBasic.0.Title">
+    <value>Select Score</value>
+  </data>
+  <data name="Step.ScoreBasic.0.Description">
+    <value>After the game ends, you can select the Score here. The Score will sync to the match state and Frontend display.</value>
+  </data>
+  <!-- PickPage.Tutorials.cs -->
+  <data name="Step.BpPickSelectFourSurvivorsBasic.0.Title">
+    <value>Complete four Survivor selections</value>
+  </data>
+  <data name="Step.BpPickSelectFourSurvivorsBasic.0.Description">
+    <value>Continue selecting the remaining Survivor Characters. After all four Survivors are selected, enter the Character adjustment tutorial.</value>
+  </data>
+  <data name="Step.BpGlobalBanRecordBasic.0.Title">
+    <value>Global ban record</value>
+  </data>
+  <data name="Step.BpGlobalBanRecordBasic.0.Description">
+    <value>The Characters just selected will be recorded in the Global ban. Subsequent New games will clear the current game selection, but will keep these Global ban records.</value>
+  </data>
+  <data name="Step.BpCharacterChangerBasic.0.Title">
+    <value>Adjust selected Character Order</value>
+  </data>
+  <data name="Step.BpCharacterChangerBasic.0.Description">
+    <value>After selecting Characters, in the Distribute Characters stage, you can use the Character adjustment function here. After adjustment, the current BP state will be updated synchronously.&#10;Click the Number button to Swap the current Player's Survivor Character with the Survivor Character at the corresponding position</value>
+  </data>
+  <!-- FrontManagePage.Tutorials.cs -->
+  <data name="Step.FrontManageOverview.0.Title">
+    <value>Frontend Management</value>
+  </data>
+  <data name="Step.FrontManageOverview.0.Description">
+    <value>This is the Frontend Management page. Frontend Management is divided into two areas: "Frontend Windows" and "Layout Packages". Frontend Windows is responsible for opening and closing the windows that the audience sees. Layout Packages is responsible for importing, switching, and managing Frontend interface schemes.</value>
+  </data>
+  <!-- BanSurPage.Tutorials.cs -->
+  <data name="Step.BpCharacterSelectorBasic.0.Title">
+    <value>Character selector tutorial</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.0.Description">
+    <value>Now let's learn how to use the Character selector</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.1.Title">
+    <value>First press space to match Character</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.1.Description">
+    <value>This is a Character selector, not an ordinary Dropdown. First enter the full name, Full pinyin, or Abbreviated pinyin of a Character, then press space to trigger matching. Do not click Confirm in this step.</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.2.Title">
+    <value>Confirm Character selection</value>
+  </data>
+  <data name="Step.BpCharacterSelectorBasic.2.Description">
+    <value>After a Character is matched, press Enter / Tab or click the Confirm button to complete the selection.</value>
+  </data>
+  <!-- BehaviorPanelView.Tutorials.cs -->
+  <data name="Step.DesignerV3BehaviorPanelOverview.0.Title">
+    <value>Behavior panel</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.0.Description">
+    <value>After expanding the Behavior area, you can configure "Trigger + Action" for the current control. One-shot behaviors, Loop behaviors, and Transition behaviors have different purposes, and can respectively handle post-click Animation, continuous Loop, and State transition Transition.</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.1.Title">
+    <value>Add Behavior</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.1.Description">
+    <value>You can add One-shot / Loop / Transition behaviors here. This tutorial does not require you to create behaviors.</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.2.Title">
+    <value>Behavior list</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelOverview.2.Description">
+    <value>Each Behavior can be enabled, Duplicated, Deleted, and Expanded to view the Trigger and Action configuration.</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Title">
+    <value>Trigger</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.0.Description">
+    <value>The Trigger determines when the Animation runs; when no behavior is created, you can first understand the Concept, then Expand the specific behavior to edit later.</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Title">
+    <value>Trigger</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelTriggerBasic.1.Description">
+    <value>The Trigger determines when the Animation runs, for example filtering by state, Event, or payload field.</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Title">
+    <value>Action editing</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.0.Description">
+    <value>The Action determines how the control changes. You can enter the Animation editor when needed; you don't need to create or save Animations to complete the tutorial.</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Title">
+    <value>Action editing</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelActionBasic.1.Description">
+    <value>After clicking, you will enter the Animation editor to edit specific actions, Keyframes, and Parameters. This tutorial does not require you to open the Animation editor.</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Title">
+    <value>Behavior system guide</value>
+  </data>
+  <data name="Step.DesignerV3BehaviorPanelHelpBasic.0.Description">
+    <value>This Help button in the bottom right can view the detailed / Advanced guide of the Behavior system.</value>
+  </data>
+  <!-- FirstRun Dialogues (App.Tour.xaml.cs) -->
+  <data name="Dialogue.FirstRun.Opening">
+    <value>Welcome to neo-bpsys-wpf.&#10;Now let's go through a simple Broadcast tutorial.</value>
+  </data>
+  <data name="Dialogue.FirstRun.Ending">
+    <value>Frontend interface editing will be covered in a separate tutorial when you first open the v3 editor.&#10;Smart BP will be covered in a separate tutorial when you first enter the Smart BP page.&#10;Start your Broadcast journey.</value>
+  </data>
+  <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
+  <data name="Dialogue.Probe.Navigation.Opening.Lines">
+    <value>Now let's verify the tutorial guidance of the left navigation bar.</value>
+  </data>
+  <data name="Dialogue.Probe.Navigation.Closing.Lines">
+    <value>Navigation guidance verification complete.</value>
+  </data>
+  <data name="Dialogue.Probe.RealTarget.Opening.Lines">
+    <value>Now let's start verifying real page targets and operation signals.</value>
+  </data>
+  <data name="Dialogue.Probe.RealTarget.Closing.Lines">
+    <value>Real target verification complete. The full tutorial flow will be provided in subsequent versions.</value>
+  </data>
+  <!-- FrontedLayoutPackagesView.Tutorials.cs -->
+  <data name="Step.FrontManageLayoutPackagesBasic.0.Title">
+    <value>Layout Packages list</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.0.Description">
+    <value>All available Layout Packages are listed here. The Built-in layout cannot be modified directly.</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.1.Title">
+    <value>Modify Layout Packages</value>
+  </data>
+  <data name="Step.FrontManageLayoutPackagesBasic.1.Description">
+    <value>When you try to modify a Built-in layout, it will automatically Switch to a new User custom layout.</value>
+  </data>
+  <!-- FrontedDesignerWindow.Tutorials.cs — PropertyPanelBasic step 3 -->
+  <data name="Step.DesignerV3PropertyPanelBasic.3.Title">
+    <value>Behavior and Animation entry</value>
+  </data>
+  <data name="Step.DesignerV3PropertyPanelBasic.3.Description">
+    <value>Below the PropertyGrid you can find the Behavior and Animation entry. Click the Add Behavior button to add behaviors and animations for the control.</value>
+  </data>
+</root>

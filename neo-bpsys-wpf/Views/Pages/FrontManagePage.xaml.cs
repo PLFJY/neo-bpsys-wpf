@@ -1,6 +1,14 @@
-﻿using System.Windows.Controls;
+using CommunityToolkit.Mvvm.Messaging;
+using System.Windows;
+using System.Windows.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Views.Pages.FrontManage;
+using neo_bpsys_wpf.Tutorial;
+using neo_bpsys_wpf.Core;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
@@ -12,10 +20,97 @@ namespace neo_bpsys_wpf.Views.Pages;
     "FrontendManagement",
     SymbolRegular.ShareScreenStart24,
     BackendPageCategory.External)]
-public partial class FrontManagePage : Page
+public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigationMessage>
 {
-    public FrontManagePage()
+    private readonly ITutorialRunner? _tutorialRunner;
+    private readonly global::neo_bpsys_wpf.Services.NavigationService? _navigationService;
+    private CancellationTokenSource _tutorialLifetime = new();
+
+    /// <summary>
+    /// 初始化 <see cref="FrontManagePage"/> 类的新实例。
+    /// </summary>
+    /// <param name="tutorialRunner">教程运行器。</param>
+    /// <param name="navigationService">导航服务。</param>
+    public FrontManagePage(
+        ITutorialRunner? tutorialRunner = null,
+        global::neo_bpsys_wpf.Services.NavigationService? navigationService = null)
     {
+        _tutorialRunner = tutorialRunner;
+        _navigationService = navigationService;
         InitializeComponent();
+
+        FrontManageTabs.MenuItems.Add(new NavigationViewItem(
+            "FrontendWindows",
+            SymbolRegular.ShareScreenStart24,
+            typeof(FrontedWindowsView))
+        {
+            Name = "FrontedWindowsTab"
+        });
+        FrontManageTabs.MenuItems.Add(new NavigationViewItem(
+            "LayoutPackages",
+            SymbolRegular.AppsList24,
+            typeof(FrontedLayoutPackagesView))
+        {
+            Name = "LayoutPackagesTab"
+        });
+
+        Loaded += async (_, _) =>
+        {
+            if (_tutorialLifetime.IsCancellationRequested)
+            {
+                _tutorialLifetime.Dispose();
+                _tutorialLifetime = new CancellationTokenSource();
+            }
+
+            TutorialSignalPublisher.Publish(TutorialSignalIds.NavigationFrontManageOpened);
+            if (IsCurrentFrontManagePage())
+            {
+                await TryRunTutorialAsync();
+            }
+        };
+        Unloaded += (_, _) => _tutorialLifetime.Cancel();
+        Loaded += OnLoaded;
+        IsVisibleChanged += async (_, e) =>
+        {
+            if (Equals(e.NewValue, true) && IsCurrentFrontManagePage())
+            {
+                await TryRunTutorialAsync();
+            }
+        };
+        WeakReferenceMessenger.Default.Register(this);
     }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        FrontManageTabs.SelectFirstItemIfNoneSelected();
+    }
+
+    /// <inheritdoc/>
+    public void Receive(FrontManageTabNavigationMessage message)
+    {
+        if (message.TabKey == FrontManageTabNavigationMessage.LayoutPackagesTabKey)
+        {
+            FrontManageTabs.Navigate(typeof(FrontedLayoutPackagesView));
+        }
+    }
+
+    private async Task TryRunTutorialAsync()
+    {
+        var runner = _tutorialRunner ?? IAppHost.Host?.Services.GetService<ITutorialRunner>();
+        if (runner == null)
+        {
+            return;
+        }
+
+        await runner.RunSequenceAsync(this, TutorialPageKeys.FrontManage, _tutorialLifetime.Token);
+    }
+
+    private bool IsCurrentFrontManagePage()
+    {
+        var navigationService = _navigationService
+            ?? IAppHost.Host?.Services.GetService<global::neo_bpsys_wpf.Services.NavigationService>();
+        return navigationService == null
+            || ReferenceEquals(navigationService.CurrentPageContent, this);
+    }
+
 }

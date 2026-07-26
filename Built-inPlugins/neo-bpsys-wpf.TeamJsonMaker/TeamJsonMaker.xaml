@@ -2,6 +2,7 @@
     x:Class="neo_bpsys_wpf.TeamJsonMaker.TeamJsonMaker"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:neo_bpsys_wpf.TeamJsonMaker"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,16 +15,26 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <StackPanel>
-        <TextBlock
-            Grid.Row="0"
-            Style="{StaticResource Title}"
-            Text="队伍 JSON 导入文件制作" />
+        <StackPanel Orientation="Horizontal">
+            <TextBlock
+                Grid.Row="0"
+                VerticalAlignment="Center"
+                Style="{StaticResource Title}"
+                Text="队伍 JSON 导入文件制作" />
+            <ui:Button
+                Margin="12,0,0,0"
+                Command="{Binding ImportCommand}"
+                Content="导入已有 JSON"
+                Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
+        </StackPanel>
         <Border
+            Margin="0,10,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -36,7 +47,7 @@
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left"
                     PlaceholderText="队伍名称"
-                    Text="{Binding CurrentTeam.TeamName}" />
+                    Text="{Binding CurrentTeam.Name}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -52,6 +63,25 @@
                 </StackPanel>
                 <StackPanel
                     Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="队伍颜色（#RRGGBB 或 #AARRGGBB）: " />
+                    <colorpicker:PortableColorPicker
+                        Width="60"
+                        Height="30"
+                        Margin="10,0,0,0"
+                        HexRepresentation="ARGB"
+                        SelectedColor="{Binding CurrentTeam.Color, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        ShowAlpha="True"
+                        Style="{StaticResource DefaultColorPickerStyle}" />
+                    <ui:TextBox
+                        MinWidth="180"
+                        Margin="10,0,0,0"
+                        MaxLength="9"
+                        Text="{Binding CurrentTeam.ColorHex}" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left">
                     <TextBlock Text="求生者选手" />
@@ -90,7 +120,7 @@
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
                 <StackPanel
-                    Grid.Row="3"
+                    Grid.Row="4"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left">
                     <TextBlock Text="监管者选手" />

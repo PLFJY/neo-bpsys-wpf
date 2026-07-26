@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="ScoreStatisticsBO5">
+    <value>分数统计（BO5）</value>
+  </data>
+  <data name="ScoreStatisticsBO3">
+    <value>分数统计（BO3）</value>
+  </data>
+  <data name="ScoreComponent">
+    <value>比分组件</value>
+  </data>
+  <data name="ScoreStatistics">
+    <value>分数统计</value>
+  </data>
+  <data name="ScoreInBPWindowAndGame">
+    <value>BP界面及游戏内比分</value>
+  </data>
+  <data name="ScoreSettlement">
+    <value>大比分结算</value>
+  </data>
+  <data name="ScoreControl">
+    <value>比分控制</value>
+  </data>
+  <data name="ScorePreview">
+    <value>{0}  W:{1} D:{2}  小比分: {3}</value>
+  </data>
+  <data name="ScorePreviewTable">
+    <value>比分预览</value>
+  </data>
+  <data name="ScorePreviewCurrent">
+    <value>当前</value>
+  </data>
+  <data name="ScorePreviewRecorded">
+    <value>已录入</value>
+  </data>
+  <data name="ScorePreviewEmpty">
+    <value>未录入</value>
+  </data>
+  <data name="ScorePreviewGame">
+    <value>场次</value>
+  </data>
+  <data name="ScorePreviewHalf">
+    <value>半场</value>
+  </data>
+  <data name="ScorePreviewStatus">
+    <value>状态</value>
+  </data>
+  <data name="ScorePreviewResult">
+    <value>结果</value>
+  </data>
+  <data name="ScorePreviewHomeCamp">
+    <value>主队阵营</value>
+  </data>
+  <data name="ScorePreviewAwayCamp">
+    <value>客队阵营</value>
+  </data>
+  <data name="ScorePreviewHomeMinorScore">
+    <value>主队小比分</value>
+  </data>
+  <data name="ScorePreviewAwayMinorScore">
+    <value>客队小比分</value>
+  </data>
+  <data name="ScorePreviewFirstHalf">
+    <value>上半</value>
+  </data>
+  <data name="ScorePreviewSecondHalf">
+    <value>下半</value>
+  </data>
+  <data name="ScorePreviewGameFormat">
+    <value>第{0}局</value>
+  </data>
+  <data name="ScorePreviewGameOvertimeFormat">
+    <value>第{0}局加赛</value>
+  </data>
+  <data name="ScorePreviewProgressFormat">
+    <value>{0} {1}</value>
+  </data>
+  <data name="ScoresInScoreStatistics">
+    <value>分数（分数统计）</value>
+  </data>
+  <data name="ScoreGlobalWindowBackgroundColor">
+    <value>分数统计背景颜色</value>
+  </data>
+  <data name="ScoreInGameWindowSize">
+    <value>游戏内比分窗口大小</value>
+  </data>
+  <data name="ScoreGlobalWindowSize">
+    <value>分数统计窗口大小</value>
+  </data>
+  <data name="ScoreBpControls">
+    <value>比分/BP 控件</value>
+  </data>
+  <data name="ScoreSurWindow">
+    <value>求生者比分</value>
+  </data>
+  <data name="ScoreHunWindow">
+    <value>监管者比分</value>
+  </data>
+  <data name="ScoreGlobalWindow">
+    <value>比分统计</value>
+  </data>
+  <data name="ClearCurrentHalfScore">
+    <value>清除当前半场比分</value>
+  </data>
+  <data name="FourEliminate">
+    <value>4抓</value>
+  </data>
+  <data name="FourEscape">
+    <value>4跑</value>
+  </data>
+  <data name="ResetAllScores">
+    <value>总清零</value>
+  </data>
+  <data name="RestoreDefaultSort">
+    <value>恢复默认排序</value>
+  </data>
+  <data name="ThreeEliminate">
+    <value>3抓</value>
+  </data>
+  <data name="ThreeEscape">
+    <value>3跑</value>
+  </data>
+  <data name="Tie">
+    <value>平局</value>
+  </data>
+</root>

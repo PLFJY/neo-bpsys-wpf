@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Markup;
 using Wpf.Ui.Appearance;
 
@@ -13,7 +13,7 @@ public class IconThemesDictionary : ResourceDictionary
         "pack://application:,,,/neo-bpsys-wpf;component/Themes/";
 
     /// <summary>
-    /// Sets the default application theme.
+    /// 设置默认应用主题。
     /// </summary>
     public ApplicationTheme Theme
     {

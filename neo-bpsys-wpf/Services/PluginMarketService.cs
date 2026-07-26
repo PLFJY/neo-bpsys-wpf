@@ -8,7 +8,6 @@ using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
 using System.ComponentModel;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -16,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
 using System.Windows;
+using neo_bpsys_wpf.Core.Models.Archives;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -29,7 +29,9 @@ public class PluginMarketService : IPluginMarketService
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<PluginMarketService> _logger;
+    private static ILogger<PluginMarketService>? StaticLogger => IAppHost.TryGetService<ILogger<PluginMarketService>>();
     private readonly ISettingsHostService _settingsHostService;
+    private readonly IArchiveService _archiveService;
     private readonly Lock _downloadLock = new();
     private CancellationTokenSource? _downloadCts;
     private DownloadService? _currentDownloader;
@@ -37,17 +39,23 @@ public class PluginMarketService : IPluginMarketService
     private PluginDownloadExecutionContext? _currentDownloadContext;
     private readonly ObservableCollection<PluginDownloadQueueItem> _downloadQueueInternal = [];
     private readonly Queue<QueuedPluginDownloadRequest> _pendingDownloads = new();
-    private readonly Dictionary<string, string> _resolvedMirrorCache = new(StringComparer.Ordinal);
+    private readonly IGitHubDownloadUrlResolver _githubDownloadUrlResolver;
     private readonly Queue<PluginPackageDownloadResult> _completedDownloadResults = new();
     private bool _isProcessingQueue;
 
     /// <summary>
     /// 初始化插件市场服务。
     /// </summary>
-    public PluginMarketService(ILogger<PluginMarketService> logger, ISettingsHostService settingsHostService)
+    public PluginMarketService(
+        ILogger<PluginMarketService> logger,
+        ISettingsHostService settingsHostService,
+        IArchiveService archiveService,
+        IGitHubDownloadUrlResolver githubDownloadUrlResolver)
     {
         _logger = logger;
         _settingsHostService = settingsHostService;
+        _archiveService = archiveService;
+        _githubDownloadUrlResolver = githubDownloadUrlResolver;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
         DownloadQueue = new ReadOnlyObservableCollection<PluginDownloadQueueItem>(_downloadQueueInternal);
@@ -265,10 +273,7 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     public void ResetMirrorCache()
     {
-        lock (_resolvedMirrorCache)
-        {
-            _resolvedMirrorCache.Clear();
-        }
+        _githubDownloadUrlResolver.ResetCache();
     }
 
     /// <summary>
@@ -276,56 +281,7 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     private async Task<string> ResolveGitHubUrlAsync(string url, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            return string.Empty;
-        }
-
-        if (!ShouldApplyGhProxy(url))
-        {
-            return url;
-        }
-
-        var preferredMirror = _settingsHostService.Settings.GhProxyMirror;
-        if (string.IsNullOrWhiteSpace(preferredMirror))
-        {
-            return url;
-        }
-
-        string? resolvedMirror;
-        lock (_resolvedMirrorCache)
-        {
-            _resolvedMirrorCache.TryGetValue(preferredMirror, out resolvedMirror);
-        }
-
-        if (!string.IsNullOrWhiteSpace(resolvedMirror))
-        {
-            return resolvedMirror + url;
-        }
-
-        var candidates = new List<string> { preferredMirror };
-        candidates.AddRange(DownloadMirrorPresets.GhProxyMirrorList.Where(x =>
-            !string.IsNullOrWhiteSpace(x) && !string.Equals(x, preferredMirror, StringComparison.OrdinalIgnoreCase)));
-
-        foreach (var mirror in candidates)
-        {
-            if (await IsMirrorAvailableAsync(mirror, url, cancellationToken))
-            {
-                lock (_resolvedMirrorCache)
-                {
-                    _resolvedMirrorCache[preferredMirror] = mirror;
-                }
-
-                return mirror + url;
-            }
-        }
-
-        lock (_resolvedMirrorCache)
-        {
-            _resolvedMirrorCache[preferredMirror] = string.Empty;
-        }
-
-        return url;
+        return await _githubDownloadUrlResolver.ResolveAsync(url, cancellationToken);
     }
 
     /// <summary>
@@ -338,58 +294,6 @@ public class PluginMarketService : IPluginMarketService
         return string.IsNullOrWhiteSpace(_settingsHostService.Settings.PluginMarketSource)
             ? DefaultMarketIndexUrl
             : _settingsHostService.Settings.PluginMarketSource;
-    }
-
-    /// <summary>
-    /// 判断指定地址是否需要使用镜像。
-    /// </summary>
-    private bool ShouldApplyGhProxy(string url)
-    {
-        if (!IsChineseEnvironment())
-        {
-            return false;
-        }
-
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-        {
-            return false;
-        }
-
-        return uri.Host.Contains("github.com", StringComparison.OrdinalIgnoreCase)
-               || uri.Host.Contains("githubusercontent.com", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 判断当前是否处于中文环境。
-    /// </summary>
-    private bool IsChineseEnvironment()
-    {
-        return _settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 检查指定镜像是否可用于当前目标地址。
-    /// 只有确认镜像本身能访问目标地址后，才会真正把镜像前缀应用到下载地址上。
-    /// </summary>
-    /// <param name="mirror">待测试的镜像前缀。</param>
-    /// <param name="targetUrl">准备通过镜像访问的原始地址。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    private async Task<bool> IsMirrorAvailableAsync(string mirror, string targetUrl, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Get, mirror + targetUrl);
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            linkedCts.CancelAfter(TimeSpan.FromSeconds(4));
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,
-                linkedCts.Token);
-            return response.IsSuccessStatusCode;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Mirror unavailable: {Mirror}", mirror);
-            return false;
-        }
     }
 
     /// <summary>
@@ -511,7 +415,7 @@ public class PluginMarketService : IPluginMarketService
             "PluginMarket",
             request.QueueItem.PluginId,
             request.QueueItem.QueueId);
-        var tempZipPath = Path.Combine(downloadSessionPath, "package.zip");
+        var tempArchivePath = Path.Combine(downloadSessionPath, "package.archive");
         var extractPath = Path.Combine(downloadSessionPath, "extract");
         var downloadService = CreateDownloadService();
 
@@ -525,7 +429,7 @@ public class PluginMarketService : IPluginMarketService
         var executionContext = new PluginDownloadExecutionContext(
             request,
             downloadSessionPath,
-            tempZipPath,
+            tempArchivePath,
             extractPath,
             downloadService,
             completionSource);
@@ -556,7 +460,7 @@ public class PluginMarketService : IPluginMarketService
 
         try
         {
-            _ = downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempZipPath);
+            _ = downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempArchivePath);
             await completionSource.Task;
         }
         finally
@@ -574,9 +478,9 @@ public class PluginMarketService : IPluginMarketService
                 _downloadCts = null;
             }
 
-            if (File.Exists(tempZipPath))
+            if (File.Exists(tempArchivePath))
             {
-                File.Delete(tempZipPath);
+                File.Delete(tempArchivePath);
             }
 
             RaiseDownloadStateChanged();
@@ -638,11 +542,34 @@ public class PluginMarketService : IPluginMarketService
         {
             var cancellationToken = _downloadCts?.Token ?? context.Request.CancellationToken;
             cancellationToken.ThrowIfCancellationRequested();
-            await EnsureDownloadedZipReadyAsync(context.TempZipPath, cancellationToken);
-            ValidateDownloadedPackageHash(context.Request.Item, context.TempZipPath);
+            await EnsureDownloadedArchiveReadyAsync(context.TempArchivePath, cancellationToken);
+            ValidateDownloadedPackageHash(context.Request.Item, context.TempArchivePath);
 
             Directory.CreateDirectory(context.ExtractPath);
-            ZipFile.ExtractToDirectory(context.TempZipPath, context.ExtractPath, true);
+
+            UpdateQueueItem(context.Request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueExtracting;
+                queueItem.Progress = 100;
+                queueItem.ProgressText = "100.00%";
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = string.Empty;
+            });
+
+            var extractionProgress = new Progress<ArchiveProgress>(p =>
+            {
+                UpdateQueueItem(context.Request.QueueItem, queueItem =>
+                {
+                    queueItem.Progress = p.Percentage;
+                    queueItem.ProgressText = $"{p.Percentage:0.00}%";
+                });
+            });
+
+            await _archiveService.ExtractToDirectoryAsync(
+                context.TempArchivePath,
+                context.ExtractPath,
+                extractionProgress,
+                cancellationToken);
 
             var result = new PluginPackageDownloadResult
             {
@@ -739,7 +666,7 @@ public class PluginMarketService : IPluginMarketService
     private sealed record PluginDownloadExecutionContext(
         QueuedPluginDownloadRequest Request,
         string DownloadSessionPath,
-        string TempZipPath,
+        string TempArchivePath,
         string ExtractPath,
         DownloadService DownloadService,
         TaskCompletionSource CompletionSource);
@@ -747,7 +674,7 @@ public class PluginMarketService : IPluginMarketService
     /// <summary>
     /// 等待下载的压缩包可以被正常读取。
     /// </summary>
-    private static async Task EnsureDownloadedZipReadyAsync(string zipPath, CancellationToken cancellationToken)
+    private async Task EnsureDownloadedArchiveReadyAsync(string archivePath, CancellationToken cancellationToken)
     {
         var timeout = TimeSpan.FromSeconds(5);
         var stopwatch = Stopwatch.StartNew();
@@ -756,16 +683,14 @@ public class PluginMarketService : IPluginMarketService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (File.Exists(zipPath))
+            if (File.Exists(archivePath))
             {
                 try
                 {
-                    var fileInfo = new FileInfo(zipPath);
+                    var fileInfo = new FileInfo(archivePath);
                     if (fileInfo.Length > 0)
                     {
-                        using var stream = new FileStream(zipPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                        using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false);
-                        _ = archive.Entries.Count;
+                        await _archiveService.DetectFormatAsync(archivePath, cancellationToken);
                         return;
                     }
                 }
@@ -780,7 +705,7 @@ public class PluginMarketService : IPluginMarketService
             await Task.Delay(150, cancellationToken);
         }
 
-        throw new IOException($"Downloaded plugin package is missing or incomplete: {zipPath}");
+        throw new IOException($"Downloaded plugin package is missing or incomplete: {archivePath}");
     }
 
     /// <summary>
@@ -789,11 +714,11 @@ public class PluginMarketService : IPluginMarketService
     /// 避免任何不可信内容进入后续安装步骤。
     /// </summary>
     /// <param name="item">当前下载的插件市场条目。</param>
-    /// <param name="zipPath">已经下载完成的插件压缩包路径。</param>
+    /// <param name="archivePath">已经下载完成的插件压缩包路径。</param>
     /// <exception cref="InvalidOperationException">
     /// 当压缩包的 SHA-256 与插件市场声明值不一致时抛出。
     /// </exception>
-    private static void ValidateDownloadedPackageHash(PluginMarketItem item, string zipPath)
+    private static void ValidateDownloadedPackageHash(PluginMarketItem item, string archivePath)
     {
         if (string.IsNullOrWhiteSpace(item.Sha256))
         {
@@ -801,19 +726,20 @@ public class PluginMarketService : IPluginMarketService
         }
 
         var expectedHash = NormalizeSha256(item.Sha256);
-        var actualHash = ComputeFileSha256(zipPath);
+        var actualHash = ComputeFileSha256(archivePath);
         if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
         {
+            StaticLogger?.LogError("SHA-256 mismatch for plugin {PluginName}", FormatPluginDisplayName(item));
             throw new InvalidOperationException(
                 string.Format(
-                    I18nHelper.GetLocalizedString("PluginMarketSha256Mismatch"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "PluginMarketSha256Mismatch"),
                     FormatPluginDisplayName(item)));
         }
     }
 
     /// <summary>
     /// 计算指定文件的 SHA-256，并返回连续的小写十六进制字符串。
-    /// 这里直接读取已经落盘的 zip 文件，确保比较的是最终下载结果，而不是下载器过程中的中间数据。
+    /// 这里直接读取已经落盘的归档文件，确保比较的是最终下载结果，而不是下载器过程中的中间数据。
     /// </summary>
     /// <param name="filePath">待计算哈希的文件路径。</param>
     /// <returns>文件内容对应的 SHA-256。</returns>

@@ -6,6 +6,9 @@ using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Models;
 
+/// <summary>
+/// 插件信息模型，包含插件清单、安装状态、启用状态和运行时错误信息。
+/// </summary>
 public class PluginInfo : ObservableObjectBase
 {
     private bool _isRestartRequired;
@@ -15,11 +18,19 @@ public class PluginInfo : ObservableObjectBase
     private string? _newVersion;
     private Exception? _exception;
 
-
+    /// <summary>
+    /// 插件清单，包含插件的基本元数据。
+    /// </summary>
     [JsonRequired] public required PluginManifest Manifest { get; init; }
 
+    /// <summary>
+    /// 插件是否已安装到本地。
+    /// </summary>
     [JsonIgnore] public bool IsLocal { get; internal set; }
 
+    /// <summary>
+    /// 插件是否启用。仅对已安装到本地的插件有效。
+    /// </summary>
     [JsonIgnore]
     public bool IsEnabled
     {
@@ -94,6 +105,9 @@ public class PluginInfo : ObservableObjectBase
         set => SetPropertyWithAction(ref _exception, value, _ => { OnPropertyChanged(nameof(ExceptionText)); });
     }
 
+    /// <summary>
+    /// 插件加载状态的文本描述。
+    /// </summary>
     [JsonIgnore]
     public string ExceptionText => IsEnabled ?
         (Exception != null ? Exception.ToString()

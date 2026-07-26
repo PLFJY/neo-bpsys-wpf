@@ -1,11 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Helpers;
 using System.Globalization;
 using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -15,20 +13,100 @@ namespace neo_bpsys_wpf.Core.Models;
 public partial class Settings : ObservableObjectBase
 {
     private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
+
+    /// <summary>
+    /// 主设置配置版本
+    /// </summary>
+    public int? Version { get; set; } = 3;
+
+    /// <summary>
+    /// 是否在更新后显示提示信息。
+    /// </summary>
     public bool ShowAfterUpdateTip { get; set; } = true;
 
+    /// <summary>
+    /// 是否记录全局禁用角色。
+    /// </summary>
     public bool IsRecordGlobalBan { get; set; } = true;
 
+    /// <summary>
+    /// 是否允许角色复选（在 Pick 选择器中允许已 Pick 的角色被再次选择）。
+    /// 已 Ban 角色的禁用规则不受此开关影响。
+    /// </summary>
+    public bool IsAllowCharacterReselect { get; set; } = false;
+
+    /// <summary>
+    /// 是否启用经典模式（旧版 BP 流程）。
+    /// </summary>
+    public bool IsClassicMode { get; set; } = false;
+
+    /// <summary>
+    /// 是否将 <c>.bpui</c> 布局包文件关联到本应用。
+    /// </summary>
+    public bool AssociateBpuiFiles { get; set; } = true;
+
+    /// <summary>
+    /// 是否启用后台页面切换时的过渡动画。关闭后页面切换将立即完成。
+    /// </summary>
+    public bool IsPageTransitionAnimationEnabled { get; set; } = true;
+
+    /// <summary>
+    /// 对局状态文件的输出目录。为空时，保存前需要由用户选择目录。
+    /// </summary>
+    public string? GameStateSaveDirectory { get; set; }
+
+    /// <summary>
+    /// 是否在保存对局状态时沿用 <see cref="GameStateSaveDirectory"/>，不再询问保存路径。
+    /// </summary>
+    public bool IsGameStateSaveDirectoryPromptSuppressed { get; set; }
+
+    /// <summary>
+    /// 是否在点击下一局时不再显示确认对话框。
+    /// </summary>
+    public bool IsNextGameConfirmationSuppressed { get; set; }
+
+    /// <summary>
+    /// 当前选择的 OCR 模型标识键。
+    /// </summary>
     public string? OcrModelKey { get; set; }
 
-    [ObservableProperty]
-    private string _ghProxyMirror = "https://ghproxy.net/";
+    /// <summary>
+    /// 用户偏好的 Paddle OCR 推理后端。实际加载的后端由 Bootstrap 根据硬件和组件状态决定。
+    /// </summary>
+    public OcrInferenceBackend PreferredOcrBackend { get; set; } = OcrInferenceBackend.Cpu;
+
+    /// <summary>
+    /// 用户偏好的 CUDA 设备 ID；为 <see langword="null"/> 时自动选择。
+    /// </summary>
+    public int? PreferredCudaDeviceId { get; set; }
+
+    /// <summary>
+    /// 最近一次 CUDA 故障描述；仅用于诊断展示，不参与后端决策。
+    /// 后端短路由 <see cref="ForceCpuForNextLaunch"/> 一次性消费控制。
+    /// </summary>
+    public string? LastCudaFailure { get; set; }
+
+    /// <summary>
+    /// 最近一次 CUDA 故障发生时的 PaddleInference runtime 版本。
+    /// 用于版本升级后清除旧故障诊断信息。
+    /// </summary>
+    public string? LastCudaFailureRuntimeVersion { get; set; }
+
+    /// <summary>
+    /// 一次性 CPU 强制标记。CUDA 推理失败时设置为 <see langword="true"/>，
+    /// 下次启动 Bootstrap 检测到此标记后强制使用 CPU 并立即消费（置回 <see langword="false"/>），
+    /// 避免永久锁死 CPU。与 <see cref="LastCudaFailure"/>（仅诊断）分离。
+    /// </summary>
+    public bool ForceCpuForNextLaunch { get; set; }
 
     [ObservableProperty]
-    private string _pluginMarketSource = "https://bpsys-plugin-index.plfjy.top/";
+    public partial string GhProxyMirror { get; set; } = "https://ghproxy.net/";
 
     [ObservableProperty]
-    private bool _isFindPreRelease =
+    public partial string PluginMarketSource { get; set; } = "https://bpsys-plugin-index.plfjy.top/";
+
+    [ObservableProperty]
+    public partial bool IsFindPreRelease { get; set; } =
 #if BETA
         true;
 #else
@@ -36,10 +114,26 @@ public partial class Settings : ObservableObjectBase
 #endif
 
     [ObservableProperty]
-    private AppLogLevel _logLevel = AppLogLevel.Information;
+    public partial AppLogLevel LogLevel { get; set; } = AppLogLevel.Warning;
+
+    /// <summary>
+    /// 是否启用产品导览调试队列窗口。DEBUG 构建默认开启，其余构建默认关闭，用户可在设置调试区切换。
+    /// 运行期以持久化值（或缺省值）为准。
+    /// </summary>
+    public bool IsProductTourDebugEnabled { get; set; } =
+#if DEBUG
+        true;
+#else
+        false;
+#endif
 
     private LanguageKey _language = LanguageKey.System;
 
+    private CultureInfo _cultureInfo = SystemCulture;
+
+    /// <summary>
+    /// 应用程序界面语言。
+    /// </summary>
     public LanguageKey Language
     {
         get => _language;
@@ -50,6 +144,7 @@ public partial class Settings : ObservableObjectBase
                 CultureInfo = SystemCulture;
                 return;
             }
+
             CultureInfo = CultureInfo.GetCultureInfo(value.ToString().Replace("_", "-"));
         });
     }
@@ -63,456 +158,4 @@ public partial class Settings : ObservableObjectBase
         get => _cultureInfo;
         private set => SetProperty(ref _cultureInfo, value);
     }
-
-    [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
-    [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
-    [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
-    [ObservableProperty] private GameDataWindowSettings _gameDataWindowSettings = new();
-    [ObservableProperty] private WidgetsWindowSettings _widgetsWindowSettings = new();
-    private CultureInfo _cultureInfo = SystemCulture;
-}
-
-/// <summary>
-/// 文本设置
-/// </summary>
-public partial class TextSettings : ObservableObjectBase
-{
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Foreground))]
-    private string? _color;
-
-    /// <summary>
-    /// 文本颜色Brush
-    /// </summary>
-    [JsonIgnore]
-    public Brush Foreground => ColorHelper.HexToBrush(string.IsNullOrEmpty(Color) ? "#FFFFFFFF" : Color);
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FontFamily))]
-    private string? _fontFamilySite;
-
-    private FontFamily? _fontFamily;
-
-    /// <summary>
-    /// 字体(字体对象)
-    /// </summary>
-    [JsonIgnore]
-    public FontFamily FontFamily
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(FontFamilySite)) return new FontFamily("Arial");
-
-            return FontFamilySite.StartsWith("pack://application:,,,/Assets/Fonts/")
-                ? new FontFamily(new Uri(FontFamilySite[..FontFamilySite.IndexOf('#')]),
-                   "./" + FontFamilySite[FontFamilySite.IndexOf('#')..])
-                : new FontFamily(FontFamilySite);
-        }
-        set
-        {
-            _fontFamily = value;
-            FontFamilySite = _fontFamily.Source;
-        }
-    }
-
-    [ObservableProperty] private FontWeight _fontWeight;
-
-    [ObservableProperty] private double _fontSize;
-    
-    [JsonConstructor]
-    public TextSettings()
-    {
-    }
-
-    /// <summary>
-    /// 文本设置
-    /// </summary>
-    /// <param name="color">文本颜色</param>
-    /// <param name="fontFamilySite">字体地址</param>
-    /// <param name="fontSize">字体大小</param>
-    /// <param name="fontWeight">字体粗细</param>
-    public TextSettings(string color, string? fontFamilySite, double fontSize, FontWeight? fontWeight = null)
-    {
-        Color = color;
-        FontFamilySite = fontFamilySite;
-        FontWeight = fontWeight ?? FontWeights.Normal;
-        FontSize = fontSize;
-    }
-}
-
-/// <summary>
-/// BP窗口设置
-/// </summary>
-public partial class BpWindowSettings : ObservableObjectBase
-{
-    public WindowSize WindowSize { get; init; } = new(1440, 810);
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BgImage))]
-    private string? _bgImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
-    private string? _currentBanLockImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
-    private string? _globalBanLockImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PickingBorderImage))]
-    private string? _pickingBorderImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
-    private string? _pickingBorderColor = Colors.White.ToString();
-    
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
-    private string? _backgroundColor = "#00FF00";
-
-    /// <summary>
-    /// 文本颜色Brush
-    /// </summary>
-    [JsonIgnore]
-    public Brush PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(PickingBorderColor)
-        ? Colors.White.ToString()
-        : PickingBorderColor);
-    
-    /// <summary>
-    /// 背景颜色Brush
-    /// </summary>
-    [JsonIgnore]
-    public Brush BackgroundBrush => AllowsWindowTransparency? new SolidColorBrush(Colors.Transparent) : ColorHelper.HexToBrush(string.IsNullOrEmpty(BackgroundColor)
-        ? "#00FF00"
-        : BackgroundColor);
-
-    [ObservableProperty] private bool _allowsWindowTransparency;
-
-    [ObservableProperty] private BpWindowTextSettings _textSettings = new();
-
-    [JsonIgnore] public ImageSource? BgImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "bp");
-
-    [JsonIgnore]
-    public ImageSource? CurrentBanLockImage => ImageHelper.GetUiImageFromSetting(CurrentBanLockImageUri, "CurrentBanLock");
-
-    [JsonIgnore]
-    public ImageSource? GlobalBanLockImage => ImageHelper.GetUiImageFromSetting(GlobalBanLockImageUri, "GlobalBanLock");
-
-    [JsonIgnore]
-    public ImageSource? PickingBorderImage => ImageHelper.GetUiImageFromSetting(PickingBorderImageUri, "pickingBorder");
-}
-
-/// <summary>
-/// BP窗口文本设置
-/// </summary>
-public class BpWindowTextSettings
-{
-    public TextSettings Timer { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 58, FontWeights.Bold);
-
-    public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
-
-    public TextSettings GameScores { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 26, FontWeights.Bold);
-
-    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 20, FontWeights.Medium);
-
-    public TextSettings PlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
-
-    public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 20);
-
-    public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 16);
-}
-
-/// <summary>
-/// 过场窗口设置
-/// </summary>
-public partial class CutSceneWindowSettings : ObservableObjectBase
-{
-    public WindowSize WindowSize { get; init; } = new(1440, 810);
-    public bool IsBlackTalentAndTraitEnable { get; set; } = false;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BgImage))]
-    private string? _bgUri;
-
-    [ObservableProperty] private CutSceneWindowTextSettings _textSettings = new();
-
-    [JsonIgnore] public ImageSource? BgImage => ImageHelper.GetUiImageFromSetting(BgUri, "cutScene");
-}
-
-/// <summary>
-/// 过场窗口文本设置
-/// </summary>
-public class CutSceneWindowTextSettings
-{
-    public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 28, FontWeights.Bold);
-
-    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28, FontWeights.Bold);
-
-    public TextSettings SurPlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 18);
-
-    public TextSettings HunPlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 30);
-
-    public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 24);
-
-    public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
-}
-
-/// <summary>
-/// 比分窗口设置
-/// </summary>
-public partial class ScoreWindowSettings : ObservableObjectBase
-{
-    public WindowSize ScoreInGameWindowSize { get; init; } = new(480, 152);
-    
-    public WindowSize ScoreGlobalWindowSize { get; init; } = new(1440, 195);
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SurScoreBgImage))]
-    private string? _surScoreBgImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HunScoreBgImage))]
-    private string? _hunScoreBgImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GlobalScoreBgImage))]
-    private string? _globalScoreBgImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GlobalScoreBgImageBo3))]
-    private string? _globalScoreBgImageUriBo3;
-
-    public bool IsCampIconBlackVerEnabled { get; set; }
-    
-    public double GlobalScoreTotalMargin { get; set; } = 370;
-    
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ScoreGlobalWindowBackgroundBrush))]
-    private string? _scoreGlobalWindowBackgroundColor = "#00FF00";
-
-    [JsonIgnore]
-    public Brush ScoreGlobalWindowBackgroundBrush => AllowsScoreGlobalWindowTransparency
-        ? new SolidColorBrush(Colors.Transparent)
-        : ColorHelper.HexToBrush(string.IsNullOrEmpty(ScoreGlobalWindowBackgroundColor)
-            ? "#00FF00"
-            : ScoreGlobalWindowBackgroundColor);
-
-    [ObservableProperty] private bool _allowsScoreGlobalWindowTransparency;
-
-    [ObservableProperty] private ScoreWindowTextSettings _textSettings = new();
-
-    [JsonIgnore]
-    public ImageSource? SurScoreBgImage => ImageHelper.GetUiImageFromSetting(SurScoreBgImageUri, "scoreSur");
-
-    [JsonIgnore]
-    public ImageSource? HunScoreBgImage => ImageHelper.GetUiImageFromSetting(HunScoreBgImageUri, "scoreHun");
-
-    [JsonIgnore]
-    public ImageSource? GlobalScoreBgImage => ImageHelper.GetUiImageFromSetting(GlobalScoreBgImageUri, "scoreGlobal");
-
-    [JsonIgnore]
-    public ImageSource? GlobalScoreBgImageBo3 =>
-        ImageHelper.GetUiImageFromSetting(GlobalScoreBgImageUriBo3, "scoreGlobal_Bo3");
-}
-
-/// <summary>
-/// 分数窗口文本设置
-/// </summary>
-public class ScoreWindowTextSettings
-{
-    public TextSettings GameScores { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 100);
-
-    public TextSettings MajorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 38);
-
-    public TextSettings TeamName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 32);
-
-    public TextSettings ScoreGlobal_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 24);
-
-    public TextSettings ScoreGlobal_Data { get; set; } =
-        new("#FFFFFFFF", "Arial", 24, FontWeights.Bold);
-
-    public TextSettings ScoreGlobal_Total { get; set; } =
-        new TextSettings("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 40, FontWeights.Bold);
-}
-
-/// <summary>
-/// 赛后数据窗口设置
-/// </summary>
-public partial class GameDataWindowSettings : ObservableObjectBase
-{
-    public WindowSize WindowSize { get; init; } = new(1440, 810);
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BgImage))]
-    private string? _bgImageUri;
-
-    [ObservableProperty] private GameDataWindowTextSettings _textSettings = new();
-
-    [JsonIgnore] public ImageSource? BgImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "gameData");
-}
-
-/// <summary>
-/// 赛后数据窗口文本设置
-/// </summary>
-public class GameDataWindowTextSettings
-{
-    public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 32);
-
-    public TextSettings GameScores { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 80, FontWeights.Bold);
-
-    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 30, FontWeights.Bold);
-
-    public TextSettings PlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 22);
-
-    public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
-
-    public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 20);
-
-    public TextSettings SurDataHeader { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
-
-    public TextSettings HunDataHeader { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
-
-    public TextSettings SurData { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
-
-    public TextSettings HunData { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
-}
-
-/// <summary>
-/// 小组件窗口设置
-/// </summary>
-public partial class WidgetsWindowSettings : ObservableObjectBase
-{
-    public WindowSize WindowSize { get; init; } = new(1440, 716);
-    
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MapBpBgImage))]
-    private string? _mapBpBgUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MapBpV2BgImage))]
-    private string? _mapBpV2BgUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MapBpV2PickBorderImage))]
-    private string? _mapBpV2PickingBorderImageUri;
-
-    public bool IsCampIconBlackVerEnabled { get; set; }
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BpOverviewBgImage))]
-    private string? _bpOverviewBgUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
-    private string? _currentBanLockImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
-    private string? _globalBanLockImageUri;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
-    private string? _mapBpV2_PickingBorderColor = Colors.White.ToString();
-
-    /// <summary>
-    /// MapBpV2文本颜色Brush
-    /// </summary>
-    [JsonIgnore]
-    public Brush MapBpV2_PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(MapBpV2_PickingBorderColor)
-        ? Colors.White.ToString()
-        : MapBpV2_PickingBorderColor);
-    
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
-    private string? _backgroundColor = "#00FF00";
-    
-    /// <summary>
-    /// 背景颜色Brush
-    /// </summary>
-    [JsonIgnore]
-    public Brush BackgroundBrush => AllowsWindowTransparency? new SolidColorBrush(Colors.Transparent) : ColorHelper.HexToBrush(string.IsNullOrEmpty(BackgroundColor)
-        ? "#00FF00"
-        : BackgroundColor);
-    
-    [ObservableProperty] private bool _allowsWindowTransparency;
-
-    [ObservableProperty] private WidgetsWindowTextSettings _textSettings = new();
-
-    [JsonIgnore] public ImageSource? MapBpBgImage => ImageHelper.GetUiImageFromSetting(MapBpBgUri, "mapBp");
-    [JsonIgnore] public ImageSource? MapBpV2BgImage => ImageHelper.GetUiImageFromSetting(MapBpV2BgUri, "mapBpV2");
-
-    [JsonIgnore]
-    public ImageSource? MapBpV2PickBorderImage =>
-        ImageHelper.GetUiImageFromSetting(MapBpV2PickingBorderImageUri, "pickingBorder");
-
-    [JsonIgnore]
-    public ImageSource? BpOverviewBgImage => ImageHelper.GetUiImageFromSetting(BpOverviewBgUri, "bpOverview");
-
-    [JsonIgnore]
-    public ImageSource? CurrentBanLockImage =>
-        ImageHelper.GetUiImageFromSetting(CurrentBanLockImageUri, "CurrentBanLock");
-
-    [JsonIgnore]
-    public ImageSource? GlobalBanLockImage => ImageHelper.GetUiImageFromSetting(GlobalBanLockImageUri, "GlobalBanLock");
-}
-
-/// <summary>
-/// 小组件窗口文本设置
-/// </summary>
-public class WidgetsWindowTextSettings
-{
-    public TextSettings MapBp_MapName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
-
-    public TextSettings MapBp_PickWord { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
-
-    public TextSettings MapBp_BanWord { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
-
-    public TextSettings MapBp_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
-
-    public TextSettings MapBpV2_MapName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 14);
-
-    public TextSettings MapBpV2_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 18);
-
-    public TextSettings MapBpV2_CampWords { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 20);
-
-    public TextSettings BpOverview_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 22);
-
-    public TextSettings BpOverview_GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
-
-    public TextSettings BpOverview_GameScores { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50);
 }

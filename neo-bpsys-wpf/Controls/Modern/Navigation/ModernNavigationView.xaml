@@ -1,0 +1,511 @@
+<UserControl
+    x:Class="neo_bpsys_wpf.Controls.Modern.Navigation.ModernNavigationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:frame="clr-namespace:neo_bpsys_wpf.Controls.Modern.Frame"
+    xmlns:navigation="clr-namespace:neo_bpsys_wpf.Controls.Modern.Navigation"
+    xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    x:Name="Root"
+    Focusable="False">
+    <UserControl.Resources>
+        <navigation:ModernNavigationIconConverter x:Key="ModernNavigationIconConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <Style x:Key="ModernNavigationCompactScrollBarThumbStyle" TargetType="{x:Type primitives:Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                        <Border
+                            Width="3"
+                            Margin="0,2"
+                            HorizontalAlignment="Center"
+                            Background="{DynamicResource ScrollBarThumbFill}"
+                            CornerRadius="2"
+                            Opacity="0.72" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernNavigationMenuVerticalScrollBarStyle" TargetType="{x:Type ScrollBar}">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="MinWidth" Value="12" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid
+                            Width="{TemplateBinding Width}"
+                            Background="{TemplateBinding Background}">
+                            <primitives:Track
+                                x:Name="PART_Track"
+                                IsDirectionReversed="True">
+                                <primitives:Track.DecreaseRepeatButton>
+                                    <RepeatButton
+                                        Command="ScrollBar.PageUpCommand"
+                                        Focusable="False"
+                                        Opacity="0" />
+                                </primitives:Track.DecreaseRepeatButton>
+                                <primitives:Track.Thumb>
+                                    <primitives:Thumb Style="{StaticResource ModernNavigationCompactScrollBarThumbStyle}" />
+                                </primitives:Track.Thumb>
+                                <primitives:Track.IncreaseRepeatButton>
+                                    <RepeatButton
+                                        Command="ScrollBar.PageDownCommand"
+                                        Focusable="False"
+                                        Opacity="0" />
+                                </primitives:Track.IncreaseRepeatButton>
+                            </primitives:Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPaneOpen, RelativeSource={RelativeSource AncestorType={x:Type navigation:ModernNavigationView}}}" Value="False">
+                    <Setter Property="Width" Value="4" />
+                    <Setter Property="MinWidth" Value="4" />
+                </DataTrigger>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="4" />
+                    <Setter Property="MinHeight" Value="4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="ModernNavigationItemContentTemplate" DataType="{x:Type navigation:ModernNavigationEntry}">
+            <Grid Height="40" SnapsToDevicePixels="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ContentControl
+                    Grid.Column="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Content="{Binding Icon, Converter={StaticResource ModernNavigationIconConverter}}"
+                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" />
+                <TextBlock
+                    x:Name="TextElement"
+                    Grid.Column="1"
+                    Margin="8,0,8,0"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                    Text="{Binding DisplayText}"
+                    TextTrimming="CharacterEllipsis" />
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsPaneOpen, RelativeSource={RelativeSource AncestorType={x:Type navigation:ModernNavigationView}}}" Value="False">
+                    <Setter TargetName="TextElement" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ModernNavigationTopItemTemplate" DataType="{x:Type navigation:ModernNavigationEntry}">
+            <Grid
+                Height="40"
+                MinWidth="112"
+                SnapsToDevicePixels="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ContentControl
+                    Grid.Column="0"
+                    Margin="12,0,6,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Content="{Binding Icon, Converter={StaticResource ModernNavigationIconConverter}}"
+                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" />
+                <TextBlock
+                    Grid.Column="1"
+                    Margin="0,0,12,0"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}"
+                    Text="{Binding DisplayText}"
+                    TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </DataTemplate>
+
+        <Style x:Key="ModernNavigationTopListBoxStyle" TargetType="{x:Type ListBox}">
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Padding" Value="6,4" />
+            <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBox}">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            SnapsToDevicePixels="True">
+                            <ScrollViewer
+                                Padding="{TemplateBinding Padding}"
+                                Focusable="False"
+                                HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernNavigationTopListBoxItemStyle" TargetType="{x:Type ListBoxItem}">
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForeground}" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Border
+                            x:Name="ItemBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            SnapsToDevicePixels="True">
+                            <Grid>
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}" />
+                                <Rectangle
+                                    x:Name="SelectionIndicator"
+                                    Height="3"
+                                    Margin="18,0"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Bottom"
+                                    Fill="{DynamicResource NavigationViewSelectionIndicatorForeground}"
+                                    Opacity="0"
+                                    RadiusX="2"
+                                    RadiusY="2" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPointerOver}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPointerOver}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundSelected}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForeground}" />
+                                <Setter TargetName="SelectionIndicator" Property="Opacity" Value="1" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True" />
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundSelectedPointerOver}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPointerOver}" />
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ItemBorder" Property="Opacity" Value="0.56" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernNavigationItemButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="4,2" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForeground}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border
+                            x:Name="ItemBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            SnapsToDevicePixels="True">
+                            <Grid>
+                                <Rectangle
+                                    x:Name="SelectionIndicator"
+                                    Width="3"
+                                    Height="18"
+                                    Margin="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Fill="{DynamicResource NavigationViewSelectionIndicatorForeground}"
+                                    Opacity="0"
+                                    RadiusX="2"
+                                    RadiusY="2">
+                                    <Rectangle.RenderTransform>
+                                        <ScaleTransform ScaleY="0.45" />
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                                <ContentPresenter
+                                    Margin="4,0,0,0"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPointerOver}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPointerOver}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPressed}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPressed}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundSelected}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForeground}" />
+                                <Setter TargetName="SelectionIndicator" Property="Opacity" Value="1" />
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="SelectionIndicator"
+                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                To="1"
+                                                Duration="0:0:0.18">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                            </DataTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ItemBorder" Property="Opacity" Value="0.56" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernPaneToggleButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource NavigationViewItemBackground}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForeground}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border
+                            x:Name="ToggleBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ControlCornerRadius}"
+                            SnapsToDevicePixels="True">
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Content="{TemplateBinding Content}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPointerOver}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPointerOver}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPressed}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPressed}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource SubtleFillColorTransparentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid ClipToBounds="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <ListBox
+            x:Name="PART_TopItemsSelector"
+            Grid.Row="0"
+            Grid.ColumnSpan="2"
+            ItemContainerStyle="{StaticResource ModernNavigationTopListBoxItemStyle}"
+            ItemTemplate="{StaticResource ModernNavigationTopItemTemplate}"
+            ItemsSource="{Binding MenuEntries, ElementName=Root}"
+            SelectedItem="{Binding SelectedEntry, ElementName=Root, Mode=OneWay}"
+            SelectionChanged="TopItemsSelector_OnSelectionChanged">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.Style>
+                <Style BasedOn="{StaticResource ModernNavigationTopListBoxStyle}" TargetType="{x:Type ListBox}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding PaneDisplayMode, ElementName=Root}" Value="{x:Static ui:NavigationViewPaneDisplayMode.Top}">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Style>
+        </ListBox>
+
+        <Border
+            x:Name="PaneBorder"
+            Grid.Row="1"
+            Grid.Column="0"
+            Width="{Binding ActualPaneLength, ElementName=Root}"
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="0,0,1,0"
+            ClipToBounds="True">
+            <Border.Style>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="Visibility" Value="{Binding IsPaneVisible, ElementName=Root, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding PaneDisplayMode, ElementName=Root}" Value="{x:Static ui:NavigationViewPaneDisplayMode.Top}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Button
+                    Grid.Row="0"
+                    Width="{Binding CompactPaneLength, ElementName=Root}"
+                    Height="40"
+                    Margin="0,4,0,6"
+                    HorizontalAlignment="Left"
+                    Command="{Binding TogglePaneCommand, ElementName=Root}"
+                    Style="{StaticResource ModernPaneToggleButtonStyle}"
+                    Visibility="{Binding IsPaneToggleVisible, ElementName=Root, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ui:SymbolIcon
+                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                        Symbol="Navigation24" />
+                </Button>
+
+                <scrolling:ModernScrollViewer
+                    x:Name="MenuItemsScrollViewer"
+                    Grid.Row="1"
+                    HorizontalScrollBarVisibility="Disabled">
+                    <scrolling:ModernScrollViewer.Resources>
+                        <Style
+                            BasedOn="{StaticResource ModernNavigationMenuVerticalScrollBarStyle}"
+                            TargetType="{x:Type ScrollBar}" />
+                    </scrolling:ModernScrollViewer.Resources>
+                    <scrolling:ModernScrollViewer.Style>
+                        <Style TargetType="{x:Type scrolling:ModernScrollViewer}">
+                            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                        </Style>
+                    </scrolling:ModernScrollViewer.Style>
+                    <ItemsControl ItemsSource="{Binding MenuEntries, ElementName=Root}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type navigation:ModernNavigationEntry}">
+                                <Button
+                                    Command="{Binding NavigateEntryCommand, ElementName=Root}"
+                                    CommandParameter="{Binding}"
+                                    Content="{Binding}"
+                                    ContentTemplate="{StaticResource ModernNavigationItemContentTemplate}"
+                                    IsEnabled="{Binding IsEnabled}"
+                                    Style="{StaticResource ModernNavigationItemButtonStyle}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </scrolling:ModernScrollViewer>
+
+                <ItemsControl
+                    Grid.Row="2"
+                    Margin="0,6,0,6"
+                    ItemsSource="{Binding FooterMenuEntries, ElementName=Root}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type navigation:ModernNavigationEntry}">
+                            <Button
+                                Command="{Binding NavigateEntryCommand, ElementName=Root}"
+                                CommandParameter="{Binding}"
+                                Content="{Binding}"
+                                ContentTemplate="{StaticResource ModernNavigationItemContentTemplate}"
+                                IsEnabled="{Binding IsEnabled}"
+                                Style="{StaticResource ModernNavigationItemButtonStyle}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+
+        <Grid
+            Grid.Row="1"
+            Grid.Column="1"
+            MinWidth="0">
+            <Grid.Style>
+                <Style TargetType="{x:Type Grid}">
+                    <Setter Property="Grid.Column" Value="1" />
+                    <Setter Property="Grid.ColumnSpan" Value="1" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding PaneDisplayMode, ElementName=Root}" Value="{x:Static ui:NavigationViewPaneDisplayMode.Top}">
+                            <Setter Property="Grid.Column" Value="0" />
+                            <Setter Property="Grid.ColumnSpan" Value="2" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <ContentPresenter
+                Grid.Row="0"
+                Content="{Binding ContentOverlay, ElementName=Root}" />
+            <frame:ModernFrame
+                x:Name="PART_Frame"
+                Grid.Row="1"
+                Margin="{Binding FrameMargin, ElementName=Root}" />
+        </Grid>
+    </Grid>
+</UserControl>

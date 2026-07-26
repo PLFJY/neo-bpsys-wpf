@@ -1,9 +1,11 @@
 using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 赛后数据类，用于存储赛后数据
 /// </summary>
+[FrontedBindingObject]
 public partial class PlayerData : ObservableObjectBase
 {
     #region Sur

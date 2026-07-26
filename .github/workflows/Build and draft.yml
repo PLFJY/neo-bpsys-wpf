@@ -1,0 +1,149 @@
+name: Build and draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_channel:
+        description: Build channel
+        required: true
+        default: release
+        type: choice
+        options:
+        - release
+        - beta
+        - preview
+
+run-name: Build and draft ${{ inputs.release_channel }}
+
+jobs:
+  build_and_draft_release:
+    env:
+      PROJ_PATH: ./neo-bpsys-wpf/neo-bpsys-wpf.csproj
+      INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe
+      INSTALLER_SHA256_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe.sha256
+      FULL_INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer_full.exe
+      FULL_INSTALLER_SHA256_OUTPUT: ./build/neo-bpsys-wpf_Installer_full.exe.sha256
+      SMARTBP_MODULE_OUTPUT: ./build/SmartBpModule.7z
+      SMARTBP_MODULE_MANIFEST_OUTPUT: ./build/SmartBpModuleManifest.json
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Install .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Resolve build options
+      id: build_options
+      shell: pwsh
+      run: |
+        $channel = "${{ inputs.release_channel }}"
+
+        $options = @{
+          release = @{
+            Configuration = "Release"
+            ReleaseNamePrefix = "Release"
+            Prerelease = "false"
+          }
+          beta = @{
+            Configuration = "Beta"
+            ReleaseNamePrefix = "Beta"
+            Prerelease = "true"
+          }
+          preview = @{
+            Configuration = "Preview"
+            ReleaseNamePrefix = "Preview"
+            Prerelease = "true"
+          }
+        }
+
+        if (-not $options.ContainsKey($channel)) {
+          throw "Unsupported release channel: $channel"
+        }
+
+        $selected = $options[$channel]
+        echo "configuration=$($selected.Configuration)" >> $env:GITHUB_OUTPUT
+        echo "release_name_prefix=$($selected.ReleaseNamePrefix)" >> $env:GITHUB_OUTPUT
+        echo "is_prerelease=$($selected.Prerelease)" >> $env:GITHUB_OUTPUT
+
+    - name: Build And Pack Installer
+      shell: pwsh
+      run: .\build.ps1 -Configuration ${{ steps.build_options.outputs.configuration }}
+
+    - name: Get Version
+      shell: pwsh
+      run : |
+        $file = "${{ env.INSTALLER_OUTPUT }}"
+        $version = (Get-Item $file).VersionInfo.ProductVersion.Trim()
+        echo "VERSION=$version" >> $env:GITHUB_ENV
+
+    - name: Read artifact SHA256
+      shell: pwsh
+      run: |
+        $file = "${{ env.INSTALLER_OUTPUT }}"
+        $hash = (Get-Content "${{ env.INSTALLER_SHA256_OUTPUT }}").Split()[0]
+        $fullHash = (Get-Content "${{ env.FULL_INSTALLER_SHA256_OUTPUT }}").Split()[0]
+        $moduleManifest = Get-Content "${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}" -Raw | ConvertFrom-Json
+        echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_ENV
+        echo "FULL_INSTALLER_SHA256=$fullHash" >> $env:GITHUB_ENV
+        echo "SMARTBP_MODULE_SHA256=$($moduleManifest.Asset.Sha256)" >> $env:GITHUB_ENV
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: neo-bpsys-wpf-${{ inputs.release_channel }}-assets
+        path: |
+          ${{ env.INSTALLER_OUTPUT }}
+          ${{ env.INSTALLER_SHA256_OUTPUT }}
+          ${{ env.FULL_INSTALLER_OUTPUT }}
+          ${{ env.FULL_INSTALLER_SHA256_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}
+
+    - name: Generate release body
+      shell: pwsh
+      run: |
+        $out = "release_body.md"
+
+        $lines = @(
+          "## ✨ New Feature",
+          "",
+          "## 🔧 Bug Fix and Improvement",
+          "",
+          "## ✅ To-do",
+          "",
+          "---",
+          "",
+          "## 📦 Build Artifact Hash",
+          "",
+          "| Artifact | SHA-256 |",
+          "|----------|---------|",
+          "| neo-bpsys-wpf_Installer.exe | `${{ env.INSTALLER_SHA256 }}` |",
+          "| neo-bpsys-wpf_Installer_full.exe | `${{ env.FULL_INSTALLER_SHA256 }}` |",
+          "| SmartBpModule.7z | `${{ env.SMARTBP_MODULE_SHA256 }}` |"
+        )
+        $lines | Out-File -FilePath $out -Encoding utf8 -Force
+
+    - name: Draft Release
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        draft: true
+        tag_name: ${{ env.VERSION }}
+        files: |
+          ${{ env.INSTALLER_OUTPUT }}
+          ${{ env.INSTALLER_SHA256_OUTPUT }}
+          ${{ env.FULL_INSTALLER_OUTPUT }}
+          ${{ env.FULL_INSTALLER_SHA256_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_OUTPUT }}
+          ${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}
+        name: ${{ steps.build_options.outputs.release_name_prefix }}-${{ env.VERSION }}
+        body_path: release_body.md
+        prerelease: ${{ steps.build_options.outputs.is_prerelease }}

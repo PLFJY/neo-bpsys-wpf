@@ -2,21 +2,35 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 队伍类, <see cref="ISharedDataService"/> 中主队和客队对应的对象全场始终不变，信息导入依靠 <see cref="ImportTeamInfo(Team)"/> 方法
 /// </summary>
+[FrontedBindingObject]
 public partial class Team : ObservableObjectBase
 {
     /// <summary>
+    /// 默认主队颜色
+    /// </summary>
+    public const string DefaultHomeColorHex = "#FF337FB9";
+
+    /// <summary>
+    /// 默认客队颜色
+    /// </summary>
+    public const string DefaultAwayColorHex = "#FFE34341";
+
+    /// <summary>
     /// 队伍类型(主队/客队)
     /// </summary>
+    [FrontedBindingIgnore]
     public TeamType TeamType { get; }
 
     private string _name = string.Empty;
@@ -49,21 +63,66 @@ public partial class Team : ObservableObjectBase
     public Camp? Camp
     {
         get => _camp;
-        set => SetPropertyWithAction(ref _camp, value, 
+        set => SetPropertyWithAction(ref _camp, value,
             _ => UpdateGlobalBanFromRecord());
     }
 
     /// <summary>
     /// 队伍LOGO
     /// </summary>
-    [ObservableProperty]
-    [property: JsonIgnore]
+    [JsonIgnore]
+    public ImageSource? Logo
+    {
+        get
+        {
+            if (_logo is not null || string.IsNullOrWhiteSpace(ImageUri)) return _logo;
+            _logo = new BitmapImage(new Uri(ImageUri));
+            return _logo;
+        }
+        set
+        {
+            if (!SetProperty(ref _logo, value)) return;
+            if (string.IsNullOrEmpty(_imageUri)) return;
+            _imageUri = string.Empty;
+            OnPropertyChanged(nameof(ImageUri));
+        }
+    }
+
     private ImageSource? _logo;
+    private string _imageUri = string.Empty;
 
     /// <summary>
     /// 队伍LOGO的Uri
     /// </summary>
-    public string ImageUri { get; set; } = string.Empty;
+    [FrontedBindingIgnore]
+    public string ImageUri
+    {
+        get => _imageUri;
+        set
+        {
+            value ??= string.Empty;
+            if (!SetProperty(ref _imageUri, value)) return;
+            _logo = null;
+            OnPropertyChanged(nameof(Logo));
+        }
+    }
+
+    private string _colorHex = DefaultHomeColorHex;
+
+    /// <summary>
+    /// 队伍展示颜色，统一保存为 #AARRGGBB。
+    /// </summary>
+    public string ColorHex
+    {
+        get => _colorHex;
+        set
+        {
+            if (ColorHelper.TryNormalizeHex(value, out var normalized))
+            {
+                SetProperty(ref _colorHex, normalized);
+            }
+        }
+    }
 
 
     private ObservableCollection<Member> _surMemberList = [];
@@ -71,6 +130,7 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 求生者队员列表
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Member> SurMemberList
     {
         get => _surMemberList;
@@ -82,6 +142,7 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 监管者队员列表
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Member> HunMemberList
     {
         get => _hunMemberList;
@@ -91,37 +152,31 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 全局被禁用的求生者列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _globalBannedSurList = [];
+    [ObservableProperty]
+    [FrontedBindingCollection(FixedCount = AppConstants.GlobalBanSurCount)]
+    public partial ObservableCollection<Character?> GlobalBannedSurList { get; set; } = [];
 
     /// <summary>
     /// 全局被禁用的监管者列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _globalBannedHunList = [];
+    [ObservableProperty]
+    [FrontedBindingCollection(FixedCount = AppConstants.GlobalBanHunCount)]
+    public partial ObservableCollection<Character?> GlobalBannedHunList { get; set; } = [];
 
     /// <summary>
     /// 全局被禁用的求生者记录
     /// </summary>
-    [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedSurRecordList")]
-    [JsonIgnore] public Character?[] GlobalBannedSurRecordArray => [.. GlobalBannedSurRecordList];
-
-    /// <summary>
-    /// 全局被禁用的监管者记录
-    /// </summary>
-    [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedHunRecordList")]
-    [JsonIgnore] public Character?[] GlobalBannedHunRecordArray => [.. GlobalBannedHunRecordList];
-
-    /// <summary>
-    /// 全局被禁用的求生者记录
-    /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Character?> GlobalBannedSurRecordList { get; }
 
     /// <summary>
     /// 全局被禁用的监管者记录
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Character?> GlobalBannedHunRecordList { get; }
 
     /// <summary>
-    /// 同步全局禁选记录
+    /// 将非空的暂存记录覆盖到当前生效的全局禁选列表
     /// </summary>
     public void UpdateGlobalBanFromRecord()
     {
@@ -138,6 +193,17 @@ public partial class Team : ObservableObjectBase
         }
     }
 
+    /// <summary>
+    /// 清空用于下一次同阵营对局的全局禁选暂存记录
+    /// </summary>
+    public void ClearGlobalBanRecords()
+    {
+        for (var i = 0; i < GlobalBannedSurRecordList.Count; i++)
+            GlobalBannedSurRecordList[i] = null;
+        for (var i = 0; i < GlobalBannedHunRecordList.Count; i++)
+            GlobalBannedHunRecordList[i] = null;
+    }
+
     [JsonIgnore] private ObservableCollection<Member?> _surMemberOnFieldPrivateCollection;
 
     private ReadOnlyObservableCollection<Member?> _surMemberOnFieldCollection;
@@ -146,6 +212,7 @@ public partial class Team : ObservableObjectBase
     /// 正在场上的求生者队员列表
     /// </summary>
     [JsonIgnore]
+    [FrontedBindingIgnore]
     public ReadOnlyObservableCollection<Member?> SurMemberOnFieldCollection
     {
         get => _surMemberOnFieldCollection;
@@ -158,6 +225,7 @@ public partial class Team : ObservableObjectBase
     /// 正在场上的监管者队员
     /// </summary>
     [JsonIgnore]
+    [FrontedBindingIgnore]
     public Member? HunMemberOnField
     {
         get => _hunMemberOnField;
@@ -167,6 +235,7 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 队伍比分
     /// </summary>
+    [FrontedBindingIgnore]
     public Score Score { get; } = new();
 
     /// <summary>
@@ -182,6 +251,7 @@ public partial class Team : ObservableObjectBase
     public Team(Camp camp, TeamType teamType)
     {
         TeamType = teamType;
+        _colorHex = GetDefaultColorHex(teamType);
         SurMemberList = [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Sur))];
         HunMemberList.Add(new Member(Enums.Camp.Hun));
 
@@ -194,7 +264,7 @@ public partial class Team : ObservableObjectBase
             [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Enums.Camp.Hun))];
         GlobalBannedSurList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Enums.Camp.Hun))];
-        
+
         _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         _surMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
         OnPropertyChanged(nameof(SurMemberOnFieldCollection));
@@ -212,12 +282,18 @@ public partial class Team : ObservableObjectBase
     /// <param name="hunMemberList">监管者队员列表</param>
     /// <param name="globalBannedHunList">全局被禁用的监管者列表(用于对局回溯)</param>
     /// <param name="globalBannedSurList">全局被禁用的求生者列表(用于对局回溯)</param>
+    /// <param name="colorHex">队伍颜色Hex值</param>
+    /// <param name="teamType">队伍类型</param>
     [JsonConstructor]
     internal Team(string name, string imageUri,
         ObservableCollection<Member>? surMemberList, ObservableCollection<Member>? hunMemberList,
         ObservableCollection<Character?>? globalBannedHunList = null,
-        ObservableCollection<Character?>? globalBannedSurList = null)
+        ObservableCollection<Character?>? globalBannedSurList = null,
+        string? colorHex = null,
+        TeamType teamType = TeamType.HomeTeam)
     {
+        TeamType = teamType;
+        _colorHex = ColorHelper.NormalizeHexOrDefault(colorHex, GetDefaultColorHex(teamType));
         Name = name;
         ImageUri = imageUri;
         SurMemberList = surMemberList ?? [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Sur))];
@@ -255,11 +331,19 @@ public partial class Team : ObservableObjectBase
     public void ImportTeamInfo(Team newTeam)
     {
         Name = newTeam.Name;
-        Logo = null;
-        if (!string.IsNullOrEmpty(newTeam.ImageUri)&&newTeam.ImageUri!="null")
+        ColorHex = newTeam.ColorHex;
+        var importedImageUri = string.Equals(newTeam.ImageUri, "null", StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : newTeam.ImageUri;
+        var hadCachedLogo = _logo is not null;
+        _logo = null;
+        if (string.Equals(_imageUri, importedImageUri, StringComparison.Ordinal))
         {
-            ImageUri = newTeam.ImageUri;
-            Logo = new BitmapImage(new Uri(ImageUri));
+            if (hadCachedLogo) OnPropertyChanged(nameof(Logo));
+        }
+        else
+        {
+            ImageUri = importedImageUri;
         }
 
         foreach (var member in SurMemberList)
@@ -275,8 +359,8 @@ public partial class Team : ObservableObjectBase
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
 
-        GlobalBannedSurList = newTeam.GlobalBannedSurList;
-        GlobalBannedHunList = newTeam.GlobalBannedHunList;
+        ReplaceCollection(GlobalBannedSurList, newTeam.GlobalBannedSurList);
+        ReplaceCollection(GlobalBannedHunList, newTeam.GlobalBannedHunList);
 
         _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         SurMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
@@ -296,6 +380,16 @@ public partial class Team : ObservableObjectBase
 
         MemberOnFieldChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    private static void ReplaceCollection<T>(ObservableCollection<T> target, IEnumerable<T> source)
+    {
+        target.Clear();
+        foreach (var item in source)
+            target.Add(item);
+    }
+
+    private static string GetDefaultColorHex(TeamType teamType) =>
+        teamType == TeamType.AwayTeam ? DefaultAwayColorHex : DefaultHomeColorHex;
 
     #region 选手操作
 

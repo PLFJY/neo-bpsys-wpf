@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>neo_bpsys_wpf.FocusKeeper</RootNamespace>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
+    <!-- WPFLocalizeExtension: 仅编译期引用，运行时由宿主进程提供（与 SmartBp.Module 一致） -->
+    <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="manifest.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icon.png" Link="icon.png" CopyToOutputDirectory="Always" />
+  </ItemGroup>
+
+  <!-- 构建 C++ Hook DLL 并复制到插件输出目录 -->
+  <!--
+    vcxproj 需要完整的 Visual Studio MSBuild（含 VC 工具集，即 $(VCTargetsPath)）。
+    - 在 VS MSBuild 下（VS IDE / VS 开发者命令行）：$(VCTargetsPath) 已就绪，
+      直接用 <MSBuild> task 同进程构建。
+    - 在 dotnet build / .NET SDK MSBuild 下：$(VCTargetsPath) 缺失，无法直接
+      构建 vcxproj。此时通过 vswhere 定位 VS 安装中的 MSBuild.exe，用 <Exec>
+      外部调用它完成 C++ 编译。
+    两条路径最终 DLL 产出位置相同（Native\FocusKeeperHook\x64\<Config>\），
+    随后统一复制到插件输出目录。
+  -->
+  <PropertyGroup>
+    <HookConfig Condition="'$(Configuration)' == 'Debug'">Debug</HookConfig>
+    <HookConfig Condition="'$(Configuration)' != 'Debug'">Release</HookConfig>
+    <_HookDllPath>Native\FocusKeeperHook\x64\$(HookConfig)\FocusKeeperHook.dll</_HookDllPath>
+    <!-- 当前 MSBuild 是否已具备 VC 工具集（VS MSBuild 为 true，dotnet build 为空） -->
+    <_VcTargetsReady Condition="Exists('$(VCTargetsPath)\Microsoft.Cpp.Default.props')">true</_VcTargetsReady>
+    <!-- vswhere 固定安装位置：$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\ -->
+    <_VsWhereExe Condition="Exists('$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\vswhere.exe')">$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\vswhere.exe</_VsWhereExe>
+  </PropertyGroup>
+
+  <!-- 仅当当前 MSBuild 不含 VC 工具集时，通过 vswhere 定位 VS MSBuild.exe -->
+  <Target Name="LocateVsMsbuildForHook" Condition="'$(_VcTargetsReady)' != 'true'">
+    <Exec Command="&quot;$(_VsWhereExe)&quot; -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe"
+          ConsoleToMSBuild="true"
+          Condition="'$(_VsWhereExe)' != ''">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_VsMsbuildPath" />
+    </Exec>
+    <PropertyGroup Condition="'$(_VsMsbuildPath)' != ''">
+      <!-- vswhere -latest -find 只输出一行路径，Trim 去掉可能的尾部换行 -->
+      <_VsMsbuildPath>$(_VsMsbuildPath.Trim())</_VsMsbuildPath>
+    </PropertyGroup>
+    <Error Condition="'$(_VsMsbuildPath)' == ''"
+           Text="FocusKeeperHook 需要完整的 Visual Studio MSBuild 来构建 C++ 项目，但未检测到。请安装 Visual Studio 的「使用 C++ 的桌面开发」工作负载（含 MSBuild 与 VC 工具集）。" />
+  </Target>
+
+  <Target Name="BuildFocusKeeperHook" BeforeTargets="BeforeBuild" DependsOnTargets="LocateVsMsbuildForHook">
+    <!-- 路径 1：当前 MSBuild 自带 VC 工具集（VS IDE / VS 命令行），同进程构建 -->
+    <MSBuild Condition="'$(_VcTargetsReady)' == 'true'"
+             Projects="Native\FocusKeeperHook\FocusKeeperHook.vcxproj"
+             Targets="Build"
+             Properties="Configuration=$(HookConfig);Platform=x64" />
+    <!-- 路径 2：dotnet build 场景，外部调用 vswhere 定位到的 VS MSBuild.exe -->
+    <Exec Condition="'$(_VcTargetsReady)' != 'true' And '$(_VsMsbuildPath)' != ''"
+          Command="&quot;$(_VsMsbuildPath)&quot; &quot;$(MSBuildProjectDirectory)\Native\FocusKeeperHook\FocusKeeperHook.vcxproj&quot; /p:Configuration=$(HookConfig) /p:Platform=x64 /v:minimal /nologo" />
+    <Copy SourceFiles="$(_HookDllPath)"
+          DestinationFolder="$(OutputPath)"
+          Condition="Exists('$(_HookDllPath)')" />
+  </Target>
+
+  <Import Project="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
+
+</Project>

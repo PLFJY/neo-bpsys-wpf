@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="ProjectRepository">
+    <value>项目仓库：</value>
+  </data>
+  <data name="SoftwareUpdates">
+    <value>应用更新</value>
+  </data>
+  <data name="DownloadSource">
+    <value>下载源（此设置将同步至插件市场）：</value>
+  </data>
+  <data name="DownloadPreviewVersion">
+    <value>下载预览版？</value>
+  </data>
+  <data name="TestMirrorLatency">
+    <value>测试延迟</value>
+  </data>
+  <data name="About">
+    <value>关于</value>
+  </data>
+  <data name="CheckForUpdates">
+    <value>检查更新</value>
+  </data>
+  <data name="Install">
+    <value>安装</value>
+  </data>
+  <data name="LanguageSetting">
+    <value>语言设置</value>
+  </data>
+  <data name="SourceOfImageResources">
+    <value>贴图素材来自：</value>
+  </data>
+  <data name="OpenSourceRepositoryUsed">
+    <value>以下是本软件使用的开源代码库：</value>
+  </data>
+  <data name="QuickAccess">
+    <value>快捷入口</value>
+  </data>
+  <data name="OpenFrontendDirectory">
+    <value>打开前台配置文件目录</value>
+  </data>
+  <data name="OpenGameFileDirectory">
+    <value>打开对局文件输出目录</value>
+  </data>
+  <data name="AuthorDetails">
+    <value>软件作者：零风PLFJY | 作者QQ：3424127335 | 软件反馈群: 175741665</value>
+  </data>
+  <data name="ContributorList">
+    <value>贡献者名单</value>
+  </data>
+  <data name="Sponsor">
+    <value>赞助渠道</value>
+  </data>
+  <data name="DebugOptions">
+    <value>调试选项</value>
+  </data>
+  <data name="LogLevel">
+    <value>日志等级</value>
+  </data>
+  <data name="TriggerGCCollectionManually">
+    <value>手动触发GC回收</value>
+  </data>
+  <data name="OpenLogDirectory">
+    <value>打开日志目录</value>
+  </data>
+<data name="ErrorWhenCleanUpResidualUpdateFiles">
+    <value>清理更新残留异常</value>
+  </data>
+  <data name="DownloadFails">
+    <value>下载失败</value>
+  </data>
+  <data name="CheckForUpdatesFailed">
+    <value>检查更新失败</value>
+  </data>
+  <data name="NewUpdateFound">
+    <value>检测到新版本</value>
+  </data>
+  <data name="NoUpdatesAvailable">
+    <value>无更新可用</value>
+  </data>
+  <data name="DownloadTip">
+    <value>下载提示</value>
+  </data>
+  <data name="DownloadFinished">
+    <value>下载完成</value>
+  </data>
+  <data name="Update">
+    <value>更新</value>
+  </data>
+<data name="SmartBpModuleSettingsTitle">
+    <value>智慧 BP 模块设置</value>
+  </data>
+  <data name="SmartBpModulePath">
+    <value>模块加载/安装路径</value>
+  </data>
+  <data name="SmartBpModulePathDescription">
+    <value>用于安装、导入和加载智慧 BP 独立模块。修改后会同步到智慧 BP 页面，下次安装或本地加载会使用该目录。</value>
+  </data>
+  <data name="SmartBpModuleBrowseFolder">
+    <value>浏览文件夹</value>
+  </data>
+  <data name="SmartBpModulePathSaved">
+    <value>智慧 BP 模块路径已保存。</value>
+  </data>
+  <data name="SmartBpModuleDevelopmentPathSaving">
+    <value>正在保存智慧 BP 开发模块路径...</value>
+  </data>
+  <data name="SmartBpModuleDevelopmentPathSaved">
+    <value>智慧 BP 开发模块路径已保存，未复制模块文件。</value>
+  </data>
+  <data name="SmartBpModulePathMigrating">
+    <value>正在迁移智慧 BP 模块目录...</value>
+  </data>
+  <data name="SmartBpModulePathMigrationPrepared">
+    <value>智慧 BP 模块已复制到新目录。下次从新目录成功加载后会清理旧目录。</value>
+  </data>
+  <data name="SmartBpModulePathMigrationFailed">
+    <value>智慧 BP 模块目录迁移失败：</value>
+  </data>
+  <data name="SmartBpModulePathInvalid">
+    <value>该路径不可用于安装智慧 BP 模块，请选择可写的用户目录。</value>
+  </data>
+  <data name="SmartBpModulePathMigrationChoiceTitle">
+    <value>迁移 SmartBP 模块文件？</value>
+  </data>
+  <data name="SmartBpModulePathMigrationChoiceMessage">
+    <value>检测到当前已有 SmartBP 模块文件。是否将现有模块文件迁移到新的模块路径？</value>
+  </data>
+  <data name="SmartBpModulePathMigrateFiles">
+    <value>迁移现有文件</value>
+  </data>
+  <data name="SmartBpModulePathSaveOnly">
+    <value>仅保存路径</value>
+  </data>
+  <data name="SmartBpModulePathSavedWithoutMigration">
+    <value>智慧 BP 模块路径已保存，未迁移现有文件。</value>
+  </data>
+  <data name="SmartBpModulePathSaveCanceled">
+    <value>已取消保存智慧 BP 模块路径。</value>
+  </data>
+  <data name="SmartBpModuleImportArchive">
+    <value>导入模块包</value>
+  </data>
+  <data name="SmartBpModuleArchiveImporting">
+    <value>正在导入 SmartBP 模块包...</value>
+  </data>
+  <data name="SmartBpModuleArchiveExtractingFormat">
+    <value>正在解压：{0}%</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportSucceeded">
+    <value>SmartBP 模块包已导入并加载。</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrepared">
+    <value>SmartBP 模块包已准备好，重启应用后将完成更新。</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrompt">
+    <value>SmartBP 模块包已准备好。由于当前模块可能正在被加载，需要重启应用后完成更新。是否立即重启？</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportFailed">
+    <value>SmartBP 模块包导入失败：</value>
+  </data>
+  <data name="SmartBpModuleVersionFormat">
+    <value>SmartBP 模块版本：{0}</value>
+  </data>
+  <data name="SmartBpModuleRequired">
+    <value>SmartBP 需要安装独立模块后使用。</value>
+  </data>
+  <data name="SmartBpModuleDownloadAndInstall">
+    <value>下载并安装</value>
+  </data>
+  <data name="SmartBpModuleReinstall">
+    <value>重新安装</value>
+  </data>
+  <data name="SmartBpModuleUpdateAndInstall">
+    <value>更新并安装</value>
+  </data>
+  <data name="SmartBpModuleLoadLocal">
+    <value>加载本地模块</value>
+  </data>
+  <data name="SmartBpModuleSelectInstalledPath">
+    <value>选择已安装的模块路径</value>
+  </data>
+  <data name="SmartBpModuleSelectArchive">
+    <value>选择 SmartBpModule.7z / .zip</value>
+  </data>
+  <data name="SmartBpModulePreviewLoadOrImportArchive">
+    <value>Preview 版本请加载本地模块目录或导入 SmartBpModule.7z / .zip。</value>
+  </data>
+  <data name="SmartBpModuleDebugLoadDirectory">
+    <value>Debug 版本请加载 SmartBP 模块 Debug 输出目录。</value>
+  </data>
+  <data name="SmartBpModuleDebugLocalLoadFailed">
+    <value>Debug 版本仅加载本地 SmartBP 模块目录。当前目录加载失败，请确认模块 Debug 输出目录存在且入口程序集可加载。</value>
+  </data>
+  <data name="SmartBpModuleDownloadInstallFailed">
+    <value>无法下载或安装 SmartBP 模块。请检查网络后重试，或手动选择已安装模块路径。</value>
+  </data>
+  <data name="SmartBpModuleDebugFolderLoadFailed">
+    <value>Debug 版本加载本地模块目录失败，请确认入口程序集存在且可以被当前主程序加载。</value>
+  </data>
+  <data name="SmartBpModuleSelectedDirectoryInvalid">
+    <value>选择的 SmartBP 模块目录不可用，请检查 component.json、RID、ABI 和入口程序集。</value>
+  </data>
+  <data name="SmartBpModulePathUnsafe">
+    <value>当前路径不适合安装 SmartBP 模块，请选择可写的用户目录。</value>
+  </data>
+  <data name="SmartBpModuleOutdatedFormat">
+    <value>当前 SmartBP 模块版本过旧，需要更新到 {0}。</value>
+  </data>
+  <data name="SmartBpModuleCompatibleFound">
+    <value>检测到兼容的 SmartBP 模块，可以直接加载。</value>
+  </data>
+  <data name="SmartBpModulePathModuleInvalidFormat">
+    <value>当前路径模块不可用：{0}</value>
+  </data>
+  <data name="SmartBpModuleLocalFailureErrorFormat">
+    <value>{0}错误：{1}</value>
+  </data>
+  <data name="SmartBpModuleArchiveFiles">
+    <value>SmartBP 模块归档</value>
+  </data>
+  <data name="AppUpdateHashFileMissing">
+    <value>更新包缺少 SHA-256 校验文件，已停止下载。</value>
+  </data>
+  <data name="AppUpdateInvalidHashFile">
+    <value>更新包的 SHA-256 校验文件格式无效，已停止安装。</value>
+  </data>
+  <data name="AppUpdateSha256Mismatch">
+    <value>更新安装包完整性校验失败，为确保安全已拒绝安装。</value>
+  </data>
+  <data name="RestartNow">
+    <value>立即重启</value>
+  </data>
+  <data name="ClassicMode">
+    <value>经典模式</value>
+  </data>
+  <data name="ClassicModeDescription">
+    <value>切换后台界面模式后需要重启应用生效。</value>
+  </data>
+  <data name="BpuiFileAssociation">
+    <value>关联 .bpui 文件</value>
+  </data>
+  <data name="BpuiFileAssociationDescription">
+    <value>启用后，双击 .bpui 布局包会打开本工具并安装为当前激活布局方案。</value>
+  </data>
+  <data name="PageTransitionAnimation">
+    <value>页面切换动画</value>
+  </data>
+  <data name="PageTransitionAnimationDescription">
+    <value>关闭后，后台页面之间的切换将不再播放过渡动画，改为立即切换。修改后需要重启应用生效。</value>
+  </data>
+  <data name="PageTransitionAnimationRestart">
+    <value>重启生效</value>
+  </data>
+  <data name="ClassicModeRestartRequired">
+    <value>切换后台界面模式后需要重启应用生效。是否立即重启？</value>
+  </data>
+  <data name="OpenBehaviorEventDebugger">
+    <value>打开行为事件调试器</value>
+  </data>
+  <data name="ProductTourDebugger">
+    <value>产品导览调试器</value>
+  </data>
+  <data name="SmartBpStopAutomaticRecognition">
+    <value>停止 SmartBP 识别</value>
+  </data>
+  <data name="LogLevelVerbose">
+    <value>Verbose</value>
+  </data>
+  <data name="LogLevelDebug">
+    <value>Debug</value>
+  </data>
+  <data name="LogLevelInformation">
+    <value>Information</value>
+  </data>
+  <data name="LogLevelWarning">
+    <value>Warning</value>
+  </data>
+  <data name="LogLevelError">
+    <value>Error</value>
+  </data>
+  <data name="LogLevelFatal">
+    <value>Fatal</value>
+  </data>
+  <data name="ConfigurationFileEmpty">
+    <value>配置文件为空</value>
+  </data>
+  <data name="ConfigurationFileSaveError">
+    <value>配置文件保存错误</value>
+  </data>
+  <data name="FailedToReadConfigurationFile">
+    <value>配置文件读取失败</value>
+  </data>
+  <data name="ResetConfigurationFileError">
+    <value>重置配置文件错误</value>
+  </data>
+  <data name="ResetConfigurationFileToSolveTheProblem">
+    <value>重置配置文件以解决问题</value>
+  </data>
+  <data name="PleaseStartWindowCaptureFirst">
+    <value>请先启动窗口捕获</value>
+  </data>
+  <data name="WindowCaptureCaptureNotStarted">
+    <value>尚未开始捕获。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt">
+    <value>使用 Bitblt 捕获首帧失败。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat">
+    <value>捕获所选窗口失败：{0}</value>
+  </data>
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat">
+    <value>启动 Bitblt 捕获失败：{0}</value>
+  </data>
+  <data name="WindowCaptureFailedToStartCaptureFormat">
+    <value>启动捕获失败：{0}</value>
+  </data>
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat">
+    <value>通过窗口选择器启动捕获失败：{0}</value>
+  </data>
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable">
+    <value>捕获所选窗口失败：无法创建 GraphicsCaptureItem。</value>
+  </data>
+  <data name="WindowCapturePleaseSelectWindowFirst">
+    <value>请先选择窗口。</value>
+  </data>
+  <data name="WindowCapturePreviewWindowTitle">
+    <value>预览窗口</value>
+  </data>
+  <data name="WindowCaptureSelectedWindowInvalidForCapture">
+    <value>所选窗口无法用于捕获。</value>
+  </data>
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem">
+    <value>当前系统不支持 Windows Graphics Capture。</value>
+  </data>
+  <data name="WindowCaptureWgcRequires1803OrLater">
+    <value>Windows Graphics Capture 需要 Windows 10 1803 或更高版本。</value>
+  </data>
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809">
+    <value>按窗口句柄捕获需要 Windows 10 1903 或更高版本。在 1803/1809 上请使用窗口选择器捕获。</value>
+  </data>
+  <data name="GameStateSaveSettingsTitle">
+    <value>对局状态保存</value>
+  </data>
+  <data name="GameStateSaveDirectory">
+    <value>保存目录</value>
+  </data>
+  <data name="GameStateSaveDirectoryDescription">
+    <value>保存当前对局状态时使用的文件夹。</value>
+  </data>
+  <data name="BrowseGameStateSaveDirectory">
+    <value>选择文件夹</value>
+  </data>
+</root>

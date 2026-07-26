@@ -1,0 +1,1027 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+<data name="ExportUIConfig">
+    <value>UI設定をエクスポート</value>
+  </data>
+  <data name="ImportUIConfig">
+    <value>UI設定をインポート</value>
+  </data>
+  <data name="EditImage">
+    <value>画像を編集</value>
+  </data>
+  <data name="CurrentBanLock">
+    <value>現在のBANロック</value>
+  </data>
+  <data name="GlobalBanLock">
+    <value>グローバルBANロック</value>
+  </data>
+  <data name="BPWindowImages">
+    <value>BP背景</value>
+  </data>
+<data name="EditTextProperty">
+    <value>テキスト属性の編集</value>
+  </data>
+  <data name="ResetAllPersonalizationSettingsOfTheWindow">
+    <value>このウィンドウの全ての個人設定をリセット</value>
+  </data>
+  <data name="CustomizeIntercludeWindow">
+    <value>トランジション画面のカスタマイズ</value>
+  </data>
+  <data name="ColorOfTalentAndTraitIcon">
+    <value>人格・特質アイコンの色</value>
+  </data>
+  <data name="CustomizeScoreWindow">
+    <value>スコア画面のカスタマイズ</value>
+  </data>
+  <data name="SurvivorScoreInGame">
+    <value>ゲーム内サバイバー得点</value>
+  </data>
+  <data name="HunterScoreInGame">
+    <value>ゲーム内ハンター得点</value>
+  </data>
+  <data name="CampIconColorInScoreStatistics">
+    <value>スコア統計の陣営アイコン色</value>
+  </data>
+  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode">
+    <value>BO3/BO5切替時の合計スコア位置調整</value>
+  </data>
+  <data name="CustomizeGameDataWindow">
+    <value>戦績データ画面のカスタマイズ</value>
+  </data>
+  <data name="EditIntercludeBackgroundImage">
+    <value>トランジション背景画像の編集</value>
+  </data>
+  <data name="CustomizeFrontendUI">
+    <value>フロントエンドUIのカスタマイズ</value>
+  </data>
+  <data name="CustomizeBPWindow">
+    <value>BP画面のカスタマイズ</value>
+  </data>
+  <data name="EditGameDataBackgroundImage">
+    <value>戦績データ背景画像の編集</value>
+  </data>
+  <data name="CustomizeWidgetWindow">
+    <value>ウィジェット画面のカスタマイズ</value>
+  </data>
+  <data name="SurvivorIconOfMapBPV2">
+    <value>サバイバーアイコン (マップBP V2)</value>
+  </data>
+  <data name="HunterIconOfMapBPV2">
+    <value>ハンターアイコン (マップBP V2)</value>
+  </data>
+  <data name="BPOverview">
+    <value>BP概要</value>
+  </data>
+  <data name="CurrentBanLockOfBPOverview">
+    <value>現在のBANロック (BP概要)</value>
+  </data>
+  <data name="GlobalBanLockOfBPOverview">
+    <value>グローバルBANロック (BP概要)</value>
+  </data>
+  <data name="CampIconColorOfMapBPV2">
+    <value>陣営アイコン色 (マップBP V2)</value>
+  </data>
+  <data name="ResetAllPersonalizationSettings">
+    <value>全ての個人設定をリセット</value>
+  </data>
+<data name="BPWindow">
+    <value>BP画面</value>
+  </data>
+  <data name="DesignerMode">
+    <value>デザイナーモード</value>
+  </data>
+  <data name="ResetLayout">
+    <value>レイアウトをリセット</value>
+  </data>
+  <data name="CutSceneWindow">
+    <value>トランジション画面</value>
+  </data>
+  <data name="NoteScoreStatisticsNotSaveInBO3Mode">
+    <value>注意：BO3モードではスコア統計のレイアウト変更は保存されません</value>
+  </data>
+  <data name="ResetSurvivorScoreLayoutInGame">
+    <value>ゲーム内サバイバー得点のレイアウトをリセット</value>
+  </data>
+  <data name="ResetHunterScoreLayoutInGame">
+    <value>ゲーム内ハンター得点のレイアウトをリセット</value>
+  </data>
+  <data name="ResetScoreStatisticsLayout">
+    <value>スコア統計のレイアウトをリセット</value>
+  </data>
+  <data name="GameStatisticsWindow">
+    <value>戦績データ画面</value>
+  </data>
+  <data name="Widgets">
+    <value>ウィジェット (マップBP等)</value>
+  </data>
+  <data name="ResetMapBPLayout">
+    <value>マップBPレイアウトをリセット</value>
+  </data>
+  <data name="ResetBPOverviewLayout">
+    <value>BP概要レイアウトをリセット</value>
+  </data>
+  <data name="ResetMapBPV2Layout">
+    <value>マップBP V2レイアウトをリセット</value>
+  </data>
+<data name="AModernIdentityVBPSoftware">
+    <value>次世代 Identity V BP ソフトウェア</value>
+  </data>
+  <data name="OfficialWebsite">
+    <value>公式サイトへ</value>
+  </data>
+  <data name="Documentations">
+    <value>ドキュメントを見る</value>
+  </data>
+<data name="OpenPickingBorder">
+    <value>ピック枠を有効化</value>
+  </data>
+  <data name="ControlFirst2PickingBorderSeparately">
+    <value>最初の2つのピック枠を個別に制御</value>
+  </data>
+  <data name="SurvivorPickingBorder1">
+    <value>サバイバーピック枠 1</value>
+  </data>
+  <data name="SurvivorPickingBorder2">
+    <value>サバイバーピック枠 2</value>
+  </data>
+  <data name="SurvivorPickingBorder1and2">
+    <value>サバイバーピック枠 1 &amp; 2</value>
+  </data>
+  <data name="SurvivorPickingBorder3">
+    <value>サバイバーピック枠 3</value>
+  </data>
+  <data name="SurvivorPickingBorder4">
+    <value>サバイバーピック枠 4</value>
+  </data>
+  <data name="HunterPickingBorder">
+    <value>ハンターピック枠</value>
+  </data>
+<data name="ResetGameScores">
+    <value>得点をリセット</value>
+  </data>
+  <data name="ControlManually">
+    <value>手動制御</value>
+  </data>
+  <data name="HomeTeamName">
+    <value>ホームチーム名</value>
+  </data>
+  <data name="GameSelection">
+    <value>試合選択</value>
+  </data>
+  <data name="Next">
+    <value>次へ</value>
+  </data>
+  <data name="IsGameFinished">
+    <value>試合終了</value>
+  </data>
+  <data name="SynchronizeToFrontend">
+    <value>フロントエンドに同期</value>
+  </data>
+  <data name="CampOfHomeTeam">
+    <value>ホームチーム陣営</value>
+  </data>
+  <data name="CampOfAwayTeam">
+    <value>アウェイチーム陣営</value>
+  </data>
+  <data name="GameResult">
+    <value>試合結果</value>
+  </data>
+<data name="IsVisible">
+    <value>表示する</value>
+  </data>
+<data name="Backend">
+    <value>バックエンド管理</value>
+  </data>
+  <data name="CurrentSurvivorTeamColon">
+    <value>現在のサバイバーチーム：</value>
+  </data>
+  <data name="Swap">
+    <value>陣営交代</value>
+  </data>
+  <data name="CurrentHunterTeamColon">
+    <value>現在のハンターチーム：</value>
+  </data>
+  <data name="Countdown">
+    <value>カウントダウン</value>
+  </data>
+  <data name="SaveGameInformation">
+    <value>現在の試合状態を保存</value>
+  </data>
+  <data name="FormatColon">
+    <value>フォーマット：</value>
+  </data>
+  <data name="StartGameGuidance">
+    <value>試合開始ガイド</value>
+  </data>
+  <data name="LastStep">
+    <value>戻る</value>
+  </data>
+  <data name="NextStep">
+    <value>次へ</value>
+  </data>
+  <data name="EndGameGuidance">
+    <value>試合終了ガイド</value>
+  </data>
+  <data name="MadeByZeroPLFJY">
+    <value>制作：ゼロ風 PLFJY</value>
+  </data>
+  <data name="HomePage">
+    <value>ホーム</value>
+  </data>
+  <data name="GameData">
+    <value>戦績データ</value>
+  </data>
+  <data name="FrontendManagement">
+    <value>フロントエンド管理</value>
+  </data>
+  <data name="Free">
+    <value>フリー対戦</value>
+  </data>
+  <data name="Game1FirstHalf">
+    <value>一回戦 前半</value>
+  </data>
+  <data name="Game1SecondHalf">
+    <value>一回戦 後半</value>
+  </data>
+  <data name="Game2FirstHalf">
+    <value>二回戦 前半</value>
+  </data>
+  <data name="Game2SecondHalf">
+    <value>二回戦 後半</value>
+  </data>
+  <data name="Game3FirstHalf">
+    <value>三回戦 前半</value>
+  </data>
+  <data name="Game3SecondHalf">
+    <value>三回戦 後半</value>
+  </data>
+  <data name="Game3OvertimeFirstHalf">
+    <value>三回戦 延長戦前半</value>
+  </data>
+  <data name="Game3OvertimeSecondHalf">
+    <value>三回戦 延長戦後半</value>
+  </data>
+  <data name="Game4FirstHalf">
+    <value>四回戦 前半</value>
+  </data>
+  <data name="Game4SecondHalf">
+    <value>四回戦 後半</value>
+  </data>
+  <data name="Game5FirstHalf">
+    <value>五回戦 前半</value>
+  </data>
+  <data name="Game5SecondHalf">
+    <value>五回戦 後半</value>
+  </data>
+  <data name="Game5OvertimeFirstHalf">
+    <value>五回戦 延長戦前半</value>
+  </data>
+  <data name="Game5OvertimeSecondHalf">
+    <value>五回戦 延長戦後半</value>
+  </data>
+  <data name="AreYouSureYouWantToExit">
+    <value>終了してもよろしいですか？</value>
+  </data>
+  <data name="ComingSoon">
+    <value>この先のエリアはまた後で探索しましょう〜</value>
+  </data>
+  <data name="GameScores">
+    <value>得点</value>
+  </data>
+  <data name="FrontendBP">
+    <value>フロントエンド - BP</value>
+  </data>
+  <data name="FrontendCutScene">
+    <value>フロントエンド - トランジション</value>
+  </data>
+  <data name="HomeTeamWinPlus1">
+    <value>ホーム勝利+1</value>
+  </data>
+  <data name="HomeTeamTiePlus1">
+    <value>ホーム引き分け+1</value>
+  </data>
+  <data name="HomeTeamGameScorePlus1">
+    <value>ホーム得点+1</value>
+  </data>
+  <data name="HomeTeamWinMinus1">
+    <value>ホーム勝利-1</value>
+  </data>
+  <data name="HomeTeamTieMinus1">
+    <value>ホーム引き分け-1</value>
+  </data>
+  <data name="HomeTeamGameScoreMinus1">
+    <value>ホーム得点-1</value>
+  </data>
+  <data name="AwayTeamWinPlus1">
+    <value>アウェイ勝利+1</value>
+  </data>
+  <data name="AwayTeamTiePlus1">
+    <value>アウェイ引き分け+1</value>
+  </data>
+  <data name="AwayTeamGameScorePlus1">
+    <value>アウェイ得点+1</value>
+  </data>
+  <data name="AwayTeamWinMinus1">
+    <value>アウェイ勝利-1</value>
+  </data>
+  <data name="AwayTeamTieMinus1">
+    <value>アウェイ引き分け-1</value>
+  </data>
+  <data name="AwayTeamGameScoreMinus1">
+    <value>アウェイ得点-1</value>
+  </data>
+  <data name="FrontendWidgets">
+    <value>フロントエンド - ウィジェット</value>
+  </data>
+<data name="Timer">
+    <value>タイマー</value>
+  </data>
+  <data name="MatchScore">
+    <value>対戦スコア</value>
+  </data>
+  <data name="MapName">
+    <value>マップ名</value>
+  </data>
+  <data name="SurvivorPlayerID">
+    <value>サバイバー選手 ID</value>
+  </data>
+  <data name="HunterPlayerID">
+    <value>ハンター選手 ID</value>
+  </data>
+  <data name="MatchScores">
+    <value>対戦スコア</value>
+  </data>
+  <data name="GameScoresInScoreStatistics">
+    <value>得点 (スコア統計)</value>
+  </data>
+  <data name="TotalGameScoresInScoreStatistics">
+    <value>総得点 (スコア統計)</value>
+  </data>
+  <data name="SurvivorData">
+    <value>サバイバーデータ</value>
+  </data>
+  <data name="HunterData">
+    <value>ハンターデータ</value>
+  </data>
+  <data name="MapNameInMapBP">
+    <value>マップ名 (マップBP)</value>
+  </data>
+  <data name="MapNameInMapBPV2">
+    <value>マップ名 (マップBP V2)</value>
+  </data>
+  <data name="CampNameInMapBPV2">
+    <value>陣営名 (マップBP V2)</value>
+  </data>
+  <data name="GameScoresInBPOverview">
+    <value>得点 (BP概要)</value>
+  </data>
+<data name="null">
+    <value />
+  </data>
+<data name="CurrentStepFormat">
+    <value>現在のステップ：{0}</value>
+  </data>
+  <data name="Tip">
+    <value>ヒント</value>
+  </data>
+  <data name="FrontendSurvivorScoreInGame">
+    <value>フロントエンド - ゲーム内サバイバー得点</value>
+  </data>
+  <data name="FrontendHunterScoreInGame">
+    <value>フロントエンド - ゲーム内ハンター得点</value>
+  </data>
+  <data name="Installed">
+    <value>インストール済み</value>
+  </data>
+  <data name="Notification">
+    <value>通知</value>
+  </data>
+  <data name="AfterUpdateTip">
+    <value>更新後にレイアウトの乱れが発生した場合は、内蔵レイアウトに切り替えることで解決できます</value>
+  </data>
+  <data name="DontRemindMeAgainUntilTheNextUpdate">
+    <value>次回の更新まで通知しない</value>
+  </data>
+  <data name="GoToFolder">
+    <value>フォルダへ移動</value>
+  </data>
+  <data name="RestartNeeded">
+    <value>再起動が必要</value>
+  </data>
+  <data name="SomeSettingsRequireRestartingTheApplication">
+    <value>一部の設定はアプリケーションの再起動が必要です</value>
+  </data>
+  <data name="ResetLayoutFormat">
+    <value>{0}レイアウトをリセット</value>
+  </data>
+  <data name="SaveInfo">
+    <value>保存情報</value>
+  </data>
+  <data name="SaveSuccessfullyTo">
+    <value>保存に成功しました：</value>
+  </data>
+  <data name="SaveFailed">
+    <value>保存に失敗しました</value>
+  </data>
+  <data name="InvalidInput">
+    <value>無効な入力</value>
+  </data>
+  <data name="SaveFrontendConfigurationFileFailed">
+    <value>フロントエンド設定ファイルの保存に失敗しました</value>
+  </data>
+  <data name="UnregisteredWindowType">
+    <value>未登録のウィンドウタイプ</value>
+  </data>
+  <data name="ConfigurationFileLoadingError">
+    <value>設定ファイル読み込みエラー</value>
+  </data>
+  <data name="FrontendDefaultConfigurationRestoreError">
+    <value>フロントエンドデフォルト設定復元エラー</value>
+  </data>
+  <data name="ResetTip">
+    <value>リセットのヒント</value>
+  </data>
+<data name="WindowLaunchError">
+    <value>ウィンドウ起動エラー</value>
+  </data>
+  <data name="WindowCloseError">
+    <value>ウィンドウ終了エラー</value>
+  </data>
+  <data name="ErrorWhenGeneratingFrontendConfigurationFile">
+    <value>フロントエンド設定ファイル生成中にエラーが発生しました</value>
+  </data>
+  <data name="ConfigurationResetConfirmation">
+    <value>設定リセット確認</value>
+  </data>
+  <data name="UnknownWindowSource">
+    <value>不明なウィンドウソース</value>
+  </data>
+  <data name="ReadFrontendDefaultConfigurationError">
+    <value>フロントエンドデフォルト設定読み込みエラー</value>
+  </data>
+  <data name="CannotFindDefaultLayoutConfigurationFromWindowProvider">
+    <value>ウィンドウプロバイダーからデフォルトレイアウト設定が見つかりません</value>
+  </data>
+  <data name="UIConfigurationHasBeenSavedTo">
+    <value>UI設定は以下に保存されました：</value>
+  </data>
+  <data name="UIPackingError">
+    <value>UIパッキングエラー</value>
+  </data>
+  <data name="UIImportIsFinished">
+    <value>UIインポート完了。アプリケーションは自動的に再起動します。</value>
+  </data>
+  <data name="UIImportTip">
+    <value>UIインポートのヒント</value>
+  </data>
+  <data name="UIPackLoadingError">
+    <value>UIパック読み込みエラー</value>
+  </data>
+<data name="CleanupUpdateResidueError">
+    <value>更新残留ファイル削除エラー</value>
+  </data>
+  <data name="DownloadFailed">
+    <value>ダウンロード失敗</value>
+  </data>
+  <data name="GettingUpdateError">
+    <value>更新取得エラー</value>
+  </data>
+  <data name="NewVersionFound">
+    <value>新バージョン発見</value>
+  </data>
+  <data name="GoToSettingPageToUpdate">
+    <value>設定ページで更新する</value>
+  </data>
+  <data name="AlreadyTheLatestVersion">
+    <value>既に最新バージョンです</value>
+  </data>
+  <data name="HttpRequestError">
+    <value>HTTPリクエストエラー</value>
+  </data>
+  <data name="JsonParsingError">
+    <value>JSON解析エラー</value>
+  </data>
+  <data name="UnknownError">
+    <value>不明なエラー</value>
+  </data>
+  <data name="ImageFiles">
+    <value>画像ファイル</value>
+  </data>
+  <data name="FontFiles">
+    <value>フォントファイル</value>
+  </data>
+  <data name="JSONFiles">
+    <value>JSONファイル</value>
+  </data>
+  <data name="ZipFiles">
+    <value>Zip圧縮ファイル</value>
+  </data>
+  <data name="TheProgramIsAlreadyRunning">
+    <value>プログラムは既に実行中です</value>
+  </data>
+  <data name="AlreadyTheLastStep">
+    <value>既に最後のステップです</value>
+  </data>
+  <data name="GameInfoStatusError">
+    <value>試合情報状態異常</value>
+  </data>
+  <data name="AlreadyTheFirstStep">
+    <value>既に最初のステップです</value>
+  </data>
+  <data name="EmptyBan">
+    <value>BANなし</value>
+  </data>
+  <data name="CurrentStep">
+    <value>現在のステップ</value>
+  </data>
+<data name="RestartToApply">
+    <value>再起動後に適用</value>
+  </data>
+  <data name="AreYouSureToSaveTheShiftDistanceOfTotalScore">
+    <value>合計スコアの調整距離を保存しますか？</value>
+  </data>
+  <data name="AreYouSureToSetCampIconTo">
+    <value>陣営アイコンを以下に変更しますか：</value>
+  </data>
+  <data name="AreYouSureToSetTalentAndTraitIconTo">
+    <value>人格・特質アイコンの色を以下に設定しますか：</value>
+  </data>
+  <data name="AreYouSureToResetAllPersonalSettingsOfThisWindow">
+    <value>このウィンドウの全ての個人設定をリセットしてもよろしいですか？</value>
+  </data>
+  <data name="AreYouSureToResetPersonalSettingsOfAllWindows">
+    <value>全てのウィンドウの個人設定をリセットしてもよろしいですか？</value>
+  </data>
+  <data name="CoverTip">
+    <value>上書きのヒント</value>
+  </data>
+  <data name="PathHasAlreadyExistAreYouSureToCoverIt">
+    <value>は既に存在します。上書きしますか？</value>
+  </data>
+<data name="Restart">
+    <value>再起動</value>
+  </data>
+  <data name="NotNow">
+    <value>今はしない</value>
+  </data>
+  <data name="Loaded">
+    <value>ロード済み</value>
+  </data>
+  <data name="Disabled">
+    <value>無効</value>
+  </data>
+  <data name="Character">
+    <value>キャラクター</value>
+  </data>
+  <data name="FrontedScoreStatistics">
+    <value>フロントエンド - スコア統計</value>
+  </data>
+  <data name="FrontedGameStatistics">
+    <value>フロントエンド - 戦績データ</value>
+  </data>
+  <data name="ImportGameInformation">
+    <value>試合情報をインポート</value>
+  </data>
+  <data name="ImportSuccessfullyFrom">
+    <value>以下から正常にインポートしました：</value>
+  </data>
+  <data name="ImportInfo">
+    <value>インポート情報</value>
+  </data>
+  <data name="ImportFailed">
+    <value>インポート失敗：</value>
+  </data>
+  <data name="ReleaseNotes">
+    <value>更新履歴（中国語のみ）</value>
+  </data>
+  <data name="LoadingFailed">
+    <value>読み込み失敗</value>
+  </data>
+  <data name="BpuiFiles">
+    <value>bpuiファイル</value>
+  </data>
+  <data name="AllowsWindowTransparency">
+    <value>ウィンドウの透明化を許可</value>
+  </data>
+  <data name="AllowsScoreGlobalWindowTransparency">
+    <value>スコア統計ウィンドウの透明化を許可</value>
+  </data>
+  <data name="WindowSize">
+    <value>ウィンドウサイズ</value>
+  </data>
+<data name="UnexpectedExceptionMessage">
+    <value>予期しないエラーが発生しました。下記のアドレスにあるログファイルを添えて、開発者までお問い合わせください。</value>
+  </data>
+<data name="SevenZipArchiveFiles">
+    <value>7z アーカイブ</value>
+  </data>
+  <data name="AllFiles">
+    <value>すべてのファイル</value>
+  </data>
+<data name="SaveAs">
+    <value>名前を付けて保存</value>
+  </data>
+  <data name="QueuePending">
+    <value>待機中</value>
+  </data>
+  <data name="QueueDownloading">
+    <value>ダウンロード中</value>
+  </data>
+  <data name="QueueDownloaded">
+    <value>ダウンロード済み、インストール待ち</value>
+  </data>
+  <data name="QueueInstalledRestartRequired">
+    <value>インストール済み、再起動して変更を適用</value>
+  </data>
+  <data name="QueueFailed">
+    <value>ダウンロード失敗</value>
+  </data>
+  <data name="QueueCanceled">
+    <value>キャンセル済み</value>
+  </data>
+  <data name="FrontedDesignerWindow">
+    <value>フロントエンドデザイナー</value>
+  </data>
+  <data name="Canvas">
+    <value>キャンバス</value>
+  </data>
+  <data name="LayoutSource">
+    <value>レイアウト元</value>
+  </data>
+  <data name="Validation">
+    <value>検証</value>
+  </data>
+  <data name="ValidateLayout">
+    <value>検証</value>
+  </data>
+  <data name="BuiltInLayout">
+    <value>組み込みレイアウト</value>
+  </data>
+<data name="FitToWindow">
+    <value>ウィンドウに合わせる</value>
+  </data>
+  <data name="ControlType">
+    <value>コントロール種別</value>
+  </data>
+  <data name="Property">
+    <value>プロパティ</value>
+  </data>
+  <data name="Value">
+    <value>値</value>
+  </data>
+  <data name="Identity">
+    <value>識別情報</value>
+  </data>
+  <data name="Binding">
+    <value>バインド</value>
+  </data>
+  <data name="Appearance">
+    <value>外観</value>
+  </data>
+  <data name="ControlSpecific">
+    <value>コントロール固有</value>
+  </data>
+  <data name="ReadOnly">
+    <value>読み取り専用</value>
+  </data>
+  <data name="Color">
+    <value>色</value>
+  </data>
+  <data name="BasicControls">
+    <value>基本コントロール</value>
+  </data>
+  <data name="BusinessControls">
+    <value>業務コントロール</value>
+  </data>
+  <data name="FontFamily">
+    <value>フォント</value>
+  </data>
+  <data name="BuiltInFont">
+    <value>組み込みフォント</value>
+  </data>
+  <data name="SystemFont">
+    <value>システムフォント</value>
+  </data>
+  <data name="Placeholder">
+    <value>プレースホルダー</value>
+  </data>
+  <data name="ConfirmDeleteControl">
+    <value>選択中のコントロールを削除しますか？</value>
+  </data>
+  <data name="PlaceholderPreview">
+    <value>プレースホルダープレビュー</value>
+  </data>
+  <data name="DesignerPlaceholderData">
+    <value>デザイナープレースホルダーデータ</value>
+  </data>
+<data name="UnsavedChangesMessage">
+    <value>現在のレイアウトに未保存の変更があります。</value>
+  </data>
+<data name="SnapGridSize">
+    <value>スナップグリッドサイズ</value>
+  </data>
+  <data name="BindingBrowser">
+    <value>バインドブラウザー</value>
+  </data>
+  <data name="ResourceBrowser">
+    <value>リソースブラウザー</value>
+  </data>
+  <data name="SelectBindingPath">
+    <value>バインドパスを選択</value>
+  </data>
+  <data name="SelectResource">
+    <value>リソースを選択</value>
+  </data>
+  <data name="SearchBindings">
+    <value>バインドを検索</value>
+  </data>
+  <data name="SearchResources">
+    <value>リソースを検索</value>
+  </data>
+  <data name="SelectedPath">
+    <value>選択中のパス</value>
+  </data>
+  <data name="BuiltInResources">
+    <value>組み込みリソース</value>
+  </data>
+  <data name="AppAssets">
+    <value>アプリ素材</value>
+  </data>
+  <data name="AbsoluteFile">
+    <value>絶対パスのファイル</value>
+  </data>
+<data name="NoBindingResults">
+    <value>一致するバインドはありません。</value>
+  </data>
+  <data name="NoResourceResults">
+    <value>一致するリソースはありません。</value>
+  </data>
+  <data name="ExpectedBindingType">
+    <value>想定バインド型</value>
+  </data>
+  <data name="AnyBinding">
+    <value>任意のバインド</value>
+  </data>
+  <data name="TextBinding">
+    <value>テキストバインド</value>
+  </data>
+  <data name="ImageBinding">
+    <value>画像バインド</value>
+  </data>
+  <data name="MapBinding">
+    <value>マップバインド</value>
+  </data>
+  <data name="BooleanBinding">
+    <value>真偽値バインド</value>
+  </data>
+  <data name="NumberBinding">
+    <value>数値バインド</value>
+  </data>
+  <data name="StringBinding">
+    <value>文字列バインド</value>
+  </data>
+  <data name="UseSelected">
+    <value>選択を使用</value>
+  </data>
+  <data name="Window">
+    <value>ウィンドウ</value>
+  </data>
+  <data name="RestartRequired">
+    <value>再起動が必要です</value>
+  </data>
+  <data name="SaveBeforeRestart">
+    <value>再起動前に現在のレイアウトを保存しますか？</value>
+  </data>
+  <data name="FrontendWindows">
+    <value>フロントウィンドウ</value>
+  </data>
+  <data name="FrontendDesigner">
+    <value>フロントデザイナー</value>
+  </data>
+  <data name="InstalledPackages">
+    <value>インストール済みパッケージ</value>
+  </data>
+  <data name="BuiltInPackage">
+    <value>内蔵パッケージ</value>
+  </data>
+  <data name="PackageCreatedAt">
+    <value>作成日時</value>
+  </data>
+  <data name="PackageSource">
+    <value>ソース</value>
+  </data>
+  <data name="PackageValidationStatus">
+    <value>検証状態</value>
+  </data>
+  <data name="PackageInstallPath">
+    <value>インストール先</value>
+  </data>
+  <data name="PackageNotImplemented">
+    <value>v3 パッケージのインポートは今後のバージョンで実装予定です。</value>
+  </data>
+  <data name="PackageActivated">
+    <value>パッケージを有効化しました。</value>
+  </data>
+  <data name="ShortcutDelete">
+    <value>削除 (Del)</value>
+  </data>
+  <data name="ExportScope">
+    <value>エクスポート範囲</value>
+  </data>
+  <data name="ExportCurrentCanvas">
+    <value>現在の Canvas</value>
+  </data>
+  <data name="ExportCurrentWindow">
+    <value>現在のウィンドウ</value>
+  </data>
+  <data name="ExportAllFrontendLayouts">
+    <value>すべてのフロントレイアウト</value>
+  </data>
+  <data name="ActivateImportedPackage">
+    <value>パッケージをインポートしました。今すぐ有効化しますか？</value>
+  </data>
+  <data name="LegacyPackageDetected">
+    <value>旧形式の .bpui パッケージを検出しました</value>
+  </data>
+  <data name="LegacyPackageConversionNotImplemented">
+    <value>旧形式 .bpui の変換はまだ実装されていません。</value>
+  </data>
+  <data name="InvalidPackageManifest">
+    <value>パッケージ manifest が無効です。</value>
+  </data>
+  <data name="InvalidPackageArchive">
+    <value>パッケージアーカイブが無効です。</value>
+  </data>
+  <data name="CrossPackageResourceReference">
+    <value>パッケージに別パッケージへのリソース参照があります。</value>
+  </data>
+  <data name="MissingPackageResource">
+    <value>パッケージのリソースファイルが不足しています。</value>
+  </data>
+  <data name="SwitchToBuiltIn">
+    <value>組み込みに切り替え</value>
+  </data>
+  <data name="UnknownLegacyLayoutFile">
+    <value>不明な旧形式レイアウトファイル</value>
+  </data>
+  <data name="LegacyFieldIgnored">
+    <value>旧形式フィールドを無視しました</value>
+  </data>
+  <data name="LegacyResourceCopied">
+    <value>旧形式リソースをコピーしました</value>
+  </data>
+  <data name="LegacyResourceMissing">
+    <value>旧形式リソースが見つかりません</value>
+  </data>
+  <data name="ActivateConvertedPackage">
+    <value>変換したパッケージを今すぐ有効化しますか？</value>
+  </data>
+<data name="InputTooLong">
+    <value>入力が長すぎます</value>
+  </data>
+  <data name="ImageTooLarge">
+    <value>画像ファイルが大きすぎます</value>
+  </data>
+  <data name="ImageTooManyPixels">
+    <value>画像サイズが大きすぎます</value>
+  </data>
+  <data name="UnsupportedImageFormat">
+    <value>対応していない画像形式です</value>
+  </data>
+  <data name="PackageTooLarge">
+    <value>レイアウトパッケージが大きすぎます</value>
+  </data>
+  <data name="PackageExtractedTooLarge">
+    <value>展開後のパッケージ内容が大きすぎます</value>
+  </data>
+  <data name="PackageTooManyEntries">
+    <value>パッケージ内のファイル数が多すぎます</value>
+  </data>
+  <data name="PackageEntryTooLarge">
+    <value>パッケージ内の単一ファイルが大きすぎます</value>
+  </data>
+  <data name="ManifestTooLarge">
+    <value>manifest.json が大きすぎます</value>
+  </data>
+  <data name="LayoutJsonTooLarge">
+    <value>レイアウト JSON が大きすぎます</value>
+  </data>
+  <data name="WindowOptionsTooLarge">
+    <value>ウィンドウオプション JSON が大きすぎます</value>
+  </data>
+  <data name="TooManyControls">
+    <value>この Canvas のコントロールが多すぎます</value>
+  </data>
+  <data name="ControlCountWarning">
+    <value>この Canvas には多くのコントロールがあります</value>
+  </data>
+  <data name="MaxControlsPerCanvas">
+    <value>Canvas ごとの最大コントロール数</value>
+  </data>
+<data name="TextTooLong">
+    <value>テキストが長すぎます</value>
+  </data>
+  <data name="BindingPathTooLong">
+    <value>バインドパスが長すぎます</value>
+  </data>
+  <data name="MissingPluginMarketLater">
+    <value>プラグインマーケットからのインストール/更新案内は今後のバージョンで対応します。</value>
+  </data>
+  <data name="ForceImportRemoveMissingControls">
+    <value>強制インポートして不足コントロールを削除</value>
+  </data>
+  <data name="RemovedPluginControlCount">
+    <value>削除されたプラグインコントロール</value>
+  </data>
+  <data name="RemovedPluginControlsReport">
+    <value>強制インポートで削除されたプラグインコントロール</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.DisplayName">
+    <value>サンプルチームカード</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.Description">
+    <value>共有データのバインディングからチーム名とロゴを表示する DEBUG 用サンプルプラグインコントロール。</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath">
+    <value>チーム名バインディング</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoBindingPath">
+    <value>ロゴバインディング</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.BackgroundColor">
+    <value>背景色</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.ForegroundColor">
+    <value>文字色</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.CornerRadius">
+    <value>角丸</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoSize">
+    <value>ロゴサイズ</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontSize">
+    <value>フォントサイズ</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontWeight">
+    <value>フォントウェイト</value>
+  </data>
+  <data name="ClassicBackendShell">
+    <value>クラシック導播台</value>
+  </data>
+  <data name="ModernBackendShell">
+    <value>モダンバックエンド</value>
+  </data>
+  <data name="FrontendQuickControls">
+    <value>フロントエンド簡易操作</value>
+  </data>
+  <data name="ClassicManagementEntries">
+    <value>管理入口</value>
+  </data>
+  <data name="OpenFrontendManagement">
+    <value>フロントエンド管理</value>
+  </data>
+  <data name="OpenSettings">
+    <value>設定</value>
+  </data>
+  <data name="OpenPlugins">
+    <value>プラグイン</value>
+  </data>
+  <data name="GameDataWindow">
+    <value>試合データウィンドウ</value>
+  </data>
+  <data name="WidgetsWindow">
+    <value>ウィジェットウィンドウ</value>
+  </data>
+<data name="ExecutableFiles">
+    <value>実行可能ファイル</value>
+  </data>
+  <data name="SmartBp">
+    <value>スマート BP</value>
+  </data>
+  <data name="StartNewGame">
+    <value>新しい試合を開始</value>
+  </data>
+  <data name="ResetAndMoveToNextGame">
+    <value>リセットして次の試合へ</value>
+  </data>
+  <data name="ResetAndMoveToNextGameQuestion">
+    <value>現在の試合をリセットして次の試合へ進みますか？</value>
+  </data>
+  <data name="ResetOnly">
+    <value>リセットのみ</value>
+  </data>
+  <data name="ClickedByMistake">
+    <value>間違えてクリックしました</value>
+  </data>
+  <data name="DoNotAskNextGameAgain">
+    <value>次回起動まで確認しない</value>
+  </data>
+  <data name="DoNotAskGameStateSaveDirectoryAgain">
+    <value>保存先を今後確認しませんか？</value>
+  </data>
+</root>

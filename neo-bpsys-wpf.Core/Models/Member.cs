@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -11,6 +12,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 选手类, 注意与 <see cref="Player"/> 类做区分，这是表示上场的选手，本类是表示队伍内的成员, <see cref="Models.Member"/> 被它所操纵的 <see cref="Player"/> 包含
 /// </summary>
+[FrontedBindingObject]
 public partial class Member : ObservableObjectBase
 {
     /// <summary>
@@ -22,21 +24,23 @@ public partial class Member : ObservableObjectBase
         Camp = camp;
     }
 
-    private string _name = Empty;
-
     /// <summary>
     /// 选手名称
     /// </summary>
-    public string Name
-    {
-        get => _name;
-        set => SetProperty(ref _name, value);
-    }
+    [ObservableProperty]
+    public partial string Name {get; set;} = Empty;
+
+    /// <summary>
+    /// 选手游戏内名称，用于 SmartBP 角色分配阶段识别匹配；为空时回退使用 <see cref="Name"/>。
+    /// </summary>
+    [ObservableProperty]
+    public partial string GameId {get; set;} = Empty;
 
     /// <summary>
     /// 选手所属阵营
     /// </summary>
-    [ObservableProperty] private Camp _camp;
+    [ObservableProperty]
+    public partial Camp Camp { get; set; }
 
     private ImageSource? _image;
 
@@ -52,32 +56,53 @@ public partial class Member : ObservableObjectBase
             _image = new BitmapImage(new Uri(ImageUri));
             return _image;
         }
-        set => SetPropertyWithAction(ref _image, value, _ =>
+        set
         {
-            ImageUri = null;
+            if (!SetProperty(ref _image, value)) return;
+            if (_imageUri is not null)
+            {
+                _imageUri = null;
+                OnPropertyChanged(nameof(ImageUri));
+            }
             OnPropertyChanged(nameof(IsImageValid));
-        });
+        }
     }
+
+    private string? _imageUri;
 
     /// <summary>
     /// 选手定妆照的图片 Uri
     /// </summary>
-    public string? ImageUri { get; set; }
+    [FrontedBindingIgnore]
+    public string? ImageUri
+    {
+        get => _imageUri;
+        set
+        {
+            if (!SetProperty(ref _imageUri, value)) return;
+            _image = null;
+            OnPropertyChanged(nameof(Image));
+            OnPropertyChanged(nameof(IsImageValid));
+        }
+    }
 
     /// <summary>
     /// 选手是否上场
     /// </summary>
-    [ObservableProperty] private bool _isOnField;
+    [ObservableProperty]
+    public partial bool IsOnField { get; set; }
 
     /// <summary>
     /// 选手是否可上场
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private bool _canOnFieldChange = true;
+    [JsonIgnore]
+    public partial bool CanOnFieldChange { get; set; } = true;
 
     /// <summary>
     /// 选手定妆照是否有效
     /// </summary>
-    [JsonIgnore] public bool IsImageValid => Image != null;
+    [JsonIgnore]
+    [FrontedBindingIgnore]
+    public bool IsImageValid => Image != null;
 }

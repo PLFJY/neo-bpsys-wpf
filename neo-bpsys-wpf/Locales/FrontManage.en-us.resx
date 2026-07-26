@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="AllFrontendWindows">
+    <value>All frontend windows</value>
+  </data>
+  <data name="OpenAll">
+    <value>Open all</value>
+  </data>
+  <data name="CloseAll">
+    <value>Close all</value>
+  </data>
+  <data name="Open">
+    <value>Open</value>
+  </data>
+  <data name="DesignerUnlockNote">
+    <value>Use the independent Frontend Designer to edit layouts. Layout packages are managed in the Layout Packages tab.</value>
+  </data>
+  <data name="OpenFrontedDesigner">
+    <value>Open v3 Frontend Designer</value>
+  </data>
+  <data name="UserLayout">
+    <value>User Layout</value>
+  </data>
+  <data name="LayoutPackages">
+    <value>Layout Packages</value>
+  </data>
+  <data name="LayoutPackageManager">
+    <value>Layout Package Manager</value>
+  </data>
+  <data name="ActivePackage">
+    <value>Active Package</value>
+  </data>
+  <data name="SystemBuiltIn">
+    <value>Built-in Layout Scheme</value>
+  </data>
+  <data name="External">
+    <value>External</value>
+  </data>
+  <data name="BuiltInLayoutSchemeName">
+    <value>Built-in Layout Scheme</value>
+  </data>
+  <data name="BuiltInLayoutSchemeDescription">
+    <value>Built-in Designer v3 frontend layouts.</value>
+  </data>
+  <data name="UserLayoutSchemeNameFormat">
+    <value>User Layout Scheme {0}</value>
+  </data>
+  <data name="UserLayoutSchemeDescription">
+    <value>User editable layout scheme.</value>
+  </data>
+  <data name="PackageId">
+    <value>PackageId</value>
+  </data>
+  <data name="PackageName">
+    <value>Name</value>
+  </data>
+  <data name="PackageAuthor">
+    <value>Author</value>
+  </data>
+  <data name="PackageDescription">
+    <value>Description</value>
+  </data>
+  <data name="PackageMinVersion">
+    <value>Min Version</value>
+  </data>
+  <data name="LayoutCount">
+    <value>Layout Count</value>
+  </data>
+  <data name="ResourceCount">
+    <value>Resource Count</value>
+  </data>
+  <data name="ImportPackage">
+    <value>Import Package</value>
+  </data>
+  <data name="ExportPackage">
+    <value>Export Package</value>
+  </data>
+  <data name="ActivatePackage">
+    <value>Activate Package</value>
+  </data>
+  <data name="DuplicateLayoutPackage">
+    <value>Duplicate Scheme</value>
+  </data>
+  <data name="DeletePackage">
+    <value>Delete Package</value>
+  </data>
+  <data name="OpenPackageFolder">
+    <value>Open Package Folder</value>
+  </data>
+  <data name="RefreshPackages">
+    <value>Refresh Packages</value>
+  </data>
+  <data name="CannotDeleteBuiltinPackage">
+    <value>Cannot delete the built-in package.</value>
+  </data>
+  <data name="CannotDeleteLocalPackage">
+    <value>Cannot delete the local resource package.</value>
+  </data>
+  <data name="CannotDuplicateLocalPackage">
+    <value>Cannot duplicate the local resource package.</value>
+  </data>
+  <data name="LayoutPackageDuplicated">
+    <value>Layout scheme duplicated</value>
+  </data>
+  <data name="DuplicateLayoutPackageFailed">
+    <value>Duplicate layout scheme failed</value>
+  </data>
+  <data name="PackageDeleted">
+    <value>Package deleted.</value>
+  </data>
+  <data name="PackageDeleteFailed">
+    <value>Package delete failed</value>
+  </data>
+  <data name="PackageActivationNotImplemented">
+    <value>This package cannot be activated yet.</value>
+  </data>
+  <data name="ExportPackageDialogTitle">
+    <value>Export Layout Package</value>
+  </data>
+  <data name="OutputPath">
+    <value>Output Path</value>
+  </data>
+  <data name="BrowseOutputPath">
+    <value>Browse Output Path</value>
+  </data>
+  <data name="PackageExportSucceeded">
+    <value>Package export succeeded</value>
+  </data>
+  <data name="PackageExportFailed">
+    <value>Package export failed</value>
+  </data>
+  <data name="InvalidPackageId">
+    <value>PackageId may contain only lowercase letters, numbers, dot, dash, and underscore, with no whitespace, path separators, colon, or ...</value>
+  </data>
+  <data name="PackageNameRequired">
+    <value>Package name is required.</value>
+  </data>
+  <data name="OutputPathRequired">
+    <value>Output path is required.</value>
+  </data>
+  <data name="ConfirmOverwriteFile">
+    <value>The output file already exists. Overwrite it?</value>
+  </data>
+  <data name="ExportedLayoutCount">
+    <value>Exported layouts</value>
+  </data>
+  <data name="ExportedResourceCount">
+    <value>Exported resources</value>
+  </data>
+  <data name="CompactPackageList">
+    <value>Layout Packages</value>
+  </data>
+  <data name="PackageBasicInfo">
+    <value>Basic</value>
+  </data>
+  <data name="PackageContents">
+    <value>Contents</value>
+  </data>
+  <data name="PackageLocation">
+    <value>Location</value>
+  </data>
+  <data name="PackageValidation">
+    <value>Validation</value>
+  </data>
+  <data name="FrontendLayoutPackageDefaultName">
+    <value>Frontend Layout Package</value>
+  </data>
+  <data name="PackageImportSucceeded">
+    <value>Layout package imported</value>
+  </data>
+  <data name="PackageImportFailed">
+    <value>Layout package import failed</value>
+  </data>
+  <data name="PackageAlreadyExists">
+    <value>Package already exists</value>
+  </data>
+  <data name="ReplaceExistingPackage">
+    <value>A package with the same PackageId already exists. Replace it?</value>
+  </data>
+  <data name="PackageRequiresNewerVersion">
+    <value>This package requires a newer app version.</value>
+  </data>
+  <data name="ConfirmActivatePackage">
+    <value>Switch to this layout scheme?</value>
+  </data>
+  <data name="ConfirmDeleteActivePackage">
+    <value>This package is active. Delete it and switch to the built-in layout?</value>
+  </data>
+  <data name="ConfirmDeletePackage">
+    <value>Delete this layout package?</value>
+  </data>
+  <data name="PackageActivatedBuiltin">
+    <value>Switched to built-in layout</value>
+  </data>
+  <data name="PackageActivatedInstalled">
+    <value>Layout package activated</value>
+  </data>
+  <data name="LegacyPackageConvertTitle">
+    <value>Convert Legacy Layout Package</value>
+  </data>
+  <data name="LegacyPackageConvertMessage">
+    <value>A legacy .bpui layout package was detected. Convert it to a Designer v3 package and import it? The legacy Config.json will not overwrite current app settings.</value>
+  </data>
+  <data name="ConvertLegacyPackage">
+    <value>Convert Legacy Package</value>
+  </data>
+  <data name="LegacyPackageConvertSucceeded">
+    <value>Legacy package converted</value>
+  </data>
+  <data name="LegacyPackageConvertFailed">
+    <value>Legacy package conversion failed</value>
+  </data>
+  <data name="LegacyPackageConvertWarnings">
+    <value>Legacy package conversion warnings</value>
+  </data>
+  <data name="LegacyPackageDefaultDescription">
+    <value>Converted from a legacy .bpui package. Legacy fields without a safe mapping are ignored.</value>
+  </data>
+  <data name="LegacyConvert.FrontElementsFolderMissing">
+    <value>The legacy package does not contain the FrontElementsConfig folder, so front-end window layouts could not be read.</value>
+  </data>
+  <data name="LegacyConvert.UnknownLayoutFileSkipped">
+    <value>An unknown legacy layout file was found and skipped: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.MapBpV1Skipped">
+    <value>The legacy "Map BP V1" window has been removed in Designer v3, so it will not be converted. Other supported windows will continue to be converted.</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileTooLargeSkipped">
+    <value>The legacy layout file is too large and was skipped: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileReadFailed">
+    <value>The legacy layout file could not be read and was skipped: {FileName}. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.NoBlueprintForLayout">
+    <value>No conversion map exists for this legacy window yet, so it was skipped: {SourceWindow}/{SourceCanvas}</value>
+  </data>
+  <data name="LegacyConvert.ControlCreateFailed">
+    <value>A target v3 control could not be created for the legacy control: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlNotInBlueprintMap">
+    <value>A legacy control is not listed in the explicit conversion map: {SourceWindow}/{SourceCanvas}/{ControlName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutValidationError">
+    <value>The converted layout has validation errors: {TargetWindow}/{CanvasName}. Details: {Details}</value>
+  </data>
+  <data name="LegacyConvert.OvertimeScoreCellsAggregated">
+    <value>Legacy overtime score cells were merged into the v3 global score row control.</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayFolded">
+    <value>The legacy lock overlay was merged into the v3 lockable image control: {LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayTargetMissing">
+    <value>The legacy lock overlay was recognized, but the target image control does not exist: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.BpOverviewOutOfBounds">
+    <value>Some content in the legacy BP overview window exceeds the original bounds and may be clipped after conversion.</value>
+  </data>
+  <data name="LegacyConvert.ResourceMissing">
+    <value>A legacy resource was not found, so the default resource was kept: {Field} = {Value}</value>
+  </data>
+  <data name="LegacyConvert.Bo3GlobalScoreBackgroundMapped">
+    <value>The legacy BO3 global score background was converted into the v3 BO3 canvas-state background.</value>
+  </data>
+  <data name="LegacyConvert.LockImageMapped">
+    <value>The legacy lock image was merged into the v3 image control lock overlay: {Key}</value>
+  </data>
+  <data name="LegacyConvert.PickingBorderImageMapped">
+    <value>The legacy picking-border image was merged into the v3 image control picking border: {Key}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsApplied">
+    <value>Legacy text settings were applied: {SourceWindow}/{SourceCanvas}/{ControlName} &lt;- {TextStyleKey}</value>
+  </data>
+  <data name="LegacyConvert.MapV2PickingBorderMapped">
+    <value>Legacy MapV2 picking border was mapped to the v3 control.</value>
+  </data>
+  <data name="LegacyConvert.ResourceCopied">
+    <value>Legacy resource copied: {FileName}</value>
+  </data>
+  <data name="LegacyConvert.GlobalScoreCellsAggregated">
+    <value>Legacy global score cells aggregated: {Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.IrregularCellSpacingApproximated">
+    <value>Legacy cell spacing was irregular and approximated by median gaps: {Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlGeometryFuzzyMatched">
+    <value>Legacy control geometry was fuzzy-matched to the v3 control.</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayGeometryConsumed">
+    <value>Legacy lock overlay geometry was merged: {LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlConsumed">
+    <value>Legacy folded control was merged: {SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlNoTarget">
+    <value>Legacy folded control has no v3 body control target: {SourceWindow}/{SourceCanvas}/{LegacyName}</value>
+  </data>
+  <data name="LegacyConvert.LegacyFieldIgnored">
+    <value>Legacy field ignored: {Field}</value>
+  </data>
+  <data name="LegacyConvert.WindowSizeDiffersFromCanvas">
+    <value>Legacy window size differs from converter canvas default: {TargetWindow} Window={WindowSize}, Canvas={CanvasSize}</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonTooLarge">
+    <value>Legacy Config.json is too large and was skipped.</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonReadFailed">
+    <value>Legacy Config.json could not be read. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsReadFailed">
+    <value>Legacy Config.json text settings could not be read. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.WindowSettingsInspectFailed">
+    <value>Legacy Config.json window settings could not be inspected. Reason: {Reason}</value>
+  </data>
+  <data name="LegacyConvert.FoldedGeometryNotRepresentable">
+    <value>Legacy folded control geometry is represented by v3 control metadata; separate geometry is not representable.</value>
+  </data>
+  <data name="MissingPluginImportTitle">
+    <value>Missing plugin controls</value>
+  </data>
+  <data name="MissingPluginImportMessage">
+    <value>This layout package references plugin controls that are not registered in the current app. Missing controls will not render; cancel the import or force import and remove them.</value>
+  </data>
+  <data name="FrontManageWindowCategory.BuiltIn">
+    <value>Built-in</value>
+  </data>
+  <data name="FrontManageWindowCategory.Xaml">
+    <value>XAML</value>
+  </data>
+  <data name="FrontManageWindowCategory.V3Layout">
+    <value>v3 Window</value>
+  </data>
+  <data name="StopAllLoopAnimations">
+    <value>Stop all loop animations</value>
+  </data>
+  <data name="StoppedLoopAnimationsFormat">
+    <value>Stopped {0} loop animations.</value>
+  </data>
+  <data name="NoActiveLoopAnimations">
+    <value>No loop animations are currently playing.</value>
+  </data>
+</root>

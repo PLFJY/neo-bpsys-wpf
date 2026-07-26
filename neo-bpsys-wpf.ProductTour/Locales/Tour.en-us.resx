@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Previous" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="Skip" xml:space="preserve">
+    <value>Skip</value>
+  </data>
+  <data name="WaitingForAction" xml:space="preserve">
+    <value>Waiting for action...</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="ClickToContinue" xml:space="preserve">
+    <value>Click to continue</value>
+  </data>
+  <data name="WelcomeTitle" xml:space="preserve">
+    <value>Welcome to neo-bpsys-wpf!</value>
+  </data>
+  <data name="WelcomeDescription" xml:space="preserve">
+    <value>Before starting, please complete a brief feature tour.</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>Interface Language</value>
+  </data>
+  <data name="StartTour" xml:space="preserve">
+    <value>Start Tour</value>
+  </data>
+  <data name="RestartAvailableHint" xml:space="preserve">
+    <value>You can restart the tour later in Settings.</value>
+  </data>
+  <data name="SkipConfirmTitle" xml:space="preserve">
+    <value>Skip the first-run tour?</value>
+  </data>
+  <data name="SkipConfirmDescription" xml:space="preserve">
+    <value>Are you sure you want to skip the first-run tour? You can restart it later in Settings.</value>
+  </data>
+  <data name="SkipConfirmContinue" xml:space="preserve">
+    <value>Continue Tour</value>
+  </data>
+  <data name="SkipConfirmConfirm" xml:space="preserve">
+    <value>Confirm Skip</value>
+  </data>
+  <data name="SkipForCurrentSession" xml:space="preserve">
+    <value>Skip This Time</value>
+  </data>
+  <data name="SkipPermanently" xml:space="preserve">
+    <value>Skip Permanently</value>
+  </data>
+  <data name="SuppressUntilNextStartup" xml:space="preserve">
+    <value>Do not show new-user tutorials until the next launch</value>
+  </data>
+  <data name="FirstRunSkipConfirmDescription" xml:space="preserve">
+    <value>Skipping this time is not saved. Skipping permanently disables the standard first-run BP tour.</value>
+  </data>
+  <data name="SequenceSkipConfirmDescription" xml:space="preserve">
+    <value>Skipping this time hides every remaining tutorial in this page queue until the next launch. Skipping permanently marks them as completed.</value>
+  </data>
+</root>

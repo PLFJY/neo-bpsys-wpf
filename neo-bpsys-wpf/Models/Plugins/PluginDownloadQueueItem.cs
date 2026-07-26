@@ -34,7 +34,7 @@ public partial class PluginDownloadQueueItem : ObservableObjectBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StatusKey))]
     [NotifyPropertyChangedFor(nameof(IsInProgress))]
-    private PluginDownloadQueueStatus _status = PluginDownloadQueueStatus.QueuePending;
+    public partial PluginDownloadQueueStatus Status { get; set; } = PluginDownloadQueueStatus.QueuePending;
 
     /// <summary>
     /// 当前下载状态对应的本地化 Key。
@@ -45,35 +45,37 @@ public partial class PluginDownloadQueueItem : ObservableObjectBase
     /// 当前任务是否仍处于进行中。
     /// </summary>
     public bool IsInProgress =>
-        Status is PluginDownloadQueueStatus.QueuePending or PluginDownloadQueueStatus.QueueDownloading;
+        Status is PluginDownloadQueueStatus.QueuePending
+            or PluginDownloadQueueStatus.QueueDownloading
+            or PluginDownloadQueueStatus.QueueExtracting;
 
     /// <summary>
     /// 当前下载进度，范围 0-100。
     /// </summary>
     [ObservableProperty]
-    private double _progress;
+    public partial double Progress { get; set; }
 
     /// <summary>
     /// 当前进度文本。
     /// </summary>
     [ObservableProperty]
-    private string _progressText = string.Empty;
+    public partial string ProgressText { get; set; } = string.Empty;
 
     /// <summary>
     /// 当前下载速度文本。
     /// </summary>
     [ObservableProperty]
-    private string _speedText = string.Empty;
+    public partial string SpeedText { get; set; } = string.Empty;
 
     /// <summary>
     /// 下载失败时显示的错误信息。
     /// </summary>
     [ObservableProperty]
-    private string _errorMessage = string.Empty;
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>
     /// 当前任务是否允许取消。
     /// </summary>
     [ObservableProperty]
-    private bool _canCancel = true;
+    public partial bool CanCancel { get; set; } = true;
 }

@@ -87,107 +87,107 @@ public partial class PluginMarketItem : ObservableObjectBase
     /// 实际用于加载图标的地址。
     /// </summary>
     [ObservableProperty]
-    private string _resolvedIconUrl = string.Empty;
+    public partial string ResolvedIconUrl { get; set; } = string.Empty;
 
     /// <summary>
     /// 实际用于加载 README 的地址。
     /// </summary>
     [ObservableProperty]
-    private string _resolvedReadmeUrl = string.Empty;
+    public partial string ResolvedReadmeUrl { get; set; } = string.Empty;
 
     /// <summary>
     /// 实际用于下载插件包的地址。
     /// </summary>
     [ObservableProperty]
-    private string _resolvedDownloadUrl = string.Empty;
+    public partial string ResolvedDownloadUrl { get; set; } = string.Empty;
 
     /// <summary>
     /// 已加载到页面中的 README Markdown 内容。
     /// </summary>
     [ObservableProperty]
-    private string _readmeMarkdown = string.Empty;
+    public partial string ReadmeMarkdown { get; set; } = string.Empty;
 
     /// <summary>
     /// README 是否正在加载中。
     /// </summary>
     [ObservableProperty]
-    private bool _isReadmeLoading;
+    public partial bool IsReadmeLoading { get; set; }
 
     /// <summary>
     /// 当前插件是否已安装。
     /// </summary>
     [ObservableProperty]
-    private bool _isInstalled;
+    public partial bool IsInstalled { get; set; }
 
     /// <summary>
     /// 当前插件是否已经安装到本地，但需要重启后才能应用更改。
     /// </summary>
     [ObservableProperty]
-    private bool _isRestartRequired;
+    public partial bool IsRestartRequired { get; set; }
 
     /// <summary>
     /// 当前插件是否有可更新版本。
     /// </summary>
     [ObservableProperty]
-    private bool _hasUpdateAvailable;
+    public partial bool HasUpdateAvailable { get; set; }
 
     /// <summary>
     /// 当前插件是否与宿主支持的插件 API 兼容。
     /// </summary>
     [ObservableProperty]
-    private bool _isApiCompatible = true;
+    public partial bool IsApiCompatible { get; set; } = true;
 
     /// <summary>
     /// 宿主版本是否低于当前插件要求。
     /// </summary>
     [ObservableProperty]
-    private bool _isHostVersionTooLow;
+    public partial bool IsHostVersionTooLow { get; set; }
 
     /// <summary>
     /// 插件 API 版本是否过低或格式无效。
     /// </summary>
     [ObservableProperty]
-    private bool _isApiTooLow;
+    public partial bool IsApiTooLow { get; set; }
 
     /// <summary>
     /// 插件卡片状态文案对应的本地化 Key。
     /// </summary>
     [ObservableProperty]
-    private string _marketStatusKey = string.Empty;
+    public partial string MarketStatusKey { get; set; } = string.Empty;
 
     /// <summary>
     /// 插件卡片状态文案是否显示。
     /// </summary>
     [ObservableProperty]
-    private bool _isStatusVisible;
+    public partial bool IsStatusVisible { get; set; }
 
     /// <summary>
     /// 插件主操作按钮文案对应的本地化 Key。
     /// </summary>
     [ObservableProperty]
-    private string _primaryActionKey = "Install";
+    public partial string PrimaryActionKey { get; set; } = "Install";
 
     /// <summary>
     /// 当前是否允许执行主操作按钮。
     /// </summary>
     [ObservableProperty]
-    private bool _canExecutePrimaryAction = true;
+    public partial bool CanExecutePrimaryAction { get; set; } = true;
 
     /// <summary>
     /// 当前是否允许卸载该插件。
     /// </summary>
     [ObservableProperty]
-    private bool _canUninstall;
+    public partial bool CanUninstall { get; set; }
 
     /// <summary>
     /// 插件兼容性说明文本。
     /// </summary>
     [ObservableProperty]
-    private string _compatibilityMessage = string.Empty;
+    public partial string CompatibilityMessage { get; set; } = string.Empty;
 
     /// <summary>
     /// 卸载按钮文案对应的本地化 Key。
     /// </summary>
     [ObservableProperty]
-    private string _uninstallActionKey = "Uninstall";
+    public partial string UninstallActionKey { get; set; } = "Uninstall";
 }

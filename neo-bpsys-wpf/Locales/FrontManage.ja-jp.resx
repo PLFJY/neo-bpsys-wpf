@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="AllFrontendWindows">
+    <value>全てのフロントエンド画面</value>
+  </data>
+  <data name="OpenAll">
+    <value>全て起動</value>
+  </data>
+  <data name="CloseAll">
+    <value>全て閉じる</value>
+  </data>
+  <data name="Open">
+    <value>起動</value>
+  </data>
+  <data name="DesignerUnlockNote">
+    <value>独立フロントエンドデザイナーでレイアウトを調整してください。レイアウトパッケージは Layout Packages タブでインポート、エクスポート、切り替えが行えます。</value>
+  </data>
+  <data name="OpenFrontedDesigner">
+    <value>v3 フロントデスクデザイナーを開く</value>
+  </data>
+  <data name="UserLayout">
+    <value>ユーザーレイアウト</value>
+  </data>
+  <data name="LayoutPackages">
+    <value>レイアウトパッケージ</value>
+  </data>
+  <data name="LayoutPackageManager">
+    <value>レイアウトパッケージ管理</value>
+  </data>
+  <data name="ActivePackage">
+    <value>有効なパッケージ</value>
+  </data>
+  <data name="SystemBuiltIn">
+    <value>内蔵レイアウト方案</value>
+  </data>
+  <data name="BuiltInLayoutSchemeName">
+    <value>内蔵レイアウト方案</value>
+  </data>
+  <data name="BuiltInLayoutSchemeDescription">
+    <value>内蔵 Designer v3 フロントレイアウト。</value>
+  </data>
+  <data name="UserLayoutSchemeNameFormat">
+    <value>ユーザーレイアウト方案 {0}</value>
+  </data>
+  <data name="UserLayoutSchemeDescription">
+    <value>ユーザーが編集可能なレイアウト方案。</value>
+  </data>
+  <data name="PackageId">
+    <value>PackageId</value>
+  </data>
+  <data name="PackageName">
+    <value>名前</value>
+  </data>
+  <data name="PackageAuthor">
+    <value>作者</value>
+  </data>
+  <data name="PackageDescription">
+    <value>説明</value>
+  </data>
+  <data name="PackageMinVersion">
+    <value>最低バージョン</value>
+  </data>
+  <data name="LayoutCount">
+    <value>レイアウト数</value>
+  </data>
+  <data name="ResourceCount">
+    <value>リソース数</value>
+  </data>
+  <data name="ImportPackage">
+    <value>パッケージをインポート</value>
+  </data>
+  <data name="ExportPackage">
+    <value>パッケージをエクスポート</value>
+  </data>
+  <data name="ActivatePackage">
+    <value>パッケージを有効化</value>
+  </data>
+  <data name="DuplicateLayoutPackage">
+    <value>方案を複製</value>
+  </data>
+  <data name="DeletePackage">
+    <value>パッケージを削除</value>
+  </data>
+  <data name="OpenPackageFolder">
+    <value>パッケージフォルダーを開く</value>
+  </data>
+  <data name="RefreshPackages">
+    <value>パッケージを更新</value>
+  </data>
+  <data name="CannotDeleteBuiltinPackage">
+    <value>内蔵パッケージは削除できません。</value>
+  </data>
+  <data name="CannotDeleteLocalPackage">
+    <value>ローカルリソースパッケージは削除できません。</value>
+  </data>
+  <data name="CannotDuplicateLocalPackage">
+    <value>ローカルリソースパッケージは複製できません。</value>
+  </data>
+  <data name="LayoutPackageDuplicated">
+    <value>レイアウト方案を複製しました</value>
+  </data>
+  <data name="DuplicateLayoutPackageFailed">
+    <value>レイアウト方案の複製に失敗しました</value>
+  </data>
+  <data name="PackageDeleted">
+    <value>パッケージを削除しました。</value>
+  </data>
+  <data name="PackageDeleteFailed">
+    <value>パッケージの削除に失敗しました</value>
+  </data>
+  <data name="PackageActivationNotImplemented">
+    <value>このパッケージはまだ有効化できません。</value>
+  </data>
+  <data name="ExportPackageDialogTitle">
+    <value>レイアウトパッケージをエクスポート</value>
+  </data>
+  <data name="OutputPath">
+    <value>出力先</value>
+  </data>
+  <data name="BrowseOutputPath">
+    <value>出力先を参照</value>
+  </data>
+  <data name="PackageExportSucceeded">
+    <value>パッケージのエクスポートに成功しました</value>
+  </data>
+  <data name="PackageExportFailed">
+    <value>パッケージのエクスポートに失敗しました</value>
+  </data>
+  <data name="InvalidPackageId">
+    <value>PackageId は小文字、数字、ドット、ハイフン、アンダースコアのみ使用でき、空白、パス区切り、コロン、.. は使えません。</value>
+  </data>
+  <data name="PackageNameRequired">
+    <value>パッケージ名は必須です。</value>
+  </data>
+  <data name="OutputPathRequired">
+    <value>出力先は必須です。</value>
+  </data>
+  <data name="ConfirmOverwriteFile">
+    <value>出力ファイルは既に存在します。上書きしますか？</value>
+  </data>
+  <data name="ExportedLayoutCount">
+    <value>エクスポートしたレイアウト数</value>
+  </data>
+  <data name="ExportedResourceCount">
+    <value>エクスポートしたリソース数</value>
+  </data>
+  <data name="CompactPackageList">
+    <value>レイアウトパッケージ一覧</value>
+  </data>
+  <data name="PackageBasicInfo">
+    <value>基本情報</value>
+  </data>
+  <data name="PackageContents">
+    <value>内容</value>
+  </data>
+  <data name="PackageLocation">
+    <value>場所</value>
+  </data>
+  <data name="PackageValidation">
+    <value>検証</value>
+  </data>
+  <data name="FrontendLayoutPackageDefaultName">
+    <value>フロントレイアウトパッケージ</value>
+  </data>
+  <data name="PackageImportSucceeded">
+    <value>レイアウトパッケージをインポートしました</value>
+  </data>
+  <data name="PackageImportFailed">
+    <value>レイアウトパッケージのインポートに失敗しました</value>
+  </data>
+  <data name="PackageAlreadyExists">
+    <value>パッケージは既に存在します</value>
+  </data>
+  <data name="ReplaceExistingPackage">
+    <value>同じ PackageId のパッケージが既に存在します。置き換えますか？</value>
+  </data>
+  <data name="PackageRequiresNewerVersion">
+    <value>このパッケージには新しいアプリバージョンが必要です。</value>
+  </data>
+  <data name="ConfirmActivatePackage">
+    <value>このレイアウト方案に切り替えますか？</value>
+  </data>
+  <data name="ConfirmDeleteActivePackage">
+    <value>このパッケージは有効です。削除して組み込みレイアウトに切り替えますか？</value>
+  </data>
+  <data name="ConfirmDeletePackage">
+    <value>このレイアウトパッケージを削除しますか？</value>
+  </data>
+  <data name="PackageActivatedBuiltin">
+    <value>組み込みレイアウトに切り替えました</value>
+  </data>
+  <data name="PackageActivatedInstalled">
+    <value>レイアウトパッケージを有効化しました</value>
+  </data>
+  <data name="LegacyPackageConvertTitle">
+    <value>旧形式レイアウトパッケージの変換</value>
+  </data>
+  <data name="LegacyPackageConvertMessage">
+    <value>旧形式の .bpui レイアウトパッケージが検出されました。Designer v3 パッケージへ変換してインポートしますか？旧形式の Config.json は現在のアプリ設定を上書きしません。</value>
+  </data>
+  <data name="ConvertLegacyPackage">
+    <value>旧形式パッケージを変換</value>
+  </data>
+  <data name="LegacyPackageConvertSucceeded">
+    <value>旧形式パッケージを変換しました</value>
+  </data>
+  <data name="LegacyPackageConvertFailed">
+    <value>旧形式パッケージの変換に失敗しました</value>
+  </data>
+  <data name="LegacyPackageConvertWarnings">
+    <value>旧形式パッケージ変換の警告</value>
+  </data>
+  <data name="LegacyPackageDefaultDescription">
+    <value>旧形式 .bpui から変換されました。安全に対応付けできない旧フィールドは無視されます。</value>
+  </data>
+  <data name="LegacyConvert.FrontElementsFolderMissing">
+    <value>旧パッケージに FrontElementsConfig フォルダーが見つからないため、フロントウィンドウレイアウトを読み込めません。</value>
+  </data>
+  <data name="LegacyConvert.UnknownLayoutFileSkipped">
+    <value>認識できない旧レイアウトファイルが見つかりました。スキップしました：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.MapBpV1Skipped">
+    <value>旧「マップ BP V1」ウィンドウは Designer v3 で削除されたため変換されません。その他の対応ウィンドウは変換を続行します。</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileTooLargeSkipped">
+    <value>旧レイアウトファイルが大きすぎるためスキップしました：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutFileReadFailed">
+    <value>旧レイアウトファイルの読み取りに失敗しました。スキップしました：{FileName}。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.NoBlueprintForLayout">
+    <value>現在のバージョンにはこの旧ウィンドウの変換マッピングがまだないためスキップしました：{SourceWindow}/{SourceCanvas}</value>
+  </data>
+  <data name="LegacyConvert.ControlCreateFailed">
+    <value>旧コントロールから対応する新コントロールを作成できませんでした：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlNotInBlueprintMap">
+    <value>旧コントロールは明示的な変換マッピング表に存在しません：{SourceWindow}/{SourceCanvas}/{ControlName}</value>
+  </data>
+  <data name="LegacyConvert.LayoutValidationError">
+    <value>変換後のレイアウトに検証エラーがあります：{TargetWindow}/{CanvasName}。詳細：{Details}</value>
+  </data>
+  <data name="LegacyConvert.OvertimeScoreCellsAggregated">
+    <value>旧延長戦スコアセルは新スコア行コントロールに統合されました。</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayFolded">
+    <value>旧ロックオーバーレイは新ロック可能画像コントロールに統合されました：{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayTargetMissing">
+    <value>旧ロックオーバーレイは認識されましたが、対象画像コントロールが存在しません：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.BpOverviewOutOfBounds">
+    <value>旧 BP 概要ウィンドウに元の領域を超えるコンテンツがあり、変換後に切り取られる可能性があります。</value>
+  </data>
+  <data name="LegacyConvert.ResourceMissing">
+    <value>旧リソースが見つからないため、既定リソースを保持しました：{Field} = {Value}</value>
+  </data>
+  <data name="LegacyConvert.Bo3GlobalScoreBackgroundMapped">
+    <value>旧 BO3 総スコア背景は新 BO3 キャンバス状態背景に変換されました。</value>
+  </data>
+  <data name="LegacyConvert.LockImageMapped">
+    <value>旧ロック画像は新画像コントロールのロックレイヤーに統合されました：{Key}</value>
+  </data>
+  <data name="LegacyConvert.PickingBorderImageMapped">
+    <value>旧選択枠画像は新画像コントロールの選択枠に統合されました：{Key}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsApplied">
+    <value>旧テキスト設定を適用しました：{SourceWindow}/{SourceCanvas}/{ControlName} &lt;- {TextStyleKey}</value>
+  </data>
+  <data name="LegacyConvert.MapV2PickingBorderMapped">
+    <value>旧 MapV2 選択枠は新コントロールにマッピングされました。</value>
+  </data>
+  <data name="LegacyConvert.ResourceCopied">
+    <value>旧リソースをコピーしました：{FileName}</value>
+  </data>
+  <data name="LegacyConvert.GlobalScoreCellsAggregated">
+    <value>旧グローバルスコアセルを集約しました：{Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.IrregularCellSpacingApproximated">
+    <value>旧セルの間隔が不規則なため、中央値で近似計算しました：{Team} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.ControlGeometryFuzzyMatched">
+    <value>旧コントロールのジオメトリを新コントロールに曖昧マッチングしました。</value>
+  </data>
+  <data name="LegacyConvert.LockOverlayGeometryConsumed">
+    <value>旧ロックオーバーレイのジオメトリを統合しました：{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlConsumed">
+    <value>旧折りたたみコントロールを統合しました：{SourceWindow}/{SourceCanvas}/{LegacyName} -&gt; {TargetName}</value>
+  </data>
+  <data name="LegacyConvert.FoldedControlNoTarget">
+    <value>旧折りたたみコントロールに対応する新ターゲットコントロールがありません：{SourceWindow}/{SourceCanvas}/{LegacyName}</value>
+  </data>
+  <data name="LegacyConvert.LegacyFieldIgnored">
+    <value>旧フィールドを無視しました：{Field}</value>
+  </data>
+  <data name="LegacyConvert.WindowSizeDiffersFromCanvas">
+    <value>旧ウィンドウサイズが変換器キャンバスの既定値と一致しません：{TargetWindow} ウィンドウ={WindowSize}、キャンバス={CanvasSize}</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonTooLarge">
+    <value>旧 Config.json ファイルが大きすぎるためスキップしました。</value>
+  </data>
+  <data name="LegacyConvert.ConfigJsonReadFailed">
+    <value>旧 Config.json ファイルの読み取りに失敗しました。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.TextSettingsReadFailed">
+    <value>旧 Config.json のテキスト設定を読み取れません。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.WindowSettingsInspectFailed">
+    <value>旧 Config.json のウィンドウ設定を検査できません。原因：{Reason}</value>
+  </data>
+  <data name="LegacyConvert.FoldedGeometryNotRepresentable">
+    <value>旧折りたたみコントロールのジオメトリは新コントロールのメタデータで表現されるため、独立して表現できません。</value>
+  </data>
+  <data name="MissingPluginImportTitle">
+    <value>不足しているプラグインコントロール</value>
+  </data>
+  <data name="MissingPluginImportMessage">
+    <value>このレイアウトパッケージは現在登録されていないプラグインコントロールを参照しています。不足しているコントロールはレンダリングされません。インポートをキャンセルするか、強制インポートして削除できます。</value>
+  </data>
+  <data name="FrontManageWindowCategory.BuiltIn">
+    <value>ビルトイン</value>
+  </data>
+  <data name="FrontManageWindowCategory.Xaml">
+    <value>XAML</value>
+  </data>
+  <data name="FrontManageWindowCategory.V3Layout">
+    <value>v3 ウィンドウ</value>
+  </data>
+  <data name="StopAllLoopAnimations">
+    <value>すべてのループアニメーションを停止</value>
+  </data>
+  <data name="StoppedLoopAnimationsFormat">
+    <value>{0} 個のループアニメーションを停止しました。</value>
+  </data>
+  <data name="NoActiveLoopAnimations">
+    <value>再生中のループアニメーションはありません。</value>
+  </data>
+</root>

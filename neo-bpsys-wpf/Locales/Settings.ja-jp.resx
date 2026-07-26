@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="ProjectRepository">
+    <value>リポジトリ：</value>
+  </data>
+  <data name="SoftwareUpdates">
+    <value>ソフトウェア更新</value>
+  </data>
+  <data name="DownloadSource">
+    <value>ダウンロード元（この設定はプラグインマーケットにも同期されます）：</value>
+  </data>
+  <data name="DownloadPreviewVersion">
+    <value>プレビュー版をダウンロードしますか？</value>
+  </data>
+  <data name="TestMirrorLatency">
+    <value>遅延テスト</value>
+  </data>
+  <data name="About">
+    <value>バージョン情報</value>
+  </data>
+  <data name="CheckForUpdates">
+    <value>更新を確認</value>
+  </data>
+  <data name="Install">
+    <value>インストール</value>
+  </data>
+  <data name="LanguageSetting">
+    <value>言語設定</value>
+  </data>
+  <data name="SourceOfImageResources">
+    <value>画像素材提供：</value>
+  </data>
+  <data name="OpenSourceRepositoryUsed">
+    <value>使用されているオープンソースライブラリ：</value>
+  </data>
+  <data name="QuickAccess">
+    <value>クイックアクセス</value>
+  </data>
+  <data name="OpenFrontendDirectory">
+    <value>フロントエンド設定フォルダを開く</value>
+  </data>
+  <data name="OpenGameFileDirectory">
+    <value>試合データ出力フォルダを開く</value>
+  </data>
+  <data name="AuthorDetails">
+    <value>開発者：ゼロ風 PLFJY | Email：zero@plfjy.top | Discordに参加：175741665</value>
+  </data>
+  <data name="ContributorList">
+    <value>貢献者リスト</value>
+  </data>
+  <data name="Sponsor">
+    <value>スポンサー</value>
+  </data>
+  <data name="DebugOptions">
+    <value>デバッグオプション</value>
+  </data>
+  <data name="LogLevel">
+    <value>ログレベル</value>
+  </data>
+  <data name="TriggerGCCollectionManually">
+    <value>GCを手動実行</value>
+  </data>
+  <data name="OpenLogDirectory">
+    <value>ログフォルダを開く</value>
+  </data>
+<data name="ErrorWhenCleanUpResidualUpdateFiles">
+    <value>更新残留ファイルのクリーンアップ中にエラーが発生しました</value>
+  </data>
+  <data name="DownloadFails">
+    <value>ダウンロード失敗</value>
+  </data>
+  <data name="CheckForUpdatesFailed">
+    <value>更新確認に失敗しました</value>
+  </data>
+  <data name="NewUpdateFound">
+    <value>新しいバージョンが見つかりました</value>
+  </data>
+  <data name="NoUpdatesAvailable">
+    <value>更新はありません</value>
+  </data>
+  <data name="DownloadTip">
+    <value>ダウンロードのヒント</value>
+  </data>
+  <data name="DownloadFinished">
+    <value>ダウンロード完了</value>
+  </data>
+  <data name="Update">
+    <value>更新</value>
+  </data>
+<data name="SmartBpModuleSettingsTitle">
+    <value>SmartBP モジュール設定</value>
+  </data>
+  <data name="SmartBpModulePath">
+    <value>モジュールの読み込み/インストール先</value>
+  </data>
+  <data name="SmartBpModulePathDescription">
+    <value>SmartBP 独立モジュールのインストール、インポート、読み込みに使用します。変更は SmartBP ページへ同期され、次回のインストールまたはローカル読み込みで使用されます。</value>
+  </data>
+  <data name="SmartBpModuleBrowseFolder">
+    <value>フォルダーを参照</value>
+  </data>
+  <data name="SmartBpModulePathSaved">
+    <value>SmartBP モジュールのパスを保存しました。</value>
+  </data>
+  <data name="SmartBpModuleDevelopmentPathSaving">
+    <value>SmartBP 開発モジュールのパスを保存しています...</value>
+  </data>
+  <data name="SmartBpModuleDevelopmentPathSaved">
+    <value>SmartBP 開発モジュールのパスを保存しました。モジュールファイルはコピーしていません。</value>
+  </data>
+  <data name="SmartBpModulePathMigrating">
+    <value>SmartBP モジュールディレクトリを移行しています...</value>
+  </data>
+  <data name="SmartBpModulePathMigrationPrepared">
+    <value>SmartBP モジュールを新しいディレクトリへコピーしました。次回新しいディレクトリから正常に読み込まれた後、古いディレクトリを削除します。</value>
+  </data>
+  <data name="SmartBpModulePathMigrationFailed">
+    <value>SmartBP モジュールディレクトリの移行に失敗しました: </value>
+  </data>
+  <data name="SmartBpModulePathInvalid">
+    <value>このパスは SmartBP モジュールに使用できません。書き込み可能なユーザーディレクトリを選択してください。</value>
+  </data>
+  <data name="SmartBpModulePathMigrationChoiceTitle">
+    <value>SmartBP モジュールファイルを移行しますか？</value>
+  </data>
+  <data name="SmartBpModulePathMigrationChoiceMessage">
+    <value>既存の SmartBP モジュールファイルが検出されました。現在のモジュールファイルを新しいモジュールパスへ移行しますか？</value>
+  </data>
+  <data name="SmartBpModulePathMigrateFiles">
+    <value>既存ファイルを移行</value>
+  </data>
+  <data name="SmartBpModulePathSaveOnly">
+    <value>パスのみ保存</value>
+  </data>
+  <data name="SmartBpModulePathSavedWithoutMigration">
+    <value>SmartBP モジュールのパスを保存しました。既存ファイルは移行していません。</value>
+  </data>
+  <data name="SmartBpModulePathSaveCanceled">
+    <value>SmartBP モジュールのパス保存をキャンセルしました。</value>
+  </data>
+  <data name="SmartBpModuleImportArchive">
+    <value>モジュールパッケージをインポート</value>
+  </data>
+  <data name="SmartBpModuleArchiveImporting">
+    <value>SmartBP モジュールパッケージをインポートしています...</value>
+  </data>
+  <data name="SmartBpModuleArchiveExtractingFormat">
+    <value>展開中: {0}%</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportSucceeded">
+    <value>SmartBP モジュールパッケージをインポートして読み込みました。</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrepared">
+    <value>SmartBP モジュールパッケージの準備ができました。アプリの再起動後に更新が完了します。</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportRestartPrompt">
+    <value>SmartBP モジュールパッケージの準備ができました。現在のモジュールが読み込まれている可能性があるため、更新を完了するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
+  </data>
+  <data name="SmartBpModuleArchiveImportFailed">
+    <value>SmartBP モジュールパッケージのインポートに失敗しました: </value>
+  </data>
+  <data name="SmartBpModuleVersionFormat">
+    <value>SmartBP モジュールバージョン: {0}</value>
+  </data>
+  <data name="SmartBpModuleRequired">
+    <value>SmartBP を使用するには、独立モジュールをインストールする必要があります。</value>
+  </data>
+  <data name="SmartBpModuleDownloadAndInstall">
+    <value>ダウンロードしてインストール</value>
+  </data>
+  <data name="SmartBpModuleReinstall">
+    <value>再インストール</value>
+  </data>
+  <data name="SmartBpModuleUpdateAndInstall">
+    <value>更新してインストール</value>
+  </data>
+  <data name="SmartBpModuleLoadLocal">
+    <value>ローカルモジュールを読み込む</value>
+  </data>
+  <data name="SmartBpModuleSelectInstalledPath">
+    <value>インストール済みモジュールのパスを選択</value>
+  </data>
+  <data name="SmartBpModuleSelectArchive">
+    <value>SmartBpModule.7z / .zip を選択</value>
+  </data>
+  <data name="SmartBpModulePreviewLoadOrImportArchive">
+    <value>Preview 版ではローカルモジュールディレクトリを読み込むか、SmartBpModule.7z / .zip をインポートしてください。</value>
+  </data>
+  <data name="SmartBpModuleDebugLoadDirectory">
+    <value>Debug 版では SmartBP モジュールの Debug 出力ディレクトリを読み込んでください。</value>
+  </data>
+  <data name="SmartBpModuleDebugLocalLoadFailed">
+    <value>Debug 版ではローカルの SmartBP モジュールディレクトリのみ読み込みます。現在のディレクトリを読み込めませんでした。モジュールの Debug 出力ディレクトリが存在し、エントリアセンブリを読み込めることを確認してください。</value>
+  </data>
+  <data name="SmartBpModuleDownloadInstallFailed">
+    <value>SmartBP モジュールをダウンロードまたはインストールできませんでした。ネットワークを確認して再試行するか、インストール済みモジュールのパスを手動で選択してください。</value>
+  </data>
+  <data name="SmartBpModuleDebugFolderLoadFailed">
+    <value>Debug 版でローカルモジュールディレクトリの読み込みに失敗しました。エントリアセンブリが存在し、現在のアプリで読み込めることを確認してください。</value>
+  </data>
+  <data name="SmartBpModuleSelectedDirectoryInvalid">
+    <value>選択した SmartBP モジュールディレクトリは使用できません。component.json、RID、ABI、エントリアセンブリを確認してください。</value>
+  </data>
+  <data name="SmartBpModulePathUnsafe">
+    <value>現在のパスは SmartBP モジュールのインストールに適していません。書き込み可能なユーザーディレクトリを選択してください。</value>
+  </data>
+  <data name="SmartBpModuleOutdatedFormat">
+    <value>現在の SmartBP モジュールは古いため、{0} へ更新する必要があります。</value>
+  </data>
+  <data name="SmartBpModuleCompatibleFound">
+    <value>互換性のある SmartBP モジュールを検出しました。直接読み込めます。</value>
+  </data>
+  <data name="SmartBpModulePathModuleInvalidFormat">
+    <value>現在のパスのモジュールは使用できません: {0}</value>
+  </data>
+  <data name="SmartBpModuleLocalFailureErrorFormat">
+    <value>{0} エラー: {1}</value>
+  </data>
+  <data name="SmartBpModuleArchiveFiles">
+    <value>SmartBP モジュールアーカイブ</value>
+  </data>
+  <data name="AppUpdateHashFileMissing">
+    <value>更新パッケージに SHA-256 ファイルが含まれていないため、ダウンロードを停止しました。</value>
+  </data>
+  <data name="AppUpdateInvalidHashFile">
+    <value>この更新の SHA-256 ファイル形式が無効なため、インストールを停止しました。</value>
+  </data>
+  <data name="AppUpdateSha256Mismatch">
+    <value>更新インストーラーの整合性チェックに失敗しました。安全のためインストールを拒否しました。</value>
+  </data>
+  <data name="RestartNow">
+    <value>今すぐ再起動</value>
+  </data>
+  <data name="ClassicMode">
+    <value>クラシックモード</value>
+  </data>
+  <data name="ClassicModeDescription">
+    <value>バックエンド画面モードの変更を反映するにはアプリの再起動が必要です。</value>
+  </data>
+  <data name="BpuiFileAssociation">
+    <value>.bpui ファイルを関連付ける</value>
+  </data>
+  <data name="BpuiFileAssociationDescription">
+    <value>有効にすると、.bpui レイアウトパッケージをダブルクリックして本ツールで開き、現在の有効なレイアウト方案としてインストールします。</value>
+  </data>
+  <data name="PageTransitionAnimation">
+    <value>ページ切替アニメーション</value>
+  </data>
+  <data name="PageTransitionAnimationDescription">
+    <value>オフにすると、バックエンドページ間の切替でトランジションアニメーションを再生せず、即時に切替えます。変更を反映するにはアプリの再起動が必要です。</value>
+  </data>
+  <data name="PageTransitionAnimationRestart">
+    <value>再起動して反映</value>
+  </data>
+  <data name="ClassicModeRestartRequired">
+    <value>バックエンド画面モードの変更を反映するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
+  </data>
+  <data name="OpenBehaviorEventDebugger">
+    <value>動作イベントデバッガーを開く</value>
+  </data>
+  <data name="ProductTourDebugger">
+    <value>プロダクトツアーデバッガー</value>
+  </data>
+  <data name="SmartBpStopAutomaticRecognition">
+    <value>SmartBP の認識を停止</value>
+  </data>
+  <data name="LogLevelVerbose">
+    <value>Verbose</value>
+  </data>
+  <data name="LogLevelDebug">
+    <value>Debug</value>
+  </data>
+  <data name="LogLevelInformation">
+    <value>Information</value>
+  </data>
+  <data name="LogLevelWarning">
+    <value>Warning</value>
+  </data>
+  <data name="LogLevelError">
+    <value>Error</value>
+  </data>
+  <data name="LogLevelFatal">
+    <value>Fatal</value>
+  </data>
+  <data name="ConfigurationFileEmpty">
+    <value>設定ファイルが空です</value>
+  </data>
+  <data name="ConfigurationFileSaveError">
+    <value>設定ファイル保存エラー</value>
+  </data>
+  <data name="FailedToReadConfigurationFile">
+    <value>設定ファイルの読み込みに失敗しました</value>
+  </data>
+  <data name="ResetConfigurationFileError">
+    <value>設定ファイルリセットエラー</value>
+  </data>
+  <data name="ResetConfigurationFileToSolveTheProblem">
+    <value>問題を解決するには設定ファイルをリセットしてください</value>
+  </data>
+  <data name="PleaseStartWindowCaptureFirst">
+    <value>先にウィンドウキャプチャを開始してください。</value>
+  </data>
+  <data name="WindowCaptureCaptureNotStarted">
+    <value>キャプチャはまだ開始されていません。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt">
+    <value>Bitblt で最初のフレーム取得に失敗しました。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat">
+    <value>選択したウィンドウのキャプチャに失敗しました：{0}</value>
+  </data>
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat">
+    <value>Bitblt キャプチャの開始に失敗しました：{0}</value>
+  </data>
+  <data name="WindowCaptureFailedToStartCaptureFormat">
+    <value>キャプチャの開始に失敗しました：{0}</value>
+  </data>
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat">
+    <value>ウィンドウ選択からのキャプチャ開始に失敗しました：{0}</value>
+  </data>
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable">
+    <value>選択したウィンドウのキャプチャに失敗しました：GraphicsCaptureItem を利用できません。</value>
+  </data>
+  <data name="WindowCapturePleaseSelectWindowFirst">
+    <value>先にウィンドウを選択してください。</value>
+  </data>
+  <data name="WindowCapturePreviewWindowTitle">
+    <value>プレビューウィンドウ</value>
+  </data>
+  <data name="WindowCaptureSelectedWindowInvalidForCapture">
+    <value>選択したウィンドウはキャプチャできません。</value>
+  </data>
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem">
+    <value>現在のシステムでは Windows Graphics Capture をサポートしていません。</value>
+  </data>
+  <data name="WindowCaptureWgcRequires1803OrLater">
+    <value>Windows Graphics Capture を使用するには Windows 10 1803 以降が必要です。</value>
+  </data>
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809">
+    <value>選択したウィンドウのキャプチャには Windows 10 1903 以降が必要です。1803/1809 ではウィンドウ選択キャプチャを使用してください。</value>
+  </data>
+  <data name="GameStateSaveSettingsTitle">
+    <value>試合状態の保存</value>
+  </data>
+  <data name="GameStateSaveDirectory">
+    <value>保存先</value>
+  </data>
+  <data name="GameStateSaveDirectoryDescription">
+    <value>現在の試合状態を保存するフォルダーです。</value>
+  </data>
+  <data name="BrowseGameStateSaveDirectory">
+    <value>フォルダーを選択</value>
+  </data>
+</root>

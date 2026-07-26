@@ -1,0 +1,49 @@
+{
+  "Version": 3,
+  "CanvasWidth": 1440,
+  "CanvasHeight": 810,
+  "BackgroundImage": null,
+  "RequiredPlugins": [
+    {
+      "PackageId": "plfjy.ExamplePlugin",
+      "MinVersion": "1.0.0.0",
+      "DisplayName": "ExamplePlugin",
+      "MarketplaceId": "plfjy.ExamplePlugin",
+      "Reason": "Both",
+      "Controls": [
+        "plugin:plfjy.ExamplePlugin/TeamCard"
+      ],
+      "RequiredBy": [
+        "plugin:plfjy.ExamplePlugin/ExampleLayoutOverlay/BaseCanvas"
+      ]
+    }
+  ],
+  "TitleText": {
+    "ControlType": "Text",
+    "Left": 96,
+    "Top": 72,
+    "Width": 640,
+    "Height": 72,
+    "ZIndex": 1,
+    "Text": "Example Layout Overlay",
+    "FontSize": 36,
+    "Color": "#FFFFFFFF",
+    "FontWeight": "SemiBold"
+  },
+  "HomeTeamCard": {
+    "ControlType": "plugin:plfjy.ExamplePlugin/TeamCard",
+    "Left": 96,
+    "Top": 176,
+    "Width": 420,
+    "Height": 120,
+    "ZIndex": 2,
+    "TeamNameBindingPath": "CurrentGame.SurTeam.Name",
+    "LogoBindingPath": "CurrentGame.SurTeam.Logo",
+    "BackgroundColor": "#CC111827",
+    "ForegroundColor": "#FFFFFFFF",
+    "CornerRadius": 10,
+    "LogoSize": 72,
+    "FontSize": 30,
+    "FontWeight": "Bold"
+  }
+}

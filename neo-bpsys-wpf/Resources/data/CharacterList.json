@@ -2,348 +2,439 @@
     "调香师": {
         "Camp": "Sur",
         "ImageFileName": "调香师.png",
+        "BookOrderIndex": 130,
         "Abbrev": "txs"
     },
     "画家": {
         "Camp": "Sur",
-        "ImageFileName": "画家.png"
+        "ImageFileName": "画家.png",
+        "BookOrderIndex": 280
     },
     "记者": {
         "Camp": "Sur",
-        "ImageFileName": "记者.png"
+        "ImageFileName": "记者.png",
+        "BookOrderIndex": 390
     },
     "昆虫学者": {
         "Camp": "Sur",
-        "ImageFileName": "昆虫学者.png"
+        "ImageFileName": "昆虫学者.png",
+        "BookOrderIndex": 270
     },
     "魔术师": {
         "Camp": "Sur",
-        "ImageFileName": "魔术师.png"
+        "ImageFileName": "魔术师.png",
+        "BookOrderIndex": 50
     },
     "前锋": {
         "Camp": "Sur",
-        "ImageFileName": "前锋.png"
+        "ImageFileName": "前锋.png",
+        "BookOrderIndex": 100
     },
     "舞女": {
         "Camp": "Sur",
-        "ImageFileName": "舞女.png"
+        "ImageFileName": "舞女.png",
+        "BookOrderIndex": 150
     },
     "幸运儿": {
         "Camp": "Sur",
-        "ImageFileName": "幸运儿.png"
+        "ImageFileName": "幸运儿.png",
+        "BookOrderIndex": 520
     },
     "园丁": {
         "Camp": "Sur",
-        "ImageFileName": "园丁.png"
+        "ImageFileName": "园丁.png",
+        "BookOrderIndex": 40
     },
     "病患": {
         "Camp": "Sur",
-        "ImageFileName": "病患.png"
+        "ImageFileName": "病患.png",
+        "BookOrderIndex": 310
     },
     "法罗女士": {
         "Camp": "Sur",
-        "ImageFileName": "法罗女士.png"
+        "ImageFileName": "法罗女士.png",
+        "BookOrderIndex": 440
     },
     "火灾调查员": {
         "Camp": "Sur",
-        "ImageFileName": "火灾调查员.png"
+        "ImageFileName": "火灾调查员.png",
+        "BookOrderIndex": 430
     },
     "教授": {
         "Camp": "Sur",
-        "ImageFileName": "教授.png"
+        "ImageFileName": "教授.png",
+        "BookOrderIndex": 360
     },
     "拉拉队员": {
         "Camp": "Sur",
-        "ImageFileName": "拉拉队员.png"
+        "ImageFileName": "拉拉队员.png",
+        "BookOrderIndex": 410
     },
     "木偶师": {
         "Camp": "Sur",
-        "ImageFileName": "木偶师.png"
+        "ImageFileName": "木偶师.png",
+        "BookOrderIndex": 420
     },
     "囚徒": {
         "Camp": "Sur",
-        "ImageFileName": "囚徒.png"
+        "ImageFileName": "囚徒.png",
+        "BookOrderIndex": 260
     },
     "先知": {
         "Camp": "Sur",
-        "ImageFileName": "先知.png"
+        "ImageFileName": "先知.png",
+        "BookOrderIndex": 160
     },
     "野人": {
         "Camp": "Sur",
-        "ImageFileName": "野人.png"
+        "ImageFileName": "野人.png",
+        "BookOrderIndex": 200
     },
     "杂技演员": {
         "Camp": "Sur",
-        "ImageFileName": "杂技演员.png"
+        "ImageFileName": "杂技演员.png",
+        "BookOrderIndex": 210
     },
     "慈善家": {
         "Camp": "Sur",
-        "ImageFileName": "慈善家.png"
+        "ImageFileName": "慈善家.png",
+        "BookOrderIndex": 30
     },
     "飞行家": {
         "Camp": "Sur",
-        "ImageFileName": "飞行家.png"
+        "ImageFileName": "飞行家.png",
+        "BookOrderIndex": 400
     },
     "击球手": {
         "Camp": "Sur",
-        "ImageFileName": "击球手.png"
+        "ImageFileName": "击球手.png",
+        "BookOrderIndex": 290
     },
     "勘探员": {
         "Camp": "Sur",
-        "ImageFileName": "勘探员.png"
+        "ImageFileName": "勘探员.png",
+        "BookOrderIndex": 180
     },
     "律师": {
         "Camp": "Sur",
-        "ImageFileName": "律师.png"
+        "ImageFileName": "律师.png",
+        "BookOrderIndex": 20
     },
     "牛仔": {
         "Camp": "Sur",
-        "ImageFileName": "牛仔.png"
+        "ImageFileName": "牛仔.png",
+        "BookOrderIndex": 140
     },
     "入殓师": {
         "Camp": "Sur",
-        "ImageFileName": "入殓师.png"
+        "ImageFileName": "入殓师.png",
+        "BookOrderIndex": 170
     },
     "小女孩": {
         "Camp": "Sur",
-        "ImageFileName": "小女孩.png"
+        "ImageFileName": "小女孩.png",
+        "BookOrderIndex": 340
     },
     "医生": {
         "Camp": "Sur",
-        "ImageFileName": "医生.png"
+        "ImageFileName": "医生.png",
+        "BookOrderIndex": 10
     },
     "咒术师": {
         "Camp": "Sur",
-        "ImageFileName": "咒术师.png"
+        "ImageFileName": "咒术师.png",
+        "BookOrderIndex": 190
     },
     "大副": {
         "Camp": "Sur",
-        "ImageFileName": "大副.png"
+        "ImageFileName": "大副.png",
+        "BookOrderIndex": 220
     },
     "弓箭手": {
         "Camp": "Sur",
-        "ImageFileName": "弓箭手.png"
+        "ImageFileName": "弓箭手.png",
+        "BookOrderIndex": 470
     },
     "机械师": {
         "Camp": "Sur",
-        "ImageFileName": "机械师.png"
+        "ImageFileName": "机械师.png",
+        "BookOrderIndex": 90
     },
     "空军": {
         "Camp": "Sur",
-        "ImageFileName": "空军.png"
+        "ImageFileName": "空军.png",
+        "BookOrderIndex": 80
     },
     "盲女": {
         "Camp": "Sur",
-        "ImageFileName": "盲女.png"
+        "ImageFileName": "盲女.png",
+        "BookOrderIndex": 110
     },
     "骑士": {
         "Camp": "Sur",
-        "ImageFileName": "骑士.png"
+        "ImageFileName": "骑士.png",
+        "BookOrderIndex": 450
     },
     "守墓人": {
         "Camp": "Sur",
-        "ImageFileName": "守墓人.png"
+        "ImageFileName": "守墓人.png",
+        "BookOrderIndex": 250
     },
     "小说家": {
         "Camp": "Sur",
-        "ImageFileName": "小说家.png"
+        "ImageFileName": "小说家.png",
+        "BookOrderIndex": 330
     },
     "佣兵": {
         "Camp": "Sur",
-        "ImageFileName": "佣兵.png"
+        "ImageFileName": "佣兵.png",
+        "BookOrderIndex": 70
     },
     "作曲家": {
         "Camp": "Sur",
-        "ImageFileName": "作曲家.png"
+        "ImageFileName": "作曲家.png",
+        "BookOrderIndex": 380
     },
     "调酒师": {
         "Camp": "Sur",
         "ImageFileName": "调酒师.png",
+        "BookOrderIndex": 230,
         "Abbrev": "tjs"
     },
     "古董商": {
         "Camp": "Sur",
-        "ImageFileName": "古董商.png"
+        "ImageFileName": "古董商.png",
+        "BookOrderIndex": 370
     },
     "祭司": {
         "Camp": "Sur",
-        "ImageFileName": "祭司.png"
+        "ImageFileName": "祭司.png",
+        "BookOrderIndex": 120
     },
     "哭泣小丑": {
         "Camp": "Sur",
-        "ImageFileName": "哭泣小丑.png"
+        "ImageFileName": "哭泣小丑.png",
+        "BookOrderIndex": 350
     },
     "冒险家": {
         "Camp": "Sur",
-        "ImageFileName": "冒险家.png"
+        "ImageFileName": "冒险家.png",
+        "BookOrderIndex": 60
     },
     "气象学家": {
         "Camp": "Sur",
-        "ImageFileName": "气象学家.png"
+        "ImageFileName": "气象学家.png",
+        "BookOrderIndex": 460
     },
     "玩具商": {
         "Camp": "Sur",
-        "ImageFileName": "玩具商.png"
+        "ImageFileName": "玩具商.png",
+        "BookOrderIndex": 300
     },
     "心理学家": {
         "Camp": "Sur",
-        "ImageFileName": "心理学家.png"
+        "ImageFileName": "心理学家.png",
+        "BookOrderIndex": 320
     },
     "邮差": {
         "Camp": "Sur",
-        "ImageFileName": "邮差.png"
+        "ImageFileName": "邮差.png",
+        "BookOrderIndex": 240
     },
     "逃脱大师": {
         "Camp": "Sur",
-        "ImageFileName": "逃脱大师.png"
+        "ImageFileName": "逃脱大师.png",
+        "BookOrderIndex": 480
     },
     "幻灯师": {
         "Camp": "Sur",
-        "ImageFileName": "幻灯师.png"
+        "ImageFileName": "幻灯师.png",
+        "BookOrderIndex": 490
     },
     "斗牛士": {
         "Camp": "Sur",
-        "ImageFileName": "斗牛士.png"
+        "ImageFileName": "斗牛士.png",
+        "BookOrderIndex": 500
+    },
+    "默剧艺人": {
+        "Camp": "Sur",
+        "ImageFileName": "默剧艺人.png",
+        "BookOrderIndex": 510
     },
     "26号守卫": {
         "Camp": "Hun",
         "ImageFileName": "26号守卫.png",
+        "BookOrderIndex": 150,
         "Abbrev": "bb"
     },
     "爱哭鬼": {
         "Camp": "Hun",
-        "ImageFileName": "爱哭鬼.png"
+        "ImageFileName": "爱哭鬼.png",
+        "BookOrderIndex": 120
     },
     "跛脚羊": {
         "Camp": "Hun",
-        "ImageFileName": "跛脚羊.png"
+        "ImageFileName": "跛脚羊.png",
+        "BookOrderIndex": 300
     },
     "雕刻家": {
         "Camp": "Hun",
-        "ImageFileName": "雕刻家.png"
+        "ImageFileName": "雕刻家.png",
+        "BookOrderIndex": 180
     },
     "疯眼": {
         "Camp": "Hun",
-        "ImageFileName": "疯眼.png"
+        "ImageFileName": "疯眼.png",
+        "BookOrderIndex": 100
     },
     "红蝶": {
         "Camp": "Hun",
-        "ImageFileName": "红蝶.png"
+        "ImageFileName": "红蝶.png",
+        "BookOrderIndex": 60
     },
     "黄衣之主": {
         "Camp": "Hun",
-        "ImageFileName": "黄衣之主.png"
+        "ImageFileName": "黄衣之主.png",
+        "BookOrderIndex": 70
     },
     "杰克": {
         "Camp": "Hun",
-        "ImageFileName": "杰克.png"
+        "ImageFileName": "杰克.png",
+        "BookOrderIndex": 40
     },
     "鹿头": {
         "Camp": "Hun",
-        "ImageFileName": "鹿头.png"
+        "ImageFileName": "鹿头.png",
+        "BookOrderIndex": 30
     },
     "孽蜥": {
         "Camp": "Hun",
-        "ImageFileName": "孽蜥.png"
+        "ImageFileName": "孽蜥.png",
+        "BookOrderIndex": 130
     },
     "摄影师": {
         "Camp": "Hun",
-        "ImageFileName": "摄影师.png"
+        "ImageFileName": "摄影师.png",
+        "BookOrderIndex": 90
     },
     "使徒": {
         "Camp": "Hun",
-        "ImageFileName": "使徒.png"
+        "ImageFileName": "使徒.png",
+        "BookOrderIndex": 160
     },
     "宿伞之魂": {
         "Camp": "Hun",
-        "ImageFileName": "宿伞之魂.png"
+        "ImageFileName": "宿伞之魂.png",
+        "BookOrderIndex": 80
     },
     "小提琴家": {
         "Camp": "Hun",
-        "ImageFileName": "小提琴家.png"
+        "ImageFileName": "小提琴家.png",
+        "BookOrderIndex": 170
     },
     "隐士": {
         "Camp": "Hun",
-        "ImageFileName": "隐士.png"
+        "ImageFileName": "隐士.png",
+        "BookOrderIndex": 250
     },
     "渔女": {
         "Camp": "Hun",
-        "ImageFileName": "渔女.png"
+        "ImageFileName": "渔女.png",
+        "BookOrderIndex": 210
     },
     "博士": {
         "Camp": "Hun",
-        "ImageFileName": "博士.png"
+        "ImageFileName": "博士.png",
+        "BookOrderIndex": 190
     },
     "厂长": {
         "Camp": "Hun",
-        "ImageFileName": "厂长.png"
+        "ImageFileName": "厂长.png",
+        "BookOrderIndex": 10
     },
     "噩梦": {
         "Camp": "Hun",
-        "ImageFileName": "噩梦.png"
+        "ImageFileName": "噩梦.png",
+        "BookOrderIndex": 230
     },
     "歌剧演员": {
         "Camp": "Hun",
-        "ImageFileName": "歌剧演员.png"
+        "ImageFileName": "歌剧演员.png",
+        "BookOrderIndex": 270
     },
     "红夫人": {
         "Camp": "Hun",
-        "ImageFileName": "红夫人.png"
+        "ImageFileName": "红夫人.png",
+        "BookOrderIndex": 140
     },
     "记录员": {
         "Camp": "Hun",
-        "ImageFileName": "记录员.png"
+        "ImageFileName": "记录员.png",
+        "BookOrderIndex": 240
     },
     "蜡像师": {
         "Camp": "Hun",
-        "ImageFileName": "蜡像师.png"
+        "ImageFileName": "蜡像师.png",
+        "BookOrderIndex": 220
     },
     "梦之女巫": {
         "Camp": "Hun",
-        "ImageFileName": "梦之女巫.png"
+        "ImageFileName": "梦之女巫.png",
+        "BookOrderIndex": 110
     },
     "破轮": {
         "Camp": "Hun",
-        "ImageFileName": "破轮.png"
+        "ImageFileName": "破轮.png",
+        "BookOrderIndex": 200
     },
     "时空之影": {
         "Camp": "Hun",
-        "ImageFileName": "时空之影.png"
+        "ImageFileName": "时空之影.png",
+        "BookOrderIndex": 290
     },
     "守夜人": {
         "Camp": "Hun",
-        "ImageFileName": "守夜人.png"
+        "ImageFileName": "守夜人.png",
+        "BookOrderIndex": 260
     },
     "小丑": {
         "Camp": "Hun",
-        "ImageFileName": "小丑.png"
+        "ImageFileName": "小丑.png",
+        "BookOrderIndex": 20
     },
     "喧嚣": {
         "Camp": "Hun",
-        "ImageFileName": "喧嚣.png"
+        "ImageFileName": "喧嚣.png",
+        "BookOrderIndex": 310
     },
     "愚人金": {
         "Camp": "Hun",
-        "ImageFileName": "愚人金.png"
+        "ImageFileName": "愚人金.png",
+        "BookOrderIndex": 280
     },
     "蜘蛛": {
         "Camp": "Hun",
-        "ImageFileName": "蜘蛛.png"
+        "ImageFileName": "蜘蛛.png",
+        "BookOrderIndex": 50
     },
     "杂货商": {
         "Camp": "Hun",
-        "ImageFileName": "杂货商.png"
+        "ImageFileName": "杂货商.png",
+        "BookOrderIndex": 320
     },
     "台球手": {
         "Camp": "Hun",
-        "ImageFileName": "台球手.png"
+        "ImageFileName": "台球手.png",
+        "BookOrderIndex": 330
     },
     "女王蜂": {
         "Camp": "Hun",
-        "ImageFileName": "女王蜂.png"
+        "ImageFileName": "女王蜂.png",
+        "BookOrderIndex": 340
     },
     "牙医": {
         "Camp": "Hun",
-        "ImageFileName": "牙医.png"
+        "ImageFileName": "牙医.png",
+        "BookOrderIndex": 350
     }
 }

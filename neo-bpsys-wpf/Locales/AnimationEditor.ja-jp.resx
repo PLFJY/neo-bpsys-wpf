@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+<data name="Designer.AnimationEditor.Title">
+    <value>アニメーションエディター</value>
+  </data>
+  <data name="Designer.AnimationEditor.UnsavedChangesMessage">
+    <value>未保存の変更があります。閉じる前に保存しますか？</value>
+  </data>
+  <data name="Designer.AnimationEditor.SaveFailedTitle">
+    <value>保存に失敗しました</value>
+  </data>
+  <data name="Designer.AnimationEditor.SaveFailedMessage">
+    <value>保存に失敗しました。もう一度お試しください。</value>
+  </data>
+</root>

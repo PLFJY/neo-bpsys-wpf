@@ -9,7 +9,7 @@ namespace neo_bpsys_wpf.Core.Attributes;
 /// <param name="id">页面ID</param>
 /// <param name="name">页面名称</param>
 /// <param name="icon">页面图标</param>
-/// <param name="category"></param>
+/// <param name="category">页面所属类别</param>
 [AttributeUsage(AttributeTargets.Class)]
 public class BackendPageInfo(
     string id,

@@ -11,19 +11,26 @@ public interface IFrontedWindowService
     #region Properties
 
     /// <summary>
-    /// 前台画布列表
+    /// 前台窗口列表（只读视图）。键为窗口 Canonical ID，使用
+    /// <see cref="StringComparer.OrdinalIgnoreCase"/> 与注册表的比较语义保持一致。
     /// </summary>
-    List<(string, string)> FrontedCanvas { get; }
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改缓存。
+    /// 内部可变字典保持 private。需要修改窗口缓存必须通过服务方法（如
+    /// <see cref="EnsureWindowCreated"/>、<see cref="ShowWindow(string)"/>、
+    /// <see cref="HideWindow(string)"/> 等）。
+    /// </remarks>
+    IReadOnlyDictionary<string, Window> FrontedWindows { get; }
 
     /// <summary>
-    /// 前台窗口列表
+    /// 前台窗口状态列表（只读视图）。键为窗口 Canonical ID，值为窗口是否可见。
+    /// 比较语义与 <see cref="FrontedWindows"/> 一致。
     /// </summary>
-    Dictionary<string, Window> FrontedWindows { get; }
-
-    /// <summary>
-    /// 前台窗口状态列表
-    /// </summary>
-    Dictionary<string, bool> FrontedWindowStates { get; }
+    /// <remarks>
+    /// 公开为 <see cref="IReadOnlyDictionary{TKey, TValue}"/> 以防止外部消费者直接修改状态缓存。
+    /// 内部可变字典保持 private。需要修改窗口状态必须通过服务方法。
+    /// </remarks>
+    IReadOnlyDictionary<string, bool> FrontedWindowStates { get; }
 
     #endregion
 
@@ -63,164 +70,58 @@ public interface IFrontedWindowService
     /// <param name="windowId">窗口 GUID</param>
     void ShowWindow(string windowId);
 
-    #endregion
-
-    #region Animation Effects
+    /// <summary>
+    /// 在当前已注册的前台窗口支持时，重新加载其 v3 布局。
+    /// </summary>
+    Task ReloadFrontedLayoutsAsync();
 
     /// <summary>
-    /// 呼吸灯启动
+    /// 将已存在的 v3 前台窗口布局标记为脏，但不创建该窗口。
     /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStart 替代。此方法将在未来版本中移除。")]
-    Task BreathingStart(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
+    /// <param name="windowIdOrFullWindowType">运行时窗口 ID 或完整的布局窗口类型。</param>
+    void MarkWindowLayoutDirty(string windowIdOrFullWindowType);
 
     /// <summary>
-    /// 呼吸灯启动
+    /// 将存储的窗口背景色立即应用到已注册的前台窗口。
     /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStart 替代。此方法将在未来版本中移除。")]
-    Task BreathingStart(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
+    /// <returns>找到并更新已注册窗口时返回 <see langword="true"/>。</returns>
+    Task<bool> ApplyWindowBackgroundColorAsync(string fullWindowType);
 
     /// <summary>
-    /// 呼吸灯停止
+    /// 将存储的窗口宽高立即应用到已注册的前台窗口。
     /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStop 替代。此方法将在未来版本中移除。")]
-    Task BreathingStop(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
+    /// <returns>找到并更新已注册窗口时返回 <see langword="true"/>。</returns>
+    Task<bool> ApplyWindowSizeAsync(string fullWindowType);
 
     /// <summary>
-    /// 呼吸灯停止
+    /// 重启已创建的前台窗口，以便影响源的透明度设置生效。
     /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStop 替代。此方法将在未来版本中移除。")]
-    Task BreathingStop(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
+    /// <returns>
+    /// 当已存在的窗口实例被移除或重启时返回 <see langword="true"/>；
+    /// 当窗口未注册或尚未创建时返回 <see langword="false"/>。
+    /// </returns>
+    Task<bool> RestartWindowForTransparencyChangeAsync(string fullWindowType);
 
     /// <summary>
-    /// 渐显动画
+    /// 获取已注册前台窗口的当前宽高，窗口未打开时返回 <c>null</c>。
     /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeInAnimation 替代。此方法将在未来版本中移除。")]
-    void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
-
-    /// <summary>
-    /// 渐显动画
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeInAnimation 替代。此方法将在 3.0.0 中移除。")]
-    void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
-
-    /// <summary>
-    /// 渐隐动画
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeOutAnimation 替代。此方法将在 3.0.0 中移除。")]
-    void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
-
-    /// <summary>
-    /// 渐隐动画
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeOutAnimation 替代。此方法将在未来版本中移除。")]
-    void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
+    /// <param name="fullWindowType">窗口布局标识，例如 <c>BpWindow</c>。</param>
+    /// <returns>由 (Width, Height) 组成的元组，窗口未找到时返回 <c>null</c>。</returns>
+    (double Width, double Height)? GetWindowSize(string fullWindowType);
 
     #endregion
 
     #region Window Registration
 
     /// <summary>
-    /// 注册窗口和画布
+    /// 确保存在一个前台窗口实例，且不创建任何其他前台窗口。
     /// </summary>
     /// <param name="windowId">窗口 GUID</param>
-    /// <param name="window">窗口</param>
-    /// <param name="canvasNames">画布名称集合</param>
-    void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[] canvasNames);
-
-    #endregion
-
-    #region Window Position Management
-
-    /// <summary>
-    /// 恢复初始位置
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName"></param>
-    /// <returns></returns>
-    Task RestoreInitialPositions(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 恢复初始位置
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName"></param>
-    Task RestoreInitialPositions(string windowId, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 保存所有窗口元素位置
-    /// </summary>
-    void SaveAllWindowElementsPosition();
-
-    /// <summary>
-    /// 保存指定窗口的指定Canvas中元素的位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName">画布名称</param>
-    void SaveWindowCanvasElementsPosition(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 保存指定窗口的指定Canvas中元素位置信息
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName">画布名称</param>
-    void SaveWindowCanvasElementsPosition(string windowId, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 保存指定窗口的元素位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    public void SaveWindowElementsPosition(FrontedWindowType windowType);
-
-    /// <summary>
-    /// 保存指定窗口的元素位置信息
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    public void SaveWindowElementsPosition(string windowId);
+    /// <returns>已存在或新建的窗口；当 ID 未注册时返回 <see langword="null"/>。</returns>
+    Window? EnsureWindowCreated(string windowId);
 
     #endregion
 
@@ -229,52 +130,16 @@ public interface IFrontedWindowService
     /// <summary>
     /// 获取窗口名称
     /// </summary>
-    /// <param name="windowType"></param>
-    /// <returns></returns>
+    /// <param name="windowType">窗口类型</param>
+    /// <returns>窗口名称，如果未找到则返回 <c>null</c></returns>
     string? GetWindowName(FrontedWindowType windowType);
 
     /// <summary>
     /// 获取窗口名称
     /// </summary>
     /// <param name="windowId">窗口 GUID</param>
-    /// <returns></returns>
+    /// <returns>窗口名称，如果未找到则返回 <c>null</c></returns>
     string? GetWindowName(string windowId);
-
-    #endregion
-
-    #region Control Injection
-
-    /// <summary>
-    /// 获取注入的控件
-    /// </summary>
-    /// <param name="guid">控件 GUID</param>
-    /// <returns>控件实例</returns>
-    public FrameworkElement GetInjectedControl(string guid);
-
-    #endregion
-
-    #region Score Management
-
-    /// <summary>
-    /// 重置全局分数
-    /// </summary>
-    void ResetGlobalScore();
-
-    /// <summary>
-    /// 设置全局分数
-    /// </summary>
-    /// <param name="team">队伍</param>
-    /// <param name="gameProgress">游戏进度</param>
-    /// <param name="camp">阵营</param>
-    /// <param name="score">分数</param>
-    void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score);
-
-    /// <summary>
-    /// 设置全局分数
-    /// </summary>
-    /// <param name="team">队伍</param>
-    /// <param name="gameProgress">对局进度</param>
-    void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress);
 
     #endregion
 }

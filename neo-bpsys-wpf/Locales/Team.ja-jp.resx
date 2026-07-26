@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="PlayerName">
+    <value>選手名</value>
+  </data>
+  <data name="InGameName">
+    <value>ゲーム内名前</value>
+  </data>
+  <data name="More">
+    <value>詳細</value>
+  </data>
+  <data name="PlayerDetails">
+    <value>選手の詳細</value>
+  </data>
+  <data name="ChangePhoto">
+    <value>写真を変更</value>
+  </data>
+  <data name="PhotoPreview">
+    <value>プレビュー：</value>
+  </data>
+  <data name="HomeTeamInformation">
+    <value>ホームチーム情報</value>
+  </data>
+  <data name="ImportFromJsonFile">
+    <value>JSONからインポート</value>
+  </data>
+  <data name="JsonImportTip">
+    <value>チーム情報を高速にインポートするための機能です。サンプルファイルは neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json にあります。詳細はドキュメントを参照してください。</value>
+  </data>
+  <data name="TeamName">
+    <value>チーム名</value>
+  </data>
+  <data name="SetTeamLogo">
+    <value>チームロゴを設定</value>
+  </data>
+  <data name="CurrentStatusColon">
+    <value>現在のステータス：</value>
+  </data>
+  <data name="SurvivorPlayer">
+    <value>サバイバー選手</value>
+  </data>
+  <data name="SetPhoto">
+    <value>写真を設定</value>
+  </data>
+  <data name="RemovePhoto">
+    <value>写真を削除</value>
+  </data>
+  <data name="Enter">
+    <value>入場</value>
+  </data>
+  <data name="Exit">
+    <value>退場</value>
+  </data>
+  <data name="AddPlayer">
+    <value>選手を追加</value>
+  </data>
+  <data name="HunterPlayer">
+    <value>ハンター選手</value>
+  </data>
+  <data name="AwayTeamInformation">
+    <value>アウェイチーム情報</value>
+  </data>
+  <data name="CurrentPlayerOnStage">
+    <value>現在出場中の選手</value>
+  </data>
+  <data name="TeamInfo">
+    <value>チーム情報</value>
+  </data>
+  <data name="PlayerID">
+    <value>選手 ID</value>
+  </data>
+  <data name="TeamNameInScoreStatistics">
+    <value>チーム名 (スコア統計)</value>
+  </data>
+  <data name="TeamNameInMapBP">
+    <value>チーム名 (マップBP)</value>
+  </data>
+  <data name="TeamNameInMapBPV2">
+    <value>チーム名 (マップBP V2)</value>
+  </data>
+  <data name="TeamNameInBPOverview">
+    <value>チーム名 (BP概要)</value>
+  </data>
+  <data name="ImageMaybeDamagedOrUnsupported">
+    <value>画像が破損しているかサポートされていない可能性があります</value>
+  </data>
+  <data name="DeleteConfirmation">
+    <value>削除確認</value>
+  </data>
+  <data name="AreYouSureToDelete">
+    <value>削除してもよろしいですか</value>
+  </data>
+  <data name="ClearTip">
+    <value>消去のヒント</value>
+  </data>
+  <data name="AreYouSureToRemoveTheFileLookPhoto">
+    <value>選手の写真を消去してもよろしいですか？</value>
+  </data>
+  <data name="LogoFileIsNotValid">
+    <value>ロゴファイルが無効です</value>
+  </data>
+  <data name="ImageFileTooLarge">
+    <value>画像ファイルが大きすぎます（{0}）。最大許容サイズは {1} です。画像を圧縮するか、より小さなファイルを選択してください。</value>
+  </data>
+  <data name="HexColor">
+    <value>16進カラー</value>
+  </data>
+  <data name="TeamColor">
+    <value>チームカラー</value>
+  </data>
+  <data name="InvalidTeamColorHex">
+    <value>色の形式が無効です。#RRGGBB または #AARRGGBB を入力してください。</value>
+  </data>
+  <data name="JsonFileFormatError">
+    <value>JSONファイル形式エラー</value>
+  </data>
+  <data name="ResetDefaultColor">
+    <value>既定値に戻す</value>
+  </data>
+</root>

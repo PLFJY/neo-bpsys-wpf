@@ -1,0 +1,77 @@
+namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
+
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+
+/// <summary>
+/// v3 本地化静态文本控件配置。
+/// </summary>
+public class LocalizedTextControlConfig : FrontedControlConfigBase, IFrontedTextStyleConfig
+{
+    /// <summary>
+    /// 初始化本地化静态文本控件配置。
+    /// </summary>
+    public LocalizedTextControlConfig()
+    {
+        ControlType = "LocalizedText";
+    }
+
+    /// <summary>
+    /// 本地化资源 key。
+    /// </summary>
+    public string LocalizationKey { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 资源 key 缺失时显示的备用文本。
+    /// </summary>
+    public string? FallbackText { get; set; }
+
+    /// <summary>
+    /// 有序多源绑定，其结果在可能时解析为本地化键。
+    /// </summary>
+    public FrontedTextBindingExpression? TextBinding { get; set; }
+
+    /// <summary>
+    /// 字体族。
+    /// </summary>
+    public string? FontFamily { get; set; }
+
+    /// <summary>
+    /// 字重。
+    /// </summary>
+    public string? FontWeight { get; set; }
+
+    /// <summary>
+    /// 文本颜色。
+    /// </summary>
+    public string? Color { get; set; }
+
+    /// <summary>
+    /// 文本颜色绑定路径；有值时优先使用绑定颜色，静态 <see cref="Color"/> 仅作为回退。
+    /// </summary>
+    public string? ColorBindingPath { get; set; }
+
+    /// <summary>
+    /// 字号。
+    /// </summary>
+    public double FontSize { get; set; }
+
+    /// <summary>
+    /// 文本对齐。
+    /// </summary>
+    public string? TextAlignment { get; set; }
+
+    /// <summary>
+    /// 文本块水平对齐。
+    /// </summary>
+    public string? HorizontalAlignment { get; set; }
+
+    /// <summary>
+    /// 文本块垂直对齐。
+    /// </summary>
+    public string? VerticalAlignment { get; set; }
+
+    /// <summary>
+    /// 文本换行方式。
+    /// </summary>
+    public string? TextWrapping { get; set; }
+}

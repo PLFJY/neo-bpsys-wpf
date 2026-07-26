@@ -66,5 +66,51 @@
 		<RemoveDir Directories="$(BpsysSdk_ZipStagingDirectory)"
 		           Condition="Exists('$(BpsysSdk_ZipStagingDirectory)')"/>
 	</Target>
+
+	<!-- ========================================================================
+	     V3 Source Generator 自动注入
+	     =========================================================================
+	     引用 PluginSdk 的项目（通过 Import 本 .targets）自动获得
+	     neo-bpsys-wpf.V3SourceGenerator 作为 Analyzer，无需在 csproj 中显式引用。
+
+	     Generator 仅服务 VS XAML 设计时 IntelliSense（为 FrontedV3Control 标注的
+	     控件生成 Options facade 类型），不参与运行时、不参与插件加载、不进入插件包。
+
+	     实现要点：
+	     1. 路径变量基于 $(MSBuildThisFileDirectory)（即 PluginSdk 项目目录），
+	        因此对外部插件项目同样有效（只要它们 Import 本 .targets）。
+	     2. Generator 项目是 netstandard2.0，与插件项目的 TFM 无关，独立构建。
+	     3. 用 BeforeTargets="CoreCompile" 的 target 在编译前构建 Generator 并
+	        动态注入 Analyzer 项，避免 ItemGroup 静态评估时 DLL 尚未生成的问题。
+	     4. 设 $(BpsysSdk_SkipV3SourceGenerator)=true 可禁用注入。
+	     ======================================================================== -->
+	<PropertyGroup>
+		<BpsysSdk_V3GeneratorProjectPath>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'neo-bpsys-wpf.V3SourceGenerator', 'neo-bpsys-wpf.V3SourceGenerator.csproj'))</BpsysSdk_V3GeneratorProjectPath>
+		<BpsysSdk_V3GeneratorOutputDir>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'neo-bpsys-wpf.V3SourceGenerator', 'bin', '$(Configuration)', 'netstandard2.0'))</BpsysSdk_V3GeneratorOutputDir>
+		<BpsysSdk_V3GeneratorDll>$([MSBuild]::NormalizePath('$(BpsysSdk_V3GeneratorOutputDir)', 'neo-bpsys-wpf.V3SourceGenerator.dll'))</BpsysSdk_V3GeneratorDll>
+	</PropertyGroup>
+
+	<Target Name="BpsysSdkEnsureV3GeneratorBuilt"
+	        BeforeTargets="CoreCompile"
+	        Condition="'$(BpsysSdk_SkipV3SourceGenerator)' != 'true' and Exists('$(BpsysSdk_V3GeneratorProjectPath)')">
+
+		<!-- 先构建 Generator 项目（netstandard2.0，独立 TFM，不依赖插件项目）。
+		     显式清空 RuntimeIdentifier，避免宿主以 -r win-x64 构建时 RID 全局属性
+		     透传到 Generator，触发 NETSDK1047（assets 文件缺少 netstandard2.0/win-x64 目标）。 -->
+		<MSBuild Projects="$(BpsysSdk_V3GeneratorProjectPath)"
+		         Targets="Restore;Build"
+		         Properties="Configuration=$(Configuration);Platform=AnyCPU;RuntimeIdentifier="
+		         SkipNonexistentTargets="false" />
+
+		<!-- 检查 DLL 是否生成，缺失则报错（避免静默失败导致 IntelliSense 不可用） -->
+		<Error Condition="!Exists('$(BpsysSdk_V3GeneratorDll)')"
+		       Code="BPSDK0003"
+		       Text="V3 Source Generator DLL 未生成：$(BpsysSdk_V3GeneratorDll)。请确认 Generator 项目可独立构建。"/>
+
+		<!-- 动态注入 Analyzer 项，传给 Csc 任务 -->
+		<ItemGroup>
+			<Analyzer Include="$(BpsysSdk_V3GeneratorDll)" />
+		</ItemGroup>
+	</Target>
 </Project>
 

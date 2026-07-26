@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.Enums;
 using System.IO;
 using System.Reflection;
 
@@ -45,9 +46,31 @@ public static class AppConstants
     public static readonly string AppTempPath = Path.Combine(Path.GetTempPath(), AppName);
 
     /// <summary>
-    /// 自定义UI路径
+    /// v3 前台布局路径
     /// </summary>
-    public static readonly string CustomUiPath = Path.Combine(AppDataPath, "CustomUi");
+    public static readonly string FrontedLayoutsPath = Path.Combine(AppDataPath, "FrontedLayouts");
+
+    /// <summary>
+    /// v3 前台布局包路径。
+    /// </summary>
+    public static readonly string FrontedLayoutPackagesPath = Path.Combine(AppDataPath, "FrontedLayoutPackages");
+
+    /// <summary>
+    /// v3 本地布局资源包路径。
+    /// </summary>
+    public static readonly string FrontedLayoutLocalPackagePath = Path.Combine(FrontedLayoutPackagesPath, "local");
+
+    /// <summary>
+    /// v3 本地布局图片资源路径。
+    /// </summary>
+    public static readonly string FrontedLayoutLocalImagesPath =
+        Path.Combine(FrontedLayoutLocalPackagePath, "resources", "images");
+
+    /// <summary>
+    /// v3 本地布局字体资源路径。
+    /// </summary>
+    public static readonly string FrontedLayoutLocalFontsPath =
+        Path.Combine(FrontedLayoutLocalPackagePath, "resources", "fonts");
 
     /// <summary>
     /// 日志路径
@@ -74,6 +97,24 @@ public static class AppConstants
     /// </summary>
     public static readonly string PluginConfigsPath = Path.Combine(AppDataPath, "PluginConfigs");
 
+    /// <summary>
+    /// Paddle runtime 根目录（随主程序发布，包含 CPU native DLL）。
+    /// </summary>
+    public static readonly string PaddleRuntimeBasePath =
+        Path.Combine(AppContext.BaseDirectory, "Components", "PaddleRuntime");
+
+    /// <summary>
+    /// 用户下载的 Paddle CUDA runtime 根目录（AppData 下）。
+    /// </summary>
+    public static readonly string CudaPaddleRuntimeBasePath =
+        Path.Combine(AppDataPath, "Components", "PaddleRuntime");
+
+    /// <summary>
+    /// 当前 Sdcb.PaddleInference runtime 的固定版本号。
+    /// 必须与 <c>Sdcb.PaddleInference.runtime.win64.mkl</c> NuGet 包版本一致。
+    /// </summary>
+    public const string PaddleInferenceRuntimeVersion = "3.3.1.70";
+
     #endregion
 
     #region Counts
@@ -91,12 +132,12 @@ public static class AppConstants
     /// <summary>
     /// 全局求生者Ban位数量
     /// </summary>
-    public const int GlobalBanSurCount = 12;
+    public const int GlobalBanSurCount = 16;
 
     /// <summary>
     /// 全局监管者Ban位数量
     /// </summary>
-    public const int GlobalBanHunCount = 3;
+    public const int GlobalBanHunCount = 4;
 
     #endregion
 }

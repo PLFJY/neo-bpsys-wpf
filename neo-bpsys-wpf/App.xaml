@@ -27,6 +27,7 @@
                 <ResourceDictionary Source="/Styles/TitleBarButtonStyles.xaml" />
                 <ResourceDictionary Source="/Styles/HighlightStyle.xaml" />
                 <ResourceDictionary Source="/Styles/DefaultColorPickerStyle.xaml" />
+                <ResourceDictionary Source="/neo-bpsys-wpf.ProductTour;component/Themes/ProductTour.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!--  Fonts  -->
             <FontFamily x:Key="Hanyi">/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简</FontFamily>
@@ -34,6 +35,7 @@
             <FontFamily x:Key="EssayText">/neo-bpsys-wpf;Component/Assets/Fonts/#Essay Text</FontFamily>
             <FontFamily x:Key="Selawik">/neo-bpsys-wpf;Component/Assets/Fonts/#Selawik</FontFamily>
             <FontFamily x:Key="NotoSans">/neo-bpsys-wpf;Component/Assets/Fonts/#Noto Sans</FontFamily>
+            <FontFamily x:Key="ProductTourFontFamily">/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5</FontFamily>
 
             <markup:XmlLanguage x:Key="CurrentLanguage">zh-CN</markup:XmlLanguage>
 

@@ -30,6 +30,9 @@ using Windows.Graphics.Capture;
 
 namespace Composition.WindowsRuntimeHelpers
 {
+    /// <summary>
+    /// 提供 Windows.Graphics.Capture 与桌面窗口之间的互操作辅助方法。
+    /// </summary>
     public static class CaptureHelper
     {
         static readonly Guid GraphicsCaptureItemGuid = new Guid("79C3F95B-31F7-4EC2-A464-632EF5D30760");
@@ -75,6 +78,11 @@ namespace Composition.WindowsRuntimeHelpers
             }
         }
 
+        /// <summary>
+        /// 为指定显示器创建 GraphicsCaptureItem。
+        /// </summary>
+        /// <param name="hmon">显示器句柄。</param>
+        /// <returns>创建的 GraphicsCaptureItem，失败时返回 null。</returns>
         public static GraphicsCaptureItem CreateItemForMonitor(IntPtr hmon)
         {
             using var factory = ActivationFactory.Get(typeof(GraphicsCaptureItem).FullName!);

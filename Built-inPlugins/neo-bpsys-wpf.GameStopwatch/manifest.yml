@@ -1,0 +1,9 @@
+id: neo_bpsys_wpf.GameStopwatch
+name: Game Stopwatch
+description: 比赛秒表插件。
+entranceAssembly: "neo-bpsys-wpf.GameStopwatch.dll"
+url: https://github.com/PLFJY/neo-bpsys-wpf
+version: 1.0.0.0
+apiVersion: 3.0.0.0
+author: Zero PLFJY
+icon: icon.png

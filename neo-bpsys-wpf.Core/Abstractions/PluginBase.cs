@@ -17,8 +17,8 @@ public abstract class PluginBase
     /// <summary>
     /// 初始化插件。一般在这个方法中完成插件的各项服务的注册。
     /// </summary>
-    /// <param name="context"></param>
-    /// <param name="services"></param>
+    /// <param name="context">宿主构建上下文，包含配置和环境信息</param>
+    /// <param name="services">依赖注入服务集合，用于注册插件服务</param>
     public abstract void Initialize(HostBuilderContext context, IServiceCollection services);
 
     /// <summary>

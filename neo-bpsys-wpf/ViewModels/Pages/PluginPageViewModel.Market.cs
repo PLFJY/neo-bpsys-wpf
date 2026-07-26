@@ -6,11 +6,10 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.Services.Abstractions;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -41,7 +40,7 @@ public partial class PluginPageViewModel
     /// 当前插件市场列表。
     /// </summary>
     [ObservableProperty]
-    private ObservableCollection<PluginMarketItem> _marketPluginsCollection;
+    public partial ObservableCollection<PluginMarketItem> MarketPluginsCollection { get; set; }
 
     /// <summary>
     /// 当前选中的插件市场条目。
@@ -50,64 +49,70 @@ public partial class PluginPageViewModel
     [NotifyPropertyChangedFor(nameof(IsMarketPluginSelected))]
     [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
     [NotifyCanExecuteChangedFor(nameof(ExecutePrimaryMarketActionCommand))]
-    private PluginMarketItem? _selectedMarketPlugin;
+    public partial PluginMarketItem? SelectedMarketPlugin { get; set; }
 
     /// <summary>
     /// 插件市场列表是否正在加载。
     /// </summary>
     [ObservableProperty]
-    private bool _isMarketLoading;
+    public partial bool IsMarketLoading { get; set; }
 
     /// <summary>
     /// 插件市场加载失败时显示的错误消息。
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMarketError))]
-    private string _marketErrorMessage = string.Empty;
+    public partial string MarketErrorMessage { get; set; } = string.Empty;
 
     /// <summary>
     /// 插件市场设置面板是否打开。
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
-    private bool _isPluginMarketSettingsOpen;
+    public partial bool IsPluginMarketSettingsOpen { get; set; }
 
     /// <summary>
     /// 下载队列面板是否打开。
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
-    private bool _isDownloadQueueOpen;
+    public partial bool IsDownloadQueueOpen { get; set; }
 
     /// <summary>
     /// 当前选中的下载镜像地址。
     /// </summary>
     [ObservableProperty]
-    private string _selectedPluginMarketMirror = string.Empty;
+    public partial string SelectedPluginMarketMirror { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 获取或设置插件市场 GitHub 镜像设置入口是否可见。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsPluginMarketMirrorSettingVisible { get; set; }
 
     /// <summary>
     /// 当前选中的插件市场源地址。
     /// </summary>
     [ObservableProperty]
-    private string _selectedPluginMarketSource = string.Empty;
+    public partial string SelectedPluginMarketSource { get; set; } = string.Empty;
 
     /// <summary>
     /// 当前正在下载的插件进度值。
     /// </summary>
     [ObservableProperty]
-    private double _pluginDownloadProgress;
+    public partial double PluginDownloadProgress { get; set; }
 
     /// <summary>
     /// 当前正在下载的插件进度文本。
     /// </summary>
     [ObservableProperty]
-    private string _pluginDownloadProgressText = string.Empty;
+    public partial string PluginDownloadProgressText { get; set; } = string.Empty;
 
     /// <summary>
     /// 当前正在下载的插件速度文本。
     /// </summary>
     [ObservableProperty]
-    private string _pluginDownloadSpeedText = string.Empty;
+    public partial string PluginDownloadSpeedText { get; set; } = string.Empty;
 
     /// <summary>
     /// 插件市场镜像选项列表。
@@ -226,6 +231,7 @@ public partial class PluginPageViewModel
         }
         SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
         SelectedPluginMarketSource = _settingsHostService.Settings.PluginMarketSource;
+        IsPluginMarketMirrorSettingVisible = IsChineseCultureForPluginMarketMirror();
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
         _isPluginMarketInitialized = true;
         _ = RefreshMarketAsync();
@@ -373,12 +379,6 @@ public partial class PluginPageViewModel
     {
         if (SelectedMarketPlugin == null)
         {
-            return;
-        }
-
-        if (SelectedMarketPlugin.IsRestartRequired)
-        {
-            await RestartAppAsync();
             return;
         }
 
@@ -554,7 +554,7 @@ public partial class PluginPageViewModel
 
         if (localPlugin?.IsRestartRequired == true)
         {
-            item.PrimaryActionKey = "Installed";
+            item.PrimaryActionKey = "MarketInstalled";
             item.CanExecutePrimaryAction = false;
             item.MarketStatusKey = localPlugin.IsUninstalling
                 ? "PluginMarketPendingUninstall"
@@ -565,7 +565,7 @@ public partial class PluginPageViewModel
 
         if (item.HasUpdateAvailable)
         {
-            item.PrimaryActionKey = "Update";
+            item.PrimaryActionKey = "MarketUpdate";
             item.CanExecutePrimaryAction = true;
             item.MarketStatusKey = "PluginMarketUpdateAvailable";
             item.IsStatusVisible = true;
@@ -574,18 +574,18 @@ public partial class PluginPageViewModel
 
         if (item.IsInstalled)
         {
-            item.PrimaryActionKey = "Installed";
+            item.PrimaryActionKey = "MarketInstalled";
             item.CanExecutePrimaryAction = false;
             item.MarketStatusKey = localPlugin?.IsUninstalling == true
                 ? "PluginMarketPendingUninstall"
                 : item.IsRestartRequired
                     ? "PluginMarketInstalledRestartRequired"
-                    : "Installed";
+                    : "MarketInstalled";
             item.IsStatusVisible = true;
             return;
         }
 
-        item.PrimaryActionKey = "Install";
+        item.PrimaryActionKey = "MarketInstall";
         item.CanExecutePrimaryAction = true;
         item.MarketStatusKey = string.Empty;
         item.IsStatusVisible = false;
@@ -594,81 +594,42 @@ public partial class PluginPageViewModel
     /// <summary>
     /// 安装一个已经解压好的插件包。
     /// </summary>
-    private void InstallPluginFromExtractedDirectory(string tempFolderPath)
+    private void InstallPluginAndUpdateLocalState(string tempFolderPath)
     {
-        var manifestPath = Path.Combine(tempFolderPath, "manifest.yml");
+        var result = _pluginInstallService.InstallFromExtractedDirectory(tempFolderPath);
+        UpdateLocalPluginState(result);
+    }
 
-        if (!File.Exists(manifestPath))
+    /// <summary>
+    /// 根据插件安装结果更新当前页面的本地插件状态。
+    /// </summary>
+    private void UpdateLocalPluginState(PluginInstallResult result)
+    {
+        var manifest = result.Manifest;
+        var local = PluginsCollection.FirstOrDefault(x => x.Manifest.Id == manifest.Id);
+        if (result.IsUpdate)
         {
-            throw new Exception(I18nHelper.GetLocalizedString("CannotFindManifest"));
-        }
-
-        var manifestYml = File.ReadAllText(manifestPath);
-        var deserializer = new DeserializerBuilder()
-            .IgnoreUnmatchedProperties()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .Build();
-
-        var manifest = deserializer.Deserialize<PluginManifest?>(manifestYml);
-        if (manifest == null)
-        {
-            throw new Exception(I18nHelper.GetLocalizedString("ManifestNotValid"));
-        }
-
-        var compatibility = PluginApiVersionHelper.Evaluate(manifest.ApiVersion);
-        if (!compatibility.IsCompatible)
-        {
-            throw new InvalidOperationException(compatibility.IsTooHigh
-                ? I18nHelper.GetLocalizedString("PluginMarketInstallBlockedHostVersionTooLow")
-                : compatibility.Message);
-        }
-
-        var pluginFolderPath = Path.Combine(AppConstants.PluginPath, manifest.Id);
-        if (Directory.Exists(pluginFolderPath))
-        {
-            pluginFolderPath = Path.Combine(AppConstants.PluginPath, ".new", manifest.Id);
-            if (!Directory.Exists(Path.Combine(AppConstants.PluginPath, ".new")))
-            {
-                Directory.CreateDirectory(Path.Combine(AppConstants.PluginPath, ".new"));
-            }
-
-            if (Directory.Exists(pluginFolderPath))
-            {
-                Directory.Delete(pluginFolderPath, true);
-            }
-
-            Directory.Move(tempFolderPath, pluginFolderPath);
-
-            var local = PluginsCollection.FirstOrDefault(x => x.Manifest.Id == manifest.Id);
             if (local != null)
             {
                 local.IsRestartRequired = true;
                 local.NewVersion = manifest.Version;
                 local.IsNewVersionInstalled = true;
             }
-            else
-            {
-                _logger.LogWarning(
-                    "Plugin directory already exists for {PluginId}, but no matching plugin info was found in the current collection. Update was staged and will apply after restart.",
-                    manifest.Id);
-            }
-
-            IsRestartNeeded = true;
             return;
         }
 
-        var info = new PluginInfo
+        if (local == null)
         {
-            Manifest = manifest,
-            IsLocal = true,
-            PluginFolderPath = pluginFolderPath,
-            RealIconPath = Path.Combine(Path.GetFullPath(pluginFolderPath), manifest.Icon),
-            IsRestartRequired = true
-        };
-
-        Directory.Move(tempFolderPath, pluginFolderPath);
-        PluginsCollection.Add(info);
-        IsRestartNeeded = true;
+            var pluginFolderPath = Path.Combine(AppConstants.PluginPath, manifest.Id);
+            PluginsCollection.Add(new PluginInfo
+            {
+                Manifest = manifest,
+                IsLocal = true,
+                PluginFolderPath = pluginFolderPath,
+                RealIconPath = Path.Combine(Path.GetFullPath(pluginFolderPath), manifest.Icon),
+                IsRestartRequired = true
+            });
+        }
     }
 
     /// <summary>
@@ -742,6 +703,7 @@ public partial class PluginPageViewModel
         {
             SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
             SelectedPluginMarketSource = _settingsHostService.Settings.PluginMarketSource;
+            IsPluginMarketMirrorSettingVisible = IsChineseCultureForPluginMarketMirror();
         }
         finally
         {
@@ -750,9 +712,12 @@ public partial class PluginPageViewModel
         }
     }
 
+    private bool IsChineseCultureForPluginMarketMirror() =>
+        _settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+
     private static string FormatLocalized(string key, params object[] args)
     {
-        return string.Format(I18nHelper.GetLocalizedString(key), args);
+        return string.Format(I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, key), args);
     }
 
     /// <summary>
@@ -790,7 +755,7 @@ public partial class PluginPageViewModel
 
             try
             {
-                InstallPluginFromExtractedDirectory(result.ExtractedDirectoryPath);
+                InstallPluginAndUpdateLocalState(result.ExtractedDirectoryPath);
                 if (result.QueueItem != null)
                 {
                     result.QueueItem.Status = PluginDownloadQueueStatus.QueueInstalledRestartRequired;

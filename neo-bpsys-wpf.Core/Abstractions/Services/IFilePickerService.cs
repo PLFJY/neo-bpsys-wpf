@@ -1,4 +1,4 @@
-﻿namespace neo_bpsys_wpf.Core.Abstractions.Services;
+namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
 /// 文件选择服务接口
@@ -8,7 +8,7 @@ public interface IFilePickerService
     /// <summary>
     /// 选择 bpui 文件
     /// </summary>
-    /// <returns></returns>
+    /// <returns>文件路径，未选择时返回 null</returns>
     string? PickBpuiFile();
 
     /// <summary>
@@ -16,17 +16,47 @@ public interface IFilePickerService
     /// </summary>
     /// <returns>文件路径</returns>
     public string? PickImage();
+
+    /// <summary>
+    /// 选择字体文件。
+    /// </summary>
+    /// <returns>文件路径。</returns>
+    public string? PickFontFile();
+
     /// <summary>
     /// 选择Json文件
     /// </summary>
+    /// <param name="initialDirectory">初始目录；为空时使用默认目录。</param>
     /// <returns>文件路径</returns>
-    public string? PickJsonFile();
+    public string? PickJsonFile(string? initialDirectory = null);
 
     /// <summary>
     /// 选择Zip文件
     /// </summary>
     /// <returns>文件路径</returns>
     public string? PickZipFile();
+
+    /// <summary>
+    /// 选择 SmartBP 模块归档文件。
+    /// </summary>
+    /// <returns>文件路径。</returns>
+    public string? PickSmartBpModuleArchiveFile();
+
+    /// <summary>
+    /// 选择插件包归档文件。
+    /// </summary>
+    /// <returns>文件路径。</returns>
+    public string? PickPluginPackageFile();
+
+    /// <summary>选择 Windows 可执行文件。</summary>
+    /// <returns>选中的路径；取消选择时返回 <see langword="null"/>。</returns>
+    public string? PickExecutableFile();
+
+    /// <summary>
+    /// 选择文件夹。
+    /// </summary>
+    /// <returns>文件夹路径。</returns>
+    public string? PickFolder();
 
     /// <summary>
     /// 选择 JSON 导出保存路径。

@@ -11,8 +11,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
-using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -22,9 +20,14 @@ namespace neo_bpsys_wpf.Services;
 public class SettingsHostService : ISettingsHostService
 {
     private readonly ILogger<SettingsHostService> _logger;
+    private readonly ISettingsMigrationService _settingsMigrationService;
+    private readonly ILegacyV2StartupMigrationService _legacyV2StartupMigrationService;
     private Settings _settings = new();
     private bool _isBulk;
 
+    /// <summary>
+    /// 当前应用设置。
+    /// </summary>
     public Settings Settings
     {
         get => _settings;
@@ -48,13 +51,24 @@ public class SettingsHostService : ISettingsHostService
         PropertyNameCaseInsensitive = true,
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    /// <summary>
+    /// 初始化设置服务。
+    /// </summary>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="settingsMigrationService">设置迁移服务。</param>
+    /// <param name="legacyV2StartupMigrationService">旧版 v2 启动迁移服务。</param>
         Converters = { new FontWeightJsonConverter() }
     };
 
-    public SettingsHostService(ILogger<SettingsHostService> logger)
+    public SettingsHostService(
+        ILogger<SettingsHostService> logger,
+        ISettingsMigrationService settingsMigrationService,
+        ILegacyV2StartupMigrationService legacyV2StartupMigrationService)
     {
         _logger = logger;
-        _ = LoadConfig();
+        _settingsMigrationService = settingsMigrationService;
+        _legacyV2StartupMigrationService = legacyV2StartupMigrationService;
+        // Config loading is intentionally triggered and awaited from App.OnStartup.
     }
 
     /// <summary>
@@ -78,7 +92,7 @@ public class SettingsHostService : ISettingsHostService
         {
             _logger.LogError(e, "Configuration file save error");
             _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("ConfigurationFileSaveError")}\n{e.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ConfigurationFileSaveError")}\n{e.Message}");
         }
     }
 
@@ -95,14 +109,37 @@ public class SettingsHostService : ISettingsHostService
         var json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
         try
         {
+            var versionInfo = SettingsConfigVersionHelper.InspectJson(json);
+            if (versionInfo.IsLegacy)
+            {
+                var result = await _legacyV2StartupMigrationService.MigrateIfNeededAsync();
+                if (!result.Success)
+                {
+                    throw new InvalidOperationException(result.ErrorMessage ?? "Legacy v2 startup migration failed.");
+                }
+
+                if (result.Migrated)
+                {
+                    json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
+                }
+            }
+            else if (versionInfo.Version != SettingsConfigVersionHelper.CurrentSettingsVersion)
+            {
+                _logger.LogWarning(
+                    "Configuration file version is not supported explicitly. Version: {Version}, has version field: {HasVersion}",
+                    versionInfo.Version,
+                    versionInfo.HasVersion);
+            }
+
             var settings = JsonSerializer.Deserialize<Settings>(json, _jsonSerializerOptions);
             if (settings != null)
             {
                 Settings = settings;
+                Settings.Version ??= SettingsConfigVersionHelper.CurrentSettingsVersion;
             }
             else
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ConfigurationFileEmpty"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ConfigurationFileEmpty"));
                 await ResetConfigAsync();
             }
         }
@@ -111,9 +148,9 @@ public class SettingsHostService : ISettingsHostService
             _logger.LogError(e, "Reading configuration file error");
 
             if (await MessageBoxHelper.ShowConfirmAsync(
-                    $"{I18nHelper.GetLocalizedString("ResetConfigurationFileToSolveTheProblem")}?",
-                    I18nHelper.GetLocalizedString("FailedToReadConfigurationFile"),
-                    I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileToSolveTheProblem")}?",
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "FailedToReadConfigurationFile"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
                 await ResetConfigAsync();
             }
@@ -153,7 +190,7 @@ public class SettingsHostService : ISettingsHostService
         {
             _logger.LogError(e, "Reset configuration file error");
             _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("ResetConfigurationFileError")}\n{e.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileError")}\n{e.Message}");
         }
     }
 
@@ -173,149 +210,21 @@ public class SettingsHostService : ISettingsHostService
             switch (windowType)
             {
                 case FrontedWindowType.BpWindow:
-                    try
-                    {
-                        if (Settings.BpWindowSettings.BgImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.BgImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.BgImageUri);
-                        }
-
-                        if (Settings.BpWindowSettings.PickingBorderImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.PickingBorderImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.PickingBorderImageUri);
-                        }
-
-                        if (Settings.BpWindowSettings.GlobalBanLockImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.GlobalBanLockImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.GlobalBanLockImageUri);
-                        }
-
-                        if (Settings.BpWindowSettings.CurrentBanLockImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.CurrentBanLockImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.CurrentBanLockImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about settings");
-                    }
-
-                    Settings.BpWindowSettings = new BpWindowSettings();
                     break;
                 case FrontedWindowType.CutSceneWindow:
-                    try
-                    {
-                        if (Settings.CutSceneWindowSettings.BgUri != null &&
-                            File.Exists(Settings.CutSceneWindowSettings.BgUri))
-                        {
-                            File.Delete(Settings.CutSceneWindowSettings.BgUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about CutSceneWindow");
-                    }
-
-                    Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
                     break;
                 case FrontedWindowType.ScoreWindow:
                 case FrontedWindowType.ScoreGlobalWindow:
                 case FrontedWindowType.ScoreSurWindow:
                 case FrontedWindowType.ScoreHunWindow:
-                    try
-                    {
-                        if (Settings.ScoreWindowSettings.SurScoreBgImageUri != null &&
-                            File.Exists(Settings.ScoreWindowSettings.SurScoreBgImageUri))
-                        {
-                            File.Delete(Settings.ScoreWindowSettings.SurScoreBgImageUri);
-                        }
-
-                        if (Settings.ScoreWindowSettings.HunScoreBgImageUri != null &&
-                            File.Exists(Settings.ScoreWindowSettings.HunScoreBgImageUri))
-                        {
-                            File.Delete(Settings.ScoreWindowSettings.HunScoreBgImageUri);
-                        }
-
-                        if (Settings.ScoreWindowSettings.GlobalScoreBgImageUri != null &&
-                            File.Exists(Settings.ScoreWindowSettings.GlobalScoreBgImageUri))
-                        {
-                            File.Delete(Settings.ScoreWindowSettings.GlobalScoreBgImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about ScoreWindow settings");
-                    }
-
-                    Settings.ScoreWindowSettings = new ScoreWindowSettings();
                     break;
                 case FrontedWindowType.GameDataWindow:
-                    try
-                    {
-                        if (Settings.GameDataWindowSettings.BgImageUri != null &&
-                            File.Exists(Settings.GameDataWindowSettings.BgImageUri))
-                        {
-                            File.Delete(Settings.GameDataWindowSettings.BgImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about GameDataWindow settings");
-                    }
-
-                    Settings.GameDataWindowSettings = new GameDataWindowSettings();
                     break;
-                case FrontedWindowType.WidgetsWindow:
-                    try
-                    {
-                        if (Settings.WidgetsWindowSettings.MapBpBgUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.MapBpBgUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.MapBpBgUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.MapBpV2BgUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.MapBpV2BgUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.MapBpV2BgUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.BpOverviewBgUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.BpOverviewBgUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.BpOverviewBgUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.CurrentBanLockImageUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.CurrentBanLockImageUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.GlobalBanLockImageUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.GlobalBanLockImageUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.GlobalBanLockImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about WidgetsWindow settings");
-                    }
-
-                    Settings.WidgetsWindowSettings = new WidgetsWindowSettings();
+                case FrontedWindowType.BpOverviewWindow:
+                case FrontedWindowType.MapV2Window:
                     break;
                 default:
+                    _logger.LogWarning("Unsupported window type for config reset: {WindowType}", windowType);
                     throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);
             }
 
@@ -326,7 +235,7 @@ public class SettingsHostService : ISettingsHostService
         {
             _logger.LogError(e, "Reset Configuration file error");
             _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("ResetConfigurationFileError")}\n{e.Message}");
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileError")}\n{e.Message}");
             throw;
         }
     }
@@ -343,6 +252,9 @@ public class SettingsHostService : ISettingsHostService
 
     /// <summary>
     /// 配置文件改变事件
+    /// <summary>
+    /// 语言设置变更事件。
+    /// </summary>
     /// </summary>
     public event EventHandler<Settings>? SettingsChanged;
 

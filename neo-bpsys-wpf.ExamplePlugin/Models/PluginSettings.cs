@@ -5,5 +5,6 @@ namespace neo_bpsys_wpf.ExamplePlugin.Models;
 
 public partial class PluginSettings : ObservableObjectBase
 {
-    [ObservableProperty] private string _testSetting = "Hello World";
+    [ObservableProperty]
+    public partial string TestSetting { get; set; } = "Hello World";
 }

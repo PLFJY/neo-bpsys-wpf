@@ -1,0 +1,14 @@
+:root { color-scheme: dark; font-family: "Noto Sans", sans-serif; }
+body { margin: 0; background: #111; }
+.viewport { width: 100vw; height: 100vh; overflow: hidden; display: grid; place-items: center; }
+.canvas { position: relative; isolation: isolate; transform-origin: center; overflow: hidden; }
+.canvas .background-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; background-repeat: no-repeat; background-size: 100% 100%; }
+.canvas .control-layers { position: absolute; inset: 0; z-index: 1; }
+.canvas [data-control-root] { box-sizing: border-box; }
+.canvas [data-effect-host] { position: relative; width: max-content; height: max-content; }
+.canvas [data-overlay-below], .canvas [data-overlay-above] { position: absolute; inset: 0; pointer-events: none; }
+.canvas [data-overlay-below] { z-index: 0; }
+.canvas [data-overlay-above] { z-index: 2; }
+.canvas [data-behavior-content] { position: relative; z-index: 1; }
+.window-index, .error-page { margin: 3rem; color: #eee; }
+.window-index a { display: block; margin: .5rem 0; color: #60a5fa; }

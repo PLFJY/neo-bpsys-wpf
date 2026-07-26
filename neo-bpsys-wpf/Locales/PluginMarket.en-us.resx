@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">text/microsoft-resx</resheader>
+  <resheader name="version">2.0</resheader>
+  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
+  <data name="Plugins">
+    <value>Plugins</value>
+  </data>
+  <data name="PluginManagement">
+    <value>Plugin Management</value>
+  </data>
+  <data name="PluginMarket">
+    <value>Plugin Market</value>
+  </data>
+  <data name="RestartToApplyChanges">
+    <value>Restart to apply changes</value>
+  </data>
+  <data name="Uninstall">
+    <value>Uninstall</value>
+  </data>
+  <data name="CancelUninstall">
+    <value>Cancel Uninstall</value>
+  </data>
+  <data name="ClickToRestart">
+    <value>Click to restart</value>
+  </data>
+  <data name="ProjectUrl">
+    <value>Project URL:</value>
+  </data>
+  <data name="InstallPluginFromFile">
+    <value>Install plugin from file</value>
+  </data>
+  <data name="CannotFindManifest">
+    <value>Cannot find manifest.yml</value>
+  </data>
+  <data name="ManifestNotValid">
+    <value>Manifest is not valid</value>
+  </data>
+  <data name="PluginStatus">
+    <value>Plugin status: </value>
+  </data>
+  <data name="PluginNotRemovable">
+    <value>Not removable (built-in)</value>
+  </data>
+  <data name="PluginsThirdPartyWarning">
+    <value>Plugins are privided by third-partys. Their availability and integrity are not guaranteed</value>
+  </data>
+  <data name="PluginPackageFiles">
+    <value>Plugin packages</value>
+  </data>
+  <data name="PluginMarketAuthorLabel">
+    <value>Author: </value>
+  </data>
+  <data name="PluginMarketVersionLabel">
+    <value>Version: </value>
+  </data>
+  <data name="PluginMarketSettingsTitle">
+    <value>Plugin Market Settings</value>
+  </data>
+  <data name="PluginMarketMirrorLabel">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketSourceLabel">
+    <value>Plugin Source</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint">
+    <value>This setting syncs to app updates</value>
+  </data>
+  <data name="PluginMarketDownloadQueue">
+    <value>Download queue</value>
+  </data>
+  <data name="PluginMarketDownloadQueueTitle">
+    <value>Download queue</value>
+  </data>
+  <data name="PluginMarketDownloadQueueEmpty">
+    <value>No plugin downloads are queued right now</value>
+  </data>
+  <data name="PluginMarketCancelDownload">
+    <value>Cancel Download</value>
+  </data>
+<data name="PluginMarketVersionTooLow">
+    <value>Version Too Low</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible">
+    <value>Incompatible Version</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow">
+    <value>Host Version Too Low</value>
+  </data>
+  <data name="PluginMarketApiIncompatible">
+    <value>API Incompatible</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable">
+    <value>Update Available</value>
+  </data>
+  <data name="PluginMarketInstalledRestartRequired">
+    <value>Installed, restart to apply changes</value>
+  </data>
+  <data name="PluginMarketPendingUninstall">
+    <value>Pending Uninstall</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow">
+    <value>The current app version is too low to install this plugin.</value>
+  </data>
+  <data name="PluginMarketSha256Mismatch">
+    <value>Integrity check failed for {0}. Installation was blocked for your safety.</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress">
+    <value>Another plugin is already downloading.</value>
+  </data>
+  <data name="PluginDependencyInstallAvailableMessage">
+    <value>Plugins that can be installed or updated from the plugin market require user confirmation.</value>
+  </data>
+  <data name="PluginDependencyInstallButton">
+    <value>Install/update plugin</value>
+  </data>
+  <data name="PluginDependencyForceImportMessage">
+    <value>You can force import and remove these plugin controls. The original .bpui file will not be modified.</value>
+  </data>
+  <data name="PluginDependencyMarketOffline">
+    <value>market offline</value>
+  </data>
+  <data name="PluginDependencyMarketAvailable">
+    <value>market available</value>
+  </data>
+  <data name="PluginDependencyUpdateRequired">
+    <value>update required</value>
+  </data>
+  <data name="PluginDependencyNotFoundInMarket">
+    <value>not found in market</value>
+  </data>
+  <data name="PluginDependencyInstalledVersion">
+    <value>installed</value>
+  </data>
+  <data name="PluginDependencyMinVersion">
+    <value>min</value>
+  </data>
+  <data name="PluginDependencyAffectedControls">
+    <value>affected controls</value>
+  </data>
+  <data name="PluginDependencyInstallRestartNotice">
+    <value>Installing or updating plugins usually requires a restart, and the current import will not continue automatically.</value>
+  </data>
+  <data name="PluginDependencyInstallIncomplete">
+    <value>The plugin install queue ended with unfinished dependencies</value>
+  </data>
+  <data name="PluginDependencyInstallFailed">
+    <value>Plugin dependency install failed</value>
+  </data>
+  <data name="MarketInstall">
+    <value>Install</value>
+  </data>
+  <data name="MarketUpdate">
+    <value>Update</value>
+  </data>
+  <data name="MarketInstalled">
+    <value>Installed</value>
+  </data>
+</root>

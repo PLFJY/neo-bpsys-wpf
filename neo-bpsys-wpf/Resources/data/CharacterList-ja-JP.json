@@ -2,516 +2,609 @@
   "幸運児": {
     "Camp": "Sur",
     "ImageFileName": "幸运儿.png",
+    "BookOrderIndex": 520,
     "Abbrev": "knj",
     "FullSpell": "kouunji"
   },
   "医師": {
     "Camp": "Sur",
     "ImageFileName": "医生.png",
+    "BookOrderIndex": 10,
     "Abbrev": "sh",
     "FullSpell": "ishi"
   },
   "弁護士": {
     "Camp": "Sur",
     "ImageFileName": "律师.png",
+    "BookOrderIndex": 20,
     "Abbrev": "bngsh",
     "FullSpell": "bengoshi"
   },
   "泥棒": {
     "Camp": "Sur",
     "ImageFileName": "慈善家.png",
+    "BookOrderIndex": 30,
     "Abbrev": "drb",
     "FullSpell": "dorobou"
   },
   "庭師": {
     "Camp": "Sur",
     "ImageFileName": "园丁.png",
+    "BookOrderIndex": 40,
     "Abbrev": "nwsh",
     "FullSpell": "niwashi"
   },
   "マジシャン": {
     "Camp": "Sur",
     "ImageFileName": "魔术师.png",
+    "BookOrderIndex": 50,
     "Abbrev": "mjshn",
     "FullSpell": "majishan"
   },
   "冒険家": {
     "Camp": "Sur",
     "ImageFileName": "冒险家.png",
+    "BookOrderIndex": 60,
     "Abbrev": "bknk",
     "FullSpell": "boukenka"
   },
   "傭兵": {
     "Camp": "Sur",
     "ImageFileName": "佣兵.png",
+    "BookOrderIndex": 70,
     "Abbrev": "yh",
     "FullSpell": "youhei"
   },
   "空軍": {
     "Camp": "Sur",
     "ImageFileName": "空军.png",
+    "BookOrderIndex": 80,
     "Abbrev": "kgn",
     "FullSpell": "kuugun"
   },
   "機械技師": {
     "Camp": "Sur",
     "ImageFileName": "机械师.png",
+    "BookOrderIndex": 90,
     "Abbrev": "kkgsh",
     "FullSpell": "kikaigishi"
   },
   "オフェンス": {
     "Camp": "Sur",
     "ImageFileName": "前锋.png",
+    "BookOrderIndex": 100,
     "Abbrev": "fns",
     "FullSpell": "ofensu"
   },
   "心眼": {
     "Camp": "Sur",
     "ImageFileName": "盲女.png",
+    "BookOrderIndex": 110,
     "Abbrev": "shngn",
     "FullSpell": "shingan"
   },
   "祭司": {
     "Camp": "Sur",
     "ImageFileName": "祭司.png",
+    "BookOrderIndex": 120,
     "Abbrev": "ssh",
     "FullSpell": "saishi"
   },
   "調香師": {
     "Camp": "Sur",
     "ImageFileName": "调香师.png",
+    "BookOrderIndex": 130,
     "Abbrev": "chksh",
     "FullSpell": "choukoushi"
   },
   "カウボーイ": {
     "Camp": "Sur",
     "ImageFileName": "牛仔.png",
+    "BookOrderIndex": 140,
     "Abbrev": "kb",
     "FullSpell": "kaubooi"
   },
   "踊り子": {
     "Camp": "Sur",
     "ImageFileName": "舞女.png",
+    "BookOrderIndex": 150,
     "Abbrev": "drk",
     "FullSpell": "odoriko"
   },
   "占い師": {
     "Camp": "Sur",
     "ImageFileName": "先知.png",
+    "BookOrderIndex": 160,
     "Abbrev": "rnsh",
     "FullSpell": "uranaishi"
   },
   "納棺師": {
     "Camp": "Sur",
     "ImageFileName": "入殓师.png",
+    "BookOrderIndex": 170,
     "Abbrev": "nknsh",
     "FullSpell": "noukanshi"
   },
   "探鉱者": {
     "Camp": "Sur",
     "ImageFileName": "勘探员.png",
+    "BookOrderIndex": 180,
     "Abbrev": "tnksh",
     "FullSpell": "tankousha"
   },
   "呪術師": {
     "Camp": "Sur",
     "ImageFileName": "咒术师.png",
+    "BookOrderIndex": 190,
     "Abbrev": "jjtsh",
     "FullSpell": "jujutsushi"
   },
   "野人": {
     "Camp": "Sur",
     "ImageFileName": "野人.png",
+    "BookOrderIndex": 200,
     "Abbrev": "yjn",
     "FullSpell": "yajin"
   },
   "曲芸師": {
     "Camp": "Sur",
     "ImageFileName": "杂技演员.png",
+    "BookOrderIndex": 210,
     "Abbrev": "kkgsh",
     "FullSpell": "kyokugeishi"
   },
   "一等航海士": {
     "Camp": "Sur",
     "ImageFileName": "大副.png",
+    "BookOrderIndex": 220,
     "Abbrev": "ttkksh",
     "FullSpell": "ittoukoukaishi"
   },
   "バーメイド": {
     "Camp": "Sur",
     "ImageFileName": "调酒师.png",
+    "BookOrderIndex": 230,
     "Abbrev": "bmd",
     "FullSpell": "baameido"
   },
   "ポストマン": {
     "Camp": "Sur",
     "ImageFileName": "邮差.png",
+    "BookOrderIndex": 240,
     "Abbrev": "pstmn",
     "FullSpell": "posutoman"
   },
   "墓守": {
     "Camp": "Sur",
     "ImageFileName": "守墓人.png",
+    "BookOrderIndex": 250,
     "Abbrev": "hkmr",
     "FullSpell": "hakamori"
   },
   "「囚人」": {
     "Camp": "Sur",
     "ImageFileName": "囚徒.png",
+    "BookOrderIndex": 260,
     "Abbrev": "shjn",
     "FullSpell": "shuujin"
   },
   "昆虫学者": {
     "Camp": "Sur",
     "ImageFileName": "昆虫学者.png",
+    "BookOrderIndex": 270,
     "Abbrev": "knchgksh",
     "FullSpell": "konchuugakusha"
   },
   "画家": {
     "Camp": "Sur",
     "ImageFileName": "画家.png",
+    "BookOrderIndex": 280,
     "Abbrev": "gk",
     "FullSpell": "gaka"
   },
   "バッツマン": {
     "Camp": "Sur",
     "ImageFileName": "击球手.png",
+    "BookOrderIndex": 290,
     "Abbrev": "bttsmn",
     "FullSpell": "battsuman"
   },
   "玩具職人": {
     "Camp": "Sur",
     "ImageFileName": "玩具商.png",
+    "BookOrderIndex": 300,
     "Abbrev": "gngshknn",
     "FullSpell": "gangushokunin"
   },
   "患者": {
     "Camp": "Sur",
     "ImageFileName": "病患.png",
+    "BookOrderIndex": 310,
     "Abbrev": "knj",
     "FullSpell": "kanja"
   },
   "「心理学者」": {
     "Camp": "Sur",
     "ImageFileName": "心理学家.png",
+    "BookOrderIndex": 320,
     "Abbrev": "shrgksh",
     "FullSpell": "shinrigakusha"
   },
   "小説家": {
     "Camp": "Sur",
     "ImageFileName": "小说家.png",
+    "BookOrderIndex": 330,
     "Abbrev": "shstsk",
     "FullSpell": "shousetsuka"
   },
   "「少女」": {
     "Camp": "Sur",
     "ImageFileName": "小女孩.png",
+    "BookOrderIndex": 340,
     "Abbrev": "shj",
     "FullSpell": "shoujo"
   },
   "泣きピエロ": {
     "Camp": "Sur",
     "ImageFileName": "哭泣小丑.png",
+    "BookOrderIndex": 350,
     "Abbrev": "nkpr",
     "FullSpell": "nakipiero"
   },
   "教授": {
     "Camp": "Sur",
     "ImageFileName": "教授.png",
+    "BookOrderIndex": 360,
     "Abbrev": "kyj",
     "FullSpell": "kyouju"
   },
   "骨董商": {
     "Camp": "Sur",
     "ImageFileName": "古董商.png",
+    "BookOrderIndex": 370,
     "Abbrev": "kttsh",
     "FullSpell": "kottoushou"
   },
   "作曲家": {
     "Camp": "Sur",
     "ImageFileName": "作曲家.png",
+    "BookOrderIndex": 380,
     "Abbrev": "skkykk",
     "FullSpell": "sakkyokuka"
   },
   "記者": {
     "Camp": "Sur",
     "ImageFileName": "记者.png",
+    "BookOrderIndex": 390,
     "Abbrev": "ksh",
     "FullSpell": "kisha"
   },
   "航空エンジニア": {
     "Camp": "Sur",
     "ImageFileName": "飞行家.png",
+    "BookOrderIndex": 400,
     "Abbrev": "kknzn",
     "FullSpell": "koukuuenzinia"
   },
   "応援団": {
     "Camp": "Sur",
     "ImageFileName": "拉拉队员.png",
+    "BookOrderIndex": 410,
     "Abbrev": "ndn",
     "FullSpell": "ouendan"
   },
   "人形師": {
     "Camp": "Sur",
     "ImageFileName": "木偶师.png",
+    "BookOrderIndex": 420,
     "Abbrev": "nngysh",
     "FullSpell": "ningyoushi"
   },
   "火災調査員": {
     "Camp": "Sur",
     "ImageFileName": "火灾调查员.png",
+    "BookOrderIndex": 430,
     "Abbrev": "kshchsn",
     "FullSpell": "kasaichousain"
   },
   "「レディ・ファウロ」": {
     "Camp": "Sur",
     "ImageFileName": "法罗女士.png",
+    "BookOrderIndex": 440,
     "Abbrev": "rdfr",
     "FullSpell": "redifauro"
   },
   "「騎士」": {
     "Camp": "Sur",
     "ImageFileName": "骑士.png",
+    "BookOrderIndex": 450,
     "Abbrev": "ksh",
     "FullSpell": "kishi"
   },
   "気象学者": {
     "Camp": "Sur",
     "ImageFileName": "气象学家.png",
+    "BookOrderIndex": 460,
     "Abbrev": "kshgksh",
     "FullSpell": "kishougakusha"
   },
   "弓使い": {
     "Camp": "Sur",
     "ImageFileName": "弓箭手.png",
+    "BookOrderIndex": 470,
     "Abbrev": "ymtsh",
     "FullSpell": "yumitsukai"
   },
   "「脱出マスター」": {
     "Camp": "Sur",
     "ImageFileName": "逃脱大师.png",
+    "BookOrderIndex": 480,
     "Abbrev": "dsstmst",
     "FullSpell": "dasshutsumasutaa"
   },
   "幻灯師": {
     "Camp": "Sur",
     "ImageFileName": "幻灯师.png",
+    "BookOrderIndex": 490,
     "Abbrev": "gntsh",
     "FullSpell": "gentoushi"
   },
   "闘牛士": {
     "Camp": "Sur",
     "ImageFileName": "斗牛士.png",
+    "BookOrderIndex": 500,
     "Abbrev": "tgnsh",
     "FullSpell": "tougyuushi"
+  },
+  "マイムアーティスト": {
+    "Camp": "Sur",
+    "ImageFileName": "默剧艺人.png",
+    "BookOrderIndex": 510,
+    "Abbrev": "mimaatst",
+    "FullSpell": "maimuaatisuto"
   },
   "復讐者": {
     "Camp": "Hun",
     "ImageFileName": "厂长.png",
+    "BookOrderIndex": 10,
     "Abbrev": "fkshsh",
     "FullSpell": "fukushuusha"
   },
   "道化師": {
     "Camp": "Hun",
     "ImageFileName": "小丑.png",
+    "BookOrderIndex": 20,
     "Abbrev": "dksh",
     "FullSpell": "doukeshi"
   },
   "断罪狩人": {
     "Camp": "Hun",
     "ImageFileName": "鹿头.png",
+    "BookOrderIndex": 30,
     "Abbrev": "dnzkryd",
     "FullSpell": "danzaikaryuudo"
   },
   "リッパー": {
     "Camp": "Hun",
     "ImageFileName": "杰克.png",
+    "BookOrderIndex": 40,
     "Abbrev": "rpp",
     "FullSpell": "rippaa"
   },
   "結魂者": {
     "Camp": "Hun",
     "ImageFileName": "蜘蛛.png",
+    "BookOrderIndex": 50,
     "Abbrev": "kknsh",
     "FullSpell": "kekkonsha"
   },
   "芸者": {
     "Camp": "Hun",
     "ImageFileName": "红蝶.png",
+    "BookOrderIndex": 60,
     "Abbrev": "gsh",
     "FullSpell": "geisha"
   },
   "黄衣の王": {
     "Camp": "Hun",
     "ImageFileName": "黄衣之主.png",
+    "BookOrderIndex": 70,
     "Abbrev": "kn",
     "FullSpell": "kouinou"
   },
   "白黒無常": {
     "Camp": "Hun",
     "ImageFileName": "宿伞之魂.png",
+    "BookOrderIndex": 80,
     "Abbrev": "shrkrmj",
     "FullSpell": "shirokuromujou"
   },
   "写真家": {
     "Camp": "Hun",
     "ImageFileName": "摄影师.png",
+    "BookOrderIndex": 90,
     "Abbrev": "shshnk",
     "FullSpell": "shashinka"
   },
   "狂眼": {
     "Camp": "Hun",
     "ImageFileName": "疯眼.png",
+    "BookOrderIndex": 100,
     "Abbrev": "kygn",
     "FullSpell": "kyougan"
   },
   "梦の魔女": {
     "Camp": "Hun",
     "ImageFileName": "梦之女巫.png",
+    "BookOrderIndex": 110,
     "Abbrev": "ymmj",
     "FullSpell": "yumemajo"
   },
   "泣き虫": {
     "Camp": "Hun",
     "ImageFileName": "爱哭鬼.png",
+    "BookOrderIndex": 120,
     "Abbrev": "nkmsh",
     "FullSpell": "nakimushi"
   },
   "魔トカゲ": {
     "Camp": "Hun",
     "ImageFileName": "孽蜥.png",
+    "BookOrderIndex": 130,
     "Abbrev": "mtkgh",
     "FullSpell": "matokage"
   },
   "血の女王": {
     "Camp": "Hun",
     "ImageFileName": "红夫人.png",
+    "BookOrderIndex": 140,
     "Abbrev": "chnj",
     "FullSpell": "chinojoou"
   },
   "ガードNo.26": {
     "Camp": "Hun",
     "ImageFileName": "26号守卫.png",
+    "BookOrderIndex": 150,
     "Abbrev": "gdnbnjrk",
     "FullSpell": "gaadonanbaanijuuroku"
   },
   "「使徒」": {
     "Camp": "Hun",
     "ImageFileName": "使徒.png",
+    "BookOrderIndex": 160,
     "Abbrev": "sht",
     "FullSpell": "shito"
   },
   "ヴァイオリニスト": {
     "Camp": "Hun",
     "ImageFileName": "小提琴家.png",
+    "BookOrderIndex": 170,
     "Abbrev": "vrst",
     "FullSpell": "vaiorisuto"
   },
   "彫刻師": {
     "Camp": "Hun",
     "ImageFileName": "雕刻家.png",
+    "BookOrderIndex": 180,
     "Abbrev": "chkksh",
     "FullSpell": "choukokushi"
   },
   "「アンデッド」": {
     "Camp": "Hun",
     "ImageFileName": "博士.png",
+    "BookOrderIndex": 190,
     "Abbrev": "ndd",
     "FullSpell": "andeddo"
   },
   "破輪": {
     "Camp": "Hun",
     "ImageFileName": "破轮.png",
+    "BookOrderIndex": 200,
     "Abbrev": "hrn",
     "FullSpell": "harin"
   },
   "漁師": {
     "Camp": "Hun",
     "ImageFileName": "渔女.png",
+    "BookOrderIndex": 210,
     "Abbrev": "rysh",
     "FullSpell": "ryoushi"
   },
   "蝋人形師": {
     "Camp": "Hun",
     "ImageFileName": "蜡像师.png",
+    "BookOrderIndex": 220,
     "Abbrev": "rnngysh",
     "FullSpell": "rouningyoushi"
   },
   "「悪夢」": {
     "Camp": "Hun",
     "ImageFileName": "噩梦.png",
+    "BookOrderIndex": 230,
     "Abbrev": "km",
     "FullSpell": "akumu"
   },
   "書記官": {
     "Camp": "Hun",
     "ImageFileName": "记录员.png",
+    "BookOrderIndex": 240,
     "Abbrev": "shkkn",
     "FullSpell": "shokikan"
   },
   "隠者": {
     "Camp": "Hun",
     "ImageFileName": "隐士.png",
+    "BookOrderIndex": 250,
     "Abbrev": "nj",
     "FullSpell": "inja"
   },
   "夜の番人": {
     "Camp": "Hun",
     "ImageFileName": "守夜人.png",
+    "BookOrderIndex": 260,
     "Abbrev": "yrnbnn",
     "FullSpell": "yorunobannin"
   },
   "オペラ歌手": {
     "Camp": "Hun",
     "ImageFileName": "歌剧演员.png",
+    "BookOrderIndex": 270,
     "Abbrev": "prksh",
     "FullSpell": "operakashu"
   },
   "「フールズ・ゴールド」": {
     "Camp": "Hun",
     "ImageFileName": "愚人金.png",
+    "BookOrderIndex": 280,
     "Abbrev": "frzgld",
     "FullSpell": "fuuruzugoorudo"
   },
   "時空の影": {
     "Camp": "Hun",
     "ImageFileName": "时空之影.png",
+    "BookOrderIndex": 290,
     "Abbrev": "jknkg",
     "FullSpell": "jikuunokage"
   },
   "「足萎えの羊」": {
     "Camp": "Hun",
     "ImageFileName": "跛脚羊.png",
+    "BookOrderIndex": 300,
     "Abbrev": "shnhtsj",
     "FullSpell": "ashinaenohitsuji"
   },
   "「フラバルー」": {
     "Camp": "Hun",
     "ImageFileName": "喧嚣.png",
+    "BookOrderIndex": 310,
     "Abbrev": "frbr",
     "FullSpell": "furabaruu"
   },
   "雑貨商": {
     "Camp": "Hun",
     "ImageFileName": "杂货商.png",
+    "BookOrderIndex": 320,
     "Abbrev": "zkksh",
     "FullSpell": "zakkashou"
   },
   "「ビリヤードプレイヤー」": {
     "Camp": "Hun",
     "ImageFileName": "台球手.png",
+    "BookOrderIndex": 330,
     "Abbrev": "brydpr",
     "FullSpell": "biriyaadopureiyaa"
   },
   "「女王蜂」": {
     "Camp": "Hun",
     "ImageFileName": "女王蜂.png",
+    "BookOrderIndex": 340,
     "Abbrev": "jbch",
     "FullSpell": "jooubachi"
   },
   "「歯医者」": {
     "Camp": "Hun",
     "ImageFileName": "牙医.png",
+    "BookOrderIndex": 350,
     "Abbrev": "his",
     "FullSpell": "haisia"
   }

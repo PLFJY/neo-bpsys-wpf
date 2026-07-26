@@ -1,120 +1,276 @@
-﻿using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Tutorial;
 using System.Collections;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Controls;
 
+/// <summary>
+/// 角色选择器控件，提供下拉列表选择角色并支持搜索功能。
+/// </summary>
 public class CharacterSelector : Control
 {
+    /// <summary>
+    /// 获取或设置一个值，指示是否启用简单模式。
+    /// </summary>
     public bool IsSimpleModeEnabled
     {
         get => (bool)GetValue(IsSimpleModeEnabledProperty);
         set => SetValue(IsSimpleModeEnabledProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsSimpleModeEnabled.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsSimpleModeEnabled"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsSimpleModeEnabledProperty =
         DependencyProperty.Register(nameof(IsSimpleModeEnabled), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
 
+    /// <summary>
+    /// 获取或设置在确认选择时执行的命令。
+    /// </summary>
     public ICommand Command
     {
         get => (ICommand)GetValue(CommandProperty);
         set => SetValue(CommandProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for Command.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="Command"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty CommandProperty =
         DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(CharacterSelector), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置角色图片源。
+    /// </summary>
     public ImageSource ImageSource
     {
         get => (ImageSource)GetValue(ImageSourceProperty);
         set => SetValue(ImageSourceProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for ImageSource.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="ImageSource"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ImageSourceProperty =
         DependencyProperty.Register(nameof(ImageSource), typeof(ImageSource), typeof(CharacterSelector), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置显示的文本。
+    /// </summary>
     public string Text
     {
         get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for Text.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="Text"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty TextProperty =
         DependencyProperty.Register(nameof(Text), typeof(string), typeof(CharacterSelector), new PropertyMetadata(string.Empty));
 
 
+    /// <summary>
+    /// 获取或设置下拉列表的项源。
+    /// </summary>
     public IEnumerable ItemsSource
     {
         get => (IEnumerable)GetValue(ItemsSourceProperty);
         set => SetValue(ItemsSourceProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for ItemsSource.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="ItemsSource"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty ItemsSourceProperty =
         DependencyProperty.Register(nameof(ItemsSource), typeof(IEnumerable), typeof(CharacterSelector), new PropertyMetadata(null));
 
+    /// <summary>
+    /// 获取或设置一个值，指示下拉列表是否已打开。
+    /// </summary>
     public bool IsDropDownOpen
     {
         get => (bool)GetValue(IsDropDownOpenProperty);
         set => SetValue(IsDropDownOpenProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsDropDownOpen.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsDropDownOpen"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsDropDownOpenProperty =
         DependencyProperty.Register(nameof(IsDropDownOpen), typeof(bool), typeof(CharacterSelector), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+    /// <summary>
+    /// 获取或设置当前选中项的索引。
+    /// </summary>
     public int SelectedIndex
     {
         get => (int)GetValue(SelectedIndexProperty);
         set => SetValue(SelectedIndexProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for PickedMapIndex.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="SelectedIndex"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty SelectedIndexProperty =
-        DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedIndexChanged));
 
+    /// <summary>
+    /// 当 <see cref="SelectedIndex"/> 变为有效值（&gt;= 0）时清除搜索错误状态，
+    /// 覆盖下拉点选、外部绑定同步等成功选中场景。
+    /// </summary>
+    private static void OnSelectedIndexChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is CharacterSelector selector && (int)e.NewValue >= 0)
+        {
+            selector.IsSearchError = false;
+        }
+    }
+
+    /// <summary>
+    /// 获取或设置当前选中的项。
+    /// </summary>
     public object SelectedItem
     {
         get => (object)GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for SelectedItem.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="SelectedItem"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty SelectedItemProperty =
-        DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedItemChanged));
 
+    /// <summary>
+    /// 当 <see cref="SelectedItem"/> 变化时，将 <see cref="Text"/> 同步为选中项的 Key（角色名）。
+    /// 这修复了 ComboBox 在 IsEditable 模式下通过 SelectedValue 间接设置 SelectedItem 时，
+    /// TextBox 退化为显示 SelectedItem.ToString()（即 "[守墓人, neo_bpsys_wpf.Core.Models.Character]"）的问题。
+    /// 使用 <see cref="Dispatcher.BeginInvoke"/> 延迟到 ComboBox 内部文本更新之后执行，
+    /// 确保覆盖 ComboBox 在初始化时序中可能用 ToString() 设置的 TextBox 文本。
+    /// </summary>
+    private static void OnSelectedItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not CharacterSelector selector) return;
+        selector.ScheduleTextSync();
+    }
+
+    /// <summary>
+    /// 获取或设置当前选中的值。
+    /// </summary>
     public object SelectedValue
     {
         get => (object)GetValue(SelectedValueProperty);
         set => SetValue(SelectedValueProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for SelectedValue.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="SelectedValue"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty SelectedValueProperty =
         DependencyProperty.Register(nameof(SelectedValue), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+    /// <summary>
+    /// 获取或设置一个值，指示控件是否应高亮显示。
+    /// </summary>
     public bool IsHighlighted
     {
         get => (bool)GetValue(IsHighlightedProperty);
         set => SetValue(IsHighlightedProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for IsHighlighted.  This enables animation, styling, binding, etc...
+    /// <summary>
+    /// <see cref="IsHighlighted"/> 依赖属性的标识符。
+    /// </summary>
     public static readonly DependencyProperty IsHighlightedProperty =
         DependencyProperty.Register(nameof(IsHighlighted), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
 
+    /// <summary>
+    /// 在下拉列表中应被禁用（灰显不可选）的角色名称集合
+    /// </summary>
+    public ISet<string> DisabledKeys
+    {
+        get => (ISet<string>)GetValue(DisabledKeysProperty);
+        set => SetValue(DisabledKeysProperty, value);
+    }
+
+    /// <summary>
+    /// <see cref="DisabledKeys"/> 依赖属性的标识符。
+    /// </summary>
+    public static readonly DependencyProperty DisabledKeysProperty =
+        DependencyProperty.Register(nameof(DisabledKeys), typeof(ISet<string>), typeof(CharacterSelector),
+            new PropertyMetadata(null));
+
+    /// <summary>
+    /// 获取或设置一个值，指示当前搜索是否匹配失败（无匹配角色或匹配角色已被禁选）。
+    /// 为 true 时控件会显示黄色错误边框与提示文字；成功选中角色后自动清除。
+    /// </summary>
+    public bool IsSearchError
+    {
+        get => (bool)GetValue(IsSearchErrorProperty);
+        set => SetValue(IsSearchErrorProperty, value);
+    }
+
+    /// <summary>
+    /// <see cref="IsSearchError"/> 依赖属性的标识符。
+    /// </summary>
+    public static readonly DependencyProperty IsSearchErrorProperty =
+        DependencyProperty.Register(nameof(IsSearchError), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
+
+    /// <summary>
+    /// 初始化角色选择器控件。
+    /// </summary>
     public CharacterSelector()
     {
         // 注册TextBox的OnTextBoxTextChanged事件处理程序，借助事件冒泡实现搜索
         AddHandler(TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnTextBoxTextChanged), true);
+        AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnTemplateButtonClick), true);
+    }
+
+    /// <summary>
+    /// 模板应用后重新同步 <see cref="Text"/>。
+    /// 页面第一次加载时，ComboBox 模板可能晚于 <see cref="SelectedItem"/> 的设置，
+    /// 模板应用后 ComboBox 会用 <c>SelectedItem.ToString()</c> 覆盖 TextBox，
+    /// 导致显示 <c>[守墓人, neo_bpsys_wpf.Core.Models.Character]</c>。
+    /// 延迟到 DataBind 优先级之后重新同步，确保显示角色名。
+    /// </summary>
+    public override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+        ScheduleTextSync();
+    }
+
+    /// <summary>
+    /// 延迟同步 <see cref="Text"/> 为 <see cref="SelectedItem"/> 的 Key（角色名），
+    /// 确保在 ComboBox 内部文本更新之后执行，覆盖 ToString() 退化。
+    /// </summary>
+    private void ScheduleTextSync()
+    {
+        Dispatcher.BeginInvoke(SyncTextFromSelectedItem, DispatcherPriority.DataBind);
+    }
+
+    /// <summary>
+    /// 将 <see cref="Text"/> 同步为当前 <see cref="SelectedItem"/> 的 Key（角色名）。
+    /// 与按空格搜索时手动设置 <c>Text = Key</c> 的既有逻辑保持一致。
+    /// </summary>
+    private void SyncTextFromSelectedItem()
+    {
+        switch (SelectedItem)
+        {
+            case KeyValuePair<string, Character> kvp:
+                Text = kvp.Key;
+                break;
+            case null:
+                Text = string.Empty;
+                break;
+        }
     }
 
     private void OnTextBoxTextChanged(object sender, TextChangedEventArgs e)
@@ -127,19 +283,33 @@ public class CharacterSelector : Control
             {
                 var currentText = Text[..^1];
                 var foundIndex = FindIndex(currentText);
-                
+
                 SelectedIndex = foundIndex;
                 if (foundIndex == -1)
+                {
+                    IsSearchError = true;
                     return;
+                }
+                IsSearchError = false;
                 if (ItemsSource is SortedDictionary<string, Character> itemSource)
                     Text = itemSource.ElementAt(foundIndex).Key;
+                TutorialSignalPublisher.Publish(TutorialSignalIds.CharacterSelectorSearchCommitted, CreateSignalPayload());
             }
+        }
+    }
+
+    private void OnTemplateButtonClick(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is Button)
+        {
+            TutorialSignalPublisher.Publish(TutorialSignalIds.CharacterSelectorSelectionConfirmed, CreateSignalPayload());
         }
     }
 
 
     /// <summary>
-    /// Find the index of ths option waiting to be found
+    /// 查找待匹配选项的索引。
+    /// 跳过 <see cref="DisabledKeys"/> 中已禁用的角色，确保搜索（简称/全称）不能绕过排斥机制。
     /// </summary>
     /// <param name="inputText"></param>
     /// <returns></returns>
@@ -149,6 +319,7 @@ public class CharacterSelector : Control
         if (ItemsSource is not SortedDictionary<string, Character> itemSource)
             return -1;
 
+        var disabled = DisabledKeys;
         var index = 0;
 
         foreach (var item in itemSource)
@@ -159,7 +330,11 @@ public class CharacterSelector : Control
             // Check whether the full prefix matches or the short prefix matches
             if (fullSpell.StartsWith(inputLower) || abbrev.StartsWith(inputLower) || fullName.StartsWith(inputText))
             {
-                return index;
+                // 跳过已禁用（被排斥）的角色，继续查找下一个未禁用的匹配项
+                if (disabled is null || !disabled.Contains(item.Key))
+                {
+                    return index;
+                }
             }
             index++;
         }
@@ -188,11 +363,23 @@ public class CharacterSelector : Control
         {
             e.Handled = true;
             if (Command != null && Command.CanExecute(null))
+            {
                 Command.Execute(null);
+                TutorialSignalPublisher.Publish(TutorialSignalIds.CharacterSelectorSelectionConfirmed, CreateSignalPayload());
+            }
 
             IsDropDownOpen = false;
             //change Focus on Tab click
             MoveFocus();
         }
     }
+
+    private object CreateSignalPayload() => new
+    {
+        Name,
+        Text,
+        SelectedIndex,
+        SelectedValue,
+        SelectedItem
+    };
 }

@@ -16,6 +16,11 @@ public enum PluginDownloadQueueStatus
     QueueDownloading,
 
     /// <summary>
+    /// 插件包已下载完成，正在解压。
+    /// </summary>
+    QueueExtracting,
+
+    /// <summary>
     /// 插件包已下载并解压完成，等待安装。
     /// </summary>
     QueueDownloaded,

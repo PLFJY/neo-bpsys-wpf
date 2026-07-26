@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -32,6 +33,9 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private LanguageKey _selectedLanguage = LanguageKey.System;
 
+    /// <summary>
+    /// 获取或设置当前选择的语言。更改后立即生效并保存。
+    /// </summary>
     public LanguageKey SelectedLanguage
     {
         get => _selectedLanguage;
@@ -42,9 +46,14 @@ public partial class SettingPageViewModel : ViewModelBase
             LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
             Application.Current.Resources["CurrentLanguage"] =
                 XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
+            ProductTourFontResourceHelper.Apply(_settingsHostService.Settings.CultureInfo);
+            SyncMirrorFromSettings();
         });
     }
 
+    /// <summary>
+    /// 可选语言列表字典，键为本地化 Key，值为对应语言。
+    /// </summary>
     public Dictionary<string, LanguageKey> LanguageList { get; } = new()
     {
         { "FollowSystem", LanguageKey.System },

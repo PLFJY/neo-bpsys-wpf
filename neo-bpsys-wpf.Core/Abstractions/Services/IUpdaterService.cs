@@ -43,7 +43,7 @@ public interface IUpdaterService
     /// 检查更新
     /// </summary>
     /// <param name="mirror">ghproxy镜像链接</param>
-    /// <returns></returns>
+    /// <returns>异步任务</returns>
     Task DownloadUpdate(string mirror = "");
     /// <summary>
     /// 取消当前更新下载。

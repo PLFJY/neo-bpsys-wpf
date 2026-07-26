@@ -12,12 +12,12 @@ using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.IO.Compression;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
+/// <summary>
+/// 插件页面视图模型，管理插件列表的显示、启用/禁用、卸载以及从文件安装插件。
+/// </summary>
 public partial class PluginPageViewModel : ViewModelBase
 {
     private readonly IPluginService _pluginService;
@@ -26,8 +26,13 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly ISettingsHostService _settingsHostService;
     private readonly IPluginMarketService _pluginMarketService;
     private readonly IInfoBarService _infoBarService;
+    private readonly IPluginInstallService _pluginInstallService;
+    private readonly IGlobalRestartService _globalRestartService;
 
 #pragma warning disable CS8618 
+    /// <summary>
+    /// 用于设计时预览的无参构造函数。
+    /// </summary>
     public PluginPageViewModel()
 #pragma warning restore CS8618 
     {
@@ -35,9 +40,22 @@ public partial class PluginPageViewModel : ViewModelBase
         MarketPluginsCollection = [];
     }
 
+    /// <summary>
+    /// 初始化插件页面视图模型。
+    /// </summary>
+    /// <param name="pluginService">插件服务</param>
+    /// <param name="filePickerService">文件选择服务</param>
+    /// <param name="logger">日志记录器</param>
+    /// <param name="settingsHostService">设置宿主服务</param>
+    /// <param name="pluginMarketService">插件市场服务</param>
+    /// <param name="infoBarService">信息栏服务</param>
+    /// <param name="pluginInstallService">插件安装服务</param>
+    /// <param name="globalRestartService">全局重启状态服务</param>
     public PluginPageViewModel(IPluginService pluginService, IFilePickerService filePickerService,
         ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService,
-        IInfoBarService infoBarService)
+        IInfoBarService infoBarService,
+        IPluginInstallService pluginInstallService,
+        IGlobalRestartService globalRestartService)
     {
         _pluginService = pluginService;
         _filePickerService = filePickerService;
@@ -45,14 +63,18 @@ public partial class PluginPageViewModel : ViewModelBase
         _settingsHostService = settingsHostService;
         _pluginMarketService = pluginMarketService;
         _infoBarService = infoBarService;
+        _pluginInstallService = pluginInstallService;
+        _globalRestartService = globalRestartService;
         PluginsCollection = new ObservableCollection<PluginInfo>(IPluginService.LoadedPlugins);
         MarketPluginsCollection = [];
         InitializePluginMarket();
     }
 
-    [ObservableProperty] private bool _isRestartNeeded;
-
-    [ObservableProperty] private ObservableCollection<PluginInfo> _pluginsCollection;
+    /// <summary>
+    /// 获取或设置已加载插件列表。
+    /// </summary>
+    [ObservableProperty]
+    public partial ObservableCollection<PluginInfo> PluginsCollection { get; set; }
 
     [RelayCommand]
     private void ToggleEnable(PluginInfo plugin)
@@ -60,7 +82,7 @@ public partial class PluginPageViewModel : ViewModelBase
         try
         {
             plugin.IsEnabled = !plugin.IsEnabled;
-            IsRestartNeeded = true;
+            _globalRestartService.IsRestartRequired = true;
         }
         catch (Exception ex)
         {
@@ -74,7 +96,10 @@ public partial class PluginPageViewModel : ViewModelBase
         try
         {
             plugin.IsUninstalling = !plugin.IsUninstalling;
-            IsRestartNeeded = plugin.IsRestartRequired;
+            if (plugin.IsRestartRequired)
+            {
+                _globalRestartService.IsRestartRequired = true;
+            }
         }
         catch (Exception ex)
         {
@@ -84,14 +109,6 @@ public partial class PluginPageViewModel : ViewModelBase
 
     private static bool CanUninstall(PluginInfo plugin) => !plugin.IsBuiltIn;
 
-    [RelayCommand]
-    private static async Task RestartAppAsync()
-    {
-        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("SomeSettingsRequireRestartingTheApplication"),
-            I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
-            AppBase.Current.Restart();
-    }
-
     /// <summary>
     /// 临时文件路径
     /// </summary>
@@ -99,10 +116,10 @@ public partial class PluginPageViewModel : ViewModelBase
 
 
     [RelayCommand]
-    private void InstallPluginFromFile()
+    private async Task InstallPluginFromFileAsync()
     {
         //准备插件压缩包路径
-        var pluginFile = _filePickerService.PickZipFile();
+        var pluginFile = _filePickerService.PickPluginPackageFile();
         if (pluginFile == null) return;
 
         var tempFolderPath = Path.Combine(TempPath, Path.GetFileNameWithoutExtension(pluginFile));
@@ -113,9 +130,8 @@ public partial class PluginPageViewModel : ViewModelBase
 
         try
         {
-            //解压压缩包
-            ZipFile.ExtractToDirectory(pluginFile, tempFolderPath);
-            InstallPluginFromExtractedDirectory(tempFolderPath);
+            var result = await _pluginInstallService.InstallFromArchiveAsync(pluginFile, tempFolderPath);
+            UpdateLocalPluginState(result);
         }
         catch (Exception e)
         {

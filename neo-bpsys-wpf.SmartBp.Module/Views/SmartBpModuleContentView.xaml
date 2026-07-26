@@ -1,0 +1,749 @@
+<UserControl
+    x:Class="neo_bpsys_wpf.Views.Pages.SmartBpModuleContentView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rec="clr-namespace:neo_bpsys_wpf.SmartBp.Module.Models.Recognition"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    d:DataContext="{d:DesignInstance Type=vm:SmartBpModuleContentViewModel,
+                                     IsDesignTimeCreatable=True}"
+    lex:LocalizeDictionary.Provider="{x:Static helpers:SmartBpLocalizationProvider.Instance}"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf.SmartBp.Module"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.SmartBp"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:BooleanToHiddenVisibilityConverter x:Key="BooleanToHiddenVisibilityConverter" />
+        <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <cv:LocalizationKeyToTextConverter x:Key="LocalizationKeyToTextConverter" />
+        <Style
+            x:Key="SmartBpDebugOutputTextBox"
+            BasedOn="{StaticResource {x:Type TextBox}}"
+            TargetType="TextBox">
+            <Setter Property="Height" Value="200" />
+            <Setter Property="Margin" Value="0,6,0,0" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+            <EventSetter Event="PreviewMouseWheel" Handler="DebugTextBox_OnPreviewMouseWheel" />
+        </Style>
+    </UserControl.Resources>
+    <StackPanel>
+        <TextBlock
+            Margin="0,0,0,10"
+            FontSize="28"
+            FontWeight="SemiBold"
+            Text="{lex:Loc SmartBp}" />
+
+        <Border
+            x:Name="SmartBpPreviewPanel"
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpWindowCaptureSettings}" />
+                <WrapPanel Margin="0,10,0,0">
+                    <ComboBox
+                        Width="250"
+                        Margin="0,0,8,8"
+                        ItemsSource="{Binding CaptureMethodList}"
+                        SelectedValue="{Binding SelectedCaptureMethod}"
+                        SelectedValuePath="Method">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayNameKey, Converter={StaticResource LocalizationKeyToTextConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ComboBox
+                        x:Name="SmartBpWindowSelector"
+                        MinWidth="220"
+                        Margin="0,0,8,8"
+                        ItemsSource="{Binding ActiveWindows}"
+                        SelectedValue="{Binding SelectedWindow}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RefreshActiveWindowsCommand}"
+                        Content="{lex:Loc Refresh}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding OpenWindowPickerCommand}"
+                        Content="{lex:Loc SmartBpOpenWindowPickerOnlyWgc}"
+                        Icon="{ui:SymbolIcon Symbol=CursorClick24}" />
+                    <ui:Button
+                        x:Name="SmartBpStartCaptureButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding StartCaptureCommand}"
+                        Content="{lex:Loc Start}"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
+                    <ui:Button
+                        x:Name="SmartBpStopCaptureButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding StopCaptureCommand}"
+                        Content="{lex:Loc Stop}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button
+                        x:Name="SmartBpPreviewButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding OpenPreviewWindowCommand}"
+                        Content="{lex:Loc Preview}"
+                        Icon="{ui:SymbolIcon Symbol=Eye24}" />
+                </WrapPanel>
+                <TextBlock
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpCaptureStopDisabledWhileRecognizing}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding IsPreviewLoopRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Border
+            x:Name="SmartBpStartFullBpFlowBorder"
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpAutomaticRecognitionAndApply}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpEnableAutoGuidanceSync}"
+                    IsChecked="{Binding EnableAutoGuidanceSync}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpEnableAutoGuidancePageNavigation}"
+                    IsChecked="{Binding EnableAutoGuidancePageNavigation}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpProgressAutoCorrection}"
+                    IsChecked="{Binding EnableSmartBpProgressAutoCorrection}"
+                    ToolTip="{lex:Loc SmartBpProgressAutoCorrectionDescription}" />
+                <ui:ToggleSwitch
+                    Margin="0,8,0,0"
+                    Content="{lex:Loc SmartBpEnableAutoApply}"
+                    IsChecked="{Binding EnableAutoApplyRecognition}" />
+                <ComboBox
+                    Margin="0,8,0,0"
+                    SelectedValue="{Binding RecognitionApplyMode}"
+                    SelectedValuePath="Tag">
+                    <ComboBoxItem Content="{lex:Loc SmartBpGuidedWorkflowRecommended}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.GuidedWorkflow}" />
+                    <ComboBoxItem Content="{lex:Loc SmartBpFreeFullSyncExperimental}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}" />
+                </ComboBox>
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                    Text="{lex:Loc SmartBpFreeFullSyncWarning}"
+                    TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RecognitionApplyMode}" Value="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:ToggleSwitch
+                        Margin="0,0,12,8"
+                        Content="{lex:Loc SmartBpEnableDebugLog}"
+                        IsChecked="{Binding IsDebugLogEnabled}" />
+                    <ui:Button
+                        x:Name="SmartBpStartFullBpFlowButton"
+                        Margin="0,0,8,0"
+                        Command="{Binding StartPreviewLoopCommand}"
+                        Content="{lex:Loc SmartBpStartAutomaticRecognition}"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
+                    <ui:Button
+                        Margin="0,0,8,0"
+                        Command="{Binding StopPreviewLoopCommand}"
+                        Content="{lex:Loc SmartBpStopAutomaticRecognition}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    <ui:Button
+                        Command="{Binding ForceSyncGameStateCommand}"
+                        Content="{lex:Loc SmartBpForceSyncGameState}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
+                        ToolTip="{lex:Loc SmartBpForceSyncGameStateDescription}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding LastSmartBpProgressDiagnosis}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Text="{lex:Loc SmartBpRecognizing}"
+                    Visibility="{Binding IsRecognizing, Converter={StaticResource BooleanToHiddenVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Border
+            x:Name="SmartBpOcrModelManagementCard"
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsOcrProviderCardVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpOcrProviderSection}" />
+                <ComboBox
+                    Margin="0,10,0,0"
+                    DisplayMemberPath="DisplayName"
+                    ItemsSource="{Binding OcrProviders}"
+                    SelectedItem="{Binding SelectedOcrProvider}" />
+                <StackPanel Margin="0,10,0,0" Visibility="{Binding IsPaddleRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding PaddleOcrStatus}" />
+                    <ui:ProgressRing
+                        Width="20"
+                        Height="20"
+                        Margin="0,8,0,0"
+                        HorizontalAlignment="Left"
+                        IsIndeterminate="True"
+                        Visibility="{Binding IsOcrModelLoading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding CurrentOcrModelDisplayName}" />
+                    <ComboBox
+                        Margin="0,6,0,6"
+                        DisplayMemberPath="DisplayName"
+                        ItemsSource="{Binding OcrModelList}"
+                        SelectedItem="{Binding SelectedOcrModel}" />
+                    <WrapPanel>
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DownloadSelectedOcrModelCommand}"
+                            Content="{lex:Loc Download}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DeleteSelectedOcrModelCommand}"
+                            Content="{lex:Loc Delete}"
+                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding SwitchSelectedOcrModelCommand}"
+                            Content="{lex:Loc Switch}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSwap24}" />
+                    </WrapPanel>
+                    <ProgressBar Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding ModelDownloadProgress}" />
+                </StackPanel>
+                <StackPanel Margin="0,10,0,0" Visibility="{Binding IsRapidRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpRapidOcrModelManagement}" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Text="{Binding RapidOcrStatus}"
+                        TextWrapping="Wrap" />
+                    <ComboBox
+                        Margin="0,6,0,6"
+                        DisplayMemberPath="DisplayName"
+                        ItemsSource="{Binding RapidOcrModelProfiles}"
+                        SelectedItem="{Binding SelectedRapidOcrModelProfile}" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Text="{Binding RapidOcrModelDirectory}"
+                        TextWrapping="Wrap" />
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                        <Run Text="{lex:Loc SmartBpRapidOcrInstalledVersion}" />
+                        <Run Text="{Binding RapidOcrInstalledVersion}" />
+                        <Run Text="  " />
+                        <Run Text="{lex:Loc SmartBpRapidOcrLatestVersion}" />
+                        <Run Text="{Binding RapidOcrLatestVersion}" />
+                    </TextBlock>
+                    <WrapPanel Margin="0,8,0,0">
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DownloadRapidOcrModelCommand}"
+                            Content="{Binding RapidOcrInstallActionText}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CancelRapidOcrDownloadCommand}"
+                            Content="{lex:Loc SmartBpCancelDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DeleteRapidOcrModelCommand}"
+                            Content="{lex:Loc Delete}"
+                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CheckRapidOcrModelUpdateCommand}"
+                            Content="{lex:Loc SmartBpRapidOcrCheckUpdate}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding OpenRapidOcrModelFolderCommand}"
+                            Content="{lex:Loc SmartBpOcrOpenTessdataFolder}"
+                            Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                    </WrapPanel>
+                    <StackPanel Visibility="{Binding HasRapidOcrDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ProgressBar Visibility="{Binding IsRapidOcrDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding RapidOcrDownloadProgress}" />
+                        <TextBlock Text="{Binding RapidOcrDownloadDetail}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Visibility="{Binding IsTesseractRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding TesseractOcrStatus}" />
+                    <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding TesseractLanguageOptions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,8,8"
+                                    Padding="8,4"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                                        <TextBlock
+                                            Margin="4,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Text="{Binding DisplayNameKey, Converter={StaticResource LocalizationKeyToTextConverter}}" />
+                                        <TextBlock
+                                            Margin="6,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding StatusKey, Converter={StaticResource LocalizationKeyToTextConverter}}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <WrapPanel Margin="0,8,0,0">
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DownloadTesseractDataCommand}"
+                            Content="{lex:Loc SmartBpTesseractDownloadData}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CancelTesseractDataDownloadCommand}"
+                            Content="{lex:Loc SmartBpCancelDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DeleteTesseractDataCommand}"
+                            Content="{lex:Loc SmartBpTesseractDeleteData}"
+                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding RefreshTesseractDataStatusForUiCommand}"
+                            Content="{lex:Loc Refresh}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding OpenTesseractDataFolderCommand}"
+                            Content="{lex:Loc SmartBpOcrOpenTessdataFolder}"
+                            Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                    </WrapPanel>
+                    <StackPanel Visibility="{Binding HasTesseractDownloadDetail, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ProgressBar Visibility="{Binding IsTesseractDataDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Value="{Binding TesseractDownloadProgress}" />
+                        <TextBlock Text="{Binding TesseractDownloadDetail}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border
+            x:Name="SmartBpCudaSettingsCard"
+            Margin="0,0,0,10"
+            d:Visibility="Visible"
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsCudaCardVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc CudaHardwareAcceleration}" />
+                <TextBlock
+                    Margin="0,4,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc CudaDescription}"
+                    TextWrapping="Wrap" />
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{lex:Loc CudaDetectedGpu}" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Text="{Binding CudaDeviceName}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{lex:Loc CudaCurrentStatus}" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        FontWeight="SemiBold"
+                        Text="{Binding CudaStatusText}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <ui:ToggleSwitch
+                    Margin="0,10,0,0"
+                    Command="{Binding ToggleCudaCommand}"
+                    Content="{lex:Loc CudaEnableAcceleration}"
+                    IsChecked="{Binding IsCudaEnabled, Mode=TwoWay}"
+                    IsEnabled="{Binding CanToggleCuda}" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    d:Visibility="Visible"
+                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                    Text="{Binding CudaUnsupportedReason}"
+                    TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CudaUnsupportedReason}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <StackPanel
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Visibility="{Binding CanDownloadCudaDependency, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc CudaDependencyRequiredHint}"
+                        TextWrapping="Wrap" />
+                    <ui:Button
+                        Margin="0,8,0,0"
+                        Command="{Binding DownloadCudaDependencyCommand}"
+                        Content="{lex:Loc CudaDownloadDependency}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                </StackPanel>
+                <StackPanel
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Orientation="Horizontal"
+                    Visibility="{Binding IsCudaDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ui:ProgressRing
+                        Width="26"
+                        Height="26"
+                        IsIndeterminate="True" />
+                    <ProgressBar
+                        Width="175"
+                        Height="20"
+                        Margin="10,0,0,0"
+                        Maximum="100"
+                        Value="{Binding CudaDownloadProgress}" />
+                    <TextBlock
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding CudaDownloadProgressText}" />
+                    <TextBlock
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding CudaDownloadSpeedText}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding CancelCudaDownloadCommand}"
+                        Content="{lex:Loc CudaCancelDownload}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                </StackPanel>
+                <TextBlock
+                    Margin="0,10,0,0"
+                    d:Visibility="Visible"
+                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                    Text="{lex:Loc CudaRestartRequiredHint}"
+                    TextWrapping="Wrap"
+                    Visibility="{Binding IsCudaRestartRequired, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
+        </Border>
+
+        <Border
+            x:Name="SmartBpPostGamePreviewPanel"
+            Margin="0,0,0,10"
+            Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpRecognitionAreaConfiguration}" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpBpRecognitionRegions}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        x:Name="SmartBpRegionEditorButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding OpenRecognitionRegionEditorCommand}"
+                        Content="{lex:Loc SmartBpOpenBpRecognitionRegionEditor}"
+                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                    <ui:Button
+                        x:Name="SmartBpResetBpRecognitionRegionButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding ResetRecognitionLayoutProfileCommand}"
+                        Content="{lex:Loc SmartBpResetBpRecognitionRegionConfig}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    <ui:Button
+                        x:Name="SmartBpShowRegionExampleButton"
+                        Margin="0,0,8,8"
+                        Command="{Binding ShowBpRecognitionRegionExampleCommand}"
+                        Content="{lex:Loc SmartBpShowBpRecognitionRegionExample}"
+                        Icon="{ui:SymbolIcon Symbol=Image24}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <ui:CardExpander
+            Margin="0,0,0,10"
+            Header="{lex:Loc SmartBpAdvancedParameters}"
+            Icon="{ui:SymbolIcon Symbol=Settings24}">
+            <StackPanel>
+                <ui:Button
+                    Margin="0,0,0,8"
+                    Command="{Binding TestRecognitionSpeedCommand}"
+                    Content="{lex:Loc SmartBpTestRecognitionSpeed}"
+                    Icon="{ui:SymbolIcon Symbol=Gauge24}" />
+                <TextBlock
+                    Margin="0,0,0,8"
+                    Text="{Binding RecognitionSpeedTestStatus}"
+                    TextWrapping="Wrap" />
+                <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpAutomaticRecognitionInterval}" />
+                <WrapPanel>
+                    <TextBlock Text="{lex:Loc SmartBpCurrentInterval}" />
+                    <TextBlock Text=": " />
+                    <TextBlock Text="{Binding CurrentRecognitionIntervalMs}" />
+                    <TextBlock Text=" ms" />
+                </WrapPanel>
+                <WrapPanel>
+                    <TextBlock Text="{lex:Loc SmartBpMinimumInterval}" />
+                    <TextBlock Text=": " />
+                    <TextBlock Text="{Binding MinimumRecognitionIntervalMs}" />
+                    <TextBlock Text=" ms" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,0,0,8"
+                    Text="{Binding RecognitionIntervalEditHint}"
+                    TextWrapping="Wrap" />
+                <StackPanel Visibility="{Binding IsOcrRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ui:ToggleSwitch
+                        Content="{lex:Loc SmartBpOcrUseContactSheet}"
+                        IsChecked="{Binding UseOcrContactSheet}"
+                        ToolTip="{lex:Loc SmartBpTooltipContactSheet}" />
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpOcrIntervalMilliseconds}" />
+                        <TextBox
+                            IsEnabled="{Binding IsRecognitionIntervalEditable}"
+                            Text="{Binding OcrRecognitionIntervalMs}"
+                            ToolTip="{lex:Loc SmartBpTooltipRecognitionInterval}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpOcrFieldStaleMilliseconds}" />
+                        <TextBox Text="{Binding OcrFieldStaleMilliseconds}" ToolTip="{lex:Loc SmartBpTooltipFieldStale}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpOcrBackfillLookBehindSteps}" />
+                        <TextBox Text="{Binding OcrBackfillLookBehindSteps}" ToolTip="{lex:Loc SmartBpTooltipBackfill}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpTransitionReplayWindow}" />
+                        <TextBox Text="{Binding RecognitionTransitionLookBehindMilliseconds}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpTransitionReplayMinimumConfidence}" />
+                        <TextBox Text="{Binding RecognitionTransitionReplayMinimumConfidence}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch
+                        Content="{lex:Loc SmartBpOcrDebugOverlay}"
+                        IsChecked="{Binding EnableOcrDebugOverlay}"
+                        ToolTip="{lex:Loc SmartBpTooltipDebugOverlay}" />
+                </StackPanel>
+                <StackPanel Visibility="{Binding IsTesseractRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpOcrTesseractLanguages}" />
+                        <TextBox Text="{Binding TesseractLanguages}" ToolTip="{lex:Loc SmartBpTooltipTesseractLanguages}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpOcrTesseractPsm}" />
+                        <TextBox Text="{Binding TesseractDefaultPsm}" ToolTip="{lex:Loc SmartBpTooltipTesseractPsm}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpOcrTesseractVariants}" />
+                        <TextBox Text="{Binding TesseractMaxPreprocessVariants}" ToolTip="{lex:Loc SmartBpTooltipTesseractVariants}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Visibility="{Binding IsRapidRecognitionEngine, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrMaxSideLen}" />
+                        <TextBox Text="{Binding RapidOcrMaxSideLen}" ToolTip="{lex:Loc SmartBpTooltipRapidOcrMaxSideLen}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrPadding}" />
+                        <TextBox Text="{Binding RapidOcrPadding}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrBoxScoreThreshold}" />
+                        <TextBox Text="{Binding RapidOcrBoxScoreThreshold}" ToolTip="{lex:Loc SmartBpTooltipRapidOcrThresholds}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrBoxThreshold}" />
+                        <TextBox Text="{Binding RapidOcrBoxThreshold}" ToolTip="{lex:Loc SmartBpTooltipRapidOcrThresholds}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,6,0,0">
+                        <TextBlock Text="{lex:Loc SmartBpRapidOcrUnclipRatio}" />
+                        <TextBox Text="{Binding RapidOcrUnclipRatio}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch Content="{lex:Loc SmartBpRapidOcrAngleClassifier}" IsChecked="{Binding RapidOcrUseAngleClassifier}" />
+                    <ui:ToggleSwitch Content="{lex:Loc SmartBpRapidOcrPreprocessingVariants}" IsChecked="{Binding RapidOcrUsePreprocessingVariants}" />
+                </StackPanel>
+            </StackPanel>
+        </ui:CardExpander>
+
+        <ui:CardExpander
+            Margin="0,0,0,10"
+            Header="{lex:Loc SmartBpDebugOptions}"
+            Icon="{ui:SymbolIcon Symbol=Bug24}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SmartBpGameDataRecognitionDebug}" />
+                <TextBlock
+                    Margin="0,6,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{lex:Loc SmartBpGameDataRecognitionDebugDescription}"
+                    TextWrapping="Wrap" />
+                <TextBlock Margin="0,8,0,0" Text="{Binding GameDataRecognitionOcrLineCountText}" />
+                <ui:DataGrid
+                    Margin="0,6,0,0"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    CanUserResizeRows="False"
+                    HeadersVisibility="Column"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding GameDataRecognitionDebugRows}">
+                    <ui:DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="42"
+                            Binding="{Binding RowIndex}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnRow}" />
+                        <DataGridTextColumn
+                            Width="150"
+                            Binding="{Binding PlayerName}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnPlayerName}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding ExtractedCharacterName}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnExtractedCharacter}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding ResolvedCharacterName}"
+                            Header="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:SmartBpGameDataDebugColumnResolvedCharacter}" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[0]}"
+                            Header="D1" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[1]}"
+                            Header="D2" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[2]}"
+                            Header="D3" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[3]}"
+                            Header="D4" />
+                        <DataGridTextColumn
+                            Width="56"
+                            Binding="{Binding Values[4]}"
+                            Header="D5" />
+                    </ui:DataGrid.Columns>
+                </ui:DataGrid>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpGameDataDebugDiagnostics}" />
+                <TextBox
+                    FontFamily="Consolas"
+                    Style="{StaticResource SmartBpDebugOutputTextBox}"
+                    Text="{Binding GameDataRecognitionDiagnosticsText}" />
+                <ComboBox
+                    Margin="0,10,0,0"
+                    DisplayMemberPath="Id"
+                    ItemsSource="{Binding TestFrames}"
+                    SelectedItem="{Binding SelectedTestFrame}" />
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpFullRecognitionTest}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeSelectedTestFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeTestFrame}"
+                        Icon="{ui:SymbolIcon Symbol=Scan24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeCurrentCaptureFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeCurrentFrame}"
+                        Icon="{ui:SymbolIcon Symbol=Camera24}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpIncrementalRecognitionTest}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeIncrementalSelectedTestFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeSelectedIncremental}"
+                        Icon="{ui:SymbolIcon Symbol=Scan24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RecognizeIncrementalCurrentCaptureFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeCurrentIncremental}"
+                        Icon="{ui:SymbolIcon Symbol=CameraSwitch24}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpPhaseSceneOnlyTest}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DetectStageFromSelectedTestFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeSelectedPhase}"
+                        Icon="{ui:SymbolIcon Symbol=EyeTracking24}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding DetectStageFromCurrentCaptureFrameCommand}"
+                        Content="{lex:Loc SmartBpRecognizeCurrentPhase}"
+                        Icon="{ui:SymbolIcon Symbol=CameraSwitch24}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpDebugTools}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding ResetRecognitionLedgerCommand}"
+                        Content="{lex:Loc SmartBpResetLedger}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc SmartBpDebugFinalBusinessState}" />
+                <TextBlock Text="{Binding DebugFinalBusinessState}" />
+                <ui:Button
+                    Margin="0,8,0,0"
+                    HorizontalAlignment="Left"
+                    Command="{Binding OpenRecognitionDebugLogWindowCommand}"
+                    Content="{lex:Loc SmartBpOpenRecognitionDebugLogWindow}"
+                    Icon="{ui:SymbolIcon Symbol=Open24}" />
+            </StackPanel>
+        </ui:CardExpander>
+    </StackPanel>
+</UserControl>

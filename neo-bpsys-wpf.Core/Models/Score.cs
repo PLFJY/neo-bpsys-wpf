@@ -5,8 +5,12 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
-/// 比分类, 用于展示比分
+/// 旧比分数据，用于旧 JSON 和旧 DTO 的反序列化兼容。
 /// </summary>
+/// <remarks>
+/// Score System v2 的权威比分状态是 <see cref="ScoreSystem.MatchScoreState"/>；运行时不再从
+/// <see cref="ScoreSystem.MatchScoreState"/> 同步此类型，不能作为新比分写入入口。
+/// </remarks>
 public partial class Score : ObservableObjectBase
 {
     /// <summary>
@@ -14,27 +18,30 @@ public partial class Score : ObservableObjectBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    private int _win;
+    public partial int Win { get; set; }
 
     /// <summary>
     /// 大比分--平
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    private int _tie;
+    public partial int Tie { get; set; }
 
     /// <summary>
     /// 小比分
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    private int _gameScores;
+    public partial int GameScores { get; set; }
 
     /// <summary>
     /// 前台显示的格式化的大比分
     /// </summary>
     [JsonIgnore] public string MajorPointsOnFront => $"W{Win}  D{Tie}";
 
+    /// <summary>
+    /// 重置所有比分数据为零。
+    /// </summary>
     public void Reset()
     {
         Win = 0;

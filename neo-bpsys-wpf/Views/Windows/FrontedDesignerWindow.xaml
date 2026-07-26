@@ -1,0 +1,1982 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.FrontedDesignerWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:converters="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
+    xmlns:frontedDesignerViews="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner"
+    xmlns:frontedLayout="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout;assembly=neo-bpsys-wpf.Core"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
+    Title="{lex:Loc FrontedDesigner}"
+    Width="1280"
+    Height="720"
+    MinWidth="1100"
+    MinHeight="700"
+    d:DataContext="{d:DesignInstance Type=vm:FrontedDesignerWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
+    lex:LocalizeDictionary.DesignCulture="zh"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
+    ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    PreviewKeyDown="Window_OnPreviewKeyDown"
+    PreviewKeyUp="Window_OnPreviewKeyUp"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <ui:FluentWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:DesignerControlTypeDisplayConverter x:Key="DesignerControlTypeDisplayConverter" />
+        <Style
+            x:Key="AnimationPartValidatedTextBoxStyle"
+            BasedOn="{StaticResource {x:Type ui:TextBox}}"
+            TargetType="{x:Type ui:TextBox}">
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                    <Setter Property="BorderThickness" Value="1.5" />
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="PropertyReadOnlyEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <TextBlock
+                VerticalAlignment="Center"
+                Text="{Binding DisplayValue}"
+                TextTrimming="CharacterEllipsis" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyTextEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox
+                    x:Name="FirstEditablePropertyEditor"
+                    Grid.Column="0"
+                    MinHeight="30"
+                    KeyDown="PropertyTextBox_OnKeyDown"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                    TextChanged="PropertyTextBox_OnTextChanged">
+                    <ui:TextBox.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasEditError}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                    <Setter Property="BorderThickness" Value="1.5" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:TextBox.Style>
+                </ui:TextBox>
+                <ui:Button
+                    Grid.Column="1"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="BrowseBindingButton_OnClick"
+                    Content="{Binding BrowseButtonText}"
+                    ToolTip="{lex:Loc BrowseBinding}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CanBrowseBinding}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
+                <ui:Button
+                    Grid.Column="2"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="BrowseResourceButton_OnClick"
+                    Content="{Binding BrowseButtonText}"
+                    ToolTip="{lex:Loc BrowseResource}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CanBrowseResource}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
+                <ui:Button
+                    x:Name="PropertyApplyButton"
+                    Grid.Column="3"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="PropertyTextApplyButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                    ToolTip="{lex:Loc EditProperty}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RequiresExplicitCommit}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyBooleanEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <ComboBox
+                MinHeight="30"
+                DisplayMemberPath="DisplayName"
+                DropDownClosed="PropertyComboBox_OnDropDownClosed"
+                ItemsSource="{Binding Options}"
+                SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                SelectedValuePath="Value" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyToggleSwitchEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <ui:ToggleSwitch
+                Checked="PropertyToggleSwitch_OnToggled"
+                IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Unchecked="PropertyToggleSwitch_OnToggled" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyEnumEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <ComboBox
+                MinHeight="30"
+                DisplayMemberPath="DisplayName"
+                DropDownClosed="PropertyComboBox_OnDropDownClosed"
+                ItemsSource="{Binding Options}"
+                SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                SelectedValuePath="Value" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyColorEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <colorpicker:PortableColorPicker
+                    Grid.Column="0"
+                    Width="60"
+                    Height="30"
+                    Margin="0,0,8,0"
+                    HexRepresentation="ARGB"
+                    Loaded="PropertyColorPicker_OnLoaded"
+                    SelectedColor="{Binding ColorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    ShowAlpha="True"
+                    Style="{StaticResource DefaultColorPickerStyle}"
+                    Unloaded="PropertyColorPicker_OnUnloaded" />
+                <ui:TextBox
+                    x:Name="FirstEditablePropertyEditor"
+                    Grid.Column="1"
+                    MinHeight="30"
+                    KeyDown="PropertyTextBox_OnKeyDown"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                    TextChanged="PropertyTextBox_OnTextChanged">
+                    <ui:TextBox.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasEditError}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                    <Setter Property="BorderThickness" Value="1.5" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                    <Setter Property="IsReadOnly" Value="True" />
+                                    <Setter Property="Opacity" Value="0.6" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:TextBox.Style>
+                </ui:TextBox>
+                <ui:Button
+                    x:Name="PropertyApplyButton"
+                    Grid.Column="2"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="PropertyTextApplyButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                    ToolTip="{lex:Loc ApplyColor}"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyFontFamilyEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox
+                    MinHeight="30"
+                    DropDownClosed="PropertyFontComboBox_OnDropDownClosed"
+                    IsEditable="True"
+                    IsTextSearchEnabled="True"
+                    ItemsSource="{Binding Options}"
+                    KeyDown="PropertyFontComboBox_OnKeyDown"
+                    LostKeyboardFocus="PropertyFontComboBox_OnLostKeyboardFocus"
+                    SelectionChanged="PropertyFontComboBox_OnSelectionChanged"
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
+                    TextSearch.TextPath="DisplayName">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type designer:FrontedFontFamilyOption}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontFamily="{Binding PreviewFontFamily}" Text="{Binding DisplayName}" />
+                                <Border
+                                    Margin="8,0,0,0"
+                                    Padding="5,1"
+                                    VerticalAlignment="Center"
+                                    Background="#1F3B82F6"
+                                    BorderBrush="#FF2563EB"
+                                    BorderThickness="1"
+                                    CornerRadius="3">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPackageFont}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock
+                                        FontSize="10"
+                                        Foreground="#FF1D4ED8"
+                                        Text="{Binding BadgeText}" />
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ui:Button
+                    Grid.Column="1"
+                    Width="34"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="ImportFontButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Add24}"
+                    ToolTip="{lex:Loc Designer.Editor.ImportFont}" />
+                <ui:Button
+                    Grid.Column="2"
+                    Width="34"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="ManagePackageFontsButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Settings24}"
+                    ToolTip="{lex:Loc Designer.Editor.ManagePackageFonts}" />
+                <ui:Button
+                    Grid.Column="3"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="PropertyFontApplyButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                    ToolTip="{lex:Loc EditProperty}" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PropertyTextBindingEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{Binding DisplayValue}"
+                    TextTrimming="CharacterEllipsis" />
+                <ui:Button
+                    Grid.Column="1"
+                    MinWidth="52"
+                    Margin="6,0,0,0"
+                    Click="EditTextBindingButton_OnClick"
+                    Content="{lex:Loc EditTextBindingSource}" />
+            </Grid>
+        </DataTemplate>
+
+        <Style x:Key="PropertyEditorContentControlStyle" TargetType="ContentControl">
+            <Setter Property="ContentTemplate" Value="{StaticResource PropertyReadOnlyEditorTemplate}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Text}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyTextEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Number}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyTextEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Boolean}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyBooleanEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.ToggleSwitch}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyToggleSwitchEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Enum}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyEnumEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Color}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyColorEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.FontFamily}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyFontFamilyEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.TextBinding}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyTextBindingEditorTemplate}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </ui:FluentWindow.Resources>
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="True"
+            IsMinimizeVisible="True"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+
+        <Border
+            x:Name="DesignerToolbarHost"
+            Grid.Row="1"
+            Padding="12"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1">
+            <ScrollViewer
+                MaxHeight="120"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <WrapPanel Orientation="Horizontal">
+                    <ComboBox
+                        Width="200"
+                        MaxWidth="220"
+                        Margin="0,0,8,8"
+                        DisplayMemberPath="DisplayName"
+                        ItemsSource="{Binding WindowOptions}"
+                        SelectedItem="{Binding SelectedWindow}"
+                        SelectionChanged="Selector_OnSelectionChanged" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding UndoCommand}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowUndo24}"
+                        ToolTip="{lex:Loc ShortcutUndo}" />
+                    <ui:Button
+                        Margin="0,0,8,8"
+                        Command="{Binding RedoCommand}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowRedo24}"
+                        ToolTip="{lex:Loc ShortcutRedo}" />
+                    <ui:Button
+                        x:Name="AddControlButton"
+                        Margin="0,0,8,8"
+                        Click="AddControlButton_OnClick"
+                        Content="{lex:Loc AddControl}"
+                        Icon="{ui:SymbolIcon Symbol=Add24}"
+                        ToolTip="{lex:Loc AddControl}">
+                        <ui:Button.ContextMenu>
+                            <ContextMenu />
+                        </ui:Button.ContextMenu>
+                    </ui:Button>
+                    <ui:Button
+                        x:Name="SaveLayoutButton"
+                        Margin="0,0,8,8"
+                        Click="SaveLayoutButton_OnClick"
+                        Content="{lex:Loc SaveLayout}"
+                        Icon="{ui:SymbolIcon Symbol=Save24}"
+                        IsEnabled="{Binding CanSaveLayout}"
+                        ToolTip="{lex:Loc ShortcutSave}" />
+                    <Menu Margin="0,0,8,8" VerticalAlignment="Center">
+                        <MenuItem Header="{lex:Loc Layout}">
+                            <MenuItem
+                                Click="SaveLayoutButton_OnClick"
+                                Header="{lex:Loc SaveLayout}"
+                                InputGestureText="Ctrl+S" />
+                            <MenuItem Click="ReloadLayoutButton_OnClick" Header="{lex:Loc ReloadLayout}" />
+                            <MenuItem
+                                Click="ResetToBuiltInButton_OnClick"
+                                Header="{lex:Loc ResetToBuiltIn}"
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                            <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
+                        </MenuItem>
+                        <MenuItem Header="{lex:Loc Edit}">
+                            <MenuItem
+                                Command="{Binding CopySelectedControlCommand}"
+                                Header="{lex:Loc CopyControl}"
+                                InputGestureText="Ctrl+C" />
+                            <MenuItem
+                                Command="{Binding PasteControlCommand}"
+                                Header="{lex:Loc PasteControl}"
+                                InputGestureText="Ctrl+V" />
+                            <Separator />
+                            <MenuItem
+                                Command="{Binding UndoCommand}"
+                                Header="{lex:Loc Undo}"
+                                InputGestureText="Ctrl+Z" />
+                            <MenuItem
+                                Command="{Binding RedoCommand}"
+                                Header="{lex:Loc Redo}"
+                                InputGestureText="Ctrl+Y / Ctrl+Shift+Z" />
+                            <MenuItem
+                                Command="{Binding DeleteSelectedControlCommand}"
+                                Header="{lex:Loc DeleteControl}"
+                                InputGestureText="Del" />
+                        </MenuItem>
+                        <MenuItem Header="{lex:Loc View}">
+                            <MenuItem Command="{Binding FitToWindowCommand}" Header="{lex:Loc Fit}" />
+                            <MenuItem
+                                Command="{Binding ZoomInCommand}"
+                                Header="{lex:Loc ZoomIn}" />
+                            <MenuItem
+                                Command="{Binding ZoomOutCommand}"
+                                Header="{lex:Loc ZoomOut}" />
+                            <Separator />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="25%"
+                                Header="25%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="50%"
+                                Header="50%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="75%"
+                                Header="75%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="100%"
+                                Header="100%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="125%"
+                                Header="125%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="150%"
+                                Header="150%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="200%"
+                                Header="200%" />
+                        </MenuItem>
+                    </Menu>
+                    <!--  Keep TextBox: users can select and copy long layout paths.  -->
+                    <TextBox
+                        MaxWidth="260"
+                        Margin="0,0,8,8"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        IsReadOnly="True"
+                        Text="{Binding LayoutSourcePath}"
+                        ToolTip="{Binding LayoutSourcePath}" />
+                    <ToggleButton
+                        Margin="0,0,8,8"
+                        VerticalAlignment="Center"
+                        Content="{Binding SnapStatusText}"
+                        IsChecked="{Binding SnapEnabled, Mode=TwoWay}"
+                        ToolTip="{lex:Loc Snap}" />
+                    <TextBlock
+                        Margin="0,0,8,8"
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Text="{Binding DirtyIndicatorText}" />
+                </WrapPanel>
+            </ScrollViewer>
+        </Border>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="1.5*" MinWidth="300" />
+            </Grid.ColumnDefinitions>
+            <Border
+                Grid.Column="0"
+                Margin="12"
+                Padding="12"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="{lex:Loc ControlsList}" />
+                    <ui:TextBox
+                        Grid.Row="1"
+                        Margin="0,12,0,8"
+                        MaxLength="{x:Static limits:FrontedLayoutLimits.MaxSearchTextLength}"
+                        PlaceholderText="{lex:Loc FilterControls}"
+                        Text="{Binding ControlFilterText, UpdateSourceTrigger=PropertyChanged}" />
+                    <Grid Grid.Row="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Margin="0,0,0,8"
+                            FontSize="12"
+                            Opacity="0.78"
+                            Text="{Binding LayerReorderHint}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CanReorderLayers}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Grid x:Name="LayerPanelHostGrid" Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition x:Name="LayerTopDropZoneRow" Height="0" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition x:Name="LayerBottomDropZoneRow" Height="0" />
+                            </Grid.RowDefinitions>
+                            <Border
+                                x:Name="LayerTopDropZone"
+                                Grid.Row="0"
+                                Margin="4,0,4,4"
+                                Padding="6,0"
+                                AllowDrop="True"
+                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="0,1,0,0"
+                                CornerRadius="3"
+                                DragOver="LayerTopDropZone_OnDragOver"
+                                Drop="LayerTopDropZone_OnDrop"
+                                Opacity="0.85"
+                                Visibility="Hidden">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc Designer.LayerPanel.MoveToNewTopLayer}" />
+                            </Border>
+                            <ScrollViewer
+                                x:Name="LayerPanelScrollViewer"
+                                Grid.Row="1"
+                                AllowDrop="True"
+                                DragLeave="LayerPanel_OnDragLeave"
+                                DragOver="LayerPanel_OnDragOver"
+                                Drop="LayerPanel_OnDrop"
+                                HorizontalScrollBarVisibility="Disabled"
+                                VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <ItemsControl ItemsSource="{Binding LayerGroups}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type designer:FrontedLayerGroup}">
+                                                <Border
+                                                    Margin="0,0,0,10"
+                                                    Padding="8"
+                                                    AllowDrop="True"
+                                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    DragOver="LayerGroup_OnDragOver"
+                                                    Drop="LayerGroup_OnDrop">
+                                                    <StackPanel>
+                                                        <DockPanel Margin="0,0,0,6" LastChildFill="True">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock
+                                                                    Grid.Column="0"
+                                                                    MinWidth="0"
+                                                                    FontWeight="SemiBold"
+                                                                    Text="{Binding DisplayName}"
+                                                                    TextTrimming="CharacterEllipsis"
+                                                                    ToolTip="{Binding DisplayName}" />
+                                                                <StackPanel
+                                                                    Grid.Column="1"
+                                                                    Margin="8,0,0,0"
+                                                                    HorizontalAlignment="Right"
+                                                                    VerticalAlignment="Center"
+                                                                    Orientation="Horizontal">
+                                                                    <TextBlock Text="{Binding Count}" />
+                                                                    <TextBlock Margin="4,0,0,0" Text="{lex:Loc Designer.LayerPanel.ControlsCount}" />
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </DockPanel>
+                                                        <ItemsControl ItemsSource="{Binding Items}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate DataType="{x:Type designer:DesignerLayerNode}">
+                                                                    <Border
+                                                                        Margin="0,3"
+                                                                        Padding="8,6"
+                                                                        AllowDrop="True"
+                                                                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                                        BorderThickness="1"
+                                                                        CornerRadius="3"
+                                                                        DragOver="LayerItem_OnDragOver"
+                                                                        Drop="LayerItem_OnDrop"
+                                                                        MouseLeftButtonDown="LayerItem_OnMouseLeftButtonDown"
+                                                                        MouseMove="LayerItem_OnMouseMove"
+                                                                        PreviewMouseRightButtonDown="LayerItem_OnPreviewMouseRightButtonDown"
+                                                                        Tag="{Binding}">
+                                                                        <Border.ContextMenu>
+                                                                            <ContextMenu
+                                                                                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                                                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer">
+                                                                                <MenuItem Click="LayerControlDeleteMenuItem_OnClick" Header="{lex:Loc DeleteControl}" />
+                                                                            </ContextMenu>
+                                                                        </Border.ContextMenu>
+                                                                        <Border.Style>
+                                                                            <Style TargetType="Border">
+                                                                                <Setter Property="Opacity" Value="1" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                                                                    </DataTrigger>
+                                                                                    <DataTrigger Binding="{Binding CanReorder}" Value="False">
+                                                                                        <Setter Property="Opacity" Value="0.9" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Border.Style>
+                                                                        <Grid>
+                                                                            <Grid.RowDefinitions>
+                                                                                <RowDefinition Height="Auto" />
+                                                                                <RowDefinition Height="Auto" />
+                                                                                <RowDefinition Height="Auto" />
+                                                                            </Grid.RowDefinitions>
+                                                                            <TextBlock
+                                                                                Grid.Column="0"
+                                                                                FontWeight="SemiBold"
+                                                                                Text="{Binding DisplayName}"
+                                                                                TextTrimming="CharacterEllipsis" />
+                                                                            <Grid
+                                                                                Grid.Row="1"
+                                                                                Grid.Column="0"
+                                                                                Margin="0,2,0,0">
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="*" />
+                                                                                    <ColumnDefinition Width="Auto" />
+                                                                                </Grid.ColumnDefinitions>
+                                                                                <TextBlock
+                                                                                    Grid.Column="0"
+                                                                                    MinWidth="0"
+                                                                                    FontSize="12"
+                                                                                    Opacity="0.78"
+                                                                                    Text="{Binding Metadata}"
+                                                                                    TextTrimming="CharacterEllipsis"
+                                                                                    ToolTip="{Binding Metadata}" />
+                                                                                <StackPanel
+                                                                                    Grid.Column="1"
+                                                                                    Margin="10,0,0,0"
+                                                                                    Orientation="Horizontal">
+                                                                                    <TextBlock
+                                                                                        FontSize="12"
+                                                                                        Opacity="0.78"
+                                                                                        Text="{lex:Loc ZIndexShort}" />
+                                                                                    <TextBlock
+                                                                                        Margin="3,0,0,0"
+                                                                                        FontSize="12"
+                                                                                        Opacity="0.78"
+                                                                                        Text="{Binding ZIndex}" />
+                                                                                </StackPanel>
+                                                                            </Grid>
+                                                                            <ItemsControl
+                                                                                Grid.Row="2"
+                                                                                Margin="12,4,0,0"
+                                                                                ItemsSource="{Binding Children}">
+                                                                                <ItemsControl.ItemTemplate>
+                                                                                    <DataTemplate DataType="{x:Type designer:DesignerLayerNode}">
+                                                                                        <Border
+                                                                                            Margin="0,2"
+                                                                                            Padding="6,3"
+                                                                                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                                                            BorderThickness="1"
+                                                                                            CornerRadius="2"
+                                                                                            MouseLeftButtonDown="LayerItem_OnMouseLeftButtonDown"
+                                                                                            Tag="{Binding}">
+                                                                                            <Border.Style>
+                                                                                                <Style TargetType="Border">
+                                                                                                    <Setter Property="Opacity" Value="0.85" />
+                                                                                                    <Style.Triggers>
+                                                                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                                            <Setter Property="BorderBrush" Value="Orange" />
+                                                                                                            <Setter Property="Opacity" Value="1" />
+                                                                                                        </DataTrigger>
+                                                                                                    </Style.Triggers>
+                                                                                                </Style>
+                                                                                            </Border.Style>
+                                                                                            <TextBlock
+                                                                                                FontSize="11"
+                                                                                                Text="{Binding DisplayName}"
+                                                                                                TextTrimming="CharacterEllipsis"
+                                                                                                ToolTip="{Binding Metadata}" />
+                                                                                        </Border>
+                                                                                    </DataTemplate>
+                                                                                </ItemsControl.ItemTemplate>
+                                                                            </ItemsControl>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </StackPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </ScrollViewer>
+                            <Border
+                                x:Name="LayerBottomDropZone"
+                                Grid.Row="2"
+                                Margin="4,4,4,0"
+                                Padding="6,0"
+                                AllowDrop="True"
+                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="3"
+                                DragOver="LayerBottomDropZone_OnDragOver"
+                                Drop="LayerBottomDropZone_OnDrop"
+                                Opacity="0.85"
+                                Visibility="Hidden">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc Designer.LayerPanel.MoveToNewBottomLayer}" />
+                            </Border>
+                            <Border
+                                x:Name="LayerDragGhost"
+                                Grid.RowSpan="3"
+                                MinWidth="130"
+                                MaxWidth="190"
+                                Padding="6,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                IsHitTestVisible="False"
+                                Opacity="0.82"
+                                Visibility="Collapsed">
+                                <Border.RenderTransform>
+                                    <TranslateTransform x:Name="LayerDragGhostTransform" />
+                                </Border.RenderTransform>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        x:Name="LayerDragGhostNameText"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        x:Name="LayerDragGhostMetaText"
+                                        Grid.Row="1"
+                                        Margin="0,1,0,0"
+                                        FontSize="11"
+                                        Opacity="0.78"
+                                        TextTrimming="CharacterEllipsis" />
+                                </Grid>
+                            </Border>
+                            <TextBlock
+                                Grid.Row="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Opacity="0.65"
+                                Text="{lex:Loc NoControlsFound}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding LayerGroups.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Column="1"
+                Margin="0,12,8,12"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <ScrollViewer
+                    x:Name="PreviewScrollViewer"
+                    HorizontalScrollBarVisibility="Auto"
+                    PreviewMouseLeftButtonUp="PreviewScrollViewer_OnPreviewMouseLeftButtonUp"
+                    PreviewMouseMove="PreviewScrollViewer_OnPreviewMouseMove"
+                    PreviewMouseRightButtonDown="PreviewScrollViewer_OnPreviewMouseRightButtonDown"
+                    PreviewMouseRightButtonUp="PreviewScrollViewer_OnPreviewMouseRightButtonUp"
+                    PreviewMouseWheel="PreviewScrollViewer_OnPreviewMouseWheel"
+                    SizeChanged="PreviewScrollViewer_OnSizeChanged"
+                    VerticalScrollBarVisibility="Auto">
+                    <Grid
+                        x:Name="PreviewWorkspace"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        Background="Transparent">
+                        <Border
+                            x:Name="PreviewZoomHost"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                            <Border.LayoutTransform>
+                                <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}" />
+                            </Border.LayoutTransform>
+                            <Grid
+                                x:Name="DesignSurfaceGrid"
+                                Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
+                                Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
+                                ClipToBounds="True"
+                                Focusable="True"
+                                KeyDown="DesignSurface_OnKeyDown"
+                                MouseLeftButtonDown="DesignSurface_OnMouseLeftButtonDown"
+                                SnapsToDevicePixels="True">
+                                <Canvas
+                                    x:Name="PreviewCanvas"
+                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
+                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
+                                    ClipToBounds="True"
+                                    SnapsToDevicePixels="True" />
+                                <Canvas
+                                    x:Name="InteractionLayer"
+                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
+                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
+                                    Background="Transparent"
+                                    Focusable="True"
+                                    IsHitTestVisible="True"
+                                    KeyDown="DesignSurface_OnKeyDown"
+                                    MouseLeftButtonDown="InteractionLayer_OnMouseLeftButtonDown"
+                                    MouseLeftButtonUp="InteractionLayer_OnMouseLeftButtonUp"
+                                    MouseMove="InteractionLayer_OnMouseMove"
+                                    MouseRightButtonDown="InteractionLayer_OnMouseRightButtonDown"
+                                    MouseRightButtonUp="InteractionLayer_OnMouseRightButtonUp" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+
+            <GridSplitter
+                Grid.Column="2"
+                Width="5"
+                Margin="0,12,0,12"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                ResizeBehavior="PreviousAndNext"
+                ResizeDirection="Columns" />
+
+            <Border
+                x:Name="PropertyPanelHost"
+                Grid.Column="3"
+                Margin="0,12,12,12"
+                Padding="12"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <ScrollViewer x:Name="PropertyPanelScrollViewer" VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Text="{lex:Loc SelectedControl}" />
+                            <TextBlock
+                                Margin="0,8,0,0"
+                                FontWeight="SemiBold"
+                                Text="{Binding SelectedControlDisplay}" />
+                            <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlTypeDisplay}" />
+                            <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlGeometryDisplay}" />
+                            <TextBlock Margin="0,4,0,0">
+                                <Run Text="{lex:Loc ValidationMessages}" />
+                                <Run Text=": " />
+                                <Run Text="{Binding SelectedControlValidationMessageCount, Mode=OneWay}" />
+                            </TextBlock>
+                            <StackPanel Margin="0,12,0,0">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsPolygonSelected}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Opacity="0.75"
+                                    Text="{lex:Loc PolygonPoints}" />
+                                <TextBlock Margin="0,0,0,8">
+                                    <Run Text="{lex:Loc SelectedVertex}" />
+                                    <Run Text=": " />
+                                    <Run Text="{Binding SelectedPolygonVertexDisplay, Mode=OneWay}" />
+                                </TextBlock>
+                                <UniformGrid Columns="2">
+                                    <ui:Button
+                                        Margin="0,0,4,0"
+                                        Command="{Binding AddPolygonVertexCommand}"
+                                        Content="{lex:Loc AddVertex}" />
+                                    <ui:Button
+                                        Margin="4,0,0,0"
+                                        Command="{Binding RemovePolygonVertexCommand}"
+                                        Content="{lex:Loc RemoveVertex}" />
+                                </UniformGrid>
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock
+                            Grid.Row="1"
+                            Margin="0,16,0,0"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Text="{lex:Loc Properties}" />
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,0,0"
+                            Appearance="Secondary"
+                            Content="{lex:Loc Designer.PropertyEditor.ApplyToSameType}"
+                            Icon="{ui:SymbolIcon Symbol=Copy24}"
+                            Command="{Binding ApplyAppearanceToSameTypeCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToSameType.ToolTip}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CanShowPeerStyleTransferButton}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,4,0"
+                            Appearance="Secondary"
+                            Icon="{ui:SymbolIcon Symbol=PaintBrush24}"
+                            Command="{Binding ApplyParentStyleToChildrenCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToChildren}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,8,0"
+                            Appearance="Secondary"
+                            Icon="{ui:SymbolIcon Symbol=Eraser24}"
+                            Command="{Binding ClearChildStyleOverridesCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ClearChildOverrides}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ui:Button
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,12,0"
+                            Appearance="Secondary"
+                            Icon="{ui:SymbolIcon Symbol=Table24}"
+                            Command="{Binding ApplyLayoutTemplateCommand}"
+                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyLayoutTemplate}">
+                            <ui:Button.Style>
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasLayoutTemplate}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
+                        <ItemsControl
+                            Grid.Row="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,8,12,0"
+                            ItemsSource="{Binding LayoutTemplates}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:FrontedV3LayoutTemplateViewModel}">
+                                    <ui:Button
+                                        Margin="4,0,0,0"
+                                        Appearance="Secondary"
+                                        Icon="{ui:SymbolIcon Symbol=Table24}"
+                                        Content="{Binding DisplayName}"
+                                        ToolTip="{Binding ToolTip}"
+                                        Command="{Binding DataContext.ApplyLayoutTemplateByNameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding Id}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.Style>
+                                <Style TargetType="{x:Type ItemsControl}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ItemsControl.Style>
+                        </ItemsControl>
+                        <Grid Grid.Row="2" Margin="0,8,0,8">
+
+                            <ItemsControl ItemsSource="{Binding PropertyEditorItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type designer:FrontedPropertyEditorItem}">
+                                        <StackPanel Margin="0,0,0,10">
+                                            <TextBlock
+                                                Margin="0,4,0,6"
+                                                FontSize="12"
+                                                FontWeight="SemiBold"
+                                                Opacity="0.75"
+                                                Text="{Binding GroupDisplayName}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsGroupHeaderVisible}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <CheckBox
+                                                Margin="0,0,0,4"
+                                                Padding="0,0,0,0"
+                                                FontSize="11"
+                                                IsChecked="{Binding IsInheritedFromParent, Mode=OneWay}"
+                                                Command="{Binding DataContext.TogglePropertyInheritanceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding PropertyName}"
+                                                Content="{lex:Loc Designer.PropertyEditor.InheritFromParent}"
+                                                ToolTip="{lex:Loc Designer.PropertyEditor.InheritFromParent.ToolTip}">
+                                                <CheckBox.Style>
+                                                    <Style BasedOn="{StaticResource {x:Type CheckBox}}" TargetType="{x:Type CheckBox}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding CanToggleInheritance}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </CheckBox.Style>
+                                            </CheckBox>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="112" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Margin="0,5,8,0"
+                                                    Text="{Binding DisplayName}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    ToolTip="{Binding Description}" />
+                                                <ContentControl
+                                                    Grid.Column="1"
+                                                    Content="{Binding}">
+                                                    <ContentControl.Style>
+                                                        <Style BasedOn="{StaticResource PropertyEditorContentControlStyle}" TargetType="ContentControl">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsEditingDisabled}" Value="True">
+                                                                    <Setter Property="IsEnabled" Value="False" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
+                                            </Grid>
+                                            <ItemsControl Margin="112,4,0,0" ItemsSource="{Binding ValidationMessages}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type designer:FrontedLayoutValidationMessage}">
+                                                        <TextBlock
+                                                            FontSize="12"
+                                                            Text="{Binding Message}"
+                                                            TextWrapping="Wrap">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static designer:FrontedLayoutValidationSeverity.Warning}">
+                                                                            <Setter Property="Foreground" Value="#F59E0B" />
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static designer:FrontedLayoutValidationSeverity.Error}">
+                                                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Opacity="0.65"
+                                Text="{lex:Loc NoSelectedControl}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                        <Expander
+                            x:Name="BehaviorExpander"
+                            Grid.Row="3"
+                            Margin="0,4,0,8"
+                            Expanded="BehaviorExpander_OnExpanded"
+                            Header="{lex:Loc Designer.Behaviors.Header}">
+                            <Expander.Style>
+                                <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Expander.Style>
+                            <frontedDesignerViews:BehaviorPanelView
+                                x:Name="BehaviorPanelHost"
+                                Margin="0,8,0,0"
+                                DataContext="{Binding BehaviorPanel}" />
+                        </Expander>
+                        <Expander
+                            x:Name="AnimationPartsPanelHost"
+                            Grid.Row="4"
+                            Margin="0,4,0,8"
+                            Header="{lex:Loc Designer.AnimationParts.Title}"
+                            IsExpanded="False">
+                            <Expander.Style>
+                                <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasAnimationPartEditor}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Expander.Style>
+                            <StackPanel Margin="0,8,0,0">
+                                <Border
+                                    Padding="8"
+                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                    CornerRadius="4">
+                                    <TextBlock
+                                        FontSize="12"
+                                        Opacity="0.78"
+                                        Text="{lex:Loc Designer.AnimationParts.Description}"
+                                        TextWrapping="Wrap" />
+                                </Border>
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <ListBox
+                                        MinHeight="54"
+                                        MaxHeight="150"
+                                        ItemsSource="{Binding AnimationPartEditorItems}"
+                                        SelectedItem="{Binding SelectedAnimationPart, Mode=TwoWay}">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type frontedLayout:FrontedAnimationPartConfig}">
+                                                <Grid Margin="2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock FontWeight="SemiBold" Text="{Binding Name}" />
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        Margin="8,0,0,0"
+                                                        FontSize="12"
+                                                        Opacity="0.72">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Kind.Rectangle}" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static frontedLayout:FrontedAnimationPartKind.Border}">
+                                                                        <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Kind.Border}" />
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Kind}" Value="{x:Static frontedLayout:FrontedAnimationPartKind.Image}">
+                                                                        <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Kind.Image}" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Opacity="0.65"
+                                        Text="{lex:Loc Designer.AnimationParts.Empty}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding AnimationPartEditorItems.Count}" Value="0">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <UniformGrid
+                                        Grid.Row="1"
+                                        Margin="0,8,0,0"
+                                        Columns="2">
+                                        <ui:Button
+                                            Margin="0,0,4,0"
+                                            Command="{Binding AddAnimationPartCommand}"
+                                            Content="{lex:Loc Designer.AnimationParts.Add}"
+                                            Icon="{ui:SymbolIcon Symbol=Add24}" />
+                                        <ui:Button
+                                            Margin="4,0,0,0"
+                                            Command="{Binding RemoveAnimationPartCommand}"
+                                            Content="{lex:Loc Designer.AnimationParts.Remove}"
+                                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                                    </UniformGrid>
+                                </Grid>
+                                <Border
+                                    Margin="0,10,0,0"
+                                    Padding="10"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasSelectedAnimationPart}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel DataContext="{Binding AnimationPartEditBuffer}">
+                                        <TextBlock
+                                            Margin="0,0,0,8"
+                                            FontWeight="SemiBold"
+                                            Text="{lex:Loc Designer.AnimationParts.EditorTitle}" />
+                                        <TextBlock Text="{lex:Loc Designer.Property.Name}" />
+                                        <ui:TextBox
+                                            Margin="0,3,0,8"
+                                            PlaceholderText="{lex:Loc Designer.AnimationParts.NamePlaceholder}"
+                                            Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                            Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                        <UniformGrid Columns="2">
+                                            <StackPanel Margin="0,0,4,0">
+                                                <TextBlock Text="{lex:Loc Designer.AnimationParts.Kind}" />
+                                                <ComboBox
+                                                    Margin="0,3,0,8"
+                                                    SelectedValue="{Binding Kind}"
+                                                    SelectedValuePath="Tag">
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Rectangle}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Rectangle}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Border}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Border}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Kind.Image}" Tag="{x:Static frontedLayout:FrontedAnimationPartKind.Image}" />
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <StackPanel Margin="4,0,0,0">
+                                                <TextBlock Text="{lex:Loc Designer.AnimationParts.Layer}" />
+                                                <ComboBox
+                                                    Margin="0,3,0,8"
+                                                    SelectedValue="{Binding Layer}"
+                                                    SelectedValuePath="Tag">
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Layer.AboveContent}" Tag="{x:Static frontedLayout:FrontedAnimationPartLayer.AboveContent}" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.Layer.BelowContent}" Tag="{x:Static frontedLayout:FrontedAnimationPartLayer.BelowContent}" />
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </UniformGrid>
+                                        <TextBlock
+                                            Margin="0,4,0,6"
+                                            FontWeight="SemiBold"
+                                            Opacity="0.78"
+                                            Text="{lex:Loc Designer.AnimationParts.LayoutSection}" />
+                                        <UniformGrid Columns="2">
+                                            <StackPanel Margin="0,0,4,0">
+                                                <TextBlock Text="{lex:Loc Designer.Property.Width}" />
+                                                <ui:TextBox
+                                                    Margin="0,3,0,8"
+                                                    PlaceholderText="{lex:Loc Designer.AnimationParts.SizePlaceholder}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding WidthText, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="4,0,0,0">
+                                                <TextBlock Text="{lex:Loc Designer.Property.Height}" />
+                                                <ui:TextBox
+                                                    Margin="0,3,0,8"
+                                                    PlaceholderText="{lex:Loc Designer.AnimationParts.SizePlaceholder}"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding HeightText, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </UniformGrid>
+                                        <UniformGrid Columns="2">
+                                            <StackPanel Margin="0,0,4,0">
+                                                <TextBlock Text="{lex:Loc Designer.Property.Left}" />
+                                                <ui:TextBox
+                                                    Margin="0,3,0,8"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding LeftText, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="4,0,0,0">
+                                                <TextBlock Text="{lex:Loc Designer.Property.Top}" />
+                                                <ui:TextBox
+                                                    Margin="0,3,0,8"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding TopText, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </UniformGrid>
+                                        <UniformGrid Columns="2">
+                                            <StackPanel Margin="0,0,4,0">
+                                                <TextBlock Text="{lex:Loc Designer.Property.ZIndex}" />
+                                                <ui:TextBox
+                                                    Margin="0,3,0,8"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding ZIndexText, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="4,0,0,0">
+                                                <TextBlock Text="{lex:Loc Designer.Property.Visibility}" />
+                                                <ComboBox
+                                                    Margin="0,3,0,8"
+                                                    SelectedValue="{Binding Visibility}"
+                                                    SelectedValuePath="Tag">
+                                                    <ComboBoxItem Content="{lex:Loc Designer.Visibility.Visible}" Tag="Visible" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.Visibility.Hidden}" Tag="Hidden" />
+                                                    <ComboBoxItem Content="{lex:Loc Designer.Visibility.Collapsed}" Tag="Collapsed" />
+                                                </ComboBox>
+                                            </StackPanel>
+                                        </UniformGrid>
+                                        <TextBlock
+                                            Margin="0,4,0,6"
+                                            FontWeight="SemiBold"
+                                            Opacity="0.78"
+                                            Text="{lex:Loc Designer.AnimationParts.AppearanceSection}" />
+                                        <UniformGrid Columns="2">
+                                            <UniformGrid.Style>
+                                                <Style TargetType="UniformGrid">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsShape}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </UniformGrid.Style>
+                                            <StackPanel Margin="0,0,4,0">
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Fill}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsBorder}" Value="True">
+                                                                    <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Background}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <Grid Margin="0,3,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <colorpicker:PortableColorPicker
+                                                        Width="52"
+                                                        Height="30"
+                                                        Margin="0,0,6,0"
+                                                        HexRepresentation="ARGB"
+                                                        SelectedColor="{Binding FillColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        ShowAlpha="True"
+                                                        Style="{StaticResource DefaultColorPickerStyle}" />
+                                                    <ui:TextBox
+                                                        Grid.Column="1"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding Fill, UpdateSourceTrigger=PropertyChanged}" />
+                                                </Grid>
+                                            </StackPanel>
+                                            <StackPanel Margin="4,0,0,0">
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.Stroke}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsBorder}" Value="True">
+                                                                    <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.BorderBrush}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <Grid Margin="0,3,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <colorpicker:PortableColorPicker
+                                                        Width="52"
+                                                        Height="30"
+                                                        Margin="0,0,6,0"
+                                                        HexRepresentation="ARGB"
+                                                        SelectedColor="{Binding StrokeColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        ShowAlpha="True"
+                                                        Style="{StaticResource DefaultColorPickerStyle}" />
+                                                    <ui:TextBox
+                                                        Grid.Column="1"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding Stroke, UpdateSourceTrigger=PropertyChanged}" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </UniformGrid>
+                                        <UniformGrid Columns="2">
+                                            <UniformGrid.Style>
+                                                <Style TargetType="UniformGrid">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsShape}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </UniformGrid.Style>
+                                            <StackPanel Margin="0,0,4,0">
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Text" Value="{lex:Loc Designer.Property.StrokeThickness}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsBorder}" Value="True">
+                                                                    <Setter Property="Text" Value="{lex:Loc Designer.AnimationParts.BorderThickness}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <ui:TextBox
+                                                    Margin="0,3,0,8"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding StrokeThicknessText, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="4,0,0,0">
+                                                <TextBlock Text="{lex:Loc Designer.Property.Opacity}" />
+                                                <ui:TextBox
+                                                    Margin="0,3,0,8"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding OpacityText, UpdateSourceTrigger=PropertyChanged}" />
+                                            </StackPanel>
+                                        </UniformGrid>
+                                        <StackPanel>
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsImage}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <TextBlock Text="{lex:Loc Designer.AnimationParts.StaticImage}" />
+                                            <ui:TextBox
+                                                Margin="0,3,0,8"
+                                                IsReadOnly="True"
+                                                PlaceholderText="{lex:Loc Designer.AnimationParts.NoImageSelected}"
+                                                Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                Text="{Binding ImagePath, UpdateSourceTrigger=PropertyChanged}"
+                                                ToolTip="{Binding ImagePath}" />
+                                            <UniformGrid Margin="0,0,0,8" Columns="2">
+                                                <ui:Button
+                                                    Margin="0,0,4,0"
+                                                    Click="BrowseAnimationPartImageResourceButton_OnClick"
+                                                    Content="{lex:Loc BrowseResource}"
+                                                    Icon="{ui:SymbolIcon Symbol=ImageSearch24}" />
+                                                <ui:Button
+                                                    Margin="4,0,0,0"
+                                                    Click="ChooseLocalAnimationPartImageButton_OnClick"
+                                                    Content="{lex:Loc ChooseLocalImage}"
+                                                    Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                            </UniformGrid>
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <StackPanel.Style>
+                                                <Style TargetType="StackPanel">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsImage}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Style>
+                                            <TextBlock Text="{lex:Loc Designer.Property.Opacity}" />
+                                            <ui:TextBox
+                                                Margin="0,3,0,8"
+                                                Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                Text="{Binding OpacityText, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <CheckBox
+                                            Margin="0,2,0,8"
+                                            Content="{lex:Loc Designer.AnimationParts.IsHitTestVisible}"
+                                            IsChecked="{Binding IsHitTestVisible, Mode=TwoWay}" />
+                                        <TextBlock
+                                            Margin="0,4,0,6"
+                                            FontWeight="SemiBold"
+                                            Opacity="0.78"
+                                            Text="{lex:Loc Designer.AnimationParts.EffectSection}" />
+                                        <StackPanel Margin="0,0,0,8">
+                                            <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectKind}" />
+                                            <ComboBox
+                                                Margin="0,3,0,8"
+                                                SelectedValue="{Binding EffectKind, Mode=TwoWay}"
+                                                SelectedValuePath="Tag">
+                                                <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.None}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.None}" />
+                                                <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.Glow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.Glow}" />
+                                                <ComboBoxItem Content="{lex:Loc Designer.AnimationParts.EffectKind.DropShadow}" Tag="{x:Static frontedLayout:FrontedVisualEffectKind.DropShadow}" />
+                                            </ComboBox>
+                                            <StackPanel>
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding IsShadowEffect}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style>
+                                                </StackPanel.Style>
+                                            <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectColor}" />
+                                            <Grid Margin="0,3,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <colorpicker:PortableColorPicker
+                                                    Width="52"
+                                                    Height="30"
+                                                    Margin="0,0,6,0"
+                                                    HexRepresentation="ARGB"
+                                                    SelectedColor="{Binding EffectPickerColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    ShowAlpha="True"
+                                                    Style="{StaticResource DefaultColorPickerStyle}" />
+                                                <ui:TextBox
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                    Text="{Binding EffectColor, UpdateSourceTrigger=PropertyChanged}" />
+                                            </Grid>
+                                            <UniformGrid Columns="2">
+                                                <StackPanel Margin="0,0,4,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectOpacity}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectOpacityText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="4,0,0,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectBlurRadius}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectBlurRadiusText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="0,0,4,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectShadowDepth}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectShadowDepthText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="4,0,0,0">
+                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectDirection}" />
+                                                    <ui:TextBox
+                                                        Margin="0,3,0,8"
+                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                        Text="{Binding EffectDirectionText, UpdateSourceTrigger=PropertyChanged}" />
+                                                </StackPanel>
+                                            </UniformGrid>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                                <ui:Button
+                                    Margin="0,10,0,0"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding DataContext.ApplyAnimationPartEditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    Content="{lex:Loc Designer.AnimationParts.Apply}"
+                                    Icon="{ui:SymbolIcon Symbol=Checkmark24}">
+                                    <ui:Button.Style>
+                                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasSelectedAnimationPart}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:Button.Style>
+                                </ui:Button>
+                            </StackPanel>
+                        </Expander>
+                        <Expander
+                            Grid.Row="5"
+                            Margin="0,4,0,8"
+                            Header="{lex:Loc CanvasProperties}">
+                            <StackPanel Margin="0,8,0,0">
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasWidth}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding CanvasWidthEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasHeight}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding CanvasHeightEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <ui:Button
+                                    Margin="112,0,0,8"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding ApplyCanvasSizeCommand}"
+                                    Content="{lex:Loc Apply}" />
+                                <CheckBox
+                                    Margin="0,0,0,8"
+                                    Content="{lex:Loc Designer.Canvas.EnableBoModeStates}"
+                                    IsChecked="{Binding EnableBoModeStates, Mode=TwoWay}" />
+                                <StackPanel Margin="0,0,0,8" Visibility="{Binding IsBoModeStateSelectorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="112" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock VerticalAlignment="Center" Text="{lex:Loc Designer.Canvas.CurrentBoModeState}" />
+                                        <ComboBox
+                                            Grid.Column="1"
+                                            DisplayMemberPath="DisplayName"
+                                            ItemsSource="{Binding BoModeStateOptions}"
+                                            SelectedItem="{Binding SelectedBoModeStateOption, Mode=TwoWay}" />
+                                    </Grid>
+                                    <ui:Button
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding CopyBo5ToBo3Command}"
+                                        Content="{lex:Loc Designer.Canvas.CopyBo5ToBo3}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc BackgroundImage}" />
+                                <ui:TextBox
+                                    MinHeight="30"
+                                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
+                                    Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ApplyBackgroundImageCommand}"
+                                        Content="{lex:Loc Apply}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Click="BrowseCanvasBackgroundResourceButton_OnClick"
+                                        Content="{lex:Loc BrowseResource}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Click="ChooseLocalCanvasBackgroundButton_OnClick"
+                                        Content="{lex:Loc ChooseLocalImage}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ClearBackgroundImageCommand}"
+                                        Content="{lex:Loc ClearBackground}" />
+                                </WrapPanel>
+                                <TextBlock
+                                    FontSize="12"
+                                    Opacity="0.78"
+                                    Text="{Binding CanvasPropertiesStatus}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Expander>
+                        <Expander
+                            Grid.Row="6"
+                            Margin="0,0,0,8"
+                            Header="{lex:Loc WindowOptions}"
+                            IsExpanded="False">
+                            <StackPanel Margin="0,8,0,0">
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding WindowOptionsWindowTypeName}" />
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowWidth}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding WindowWidthEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowHeight}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding WindowHeightEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <ui:Button
+                                    Margin="112,0,0,8"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding ApplyWindowSizeCommand}"
+                                    Content="{lex:Loc Apply}" />
+                                <ui:ToggleSwitch Content="{lex:Loc AllowTransparency}" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
+                                <TextBlock Margin="0,10,0,4" Text="{lex:Loc BackgroundColor}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <colorpicker:PortableColorPicker
+                                        Grid.Column="0"
+                                        Width="60"
+                                        Height="30"
+                                        Margin="0,0,8,0"
+                                        HexRepresentation="ARGB"
+                                        SelectedColor="{Binding WindowBackgroundColorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        ShowAlpha="True"
+                                        Style="{StaticResource DefaultColorPickerStyle}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        KeyDown="WindowBackgroundColorTextBox_OnKeyDown"
+                                        MaxLength="9"
+                                        Text="{Binding WindowBackgroundColorEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+                                    <ui:Button
+                                        Grid.Column="2"
+                                        MinWidth="34"
+                                        Margin="6,0,0,0"
+                                        Click="WindowBackgroundColorApplyButton_OnClick"
+                                        Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                                        ToolTip="{lex:Loc ApplyColor}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                </Grid>
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    FontSize="12"
+                                    Opacity="0.78"
+                                    Text="{Binding WindowOptionsStatus}"
+                                    TextWrapping="Wrap" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ResetWindowOptionsCommand}"
+                                        Content="{lex:Loc Reset}" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Expander>
+                    </Grid>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <Border
+            Grid.Row="3"
+            Padding="12,8"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Padding="8,4"
+                        Click="OpenValidationDetails_OnClick"
+                        Content="{Binding StatusMessage}"
+                        Icon="{ui:SymbolIcon Symbol=Info24}"
+                        ToolTip="{lex:Loc OpenValidationDetails}" />
+                    <ComboBox
+                        Width="90"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        DisplayMemberPath="DisplayName"
+                        IsEditable="True"
+                        ItemsSource="{Binding ManualZoomPresets}"
+                        SelectionChanged="ZoomComboBox_OnSelectionChanged"
+                        Text="{Binding ZoomEditText, Mode=OneWay}" />
+                    <Slider
+                        Width="160"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        LargeChange="25"
+                        Maximum="400"
+                        Minimum="25"
+                        SmallChange="1"
+                        TickFrequency="25"
+                        Value="{Binding ZoomPercent, Mode=TwoWay}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Command="{Binding FitToWindowCommand}"
+                        Content="{lex:Loc Fit}"
+                        ToolTip="{lex:Loc Fit}" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="{Binding CurrentWindowCanvasDisplay}" />
+                    <ui:Button
+                        x:Name="DesignerHelpButton"
+                        Margin="10,0,0,0"
+                        Padding="6,4"
+                        Click="OpenDesignerHelp_OnClick"
+                        Icon="{ui:SymbolIcon Symbol=QuestionCircle24}"
+                        ToolTip="{lex:Loc Designer.Help.Open}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ui:FluentWindow>

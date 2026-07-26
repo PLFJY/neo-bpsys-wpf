@@ -17,6 +17,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Net.Http;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -32,24 +33,65 @@ public partial class SettingPageViewModel : ViewModelBase
     private bool _isSyncingMirror;
     private bool _isSyncingPreRelease;
 
-    [ObservableProperty] private string _appVersion = string.Empty;
+    /// <summary>
+    /// 应用版本号。
+    /// </summary>
+    [ObservableProperty]
+    public partial string AppVersion { get; set; } = string.Empty;
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
-    private bool _isDownloading;
+    /// <summary>
+    /// 是否正在下载更新。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
+    public partial bool IsDownloading { get; set; }
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
-    private bool _isDownloadFinished;
+    /// <summary>
+    /// 更新是否已下载完成。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
+    public partial bool IsDownloadFinished { get; set; }
 
-    [ObservableProperty] private string _downloadProgressText = string.Empty;
+    /// <summary>
+    /// 下载进度文本（百分比）。
+    /// </summary>
+    [ObservableProperty]
+    public partial string DownloadProgressText { get; set; } = string.Empty;
 
-    [ObservableProperty] private double _downloadProgress;
+    /// <summary>
+    /// 下载进度值（0-100）。
+    /// </summary>
+    [ObservableProperty]
+    public partial double DownloadProgress { get; set; }
 
-    [ObservableProperty] private string _mbPerSecondSpeed = string.Empty;
+    /// <summary>
+    /// 下载速度文本（MB/s）。
+    /// </summary>
+    [ObservableProperty]
+    public partial string MbPerSecondSpeed { get; set; } = string.Empty;
 
-    [ObservableProperty] private string _mirror = DownloadMirrorPresets.DefaultMirror;
-    
-    [ObservableProperty] private bool _isFindPreRelease;
+    /// <summary>
+    /// GitHub 代理镜像地址。
+    /// </summary>
+    [ObservableProperty]
+    public partial string Mirror { get; set; } = DownloadMirrorPresets.DefaultMirror;
 
+    /// <summary>
+    /// 获取或设置 GitHub 镜像设置入口是否可见。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsGitHubMirrorSettingVisible { get; set; }
+
+    /// <summary>
+    /// 是否查找预发布版本。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsFindPreRelease { get; set; }
+
+    /// <summary>
+    /// 代理镜像选项列表。
+    /// </summary>
     public ObservableCollection<PluginMarketMirrorOption> MirrorList { get; } =
         new(DownloadMirrorPresets.GhProxyMirrorList.Select(
             mirror => new PluginMarketMirrorOption
@@ -137,6 +179,7 @@ public partial class SettingPageViewModel : ViewModelBase
         try
         {
             Mirror = mirror;
+            IsGitHubMirrorSettingVisible = IsChineseCultureForGitHubMirror();
             IsFindPreRelease = _settingsHostService.Settings.IsFindPreRelease;
             UpdaterService.IsFindPreRelease = IsFindPreRelease;
         }
@@ -146,6 +189,77 @@ public partial class SettingPageViewModel : ViewModelBase
             _isSyncingPreRelease = false;
         }
     }
+
+    private bool IsChineseCultureForGitHubMirror() =>
+        _settingsHostService.Settings.CultureInfo.Name.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// 是否正在测试镜像延迟。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(TestMirrorLatencyCommand))]
+    public partial bool IsTestingLatency { get; set; }
+
+    /// <summary>
+    /// 连通性测试使用的 Chrome 浏览器 User-Agent，避免部分 ghproxy 镜像拦截无 UA 请求。
+    /// </summary>
+    private const string MirrorLatencyTestUserAgent =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
+
+    /// <summary>
+    /// 测试所有镜像的延迟。
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanTestMirrorLatency))]
+    private async Task TestMirrorLatency()
+    {
+        if (IsTestingLatency) return;
+
+        IsTestingLatency = true;
+        try
+        {
+            // 重置所有延迟
+            foreach (var item in MirrorList)
+            {
+                item.LatencyMs = null;
+            }
+
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(MirrorLatencyTestUserAgent);
+
+            var tasks = MirrorList.Select(async item =>
+            {
+                // 直连模式测试 GitHub 本身
+                var testUrl = string.IsNullOrWhiteSpace(item.Value)
+                    ? "https://github.com/"
+                    : item.Value;
+
+                try
+                {
+                    var sw = Stopwatch.StartNew();
+                    using var request = new HttpRequestMessage(HttpMethod.Head, testUrl);
+                    using var response = await httpClient.SendAsync(request);
+                    sw.Stop();
+
+                    item.LatencyMs = response.IsSuccessStatusCode
+                        ? (int)sw.ElapsedMilliseconds
+                        : -1;
+                }
+                catch
+                {
+                    item.LatencyMs = -1;
+                }
+            });
+
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            IsTestingLatency = false;
+        }
+    }
+
+    private bool CanTestMirrorLatency() => !IsTestingLatency;
 
     #endregion
 }

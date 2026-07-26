@@ -5,12 +5,16 @@ using neo_bpsys_wpf.Core.Helpers;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+using neo_bpsys_wpf.Core.Extensions;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 对局类, 创建需要导入 <see cref="Core.Models.Game.SurTeam"/> 和 <see cref="Core.Models.Game.HunTeam"/> 两支队伍以及对局进度
 /// </summary>
+[FrontedBindingObject]
 public partial class Game : ObservableObjectBase
 {
     #region 对局基本信息
@@ -18,11 +22,13 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 对局GUID
     /// </summary>
+    [FrontedBindingIgnore]
     public Guid Guid { get; }
 
     /// <summary>
     /// 对局开始时间
     /// </summary>
+    [FrontedBindingIgnore]
     public DateTime StartTime { get; }
 
     private Team _surTeam = new(Camp.Sur, TeamType.HomeTeam);
@@ -60,7 +66,13 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 对局进度
     /// </summary>
-    [ObservableProperty] private GameProgress _gameProgress;
+    [ObservableProperty]
+    public partial GameProgress GameProgress { get; set; }
+
+    /// <summary>
+    /// Score System v2 的权威比分状态。
+    /// </summary>
+    public MatchScoreState MatchScore { get; }
 
     #endregion
 
@@ -69,12 +81,16 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 当局求生者禁用列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _currentSurBannedList = [];
+    [ObservableProperty]
+    [FrontedBindingCollection(FixedCount = AppConstants.CurrentBanSurCount)]
+    public partial ObservableCollection<Character?> CurrentSurBannedList { get; set; } = [];
 
     /// <summary>
     /// 当局监管者禁用列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _currentHunBannedList = [];
+    [ObservableProperty]
+    [property: FrontedBindingCollection(FixedCount = AppConstants.CurrentBanHunCount)]
+    private ObservableCollection<Character?> _currentHunBannedList = [];
 
     #endregion
 
@@ -93,6 +109,7 @@ public partial class Game : ObservableObjectBase
     /// <param name="hunPlayerData">监管者选手数据(用于恢复记录)</param>
     /// <param name="currentSurBannedList">求生者禁用列表(用于恢复记录)</param>
     /// <param name="currentHunBannedList">监管者禁用列表(用于恢复记录)</param>
+    /// <param name="matchScore">Score System v2 比分状态(用于恢复记录)</param>
     [JsonConstructor]
     public Game(Team surTeam, Team hunTeam,
         GameProgress gameProgress, Map? pickedMap = null, Map? bannedMap = null,
@@ -101,7 +118,8 @@ public partial class Game : ObservableObjectBase
         ObservableCollection<Player>? surPlayersData = null,
         Player? hunPlayerData = null,
         ObservableCollection<Character?>? currentSurBannedList = null,
-        ObservableCollection<Character?>? currentHunBannedList = null)
+        ObservableCollection<Character?>? currentHunBannedList = null,
+        MatchScoreState? matchScore = null)
     {
         //基本信息初始化
         Guid = guid == Guid.Empty ? Guid.NewGuid() : guid;
@@ -111,6 +129,8 @@ public partial class Game : ObservableObjectBase
         SurTeam.Camp = Camp.Sur;
         HunTeam = hunTeam;
         HunTeam.Camp = Camp.Hun;
+        MatchScore = matchScore ?? MatchScoreState.CreateDefault();
+        MatchScore.Recalculate(isBo3Mode: false);
         //初始化对局进度
         GameProgress = gameProgress;
 
@@ -173,6 +193,12 @@ public partial class Game : ObservableObjectBase
         }
     }
 
+    partial void OnGameProgressChanged(GameProgress value)
+    {
+        // GameProgress.Game3Overtime* 与 Game4* 在 enum 中共享数值。
+        // 仅凭 Game 无法知道当前是 BO3 加赛还是 BO5 第四局，当前显示刷新由 MatchScoreService 结合共享状态处理。
+    }
+
     #region 上场选手
 
     [JsonInclude] internal ObservableCollection<Player> SurPlayersData { get; }
@@ -180,7 +206,9 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 上场选手(求生者)
     /// </summary>
-    [JsonIgnore] public ReadOnlyObservableCollection<Player> SurPlayerList { get; }
+    [JsonIgnore]
+    [FrontedBindingCollection(FixedCount = 4)]
+    public ReadOnlyObservableCollection<Player> SurPlayerList { get; }
 
     [JsonInclude] internal Player HunPlayerData => HunPlayer;
 
@@ -236,34 +264,41 @@ public partial class Game : ObservableObjectBase
     {
         get => _bannedMap;
         set => SetPropertyWithAction(ref _bannedMap, value,
-            _ => BannedMapImage =
-                ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, _bannedMap.ToString()));
+            _ =>
+            {
+                var imageSource = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, _bannedMap.ToString())?.ToGrayKeepAlpha();
+                var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                if (banMark != null)
+                    imageSource = imageSource?.Overlay(banMark);
+                BannedMapImage = imageSource;
+            });
     }
 
     /// <summary>
     /// 选择的地图的图片
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private ImageSource? _pickedMapImage;
+    [JsonIgnore]
+    public partial ImageSource? PickedMapImage { get; set; }
 
     /// <summary>
     /// 选择的地图的图片
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private ImageSource? _pickedMapImageLarge;
+    [JsonIgnore]
+    public partial ImageSource? PickedMapImageLarge { get; set; }
 
     /// <summary>
     /// Ban掉的地图的图片
     /// </summary>
     [ObservableProperty]
-    [property: JsonIgnore]
-    private ImageSource? _bannedMapImage;
+    [JsonIgnore]
+    public partial ImageSource? BannedMapImage { get; set; }
 
     /// <summary>
     /// 地图V2字典
     /// </summary>
+    [FrontedBindingIgnore]
     public Dictionary<string, MapV2> MapV2Dictionary { get; }
 
     /// <summary>
@@ -309,6 +344,7 @@ public partial class Game : ObservableObjectBase
             map.Value.IsPicked = false;
             map.Value.OperationTeam = null;
             map.Value.IsBanned = false;
+            map.Value.IsGloballyDisabled = false;
         }
     }
 

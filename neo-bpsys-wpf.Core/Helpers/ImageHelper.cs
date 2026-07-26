@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Enums;
 using System.IO;
 using System.Windows;
@@ -11,62 +12,77 @@ namespace neo_bpsys_wpf.Core.Helpers;
 /// </summary>
 public static class ImageHelper
 {
+    private static ILogger? Logger => IAppHost.TryGetService<ILogger>();
 
     /// <summary>
-    /// Get Ui ImageBrush from Resources\bpui\
+    /// 从 Resources\bpui\ 获取 UI ImageBrush
     /// </summary>
-    /// <param name="key">ui _image filename without filename extension</param>
+    /// <param name="key">ui 图片文件名（不含扩展名）</param>
     /// <returns></returns>
-    public static ImageBrush GetUiImageBrush(string key)
+    public static ImageBrush? GetUiImageBrush(string key)
     {
-        return new ImageBrush(
-            new BitmapImage(
-                new Uri(
-                    Path.Combine(
-                        AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui),
-                        key + ".png"
-                    )
-                )
-            )
-        );
+        if (string.IsNullOrEmpty(key)) return null;
+        var image = GetUiImageSource(key);
+        if(image == null) return null;
+        return new ImageBrush(image);
     }
 
     /// <summary>
-    /// Get Ui ImageSource from Resources\bpui\
+    /// 从 Resources\bpui\ 获取 UI ImageSource
     /// </summary>
-    /// <param name="key">ui _image filename without filename extension</param>
+    /// <param name="key">ui 图片文件名（不含扩展名）</param>
     /// <returns></returns>
-    public static ImageSource GetUiImageSource(string key)
+    public static ImageSource? GetUiImageSource(string key)
     {
-        return new BitmapImage(
-            new Uri(
-                Path.Combine(
-                    AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui), key + ".png"
-                )
-            )
-        );
+        if (string.IsNullOrEmpty(key)) return null;
+        var fileFullName = Path.Combine(AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui), key + ".png");
+        if (!File.Exists(fileFullName)) return null;
+        var image = new BitmapImage(new Uri(fileFullName));
+        image.Freeze();
+        return image;
     }
 
     /// <summary>
-    /// Get ImageSource from corresponding Resources folder
+    /// 从对应的 Resources 文件夹获取 ImageSource
     /// </summary>
     /// <param name="key">ImageSourceKey</param>
-    /// <param name="fileName">file name</param>
+    /// <param name="fileName">文件名</param>
     /// <returns></returns>
     public static ImageSource? GetImageSourceFromFileName(ImageSourceKey key, string? fileName)
     {
         if (string.IsNullOrEmpty(fileName)) return null;
 
         var fileFullName = Path.Combine(AppConstants.ResourcesPath, key.ToString(), fileName);
+        if (!File.Exists(fileFullName)) return null;
+        var image = new BitmapImage(new Uri(fileFullName));
+        image.Freeze();
 
-        return !File.Exists(fileFullName) ? null : new BitmapImage(new Uri(fileFullName));
+        return image;
     }
 
     /// <summary>
-    /// Get ImageSource from corresponding Resources folder
+    /// 从对应的 Resources 文件夹获取 ImageSource
+    /// </summary>
+    /// <param name="key">ImageSourceKey</param>
+    /// <param name="fileName">文件名</param>
+    /// <returns></returns>
+    public static ImageSource? GetImageSourceFromFileName(string key, string? fileName)
+    {
+        if (string.IsNullOrEmpty(fileName)) return null;
+
+        var fileFullName = Path.Combine(AppConstants.ResourcesPath, key, fileName);
+        if(!File.Exists(fileFullName)) return null;
+        var image = new BitmapImage(new Uri(fileFullName));
+        image.Freeze();
+
+        return image;
+    }
+
+    /// <summary>
+    /// 从对应的 Resources 文件夹获取 ImageSource
     /// </summary>
     /// <param name="key"></param>
-    /// <param name="name">resource name without filename extension</param>
+    /// <param name="name">资源名称（不含扩展名）</param>
     /// <returns></returns>
     public static ImageSource? GetImageSourceFromName(ImageSourceKey key, string? name)
     {
@@ -78,11 +94,11 @@ public static class ImageHelper
     }
 
     /// <summary>
-    /// Get Talent ImageSource corresponding Resources folder
+    /// 从对应的 Resources 文件夹获取天赋 ImageSource
     /// </summary>
     /// <param name="camp"></param>
-    /// <param name="name">Talent Name</param>
-    /// <param name="isBlackVerEnable">Is Black Ver Enable</param>
+    /// <param name="name">天赋名称</param>
+    /// <param name="isBlackVerEnable">是否启用黑色版本</param>
     /// <returns></returns>
     public static ImageSource? GetTalentImageSource(Camp camp, string? name, bool isBlackVerEnable)
     {
@@ -100,10 +116,10 @@ public static class ImageHelper
     }
 
     /// <summary>
-    /// Get Trait ImageSource corresponding Resources folder
+    /// 从对应的 Resources 文件夹获取特质 ImageSource
     /// </summary>
-    /// <param name="trait">Trait</param>
-    /// <param name="isBlackTalentAndTraitEnable">Is Black Ver Enable</param>
+    /// <param name="trait">特质</param>
+    /// <param name="isBlackTalentAndTraitEnable">是否启用黑色版本</param>
     /// <returns></returns>
     public static ImageSource? GetTraitImageSource(TraitType? trait, bool isBlackTalentAndTraitEnable)
     {
@@ -144,6 +160,7 @@ public static class ImageHelper
         catch (Exception ex)
         {
             // ignored
+            Logger?.LogWarning(ex, "Failed to load image from {Uri}", uriStr);
 #if DEBUG
             MessageBox.Show(ex.Message);
 #endif

@@ -1,9 +1,11 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Extensions;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
@@ -12,6 +14,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 地图BP v2
 /// </summary>
+[FrontedBindingObject]
 public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMessage<bool>>
 {
     /// <summary>
@@ -24,10 +27,10 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImageSource))]
-    [NotifyPropertyChangedFor(nameof(MapBorderBrush))]
     [NotifyPropertyChangedFor(nameof(CanBePicked))]
     [NotifyPropertyChangedFor(nameof(CanBeBanned))]
-    private bool _isPicked;
+    [NotifyPropertyChangedFor(nameof(CanBeGloballyDisabled))]
+    public partial bool IsPicked { get; set; }
 
     private bool _isBanned;
 
@@ -40,12 +43,32 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
         set => SetPropertyWithAction(ref _isBanned, value, oldValue =>
         {
             OnPropertyChanged(nameof(ImageSource));
-            OnPropertyChanged(nameof(MapBorderBrush));
             OnPropertyChanged(nameof(IsBreathing));
             OnPropertyChanged(nameof(CanBePicked));
             OnPropertyChanged(nameof(CanBeBanned));
+            OnPropertyChanged(nameof(IsVisuallyBanned));
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBanned), oldValue,
                 value));
+        });
+    }
+
+    private bool _isGloballyDisabled;
+
+    /// <summary>
+    /// 地图是否被全局禁用（无操作方，禁止Ban/Pick）
+    /// </summary>
+    public bool IsGloballyDisabled
+    {
+        get => _isGloballyDisabled;
+        set => SetPropertyWithAction(ref _isGloballyDisabled, value, oldValue =>
+        {
+            OnPropertyChanged(nameof(ImageSource));
+            OnPropertyChanged(nameof(IsBreathing));
+            OnPropertyChanged(nameof(CanBePicked));
+            OnPropertyChanged(nameof(CanBeBanned));
+            OnPropertyChanged(nameof(IsVisuallyBanned));
+            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGloballyDisabled),
+                oldValue, value));
         });
     }
 
@@ -54,17 +77,28 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCampVisible))]
-    private Team? _operationTeam;
+    public partial Team? OperationTeam { get; set; }
 
     /// <summary>
     /// 地图是否可被选
     /// </summary>
-    public bool CanBePicked => !IsBanned;
+    public bool CanBePicked => !IsBanned && !IsGloballyDisabled;
 
     /// <summary>
     /// 地图是否可被Ban
     /// </summary>
-    public bool CanBeBanned => !IsPicked;
+    public bool CanBeBanned => !IsPicked && !IsGloballyDisabled;
+
+    /// <summary>
+    /// 地图是否可被全局禁用
+    /// </summary>
+    public bool CanBeGloballyDisabled => !IsPicked;
+
+    /// <summary>
+    /// 地图是否在视觉上表现为禁用状态（被Ban或被全局禁用）
+    /// </summary>
+    [JsonIgnore]
+    public bool IsVisuallyBanned => IsBanned || IsGloballyDisabled;
 
     private bool _isCampVisible;
 
@@ -86,8 +120,8 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     [JsonIgnore]
     public bool IsBreathing
     {
-        //如果是Ban就会灭掉
-        get => !IsBanned && _isBreathing;
+        //如果是Ban或全局禁用就会灭掉
+        get => !IsBanned && !IsGloballyDisabled && _isBreathing;
         set => SetProperty(ref _isBreathing, value);
     }
 
@@ -108,52 +142,32 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     {
         get
         {
-            _imageSourceBanned ??=
-                ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, MapName.ToString());
             _imageSourceNormal ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, MapName.ToString());
-            return IsBanned ? _imageSourceBanned : _imageSourceNormal;
+            if(_imageSourceBanned == null)
+            {
+                _imageSourceBanned ??= _imageSourceNormal?.ToGrayKeepAlpha();
+
+                var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                if (banMark != null)
+                    _imageSourceBanned = _imageSourceBanned?.Overlay(banMark);
+            }
+            return IsVisuallyBanned ? _imageSourceBanned : _imageSourceNormal;
         }
     }
-
-    /// <summary>
-    /// 地图边框颜色（正常）
-    /// </summary>
-    private readonly Brush _mapBorderNormalBrush;
-    /// <summary>
-    /// 地图边框颜色（ban）
-    /// </summary>
-    private readonly Brush _mapBorderBannedBrush;
-
-    /// <summary>
-    /// 地图边框颜色
-    /// </summary>
-    [JsonIgnore] public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="mapName">地图名称</param>
-    /// <param name="mapBorderNormal">地图边框颜色（正常）</param>
-    /// <param name="mapBorderBanned">地图边框颜色（ban）</param>
-    public MapV2(Map? mapName, string mapBorderNormal = "#2B483B", string mapBorderBanned = "#9C3E2F")
+    [JsonConstructor]
+    public MapV2(Map? mapName)
     {
         MapName = mapName;
-        _mapBorderNormalBrush = ColorHelper.HexToBrush(mapBorderNormal);
-        _mapBorderBannedBrush = ColorHelper.HexToBrush(mapBorderBanned);
         IsActive = true;
     }
 
     /// <summary>
-    /// JSON 反序列化构造函数
-    /// </summary>
-    /// <param name="mapName"></param>
-    [JsonConstructor]
-    internal MapV2(Map? mapName) : this(mapName, "#2B483B", "#9C3E2F")
-    {
-    }
-
-    /// <summary>
-    /// 从Ban中恢复刷新呼吸灯动画
+    /// 从Ban/全局禁用中恢复刷新呼吸灯动画
     /// </summary>
     /// <param name="message"></param>
     public void Receive(PropertyChangedMessage<bool> message)
@@ -161,6 +175,7 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
         switch (message.PropertyName)
         {
             case nameof(IsBanned):
+            case nameof(IsGloballyDisabled):
                 if (message is { OldValue: true, NewValue: false })
                 {
                     OnPropertyChanged(nameof(IsBreathing));

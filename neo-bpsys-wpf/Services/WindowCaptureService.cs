@@ -59,6 +59,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     // 缓存“最近一帧”；外部通过 GetCurrentFrame() 读取。
     private BitmapSource? _currentFrame;
 
+    // 复用的 staging 纹理和像素缓冲区：尺寸不变时跨帧复用，避免每帧分配约 8 MiB（1080p BGRA）。
+    // 仅在 OnFrameArrived（捕获线程）中访问，无需跨线程同步。
+    private Texture2D? _stagingTexture;
+    private byte[]? _stagingBuffer;
+    private int _stagingWidth;
+    private int _stagingHeight;
+
     // 预览窗口相关状态。
     private Window? _previewWindow;
     private Image? _previewImage;
@@ -174,7 +181,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // 没有选中窗口时直接失败，比后续空引用更可控、更易理解。
         if (window is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCapturePleaseSelectWindowFirst"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCapturePleaseSelectWindowFirst"));
             return false;
         }
 
@@ -199,13 +206,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // WGC 是系统能力，先判断支持性，避免后续调用抛平台异常。
         if (!IsWgcApiAvailable())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcRequires1803OrLater"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcRequires1803OrLater"));
             return false;
         }
 
         if (!IsWgcSupported())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcNotSupportedOnCurrentSystem"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcNotSupportedOnCurrentSystem"));
             return false;
         }
 
@@ -226,9 +233,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             if (item == null)
                 return false;
 
-            // Picker 路径无法稳定映射回 HWND，这里不做标题栏裁剪。
             StopCapture();
-            _captureTargetHwnd = HWND.Zero;
+            // Picker 返回的 GraphicsCaptureItem 不直接暴露 HWND；
+            // 通过显示名和尺寸反查目标窗口，用于裁掉标题栏/边框。
+            _captureTargetHwnd = TryFindHwndForCaptureItem(item);
             return StartWgcCapture(item);
         }
         catch (Exception ex)
@@ -237,7 +245,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to start capture from picker.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString("WindowCaptureFailedToStartPickerCaptureFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToStartPickerCaptureFormat"),
                     ex.Message));
             return false;
         }
@@ -262,9 +270,9 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _ = dispatcher.BeginInvoke(() =>
             {
                 _ = MessageBoxHelper.ShowErrorAsync(
-                    I18nHelper.GetLocalizedString("PleaseStartWindowCaptureFirst"),
-                    I18nHelper.GetLocalizedString("Error"),
-                    I18nHelper.GetLocalizedString("Close"));
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "PleaseStartWindowCaptureFirst"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Error"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Close"));
                 _navigationService.Navigate(typeof(SmartBpPage));
             });
             return null;
@@ -284,7 +292,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // 预览依赖捕获源；未开始捕获时直接提示用户。
         if (!IsCapturing)
         {
-            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("WindowCaptureCaptureNotStarted"));
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureCaptureNotStarted"));
             return;
         }
 
@@ -302,7 +310,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
 
         _previewWindow = new Window
         {
-            Title = I18nHelper.GetLocalizedString("WindowCapturePreviewWindowTitle"),
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCapturePreviewWindowTitle"),
             Width = 960,
             Height = 540,
             Content = _previewImage
@@ -374,6 +382,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
 
         _captureItem = null;
 
+        // 释放复用的 staging 资源，避免停止捕获后仍持有 D3D 纹理和大缓冲区。
+        _stagingTexture?.Dispose();
+        _stagingTexture = null;
+        _stagingBuffer = null;
+        _stagingWidth = 0;
+        _stagingHeight = 0;
+
         IsCapturing = false;
     }
 
@@ -387,7 +402,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         // 验证窗口句柄有效性。
         if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
         {
-            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("WindowCaptureSelectedWindowInvalidForCapture"));
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureSelectedWindowInvalidForCapture"));
             return false;
         }
 
@@ -401,7 +416,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             // 先抓第一帧，确保目标窗口可被 BitBlt 实际采集到。
             if (!TryCaptureBitbltFrame(hwnd))
             {
-                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureFailedToCaptureFirstFrameWithBitblt"));
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToCaptureFirstFrameWithBitblt"));
                 StopCapture();
                 return false;
             }
@@ -423,7 +438,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to start Bitblt capture.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString("WindowCaptureFailedToStartBitbltCaptureFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToStartBitbltCaptureFormat"),
                     ex.Message));
             StopCapture();
             return false;
@@ -616,20 +631,20 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     {
         if (!IsWgcHwndInteropAvailable())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809"));
             return false;
         }
 
         if (!IsWgcSupported())
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcNotSupportedOnCurrentSystem"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureWgcNotSupportedOnCurrentSystem"));
             return false;
         }
 
         // 再次校验句柄有效性，防止 UI 侧缓存了已失效窗口句柄。
         if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
         {
-            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("WindowCaptureSelectedWindowInvalidForCapture"));
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureSelectedWindowInvalidForCapture"));
             return false;
         }
 
@@ -644,14 +659,14 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to create GraphicsCaptureItem from HWND.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString("WindowCaptureFailedToCaptureSelectedWindowFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToCaptureSelectedWindowFormat"),
                     ex.Message));
             return false;
         }
 
         if (item is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureGraphicsCaptureItemUnavailable"));
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureGraphicsCaptureItemUnavailable"));
             return false;
         }
 
@@ -706,7 +721,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             _logger.LogError(ex, "Failed to start WGC capture.");
             _ = MessageBoxHelper.ShowErrorAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString("WindowCaptureFailedToStartCaptureFormat"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "WindowCaptureFailedToStartCaptureFormat"),
                     ex.Message));
             StopCapture();
             return false;
@@ -764,9 +779,19 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
 
             // 将 WinRT surface 包装为 SharpDX texture，便于执行 Direct3D 复制。
             using var sourceTexture = Direct3D11Helper.CreateSharpDXTexture2D(frame.Surface);
-            // 创建 CPU 可读 staging 纹理，后续通过 MapSubresource 读取像素。
-            using var stagingTexture =
-                CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
+            // 复用 staging 纹理：尺寸不变时跨帧复用，避免每帧分配新的 D3D staging 资源。
+            // 尺寸变化时释放旧纹理并重建。
+            if (_stagingTexture is null
+                || _stagingWidth != contentSize.Width
+                || _stagingHeight != contentSize.Height)
+            {
+                _stagingTexture?.Dispose();
+                _stagingTexture = CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
+                _stagingWidth = contentSize.Width;
+                _stagingHeight = contentSize.Height;
+            }
+
+            var stagingTexture = _stagingTexture;
 
             // 先把帧数据复制到 staging 资源。
             _d3dDevice.ImmediateContext.CopyResource(sourceTexture, stagingTexture);
@@ -859,7 +884,14 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         {
             // BGRA8 每像素 4 字节。
             var stride = width * 4;
-            var pixels = new byte[stride * height];
+            var requiredSize = stride * height;
+            // 复用像素缓冲区：尺寸不变时跨帧复用，避免每帧在 LOH 分配约 8 MiB（1080p BGRA）。
+            // BitmapSource.Create 会复制传入的像素数据，复用 buffer 是安全的。
+            if (_stagingBuffer is null || _stagingBuffer.Length < requiredSize)
+            {
+                _stagingBuffer = new byte[requiredSize];
+            }
+            var pixels = _stagingBuffer;
 
             for (var y = 0; y < height; y++)
             {
@@ -929,6 +961,114 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         var cropped = new CroppedBitmap(frame, new Int32Rect(x, y, width, height));
         cropped.Freeze();
         return cropped;
+    }
+
+    /// <summary>
+    /// 在窗口选择器返回后，尝试根据捕获项尺寸反查目标窗口句柄。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="GraphicsCapturePicker"/> 返回的 <see cref="GraphicsCaptureItem"/> 不公开 HWND，
+    /// 此处优先以 <see cref="GraphicsCaptureItem.DisplayName"/> 匹配窗口标题，再使用整窗或客户区尺寸消除同名歧义。
+    /// 仅在存在唯一匹配时返回该窗口句柄；无匹配或存在歧义时返回 <see cref="HWND.Zero"/>，
+    /// 此时标题栏裁剪会被跳过（回退为不裁剪的原有行为）。
+    /// </remarks>
+    /// <param name="item">窗口选择器返回的捕获项。</param>
+    /// <returns>唯一匹配的窗口句柄；无匹配或存在歧义时返回 <see cref="HWND.Zero"/>。</returns>
+    private HWND TryFindHwndForCaptureItem(GraphicsCaptureItem item)
+    {
+        var targetWidth = item.Size.Width;
+        var targetHeight = item.Size.Height;
+        if (targetWidth <= 0 || targetHeight <= 0)
+        {
+            return HWND.Zero;
+        }
+
+        // 收集本应用顶层窗口句柄，避免把选择器宿主、预览窗口等误判为捕获目标。
+        var ownHwnds = new HashSet<nint>();
+        if (Application.Current is not null)
+        {
+            foreach (Window w in Application.Current.Windows)
+            {
+                var hwnd = new WindowInteropHelper(w).Handle;
+                if (hwnd != nint.Zero)
+                {
+                    ownHwnds.Add(hwnd);
+                }
+            }
+        }
+
+        var displayName = item.DisplayName?.Trim();
+        if (string.IsNullOrEmpty(displayName))
+        {
+            return HWND.Zero;
+        }
+
+        var titleMatches = new List<HWND>();
+        var sizeMatches = new List<HWND>();
+
+        _ = Win32.EnumWindows((HWND hwnd, LPARAM _) =>
+        {
+            if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
+            {
+                return true;
+            }
+
+            // 排除本应用窗口。
+            if (ownHwnds.Contains(hwnd))
+            {
+                return true;
+            }
+
+            if (!Win32.GetWindowRect(hwnd, out var rect))
+            {
+                return true;
+            }
+
+            if (!string.Equals(TryGetWindowTitle(hwnd), displayName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            titleMatches.Add(hwnd);
+
+            // 不同窗口类型及 DPI 上下文下，WGC 返回的可能是整窗或客户区尺寸。
+            // 两种尺寸都用于消除同名窗口的歧义；标题仍是必需条件，避免把显示器误判成窗口。
+            var windowWidth = rect.right - rect.left;
+            var windowHeight = rect.bottom - rect.top;
+            var isSizeMatch = windowWidth == targetWidth && windowHeight == targetHeight;
+            if (!isSizeMatch && Win32.GetClientRect(hwnd, out var clientRect))
+            {
+                isSizeMatch = clientRect.right - clientRect.left == targetWidth
+                              && clientRect.bottom - clientRect.top == targetHeight;
+            }
+
+            if (isSizeMatch)
+            {
+                sizeMatches.Add(hwnd);
+            }
+
+            return true;
+        }, default);
+
+        // 标题唯一时，即使窗口在 Picker 关闭后发生了尺寸变化，仍可安全用于裁剪。
+        if (titleMatches.Count == 1)
+        {
+            return titleMatches[0];
+        }
+
+        if (sizeMatches.Count == 1)
+        {
+            return sizeMatches[0];
+        }
+
+        if (titleMatches.Count > 1)
+        {
+            _logger.LogDebug(
+                "Picker capture skipped title bar crop: found {TitleMatchCount} windows titled {DisplayName}, with {SizeMatchCount} matching capture size {Width}x{Height}.",
+                titleMatches.Count, displayName, sizeMatches.Count, targetWidth, targetHeight);
+        }
+
+        return HWND.Zero;
     }
 
     /// <summary>
