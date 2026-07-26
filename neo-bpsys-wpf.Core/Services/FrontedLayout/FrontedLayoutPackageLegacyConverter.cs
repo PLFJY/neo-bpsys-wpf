@@ -75,6 +75,65 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private static readonly IReadOnlyDictionary<string, LegacyScoreGlobalCellBlueprint> LegacyScoreGlobalCells =
         CreateLegacyScoreGlobalCellBlueprints();
 
+    /// <summary>
+    /// 旧版控件名 → 蓝图 <see cref="LegacyControlBlueprint.LegacyName"/> 的别名表。
+    /// 仅在直接查找失败时使用，用于兼容早期 1.x 包中与蓝图 LegacyName 不一致但语义等价的控件命名，
+    /// 不影响已匹配蓝图 LegacyName 的既有包行为。
+    /// </summary>
+    private static readonly IReadOnlyDictionary<LegacyLayoutKey, IReadOnlyDictionary<string, string>> LegacyBlueprintNameAliases =
+        new Dictionary<LegacyLayoutKey, IReadOnlyDictionary<string, string>>
+        {
+            [new LegacyLayoutKey("ScoreGlobalWindow", "BaseCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                // 1.x 包使用 v3 目标名 HomeTeamName 作为旧版控件名，蓝图定义的 LegacyName 为 MainTeamName。
+                ["HomeTeamName"] = "MainTeamName",
+                // 1.x 包中 AwayTeamTeamName（重复 Team 前缀）对应蓝图的 AwayTeamName。
+                ["AwayTeamTeamName"] = "AwayTeamName"
+            },
+            [new LegacyLayoutKey("ScoreSurWindow", "BaseCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                // 1.x 包使用 MinorPointsSur 表示求生者小幅分，蓝图定义的 LegacyName 为 GameScoresSur。
+                ["MinorPointsSur"] = "GameScoresSur"
+            },
+            [new LegacyLayoutKey("ScoreHunWindow", "BaseCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                // 1.x 包使用 MinorPointsHun 表示监管者小幅分，蓝图定义的 LegacyName 为 GameScoresHun。
+                ["MinorPointsHun"] = "GameScoresHun"
+            },
+            [new LegacyLayoutKey("WidgetsWindow", "BpOverViewCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                // 1.x 包在 BpOverview 画布中同样使用 MinorPointsSur/MinorPointsHun 表示小幅分。
+                ["MinorPointsSur"] = "GameScoresSur",
+                ["MinorPointsHun"] = "GameScoresHun"
+            }
+        };
+
+    /// <summary>
+    /// 尝试将旧版控件名解析为蓝图 <see cref="LegacyControlBlueprint.LegacyName"/>。
+    /// 仅在直接查找失败时调用，用于兼容早期 1.x 包中与蓝图 LegacyName 不一致但语义等价的控件命名。
+    /// </summary>
+    /// <param name="sourceWindow">旧版窗口类型名。</param>
+    /// <param name="sourceCanvas">旧版画布名。</param>
+    /// <param name="controlName">旧版布局文件中出现的控件名。</param>
+    /// <param name="blueprintLegacyName">解析后的蓝图 LegacyName。</param>
+    /// <returns>是否找到别名映射。</returns>
+    private static bool TryResolveBlueprintLegacyNameAlias(
+        string sourceWindow,
+        string sourceCanvas,
+        string controlName,
+        out string blueprintLegacyName)
+    {
+        blueprintLegacyName = controlName;
+        if (LegacyBlueprintNameAliases.TryGetValue(new LegacyLayoutKey(sourceWindow, sourceCanvas), out var aliases)
+            && aliases.TryGetValue(controlName, out var alias))
+        {
+            blueprintLegacyName = alias;
+            return true;
+        }
+
+        return false;
+    }
+
     private readonly string _tempRoot;
     private readonly IFrontedLayoutPackageImporter? _packageImporter;
     private readonly FrontedLayoutValidator _validator;
@@ -535,8 +594,23 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
             if (!blueprintsByLegacyName.TryGetValue(controlName, out var mappedBlueprints))
             {
-                throw new InvalidDataException(
-                    $"Legacy control geometry is not listed in the explicit legacy blueprint map: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}");
+                if (TryResolveBlueprintLegacyNameAlias(mapping.SourceWindow, mapping.SourceCanvas, controlName, out var aliasName)
+                    && blueprintsByLegacyName.TryGetValue(aliasName, out mappedBlueprints))
+                {
+                    messages.Add(Info(CodeControlGeometryFuzzyMatched,
+                        Args(new
+                        {
+                            SourceWindow = mapping.SourceWindow,
+                            SourceCanvas = mapping.SourceCanvas,
+                            LegacyName = controlName,
+                            ResolvedLegacyName = aliasName
+                        })));
+                }
+                else
+                {
+                    throw new InvalidDataException(
+                        $"Legacy control geometry is not listed in the explicit legacy blueprint map: {mapping.SourceWindow}/{mapping.SourceCanvas}/{controlName}");
+                }
             }
 
             foreach (var blueprint in mappedBlueprints)

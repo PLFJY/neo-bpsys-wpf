@@ -791,6 +791,152 @@ public sealed class LegacyFrontedLayoutConversionPolishTest : IDisposable
         }
     }
 
+    [Fact]
+    public async Task ConverterResolvesLegacy1xNamingAliasesForScoreWindows()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInScoreGlobalLayout(builtInRoot);
+            WriteBuiltInScoreSurLayout(builtInRoot);
+            WriteBuiltInScoreHunLayout(builtInRoot);
+            WriteBuiltInWidgetsOverviewLayout(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            // 1.x no_author 包使用与蓝图 LegacyName 不一致的控件名：
+            //   ScoreGlobalWindow/BaseCanvas: HomeTeamName(→MainTeamName), AwayTeamTeamName(→AwayTeamName)
+            //   ScoreSurWindow/BaseCanvas:    MinorPointsSur(→GameScoresSur)
+            //   ScoreHunWindow/BaseCanvas:    MinorPointsHun(→GameScoresHun)
+            //   WidgetsWindow/BpOverViewCanvas: MinorPointsSur(→GameScoresSur), MinorPointsHun(→GameScoresHun)
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/ScoreGlobalWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "HomeTeamName": { "Left": 13, "Top": 96 },
+                          "AwayTeamTeamName": { "Left": 13, "Top": 155 }
+                        }
+                        """,
+                    ["FrontElementsConfig/ScoreSurWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "MinorPointsSur": { "Left": 389, "Top": 11 }
+                        }
+                        """,
+                    ["FrontElementsConfig/ScoreHunWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "MinorPointsHun": { "Left": 21, "Top": 10 }
+                        }
+                        """,
+                    ["FrontElementsConfig/WidgetsWindowConfig-BpOverViewCanvas.json"] =
+                        """
+                        {
+                          "MinorPointsSur": { "Left": 495, "Top": 94 },
+                          "MinorPointsHun": { "Left": 583, "Top": 94 }
+                        }
+                        """
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.1x-aliases");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result),
+                string.Join(Environment.NewLine, result.Warnings));
+
+            // 每个别名解析都应产生 ControlGeometryFuzzyMatched 诊断。
+            Assert.Contains(result.Diagnostics, d => d.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && d.Contains("HomeTeamName", StringComparison.Ordinal)
+                && d.Contains("MainTeamName", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, d => d.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && d.Contains("AwayTeamTeamName", StringComparison.Ordinal)
+                && d.Contains("AwayTeamName", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, d => d.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && d.Contains("MinorPointsSur", StringComparison.Ordinal)
+                && d.Contains("GameScoresSur", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, d => d.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && d.Contains("MinorPointsHun", StringComparison.Ordinal)
+                && d.Contains("GameScoresHun", StringComparison.Ordinal));
+
+            // 别名解析后，目标控件几何应来自旧版布局文件中的坐标。
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+
+            var scoreGlobal = ReadLayout(archive, "FrontedLayouts/ScoreGlobalWindow.json");
+            var homeTeamName = Assert.IsType<TextFrontedControlConfig>(scoreGlobal.Controls["HomeTeamName"]);
+            Assert.Equal(13, homeTeamName.Left);
+            Assert.Equal(96, homeTeamName.Top);
+            var awayTeamName = Assert.IsType<TextFrontedControlConfig>(scoreGlobal.Controls["AwayTeamName"]);
+            Assert.Equal(13, awayTeamName.Left);
+            Assert.Equal(155, awayTeamName.Top);
+
+            var scoreSur = ReadLayout(archive, "FrontedLayouts/ScoreSurWindow.json");
+            var gameScoresSur = Assert.IsType<TextFrontedControlConfig>(scoreSur.Controls["GameScoresSur"]);
+            Assert.Equal(389, gameScoresSur.Left);
+            Assert.Equal(11, gameScoresSur.Top);
+
+            var scoreHun = ReadLayout(archive, "FrontedLayouts/ScoreHunWindow.json");
+            var gameScoresHun = Assert.IsType<TextFrontedControlConfig>(scoreHun.Controls["GameScoresHun"]);
+            Assert.Equal(21, gameScoresHun.Left);
+            Assert.Equal(10, gameScoresHun.Top);
+
+            var overview = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json");
+            var overviewSur = Assert.IsType<TextFrontedControlConfig>(overview.Controls["GameScoresSur"]);
+            Assert.Equal(495, overviewSur.Left);
+            Assert.Equal(94, overviewSur.Top);
+            var overviewHun = Assert.IsType<TextFrontedControlConfig>(overview.Controls["GameScoresHun"]);
+            Assert.Equal(583, overviewHun.Left);
+            Assert.Equal(94, overviewHun.Top);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    private static void WriteBuiltInScoreSurLayout(string builtInRoot)
+    {
+        WriteFile(
+            Path.Combine(builtInRoot, "ScoreSurWindow", "BaseCanvas.json"),
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 195,
+              "BackgroundImage": "Resources/scoreSur.png",
+              "GameScoresSur": {
+                "ControlType": "Text",
+                "Left": 0,
+                "Top": 0,
+                "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText" } ] }
+              }
+            }
+            """);
+    }
+
+    private static void WriteBuiltInScoreHunLayout(string builtInRoot)
+    {
+        WriteFile(
+            Path.Combine(builtInRoot, "ScoreHunWindow", "BaseCanvas.json"),
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 195,
+              "BackgroundImage": "Resources/scoreHun.png",
+              "GameScoresHun": {
+                "ControlType": "Text",
+                "Left": 0,
+                "Top": 0,
+                "TextBinding": { "Sources": [ { "Path": "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText" } ] }
+              }
+            }
+            """);
+    }
+
     private static Task<FrontedLayoutPackageLegacyConvertResult> ConvertAsync(
         string builtInRoot,
         string root,
