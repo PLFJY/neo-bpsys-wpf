@@ -10,7 +10,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Geometry;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3.Parts;
-using neo_bpsys_wpf.PluginSdk;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 

@@ -6,13 +6,13 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Options;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.Registry;
-using neo_bpsys_wpf.PluginSdk;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;

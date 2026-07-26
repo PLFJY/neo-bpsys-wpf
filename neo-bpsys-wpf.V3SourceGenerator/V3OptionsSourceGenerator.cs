@@ -35,7 +35,7 @@ namespace neo_bpsys_wpf.V3SourceGenerator;
 public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
 {
     private const string FrontedV3ControlAttributeFullName =
-        "neo_bpsys_wpf.PluginSdk.FrontedV3ControlAttribute";
+        "neo_bpsys_wpf.Core.Abstractions.Services.FrontedV3ControlAttribute";
 
     private const string FrontedV3PropertyNamespace =
         "neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties";

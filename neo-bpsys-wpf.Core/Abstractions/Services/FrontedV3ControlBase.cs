@@ -1,9 +1,8 @@
 using System.ComponentModel;
 using System.Windows.Controls;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Options;
 
-namespace neo_bpsys_wpf.PluginSdk;
+namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
 /// v3 前台控件的抽象基类，所有新注册的 v3 控件必须继承自此类型。
@@ -31,10 +30,6 @@ namespace neo_bpsys_wpf.PluginSdk;
 /// <c>{Binding Options.Appearance.TextColor}</c> 最终委托到对应
 /// <see cref="neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties.FrontedV3PropertyDefinition"/> 的 Storage 访问器，
 /// 读写直接作用于当前 <see cref="Core.Models.FrontedLayout.FrontedControlConfigBase"/>，不缓存独立值。
-/// </para>
-/// <para>
-/// 该类型定义在 Core 程序集中（命名空间 <c>neo_bpsys_wpf.PluginSdk</c> 以保持插件 API 兼容），
-/// 使内置控件（也在 Core 中）能够直接继承，避免 Core → PluginSdk 的循环引用。
 /// </para>
 /// </remarks>
 public abstract class FrontedV3ControlBase : UserControl

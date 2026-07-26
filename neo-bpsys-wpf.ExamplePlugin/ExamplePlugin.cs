@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.PluginSdk;
 using neo_bpsys_wpf.ExamplePlugin.Models;
 using neo_bpsys_wpf.ExamplePlugin.Services;
 using neo_bpsys_wpf.ExamplePlugin.Views;

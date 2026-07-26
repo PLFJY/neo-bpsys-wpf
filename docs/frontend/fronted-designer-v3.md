@@ -325,7 +325,7 @@ v3 之后 PluginSdk 不再作为 NuGet 包发布。插件作者应 clone 本仓�
 
 | 类型 | 职责 |
 | --- | --- |
-| `FrontedV3ControlBase` | 所有 v3 控件的抽象基类（继承 `UserControl`），定义在 Core 程序集，命名空间为 `neo_bpsys_wpf.PluginSdk`。控件不管理根布局。 |
+| `FrontedV3ControlBase` | 所有 v3 控件的抽象基类（继承 `UserControl`），定义在 Core 程序集，命名空间 `neo_bpsys_wpf.Core.Abstractions.Services`。控件不管理根布局。 |
 | `[FrontedV3Control("ControlId", IsBuiltIn = bool)]` | 标注控件类型，携带局部标识与内置标记。 |
 | `FrontedV3ControlRegistration` | 注册记录，包含 `CanonicalControlType`、`ControlType`、`ConfigType`、`Properties`、`CreateDefaultConfig`、`StyleTransfer` 能力声明。 |
 | `FrontedV3ControlRegistry` / `IFrontedV3ControlRegistry` | 统一注册表，从 DI 收集所有 `FrontedV3ControlRegistration` 并按 `CanonicalControlType` 索引。 |

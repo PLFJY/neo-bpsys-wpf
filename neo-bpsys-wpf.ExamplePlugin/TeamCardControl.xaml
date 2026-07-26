@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:neo_bpsys_wpf.ExamplePlugin"
-    xmlns:pluginSdk="clr-namespace:neo_bpsys_wpf.PluginSdk;assembly=neo-bpsys-wpf.Core"
+    xmlns:pluginSdk="clr-namespace:neo_bpsys_wpf.Core.Abstractions.Services;assembly=neo-bpsys-wpf.Core"
     xmlns:fronted="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.V3;assembly=neo-bpsys-wpf.Core"
     mc:Ignorable="d"
     d:DataContext="{d:DesignInstance Type=local:TeamCardDesignContext, IsDesignTimeCreatable=True}">
