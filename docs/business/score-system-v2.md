@@ -38,7 +38,7 @@ ISharedDataService
 | 名称 | 含义 |
 | --- | --- |
 | 现有 `Core.Models.Game` | 应用当前对局记录对象，保存队伍、BP 状态、地图、Ban、选手数据，并最终保存 `MatchScoreState`。 |
-| Score System v2 的 Game | 比分系统领域术语，指 Game 1、Game 2、Game 3 Overtime 这样的计分单元，每个 Game 包含 First Half 和 Second Half。Identity V 赛事语境中常用 “Game <x> First Half / Second Half”。 |
+| Score System v2 的 Game | 比分系统领域术语，指 Game 1、Game 2、Game 3 Overtime 这样的计分单元，每个 Game 包含 First Half 和 Second Half。Identity V 赛事语境中常用 “Game {x} First Half / Second Half”。 |
 
 文档中的 Game 是比分系统领域术语；实现时为避免与现有 `Core.Models.Game` 冲突，建议使用 `ScoreGame` 作为类型名。
 
