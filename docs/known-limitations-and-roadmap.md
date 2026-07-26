@@ -87,7 +87,7 @@ Designer v3 独立编辑器（`FrontedDesignerWindow`）已实现并作为设计
 
 ## Score System v2
 
-比分系统已迁移到现有 `Core.Models.Game` 持有权威状态，详见 [score-system-v2.md](score-system-v2.md)。当前代码仍存在这些边界：
+比分系统已迁移到现有 `Core.Models.Game` 持有权威状态，详见 [score-system-v2.md](business/score-system-v2.md)。当前代码仍存在这些边界：
 
 | 边界 | 说明 |
 | --- | --- |

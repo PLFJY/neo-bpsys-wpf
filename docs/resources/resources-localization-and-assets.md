@@ -39,7 +39,7 @@ CutScene 默认布局的图片结构以 `v2.1.1+af0a4be` 旧 XAML 为准：`SurT
 
 ## Designer v3 资源 URI
 
-Designer v3 layout 和 `.bpui v3` 包标准允许以下资源 URI 形式，完整包规格见 [bpui-package-v3.md](bpui-package-v3.md)。
+Designer v3 layout 和 `.bpui v3` 包标准允许以下资源 URI 形式，完整包规格见 [bpui-package-v3.md](../frontend/bpui-package-v3.md)。
 
 | 形式 | 含义 |
 | --- | --- |

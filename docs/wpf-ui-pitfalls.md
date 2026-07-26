@@ -1,6 +1,6 @@
 # WPF-UI 坑点记录
 
-线程和异步相关规则另见 [threading-dispatcher-and-async.md](threading-dispatcher-and-async.md)。资源、字体和本地化规则另见 [resources-localization-and-assets.md](resources-localization-and-assets.md)。
+线程和异步相关规则另见 [threading-dispatcher-and-async.md](architecture/threading-dispatcher-and-async.md)。资源、字体和本地化规则另见 [resources-localization-and-assets.md](resources/resources-localization-and-assets.md)。
 
 ## 导航和 DI
 
@@ -102,7 +102,7 @@ BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的�
 
 ## Fronted Designer 编辑器
 
-独立编辑器的详细规格见 [fronted-designer-editor.md](fronted-designer-editor.md)。实现时特别注意这些 WPF 坑点：
+独立编辑器的详细规格见 [fronted-designer-editor.md](frontend/fronted-designer-editor.md)。实现时特别注意这些 WPF 坑点：
 
 1. 编辑器窗口应使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏必须单独占一行。不要把 toolbar、preview 或验证面板放到标题栏同一行；否则关闭按钮会被内容覆盖。编辑器默认隐藏 `CustomTitleBar` 的主题切换按钮，保留最小化、最大化和关闭。
 2. 不要把真实前台窗口当作设计 surface。原生标题栏、窗口 chrome 和 `FrontedWindowBase` 的 `Viewbox` 包裹会让坐标混入内容区以外的高度，造成纵向偏移。编辑器应使用纯 `Canvas`，尺寸精确等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`。

@@ -29,7 +29,7 @@
 12. 所有的公共属性和公共方法都需要写XML注释，包括参数、返回值、异常等。
 13. **禁止在面向用户的 UI 文本中使用开发阶段占位表达**（如 "Phase 3"、"Phase 13E"、"Phase 9D" 等）。已实现功能的描述必须写实际行为；未实现功能的占位文本应写「将在后续版本中提供」而非内部阶段代号。真实 Placeholder（如 overlay 标签 `[Text]`）不在此限制内。
 14. `IsActive` 只保留给框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。布局、包、设置、业务状态、可见性、绑定 payload 和 behavior payload 不得使用泛名 `IsActive`，应使用 `IsActivePackage`、`IsVisible`、`IsEnabled`、`IsSelected` 等明确名称。`Visibility` 绑定不得直接绑定泛名 `IsActive`。
-15. WPF/Dispatcher 测试必须使用 `neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread`，不要复制手写 `new Thread(...)`、裸 `thread.Join()` 或 `new Thread(async () => ...)`；相关超时规律见 `docs/testing-guidelines.md`。
+15. WPF/Dispatcher 测试必须使用 `neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread`，不要复制手写 `new Thread(...)`、裸 `thread.Join()` 或 `new Thread(async () => ...)`；相关超时规律见 `docs/build/testing-guidelines.md`。
 16. **禁止新增样式/布局宽高类测试**：不要断言视觉样式、坐标、窗口宽高、Canvas 宽高、控件位置、Margin/Padding、精确行列结构等展示细节。唯一例外是为了验证 WPF/XAML 语法或运行时必需命名部件是否正确。已有此类测试失败时，应删除或改成行为/契约测试，不得为了测试回滚布局。
 17. **禁止未经用户明确同意执行有副作用的 Git 命令**：包括但不限于 `git stash`、`git stash pop`、`git stash drop`、`git checkout .`、`git restore .`、`git reset`、`git clean`、`git switch`、`git checkout <branch>`、`git merge`、`git rebase`。本仓库可能处于无 initial commit 的状态，此时 `git stash` 会把大量未跟踪文件异常处理，导致工作区状态被搅乱、用户修改丢失。需要对比"改动前/后"行为时，应改用：直接读文件内容对比、用 `git diff`（只读）、或先询问用户如何验证。只允许执行只读类 git 命令（`git status`、`git diff`、`git log`、`git show` 等）。
 18. **Diff 校验保护开发者修改**：在执行 `git diff --check`、`git diff --stat` 或阅读 diff 时，如发现本任务之外、但看起来合理且有业务逻辑的修改，应视为开发者正在进行的工作；不得擅自修改、格式化、回退或删除。如确实阻碍当前任务，应先向用户说明冲突并请求处理方向。
@@ -61,12 +61,12 @@
 
 | 改动类型 | 先读 |
 | --- | --- |
-| UI 状态、对局数据、前台绑定传播 | `docs/shared-data-and-state.md` |
-| 前台窗口设计者模式、v3 布局配置、独立编辑器、`.bpui` 迁移设计 | `docs/fronted-designer-v3.md`、`docs/fronted-designer-editor.md` |
-| async、下载回调、OCR 后台任务、UI 更新 | `docs/threading-dispatcher-and-async.md` |
-| 图片、字体、resx、本地化、默认布局资源 | `docs/resources-localization-and-assets.md` |
+| UI 状态、对局数据、前台绑定传播 | `docs/architecture/shared-data-and-state.md` |
+| 前台窗口设计者模式、v3 布局配置、独立编辑器、`.bpui` 迁移设计 | `docs/frontend/fronted-designer-v3.md`、`docs/frontend/fronted-designer-editor.md` |
+| async、下载回调、OCR 后台任务、UI 更新 | `docs/architecture/threading-dispatcher-and-async.md` |
+| 图片、字体、resx、本地化、默认布局资源 | `docs/resources/resources-localization-and-assets.md` |
 | TODO、当前能力边界、不要误判的路线图 | `docs/known-limitations-and-roadmap.md` |
-| 本地化、用户文本、resx 更新 | `docs/resources-localization-and-assets.md` |
+| 本地化、用户文本、resx 更新 | `docs/resources/resources-localization-and-assets.md` |
 
 ## 文档规则
 

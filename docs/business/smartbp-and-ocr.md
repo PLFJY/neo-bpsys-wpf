@@ -1,6 +1,6 @@
 # SmartBP 与 OCR
 
-线程和后台任务注意事项见 [threading-dispatcher-and-async.md](threading-dispatcher-and-async.md)。SmartBP 默认配置和资源文件见 [resources-localization-and-assets.md](resources-localization-and-assets.md)。
+线程和后台任务注意事项见 [threading-dispatcher-and-async.md](../architecture/threading-dispatcher-and-async.md)。SmartBP 默认配置和资源文件见 [resources-localization-and-assets.md](../resources/resources-localization-and-assets.md)。
 
 ## 架构概览
 

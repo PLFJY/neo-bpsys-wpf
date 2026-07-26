@@ -106,7 +106,7 @@ plugin:<PackageId>/<ControlId>
 plugin:plfjy.ExamplePlugin/TeamCard
 ```
 
-`PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlId` 在插件内唯一。完整 `ControlType` 是稳定序列化 schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。`.bpui v3` 中的 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 规则见 [bpui-package-v3.md](bpui-package-v3.md)。
+`PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlId` 在插件内唯一。完整 `ControlType` 是稳定序列化 schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。`.bpui v3` 中的 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 规则见 [bpui-package-v3.md](../frontend/bpui-package-v3.md)。
 
 ### 创建与注册控件
 
@@ -168,7 +168,7 @@ public static readonly FrontedV3Property<string> TeamNameProperty =
 
 ### 固定 Part 与 PartCollection
 
-固定 Part 系统管理控件内部固定区域（如 BorderedImage 的内层 Image），通过 `public static readonly FrontedV3Part` 字段声明，XAML 中用 `fronted:FrontedV3.PartId="Logo"` 标记 Part Visual。PartCollection 系统管理模板或动态集合（如 GlobalScoreRow 的 Cells），通过 `public static readonly FrontedV3Parts` 字段声明，支持 `FixedTemplate`、`Dynamic`、`ReadOnly` 三种策略。详见 [fronted-designer-v3.md](fronted-designer-v3.md)。
+固定 Part 系统管理控件内部固定区域（如 BorderedImage 的内层 Image），通过 `public static readonly FrontedV3Part` 字段声明，XAML 中用 `fronted:FrontedV3.PartId="Logo"` 标记 Part Visual。PartCollection 系统管理模板或动态集合（如 GlobalScoreRow 的 Cells），通过 `public static readonly FrontedV3Parts` 字段声明，支持 `FixedTemplate`、`Dynamic`、`ReadOnly` 三种策略。详见 [fronted-designer-v3.md](../frontend/fronted-designer-v3.md)。
 
 ### StyleTransfer
 

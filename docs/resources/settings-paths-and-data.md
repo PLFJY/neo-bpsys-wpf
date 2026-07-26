@@ -1,6 +1,6 @@
 # 设置、路径与用户数据
 
-共享比赛状态见 [shared-data-and-state.md](shared-data-and-state.md)。资源、字体、本地化和默认布局文件见 [resources-localization-and-assets.md](resources-localization-and-assets.md)。
+共享比赛状态见 [shared-data-and-state.md](../architecture/shared-data-and-state.md)。资源、字体、本地化和默认布局文件见 [resources-localization-and-assets.md](resources-localization-and-assets.md)。
 
 ## AppConstants 路径
 
@@ -102,7 +102,7 @@ v3 前台布局当前以 Window-centric “布局方案”读写。`builtin` 是
 
 窗口级选项已迁移到 `FrontedWindowConfig.WindowSettings`，包括窗口尺寸、位置、透明、背景色、Topmost 和 `ViewboxStretch`。旧 `window.json` 只属于 legacy/临时迁移输入，不是新运行时主路径。
 
-Designer v3 `.bpui` 包路径标准见 [bpui-package-v3.md](bpui-package-v3.md)。已安装包资源应放在各自包目录内，例如 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\resources\`，不要合并到共享资源目录。若旧讨论或临时代码提到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutResources\`，应视为已被包隔离方案取代，不作为新实现的首选路径。
+Designer v3 `.bpui` 包路径标准见 [bpui-package-v3.md](../frontend/bpui-package-v3.md)。已安装包资源应放在各自包目录内，例如 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\resources\`，不要合并到共享资源目录。若旧讨论或临时代码提到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutResources\`，应视为已被包隔离方案取代，不作为新实现的首选路径。
 
 `builtin` 是虚拟包 ID，映射到应用内置 `Resources\FrontedLayouts`，不在 `FrontedLayoutPackages` 下作为普通包安装，也不能删除。`local` 是编辑器本地资源命名空间，推荐路径为 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\resources\`，用于保存用户选择本地图片后的副本；普通包删除不能删除 `local`。
 

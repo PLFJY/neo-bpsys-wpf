@@ -54,7 +54,7 @@
 | 改 SmartBP 宿主安装/加载 | `neo-bpsys-wpf/Services/SmartBpModule`、`SmartBpPageViewModel`、`SmartBpPage.xaml` |
 | 改插件加载 | `PluginService`、`PluginPageViewModel`、`PluginMarketService`、Core 插件模型 |
 | 改构建/发布 | `neo-bpsys-wpf.csproj`、`build*.ps1`、`Installer/build_Installer.iss`、`PluginSdk.targets` |
-| 改首次导览或页面教程 | `neo-bpsys-wpf.ProductTour`、`neo-bpsys-wpf/Tutorial`、`docs/product-tour-and-onboarding.md` |
+| 改首次导览或页面教程 | `neo-bpsys-wpf.ProductTour`、`neo-bpsys-wpf/Tutorial`、`docs/backend/product-tour-and-onboarding.md` |
 
 维护原则：先沿用现有注册扩展和服务抽象，不要在页面、窗口或插件中手动 `new` 一套并绕开 DI。
 
