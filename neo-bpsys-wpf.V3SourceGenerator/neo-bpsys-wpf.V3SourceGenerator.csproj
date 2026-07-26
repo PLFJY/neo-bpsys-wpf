@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <IsRoslynComponent>true</IsRoslynComponent>
@@ -9,13 +9,7 @@
         <RootNamespace>neo_bpsys_wpf.V3SourceGenerator</RootNamespace>
         <AssemblyName>neo-bpsys-wpf.V3SourceGenerator</AssemblyName>
         <Platforms>AnyCPU;x64</Platforms>
-        <!-- Source Generator 仅在构建期由 Roslyn 加载执行，不进入运行时、不进入插件包。
-             netstandard2.0 在通过 <MSBuild> task 间接构建时 facade 引用解析不稳定，
-             直接用 net10.0 与宿主保持一致，避免 facade 缺失问题。 -->
         <IsPackable>false</IsPackable>
-        <!-- RS1041: Roslyn 建议源生成器 target netstandard2.0，但 netstandard2.0 在 <MSBuild> task
-             间接构建时 facade 引用不稳定。此处显式用 net10.0，抑制该警告。 -->
-        <NoWarn>RS1041</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

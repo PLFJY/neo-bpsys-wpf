@@ -86,7 +86,7 @@
 	     ======================================================================== -->
 	<PropertyGroup>
 		<BpsysSdk_V3GeneratorProjectPath>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'neo-bpsys-wpf.V3SourceGenerator', 'neo-bpsys-wpf.V3SourceGenerator.csproj'))</BpsysSdk_V3GeneratorProjectPath>
-		<BpsysSdk_V3GeneratorOutputDir>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'neo-bpsys-wpf.V3SourceGenerator', 'bin', '$(Configuration)', 'net10.0'))</BpsysSdk_V3GeneratorOutputDir>
+		<BpsysSdk_V3GeneratorOutputDir>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..', 'neo-bpsys-wpf.V3SourceGenerator', 'bin', '$(Configuration)', 'netstandard2.0'))</BpsysSdk_V3GeneratorOutputDir>
 		<BpsysSdk_V3GeneratorDll>$([MSBuild]::NormalizePath('$(BpsysSdk_V3GeneratorOutputDir)', 'neo-bpsys-wpf.V3SourceGenerator.dll'))</BpsysSdk_V3GeneratorDll>
 	</PropertyGroup>
 
@@ -94,13 +94,15 @@
 	        BeforeTargets="CoreCompile"
 	        Condition="'$(BpsysSdk_SkipV3SourceGenerator)' != 'true' and Exists('$(BpsysSdk_V3GeneratorProjectPath)')">
 
-		<!-- 先构建 Generator 项目（netstandard2.0，独立 TFM，不依赖插件项目）。
-		     显式清空 RuntimeIdentifier，避免宿主以 -r win-x64 构建时 RID 全局属性
-		     透传到 Generator，触发 NETSDK1047（assets 文件缺少 netstandard2.0/win-x64 目标）。 -->
-		<MSBuild Projects="$(BpsysSdk_V3GeneratorProjectPath)"
-		         Targets="Restore;Build"
-		         Properties="Configuration=$(Configuration);Platform=AnyCPU;RuntimeIdentifier="
-		         SkipNonexistentTargets="false" />
+		<!-- 用 dotnet build 通过 Exec 构建 Generator，完全隔离主项目的全局属性环境。
+		     MSBuild task 会透传主项目的全局属性（TargetFramework 等），导致 netstandard2.0
+		     项目的 SDK 隐式框架引用（netstandard.dll facade）解析异常，引发 CS0518
+		     (System.Object 未定义)。Exec + dotnet build 是全新进程，不受影响。
+
+		     no-incremental 确保完整构建；Platform=AnyCPU 避免主项目 x64 透传；
+		     RuntimeIdentifier= 清空 RID，避免 NETSDK1047（assets 文件缺少
+		     netstandard2.0/win-x64 目标）。 -->
+		<Exec Command="dotnet build &quot;$(BpsysSdk_V3GeneratorProjectPath)&quot; -c $(Configuration) -p:Platform=AnyCPU -p:RuntimeIdentifier= --no-incremental" />
 
 		<!-- 检查 DLL 是否生成，缺失则报错（避免静默失败导致 IntelliSense 不可用） -->
 		<Error Condition="!Exists('$(BpsysSdk_V3GeneratorDll)')"
