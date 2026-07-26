@@ -68,14 +68,17 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition />
                                 <RowDefinition />
+                                <RowDefinition />
                             </Grid.RowDefinitions>
                             <ui:TextBlock
                                 Grid.Row="0"
                                 FontSize="18"
-                                FontTypography="Body"
-                                Text="neo-bpsys-wpf" />
+                                FontTypography="Body">
+                                <Run Text="neo-bpsys-wpf --" />
+                                <Run lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" Text="{lex:Loc VersionName}" />
+                            </ui:TextBlock>
                             <ui:TextBlock
-                                Grid.Row="1"
+                                Grid.Row="2"
                                 Margin="0,5,0,0"
                                 VerticalAlignment="Center"
                                 FontSize="12"

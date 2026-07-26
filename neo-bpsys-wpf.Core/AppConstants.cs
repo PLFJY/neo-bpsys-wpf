@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.Enums;
 using System.IO;
 using System.Reflection;
 

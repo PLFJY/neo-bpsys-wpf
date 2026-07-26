@@ -242,4 +242,7 @@
     <value>监管者</value>
     <comment>简写</comment>
   </data>
+  <data name="VersionName" xml:space="preserve">
+    <value>帷幕的回响</value>
+  </data>
 </root>
