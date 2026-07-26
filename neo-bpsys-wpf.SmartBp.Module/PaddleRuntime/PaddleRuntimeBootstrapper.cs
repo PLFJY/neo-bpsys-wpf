@@ -93,36 +93,45 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
             return;
         }
 
-        // 2. 历史 CUDA 故障检查，防止重启死循环
-        if (!string.IsNullOrEmpty(settings.LastCudaFailure))
+        // 2. 一次性 CPU 强制保护（防止 CUDA 故障重启死循环）。
+        //    仅在本次启动消费，消费后立即置回 false，下次启动恢复正常 CUDA 尝试。
+        //    LastCudaFailure 仅保留诊断信息，不参与后端决策。
+        if (settings.ForceCpuForNextLaunch)
         {
-            if (string.Equals(
+            _logger.LogWarning(
+                "Bootstrap selecting CPU because ForceCpuForNextLaunch is set (one-shot protection). " +
+                "LastCudaFailure={LastCudaFailure}, RuntimeVersion={RuntimeVersion}. Consuming the flag.",
+                settings.LastCudaFailure,
+                AppConstants.PaddleInferenceRuntimeVersion);
+            settings.ForceCpuForNextLaunch = false;
+            _ = _settingsHost.SaveConfigAsync();
+            LoadCpuAndCommit(
+                devices: null,
+                selectedDevice: null,
+                cudaInstalled: false,
+                cudaCompatible: false,
+                error: !string.IsNullOrEmpty(settings.LastCudaFailure)
+                    ? $"Previous CUDA failure: {settings.LastCudaFailure}"
+                    : "Previous CUDA failure (one-shot CPU fallback).");
+            return;
+        }
+
+        // 3. 版本升级后清除过期的 CUDA 故障诊断信息（仅清理，不短路）。
+        if (!string.IsNullOrEmpty(settings.LastCudaFailure)
+            && !string.Equals(
                 settings.LastCudaFailureRuntimeVersion,
                 AppConstants.PaddleInferenceRuntimeVersion,
                 StringComparison.Ordinal))
-            {
-                _logger.LogWarning(
-                    "Bootstrap selecting CPU because LastCudaFailure is set for current runtime version. LastCudaFailure={LastCudaFailure}, RuntimeVersion={RuntimeVersion}",
-                    settings.LastCudaFailure,
-                    AppConstants.PaddleInferenceRuntimeVersion);
-                LoadCpuAndCommit(
-                    devices: null,
-                    selectedDevice: null,
-                    cudaInstalled: false,
-                    cudaCompatible: false,
-                    error: null);
-                return;
-            }
-
+        {
             _logger.LogInformation(
-                "LastCudaFailure was recorded for runtime version {LastVersion} but current version is {CurrentVersion}. Clearing stale failure record to allow CUDA retry.",
+                "LastCudaFailure was recorded for runtime version {LastVersion} but current version is {CurrentVersion}. Clearing stale failure record.",
                 settings.LastCudaFailureRuntimeVersion,
                 AppConstants.PaddleInferenceRuntimeVersion);
             settings.LastCudaFailure = null;
             settings.LastCudaFailureRuntimeVersion = null;
         }
 
-        // 3. 进程架构检查：PaddleInference native runtime 仅支持 x64
+        // 4. 进程架构检查：PaddleInference native runtime 仅支持 x64
         if (RuntimeInformation.ProcessArchitecture != Architecture.X64)
         {
             _logger.LogWarning(
@@ -137,7 +146,7 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
             return;
         }
 
-        // 4. 用户偏好 CPU
+        // 5. 用户偏好 CPU
         if (preferredBackend == OcrInferenceBackend.Cpu)
         {
             _logger.LogInformation("Bootstrap selecting CPU because PreferredOcrBackend is Cpu.");
@@ -150,7 +159,7 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
             return;
         }
 
-        // 5. 尝试 CUDA
+        // 6. 尝试 CUDA
         _logger.LogInformation(
             "Attempting CUDA runtime bootstrap. PreferredBackend={PreferredBackend}",
             preferredBackend);

@@ -22,6 +22,7 @@ public sealed class PaddleRuntimeState : IPaddleRuntimeState
     private volatile bool _cudaRuntimeInstalled;
     private volatile bool _cudaRuntimeCompatible;
     private volatile string? _runtimeLoadError;
+    private volatile bool _paddleBackendVerified;
 
     /// <summary>
     /// 初始化 <see cref="PaddleRuntimeState"/> 类的新实例。
@@ -59,6 +60,9 @@ public sealed class PaddleRuntimeState : IPaddleRuntimeState
 
     /// <inheritdoc/>
     public string? RuntimeLoadError => _runtimeLoadError;
+
+    /// <inheritdoc/>
+    public bool PaddleBackendVerified => _paddleBackendVerified;
 
     /// <inheritdoc/>
     public event EventHandler? StateChanged;
@@ -116,6 +120,18 @@ public sealed class PaddleRuntimeState : IPaddleRuntimeState
     internal void SetRuntimeLoadError(string? error)
     {
         _runtimeLoadError = error;
+        RaiseStateChanged();
+    }
+
+    /// <summary>
+    /// 设置 PaddleOCR Predictor 验证状态。
+    /// 由 OcrService 在成功构造 <c>PaddleOcrAll</c>（含 det/cls/rec 三个 Predictor）后调用，
+    /// 或在构造失败 / 后端切换时重置为 <see langword="false"/>。
+    /// </summary>
+    /// <param name="verified">是否已验证当前后端下 PaddleOCR Predictor 可用。</param>
+    internal void SetPaddleBackendVerified(bool verified)
+    {
+        _paddleBackendVerified = verified;
         RaiseStateChanged();
     }
 }

@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 using OpenCvSharp;
 using Sdcb.PaddleInference;
 using Sdcb.PaddleOCR;
@@ -13,6 +14,7 @@ using System.Collections;
 using System.Formats.Tar;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -363,7 +365,17 @@ public sealed class PaddleOcrProvider : IOcrProvider
         try
         {
             var fullModel = BuildLocalFullModel(modelKey, definition);
-            var nextOcr = new PaddleOcrAll(fullModel, CreatePaddleDevice());
+            var deviceConfig = CreatePaddleDevice();
+
+            // 记录真实 Predictor 创建的后端信息，补全 "DLL 加载成功" 与 "模型在 GPU 上可用" 之间的日志断点。
+            _logger.LogInformation(
+                "Creating PaddleOcrAll predictor. Model={Model}; Backend={Backend}; CudaDeviceId={DeviceId}; NativeModule={Module}",
+                modelKey,
+                _runtimeState.ActiveBackend,
+                _runtimeState.ActiveCudaDeviceId,
+                _runtimeState.LoadedNativeModulePath);
+
+            var nextOcr = new PaddleOcrAll(fullModel, deviceConfig);
 
             lock (_ocrLock)
             {
@@ -373,6 +385,13 @@ public sealed class PaddleOcrProvider : IOcrProvider
                 _ocr.Enable180Classification = false;
             }
 
+            // PaddleOcrAll 构造成功 = det/cls/rec 三个 Predictor 均在当前后端成功创建。
+            // 仅此时才标记后端已验证，避免 UI 在 Predictor 实际不可用时宣称 CUDA 已启用。
+            if (_runtimeState is PaddleRuntimeState concreteState)
+            {
+                concreteState.SetPaddleBackendVerified(true);
+            }
+
             _missingModelWarningShown = 0;
             CurrentOcrModelKey = modelKey;
             PersistCurrentModel(modelKey);
@@ -380,6 +399,13 @@ public sealed class PaddleOcrProvider : IOcrProvider
         }
         catch (Exception ex)
         {
+            // Predictor 构造失败：标记后端未验证，并记录诊断信息。
+            // 不在此处设置 ForceCpuForNextLaunch（构造失败可能是模型问题而非 CUDA runtime 问题），
+            // 仅在 RecordCudaFailureIfNeeded 判定为确定性 CUDA runtime 故障时才触发一次性回退。
+            if (_runtimeState is PaddleRuntimeState concreteState)
+            {
+                concreteState.SetPaddleBackendVerified(false);
+            }
             errorMessage = Lf("SmartBpOcrLoadFailedFormat", ex.Message);
             return false;
         }
@@ -465,7 +491,14 @@ public sealed class PaddleOcrProvider : IOcrProvider
     }
 
     /// <summary>
-    /// 在持锁状态下运行 OCR，并在失败后重建当前 predictor 重试一次。
+    /// 瞬态 GPU 故障重试前等待时间（毫秒）。PaddleOCR 在 GPU 模式下首次推理可能因显存分配
+    /// 或 kernel 初始化失败，等待后重建 predictor 重试通常可以恢复。
+    /// </summary>
+    private const int TransientRetryDelayMs = 3000;
+
+    /// <summary>
+    /// 在持锁状态下运行 OCR。失败时区分确定性 CUDA 库加载故障和瞬态故障：
+    /// 库加载故障标记需要重启且不重试；瞬态故障等待 3 秒后重建 predictor 重试一次。
     /// </summary>
     /// <param name="bgr">BGR 格式输入图像。</param>
     /// <returns>PaddleOCR 原始结果；失败或未就绪时返回 <see langword="null"/>。</returns>
@@ -480,11 +513,21 @@ public sealed class PaddleOcrProvider : IOcrProvider
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "OCR run failed, trying to rebuild OCR predictor and retry once.");
-            RecordCudaFailureIfNeeded(ex);
+            // 确定性 CUDA 库加载失败（DLL 缺失/损坏）：同进程无法恢复，标记需要重启。
+            if (IsCudaLibraryLoadFailure(ex))
+            {
+                RecordCudaFailureIfNeeded(ex);
+                _logger.LogError(ex, "CUDA library load failure detected, restart required.");
+                return null;
+            }
+
+            // 瞬态故障（显存不足、kernel 初始化失败等）：等待 3 秒后重建 predictor 重试。
+            _logger.LogWarning(ex, "OCR run failed (transient), waiting {Delay}ms before rebuild retry.", TransientRetryDelayMs);
+            Thread.Sleep(TransientRetryDelayMs);
+
             if (!TryRebuildCurrentOcrUnsafe())
             {
-                _logger.LogError("OCR rebuild failed, recognition aborted.");
+                _logger.LogError("OCR rebuild failed after transient error, recognition aborted.");
                 return null;
             }
 
@@ -494,19 +537,29 @@ public sealed class PaddleOcrProvider : IOcrProvider
             }
             catch (Exception retryEx)
             {
-                _logger.LogError(retryEx, "OCR retry failed after rebuild.");
-                RecordCudaFailureIfNeeded(retryEx);
+                // 重试仍然失败。如果是确定性库加载故障才标记重启，否则仅记录错误。
+                if (IsCudaLibraryLoadFailure(retryEx))
+                {
+                    RecordCudaFailureIfNeeded(retryEx);
+                    _logger.LogError(retryEx, "CUDA library load failure detected on retry, restart required.");
+                }
+                else
+                {
+                    _logger.LogError(retryEx, "OCR retry failed after rebuild (transient).");
+                }
                 return null;
             }
         }
     }
 
     /// <summary>
-    /// 在 CUDA 后端下检测到明确的 CUDA runtime 故障时，记录故障信息并标记需要重启。
+    /// 在 CUDA 后端下检测到明确的 CUDA runtime 故障时，记录诊断信息并设置一次性 CPU 强制保护。
     /// 仅当 <see cref="IPaddleRuntimeState.ActiveBackend"/> 为 <see cref="OcrInferenceBackend.Cuda"/>
     /// （bootstrap 已通过 GPU Predictor probe）且异常明确指向 CUDA 库加载/初始化失败时才触发。
     /// 普通的 OCR 推理失败（模型问题、图像格式、内存不足、SEHException 等）不触发重启，
     /// 避免误判导致用户被反复要求重启。
+    /// 触发时设置 <see cref="Settings.ForceCpuForNextLaunch"/>（一次性消费），下次启动强制 CPU
+    /// 并立即清除标记，不会永久锁死 CUDA。
     /// </summary>
     /// <param name="ex">捕获的异常。</param>
     private void RecordCudaFailureIfNeeded(Exception ex)
@@ -514,33 +567,52 @@ public sealed class PaddleOcrProvider : IOcrProvider
         if (_runtimeState.ActiveBackend != OcrInferenceBackend.Cuda)
             return;
 
-        if (!IsCudaRuntimeFailure(ex))
+        if (!IsCudaLibraryLoadFailure(ex))
             return;
 
         _settingsHostService.Settings.LastCudaFailure = ex.Message;
         _settingsHostService.Settings.LastCudaFailureRuntimeVersion = AppConstants.PaddleInferenceRuntimeVersion;
+        _settingsHostService.Settings.ForceCpuForNextLaunch = true;
         _ = _settingsHostService.SaveConfigAsync();
         _globalRestartService.IsRestartRequired = true;
-        _logger.LogError(ex, "CUDA runtime failure detected, restart required.");
+        _logger.LogError(ex, "CUDA runtime failure detected. One-shot CPU fallback set for next launch.");
     }
 
     /// <summary>
-    /// 判断异常是否明确指向 CUDA runtime 库加载或初始化失败。
-    /// 仅匹配确定性的 CUDA 库缺失/加载失败关键字，不把 <see cref="System.Runtime.InteropServices.SEHException"/>
-    /// 或泛义的 "cuda" 子串匹配当作 CUDA 故障——这些可能来自任何 native 崩溃或无关异常消息。
+    /// 判断异常是否明确指向 CUDA 库的 <b>加载失败</b>（DLL 缺失/损坏），而非 GPU 运行时推理错误。
+    /// 仅匹配确定性库加载故障：
+    /// <list type="bullet">
+    /// <item><see cref="DllNotFoundException"/> 或 <see cref="FileLoadException"/>（任何 native 库加载失败）</item>
+    /// <item>消息中同时包含加载失败关键字（"unable to load"/"dll not found"/"could not load"/"module could not be found"）
+    /// 和 CUDA 库名（cublas/cudnn/cudart/cudart64/nvcuda/paddle_inference）</item>
+    /// </list>
+    /// 不匹配瞬态 GPU 错误（如 <c>CUBLAS_STATUS_ALLOC_FAILED</c>、<c>CUDNN_STATUS_ALLOC_FAILED</c>），
+    /// 这些是显存不足或 kernel 初始化失败，可以通过等待后重建 predictor 重试恢复。
     /// </summary>
     /// <param name="ex">待判断的异常。</param>
-    /// <returns>明确为 CUDA runtime 库故障返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
-    private static bool IsCudaRuntimeFailure(Exception ex)
+    /// <returns>明确为 CUDA 库加载故障返回 <see langword="true"/>；瞬态 GPU 错误或其他异常返回 <see langword="false"/>。</returns>
+    private static bool IsCudaLibraryLoadFailure(Exception ex)
     {
+        // 确定性库加载异常类型
+        if (ex is DllNotFoundException or FileLoadException)
+            return true;
+
         var text = ex.GetType().Name + " " + (ex.Message ?? string.Empty);
-        return text.Contains("cublas", StringComparison.OrdinalIgnoreCase)
+
+        // 消息中必须同时包含"加载失败"语义和"CUDA 库名"才判定为库加载故障
+        var hasLoadFailure = text.Contains("unable to load", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("dll not found", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("could not load", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("the specified module could not be found", StringComparison.OrdinalIgnoreCase);
+
+        var hasCudaLibrary = text.Contains("cublas", StringComparison.OrdinalIgnoreCase)
             || text.Contains("cudnn", StringComparison.OrdinalIgnoreCase)
             || text.Contains("cudart", StringComparison.OrdinalIgnoreCase)
             || text.Contains("cudart64", StringComparison.OrdinalIgnoreCase)
             || text.Contains("nvcuda", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("unable to load", StringComparison.OrdinalIgnoreCase)
-               && text.Contains("cuda", StringComparison.OrdinalIgnoreCase);
+            || text.Contains("paddle_inference", StringComparison.OrdinalIgnoreCase);
+
+        return hasLoadFailure && hasCudaLibrary;
     }
 
     /// <summary>

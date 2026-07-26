@@ -386,13 +386,7 @@ public partial class SmartBpModuleContentViewModel
         RecognitionTransitionReplayMinimumConfidence = _recognitionSettingsService.Settings.RecognitionTransitionReplayMinimumConfidence;
         UseOcrContactSheet = _recognitionSettingsService.Settings.UseOcrContactSheet;
         EnableOcrDebugOverlay = _recognitionSettingsService.Settings.EnableOcrDebugOverlay;
-        OcrProviders =
-        [
-            new(SmartBpOcrProviderMode.Paddle, string.Format(ResolveLocalizedOrRaw("SmartBpRecommendedProviderFormat"), "PaddleOCR")),
-            new(SmartBpOcrProviderMode.Rapid, "RapidOCR"),
-            new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR")
-        ];
-        SelectedOcrProvider = OcrProviders.First(item => item.Mode == _recognitionSettingsService.Settings.SelectedOcrProviderMode);
+        RebuildOcrProviderSelections();
         TesseractLanguages = _recognitionSettingsService.Settings.TesseractLanguages;
         TesseractLanguageOptions = _tesseractDataAssetManager.GetAvailableLanguages()
             .Select(asset => new TesseractLanguageSelection(asset.Language, asset.DisplayNameKey))
@@ -1861,6 +1855,9 @@ public partial class SmartBpModuleContentViewModel
     partial void OnSelectedOcrProviderChanged(OcrProviderSelection? value)
     {
         if (value == null) return;
+        // 语言切换触发 RebuildOcrProviderSelections 重建列表时，SelectedOcrProvider 会被
+        // 重新赋值以恢复用户之前的选择；此时不应写回设置或触发状态级联，避免误持久化与重复刷新。
+        if (_isRebuildingProviders) return;
         _recognitionSettingsService.Settings.SelectedOcrProviderMode = value.Mode;
         _recognitionSettingsService.Settings.OcrProviderMode = value.Mode;
         RefreshRecognitionEngineVisibility();
@@ -1951,6 +1948,35 @@ public partial class SmartBpModuleContentViewModel
         RapidOcrStatus = rapid.IsReady
             ? ResolveLocalizedOrRaw("SmartBpOcrStatusInstalled")
             : ResolveLocalizedOrRaw("SmartBpOcrStatusMissing");
+    }
+
+    /// <summary>
+    /// 重建 OCR Provider 选择列表并恢复选中项。
+    /// 列表中的显示名（如 "PaddleOCR（推荐）"）通过资源键本地化，语言切换后必须重新计算。
+    /// 重建期间通过 <see cref="_isRebuildingProviders"/> 抑制 <see cref="OnSelectedOcrProviderChanged"/>
+    /// 的设置写回，避免语言切换误触发持久化与状态级联。
+    /// </summary>
+    private void RebuildOcrProviderSelections()
+    {
+        var previouslySelectedMode = SelectedOcrProvider?.Mode
+            ?? _recognitionSettingsService.Settings.SelectedOcrProviderMode;
+
+        _isRebuildingProviders = true;
+        try
+        {
+            OcrProviders =
+            [
+                new(SmartBpOcrProviderMode.Paddle, string.Format(ResolveLocalizedOrRaw("SmartBpRecommendedProviderFormat"), "PaddleOCR")),
+                new(SmartBpOcrProviderMode.Rapid, "RapidOCR"),
+                new(SmartBpOcrProviderMode.Tesseract, "Tesseract OCR")
+            ];
+            SelectedOcrProvider = OcrProviders.FirstOrDefault(item => item.Mode == previouslySelectedMode)
+                                  ?? OcrProviders.First();
+        }
+        finally
+        {
+            _isRebuildingProviders = false;
+        }
     }
 
     private string[] GetSelectedTesseractLanguages() =>

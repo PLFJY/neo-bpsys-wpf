@@ -51,6 +51,14 @@ public interface IPaddleRuntimeState
     string? RuntimeLoadError { get; }
 
     /// <summary>
+    /// PaddleOCR Predictor 是否在当前后端下成功构造并验证。
+    /// 仅当 <see cref="ActiveBackend"/> 为 <see cref="OcrInferenceBackend.Cuda"/> 且
+    /// 真实 <c>PaddleOcrAll</c> 构造成功（含 det/cls/rec 三个 Predictor）后才为 <see langword="true"/>。
+    /// 用于区分"runtime DLL 加载成功"与"真实模型在 GPU 上可用"。
+    /// </summary>
+    bool PaddleBackendVerified { get; }
+
+    /// <summary>
     /// 状态变化事件。
     /// </summary>
     event EventHandler? StateChanged;

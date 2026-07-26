@@ -65,6 +65,12 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private const string CaptureFrameUnavailableMessageKey = "SmartBpValidationCaptureFrameUnavailable";
     private const string OcrNotReadyMessageKey = "SmartBpValidationOcrNotReady";
 
+    // 语言切换时正在重建 OCR Provider 列表，此时 OnSelectedOcrProviderChanged 不应写回设置。
+    private bool _isRebuildingProviders;
+
+    // RefreshLocalizedState 重入保护：culture 变化可能短时间多次触发，仅处理第一次。
+    private bool _isRefreshingLocalizedState;
+
     /// <summary>
     /// 用于设计时预览的无参构造函数。
     /// </summary>
@@ -156,6 +162,52 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         Application.Current?.Dispatcher?.BeginInvoke(
             new Action(() => _ocrService.StartLoadingPreferredModel()),
             DispatcherPriority.ApplicationIdle);
+
+        // 订阅语言变化：WPFLocalizeExtension 在 Culture 切换时触发 PropertyChanged("Culture")。
+        // SmartBP ViewModel 中大量字符串（CudaStatusText、OcrProviders、OcrModelList、PaddleOcrStatus 等）
+        // 是初始化时一次性本地化并缓存的，语言切换后必须重新计算，否则会滞留旧语言文本。
+        LocalizeDictionary.Instance.PropertyChanged += OnLocalizeCultureChanged;
+    }
+
+    /// <summary>
+    /// 处理 <see cref="LocalizeDictionary"/> 属性变化：仅在 <c>Culture</c> 变化时触发本地化状态刷新。
+    /// 通过 <see cref="BeginOnUiThread"/> 派发到 UI 线程，避免在 culture 变化通知链中同步执行重算。
+    /// </summary>
+    /// <param name="sender">事件发送者。</param>
+    /// <param name="e">属性变化事件参数。</param>
+    private void OnLocalizeCultureChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (!string.Equals(e.PropertyName, nameof(LocalizeDictionary.Culture), StringComparison.Ordinal))
+            return;
+
+        BeginOnUiThread(RefreshLocalizedState);
+    }
+
+    /// <summary>
+    /// 统一的本地化状态刷新入口。语言切换后重新计算所有缓存的本地化字符串，
+    /// 包括 CUDA 状态文本、OCR 模型列表显示名、OCR Provider 推荐文案、各 Provider 状态、
+    /// 识别速度测试提示、RapidOCR 状态文本。带重入保护以避免短时间多次触发。
+    /// </summary>
+    private void RefreshLocalizedState()
+    {
+        if (_isRefreshingLocalizedState)
+            return;
+
+        _isRefreshingLocalizedState = true;
+        try
+        {
+            RefreshCudaStatus();
+            RefreshCudaUnsupportedReason();
+            RebuildOcrProviderSelections();
+            RefreshOcrModelStatus();
+            RefreshOcrProviderStatuses();
+            RefreshRecognitionSpeedTestValidity();
+            _ = RefreshRapidOcrStatusAsync();
+        }
+        finally
+        {
+            _isRefreshingLocalizedState = false;
+        }
     }
 
     /// <summary>

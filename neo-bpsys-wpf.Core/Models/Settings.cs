@@ -81,15 +81,23 @@ public partial class Settings : ObservableObjectBase
     public int? PreferredCudaDeviceId { get; set; }
 
     /// <summary>
-    /// 最近一次 CUDA 故障描述；为 <see langword="null"/> 表示无故障。
+    /// 最近一次 CUDA 故障描述；仅用于诊断展示，不参与后端决策。
+    /// 后端短路由 <see cref="ForceCpuForNextLaunch"/> 一次性消费控制。
     /// </summary>
     public string? LastCudaFailure { get; set; }
 
     /// <summary>
     /// 最近一次 CUDA 故障发生时的 PaddleInference runtime 版本。
-    /// 用于版本升级后清除旧故障状态。
+    /// 用于版本升级后清除旧故障诊断信息。
     /// </summary>
     public string? LastCudaFailureRuntimeVersion { get; set; }
+
+    /// <summary>
+    /// 一次性 CPU 强制标记。CUDA 推理失败时设置为 <see langword="true"/>，
+    /// 下次启动 Bootstrap 检测到此标记后强制使用 CPU 并立即消费（置回 <see langword="false"/>），
+    /// 避免永久锁死 CPU。与 <see cref="LastCudaFailure"/>（仅诊断）分离。
+    /// </summary>
+    public bool ForceCpuForNextLaunch { get; set; }
 
     [ObservableProperty]
     public partial string GhProxyMirror { get; set; } = "https://ghproxy.net/";

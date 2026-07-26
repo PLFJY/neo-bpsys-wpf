@@ -999,6 +999,12 @@
   <data name="CudaStatusUsingCpu" xml:space="preserve">
     <value>現在 CPU 使用中</value>
   </data>
+  <data name="CudaStatusReadyButNotPaddle" xml:space="preserve">
+    <value>CUDA ランタイム準備済み、現在の OCR エンジンは Paddle CUDA を使用していません</value>
+  </data>
+  <data name="CudaStatusPendingVerify" xml:space="preserve">
+    <value>CUDA ランタイム読込済み、モデル推論検証待ち</value>
+  </data>
   <data name="CudaInstallFailed" xml:space="preserve">
     <value>インストール失敗</value>
   </data>

@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -28,6 +29,12 @@ public partial class SmartBpModuleContentViewModel
 
     /// <summary>是否正在执行 CUDA 开关切换流程，用于防止命令重复触发。</summary>
     private bool _isCudaToggling;
+
+    /// <summary>
+    /// 当前 <see cref="CudaUnsupportedReason"/> 对应的资源键；无提示时为 <see langword="null"/>。
+    /// 语言切换后通过 <see cref="RefreshCudaUnsupportedReason"/> 重新解析，避免提示文本滞留旧语言。
+    /// </summary>
+    private string? _cudaUnsupportedReasonKey;
 
     /// <summary>
     /// 获取或设置是否检测到至少一张 NVIDIA CUDA 设备。
@@ -135,7 +142,7 @@ public partial class SmartBpModuleContentViewModel
         _selectedCudaDevice = devices.FirstOrDefault(d => d.IsSupported) ?? devices.FirstOrDefault();
         IsCudaSupported = _selectedCudaDevice is { IsSupported: true };
         CudaDeviceName = _selectedCudaDevice?.DeviceName ?? "";
-        CudaUnsupportedReason = IsCudaSupported ? null : ResolveLocalizedOrRaw("CudaStatusUnavailable");
+        SetCudaUnsupportedReason(IsCudaSupported ? null : "CudaStatusUnavailable");
 
         ResolveSelectedCudaPackage();
 
@@ -204,12 +211,12 @@ public partial class SmartBpModuleContentViewModel
     {
         if (!IsCudaSupported || _selectedCudaPackage is null)
         {
-            CudaUnsupportedReason = ResolveLocalizedOrRaw("CudaInstallFailed");
+            SetCudaUnsupportedReason("CudaInstallFailed");
             return;
         }
 
         // 清除上一次下载失败提示，开始新一轮下载。
-        CudaUnsupportedReason = null;
+        SetCudaUnsupportedReason(null);
 
         _cudaDownloadCts = new CancellationTokenSource();
         IsCudaDownloading = true;
@@ -259,7 +266,8 @@ public partial class SmartBpModuleContentViewModel
     }
 
     /// <summary>
-    /// 应用 CUDA 偏好：持久化后端偏好与设备 ID、清除历史失败标记、通过全局重启服务标记需要重启。
+    /// 应用 CUDA 偏好：持久化后端偏好与设备 ID、清除历史故障标记（含一次性 CPU 保护）、
+    /// 通过全局重启服务标记需要重启。
     /// </summary>
     private void ApplyCudaPreference()
     {
@@ -268,11 +276,13 @@ public partial class SmartBpModuleContentViewModel
 
         _settingsHostService.Settings.PreferredOcrBackend = OcrInferenceBackend.Cuda;
         _settingsHostService.Settings.PreferredCudaDeviceId = _selectedCudaDevice.DeviceId;
+        // 用户主动启用 CUDA 时，清除所有历史故障标记，允许下次启动重新尝试 CUDA。
         if (!string.IsNullOrWhiteSpace(_settingsHostService.Settings.LastCudaFailure))
         {
             _settingsHostService.Settings.LastCudaFailure = null;
             _settingsHostService.Settings.LastCudaFailureRuntimeVersion = null;
         }
+        _settingsHostService.Settings.ForceCpuForNextLaunch = false;
         _ = _settingsHostService.SaveConfigAsync();
         _globalRestartService.IsRestartRequired = true;
         IsCudaRestartRequired = true;
@@ -304,10 +314,28 @@ public partial class SmartBpModuleContentViewModel
 
         IsCudaDependencyInstalled = installInfo.Status == PaddleRuntimeInstallStatus.Installed;
 
+        // 当前选中的 OCR 引擎（Paddle / Rapid / Tesseract）。CUDA 只服务于 PaddleOCR，
+        // 其他引擎下即使 CUDA runtime 已就绪也不会被使用。
+        var currentProvider = _recognitionSettingsService.Settings.SelectedOcrProviderMode;
+
         string statusKey;
         if (runtimeState.ActiveBackend == OcrInferenceBackend.Cuda && runtimeState.RuntimeLoadError is null)
         {
-            statusKey = "CudaStatusEnabled";
+            if (currentProvider != SmartBpOcrProviderMode.Paddle)
+            {
+                // CUDA runtime 已加载，但当前 OCR 引擎不是 PaddleOCR，GPU 不会被使用。
+                statusKey = "CudaStatusReadyButNotPaddle";
+            }
+            else if (runtimeState.PaddleBackendVerified)
+            {
+                // 真实 PaddleOcrAll 已在 GPU 上成功构造，确认正在使用 CUDA。
+                statusKey = "CudaStatusEnabled";
+            }
+            else
+            {
+                // runtime DLL 已加载且 probe 通过，但真实 OCR 模型尚未在 GPU 上验证。
+                statusKey = "CudaStatusPendingVerify";
+            }
         }
         else if (runtimeState.ActiveBackend == OcrInferenceBackend.Cpu
                  && _settingsHostService.Settings.PreferredOcrBackend == OcrInferenceBackend.Cuda
@@ -348,6 +376,30 @@ public partial class SmartBpModuleContentViewModel
     }
 
     /// <summary>
+    /// 统一设置 <see cref="CudaUnsupportedReason"/> 的资源键与解析后的文本。
+    /// 所有提示赋值必须走此方法，以保证 <see cref="_cudaUnsupportedReasonKey"/> 与显示文本同步，
+    /// 语言切换后 <see cref="RefreshCudaUnsupportedReason"/> 才能正确重新本地化。
+    /// </summary>
+    /// <param name="key">资源键；传 <see langword="null"/> 清除提示。</param>
+    private void SetCudaUnsupportedReason(string? key)
+    {
+        _cudaUnsupportedReasonKey = key;
+        CudaUnsupportedReason = key is null ? null : ResolveLocalizedOrRaw(key);
+    }
+
+    /// <summary>
+    /// 语言切换后根据 <see cref="_cudaUnsupportedReasonKey"/> 重新解析 <see cref="CudaUnsupportedReason"/>。
+    /// 由 <see cref="RefreshLocalizedState"/> 调用，避免 CUDA 提示文本在切换语言后滞留旧语言。
+    /// </summary>
+    private void RefreshCudaUnsupportedReason()
+    {
+        if (_cudaUnsupportedReasonKey is null)
+            return;
+
+        CudaUnsupportedReason = ResolveLocalizedOrRaw(_cudaUnsupportedReasonKey);
+    }
+
+    /// <summary>
     /// 处理 CUDA runtime 组件下载状态变化：同步进度/速度文本，并在下载结束时更新安装状态与提示。
     /// 参照软件更新 <c>RefreshUpdateDownloadState</c>：下载进行中只做属性赋值，
     /// <b>不调用</b> <see cref="RefreshCudaStatus"/>（后者会通过 <see cref="GetInstallStatus"/>
@@ -376,11 +428,11 @@ public partial class SmartBpModuleContentViewModel
 
             if (_paddleRuntimeComponentService.LastInstallSucceeded != true)
             {
-                CudaUnsupportedReason = ResolveLocalizedOrRaw("CudaStatusDownloadFailed");
+                SetCudaUnsupportedReason("CudaStatusDownloadFailed");
             }
             else
             {
-                CudaUnsupportedReason = null;
+                SetCudaUnsupportedReason(null);
             }
         }
     }
