@@ -329,7 +329,7 @@
     <value>XAML</value>
   </data>
   <data name="FrontManageWindowCategory.V3Layout">
-    <value>v3 レイアウト</value>
+    <value>v3 ウィンドウ</value>
   </data>
   <data name="StopAllLoopAnimations">
     <value>すべてのループアニメーションを停止</value>
