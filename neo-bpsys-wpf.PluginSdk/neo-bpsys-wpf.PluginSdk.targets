@@ -99,10 +99,11 @@
 		     项目的 SDK 隐式框架引用（netstandard.dll facade）解析异常，引发 CS0518
 		     (System.Object 未定义)。Exec + dotnet build 是全新进程，不受影响。
 
-		     no-incremental 确保完整构建；Platform=AnyCPU 避免主项目 x64 透传；
-		     RuntimeIdentifier= 清空 RID，避免 NETSDK1047（assets 文件缺少
-		     netstandard2.0/win-x64 目标）。 -->
-		<Exec Command="dotnet build &quot;$(BpsysSdk_V3GeneratorProjectPath)&quot; -c $(Configuration) -p:Platform=AnyCPU -p:RuntimeIdentifier= --no-incremental" />
+		     用增量构建（不加 no-incremental）：VS 的 Roslyn 进程会锁定已生成的 DLL，
+		     强制完整重建会因文件占用失败。增量构建在源文件未变化时直接跳过，避免冲突。
+		     Platform=AnyCPU 避免主项目 x64 透传；RuntimeIdentifier= 清空 RID，
+		     避免 NETSDK1047（assets 文件缺少 netstandard2.0/win-x64 目标）。 -->
+		<Exec Command="dotnet build &quot;$(BpsysSdk_V3GeneratorProjectPath)&quot; -c $(Configuration) -p:Platform=AnyCPU -p:RuntimeIdentifier=" />
 
 		<!-- 检查 DLL 是否生成，缺失则报错（避免静默失败导致 IntelliSense 不可用） -->
 		<Error Condition="!Exists('$(BpsysSdk_V3GeneratorDll)')"
