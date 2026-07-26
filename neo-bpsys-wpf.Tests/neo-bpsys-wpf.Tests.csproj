@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit.v3" Version="3.2.2" />
@@ -25,6 +26,7 @@
     <ProjectReference Include="..\neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj" Aliases="smartbp" />
     <ProjectReference Include="..\neo-bpsys-wpf.ExamplePlugin\neo-bpsys-wpf.ExamplePlugin.csproj" />
     <ProjectReference Include="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" />
+    <ProjectReference Include="..\neo-bpsys-wpf.V3SourceGenerator\neo-bpsys-wpf.V3SourceGenerator.csproj" />
     <ProjectReference Include="..\Built-inPlugins\neo-bpsys-wpf.WebRenderer\neo-bpsys-wpf.WebRenderer.csproj" />
     <ProjectReference Include="..\Built-inPlugins\neo-bpsys-wpf.WebRenderer\Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Aliases="host" />
   </ItemGroup>

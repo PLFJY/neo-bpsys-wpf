@@ -4240,14 +4240,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         else
         {
-            try
-            {
-                convertedValue = Convert.ChangeType(
-                    newValue,
-                    Nullable.GetUnderlyingType(schemaProperty.PropertyType) ?? schemaProperty.PropertyType,
-                    CultureInfo.InvariantCulture);
-            }
-            catch
+            // 复用 FrontedV3ValueConverter 统一转换规则，覆盖 enum、nullable、Color、Brush、
+            // JsonElement 与已正确类型的对象；Convert.ChangeType 仅处理 IConvertible 兜底。
+            if (!FrontedV3ValueConverter.TryConvert(newValue, schemaProperty.PropertyType, out convertedValue))
             {
                 var errorMessage = I18nHelper.GetLocalizedString(
                     AppI18nDictionaries.Designer,
@@ -4698,9 +4693,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return;
             }
 
-            // Root 选中时同样走 Schema 驱动路径：属性网格由 FrontedV3PropertyDefinition 列表构造，
+            // Root 选中时走 Schema 驱动路径：属性网格由 FrontedV3PropertyDefinition 列表构造，
             // 属性值通过 Storage 读写，不通过反射扫描 Config。
-            // SelectedTarget 为 null 时（无 Schema 属性的边缘情况）回退到旧反射路径。
+            // SelectedTarget 为 null 时（Missing Plugin：Registry 中未注册）同样走 BuildFromSchema，
+            // 由 AddMissingPluginRows 显示诊断行，不再回退到旧反射路径扫描 Config 公共属性。
             IEnumerable<FrontedPropertyEditorItem> rows;
             if (_selectedTarget is { Kind: FrontedV3DesignSelectionKind.Root } rootTarget)
             {
@@ -4714,11 +4710,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
             else
             {
-                rows = _propertyGridBuilder.Build(
+                // Missing Plugin：控件未在 Registry 中注册，SelectedTarget 为 null。
+                // 仍调用 BuildFromSchema，传入空 Schema，由 AddMissingPluginRows 显示诊断行。
+                rows = _propertyGridBuilder.BuildFromSchema(
                     CurrentDocument,
                     SelectedDesignItem,
                     _validator,
-                    _referenceScanner);
+                    _referenceScanner,
+                    Array.Empty<FrontedV3PropertyDefinition>(),
+                    _schemaPropertiesByPath);
             }
 
             foreach (var row in rows)

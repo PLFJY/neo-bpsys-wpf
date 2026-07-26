@@ -55,7 +55,11 @@ public class FrontedV3DesignSelectionBuilder
     /// </summary>
     /// <param name="designItem">选中的设计项。</param>
     /// <param name="onVisualSync">可选的视觉同步回调，在几何值变更后由调用方触发视觉更新。</param>
-    /// <returns>根控件选中目标；无可用 Schema 属性时返回 <see langword="null"/>。</returns>
+    /// <returns>
+    /// 根控件选中目标；当控件在 Registry 中未注册时返回 <see langword="null"/>，由调用方决定是否显示 Missing Plugin 行。
+    /// 已注册控件即使没有 Schema 属性也会返回非空 Selection，使仅声明 FixedPart/PartCollection 的控件
+    /// 也能在画布上形成 Root 几何目标与 Part hitbox。
+    /// </returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="designItem"/> 为 <see langword="null"/> 时抛出。</exception>
     public FrontedV3DesignSelection? BuildRootSelection(
         FrontedControlDesignItem designItem,
@@ -63,12 +67,18 @@ public class FrontedV3DesignSelectionBuilder
     {
         ArgumentNullException.ThrowIfNull(designItem);
 
-        var properties = ResolveRootProperties(designItem.Config);
-        if (properties.Count == 0)
+        // 已注册控件即使没有 Schema 属性也必须能形成 Root Selection：
+        // 1. 让画布生成 Part 的透明 hitbox（GetChildTargetInfos 要求当前必须为 Root Selection）；
+        // 2. PropertyGrid 通过 BuildFromSchema() 显示 Missing Plugin 行而非回退到反射；
+        // 3. Root 几何目标（Move/Resize）对所有控件一致可用。
+        // 仅当控件未在 Registry 中注册（Missing Plugin）时返回 null，由调用方自行处理 Missing 行。
+        var registration = _v3Registry.GetRegistration(designItem.Config.ControlType);
+        if (registration is null)
         {
             return null;
         }
 
+        var properties = registration.Properties ?? Array.Empty<FrontedV3PropertyDefinition>();
         var geometryTarget = new ConfigBackedRootGeometryTarget(designItem.Config, onVisualSync);
         return FrontedV3DesignSelection.ForRoot(designItem, geometryTarget, properties);
     }

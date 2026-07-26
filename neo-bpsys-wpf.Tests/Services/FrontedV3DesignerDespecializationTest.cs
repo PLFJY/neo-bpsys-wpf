@@ -98,11 +98,12 @@ public class FrontedV3DesignerDespecializationTest
 
     /// <summary>
     /// 未在 Registry 中注册的控件调用 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
-    /// 时返回 <see langword="null"/>，表示该控件无可编辑 Schema 属性。
+    /// 时返回 <see langword="null"/>，表示 Missing Plugin。
     /// </summary>
     /// <remarks>
     /// Designer 去特化后，属性 Schema 仅从 Registration 读取，不再回退到 CLR 反射。
-    /// 未注册的 ControlType（如缺失插件）返回 <see langword="null"/>，由调用方决定如何呈现。
+    /// 未注册的 ControlType（如缺失插件）返回 <see langword="null"/>，由 PropertyGridBuilder
+    /// 通过 <c>AddMissingPluginRows</c> 显示诊断行。
     /// </remarks>
     [Fact]
     public void RootSelectionReturnsNullWhenSchemaIsEmpty()
@@ -116,8 +117,73 @@ public class FrontedV3DesignerDespecializationTest
         var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
         var selection = builder.BuildRootSelection(designItem);
 
-        // "Unknown" 未注册，Registry 返回 null Registration，Properties 为空，selection 为 null。
+        // "Unknown" 未注册，Registry 返回 null Registration，selection 为 null。
         Assert.Null(selection);
+    }
+
+    /// <summary>
+    /// 已注册控件即使没有 Schema 属性也必须返回非空 Root Selection，
+    /// 使仅声明 FixedPart/PartCollection 的控件也能在画布上形成 Root 几何目标与 Part hitbox。
+    /// </summary>
+    /// <remarks>
+    /// 验收 Round-3 P1-2：插件作者可能声明一个只有 Part、没有 FrontedV3Property&lt;T&gt; 的控件，
+    /// 此时 Root Selection 不应因 Properties.Count == 0 而返回 null，否则 PropertyGrid 会回退到旧反射路径，
+    /// 画布也不会生成 Part 的透明 hitbox。
+    /// </remarks>
+    [Fact]
+    public void RootSelection_NonNullForRegisteredControlWithoutProperties()
+    {
+        var designItem = new FrontedControlDesignItem
+        {
+            Name = "NoProps",
+            Config = new FrontedControlConfigBase { ControlType = "Text" }
+        };
+
+        // Text 控件在 CreateTestRegistry 中已注册，但其 Properties 在测试用例中可能为空。
+        // 无论 Properties 是否为空，只要 ControlType 已注册，就应返回非 null Selection。
+        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
+        var selection = builder.BuildRootSelection(designItem);
+
+        Assert.NotNull(selection);
+        Assert.Equal(FrontedV3DesignSelectionKind.Root, selection!.Kind);
+    }
+
+    /// <summary>
+    /// 已注册控件即使没有 Schema 属性，调用 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
+    /// 也必须返回非空 Selection，且 Selection 的 Properties 列表为空（不伪造任何属性）。
+    /// </summary>
+    [Fact]
+    public void RootSelection_EmptyPropertiesForRegisteredControlWithoutSchema()
+    {
+        // 使用一个没有 Schema 属性的注册控件
+        var registry = new FrontedV3ControlRegistry(
+        [
+            new FrontedV3ControlRegistration
+            {
+                ControlType = typeof(EmptySchemaControl),
+                ConfigType = typeof(FrontedControlConfigBase),
+                CanonicalControlType = "EmptySchema",
+                LocalControlId = "EmptySchema",
+                PackageId = "test",
+                IsBuiltIn = false,
+                Properties = Array.Empty<FrontedV3PropertyDefinition>(),
+                FixedParts = Array.Empty<neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts.FrontedV3PartDefinition>(),
+                PartCollections = Array.Empty<neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Parts.FrontedV3PartCollectionDefinition>(),
+                CreateDefaultConfig = () => new FrontedControlConfigBase { ControlType = "EmptySchema" }
+            }
+        ]);
+
+        var designItem = new FrontedControlDesignItem
+        {
+            Name = "Empty",
+            Config = new FrontedControlConfigBase { ControlType = "EmptySchema" }
+        };
+
+        var builder = new FrontedV3DesignSelectionBuilder(registry);
+        var selection = builder.BuildRootSelection(designItem);
+
+        Assert.NotNull(selection);
+        Assert.Empty(selection!.Properties);
     }
 
     // -------------------------------------------------------------------
@@ -958,3 +1024,10 @@ public class FrontedV3DesignerDespecializationTest
         };
     }
 }
+
+/// <summary>
+/// 用于 <see cref="FrontedV3DesignerDespecializationTest.RootSelection_EmptyPropertiesForRegisteredControlWithoutSchema"/>
+/// 的占位控件类型，仅用于构造没有 Schema 属性的 Registration。
+/// </summary>
+internal sealed class EmptySchemaControl;
+

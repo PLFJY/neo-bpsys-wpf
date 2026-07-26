@@ -6,6 +6,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+// ReSharper disable InconsistentNaming
+// 生成器内部使用 PascalCase 与下划线命名以匹配生成产物约定。
+
 namespace neo_bpsys_wpf.V3SourceGenerator;
 
 /// <summary>
@@ -264,31 +267,37 @@ public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
             sb.AppendLine("{");
         }
 
-        GenerateDesignContextClass(sb, control, baseIndent: "");
-        GenerateNodeClass(sb, control.ControlId + "Options", root, control.ControlId, baseIndent: "");
+        // 类型名前缀使用 ClassName（C# 类标识符）而非 ControlId（可能是 "Team Card"、"1Card" 等非 C# 标识符）。
+        // 子类型名使用 ClassName + 完整路径（下划线连接）避免不同路径下相同 segment 产生同名类。
+        var typePrefix = control.ClassName;
+        GenerateDesignContextClass(sb, control, typePrefix, baseIndent: "");
+        GenerateNodeClass(sb, $"{typePrefix}Options", root, typePrefix, pathPrefix: string.Empty, baseIndent: "");
 
         if (!string.IsNullOrEmpty(control.Namespace))
         {
             sb.AppendLine("}");
         }
 
-        var hintName = $"{control.ClassName}.Options.g.cs";
+        // HintName 包含 ClassName（C# 标识符），不使用 ControlId 避免非法文件名。
+        var hintName = string.IsNullOrEmpty(control.Namespace)
+            ? $"{control.ClassName}.Options.g.cs"
+            : $"{control.Namespace.Replace('.', '_')}.{control.ClassName}.Options.g.cs";
         ctx.AddSource(hintName, sb.ToString());
     }
 
     /// <summary>
-    /// 生成根 <c>{ControlId}DesignContext</c> 类，仅含一个返回 <c>{ControlId}Options</c> 的 <c>Options</c> 属性。
+    /// 生成根 <c>{ClassName}DesignContext</c> 类，仅含一个返回 <c>{ClassName}Options</c> 的 <c>Options</c> 属性。
     /// </summary>
-    private static void GenerateDesignContextClass(StringBuilder sb, ControlInfo control, string baseIndent)
+    private static void GenerateDesignContextClass(StringBuilder sb, ControlInfo control, string typePrefix, string baseIndent)
     {
         sb.AppendLine($"{baseIndent}/// <summary>");
         sb.AppendLine($"{baseIndent}/// Design-time IntelliSense facade for <see cref=\"{control.ClassName}\"/>.");
         sb.AppendLine($"{baseIndent}/// 在 XAML 中通过 d:DesignInstance 绑定以获得 Options.* 路径补全。");
         sb.AppendLine($"{baseIndent}/// </summary>");
-        sb.AppendLine($"{baseIndent}public partial class {control.ControlId}DesignContext");
+        sb.AppendLine($"{baseIndent}public partial class {typePrefix}DesignContext");
         sb.AppendLine($"{baseIndent}{{");
         sb.AppendLine($"{baseIndent}    /// <summary>Gets the Options root for IntelliSense.</summary>");
-        sb.AppendLine($"{baseIndent}    public {control.ControlId}Options Options {{ get; set; }} = new {control.ControlId}Options();");
+        sb.AppendLine($"{baseIndent}    public {typePrefix}Options Options {{ get; set; }} = new {typePrefix}Options();");
         sb.AppendLine($"{baseIndent}}}");
         sb.AppendLine();
     }
@@ -330,13 +339,15 @@ public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
     /// <param name="sb">源代码构建器。</param>
     /// <param name="className">当前节点生成的类名。</param>
     /// <param name="node">当前路径节点。</param>
-    /// <param name="controlId">控件 ControlId，用于子类命名前缀。</param>
+    /// <param name="typePrefix">类型名前缀，通常为控件类名。</param>
+    /// <param name="pathPrefix">从根到当前节点的完整路径（下划线连接），用于子类命名唯一性。</param>
     /// <param name="baseIndent">基础缩进。</param>
     private static void GenerateNodeClass(
         StringBuilder sb,
         string className,
         PathNode node,
-        string controlId,
+        string typePrefix,
+        string pathPrefix,
         string baseIndent)
     {
         sb.AppendLine($"{baseIndent}/// <summary>");
@@ -351,16 +362,24 @@ public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
         {
             var seg = pair.Key;
             var child = pair.Value;
-            var childClassName = $"{controlId}{seg}Options";
+            // 子类型名使用 typePrefix + 完整路径（下划线连接）+ "Options"，
+            // 确保 A.Text.Value 与 B.Text.Value 不会生成同名类。
+            // 类型名中的 segment 也需要 sanitization（替换非标识符字符），
+            // 但不需要 @ 前缀（类型名总带前缀，不会是单独关键字）。
+            var sanitizedSeg = SanitizeForTypeName(seg);
+            var childPath = string.IsNullOrEmpty(pathPrefix) ? sanitizedSeg : $"{pathPrefix}_{sanitizedSeg}";
+            var childClassName = $"{typePrefix}_{childPath}Options";
+            // 属性名：对 C# 关键字加 @，对非标识符 segment 进行 sanitization。
+            var propertyName = SanitizeIdentifier(seg);
             sb.AppendLine($"{memberIndent}/// <summary>Gets the {seg} options group.</summary>");
-            sb.AppendLine($"{memberIndent}public {childClassName} {seg} {{ get; set; }} = new {childClassName}();");
+            sb.AppendLine($"{memberIndent}public {childClassName} {propertyName} {{ get; set; }} = new {childClassName}();");
         }
 
         foreach (var leaf in node.LeafProperties)
         {
-            var propName = leaf.Name;
+            var propName = SanitizeIdentifier(leaf.Name);
             var propType = leaf.Type;
-            sb.AppendLine($"{memberIndent}/// <summary>Design-time placeholder for {propName}.</summary>");
+            sb.AppendLine($"{memberIndent}/// <summary>Design-time placeholder for {leaf.Name}.</summary>");
             sb.AppendLine($"{memberIndent}public {propType} {propName} {{ get; set; }} = default!;");
         }
 
@@ -371,9 +390,114 @@ public sealed class V3OptionsSourceGenerator : IIncrementalGenerator
         {
             var seg = pair.Key;
             var child = pair.Value;
-            var childClassName = $"{controlId}{seg}Options";
-            GenerateNodeClass(sb, childClassName, child, controlId, baseIndent);
+            var sanitizedSeg = SanitizeForTypeName(seg);
+            var childPath = string.IsNullOrEmpty(pathPrefix) ? sanitizedSeg : $"{pathPrefix}_{sanitizedSeg}";
+            var childClassName = $"{typePrefix}_{childPath}Options";
+            GenerateNodeClass(sb, childClassName, child, typePrefix, childPath, baseIndent);
         }
+    }
+
+    /// <summary>
+    /// 将 OptionsPath segment 转换为合法 C# 标识符：对关键字加 <c>@</c> 前缀，
+    /// 对非标识符字符替换为下划线并以 <c>_</c> 开头确保不以数字开头。
+    /// </summary>
+    /// <param name="segment">OptionsPath 的某一段。</param>
+    /// <returns>合法的 C# 标识符。</returns>
+    private static string SanitizeIdentifier(string segment)
+    {
+        if (string.IsNullOrEmpty(segment))
+        {
+            return "_";
+        }
+
+        var result = new StringBuilder(segment.Length);
+        foreach (var c in segment)
+        {
+            if (char.IsLetterOrDigit(c) || c == '_')
+            {
+                result.Append(c);
+            }
+            else
+            {
+                result.Append('_');
+            }
+        }
+
+        // 不以数字开头；空结果或数字开头加下划线前缀。
+        if (result.Length == 0 || char.IsDigit(result[0]))
+        {
+            result.Insert(0, '_');
+        }
+
+        var identifier = result.ToString();
+
+        // C# 关键字加 @ 前缀（允许作为属性名使用）。
+        if (IsCSharpKeyword(identifier))
+        {
+            return "@" + identifier;
+        }
+
+        return identifier;
+    }
+
+    /// <summary>
+    /// 将 OptionsPath segment 转换为可用于类型名的合法标识符片段：
+    /// 替换非标识符字符为下划线，确保不以数字开头，但不加 <c>@</c> 前缀
+    /// （类型名总带有前缀如 <c>{ClassName}_</c>，关键字作为片段不会与 C# 关键字冲突）。
+    /// </summary>
+    /// <param name="segment">OptionsPath 的某一段。</param>
+    /// <returns>可用于类型名的 sanitized 标识符片段。</returns>
+    private static string SanitizeForTypeName(string segment)
+    {
+        if (string.IsNullOrEmpty(segment))
+        {
+            return "_";
+        }
+
+        var result = new StringBuilder(segment.Length);
+        foreach (var c in segment)
+        {
+            if (char.IsLetterOrDigit(c) || c == '_')
+            {
+                result.Append(c);
+            }
+            else
+            {
+                result.Append('_');
+            }
+        }
+
+        if (result.Length == 0 || char.IsDigit(result[0]))
+        {
+            result.Insert(0, '_');
+        }
+
+        return result.ToString();
+    }
+
+    /// <summary>
+    /// 判断字符串是否为 C# 关键字。
+    /// </summary>
+    /// <param name="value">要检查的字符串。</param>
+    /// <returns>是 C# 关键字时返回 <see langword="true"/>。</returns>
+    private static bool IsCSharpKeyword(string value)
+    {
+        return value switch
+        {
+            "abstract" or "as" or "base" or "bool" or "break" or "byte" or "case" or "catch"
+            or "char" or "checked" or "class" or "const" or "continue" or "decimal" or "default"
+            or "delegate" or "do" or "double" or "else" or "enum" or "event" or "explicit"
+            or "extern" or "false" or "finally" or "fixed" or "float" or "for" or "foreach"
+            or "goto" or "if" or "implicit" or "in" or "int" or "interface" or "internal"
+            or "is" or "lock" or "long" or "namespace" or "new" or "null" or "object"
+            or "operator" or "out" or "override" or "params" or "private" or "protected"
+            or "public" or "readonly" or "ref" or "return" or "sbyte" or "sealed" or "short"
+            or "sizeof" or "stackalloc" or "static" or "string" or "struct" or "switch"
+            or "this" or "throw" or "true" or "try" or "typeof" or "uint" or "ulong"
+            or "unchecked" or "unsafe" or "ushort" or "using" or "virtual" or "void"
+            or "volatile" or "while" => true,
+            _ => false
+        };
     }
 
     private readonly struct ControlInfo(
