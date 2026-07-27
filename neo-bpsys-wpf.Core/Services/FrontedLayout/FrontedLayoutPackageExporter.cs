@@ -17,7 +17,7 @@ using System.Text.RegularExpressions;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// 前台布局包导出器，负责将当前的 v3 布局导出为 .bpui 格式的压缩包。
+/// 前台布局包导出器，负责将指定的 v3 布局包导出为 .bpui 格式的压缩包。
 /// 导出时会收集布局文件中引用的外部资源（图片、字体等）并一同打包。
 /// </summary>
 public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
@@ -121,7 +121,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
     /// <summary>
     /// 执行布局包导出，将选定的 v3 布局及其引用的资源打包为 .bpui 文件。
-    /// 导出基于当前活动包的快照：活动包磁盘上已有的合法 Layout 文件 + manifest 中已有 Layout entries。
+    /// 未指定源包时导出当前活动包；指定源包时从该包磁盘上已有的合法 Layout 文件导出。
     /// 未注册或未安装插件的 layout/behavior 文件原样保留；未保存的 Registry 窗口不会被补成空模板。
     /// </summary>
     /// <param name="request">导出请求参数。</param>
@@ -135,7 +135,10 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         {
             ValidateRequest(request);
             var activeState = await _packageManager.GetActivePackageStateAsync(cancellationToken);
-            var entries = CollectLayoutEntries(request, activeState);
+            var sourcePackageId = string.IsNullOrWhiteSpace(request.SourcePackageId)
+                ? activeState.PackageId
+                : request.SourcePackageId;
+            var entries = CollectLayoutEntries(request, sourcePackageId);
             if (entries.Count == 0)
             {
                 throw new InvalidOperationException("No on-disk v3 layouts are available in the active package for the selected export scope.");
@@ -153,7 +156,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             {
                 var manifest = CreateManifest(request);
                 await ExportLayoutsAsync(staging, entries, manifest, resourceState, cancellationToken);
-                await ExportBehaviorsAsync(staging, entries, activeState.PackageId, cancellationToken);
+                await ExportBehaviorsAsync(staging, entries, sourcePackageId, cancellationToken);
                 manifest.Content.Resources = resourceState.Resources;
 
                 var manifestJson = JsonSerializer.Serialize(manifest, _jsonSerializerOptions);
@@ -512,9 +515,9 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
     private IReadOnlyList<LayoutExportEntry> CollectLayoutEntries(
         FrontedLayoutPackageExportRequest request,
-        FrontedLayoutActivePackageState activeState)
+        string sourcePackageId)
     {
-        var layoutsRoot = _packageManager.GetPackageLayoutsRootFolder(activeState.PackageId);
+        var layoutsRoot = _packageManager.GetPackageLayoutsRootFolder(sourcePackageId);
         if (!Directory.Exists(layoutsRoot))
         {
             return Array.Empty<LayoutExportEntry>();
@@ -569,6 +572,12 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         if (!IsSafePackageId(request.PackageId))
         {
             throw new ArgumentException("PackageId is invalid.", nameof(request));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SourcePackageId)
+            && !FrontedLayoutPackageManager.IsSafePackageId(request.SourcePackageId))
+        {
+            throw new ArgumentException("Source package ID is invalid.", nameof(request));
         }
 
         if (string.IsNullOrWhiteSpace(request.Name))

@@ -18,11 +18,13 @@ using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Tutorial;
+using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -809,21 +811,32 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     [RelayCommand]
     private async Task ExportPackageAsync()
     {
-        if (_serviceProvider is null || _packageExporter is null)
+        if (_serviceProvider is null || _packageExporter is null || SelectedPackage is null)
         {
             return;
         }
 
         try
         {
+            var selectedPackage = SelectedPackage;
             var window = ActivatorUtilities.CreateInstance<FrontedLayoutPackageExportWindow>(_serviceProvider);
             window.Owner = GetShownOwnerWindow();
+            if (window.DataContext is FrontedLayoutPackageExportWindowViewModel exportViewModel)
+            {
+                exportViewModel.PackageId = selectedPackage.PackageId;
+                exportViewModel.PackageName = selectedPackage.Name;
+                exportViewModel.Description = selectedPackage.Description;
+                exportViewModel.Author = selectedPackage.Author;
+                exportViewModel.MinVersion = selectedPackage.MinVersion;
+            }
+
             if (window.ShowDialog() != true || window.ExportRequest is null)
             {
                 return;
             }
 
             var request = window.ExportRequest;
+            request.SourcePackageId = selectedPackage.PackageId;
             if (File.Exists(request.OutputPath)
                 && !await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmOverwriteFile"),
@@ -849,7 +862,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         }
         catch (Exception ex)
         {
-            _logger?.LogWarning(ex, "Failed to export fronted layout package.");
+            _logger?.LogWarning(ex, "Failed to export fronted layout package {PackageId}.", SelectedPackage.PackageId);
             PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageExportFailed")}: {ex.Message}";
         }
     }
@@ -958,6 +971,143 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             _logger?.LogWarning(ex, "Failed to duplicate fronted layout package {PackageId}.", SelectedPackage.PackageId);
             PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "DuplicateLayoutPackageFailed")}: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task RenamePackageAsync()
+    {
+        if (_packageManager is null || SelectedPackage is null)
+        {
+            return;
+        }
+
+        if (SelectedPackage.IsBuiltin)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CannotRenameBuiltinPackage");
+            return;
+        }
+
+        if (SelectedPackage.IsLocal)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CannotRenameLocalPackage");
+            return;
+        }
+
+        var contentDialogService = _serviceProvider?.GetService<IContentDialogService>();
+        if (contentDialogService is null)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "RenameLayoutPackageFailed");
+            return;
+        }
+
+        var packageId = SelectedPackage.PackageId;
+        var nameTextBox = new TextBox
+        {
+            PlaceholderText = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageName"),
+            Text = SelectedPackage.Name
+        };
+        var dialog = new ContentDialog
+        {
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "RenameLayoutPackageDialogTitle"),
+            Content = new System.Windows.Controls.StackPanel
+            {
+                Children =
+                {
+                    new System.Windows.Controls.TextBlock
+                    {
+                        Margin = new Thickness(0, 0, 0, 8),
+                        Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "RenameLayoutPackageHint"),
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    nameTextBox
+                }
+            },
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+            PrimaryButtonIcon = new SymbolIcon(SymbolRegular.Checkmark24),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
+            CloseButtonIcon = new SymbolIcon(SymbolRegular.Dismiss24)
+        };
+
+        try
+        {
+            if (await contentDialogService.ShowAsync(dialog) is not ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            var renamed = await _packageManager.RenamePackageAsync(packageId, nameTextBox.Text);
+            await RefreshPackagesCoreAsync(packageId);
+            SelectedPackage = LayoutPackages.FirstOrDefault(package =>
+                string.Equals(package.PackageId, packageId, StringComparison.OrdinalIgnoreCase)) ?? SelectedPackage;
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LayoutPackageRenamed")}: {renamed.Name}";
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to rename fronted layout package {PackageId}.", packageId);
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "RenameLayoutPackageFailed")}: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task EditPackageDescriptionAsync()
+    {
+        if (_packageManager is null || SelectedPackage is null)
+        {
+            return;
+        }
+
+        if (SelectedPackage.IsBuiltin || SelectedPackage.IsLocal)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CannotEditPackageDescription");
+            return;
+        }
+
+        var contentDialogService = _serviceProvider?.GetService<IContentDialogService>();
+        if (contentDialogService is null)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "EditPackageDescriptionFailed");
+            return;
+        }
+
+        var packageId = SelectedPackage.PackageId;
+        var descriptionTextBox = new TextBox
+        {
+            AcceptsReturn = true,
+            MaxLength = FrontedLayoutLimits.MaxPackageDescriptionLength,
+            Height = 96,
+            Text = SelectedPackage.Description,
+            TextWrapping = TextWrapping.Wrap
+        };
+        var dialog = new ContentDialog
+        {
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "EditPackageDescriptionDialogTitle"),
+            Width = 560,
+            Height = 360,
+            Content = descriptionTextBox,
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+            PrimaryButtonIcon = new SymbolIcon(SymbolRegular.Checkmark24),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
+            CloseButtonIcon = new SymbolIcon(SymbolRegular.Dismiss24)
+        };
+
+        try
+        {
+            if (await contentDialogService.ShowAsync(dialog) is not ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            var updated = await _packageManager.UpdatePackageDescriptionAsync(packageId, descriptionTextBox.Text);
+            await RefreshPackagesCoreAsync(packageId);
+            SelectedPackage = LayoutPackages.FirstOrDefault(package =>
+                string.Equals(package.PackageId, packageId, StringComparison.OrdinalIgnoreCase)) ?? SelectedPackage;
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageDescriptionUpdated")}: {updated.Name}";
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to update the description for fronted layout package {PackageId}.", packageId);
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "EditPackageDescriptionFailed")}: {ex.Message}";
         }
     }
 

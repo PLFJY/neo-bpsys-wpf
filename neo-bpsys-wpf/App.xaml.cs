@@ -161,11 +161,25 @@ public partial class App : AppBase
     {
         CurrentLifetime = ApplicationLifetime.Stopping;
         AppStopping?.Invoke(this, EventArgs.Empty);
-        var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
-        logger.LogInformation("Application Closed");
-        IAppHost.Host.Services.GetRequiredService<IBpuiFileActivationService>().StopListening();
-        await IAppHost.Host.StopAsync();
-        IAppHost.Host.Dispose();
+        var host = IAppHost.Host;
+        if (host is not null)
+        {
+            try
+            {
+                host.Services.GetService<ILogger<App>>()?.LogInformation("Application Closed");
+                host.Services.GetService<IBpuiFileActivationService>()?.StopListening();
+                await host.StopAsync();
+            }
+            finally
+            {
+                host.Dispose();
+                if (ReferenceEquals(IAppHost.Host, host))
+                {
+                    IAppHost.Host = null;
+                }
+            }
+        }
+
         base.OnExit(e);
     }
 

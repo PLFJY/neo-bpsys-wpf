@@ -51,6 +51,30 @@ public interface IFrontedLayoutPackageManager
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 更新指定布局包的显示名称。
+    /// </summary>
+    /// <param name="packageId">要改名的包 ID。</param>
+    /// <param name="name">新的显示名称。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>改名后的布局包信息。</returns>
+    Task<FrontedLayoutPackageInfo> RenamePackageAsync(
+        string packageId,
+        string name,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 更新指定布局包的描述。
+    /// </summary>
+    /// <param name="packageId">要更新描述的包 ID。</param>
+    /// <param name="description">新的包描述，可以为空。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>更新后的布局包信息。</returns>
+    Task<FrontedLayoutPackageInfo> UpdatePackageDescriptionAsync(
+        string packageId,
+        string description,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 删除指定的布局包。
     /// </summary>
     /// <param name="packageId">要删除的包 ID。</param>

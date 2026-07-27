@@ -11,6 +11,11 @@ public sealed class FrontedLayoutPackageExportRequest
     public string PackageId { get; set; } = string.Empty;
 
     /// <summary>
+    /// 要导出的已安装布局包 ID；为空时导出当前活动包。
+    /// </summary>
+    public string? SourcePackageId { get; set; }
+
+    /// <summary>
     /// 包名称。
     /// </summary>
     public string Name { get; set; } = string.Empty;
