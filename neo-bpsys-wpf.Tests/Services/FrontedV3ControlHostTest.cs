@@ -160,33 +160,152 @@ public class FrontedV3ControlHostTest
     // -------------------------------------------------------------------
 
     /// <summary>
-    /// Config 启用 GaussianBlur 时，Host 必须在自身应用 BlurEffect；
-    /// 未启用或半径非正时 Host.Effect 必须为 null。
+    /// Config 启用 GaussianBlur 时，Host 必须通过 Border 包装链在内容外层应用 BlurEffect；
+    /// 未启用或半径非正时 Host.Child 直接为内容元素，无效果包装。
     /// </summary>
     [Fact]
     public void HostAppliesBlur()
     {
         WpfTestThread.Run(() =>
         {
-            // 启用场景
+            // 启用场景：Host.Child 应为带 BlurEffect 的 Border
             var enabledConfig = CreateConfig(isGaussianBlurEnabled: true, gaussianBlurRadius: 12);
             var enabledHost = CreateHost<WorkingV3Control>(enabledConfig);
             Assert.True(enabledHost.TryInitialize(CreateContext(enabledConfig)));
 
-            var blur = Assert.IsType<BlurEffect>(enabledHost.Effect);
+            var blurBorder = Assert.IsType<Border>(enabledHost.Child);
+            var blur = Assert.IsType<BlurEffect>(blurBorder.Effect);
             Assert.Equal(12, blur.Radius);
 
-            // 未启用场景
+            // 未启用场景：Host.Child 直接为控件本身，无 Border 包装
             var disabledConfig = CreateConfig(isGaussianBlurEnabled: false, gaussianBlurRadius: 12);
             var disabledHost = CreateHost<WorkingV3Control>(disabledConfig);
             Assert.True(disabledHost.TryInitialize(CreateContext(disabledConfig)));
-            Assert.Null(disabledHost.Effect);
+            Assert.Same(disabledHost.Control, disabledHost.Child);
 
-            // 半径非正场景
+            // 半径非正场景：同样无 Border 包装
             var zeroRadiusConfig = CreateConfig(isGaussianBlurEnabled: true, gaussianBlurRadius: 0);
             var zeroRadiusHost = CreateHost<WorkingV3Control>(zeroRadiusConfig);
             Assert.True(zeroRadiusHost.TryInitialize(CreateContext(zeroRadiusConfig)));
-            Assert.Null(zeroRadiusHost.Effect);
+            Assert.Same(zeroRadiusHost.Control, zeroRadiusHost.Child);
+        });
+    }
+
+    // -------------------------------------------------------------------
+    // 5a. HostAppliesShadow
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// Config 启用 Shadow 时，Host 必须通过 Border 包装链应用 DropShadowEffect；
+    /// 未启用时无阴影包装。
+    /// </summary>
+    [Fact]
+    public void HostAppliesShadow()
+    {
+        WpfTestThread.Run(() =>
+        {
+            // 启用场景
+            var enabledConfig = CreateConfig(
+                isShadowEnabled: true,
+                shadowColor: "#FF000000",
+                shadowRadius: 8,
+                shadowDepth: 5,
+                shadowDirection: 315,
+                shadowOpacity: 0.5);
+            var enabledHost = CreateHost<WorkingV3Control>(enabledConfig);
+            Assert.True(enabledHost.TryInitialize(CreateContext(enabledConfig)));
+
+            var shadowBorder = Assert.IsType<Border>(enabledHost.Child);
+            var shadow = Assert.IsType<DropShadowEffect>(shadowBorder.Effect);
+            Assert.Equal(8, shadow.BlurRadius);
+            Assert.Equal(5, shadow.ShadowDepth);
+            Assert.Equal(315, shadow.Direction);
+            Assert.Equal(0.5, shadow.Opacity);
+
+            // 未启用场景
+            var disabledConfig = CreateConfig(isShadowEnabled: false);
+            var disabledHost = CreateHost<WorkingV3Control>(disabledConfig);
+            Assert.True(disabledHost.TryInitialize(CreateContext(disabledConfig)));
+            Assert.Same(disabledHost.Control, disabledHost.Child);
+        });
+    }
+
+    // -------------------------------------------------------------------
+    // 5b. HostAppliesGlow
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// Config 启用 Glow 时，Host 必须通过 Border 包装链应用 DropShadowEffect（ShadowDepth=0）；
+    /// 未启用时无发光包装。
+    /// </summary>
+    [Fact]
+    public void HostAppliesGlow()
+    {
+        WpfTestThread.Run(() =>
+        {
+            // 启用场景
+            var enabledConfig = CreateConfig(
+                isGlowEnabled: true,
+                glowColor: "#FFFFFFFF",
+                glowRadius: 20,
+                glowOpacity: 0.8);
+            var enabledHost = CreateHost<WorkingV3Control>(enabledConfig);
+            Assert.True(enabledHost.TryInitialize(CreateContext(enabledConfig)));
+
+            var glowBorder = Assert.IsType<Border>(enabledHost.Child);
+            var glow = Assert.IsType<DropShadowEffect>(glowBorder.Effect);
+            Assert.Equal(0, glow.ShadowDepth);
+            Assert.Equal(20, glow.BlurRadius);
+            Assert.Equal(0.8, glow.Opacity);
+
+            // 未启用场景
+            var disabledConfig = CreateConfig(isGlowEnabled: false);
+            var disabledHost = CreateHost<WorkingV3Control>(disabledConfig);
+            Assert.True(disabledHost.TryInitialize(CreateContext(disabledConfig)));
+            Assert.Same(disabledHost.Control, disabledHost.Child);
+        });
+    }
+
+    // -------------------------------------------------------------------
+    // 5c. HostAppliesFullEffectChain
+    // -------------------------------------------------------------------
+
+    /// <summary>
+    /// 当高斯模糊、发光、阴影全部启用时，Host 必须构建三层 Border 包装链，
+    /// 从外到内为：阴影 → 发光 → 高斯模糊 → 内容。
+    /// </summary>
+    [Fact]
+    public void HostAppliesFullEffectChain()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var config = CreateConfig(
+                isGaussianBlurEnabled: true,
+                gaussianBlurRadius: 10,
+                isShadowEnabled: true,
+                shadowRadius: 8,
+                shadowDepth: 5,
+                isGlowEnabled: true,
+                glowRadius: 20);
+            var host = CreateHost<WorkingV3Control>(config);
+            Assert.True(host.TryInitialize(CreateContext(config)));
+
+            // 最外层：阴影
+            var shadowBorder = Assert.IsType<Border>(host.Child);
+            var shadowEffect = Assert.IsType<DropShadowEffect>(shadowBorder.Effect);
+            Assert.True(shadowEffect.ShadowDepth > 0);
+
+            // 第二层：发光
+            var glowBorder = Assert.IsType<Border>(shadowBorder.Child);
+            var glowEffect = Assert.IsType<DropShadowEffect>(glowBorder.Effect);
+            Assert.Equal(0, glowEffect.ShadowDepth);
+
+            // 第三层：高斯模糊
+            var blurBorder = Assert.IsType<Border>(glowBorder.Child);
+            Assert.IsType<BlurEffect>(blurBorder.Effect);
+
+            // 最内层：控件本身
+            Assert.Same(host.Control, blurBorder.Child);
         });
     }
 
@@ -500,6 +619,16 @@ public class FrontedV3ControlHostTest
         FrontedControlVisibility visibility = FrontedControlVisibility.Visible,
         bool isGaussianBlurEnabled = false,
         double gaussianBlurRadius = 0,
+        bool isShadowEnabled = false,
+        string? shadowColor = null,
+        double shadowRadius = 0,
+        double shadowDepth = 0,
+        double shadowDirection = 0,
+        double shadowOpacity = 0,
+        bool isGlowEnabled = false,
+        string? glowColor = null,
+        double glowRadius = 0,
+        double glowOpacity = 0,
         Guid? behaviorGuid = null)
     {
         var config = new PluginFrontedControlConfig
@@ -514,6 +643,16 @@ public class FrontedV3ControlHostTest
         config.Visibility = visibility;
         config.IsGaussianBlurEnabled = isGaussianBlurEnabled;
         config.GaussianBlurRadius = gaussianBlurRadius;
+        config.IsShadowEnabled = isShadowEnabled;
+        config.ShadowColor = shadowColor;
+        config.ShadowRadius = shadowRadius;
+        config.ShadowDepth = shadowDepth;
+        config.ShadowDirection = shadowDirection;
+        config.ShadowOpacity = shadowOpacity;
+        config.IsGlowEnabled = isGlowEnabled;
+        config.GlowColor = glowColor;
+        config.GlowRadius = glowRadius;
+        config.GlowOpacity = glowOpacity;
         if (behaviorGuid.HasValue)
         {
             config.BehaviorGuid = behaviorGuid.Value;

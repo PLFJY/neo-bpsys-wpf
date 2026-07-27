@@ -343,6 +343,36 @@
   <data name="Designer.Property.IsGaussianBlurEnabled">
     <value>Enable Gaussian Blur</value>
   </data>
+  <data name="Designer.Property.IsShadowEnabled">
+    <value>Enable Shadow</value>
+  </data>
+  <data name="Designer.Property.ShadowColor">
+    <value>Shadow Color</value>
+  </data>
+  <data name="Designer.Property.ShadowRadius">
+    <value>Shadow Radius</value>
+  </data>
+  <data name="Designer.Property.ShadowDepth">
+    <value>Shadow Depth</value>
+  </data>
+  <data name="Designer.Property.ShadowDirection">
+    <value>Shadow Direction</value>
+  </data>
+  <data name="Designer.Property.ShadowOpacity">
+    <value>Shadow Opacity</value>
+  </data>
+  <data name="Designer.Property.IsGlowEnabled">
+    <value>Enable Glow</value>
+  </data>
+  <data name="Designer.Property.GlowColor">
+    <value>Glow Color</value>
+  </data>
+  <data name="Designer.Property.GlowRadius">
+    <value>Glow Radius</value>
+  </data>
+  <data name="Designer.Property.GlowOpacity">
+    <value>Glow Opacity</value>
+  </data>
   <data name="Designer.Property.Height">
     <value>Height</value>
   </data>
@@ -537,6 +567,9 @@
   </data>
   <data name="Designer.PropertyGroup.Appearance">
     <value>Appearance</value>
+  </data>
+  <data name="Designer.PropertyGroup.Effects">
+    <value>Effects</value>
   </data>
   <data name="Designer.PropertyGroup.Resource">
     <value>Resource</value>

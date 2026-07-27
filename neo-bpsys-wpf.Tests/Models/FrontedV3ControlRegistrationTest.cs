@@ -229,6 +229,8 @@ public class FrontedV3ControlRegistrationTest
     [InlineData("Visibility")]
     [InlineData("BehaviorGuid")]
     [InlineData("GaussianBlur")]
+    [InlineData("Shadow")]
+    [InlineData("Glow")]
     [InlineData("ControlType")]
     public void ReservedStorageFieldFails(string reservedField)
     {

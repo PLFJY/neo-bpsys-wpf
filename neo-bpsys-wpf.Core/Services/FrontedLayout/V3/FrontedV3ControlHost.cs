@@ -30,7 +30,7 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 /// <item><see cref="System.Windows.Controls.Panel.ZIndexProperty"/></item>
 /// <item><see cref="FrameworkElement.Width"/>、<see cref="FrameworkElement.Height"/></item>
 /// <item><see cref="UIElement.Visibility"/></item>
-/// <item><see cref="System.Windows.Media.Effects.Effect"/>（高斯模糊）</item>
+/// <item>视觉效果链（高斯模糊、阴影、发光）—— 通过 Border 包装实现 Effect 树</item>
 /// <item><see cref="FrontedRendererProperties.BehaviorGuidProperty"/> 标记</item>
 /// <item><see cref="FrontedRendererProperties.IsGeneratedControlProperty"/> 运行时生成标记</item>
 /// <item>Designer 选中与根 Move/Resize（通过 <see cref="RootControlGeometryTarget"/>）</item>
@@ -50,6 +50,7 @@ public sealed class FrontedV3ControlHost : Decorator
     private readonly FrontedControlConfigBase _config;
     private readonly bool _isDesignerPreview;
     private RootControlGeometryTarget? _geometryTarget;
+    private FrameworkElement? _contentElement;
 
     /// <summary>
     /// 初始化 <see cref="FrontedV3ControlHost"/> 并保存根布局所需的状态。
@@ -119,7 +120,8 @@ public sealed class FrontedV3ControlHost : Decorator
         ArgumentNullException.ThrowIfNull(control);
         Control = control;
         InitializationError = null;
-        Child = control;
+        _contentElement = control;
+        ApplyEffects();
     }
 
     /// <summary>
@@ -132,7 +134,8 @@ public sealed class FrontedV3ControlHost : Decorator
         ArgumentNullException.ThrowIfNull(error);
         InitializationError = error;
         Control = null;
-        Child = CreateErrorPlaceholder(error);
+        _contentElement = CreateErrorPlaceholder(error);
+        ApplyEffects();
     }
 
     /// <summary>
@@ -246,7 +249,7 @@ public sealed class FrontedV3ControlHost : Decorator
 
         Visibility = MapVisibility(_config.Visibility);
 
-        ApplyGaussianBlur();
+        ApplyEffects();
 
         FrontedRendererProperties.SetIsGeneratedControl(this, true);
         FrontedRendererProperties.SetBehaviorGuid(this, _config.BehaviorGuid);
@@ -281,21 +284,66 @@ public sealed class FrontedV3ControlHost : Decorator
         return ex;
     }
 
-    private void ApplyGaussianBlur()
+    /// <summary>
+    /// 根据当前 Config 的效果配置，重建视觉效果包装链。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// WPF 限制每个元素只能有一个 <see cref="System.Windows.Media.Effects.Effect"/>。
+    /// 为了支持高斯模糊、阴影和发光同时存在，采用 Border 包装链实现 Effect 树：
+    /// </para>
+    /// <code>
+    /// Host (Decorator, 无 Effect)
+    ///   └─ Border (DropShadowEffect, 阴影)        ← 最外层
+    ///      └─ Border (DropShadowEffect ShadowDepth=0, 发光)
+    ///         └─ Border (BlurEffect, 高斯模糊)
+    ///            └─ Content (实际控件或错误占位)  ← 最内层
+    /// </code>
+    /// <para>
+    /// 渲染顺序：内容先渲染 → 高斯模糊 → 发光 → 阴影。
+    /// 每一层 Border 都是透明背景、无边框的纯效果载体，不影响布局。
+    /// 效果链由 <see cref="FrontedEffectHostFactory.BuildEffectChain"/> 统一构建。
+    /// </para>
+    /// </remarks>
+    private void ApplyEffects()
     {
-        if (!_config.IsGaussianBlurEnabled
-            || !double.IsFinite(_config.GaussianBlurRadius)
-            || _config.GaussianBlurRadius <= 0D)
+        if (_contentElement is null)
         {
-            Effect = null;
             return;
         }
 
-        Effect = new BlurEffect
+        TearDownEffectBorders();
+
+        var outermost = FrontedEffectHostFactory.BuildEffectChain(_contentElement, _config);
+        Child = outermost;
+    }
+
+    /// <summary>
+    /// 断开现有效果包装链，释放对 <see cref="_contentElement"/> 的引用以便重新挂载。
+    /// </summary>
+    private void TearDownEffectBorders()
+    {
+        if (_contentElement is null)
         {
-            Radius = _config.GaussianBlurRadius,
-            RenderingBias = RenderingBias.Performance
-        };
+            return;
+        }
+
+        // 从最外层向内层遍历 Border 链，逐层断开 Child 引用，
+        // 直到 _contentElement 脱离其直接父级 Border。
+        var current = Child;
+        while (current is Border border)
+        {
+            var next = border.Child;
+            border.Child = null;
+            if (ReferenceEquals(next, _contentElement))
+            {
+                break;
+            }
+
+            current = next;
+        }
+
+        Child = null;
     }
 
     private FrameworkElement CreateErrorPlaceholder(Exception error)

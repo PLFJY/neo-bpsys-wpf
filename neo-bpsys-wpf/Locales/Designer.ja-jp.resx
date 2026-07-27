@@ -343,6 +343,36 @@
   <data name="Designer.Property.IsGaussianBlurEnabled">
     <value>ガウスぼかしを有効にする</value>
   </data>
+  <data name="Designer.Property.IsShadowEnabled">
+    <value>シャドウを有効にする</value>
+  </data>
+  <data name="Designer.Property.ShadowColor">
+    <value>シャドウカラー</value>
+  </data>
+  <data name="Designer.Property.ShadowRadius">
+    <value>シャドウ半径</value>
+  </data>
+  <data name="Designer.Property.ShadowDepth">
+    <value>シャドウ深度</value>
+  </data>
+  <data name="Designer.Property.ShadowDirection">
+    <value>シャドウ方向</value>
+  </data>
+  <data name="Designer.Property.ShadowOpacity">
+    <value>シャドウ不透明度</value>
+  </data>
+  <data name="Designer.Property.IsGlowEnabled">
+    <value>グローを有効にする</value>
+  </data>
+  <data name="Designer.Property.GlowColor">
+    <value>グローカラー</value>
+  </data>
+  <data name="Designer.Property.GlowRadius">
+    <value>グロー半径</value>
+  </data>
+  <data name="Designer.Property.GlowOpacity">
+    <value>グロー不透明度</value>
+  </data>
   <data name="Designer.Property.Height">
     <value>高さ</value>
   </data>
@@ -537,6 +567,9 @@
   </data>
   <data name="Designer.PropertyGroup.Appearance">
     <value>外観</value>
+  </data>
+  <data name="Designer.PropertyGroup.Effects">
+    <value>効果</value>
   </data>
   <data name="Designer.PropertyGroup.Resource">
     <value>リソース</value>

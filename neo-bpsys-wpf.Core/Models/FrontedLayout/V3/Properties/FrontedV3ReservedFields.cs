@@ -21,6 +21,8 @@ public static class FrontedV3ReservedFields
         "Visibility",
         "BehaviorGuid",
         "GaussianBlur",
+        "Shadow",
+        "Glow",
         "ControlType"
     };
 

@@ -55,7 +55,33 @@ internal static class BuiltInPropertyDefinitionResolver
         "Foreground",
         "Background",
         "FillColor",
-        "BorderColor"
+        "BorderColor",
+        "ShadowColor",
+        "GlowColor"
+    };
+
+    /// <summary>
+    /// 视觉效果（高斯模糊、阴影、发光）属性名集合，统一归入 "Effects" 分组。
+    /// </summary>
+    /// <remarks>
+    /// 这些属性原属外观分组，现独立为单独的"效果"分组，便于和外观属性区分编辑。
+    /// 在 <see cref="ResolveSemantic"/> 中它们被特判为 <see cref="FrontedV3PropertySemantic.Effects"/>，
+    /// 优先于 <see cref="IsAppearanceProperty"/> 的颜色后缀判断（避免 ShadowColor/GlowColor 被归入 Appearance）。
+    /// </remarks>
+    private static readonly HashSet<string> EffectPropertyNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        nameof(FrontedControlConfigBase.IsGaussianBlurEnabled),
+        nameof(FrontedControlConfigBase.GaussianBlurRadius),
+        nameof(FrontedControlConfigBase.IsShadowEnabled),
+        nameof(FrontedControlConfigBase.ShadowColor),
+        nameof(FrontedControlConfigBase.ShadowRadius),
+        nameof(FrontedControlConfigBase.ShadowDepth),
+        nameof(FrontedControlConfigBase.ShadowDirection),
+        nameof(FrontedControlConfigBase.ShadowOpacity),
+        nameof(FrontedControlConfigBase.IsGlowEnabled),
+        nameof(FrontedControlConfigBase.GlowColor),
+        nameof(FrontedControlConfigBase.GlowRadius),
+        nameof(FrontedControlConfigBase.GlowOpacity)
     };
 
     private static readonly HashSet<string> ResourcePathPropertyNames = new(StringComparer.OrdinalIgnoreCase)
@@ -209,9 +235,19 @@ internal static class BuiltInPropertyDefinitionResolver
     {
         var name = property.Name;
 
-        // Effects: 高斯模糊视觉效果（特判，优先于 Appearance，因为 IsAppearanceProperty 也包含这两个名称）
+        // Effects: 高斯模糊、阴影、发光视觉效果（特判，优先于 Appearance，因为 IsAppearanceProperty 也包含这些名称）
         if (name is nameof(FrontedControlConfigBase.IsGaussianBlurEnabled)
-            or nameof(FrontedControlConfigBase.GaussianBlurRadius))
+            or nameof(FrontedControlConfigBase.GaussianBlurRadius)
+            or nameof(FrontedControlConfigBase.IsShadowEnabled)
+            or nameof(FrontedControlConfigBase.ShadowColor)
+            or nameof(FrontedControlConfigBase.ShadowRadius)
+            or nameof(FrontedControlConfigBase.ShadowDepth)
+            or nameof(FrontedControlConfigBase.ShadowDirection)
+            or nameof(FrontedControlConfigBase.ShadowOpacity)
+            or nameof(FrontedControlConfigBase.IsGlowEnabled)
+            or nameof(FrontedControlConfigBase.GlowColor)
+            or nameof(FrontedControlConfigBase.GlowRadius)
+            or nameof(FrontedControlConfigBase.GlowOpacity))
         {
             return FrontedV3PropertySemantic.Effects;
         }
@@ -258,6 +294,12 @@ internal static class BuiltInPropertyDefinitionResolver
             return "Resource";
         }
 
+        // 效果属性优先于 Appearance 判断（ShadowColor/GlowColor 以 Color 结尾，会被误判为 Appearance）
+        if (EffectPropertyNames.Contains(propertyName))
+        {
+            return "Effects";
+        }
+
         if (IsAppearanceProperty(propertyName))
         {
             return "Appearance";
@@ -290,7 +332,9 @@ internal static class BuiltInPropertyDefinitionResolver
             return FrontedPropertyEditorKind.Enum;
         }
 
-        if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
+        if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled)
+            || property.Name == nameof(FrontedControlConfigBase.IsShadowEnabled)
+            || property.Name == nameof(FrontedControlConfigBase.IsGlowEnabled))
         {
             return FrontedPropertyEditorKind.ToggleSwitch;
         }
@@ -345,9 +389,7 @@ internal static class BuiltInPropertyDefinitionResolver
         || propertyName.EndsWith("FontFamily", StringComparison.OrdinalIgnoreCase)
         || propertyName.EndsWith("FontWeight", StringComparison.OrdinalIgnoreCase)
         || propertyName.EndsWith("FontSize", StringComparison.OrdinalIgnoreCase)
-        || propertyName is "GaussianBlurRadius"
-        or "IsGaussianBlurEnabled"
-        or "CornerRadius"
+        || propertyName is "CornerRadius"
         or "ClipToBounds";
 
     private static bool IsResourcePathProperty(string propertyName)
