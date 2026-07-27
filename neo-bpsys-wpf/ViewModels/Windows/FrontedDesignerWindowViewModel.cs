@@ -4358,15 +4358,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var config = designItem.Config;
         object? convertedValue;
-        if (schemaProperty.PropertyType == typeof(double))
+        if (schemaProperty.PropertyType == typeof(double)
+            || schemaProperty.PropertyType == typeof(double?))
         {
-            if (!TryConvertSchemaDoubleValue(newValue, out var doubleValue, out var errorMessage))
+            if (schemaProperty.PropertyType == typeof(double?)
+                && newValue is string sizeText
+                && string.IsNullOrWhiteSpace(sizeText))
+            {
+                convertedValue = null;
+            }
+            else if (!TryConvertSchemaDoubleValue(newValue, out var doubleValue, out var errorMessage))
             {
                 SetPropertyEditError(item, errorMessage, newValue);
                 return false;
             }
-
-            convertedValue = NormalizeSchemaGeometryValue(item.PropertyName, doubleValue);
+            else
+            {
+                convertedValue = NormalizeSchemaGeometryValue(item.PropertyName, doubleValue);
+            }
         }
         else
         {

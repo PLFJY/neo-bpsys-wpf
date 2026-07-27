@@ -343,7 +343,7 @@ v3 之后 PluginSdk 不再作为 NuGet 包发布。插件作者应 clone 本仓�
 services.AddFrontedV3Control<TeamCardControl>();
 ```
 
-`AddFrontedV3Control<TControl>()` 只接受控件类型一个参数。`PackageId` 由宿主在插件初始化作用域内自动注入。控件类型必须标注 `[FrontedV3Control]` 并继承 `FrontedV3ControlBase`。属性通过控件类上的 `public static readonly FrontedV3Property<T>` 字段声明，框架在注册时反射发现并校验：`OptionsPath` 必须唯一、不得使用保留路径、`Storage` 不得指向根级保留字段。
+`AddFrontedV3Control<TControl>()` 只接受控件类型一个参数。`PackageId` 由宿主在插件初始化作用域内自动注入。控件类型必须标注 `[FrontedV3Control]` 并继承 `FrontedV3ControlBase`。属性通过控件类上的 `public static readonly FrontedV3Property<T>` 字段声明，框架在注册时反射发现并校验：`OptionsPath` 必须唯一、不得使用保留路径、`Storage` 不得指向根级保留字段。Designer 会为每个已注册控件额外提供通用根布局字段 `Left`、`Top`、`Width`、`Height` 和 `ZIndex`，插件无需也不得重复声明这些字段。
 
 Canonical Control Type 命名规则：
 
@@ -369,6 +369,8 @@ Canonical Control Type 命名规则：
 - 错误占位（控件初始化失败时显示安全占位，原 Config 保留，不写默认值）
 
 包装的 Control 只负责矩形区域内的视觉内容，不得设置自己的 Canvas 坐标。
+
+Host 的统一所有权不意味着这些字段只读。Designer 在根控件属性面板中以通用 Schema 提供 X/Y（`Left`/`Top`）、宽度、高度和层级（`ZIndex`）编辑；提交只写入 Config，再由预览和运行时 Host 应用。它们不是控件 Options，也不由插件重复注册。
 
 ### Options 不进入 JSON
 
@@ -421,7 +423,7 @@ public static readonly FrontedV3Parts CellsCollection =
 - 默认仅传播 `Appearance` 语义的属性（颜色、字体、边框等）。
 - `RootSize`/`PartLayout`/`Behaviors`/`Effects` 语义只有 profile 显式开启时才传播。
 - `DataIdentity` 语义（MapKey、TeamType、BindingPath、ControlName 等）和 `Other` 语义**永远不传播**。
-- 根级保留字段（`Left`/`Top`/`ZIndex` 等）不会注册为属性，因此不在传播范围内。
+- 根级保留字段（`Left`/`Top`/`ZIndex` 等）由 Designer 的通用根选择 Schema 提供，但不会注册为控件 Options，因此不在 peer StyleTransfer 传播范围内。
 
 属性语义通过 `FrontedV3PropertyMetadata.Semantic` 声明，默认为 `Other`（不参与传播）。继承模式通过 `FrontedV3PropertyMetadata.Inheritance` 声明，支持 `None`、`ParentFallback`（动态回退到父值）、`CopyFromParentOnCreate`（创建时复制后独立）、`LockedToParent`（锁定到父值，拒绝 override）。
 

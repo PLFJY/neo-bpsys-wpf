@@ -86,14 +86,32 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Contains(nameof(TextFrontedControlConfig.Color), optionsPaths);
         Assert.Contains(nameof(TextFrontedControlConfig.FontSize), optionsPaths);
 
-        // 根几何字段（Left/Top/Width/Height）属于 FrontedV3ControlHost 统一管理，
-        // 不得出现在控件自身 Options Schema 中；保留字段 BehaviorGuid/ControlType 同样排除。
-        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Left), optionsPaths);
-        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Top), optionsPaths);
-        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Width), optionsPaths);
-        Assert.DoesNotContain(nameof(TextFrontedControlConfig.Height), optionsPaths);
+        // 根几何字段由 Host 统一应用，但必须由通用根选择 Schema 暴露给属性面板，
+        // 因此内置和插件 v3 控件都能编辑 X/Y/宽高/层级。
+        Assert.Contains(nameof(TextFrontedControlConfig.Left), optionsPaths);
+        Assert.Contains(nameof(TextFrontedControlConfig.Top), optionsPaths);
+        Assert.Contains(nameof(TextFrontedControlConfig.Width), optionsPaths);
+        Assert.Contains(nameof(TextFrontedControlConfig.Height), optionsPaths);
+        Assert.Contains(nameof(TextFrontedControlConfig.ZIndex), optionsPaths);
         Assert.DoesNotContain(nameof(FrontedControlConfigBase.BehaviorGuid), optionsPaths);
         Assert.DoesNotContain(nameof(FrontedControlConfigBase.ControlType), optionsPaths);
+
+        selection.Properties.Single(property => property.OptionsPath == nameof(TextFrontedControlConfig.Left))
+            .SetValue(config, 40D);
+        selection.Properties.Single(property => property.OptionsPath == nameof(TextFrontedControlConfig.Top))
+            .SetValue(config, 50D);
+        selection.Properties.Single(property => property.OptionsPath == nameof(TextFrontedControlConfig.Width))
+            .SetValue(config, 120D);
+        selection.Properties.Single(property => property.OptionsPath == nameof(TextFrontedControlConfig.Height))
+            .SetValue(config, 60D);
+        selection.Properties.Single(property => property.OptionsPath == nameof(TextFrontedControlConfig.ZIndex))
+            .SetValue(config, 9);
+
+        Assert.Equal(40D, config.Left);
+        Assert.Equal(50D, config.Top);
+        Assert.Equal(120D, config.Width);
+        Assert.Equal(60D, config.Height);
+        Assert.Equal(9, config.ZIndex);
     }
 
     /// <summary>
@@ -149,8 +167,8 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     /// <summary>
-    /// 已注册控件即使没有 Schema 属性，调用 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
-    /// 也必须返回非空 Selection，且 Selection 的 Properties 列表为空（不伪造任何属性）。
+    /// 已注册控件即使没有控件专属 Schema 属性，调用 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
+    /// 也必须返回非空 Selection，并提供所有 v3 控件共享的根布局属性。
     /// </summary>
     [Fact]
     public void RootSelection_EmptyPropertiesForRegisteredControlWithoutSchema()
@@ -183,7 +201,13 @@ public class FrontedV3DesignerDespecializationTest
         var selection = builder.BuildRootSelection(designItem);
 
         Assert.NotNull(selection);
-        Assert.Empty(selection!.Properties);
+        var optionsPaths = selection!.Properties.Select(property => property.OptionsPath).ToHashSet(StringComparer.Ordinal);
+        Assert.Equal(5, optionsPaths.Count);
+        Assert.Contains(nameof(FrontedControlConfigBase.Left), optionsPaths);
+        Assert.Contains(nameof(FrontedControlConfigBase.Top), optionsPaths);
+        Assert.Contains(nameof(FrontedControlConfigBase.Width), optionsPaths);
+        Assert.Contains(nameof(FrontedControlConfigBase.Height), optionsPaths);
+        Assert.Contains(nameof(FrontedControlConfigBase.ZIndex), optionsPaths);
     }
 
     // -------------------------------------------------------------------
@@ -880,15 +904,16 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Equal(FrontedV3DesignSelectionKind.Root, rootSelection!.Kind);
         Assert.Null(rootSelection.SubTarget);
 
-        // Root Schema 应包含根控件外观属性（ImageWidth/ImageHeight），证明 Esc 后回到根选中重建了 Schema。
-        // 根几何字段（Left/Top/Width/Height）属于 FrontedV3ControlHost 统一管理，不得出现在 Options Schema 中。
+        // Root Schema 应包含根控件外观属性（ImageWidth/ImageHeight）和通用根布局字段，
+        // 证明 Esc 后回到根选中重建了完整的可编辑 Schema。
         var optionsPaths = rootSelection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
         Assert.Contains(nameof(BorderedImageFrontedControlConfig.ImageWidth), optionsPaths);
         Assert.Contains(nameof(BorderedImageFrontedControlConfig.ImageHeight), optionsPaths);
-        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Left), optionsPaths);
-        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Top), optionsPaths);
-        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Width), optionsPaths);
-        Assert.DoesNotContain(nameof(BorderedImageFrontedControlConfig.Height), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Left), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Top), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Width), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Height), optionsPaths);
+        Assert.Contains(nameof(BorderedImageFrontedControlConfig.ZIndex), optionsPaths);
     }
 
     // -------------------------------------------------------------------
@@ -1030,4 +1055,3 @@ public class FrontedV3DesignerDespecializationTest
 /// 的占位控件类型，仅用于构造没有 Schema 属性的 Registration。
 /// </summary>
 internal sealed class EmptySchemaControl;
-

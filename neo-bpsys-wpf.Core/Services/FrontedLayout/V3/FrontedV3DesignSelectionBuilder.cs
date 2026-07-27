@@ -37,6 +37,17 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 /// </remarks>
 public class FrontedV3DesignSelectionBuilder
 {
+    // 根布局由 Host 应用，但值仍是所有控件 Config 的公共可编辑字段。它们属于 Designer 的
+    // 通用根选择 Schema，而不是控件自身注册的 Options，因而插件不需要也不得自行声明它们。
+    private static readonly IReadOnlyList<FrontedV3PropertyDefinition> RootLayoutProperties =
+    [
+        CreateRootLayoutProperty(nameof(FrontedControlConfigBase.Left), typeof(double)),
+        CreateRootLayoutProperty(nameof(FrontedControlConfigBase.Top), typeof(double)),
+        CreateRootLayoutProperty(nameof(FrontedControlConfigBase.Width), typeof(double?)),
+        CreateRootLayoutProperty(nameof(FrontedControlConfigBase.Height), typeof(double?)),
+        CreateRootLayoutProperty(nameof(FrontedControlConfigBase.ZIndex), typeof(int))
+    ];
+
     private readonly IFrontedV3ControlRegistry _v3Registry;
 
     /// <summary>
@@ -57,8 +68,8 @@ public class FrontedV3DesignSelectionBuilder
     /// <param name="onVisualSync">可选的视觉同步回调，在几何值变更后由调用方触发视觉更新。</param>
     /// <returns>
     /// 根控件选中目标；当控件在 Registry 中未注册时返回 <see langword="null"/>，由调用方决定是否显示 Missing Plugin 行。
-    /// 已注册控件即使没有 Schema 属性也会返回非空 Selection，使仅声明 FixedPart/PartCollection 的控件
-    /// 也能在画布上形成 Root 几何目标与 Part hitbox。
+    /// 已注册控件即使没有控件专属 Schema 属性也会返回非空 Selection；其属性面板仍包含通用根布局字段，
+    /// 使仅声明 FixedPart/PartCollection 的控件也能在画布上形成 Root 几何目标与 Part hitbox。
     /// </returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="designItem"/> 为 <see langword="null"/> 时抛出。</exception>
     public FrontedV3DesignSelection? BuildRootSelection(
@@ -67,9 +78,9 @@ public class FrontedV3DesignSelectionBuilder
     {
         ArgumentNullException.ThrowIfNull(designItem);
 
-        // 已注册控件即使没有 Schema 属性也必须能形成 Root Selection：
+        // 已注册控件即使没有控件专属 Schema 属性也必须能形成 Root Selection：
         // 1. 让画布生成 Part 的透明 hitbox（GetChildTargetInfos 要求当前必须为 Root Selection）；
-        // 2. PropertyGrid 通过 BuildFromSchema() 显示 Missing Plugin 行而非回退到反射；
+        // 2. PropertyGrid 通过通用根布局 Schema 保持可编辑，而非回退到反射；
         // 3. Root 几何目标（Move/Resize）对所有控件一致可用。
         // 仅当控件未在 Registry 中注册（Missing Plugin）时返回 null，由调用方自行处理 Missing 行。
         var registration = _v3Registry.GetRegistration(designItem.Config.ControlType);
@@ -78,7 +89,7 @@ public class FrontedV3DesignSelectionBuilder
             return null;
         }
 
-        var properties = registration.Properties ?? Array.Empty<FrontedV3PropertyDefinition>();
+        var properties = BuildRootSelectionProperties(registration.Properties);
         var geometryTarget = new ConfigBackedRootGeometryTarget(designItem.Config, onVisualSync);
         return FrontedV3DesignSelection.ForRoot(designItem, geometryTarget, properties);
     }
@@ -307,6 +318,42 @@ public class FrontedV3DesignSelectionBuilder
 
         var registration = _v3Registry.GetRegistration(config.ControlType);
         return registration?.Properties ?? Array.Empty<FrontedV3PropertyDefinition>();
+    }
+
+    private static IReadOnlyList<FrontedV3PropertyDefinition> BuildRootSelectionProperties(
+        IReadOnlyList<FrontedV3PropertyDefinition>? controlProperties)
+    {
+        if (controlProperties is null || controlProperties.Count == 0)
+        {
+            return RootLayoutProperties;
+        }
+
+        var properties = new List<FrontedV3PropertyDefinition>(
+            RootLayoutProperties.Count + controlProperties.Count);
+        properties.AddRange(RootLayoutProperties);
+
+        // 插件属性不允许写入根字段；若旧插件恰好使用了同名 OptionsPath，根布局字段优先，
+        // 避免 PropertyGrid 的路径映射被覆盖而失去实际的 X/Y/宽高/层级编辑能力。
+        properties.AddRange(controlProperties.Where(property =>
+            !RootLayoutProperties.Any(root => string.Equals(
+                root.OptionsPath,
+                property.OptionsPath,
+                StringComparison.OrdinalIgnoreCase))));
+        return properties;
+    }
+
+    private static FrontedV3PropertyDefinition CreateRootLayoutProperty(string name, Type propertyType)
+    {
+        return new FrontedV3PropertyDefinition(
+            optionsPath: name,
+            storage: FrontedV3Storage.ClrProperty(name),
+            propertyType: propertyType,
+            metadata: new FrontedV3PropertyMetadata
+            {
+                DisplayNameKey = name,
+                GroupName = "Layout",
+                EditorKind = FrontedPropertyEditorKind.Number
+            });
     }
 
     private static IReadOnlyList<FrontedV3PropertyDefinition> BuildPartGeometryProperties(FrontedV3PartDefinition part)

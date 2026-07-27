@@ -48,6 +48,21 @@ function parseColor(value: string): string | undefined {
   return undefined
 }
 
+function parseColorComponents(value: string): { r: number; g: number; b: number; a: number } | undefined {
+  const trimmed = value.trim()
+  const argb = /^#([0-9a-f]{8})$/i.exec(trimmed)
+  if (argb) {
+    const hex = argb[1]
+    return { r: parseInt(hex.slice(2, 4), 16), g: parseInt(hex.slice(4, 6), 16), b: parseInt(hex.slice(6, 8), 16), a: parseInt(hex.slice(0, 2), 16) / 255 }
+  }
+  const rgb = /^#([0-9a-f]{6})$/i.exec(trimmed)
+  if (rgb) {
+    const hex = rgb[1]
+    return { r: parseInt(hex.slice(0, 2), 16), g: parseInt(hex.slice(2, 4), 16), b: parseInt(hex.slice(4, 6), 16), a: 1 }
+  }
+  return undefined
+}
+
 /** Convert a WPF Brush/Color string to a CSS color without changing ARGB meaning. */
 export function wpfColor(value: unknown, fallback = 'transparent'): string {
   if (typeof value !== 'string' || value.trim().length === 0) return parseColor(fallback) ?? fallback
@@ -55,6 +70,24 @@ export function wpfColor(value: unknown, fallback = 'transparent'): string {
   if (parsed) return parsed
   reportInvalidColor(value.trim())
   return parseColor(fallback) ?? fallback
+}
+
+/**
+ * Convert a WPF Color string to a CSS rgba() color, applying an additional opacity multiplier
+ * to the color's alpha channel. Used for DropShadowEffect where WPF separates Color and Opacity.
+ * @param value WPF color string (e.g. "#FF000000", "#000000", or named color).
+ * @param opacity Opacity multiplier in [0,1]; out-of-range values are clamped.
+ * @param fallback Fallback CSS color when `value` cannot be parsed.
+ */
+export function effectColor(value: unknown, opacity: number, fallback = 'rgba(0,0,0,1)'): string {
+  const clamped = Number.isFinite(opacity) ? Math.min(1, Math.max(0, opacity)) : 1
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const comps = parseColorComponents(value.trim())
+    if (comps) return `rgba(${comps.r}, ${comps.g}, ${comps.b}, ${(comps.a * clamped).toFixed(4)})`
+    reportInvalidColor(value.trim())
+  }
+  const fb = (typeof fallback === 'string' && parseColorComponents(fallback)) || { r: 0, g: 0, b: 0, a: 1 }
+  return `rgba(${fb.r}, ${fb.g}, ${fb.b}, ${(fb.a * clamped).toFixed(4)})`
 }
 
 /** Backwards-compatible name for the shared WPF color conversion used by renderers. */
