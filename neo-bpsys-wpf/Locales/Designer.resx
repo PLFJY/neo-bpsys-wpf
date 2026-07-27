@@ -11,10 +11,10 @@
     <value>应用图片失败</value>
   </data>
   <data name="ImageFileTooLarge">
-    <value>图片文件过大（{0}），需要压缩到 {1} 以内。请使用 https://docsmall.com/image-compress 在线压缩后重试，或更换更小的文件。</value>
+    <value>图片文件过大（{0}），需要压缩到 {1} 以内。请使用在线压缩工具压缩后重试，或更换更小的文件。</value>
   </data>
   <data name="ImageDimensionsTooLarge">
-    <value>图片尺寸过大（{0}×{1}），最长边需要压缩到 {2} 像素以内。请使用 https://docsmall.com/image-compress 在线压缩后重试，或更换更小的图片。</value>
+    <value>图片尺寸过大（{0}×{1}），最长边需要压缩到 {2} 像素以内。请使用在线压缩工具压缩后重试，或更换更小的图片。</value>
   </data>
   <data name="BackgroundColor">
     <value>背景颜色</value>

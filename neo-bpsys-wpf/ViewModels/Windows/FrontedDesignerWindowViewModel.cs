@@ -400,6 +400,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
+    private bool _isStatusImageCompressionLinkVisible;
+
+    [ObservableProperty]
     public partial string CurrentWindowCanvasDisplay { get; set; } = string.Empty;
 
     [ObservableProperty]
@@ -828,6 +831,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string _canvasPropertiesStatus = string.Empty;
 
     [ObservableProperty]
+    private bool _isCanvasImageCompressionLinkVisible;
+
+    partial void OnStatusMessageChanged(string value)
+    {
+        IsStatusImageCompressionLinkVisible = false;
+    }
+
+    partial void OnCanvasPropertiesStatusChanged(string value)
+    {
+        IsCanvasImageCompressionLinkVisible = false;
+    }
+
+    [ObservableProperty]
     private string _windowOptionsWindowTypeName = string.Empty;
 
     [ObservableProperty]
@@ -1214,8 +1230,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// </summary>
     /// <param name="sourcePath">本地图片的绝对路径。</param>
     /// <returns>校验失败时返回错误消息；校验通过或未注入校验服务时返回 <see langword="null"/>。</returns>
-    private string? ValidateLocalImageForStorage(string sourcePath)
+    private string? ValidateLocalImageForStorage(string sourcePath, out bool requiresImageCompression)
     {
+        requiresImageCompression = false;
+
         if (_imageSafetyService is null)
         {
             return null;
@@ -1227,12 +1245,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return null;
         }
 
+        requiresImageCompression = validation.ErrorCode is "ImageTooLarge" or "ImageTooManyPixels";
+
         return BuildImageValidationFailureMessage(validation);
     }
 
     /// <summary>
     /// 根据图片校验结果构建本地化的错误消息。文件大小超限和图片尺寸超限时
-    /// 返回包含实际值、目标压缩值与在线压缩工具链接的友好提示。
+    /// 返回包含实际值与目标压缩值的友好提示；在线压缩工具链接由界面单独显示。
     /// </summary>
     /// <param name="validation">图片校验结果。</param>
     /// <returns>用于错误提示的本地化消息。</returns>
@@ -1299,10 +1319,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        var validationMessage = ValidateLocalImageForStorage(sourcePath);
+        var validationMessage = ValidateLocalImageForStorage(sourcePath, out var requiresImageCompression);
         if (validationMessage is not null)
         {
             StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
+            IsStatusImageCompressionLinkVisible = requiresImageCompression;
             return false;
         }
 
@@ -2855,10 +2876,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        var validationMessage = ValidateLocalImageForStorage(sourcePath);
+        var validationMessage = ValidateLocalImageForStorage(sourcePath, out var requiresImageCompression);
         if (validationMessage is not null)
         {
             CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
+            IsCanvasImageCompressionLinkVisible = requiresImageCompression;
             return false;
         }
 
@@ -2919,13 +2941,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return false;
             }
 
-            var validationMessage = ValidateLocalImageForStorage(selectedResourcePath);
+            var validationMessage = ValidateLocalImageForStorage(selectedResourcePath, out var requiresImageCompression);
             if (validationMessage is not null)
             {
                 SetPropertyEditError(
                     item,
                     $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}",
                     selectedResourcePath);
+                IsStatusImageCompressionLinkVisible = requiresImageCompression;
                 return false;
             }
 
