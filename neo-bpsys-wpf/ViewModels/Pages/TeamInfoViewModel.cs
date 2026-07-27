@@ -553,11 +553,12 @@ public partial class TeamInfoPageViewModel
         private static bool CanClearMemberImage(Member? member) => member?.IsImageValid == true;
 
         /// <summary>
-        /// 根据图片校验结果构建弹窗消息。当文件大小超限时返回包含实际大小与最大允许大小的友好提示；
+        /// 根据图片校验结果构建弹窗消息。当文件大小超限时返回包含实际大小与目标压缩大小的友好提示；
+        /// 当图片尺寸超限时返回包含实际尺寸与最长边上限的友好提示；两者均会推荐在线压缩工具。
         /// 其他校验失败则回退到 <paramref name="fallbackKey"/> 对应的本地化文本。
         /// </summary>
         /// <param name="validation">图片校验结果。</param>
-        /// <param name="fallbackKey">非文件大小超限类错误使用的本地化资源键。</param>
+        /// <param name="fallbackKey">非文件大小/尺寸超限类错误使用的本地化资源键。</param>
         /// <returns>用于错误弹窗的本地化消息。</returns>
         private static string BuildImageValidationFailureMessage(FrontedImageValidationResult validation, string fallbackKey)
         {
@@ -568,6 +569,16 @@ public partial class TeamInfoPageViewModel
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageFileTooLarge"),
                     FormatFileSize(validation.FileBytes),
                     FormatFileSize(FrontedLayoutLimits.MaxUiImageBytes));
+            }
+
+            if (validation is { IsValid: false, ErrorCode: "ImageTooManyPixels" })
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageDimensionsTooLarge"),
+                    validation.PixelWidth,
+                    validation.PixelHeight,
+                    FrontedLayoutLimits.MaxUiImageLongSide);
             }
 
             return I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, fallbackKey);

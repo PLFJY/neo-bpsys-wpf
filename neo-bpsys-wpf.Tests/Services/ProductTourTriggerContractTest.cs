@@ -44,7 +44,8 @@ public sealed class ProductTourTriggerContractTest
         var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml.cs");
 
         Assert.Contains("RunUserSelection(() => _viewModel?.SelectLayerNode(node))", source);
-        Assert.Contains("RunUserSelection(() => _viewModel?.SelectDesignItem(_pendingHitCandidate))", source);
+        Assert.Contains("FindTopmostSelectableItemAt", source);
+        Assert.Contains("RunUserSelection(() => _viewModel?.SelectDesignItem(target))", source);
         Assert.Contains("WaitForPropertyGridReadyAsync", source);
         Assert.Contains("RunPackageAsync(this, Tours.PropertyPanelBasic", source);
     }

@@ -2351,6 +2351,69 @@ public partial class FrontedDesignerWindow : FluentWindow
         return hitbox;
     }
 
+    /// <summary>
+    /// 在指定位置查找按 <see cref="FrontedControlConfigBase.ZIndex"/> 排序的最上层可选控件。
+    /// 点击选择时使用此方法优先选中视觉上更靠上的控件，不受选中态 hitbox ZIndex 提升影响。
+    /// </summary>
+    /// <param name="position">相对于 <see cref="InteractionLayer"/> 的逻辑画布坐标。</param>
+    /// <returns>命中位置上 ZIndex 最高的可选控件设计项；无命中时返回 <see langword="null"/>。</returns>
+    private FrontedControlDesignItem? FindTopmostSelectableItemAt(Point position)
+    {
+        if (_viewModel?.CurrentDocument is null)
+        {
+            return null;
+        }
+
+        FrontedControlDesignItem? best = null;
+        var bestZIndex = int.MinValue;
+        var bestLayoutOrder = -1;
+        var controls = _viewModel.CurrentDocument.Controls;
+
+        for (var index = 0; index < controls.Count; index++)
+        {
+            var item = controls[index];
+            if (!item.IsSelectableInEditor)
+            {
+                continue;
+            }
+
+            if (!_hitboxes.TryGetValue(item, out var hitbox))
+            {
+                continue;
+            }
+
+            var left = Canvas.GetLeft(hitbox);
+            var top = Canvas.GetTop(hitbox);
+            var width = hitbox.Width;
+            var height = hitbox.Height;
+
+            if (double.IsNaN(left) || double.IsNaN(top)
+                || double.IsNaN(width) || double.IsNaN(height)
+                || width <= 0 || height <= 0)
+            {
+                continue;
+            }
+
+            if (position.X < left || position.X > left + width
+                || position.Y < top || position.Y > top + height)
+            {
+                continue;
+            }
+
+            var zIndex = item.Config.ZIndex;
+            // 更高 ZIndex 优先；ZIndex 相同时文档顺序靠后的优先，与 WPF 同 ZIndex 默认渲染顺序一致。
+            if (zIndex > bestZIndex
+                || (zIndex == bestZIndex && index > bestLayoutOrder))
+            {
+                best = item;
+                bestZIndex = zIndex;
+                bestLayoutOrder = index;
+            }
+        }
+
+        return best;
+    }
+
     private void AddSelectionAdorner(FrontedControlDesignItem item)
     {
         var bounds = ResolveItemBounds(item);
