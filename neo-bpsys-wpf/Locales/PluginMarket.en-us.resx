@@ -59,7 +59,7 @@
     <value>Plugin Market Settings</value>
   </data>
   <data name="PluginMarketMirrorLabel">
-    <value>Ghproxy</value>
+    <value>Download Source</value>
   </data>
   <data name="PluginMarketSourceLabel">
     <value>Plugin Source</value>

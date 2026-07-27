@@ -134,10 +134,12 @@
                         </Grid>
                         <StackPanel
                             Margin="0,16,0,0"
+                            Orientation="Horizontal"
                             Visibility="{Binding IsSmartBpModuleMirrorSettingVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <TextBlock Text="{lex:Loc DownloadSource}" />
+                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc DownloadSource}" />
                             <ComboBox
-                                Margin="0,8,0,0"
+                                Margin="8,0,0,0"
+                                VerticalAlignment="Center"
                                 ItemsSource="{Binding SmartBpModuleMirrorOptions}"
                                 SelectedValue="{Binding SelectedSmartBpModuleMirror, Mode=TwoWay}"
                                 SelectedValuePath="Value">
@@ -164,7 +166,8 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
                             <ui:Button
-                                Margin="0,10,0,0"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
                                 Command="{Binding TestSmartBpModuleMirrorLatencyCommand}"
                                 Content="{lex:Loc TestMirrorLatency}"
                                 Icon="{ui:SymbolIcon Symbol=Flash24}" />

@@ -11,7 +11,7 @@
     <value>Software updates</value>
   </data>
   <data name="DownloadSource">
-    <value>Download source (this setting syncs to the plugin market)</value>
+    <value>Download source</value>
   </data>
   <data name="DownloadPreviewVersion">
     <value>Download preview version?</value>
