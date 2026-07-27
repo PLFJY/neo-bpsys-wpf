@@ -95,9 +95,9 @@
                                 <ui:Button
                                     Grid.Column="5"
                                     Margin="8,0,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                     Click="DeleteSource_OnClick"
-                                    Content="{lex:Loc Delete}"
-                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                    Content="{lex:Loc Delete}" />
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -174,11 +174,11 @@
                     <TextBlock
                         Margin="0,0,0,4"
                         HorizontalAlignment="Center"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                         FontSize="12"
                         FontWeight="Medium"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        Text="{lex:Loc PreviewColon}"
-                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                        Text="{lex:Loc PreviewColon}" />
                     <TextBlock
                         HorizontalAlignment="Center"
                         FontSize="14"
@@ -200,10 +200,10 @@
                     IsDefault="True" />
                 <ui:Button
                     Margin="8,0,0,0"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                     Click="Cancel_OnClick"
                     Content="{lex:Loc Cancel}"
-                    IsCancel="True"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                    IsCancel="True" />
             </StackPanel>
         </Grid>
     </Grid>

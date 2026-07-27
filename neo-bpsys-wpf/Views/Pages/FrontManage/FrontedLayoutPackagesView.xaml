@@ -12,11 +12,11 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="900"
     d:DesignWidth="685"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    scrolling:ModernScroll.Ownership="Self"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.FrontManage"
+    scrolling:ModernScroll.Ownership="Self"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -100,13 +100,13 @@
                     x:Name="LayoutPackageList"
                     Grid.Row="1"
                     Margin="0,8,0,0"
+                    scrolling:ModernScroll.Ownership="Self"
+                    scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     Background="Transparent"
                     BorderThickness="0"
                     ItemsSource="{Binding LayoutPackages}"
                     MouseDoubleClick="PackageListBox_OnMouseDoubleClick"
                     RequestBringIntoView="PackageListBox_OnRequestBringIntoView"
-                    scrolling:ModernScroll.Ownership="Self"
-                    scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
                     SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">

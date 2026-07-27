@@ -115,9 +115,9 @@
             <ui:Button
                 MinWidth="96"
                 Margin="8,0,0,0"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                 Click="Close_OnClick"
-                Content="{lex:Loc Close}"
-                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                Content="{lex:Loc Close}" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

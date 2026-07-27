@@ -14,9 +14,9 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="750"
     d:DesignWidth="685"
-    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>

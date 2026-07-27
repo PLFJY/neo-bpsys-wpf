@@ -1,6 +1,5 @@
 <UserControl
     x:Class="neo_bpsys_wpf.Controls.MapV2Presenter"
-    x:Name="Root"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
@@ -10,6 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="clr-namespace:neo_bpsys_wpf.Core.Models;assembly=neo-bpsys-wpf.Core"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    x:Name="Root"
     d:DesignHeight="155"
     d:DesignWidth="200"
     mc:Ignorable="d">
@@ -45,7 +45,10 @@
             x:Name="TeamNamePart"
             Canvas.Left="0"
             Canvas.Top="0">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
                 <ui:Image
                     x:Name="TeamLogo"
                     Width="50"
@@ -105,12 +108,12 @@
                 d:FontSize="14"
                 d:Foreground="White"
                 d:Text="China Town"
+                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
                 FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontFamily}"
                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
                 FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
                 Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
-                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
                 Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName, TargetNullValue=null}}" />
         </Border>
 
@@ -127,13 +130,13 @@
                 d:FontSize="20"
                 d:Foreground="White"
                 d:Text="求生者"
+                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                 FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontFamily}"
                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontSize}"
                 FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontWeight}"
                 Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameForeground}"
-                Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp}}"
-                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp}}" />
             <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Image
                     Width="30"

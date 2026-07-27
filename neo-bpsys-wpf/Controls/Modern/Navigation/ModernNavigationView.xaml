@@ -36,12 +36,8 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ScrollBar}">
-                        <Grid
-                            Width="{TemplateBinding Width}"
-                            Background="{TemplateBinding Background}">
-                            <primitives:Track
-                                x:Name="PART_Track"
-                                IsDirectionReversed="True">
+                        <Grid Width="{TemplateBinding Width}" Background="{TemplateBinding Background}">
+                            <primitives:Track x:Name="PART_Track" IsDirectionReversed="True">
                                 <primitives:Track.DecreaseRepeatButton>
                                     <RepeatButton
                                         Command="ScrollBar.PageUpCommand"
@@ -426,9 +422,7 @@
                     Command="{Binding TogglePaneCommand, ElementName=Root}"
                     Style="{StaticResource ModernPaneToggleButtonStyle}"
                     Visibility="{Binding IsPaneToggleVisible, ElementName=Root, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ui:SymbolIcon
-                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Symbol="Navigation24" />
+                    <ui:SymbolIcon Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Symbol="Navigation24" />
                 </Button>
 
                 <scrolling:ModernScrollViewer
@@ -436,9 +430,7 @@
                     Grid.Row="1"
                     HorizontalScrollBarVisibility="Disabled">
                     <scrolling:ModernScrollViewer.Resources>
-                        <Style
-                            BasedOn="{StaticResource ModernNavigationMenuVerticalScrollBarStyle}"
-                            TargetType="{x:Type ScrollBar}" />
+                        <Style BasedOn="{StaticResource ModernNavigationMenuVerticalScrollBarStyle}" TargetType="{x:Type ScrollBar}" />
                     </scrolling:ModernScrollViewer.Resources>
                     <scrolling:ModernScrollViewer.Style>
                         <Style TargetType="{x:Type scrolling:ModernScrollViewer}">
@@ -499,9 +491,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <ContentPresenter
-                Grid.Row="0"
-                Content="{Binding ContentOverlay, ElementName=Root}" />
+            <ContentPresenter Grid.Row="0" Content="{Binding ContentOverlay, ElementName=Root}" />
             <frame:ModernFrame
                 x:Name="PART_Frame"
                 Grid.Row="1"

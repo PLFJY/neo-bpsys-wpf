@@ -215,10 +215,10 @@
                     Grid.Column="2"
                     MinWidth="34"
                     Margin="6,0,0,0"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                     Click="PropertyTextApplyButton_OnClick"
                     Icon="{ui:SymbolIcon Symbol=Checkmark24}"
-                    ToolTip="{lex:Loc ApplyColor}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common">
+                    ToolTip="{lex:Loc ApplyColor}">
                     <ui:Button.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                             <Style.Triggers>
@@ -438,9 +438,9 @@
                                 InputGestureText="Ctrl+S" />
                             <MenuItem Click="ReloadLayoutButton_OnClick" Header="{lex:Loc ReloadLayout}" />
                             <MenuItem
+                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                 Click="ResetToBuiltInButton_OnClick"
-                                Header="{lex:Loc ResetToBuiltIn}"
-                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                Header="{lex:Loc ResetToBuiltIn}" />
                             <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc Edit}">
@@ -468,12 +468,8 @@
                         </MenuItem>
                         <MenuItem Header="{lex:Loc View}">
                             <MenuItem Command="{Binding FitToWindowCommand}" Header="{lex:Loc Fit}" />
-                            <MenuItem
-                                Command="{Binding ZoomInCommand}"
-                                Header="{lex:Loc ZoomIn}" />
-                            <MenuItem
-                                Command="{Binding ZoomOutCommand}"
-                                Header="{lex:Loc ZoomOut}" />
+                            <MenuItem Command="{Binding ZoomInCommand}" Header="{lex:Loc ZoomIn}" />
+                            <MenuItem Command="{Binding ZoomOutCommand}" Header="{lex:Loc ZoomOut}" />
                             <Separator />
                             <MenuItem
                                 Command="{Binding SetZoomPresetCommand}"
@@ -676,9 +672,7 @@
                                                                         PreviewMouseRightButtonDown="LayerItem_OnPreviewMouseRightButtonDown"
                                                                         Tag="{Binding}">
                                                                         <Border.ContextMenu>
-                                                                            <ContextMenu
-                                                                                lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                                                                                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer">
+                                                                            <ContextMenu lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer">
                                                                                 <MenuItem Click="LayerControlDeleteMenuItem_OnClick" Header="{lex:Loc DeleteControl}" />
                                                                             </ContextMenu>
                                                                         </Border.ContextMenu>
@@ -1020,13 +1014,13 @@
                             Text="{lex:Loc Properties}" />
                         <ui:Button
                             Grid.Row="1"
+                            Margin="0,8,0,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
-                            Margin="0,8,0,0"
                             Appearance="Secondary"
+                            Command="{Binding ApplyAppearanceToSameTypeCommand}"
                             Content="{lex:Loc Designer.PropertyEditor.ApplyToSameType}"
                             Icon="{ui:SymbolIcon Symbol=Copy24}"
-                            Command="{Binding ApplyAppearanceToSameTypeCommand}"
                             ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToSameType.ToolTip}">
                             <ui:Button.Style>
                                 <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
@@ -1041,12 +1035,12 @@
                         </ui:Button>
                         <ui:Button
                             Grid.Row="1"
+                            Margin="0,8,4,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
-                            Margin="0,8,4,0"
                             Appearance="Secondary"
-                            Icon="{ui:SymbolIcon Symbol=PaintBrush24}"
                             Command="{Binding ApplyParentStyleToChildrenCommand}"
+                            Icon="{ui:SymbolIcon Symbol=PaintBrush24}"
                             ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToChildren}">
                             <ui:Button.Style>
                                 <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
@@ -1061,12 +1055,12 @@
                         </ui:Button>
                         <ui:Button
                             Grid.Row="1"
+                            Margin="0,8,8,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
-                            Margin="0,8,8,0"
                             Appearance="Secondary"
-                            Icon="{ui:SymbolIcon Symbol=Eraser24}"
                             Command="{Binding ClearChildStyleOverridesCommand}"
+                            Icon="{ui:SymbolIcon Symbol=Eraser24}"
                             ToolTip="{lex:Loc Designer.PropertyEditor.ClearChildOverrides}">
                             <ui:Button.Style>
                                 <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
@@ -1081,12 +1075,12 @@
                         </ui:Button>
                         <ui:Button
                             Grid.Row="1"
+                            Margin="0,8,12,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
-                            Margin="0,8,12,0"
                             Appearance="Secondary"
-                            Icon="{ui:SymbolIcon Symbol=Table24}"
                             Command="{Binding ApplyLayoutTemplateCommand}"
+                            Icon="{ui:SymbolIcon Symbol=Table24}"
                             ToolTip="{lex:Loc Designer.PropertyEditor.ApplyLayoutTemplate}">
                             <ui:Button.Style>
                                 <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
@@ -1104,9 +1098,9 @@
                         </ui:Button>
                         <ItemsControl
                             Grid.Row="1"
+                            Margin="0,8,12,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Bottom"
-                            Margin="0,8,12,0"
                             ItemsSource="{Binding LayoutTemplates}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -1118,11 +1112,11 @@
                                     <ui:Button
                                         Margin="4,0,0,0"
                                         Appearance="Secondary"
-                                        Icon="{ui:SymbolIcon Symbol=Table24}"
-                                        Content="{Binding DisplayName}"
-                                        ToolTip="{Binding ToolTip}"
                                         Command="{Binding DataContext.ApplyLayoutTemplateByNameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding Id}" />
+                                        CommandParameter="{Binding Id}"
+                                        Content="{Binding DisplayName}"
+                                        Icon="{ui:SymbolIcon Symbol=Table24}"
+                                        ToolTip="{Binding ToolTip}" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                             <ItemsControl.Style>
@@ -1162,11 +1156,11 @@
                                             <CheckBox
                                                 Margin="0,0,0,4"
                                                 Padding="0,0,0,0"
-                                                FontSize="11"
-                                                IsChecked="{Binding IsInheritedFromParent, Mode=OneWay}"
                                                 Command="{Binding DataContext.TogglePropertyInheritanceCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding PropertyName}"
                                                 Content="{lex:Loc Designer.PropertyEditor.InheritFromParent}"
+                                                FontSize="11"
+                                                IsChecked="{Binding IsInheritedFromParent, Mode=OneWay}"
                                                 ToolTip="{lex:Loc Designer.PropertyEditor.InheritFromParent.ToolTip}">
                                                 <CheckBox.Style>
                                                     <Style BasedOn="{StaticResource {x:Type CheckBox}}" TargetType="{x:Type CheckBox}">
@@ -1190,9 +1184,7 @@
                                                     Text="{Binding DisplayName}"
                                                     TextTrimming="CharacterEllipsis"
                                                     ToolTip="{Binding Description}" />
-                                                <ContentControl
-                                                    Grid.Column="1"
-                                                    Content="{Binding}">
+                                                <ContentControl Grid.Column="1" Content="{Binding}">
                                                     <ContentControl.Style>
                                                         <Style BasedOn="{StaticResource PropertyEditorContentControlStyle}" TargetType="ContentControl">
                                                             <Style.Triggers>
@@ -1667,57 +1659,64 @@
                                             </ComboBox>
                                             <StackPanel>
                                                 <StackPanel.Style>
-                                                    <Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed" /><Style.Triggers><DataTrigger Binding="{Binding IsShadowEffect}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers></Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsShadowEffect}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
                                                 </StackPanel.Style>
-                                            <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectColor}" />
-                                            <Grid Margin="0,3,0,8">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
-                                                <colorpicker:PortableColorPicker
-                                                    Width="52"
-                                                    Height="30"
-                                                    Margin="0,0,6,0"
-                                                    HexRepresentation="ARGB"
-                                                    SelectedColor="{Binding EffectPickerColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                    ShowAlpha="True"
-                                                    Style="{StaticResource DefaultColorPickerStyle}" />
-                                                <ui:TextBox
-                                                    Grid.Column="1"
-                                                    Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
-                                                    Text="{Binding EffectColor, UpdateSourceTrigger=PropertyChanged}" />
-                                            </Grid>
-                                            <UniformGrid Columns="2">
-                                                <StackPanel Margin="0,0,4,0">
-                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectOpacity}" />
+                                                <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectColor}" />
+                                                <Grid Margin="0,3,0,8">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <colorpicker:PortableColorPicker
+                                                        Width="52"
+                                                        Height="30"
+                                                        Margin="0,0,6,0"
+                                                        HexRepresentation="ARGB"
+                                                        SelectedColor="{Binding EffectPickerColor, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        ShowAlpha="True"
+                                                        Style="{StaticResource DefaultColorPickerStyle}" />
                                                     <ui:TextBox
-                                                        Margin="0,3,0,8"
+                                                        Grid.Column="1"
                                                         Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
-                                                        Text="{Binding EffectOpacityText, UpdateSourceTrigger=PropertyChanged}" />
-                                                </StackPanel>
-                                                <StackPanel Margin="4,0,0,0">
-                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectBlurRadius}" />
-                                                    <ui:TextBox
-                                                        Margin="0,3,0,8"
-                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
-                                                        Text="{Binding EffectBlurRadiusText, UpdateSourceTrigger=PropertyChanged}" />
-                                                </StackPanel>
-                                                <StackPanel Margin="0,0,4,0">
-                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectShadowDepth}" />
-                                                    <ui:TextBox
-                                                        Margin="0,3,0,8"
-                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
-                                                        Text="{Binding EffectShadowDepthText, UpdateSourceTrigger=PropertyChanged}" />
-                                                </StackPanel>
-                                                <StackPanel Margin="4,0,0,0">
-                                                    <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectDirection}" />
-                                                    <ui:TextBox
-                                                        Margin="0,3,0,8"
-                                                        Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
-                                                        Text="{Binding EffectDirectionText, UpdateSourceTrigger=PropertyChanged}" />
-                                                </StackPanel>
-                                            </UniformGrid>
+                                                        Text="{Binding EffectColor, UpdateSourceTrigger=PropertyChanged}" />
+                                                </Grid>
+                                                <UniformGrid Columns="2">
+                                                    <StackPanel Margin="0,0,4,0">
+                                                        <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectOpacity}" />
+                                                        <ui:TextBox
+                                                            Margin="0,3,0,8"
+                                                            Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                            Text="{Binding EffectOpacityText, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </StackPanel>
+                                                    <StackPanel Margin="4,0,0,0">
+                                                        <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectBlurRadius}" />
+                                                        <ui:TextBox
+                                                            Margin="0,3,0,8"
+                                                            Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                            Text="{Binding EffectBlurRadiusText, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </StackPanel>
+                                                    <StackPanel Margin="0,0,4,0">
+                                                        <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectShadowDepth}" />
+                                                        <ui:TextBox
+                                                            Margin="0,3,0,8"
+                                                            Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                            Text="{Binding EffectShadowDepthText, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </StackPanel>
+                                                    <StackPanel Margin="4,0,0,0">
+                                                        <TextBlock Text="{lex:Loc Designer.AnimationParts.EffectDirection}" />
+                                                        <ui:TextBox
+                                                            Margin="0,3,0,8"
+                                                            Style="{StaticResource AnimationPartValidatedTextBoxStyle}"
+                                                            Text="{Binding EffectDirectionText, UpdateSourceTrigger=PropertyChanged}" />
+                                                    </StackPanel>
+                                                </UniformGrid>
                                             </StackPanel>
                                         </StackPanel>
                                     </StackPanel>
@@ -1901,10 +1900,10 @@
                                         Grid.Column="2"
                                         MinWidth="34"
                                         Margin="6,0,0,0"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                         Click="WindowBackgroundColorApplyButton_OnClick"
                                         Icon="{ui:SymbolIcon Symbol=Checkmark24}"
-                                        ToolTip="{lex:Loc ApplyColor}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                                        ToolTip="{lex:Loc ApplyColor}" />
                                 </Grid>
                                 <TextBlock
                                     Margin="0,6,0,0"
@@ -1936,9 +1935,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel
-                    Grid.Column="0"
-                    VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal">
                         <ui:Button
                             Padding="8,4"

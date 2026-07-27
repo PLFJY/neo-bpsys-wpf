@@ -17,10 +17,10 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="2000"
     d:DesignWidth="685"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Team"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:CampToStringConverter x:Key="CampToStringConverter" />
@@ -92,10 +92,10 @@
                 <ui:Button
                     Grid.Column="3"
                     Margin="8,0,0,0"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                     Background="PaleVioletRed"
                     Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
                     CommandParameter="{Binding}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                     Content="{lex:Loc Delete}"
                     Icon="{ui:SymbolIcon Symbol=Delete24}" />
             </Grid>
@@ -165,10 +165,10 @@
                 <ui:Button
                     Grid.Column="3"
                     Margin="8,0,0,0"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                     Background="PaleVioletRed"
                     Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
                     CommandParameter="{Binding}"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                     Content="{lex:Loc Delete}"
                     Icon="{ui:SymbolIcon Symbol=Delete24}" />
             </Grid>
@@ -201,8 +201,8 @@
                     <ui:Button
                         x:Name="HomeTeamNameConfirmButton"
                         Margin="10,0,0,0"
-                        Command="{Binding ConfirmTeamNameCommand}"
                         lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Command="{Binding ConfirmTeamNameCommand}"
                         Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
@@ -224,8 +224,8 @@
                             Text="{Binding TeamColorHexEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <ui:Button
                             Margin="10,0,0,0"
-                            Command="{Binding ApplyTeamColorCommand}"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                            Command="{Binding ApplyTeamColorCommand}"
                             Content="{lex:Loc ApplyColor}"
                             Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                         <ui:Button
@@ -320,8 +320,8 @@
                     <ui:Button
                         x:Name="AwayTeamNameConfirmButton"
                         Margin="10,0,0,0"
-                        Command="{Binding ConfirmTeamNameCommand}"
                         lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Command="{Binding ConfirmTeamNameCommand}"
                         Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
@@ -343,8 +343,8 @@
                             Text="{Binding TeamColorHexEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <ui:Button
                             Margin="10,0,0,0"
-                            Command="{Binding ApplyTeamColorCommand}"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                            Command="{Binding ApplyTeamColorCommand}"
                             Content="{lex:Loc ApplyColor}"
                             Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                         <ui:Button

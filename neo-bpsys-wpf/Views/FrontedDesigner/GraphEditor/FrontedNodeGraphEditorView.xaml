@@ -587,8 +587,8 @@
                             Width="26"
                             Height="26"
                             Padding="0"
-                            Click="EditorZoomIn_OnClick"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
+                            Click="EditorZoomIn_OnClick"
                             ToolTip="{lex:Loc ZoomIn}">
                             <ui:SymbolIcon Symbol="Add24" />
                         </ui:Button>
@@ -598,8 +598,8 @@
                             Height="26"
                             Margin="4,0,0,0"
                             Padding="0"
-                            Click="EditorZoomOut_OnClick"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
+                            Click="EditorZoomOut_OnClick"
                             ToolTip="{lex:Loc ZoomOut}">
                             <ui:SymbolIcon Symbol="Subtract24" />
                         </ui:Button>
@@ -609,8 +609,8 @@
                             Height="26"
                             Margin="4,0,0,0"
                             Padding="0"
-                            Click="EditorZoomReset_OnClick"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
+                            Click="EditorZoomReset_OnClick"
                             ToolTip="{lex:Loc Zoom}">
                             <ui:SymbolIcon Symbol="ArrowReset24" />
                         </ui:Button>
@@ -767,10 +767,10 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <ui:NumberBox
+                                                Margin="2"
                                                 AcceptsExpression="False"
                                                 IsEnabled="{Binding IsManualValueEnabled}"
                                                 LargeChange="10"
-                                                Margin="2"
                                                 MaxDecimalPlaces="{Binding NumberMaxDecimalPlaces}"
                                                 Maximum="{Binding NumberMaximum}"
                                                 Minimum="{Binding NumberMinimum}"
@@ -791,7 +791,10 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <ui:TextBox IsEnabled="{Binding IsManualValueEnabled}" PlaceholderText="{Binding Placeholder}" Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" />
+                                            <ui:TextBox
+                                                IsEnabled="{Binding IsManualValueEnabled}"
+                                                PlaceholderText="{Binding Placeholder}"
+                                                Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" />
                                             <TextBlock
                                                 Grid.Column="1"
                                                 Margin="6,0,0,0"
@@ -939,8 +942,8 @@
                             Width="26"
                             Height="26"
                             Padding="0"
-                            Click="PreviewZoomIn_OnClick"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
+                            Click="PreviewZoomIn_OnClick"
                             ToolTip="{lex:Loc ZoomIn}">
                             <ui:SymbolIcon Symbol="Add24" />
                         </ui:Button>
@@ -950,8 +953,8 @@
                             Height="26"
                             Margin="4,0,0,0"
                             Padding="0"
-                            Click="PreviewZoomOut_OnClick"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
+                            Click="PreviewZoomOut_OnClick"
                             ToolTip="{lex:Loc ZoomOut}">
                             <ui:SymbolIcon Symbol="Subtract24" />
                         </ui:Button>
@@ -961,8 +964,8 @@
                             Height="26"
                             Margin="4,0,0,0"
                             Padding="0"
-                            Click="PreviewZoomReset_OnClick"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
+                            Click="PreviewZoomReset_OnClick"
                             ToolTip="{lex:Loc Zoom}">
                             <ui:SymbolIcon Symbol="ArrowReset24" />
                         </ui:Button>
