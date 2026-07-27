@@ -38,10 +38,24 @@ public static class MessageBoxHelper
     /// <returns></returns>
     public static async Task ShowErrorAsync(string message, string title = "Error", string closeButtonText = "Close")
     {
+        await ShowErrorAsync((object)message, title, closeButtonText);
+    }
+
+    /// <summary>
+    /// 显示带自定义内容的错误对话框。
+    /// </summary>
+    /// <param name="content">错误对话框的内容。</param>
+    /// <param name="title">标题 (默认值 "Error" 未国际化，如需国际化文本请手动传入)</param>
+    /// <param name="closeButtonText">关闭按钮文本 (默认值 "Close" 未国际化，如需国际化文本请手动传入)</param>
+    /// <returns>表示异步显示操作的任务。</returns>
+    public static async Task ShowErrorAsync(object content, string title = "Error", string closeButtonText = "Close")
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
         var messageBox = new MessageBox()
         {
             Title = title,
-            Content = message,
+            Content = content,
             CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
             CloseButtonText = closeButtonText
         };

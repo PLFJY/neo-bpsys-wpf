@@ -24,9 +24,9 @@
                         </Grid.RowDefinitions>
                         <ui:TextBox
                             Margin="0,10,0,10"
-                            IsReadOnly="True"
                             lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
                             lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
+                            IsReadOnly="True"
                             PlaceholderText="{lex:Loc CharacterName}"
                             Text="{TemplateBinding CharacterName}" />
                         <Grid Row="1">

@@ -16,10 +16,10 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1000"
     d:DesignWidth="685"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
@@ -54,14 +54,14 @@
                         <DataTemplate>
                             <controls:CharacterSelector
                                 Margin="0,0,10,10"
+                                modernScroll:GuidanceScrollTarget.Action="BanHun"
+                                modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                 Command="{Binding ConfirmCommand}"
                                 DisabledKeys="{Binding DisabledKeys}"
                                 ImageSource="{Binding PreviewImage}"
                                 IsEnabled="{Binding IsEnabled}"
                                 IsHighlighted="{Binding IsHighlighted}"
                                 ItemsSource="{Binding CharaDict}"
-                                modernScroll:GuidanceScrollTarget.Action="BanHun"
-                                modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                 SelectedValue="{Binding SelectedChara}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -115,8 +115,8 @@
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
-                    Style="{StaticResource Title}"
                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
+                    Style="{StaticResource Title}"
                     Text="{lex:Loc BanNumberControl}" />
                 <TextBlock
                     Grid.Row="1"

@@ -54,13 +54,38 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageId}" />
-                <ui:TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageIdLength}" Text="{Binding PackageId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Margin="0,0,12,10"
+                    VerticalAlignment="Center"
+                    Text="{lex:Loc PackageId}" />
+                <ui:TextBox
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,0,10"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageIdLength}"
+                    Text="{Binding PackageId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageName}" />
-                <ui:TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageNameLength}" Text="{Binding PackageName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Margin="0,0,12,10"
+                    VerticalAlignment="Center"
+                    Text="{lex:Loc PackageName}" />
+                <ui:TextBox
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Margin="0,0,0,10"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageNameLength}"
+                    Text="{Binding PackageName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Top" Text="{lex:Loc PackageDescription}" />
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Margin="0,0,12,10"
+                    VerticalAlignment="Top"
+                    Text="{lex:Loc PackageDescription}" />
                 <ui:TextBox
                     Grid.Row="2"
                     Grid.Column="1"
@@ -71,14 +96,42 @@
                     Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     TextWrapping="Wrap" />
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageAuthor}" />
-                <ui:TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageAuthorLength}" Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Margin="0,0,12,10"
+                    VerticalAlignment="Center"
+                    Text="{lex:Loc PackageAuthor}" />
+                <ui:TextBox
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Margin="0,0,0,10"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageAuthorLength}"
+                    Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageMinVersion}" />
-                <ui:TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageMinVersionLength}" Text="{Binding MinVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Margin="0,0,12,10"
+                    VerticalAlignment="Center"
+                    Text="{lex:Loc PackageMinVersion}" />
+                <ui:TextBox
+                    Grid.Row="4"
+                    Grid.Column="1"
+                    Margin="0,0,0,10"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageMinVersionLength}"
+                    Text="{Binding MinVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc OutputPath}" />
-                <Grid Grid.Row="5" Grid.Column="1" Margin="0,0,0,10">
+                <TextBlock
+                    Grid.Row="5"
+                    Grid.Column="0"
+                    Margin="0,0,12,10"
+                    VerticalAlignment="Center"
+                    Text="{lex:Loc OutputPath}" />
+                <Grid
+                    Grid.Row="5"
+                    Grid.Column="1"
+                    Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -100,18 +153,22 @@
                     TextWrapping="Wrap" />
             </Grid>
         </ui:DynamicScrollViewer>
-        <StackPanel Grid.Row="2" Margin="18,0,18,18" HorizontalAlignment="Right" Orientation="Horizontal">
+        <StackPanel
+            Grid.Row="2"
+            Margin="18,0,18,18"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
             <ui:Button
                 MinWidth="96"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                 Click="Ok_OnClick"
-                Content="{lex:Loc Confirm}"
-                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                Content="{lex:Loc Confirm}" />
             <ui:Button
                 MinWidth="96"
                 Margin="8,0,0,0"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                 Click="Cancel_OnClick"
-                Content="{lex:Loc Cancel}"
-                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+                Content="{lex:Loc Cancel}" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

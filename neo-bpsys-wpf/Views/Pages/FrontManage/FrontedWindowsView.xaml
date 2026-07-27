@@ -11,10 +11,10 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="900"
     d:DesignWidth="685"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.FrontManage"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -98,7 +98,10 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border x:Name="FirstManageableWindowCard" Margin="0,0,10,10" Style="{StaticResource Card}">
+                                        <Border
+                                            x:Name="FirstManageableWindowCard"
+                                            Margin="0,0,10,10"
+                                            Style="{StaticResource Card}">
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto" />
@@ -126,9 +129,9 @@
                                                         Tag="{Binding WindowId}" />
                                                     <ui:Button
                                                         Margin="10,0,0,0"
+                                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                                         Command="{Binding DataContext.HideWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding WindowId}"
-                                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                                         Content="{lex:Loc Close}" />
                                                 </StackPanel>
                                             </Grid>

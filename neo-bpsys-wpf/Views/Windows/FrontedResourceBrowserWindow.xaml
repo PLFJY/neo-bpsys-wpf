@@ -57,15 +57,14 @@
                 MinWidth="120"
                 Margin="8,0,0,0"
                 Click="BrowseFile_OnClick"
-                Content="{lex:Loc BrowseFile}"
-                />
+                Content="{lex:Loc BrowseFile}" />
         </Grid>
         <Grid Grid.Row="2" Margin="12,0,12,12">
             <ListBox
                 ItemsSource="{Binding Resources}"
-                SelectionChanged="ResourceList_OnSelectionChanged"
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                ScrollViewer.VerticalScrollBarVisibility="Auto">
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                SelectionChanged="ResourceList_OnSelectionChanged">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -73,7 +72,11 @@
                 </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type designer:FrontedResourceBrowserItem}">
-                        <Border Width="170" Height="132" Margin="4" Padding="6">
+                        <Border
+                            Width="170"
+                            Height="132"
+                            Margin="4"
+                            Padding="6">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="72" />

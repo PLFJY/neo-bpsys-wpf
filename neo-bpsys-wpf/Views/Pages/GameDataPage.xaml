@@ -14,27 +14,25 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Page.Resources>
     <StackPanel>
         <StackPanel>
-            <Border
-                Style="{StaticResource Card}"
-                Visibility="{Binding IsSmartBpAutoFillVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Style="{StaticResource Card}" Visibility="{Binding IsSmartBpAutoFillVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Style="{StaticResource Title}"
                         lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                        Style="{StaticResource Title}"
                         Text="{lex:Loc SmartBp}" />
                     <ui:Button
                         Grid.Row="1"
@@ -45,8 +43,10 @@
                 </Grid>
             </Border>
         </StackPanel>
-        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc Survivor}"
-                   lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+        <TextBlock
+            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+            Style="{StaticResource Title}"
+            Text="{lex:Loc Survivor}" />
         <WrapPanel Margin="0,10,0,0">
             <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                 <Grid>
@@ -119,9 +119,9 @@
         </WrapPanel>
         <TextBlock
             Margin="0,10,0,0"
+            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
             Style="{StaticResource Title}"
-            Text="{lex:Loc Hunter}"
-            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common" />
+            Text="{lex:Loc Hunter}" />
         <Border
             Margin="0,10,0,0"
             HorizontalAlignment="Left"

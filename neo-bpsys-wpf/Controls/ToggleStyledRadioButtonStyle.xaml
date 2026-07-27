@@ -21,19 +21,13 @@
                         Command="{TemplateBinding Command}"
                         CommandParameter="{TemplateBinding CommandParameter}"
                         ContentTemplate="{TemplateBinding ContentTemplate}"
-                        IsEnabled="{TemplateBinding IsEnabled}"
-                        IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                        IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                        IsEnabled="{TemplateBinding IsEnabled}">
                         <ToggleButton.Style>
                             <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
-                                <Setter
-                                    Property="Background"
-                                    Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
-                                <Setter
-                                    Property="BorderBrush"
-                                    Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
-                                <Setter
-                                    Property="BorderThickness"
-                                    Value="{Binding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Setter Property="Background" Value="{Binding Background, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Setter Property="BorderBrush" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <Setter Property="BorderThickness" Value="{Binding BorderThickness, RelativeSource={RelativeSource TemplatedParent}}" />
                                 <Style.Triggers>
                                     <MultiTrigger>
                                         <MultiTrigger.Conditions>
@@ -45,9 +39,7 @@
                                 </Style.Triggers>
                             </Style>
                         </ToggleButton.Style>
-                        <StackPanel
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <StackPanel HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                             <Image
                                 Width="{TemplateBinding ImageWidth}"
                                 Height="{TemplateBinding ImageHeight}"
@@ -68,9 +60,7 @@
                                 Text="{Binding TagName, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter
-                                            Property="Foreground"
-                                            Value="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
+                                        <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource TemplatedParent}}" />
                                         <Style.Triggers>
                                             <Trigger Property="IsEnabled" Value="false">
                                                 <Setter Property="Foreground" Value="Gray" />

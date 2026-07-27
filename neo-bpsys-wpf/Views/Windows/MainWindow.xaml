@@ -96,9 +96,7 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             Panel.ZIndex="2" />
-        <ui:ContentDialogHost
-            x:Name="ContentDialogHost"
-            Panel.ZIndex="3" />
+        <ui:ContentDialogHost x:Name="ContentDialogHost" Panel.ZIndex="3" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

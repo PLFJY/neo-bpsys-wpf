@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
@@ -195,7 +196,7 @@ public partial class TeamInfoPageViewModel
                 var validation = _imageSafetyService.ValidateFile(fileName, FrontedImagePurpose.UiElement);
                 if (!validation.IsValid)
                 {
-                    _ = MessageBoxHelper.ShowErrorAsync(BuildImageValidationFailureMessage(validation, "LogoFileIsNotValid"));
+                    _ = ShowImageValidationFailureAsync(validation, "LogoFileIsNotValid");
                     return;
                 }
 
@@ -527,7 +528,7 @@ public partial class TeamInfoPageViewModel
                 var validation = _imageSafetyService.ValidateFile(imagePath, FrontedImagePurpose.UiElement);
                 if (!validation.IsValid)
                 {
-                    _ = MessageBoxHelper.ShowErrorAsync(BuildImageValidationFailureMessage(validation, "ImageMaybeDamagedOrUnsupported"));
+                    _ = ShowImageValidationFailureAsync(validation, "ImageMaybeDamagedOrUnsupported");
                     return;
                 }
 
@@ -582,6 +583,20 @@ public partial class TeamInfoPageViewModel
             }
 
             return I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, fallbackKey);
+        }
+
+        /// <summary>
+        /// 显示图片校验失败提示。大小或尺寸超限时，在建议文本下方提供在线压缩工具链接。
+        /// </summary>
+        /// <param name="validation">图片校验结果。</param>
+        /// <param name="fallbackKey">非文件大小/尺寸超限类错误使用的本地化资源键。</param>
+        /// <returns>表示异步显示操作的任务。</returns>
+        private static Task ShowImageValidationFailureAsync(FrontedImageValidationResult validation, string fallbackKey)
+        {
+            var message = BuildImageValidationFailureMessage(validation, fallbackKey);
+            return validation is { IsValid: false, ErrorCode: "ImageTooLarge" or "ImageTooManyPixels" }
+                ? MessageBoxHelper.ShowErrorAsync(new ImageCompressionMessageContent(message))
+                : MessageBoxHelper.ShowErrorAsync(message);
         }
 
         /// <summary>

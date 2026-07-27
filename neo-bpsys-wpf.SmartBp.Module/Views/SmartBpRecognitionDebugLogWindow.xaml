@@ -2,8 +2,8 @@
     x:Class="neo_bpsys_wpf.Views.Windows.SmartBpRecognitionDebugLogWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="{lex:Loc SmartBpRecognitionDebugLogWindowTitle}"
     Width="1100"
@@ -24,7 +24,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="{lex:Loc SmartBpRecognitionDebugLogWindowTitle}" />
+        <ui:TitleBar Title="{lex:Loc SmartBpRecognitionDebugLogWindowTitle}" Grid.Row="0" />
         <WrapPanel Grid.Row="1" Margin="12,8,12,8">
             <ui:Button
                 Margin="0,0,8,0"
@@ -55,12 +55,35 @@
             <ui:DynamicScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugStrategySummary}" />
-                    <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugStrategySummary}" TextWrapping="Wrap" />
-                    <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugPhaseScene}" />
-                    <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugPhaseScene}" TextWrapping="Wrap" />
-                    <TextBlock Margin="0,8,0,0" FontWeight="SemiBold" Text="{lex:Loc SmartBpDebugCandidateOperations}" />
-                    <ui:TextBox AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugCandidateOperations}" TextWrapping="Wrap" />
-                    <ui:TextBox Margin="0,6,0,0" AcceptsReturn="True" IsReadOnly="True" Text="{Binding DebugTiming}" TextWrapping="Wrap" />
+                    <ui:TextBox
+                        AcceptsReturn="True"
+                        IsReadOnly="True"
+                        Text="{Binding DebugStrategySummary}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        FontWeight="SemiBold"
+                        Text="{lex:Loc SmartBpDebugPhaseScene}" />
+                    <ui:TextBox
+                        AcceptsReturn="True"
+                        IsReadOnly="True"
+                        Text="{Binding DebugPhaseScene}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,8,0,0"
+                        FontWeight="SemiBold"
+                        Text="{lex:Loc SmartBpDebugCandidateOperations}" />
+                    <ui:TextBox
+                        AcceptsReturn="True"
+                        IsReadOnly="True"
+                        Text="{Binding DebugCandidateOperations}"
+                        TextWrapping="Wrap" />
+                    <ui:TextBox
+                        Margin="0,6,0,0"
+                        AcceptsReturn="True"
+                        IsReadOnly="True"
+                        Text="{Binding DebugTiming}"
+                        TextWrapping="Wrap" />
                     <TextBlock
                         Margin="0,8,0,0"
                         Foreground="{DynamicResource SystemFillColorCriticalBrush}"

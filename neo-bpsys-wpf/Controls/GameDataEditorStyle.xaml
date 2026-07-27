@@ -11,9 +11,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:GameDataEditor}">
-                    <Grid
-                        lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game">
+                    <Grid lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Game">
                         <!--  Sur  -->
                         <StackPanel Visibility="{TemplateBinding IsHunMode, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
