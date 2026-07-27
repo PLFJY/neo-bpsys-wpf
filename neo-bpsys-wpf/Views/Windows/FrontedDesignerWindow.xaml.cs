@@ -75,8 +75,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private double _originalHeight;
     private bool _isPanningViewport;
     private Point _panStartViewportPosition;
-    private double _panStartHorizontalOffset;
-    private double _panStartVerticalOffset;
+    private double _panStartTranslationX;
+    private double _panStartTranslationY;
     private Cursor? _cursorBeforePan;
     private bool _selectorReloadScheduled;
     private bool _selectorReloadInProgress;
@@ -104,7 +104,6 @@ public partial class FrontedDesignerWindow : FluentWindow
     private Task<TutorialRunResult>? _behaviorPanelTutorialTask;
     private bool _initialLayoutLoaded;
     private int _userSelectionDepth;
-    private readonly List<Border> _childHitboxes = [];
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _childResizeHandles = new();
     private Border? _childSelectionOutline;
     private Border? _childSelectionLabel;
@@ -2244,7 +2243,6 @@ public partial class FrontedDesignerWindow : FluentWindow
         _parentSelectionOutline = null;
         _selectionLabel = null;
         _marqueeSelectionOutline = null;
-        _childHitboxes.Clear();
         _childResizeHandles.Clear();
         _childSelectionOutline = null;
         _childSelectionLabel = null;
@@ -2272,14 +2270,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             AddSelectionAdorners();
         }
 
-        // 子控件选中时绘制子控件装饰器；根控件选中且有可编辑子控件时绘制子控件 hitbox。
+        // 子控件只能通过控件列表选中；画布仅为已选中的子控件绘制编辑装饰器。
         if (_viewModel.IsSubControlSelected)
         {
             AddSubControlSelectionAdorner();
-        }
-        else if (_viewModel.SelectedDesignItem is not null)
-        {
-            AddChildHitboxes();
         }
     }
 
@@ -2468,11 +2462,6 @@ public partial class FrontedDesignerWindow : FluentWindow
     }
 
     /// <summary>
-    /// 子控件 hitbox 的 ZIndex，高于根选中轮廓但低于根缩放手柄。
-    /// </summary>
-    private const int ChildHitboxZIndex = 20_150;
-
-    /// <summary>
     /// 子控件选中轮廓的 ZIndex，高于根缩放手柄。
     /// </summary>
     private const int ChildSelectionOutlineZIndex = 20_300;
@@ -2481,61 +2470,6 @@ public partial class FrontedDesignerWindow : FluentWindow
     /// 子控件缩放手柄的 ZIndex。
     /// </summary>
     private const int ChildSelectionHandleZIndex = 20_310;
-
-    /// <summary>
-    /// 为当前选中的根控件创建子控件透明 hitbox。仅在根控件选中且有可编辑子控件时创建。
-    /// </summary>
-    private void AddChildHitboxes()
-    {
-        if (_viewModel?.SelectedDesignItem is null)
-        {
-            return;
-        }
-
-        var childTargets = _viewModel.GetChildTargetInfos();
-        if (childTargets.Count == 0)
-        {
-            return;
-        }
-
-        var parentBounds = ResolveItemBounds(_viewModel.SelectedDesignItem);
-        foreach (var target in childTargets)
-        {
-            var hitbox = CreateChildHitbox(target, parentBounds);
-            _childHitboxes.Add(hitbox);
-            InteractionLayer.Children.Add(hitbox);
-        }
-    }
-
-    /// <summary>
-    /// 创建单个子控件透明 hitbox。坐标由子控件相对几何叠加父控件画布坐标得到。
-    /// </summary>
-    /// <param name="target">子控件目标信息。</param>
-    /// <param name="parentBounds">父控件画布边界。</param>
-    /// <returns>透明 hitbox Border。</returns>
-    private Border CreateChildHitbox(DesignerChildTargetInfo target, FrontedDesignerResolvedBounds parentBounds)
-    {
-        var absoluteLeft = parentBounds.Left + target.Left;
-        var absoluteTop = parentBounds.Top + target.Top;
-        var hitbox = new Border
-        {
-            Background = Brushes.Transparent,
-            BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
-            BorderThickness = new Thickness(0.5),
-            Opacity = 0.4D,
-            Width = target.Width,
-            Height = target.Height,
-            IsHitTestVisible = true,
-            Cursor = target.CanMove ? Cursors.SizeAll : Cursors.Hand,
-            Tag = target
-        };
-
-        Canvas.SetLeft(hitbox, absoluteLeft);
-        Canvas.SetTop(hitbox, absoluteTop);
-        Panel.SetZIndex(hitbox, ChildHitboxZIndex);
-        hitbox.MouseLeftButtonDown += ChildHitbox_OnMouseLeftButtonDown;
-        return hitbox;
-    }
 
     /// <summary>
     /// 为当前选中的子控件（Part/CollectionItem）绘制 selection adorner 与 resize handles。
@@ -2560,10 +2494,14 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             Width = bounds.Width,
             Height = bounds.Height,
+            Background = Brushes.Transparent,
             BorderBrush = Brushes.Orange,
             BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
-            IsHitTestVisible = false
+            IsHitTestVisible = target.CanMove,
+            Cursor = target.CanMove ? Cursors.SizeAll : Cursors.Arrow,
+            Tag = target
         };
+        _childSelectionOutline.MouseLeftButtonDown += SubControlSelectionOutline_OnMouseLeftButtonDown;
         Canvas.SetLeft(_childSelectionOutline, bounds.Left);
         Canvas.SetTop(_childSelectionOutline, bounds.Top);
         Panel.SetZIndex(_childSelectionOutline, ChildSelectionOutlineZIndex);
@@ -2711,47 +2649,24 @@ public partial class FrontedDesignerWindow : FluentWindow
     }
 
     /// <summary>
-    /// 子控件 hitbox 鼠标左键按下处理：切换到子控件选中，并准备拖拽。
+    /// 已通过控件列表选中的子控件在画布上开始拖动。
     /// </summary>
-    private void ChildHitbox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void SubControlSelectionOutline_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not FrameworkElement { Tag: DesignerChildTargetInfo target } hitbox
-            || _viewModel is null)
+        if (sender is not FrameworkElement { Tag: DesignerChildTargetInfo target } outline
+            || _viewModel is null
+            || !target.CanMove)
         {
             return;
         }
 
         FocusDesignSurface();
         e.Handled = true;
-
-        // 首次点击切换到子控件选中；如果已选中同一子控件则开始拖拽。
-        if (_viewModel.IsSubControlSelected
-            && _currentSubTargetInfo is { } current
-            && ReferenceEquals(current.ParentItem, target.ParentItem)
-            && string.Equals(current.Id, target.Id, StringComparison.Ordinal)
-            && string.Equals(current.ItemKey ?? string.Empty, target.ItemKey ?? string.Empty, StringComparison.Ordinal))
-        {
-            if (target.CanMove)
-            {
-                _originalLeft = target.Left;
-                _originalTop = target.Top;
-                _originalWidth = target.Width;
-                _originalHeight = target.Height;
-                BeginSubControlInteraction(InteractionMode.SubControlMove, e.GetPosition(InteractionLayer), hitbox);
-            }
-
-            return;
-        }
-
-        // 切换到子控件选中，重建交互层以显示装饰器。
-        if (target.IsCollectionItem)
-        {
-            RunUserSelection(() => _viewModel.SelectCollectionItem(target.ParentItem, target.Id, target.ItemKey!));
-        }
-        else
-        {
-            RunUserSelection(() => _viewModel.SelectFixedPart(target.ParentItem, target.Id));
-        }
+        _originalLeft = target.Left;
+        _originalTop = target.Top;
+        _originalWidth = target.Width;
+        _originalHeight = target.Height;
+        BeginSubControlInteraction(InteractionMode.SubControlMove, e.GetPosition(InteractionLayer), outline);
     }
 
     /// <summary>
@@ -3336,8 +3251,14 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (oldScale > 0D && Math.Abs(_viewModel.ZoomScale - oldScale) > 0.0001D)
         {
             var ratio = _viewModel.ZoomScale / oldScale;
-            PreviewScrollViewer.ScrollToHorizontalOffset((oldHorizontalOffset + cursorPosition.X) * ratio - cursorPosition.X);
-            PreviewScrollViewer.ScrollToVerticalOffset((oldVerticalOffset + cursorPosition.Y) * ratio - cursorPosition.Y);
+            PreviewScrollViewer.ScrollToHorizontalOffset(
+                (oldHorizontalOffset + cursorPosition.X - PreviewPanTransform.X) * ratio
+                + PreviewPanTransform.X
+                - cursorPosition.X);
+            PreviewScrollViewer.ScrollToVerticalOffset(
+                (oldVerticalOffset + cursorPosition.Y - PreviewPanTransform.Y) * ratio
+                + PreviewPanTransform.Y
+                - cursorPosition.Y);
         }
 
         e.Handled = true;
@@ -3498,8 +3419,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         ResetPointerInteraction();
         _isPanningViewport = true;
         _panStartViewportPosition = e.GetPosition(PreviewScrollViewer);
-        _panStartHorizontalOffset = PreviewScrollViewer.HorizontalOffset;
-        _panStartVerticalOffset = PreviewScrollViewer.VerticalOffset;
+        _panStartTranslationX = PreviewPanTransform.X;
+        _panStartTranslationY = PreviewPanTransform.Y;
         _capturedElement = PreviewScrollViewer;
         _cursorBeforePan = PreviewScrollViewer.Cursor;
         PreviewScrollViewer.Cursor = Cursors.SizeAll;
@@ -3512,8 +3433,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         var currentPosition = e.GetPosition(PreviewScrollViewer);
         var deltaX = currentPosition.X - _panStartViewportPosition.X;
         var deltaY = currentPosition.Y - _panStartViewportPosition.Y;
-        PreviewScrollViewer.ScrollToHorizontalOffset(_panStartHorizontalOffset - deltaX);
-        PreviewScrollViewer.ScrollToVerticalOffset(_panStartVerticalOffset - deltaY);
+        PreviewPanTransform.X = _panStartTranslationX + deltaX;
+        PreviewPanTransform.Y = _panStartTranslationY + deltaY;
     }
 
     private void EndViewportPan()
@@ -3868,7 +3789,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             return null;
         }
 
-        var value = (PreviewScrollViewer.HorizontalOffset + PreviewScrollViewer.ViewportWidth / 2D) / _viewModel.ZoomScale;
+        var value = (PreviewScrollViewer.HorizontalOffset
+                     + PreviewScrollViewer.ViewportWidth / 2D
+                     - PreviewPanTransform.X)
+                    / _viewModel.ZoomScale;
         return double.IsFinite(value) ? value : null;
     }
 
@@ -3879,7 +3803,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             return null;
         }
 
-        var value = (PreviewScrollViewer.VerticalOffset + PreviewScrollViewer.ViewportHeight / 2D) / _viewModel.ZoomScale;
+        var value = (PreviewScrollViewer.VerticalOffset
+                     + PreviewScrollViewer.ViewportHeight / 2D
+                     - PreviewPanTransform.Y)
+                    / _viewModel.ZoomScale;
         return double.IsFinite(value) ? value : null;
     }
 

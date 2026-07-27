@@ -892,6 +892,9 @@
                             VerticalAlignment="Center"
                             BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                             BorderThickness="1">
+                            <Border.RenderTransform>
+                                <TranslateTransform x:Name="PreviewPanTransform" />
+                            </Border.RenderTransform>
                             <Border.LayoutTransform>
                                 <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}" />
                             </Border.LayoutTransform>
