@@ -169,6 +169,12 @@
   <data name="SmartBpModuleRequired">
     <value>SmartBP を使用するには、独立モジュールをインストールする必要があります。</value>
   </data>
+  <data name="SmartBpModuleNotInstalledDescription">
+    <value>SmartBP は独立したモジュールであり、別途ダウンロードしてインストールする必要があります。</value>
+  </data>
+  <data name="SmartBpModuleAdvancedOptions">
+    <value>詳細オプション</value>
+  </data>
   <data name="SmartBpModuleDownloadAndInstall">
     <value>ダウンロードしてインストール</value>
   </data>

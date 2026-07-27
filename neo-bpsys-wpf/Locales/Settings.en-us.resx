@@ -169,6 +169,12 @@
   <data name="SmartBpModuleRequired">
     <value>SmartBP requires the standalone module to be installed.</value>
   </data>
+  <data name="SmartBpModuleNotInstalledDescription">
+    <value>SmartBP is a standalone module that needs to be downloaded and installed separately.</value>
+  </data>
+  <data name="SmartBpModuleAdvancedOptions">
+    <value>Advanced options</value>
+  </data>
   <data name="SmartBpModuleDownloadAndInstall">
     <value>Download and install</value>
   </data>
