@@ -3435,6 +3435,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         var deltaY = currentPosition.Y - _panStartViewportPosition.Y;
         PreviewPanTransform.X = _panStartTranslationX + deltaX;
         PreviewPanTransform.Y = _panStartTranslationY + deltaY;
+
+        // RenderTransform 不参与 ScrollViewer 的布局失效范围计算。
+        // 显式重绘工作区，避免画布边框在旧位置留下残影。
+        PreviewWorkspace.InvalidateVisual();
     }
 
     private void EndViewportPan()
