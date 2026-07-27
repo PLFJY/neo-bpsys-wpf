@@ -64,6 +64,12 @@
   <data name="PackageDescription">
     <value>Description</value>
   </data>
+  <data name="EditPackageDescription">
+    <value>Edit Description</value>
+  </data>
+  <data name="EditPackageDescriptionDialogTitle">
+    <value>Edit Layout Package Description</value>
+  </data>
   <data name="PackageMinVersion">
     <value>Min Version</value>
   </data>
@@ -83,7 +89,16 @@
     <value>Activate Package</value>
   </data>
   <data name="DuplicateLayoutPackage">
-    <value>Duplicate Scheme</value>
+    <value>Create Copy</value>
+  </data>
+  <data name="RenameLayoutPackage">
+    <value>Rename Scheme</value>
+  </data>
+  <data name="RenameLayoutPackageDialogTitle">
+    <value>Rename Layout Scheme</value>
+  </data>
+  <data name="RenameLayoutPackageHint">
+    <value>Only the display name changes. The PackageId, layout files, and resource references are kept.</value>
   </data>
   <data name="DeletePackage">
     <value>Delete Package</value>
@@ -103,11 +118,32 @@
   <data name="CannotDuplicateLocalPackage">
     <value>Cannot duplicate the local resource package.</value>
   </data>
+  <data name="CannotRenameBuiltinPackage">
+    <value>Cannot rename the built-in layout package.</value>
+  </data>
+  <data name="CannotRenameLocalPackage">
+    <value>Cannot rename the local resource package.</value>
+  </data>
   <data name="LayoutPackageDuplicated">
     <value>Layout scheme duplicated</value>
   </data>
   <data name="DuplicateLayoutPackageFailed">
     <value>Duplicate layout scheme failed</value>
+  </data>
+  <data name="LayoutPackageRenamed">
+    <value>Layout scheme renamed</value>
+  </data>
+  <data name="RenameLayoutPackageFailed">
+    <value>Rename layout scheme failed</value>
+  </data>
+  <data name="CannotEditPackageDescription">
+    <value>Cannot edit the description of the built-in layout package or local resource package.</value>
+  </data>
+  <data name="PackageDescriptionUpdated">
+    <value>Layout package description updated</value>
+  </data>
+  <data name="EditPackageDescriptionFailed">
+    <value>Edit layout package description failed</value>
   </data>
   <data name="PackageDeleted">
     <value>Package deleted.</value>

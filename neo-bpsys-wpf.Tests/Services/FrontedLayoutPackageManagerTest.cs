@@ -944,6 +944,71 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
+    public async Task RenameInstalledPackageUpdatesDisplayNameWithoutChangingStableIdentity()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var packageFolder = Path.Combine(packageRoot, "package-a");
+            WriteManifest(packageFolder, new
+            {
+                PackageId = "package-a",
+                Name = "Original Name",
+                CustomMetadata = "preserve-me"
+            });
+            var manager = new FrontedLayoutPackageManager(packageRoot, Path.Combine(root, "builtIn"));
+
+            await manager.ActivatePackageAsync("package-a", TestContext.Current.CancellationToken);
+            var renamed = await manager.RenamePackageAsync("package-a", "  Updated Name  ", TestContext.Current.CancellationToken);
+            var descriptionUpdated = await manager.UpdatePackageDescriptionAsync(
+                "package-a",
+                "  Updated description  ",
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal("package-a", renamed.PackageId);
+            Assert.Equal("Updated Name", renamed.Name);
+            Assert.Equal("Updated description", descriptionUpdated.Description);
+            var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("package-a", active.PackageId);
+            using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(packageFolder, "manifest.json")));
+            Assert.Equal("package-a", manifest.RootElement.GetProperty("PackageId").GetString());
+            Assert.Equal("Updated Name", manifest.RootElement.GetProperty("Name").GetString());
+            Assert.Equal("Updated description", manifest.RootElement.GetProperty("Description").GetString());
+            Assert.Equal("preserve-me", manifest.RootElement.GetProperty("CustomMetadata").GetString());
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task RenamePackageRejectsReservedPackagesAndBlankNames()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            WriteManifest(Path.Combine(packageRoot, "package-a"), new { PackageId = "package-a", Name = "Package A" });
+            var manager = new FrontedLayoutPackageManager(packageRoot, Path.Combine(root, "builtIn"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                manager.RenamePackageAsync("builtin", "Built-in", TestContext.Current.CancellationToken));
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                manager.RenamePackageAsync("local", "Local", TestContext.Current.CancellationToken));
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                manager.RenamePackageAsync("package-a", "   ", TestContext.Current.CancellationToken));
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                manager.UpdatePackageDescriptionAsync("builtin", "Built-in", TestContext.Current.CancellationToken));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task ActivateBuiltinClearsActiveStateAndInstalledPackageWritesState()
     {
         var root = CreateTempDirectory();
@@ -968,6 +1033,47 @@ public class FrontedLayoutPackageManagerTest : IDisposable
             await manager.ActivatePackageAsync("builtin", TestContext.Current.CancellationToken);
             active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("builtin", active.PackageId);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ExportingSelectedSourcePackageDoesNotRequireActivatingIt()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var activeFolder = Path.Combine(packageRoot, "package-a");
+            var sourceFolder = Path.Combine(packageRoot, "package-b");
+            WriteManifest(activeFolder, new { PackageId = "package-a", Name = "Package A" });
+            WriteManifest(sourceFolder, new { PackageId = "package-b", Name = "Package B" });
+            WriteMinimalV3Layout(Path.Combine(activeFolder, "FrontedLayouts", "BpWindow.json"), "Active package");
+            WriteMinimalV3Layout(Path.Combine(sourceFolder, "FrontedLayouts", "BpWindow.json"), "Selected package");
+            var manager = new FrontedLayoutPackageManager(packageRoot, Path.Combine(root, "builtIn"));
+            await manager.ActivatePackageAsync("package-a", TestContext.Current.CancellationToken);
+            var exporter = new FrontedLayoutPackageExporter(
+                manager,
+                packageRoot,
+                Path.Combine(root, "temp"));
+            var outputPath = Path.Combine(root, "selected.bpui");
+
+            var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+            {
+                PackageId = "exported-package",
+                Name = "Selected Package",
+                SourcePackageId = "package-b",
+                OutputPath = outputPath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(outputPath);
+            Assert.Contains("Selected package", ReadZipEntry(archive, "FrontedLayouts/BpWindow.json"));
+            var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("package-a", active.PackageId);
         }
         finally
         {
@@ -1036,12 +1142,16 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         Assert.Contains("PackageBasicInfo", packagesText);
         Assert.Contains("ExportPackageCommand", packagesText);
         Assert.Contains("DuplicatePackageCommand", packagesText);
+        Assert.Contains("RenamePackageCommand", packagesText);
+        Assert.Contains("EditPackageDescriptionCommand", packagesText);
+        Assert.Contains("PackageListBox_OnPreviewMouseRightButtonDown", packagesText);
         Assert.Contains("MouseDoubleClick=\"PackageListBox_OnMouseDoubleClick\"", packagesText);
 
         var packagesCode = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedLayoutPackagesView.xaml.cs"));
         Assert.Contains("PackageListBox_OnRequestBringIntoView", packagesCode);
-        Assert.Contains("e.OriginalSource is ListBoxItem", packagesCode);
+        Assert.Contains("if (sender == LayoutPackageList)", packagesCode);
         Assert.Contains("e.Handled = true", packagesCode);
+        Assert.Contains("PackageListBox_OnPreviewMouseRightButtonDown", packagesCode);
     }
 
     [Fact]
@@ -1213,6 +1323,8 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         Assert.Contains("OpenFrontedDesigner", text);
         Assert.Contains("ActivateSelectedPackageByDoubleClickAsync", text);
         Assert.Contains("DuplicatePackageAsync", text);
+        Assert.Contains("RenamePackageAsync", text);
+        Assert.Contains("EditPackageDescriptionAsync", text);
     }
 
     [Fact]
@@ -1296,6 +1408,33 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         File.WriteAllText(
             Path.Combine(folder, "manifest.json"),
             JsonSerializer.Serialize(manifest));
+    }
+
+    private static void WriteMinimalV3Layout(string path, string text)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, $$"""
+                                  {
+                                    "Version": 3,
+                                    "WindowSettings": {
+                                      "WindowWidth": 100,
+                                      "WindowHeight": 100
+                                    },
+                                    "CanvasSettings": {
+                                      "CanvasWidth": 100,
+                                      "CanvasHeight": 100
+                                    },
+                                    "ControlLayout": {
+                                      "RequiredPlugins": [],
+                                      "Controls": {
+                                        "Text1": {
+                                          "ControlType": "Text",
+                                          "Text": "{{JsonEncodedText(text)}}"
+                                        }
+                                      }
+                                    }
+                                  }
+                                  """);
     }
 
     private static void WriteCatalogLayouts(

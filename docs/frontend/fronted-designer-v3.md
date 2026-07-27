@@ -24,6 +24,8 @@ FrontedLayoutPackages/{PackageId}/
 
 `PackageId = builtin` 是特殊的包身份，但不是 fallback 链。活动包为 `builtin` 时，layout service 读取运行目录 `Resources/FrontedLayouts`；活动包为用户包时，读取 `FrontedLayoutPackages/{PackageId}/FrontedLayouts`。加载优先级按窗口来源区分：内置 v3 窗口为活动包 → 内置资源 → 空模板；插件 v3 窗口为活动包 → 空模板。`FrontedLayoutSource.PluginDefault` / `MissingOrError` 枚举值已删除，接口统一返回非空 `FrontedWindowConfig`；不再读取旧 loose user layout 或插件默认布局。
 
+布局包管理器支持右键快速激活、复制、改名、导出、打开目录和删除。改名与描述编辑分别只更新 `manifest.json` 的 `Name`、`Description`；稳定的 `PackageId`、安装目录和 `bpui://{PackageId}/...` 资源 URI 不会变化，因此不会破坏已保存布局、行为或资源引用。导出操作以所选包为源，不会切换当前活动包。内置包与本地资源包不可改名或编辑描述。
+
 启动时如果发现 legacy v2 `Config.json`（`Version` 缺失或为 `null`），只允许 `ILegacyV2StartupMigrationService` 处理兼容逻辑。它会先备份原始 `Config.json`，再从 AppData 根目录读取实际存在的 `*Config-*.json` loose 布局和 `CustomUi/`。启动迁移与 legacy `.bpui` 导入通过同一 legacy frontend input source abstraction 进入同一转换核心；区别仅是 `.bpui` 从 `FrontElementsConfig/` 读取布局，本地迁移从 AppData 根目录读取布局。转换结果通过 package importer 安装并激活为普通 v3 包，最后保存干净的 v3 Settings。正常 v3 runtime 不读取 legacy canvas 文件。
 
 维护普通 v3 功能时优先查看：

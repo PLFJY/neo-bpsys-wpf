@@ -104,9 +104,21 @@ public partial class FrontedLayoutPackagesView : UserControl
 
     private void PackageListBox_OnRequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
     {
-        if (sender == LayoutPackageList && e.OriginalSource is ListBoxItem)
+        if (sender == LayoutPackageList)
         {
             e.Handled = true;
         }
+    }
+
+    private void PackageListBox_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not ListBox listBox
+            || e.OriginalSource is not DependencyObject source
+            || ItemsControl.ContainerFromElement(listBox, source) is not ListBoxItem item)
+        {
+            return;
+        }
+
+        listBox.SelectedItem = item.DataContext;
     }
 }

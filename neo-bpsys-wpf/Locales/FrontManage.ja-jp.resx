@@ -61,6 +61,12 @@
   <data name="PackageDescription">
     <value>説明</value>
   </data>
+  <data name="EditPackageDescription">
+    <value>説明を編集</value>
+  </data>
+  <data name="EditPackageDescriptionDialogTitle">
+    <value>レイアウトパッケージの説明を編集</value>
+  </data>
   <data name="PackageMinVersion">
     <value>最低バージョン</value>
   </data>
@@ -80,7 +86,16 @@
     <value>パッケージを有効化</value>
   </data>
   <data name="DuplicateLayoutPackage">
-    <value>方案を複製</value>
+    <value>複製を作成</value>
+  </data>
+  <data name="RenameLayoutPackage">
+    <value>方案の名前を変更</value>
+  </data>
+  <data name="RenameLayoutPackageDialogTitle">
+    <value>レイアウト方案の名前を変更</value>
+  </data>
+  <data name="RenameLayoutPackageHint">
+    <value>表示名のみ変更します。PackageId、レイアウトファイル、リソース参照は変更されません。</value>
   </data>
   <data name="DeletePackage">
     <value>パッケージを削除</value>
@@ -100,11 +115,32 @@
   <data name="CannotDuplicateLocalPackage">
     <value>ローカルリソースパッケージは複製できません。</value>
   </data>
+  <data name="CannotRenameBuiltinPackage">
+    <value>内蔵レイアウトパッケージの名前は変更できません。</value>
+  </data>
+  <data name="CannotRenameLocalPackage">
+    <value>ローカルリソースパッケージの名前は変更できません。</value>
+  </data>
   <data name="LayoutPackageDuplicated">
     <value>レイアウト方案を複製しました</value>
   </data>
   <data name="DuplicateLayoutPackageFailed">
     <value>レイアウト方案の複製に失敗しました</value>
+  </data>
+  <data name="LayoutPackageRenamed">
+    <value>レイアウト方案の名前を変更しました</value>
+  </data>
+  <data name="RenameLayoutPackageFailed">
+    <value>レイアウト方案の名前変更に失敗しました</value>
+  </data>
+  <data name="CannotEditPackageDescription">
+    <value>内蔵レイアウトパッケージまたはローカルリソースパッケージの説明は編集できません。</value>
+  </data>
+  <data name="PackageDescriptionUpdated">
+    <value>レイアウトパッケージの説明を更新しました</value>
+  </data>
+  <data name="EditPackageDescriptionFailed">
+    <value>レイアウトパッケージの説明の編集に失敗しました</value>
   </data>
   <data name="PackageDeleted">
     <value>パッケージを削除しました。</value>

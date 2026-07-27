@@ -64,6 +64,12 @@
   <data name="PackageDescription">
     <value>包说明</value>
   </data>
+  <data name="EditPackageDescription">
+    <value>修改描述</value>
+  </data>
+  <data name="EditPackageDescriptionDialogTitle">
+    <value>修改布局包描述</value>
+  </data>
   <data name="PackageMinVersion">
     <value>最低版本</value>
   </data>
@@ -83,7 +89,16 @@
     <value>激活包</value>
   </data>
   <data name="DuplicateLayoutPackage">
-    <value>复制方案</value>
+    <value>创建副本</value>
+  </data>
+  <data name="RenameLayoutPackage">
+    <value>重命名布局方案</value>
+  </data>
+  <data name="RenameLayoutPackageDialogTitle">
+    <value>重命名布局方案</value>
+  </data>
+  <data name="RenameLayoutPackageHint">
+    <value>仅修改显示名称，不会修改 PackageId、布局文件或资源引用。</value>
   </data>
   <data name="DeletePackage">
     <value>删除包</value>
@@ -103,11 +118,32 @@
   <data name="CannotDuplicateLocalPackage">
     <value>不能复制本地资源包。</value>
   </data>
+  <data name="CannotRenameBuiltinPackage">
+    <value>不能重命名内置布局包。</value>
+  </data>
+  <data name="CannotRenameLocalPackage">
+    <value>不能重命名本地资源包。</value>
+  </data>
   <data name="LayoutPackageDuplicated">
     <value>布局方案已复制</value>
   </data>
   <data name="DuplicateLayoutPackageFailed">
     <value>复制布局方案失败</value>
+  </data>
+  <data name="LayoutPackageRenamed">
+    <value>布局方案已重命名</value>
+  </data>
+  <data name="RenameLayoutPackageFailed">
+    <value>重命名布局方案失败</value>
+  </data>
+  <data name="CannotEditPackageDescription">
+    <value>不能修改内置布局包或本地资源包的描述。</value>
+  </data>
+  <data name="PackageDescriptionUpdated">
+    <value>布局包描述已更新</value>
+  </data>
+  <data name="EditPackageDescriptionFailed">
+    <value>修改布局包描述失败</value>
   </data>
   <data name="PackageDeleted">
     <value>布局包已删除。</value>
