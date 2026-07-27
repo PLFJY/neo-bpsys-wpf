@@ -120,7 +120,7 @@ public class FrontedRenderer(
                     FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
                     RegisterGeneratedName(canvas, name, placeholder);
                     var placeholderHost = FrontedEffectHostFactory.Wrap(placeholder);
-                    ApplyStaticGaussianBlur(placeholderHost, controlConfig.IsGaussianBlurEnabled, controlConfig.GaussianBlurRadius);
+                    ApplyStaticEffects(placeholderHost, controlConfig);
                     canvas.Children.Add(placeholderHost);
                     renderedElements[name] = placeholder;
                     continue;
@@ -147,18 +147,22 @@ public class FrontedRenderer(
             _ => Visibility.Visible
         };
 
-    private static void ApplyStaticGaussianBlur(FrontedEffectHost host, bool isEnabled, double radius)
+    private static void ApplyStaticEffects(FrontedEffectHost host, FrontedControlConfigBase config)
     {
-        if (!isEnabled || !double.IsFinite(radius) || radius <= 0D)
+        var hasAnyEffect = config.IsGaussianBlurEnabled
+                           || config.IsShadowEnabled
+                           || config.IsGlowEnabled;
+
+        if (!hasAnyEffect)
         {
             return;
         }
 
-        host.Effect = new System.Windows.Media.Effects.BlurEffect
-        {
-            Radius = radius,
-            RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
-        };
+        // 取出占位内容，用效果链包装后放回宿主。
+        var content = host.HostedElement;
+        host.Child = null;
+        var outermost = FrontedEffectHostFactory.BuildEffectChain(content, config);
+        host.Child = outermost;
     }
 
     private static FrameworkElement CreateMissingPluginPlaceholder(string name, FrontedControlConfigBase config)

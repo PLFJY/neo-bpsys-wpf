@@ -168,7 +168,7 @@ v3 内置控件类型如下：
 | `Image` | 通用图片控件，根元素是承载图片和内部 overlay 的 `Grid`，用于队标、地图、角色图、Ban 位、pick 图等。 |
 | `BorderedImage` | 外层 `Border` + 内层 `Image` 的图片控件，用于需要独立外框、容器裁剪或由外框承接 resize 的图片区域。 |
 | `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
-| `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
+| `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标；可选颜色覆盖。 |
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
 | `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
 | `MapV2Display` | `MapV2Window` 地图 BP v2 控件，复用 `MapV2Presenter`；地图卡片正常/禁用外框颜色由布局配置控制。 |
@@ -258,7 +258,7 @@ Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `Curren
 
 | 控件 | 封装规则 |
 | --- | --- |
-| `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及黑白图标设置。 |
+| `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及 `Color` 单色覆盖；`Color` 默认为白色且为必填项。 |
 | `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局；正式预设包括单行、双行、横排局数、横排半场、竖排、竖排双行、竖排局数、竖排半场。`DisplayLanguage = FollowApp` 时按应用语言生成文本。 |
 | `MapNameText` | 地图 key 到本地化显示名的转换；未配置 `BindingPath` 时默认读取 `CurrentGame.PickedMap`。 |
 | `MapV2Display` | 通过 `MapKey` 读取 `CurrentGame.MapV2Dictionary`，复用 `MapV2Presenter`。 |
@@ -343,7 +343,7 @@ v3 之后 PluginSdk 不再作为 NuGet 包发布。插件作者应 clone 本仓�
 services.AddFrontedV3Control<TeamCardControl>();
 ```
 
-`AddFrontedV3Control<TControl>()` 只接受控件类型一个参数。`PackageId` 由宿主在插件初始化作用域内自动注入。控件类型必须标注 `[FrontedV3Control]` 并继承 `FrontedV3ControlBase`。属性通过控件类上的 `public static readonly FrontedV3Property<T>` 字段声明，框架在注册时反射发现并校验：`OptionsPath` 必须唯一、不得使用保留路径、`Storage` 不得指向根级保留字段。
+`AddFrontedV3Control<TControl>()` 只接受控件类型一个参数。`PackageId` 由宿主在插件初始化作用域内自动注入。控件类型必须标注 `[FrontedV3Control]` 并继承 `FrontedV3ControlBase`。属性通过控件类上的 `public static readonly FrontedV3Property<T>` 字段声明，框架在注册时反射发现并校验：`OptionsPath` 必须唯一、不得使用保留路径、`Storage` 不得指向根级保留字段。Designer 会为每个已注册控件额外提供通用根布局字段 `Left`、`Top`、`Width`、`Height` 和 `ZIndex`，插件无需也不得重复声明这些字段。
 
 Canonical Control Type 命名规则：
 
@@ -369,6 +369,8 @@ Canonical Control Type 命名规则：
 - 错误占位（控件初始化失败时显示安全占位，原 Config 保留，不写默认值）
 
 包装的 Control 只负责矩形区域内的视觉内容，不得设置自己的 Canvas 坐标。
+
+Host 的统一所有权不意味着这些字段只读。Designer 在根控件属性面板中以通用 Schema 提供 X/Y（`Left`/`Top`）、宽度、高度和层级（`ZIndex`）编辑；提交只写入 Config，再由预览和运行时 Host 应用。它们不是控件 Options，也不由插件重复注册。
 
 ### Options 不进入 JSON
 
@@ -421,7 +423,7 @@ public static readonly FrontedV3Parts CellsCollection =
 - 默认仅传播 `Appearance` 语义的属性（颜色、字体、边框等）。
 - `RootSize`/`PartLayout`/`Behaviors`/`Effects` 语义只有 profile 显式开启时才传播。
 - `DataIdentity` 语义（MapKey、TeamType、BindingPath、ControlName 等）和 `Other` 语义**永远不传播**。
-- 根级保留字段（`Left`/`Top`/`ZIndex` 等）不会注册为属性，因此不在传播范围内。
+- 根级保留字段（`Left`/`Top`/`ZIndex` 等）由 Designer 的通用根选择 Schema 提供，但不会注册为控件 Options，因此不在 peer StyleTransfer 传播范围内。
 
 属性语义通过 `FrontedV3PropertyMetadata.Semantic` 声明，默认为 `Other`（不参与传播）。继承模式通过 `FrontedV3PropertyMetadata.Inheritance` 声明，支持 `None`、`ParentFallback`（动态回退到父值）、`CopyFromParentOnCreate`（创建时复制后独立）、`LockedToParent`（锁定到父值，拒绝 override）。
 

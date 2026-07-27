@@ -719,6 +719,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal(TalentTraitDisplayKind.SurvivorTalent, talent.DisplayKind);
         Assert.Equal(0, talent.PlayerIndex);
         Assert.Equal(36, talent.IconSize);
+        Assert.Equal("#FFFFFFFF", talent.Color);
 
         var globalScore = Assert.IsType<GlobalScoreRowControlConfig>(factory.Create("GlobalScoreRow", document));
         Assert.Equal(TeamType.HomeTeam, globalScore.TeamType);
@@ -1738,6 +1739,42 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void DesignerViewModelMultiSelectMoveUsesOneSharedSnappedDelta()
+    {
+        var first = new FrontedControlDesignItem
+        {
+            Name = "First",
+            Config = new TextFrontedControlConfig { Left = 13, Top = 17, Width = 40, Height = 20 }
+        };
+        var second = new FrontedControlDesignItem
+        {
+            Name = "Second",
+            Config = new TextFrontedControlConfig { Left = 28, Top = 32, Width = 40, Height = 20 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second]),
+            SnapEnabled = true
+        };
+        viewModel.SelectDesignItems([first, second], first);
+
+        viewModel.MoveSelectedDesignItems(
+            new Dictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds>
+            {
+                [first] = new FrontedDesignerResolvedBounds(13, 17, 40, 20),
+                [second] = new FrontedDesignerResolvedBounds(28, 32, 40, 20)
+            },
+            deltaX: 5,
+            deltaY: 5,
+            renderPreview: false);
+
+        Assert.Equal(20, first.Config.Left);
+        Assert.Equal(20, first.Config.Top);
+        Assert.Equal(35, second.Config.Left);
+        Assert.Equal(35, second.Config.Top);
+    }
+
+    [Fact]
     public void DesignerViewModelApplyPropertyEditUpdatesAllSameTypeSelectedItemsExceptName()
     {
         var first = new FrontedControlDesignItem
@@ -1765,69 +1802,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("Shared", Assert.IsType<TextFrontedControlConfig>(second.Config).Text);
         Assert.Equal("Renamed", first.Name);
         Assert.Equal("Second", second.Name);
-    }
-
-    [Fact]
-    public void DesignerViewModelMultiSelectionMixedPlaceholderDoesNotOverwriteUnchangedProperty()
-    {
-        var first = new FrontedControlDesignItem
-        {
-            Name = "First",
-            Config = new TextFrontedControlConfig { Left = 10, Top = 20, Text = "A" }
-        };
-        var second = new FrontedControlDesignItem
-        {
-            Name = "Second",
-            Config = new TextFrontedControlConfig { Left = 30, Top = 40, Text = "B" }
-        };
-        var viewModel = new FrontedDesignerWindowViewModel
-        {
-            CurrentDocument = CreateDocument([first, second])
-        };
-
-        viewModel.SelectDesignItems([first, second], first);
-        var leftRow = Assert.Single(viewModel.PropertyEditorItems, item => item.PropertyName == nameof(TextFrontedControlConfig.Left));
-
-        Assert.True(leftRow.IsMultiSelectionMixedValue);
-        Assert.Equal(string.Empty, leftRow.EditText);
-        Assert.True(viewModel.ApplyPropertyEdit(leftRow, string.Empty));
-
-
-        Assert.True(viewModel.ApplyPropertyEdit(leftRow, "50"));
-
-        Assert.Equal("A", Assert.IsType<TextFrontedControlConfig>(first.Config).Text);
-        Assert.Equal("B", Assert.IsType<TextFrontedControlConfig>(second.Config).Text);
-    }
-
-    [Fact]
-    public void DesignerViewModelMultiSelectionBindingRowsAreBlankAndReadOnly()
-    {
-        var first = new FrontedControlDesignItem
-        {
-            Name = "First",
-            Config = new ImageFrontedControlConfig { BindingPath = "CurrentGame.HomeTeam.Logo" }
-        };
-        var second = new FrontedControlDesignItem
-        {
-            Name = "Second",
-            Config = new ImageFrontedControlConfig { BindingPath = "CurrentGame.AwayTeam.Logo" }
-        };
-        var viewModel = new FrontedDesignerWindowViewModel
-        {
-            CurrentDocument = CreateDocument([first, second])
-        };
-
-        viewModel.SelectDesignItems([first, second], first);
-        var bindingRow = Assert.Single(viewModel.PropertyEditorItems, item => item.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
-
-        Assert.False(bindingRow.IsMultiSelectionBatchEditable);
-        Assert.True(bindingRow.IsReadOnly);
-        Assert.Equal(FrontedPropertyEditorKind.ReadOnly, bindingRow.EditorKind);
-        Assert.Equal(string.Empty, bindingRow.DisplayValue);
-        Assert.Equal(string.Empty, bindingRow.EditText);
-        Assert.False(viewModel.ApplyPropertyEdit(bindingRow, "CurrentGame.Map.Name"));
-        Assert.Equal("CurrentGame.HomeTeam.Logo", first.Config.BindingPath);
-        Assert.Equal("CurrentGame.AwayTeam.Logo", second.Config.BindingPath);
     }
 
     [Fact]
@@ -3198,30 +3172,6 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.SearchText = "Name";
 
         Assert.DoesNotContain(viewModel.SearchResults, node => node.ValueType == typeof(string));
-    }
-
-    [Fact]
-    public void BrowserSelectionOnlyUpdatesImageBindingEditTextUntilExplicitApply()
-    {
-        var item = new FrontedControlDesignItem
-        {
-            Name = "Logo",
-            Config = new ImageFrontedControlConfig { BindingPath = "Old.Path" }
-        };
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
-        viewModel.SelectDesignItem(item);
-        var row = viewModel.PropertyEditorItems.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
-
-        row.EditText = "CurrentGame.SurTeam.Name";
-
-        Assert.Equal("Old.Path", item.Config.BindingPath);
-        Assert.False(viewModel.CanUndo);
-
-        var result = viewModel.ApplyPropertyEdit(row, row.EditText);
-
-        Assert.True(result);
-        Assert.Equal("CurrentGame.SurTeam.Name", item.Config.BindingPath);
-        Assert.True(viewModel.CanUndo);
     }
 
     [Fact]

@@ -66,7 +66,9 @@ public class FrontedPropertyGridBuilder
         "Foreground",
         "Background",
         "FillColor",
-        "BorderColor"
+        "BorderColor",
+        "ShadowColor",
+        "GlowColor"
     };
 
     private static readonly HashSet<string> AppearancePropertyNames = new(StringComparer.OrdinalIgnoreCase)
@@ -87,8 +89,28 @@ public class FrontedPropertyGridBuilder
         "SizingMode",
         "CornerRadius",
         "ClipToBounds"
-        ,"GaussianBlurRadius"
-        ,"IsGaussianBlurEnabled"
+    };
+
+    /// <summary>
+    /// 视觉效果（高斯模糊、阴影、发光）属性名集合，统一归入 "Effects" 分组。
+    /// </summary>
+    /// <remarks>
+    /// 这些属性原属外观分组，现独立为单独的"效果"分组，便于和外观属性区分编辑。
+    /// </remarks>
+    private static readonly HashSet<string> EffectPropertyNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        nameof(FrontedControlConfigBase.IsGaussianBlurEnabled),
+        nameof(FrontedControlConfigBase.GaussianBlurRadius),
+        nameof(FrontedControlConfigBase.IsShadowEnabled),
+        nameof(FrontedControlConfigBase.ShadowColor),
+        nameof(FrontedControlConfigBase.ShadowRadius),
+        nameof(FrontedControlConfigBase.ShadowDepth),
+        nameof(FrontedControlConfigBase.ShadowDirection),
+        nameof(FrontedControlConfigBase.ShadowOpacity),
+        nameof(FrontedControlConfigBase.IsGlowEnabled),
+        nameof(FrontedControlConfigBase.GlowColor),
+        nameof(FrontedControlConfigBase.GlowRadius),
+        nameof(FrontedControlConfigBase.GlowOpacity)
     };
 
     private static readonly HashSet<string> ResourcePathPropertyNames = new(StringComparer.OrdinalIgnoreCase)
@@ -247,8 +269,7 @@ public class FrontedPropertyGridBuilder
         var kind = property.Metadata.EditorKind ?? ResolveEditorKindFromType(property.PropertyType, propertyName);
         var isReadOnly = !selectedItem.IsEditableInEditor
                          || property.Metadata.IsReadOnly
-                         || (propertyName == nameof(FrontedControlConfigBase.GaussianBlurRadius)
-                             && !config.IsGaussianBlurEnabled);
+                         || IsEffectDetailDisabled(propertyName, config);
         var groupName = property.Metadata.GroupName;
         var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, propertyName).ToList();
         var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -282,7 +303,7 @@ public class FrontedPropertyGridBuilder
             PropertyName = property.OptionsPath,
             Description = NullIfEmpty(_localizationService.GetPropertyDescription(propertyName)) ?? string.Empty,
             PropertyType = property.PropertyType,
-            EditorKind = isReadOnly && propertyName != nameof(FrontedControlConfigBase.GaussianBlurRadius)
+            EditorKind = isReadOnly && !IsEffectDetailProperty(propertyName)
                 ? FrontedPropertyEditorKind.ReadOnly
                 : kind,
             Value = value,
@@ -335,6 +356,16 @@ public class FrontedPropertyGridBuilder
         }
 
         if (propertyName == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
+        }
+
+        if (propertyName == nameof(FrontedControlConfigBase.IsShadowEnabled))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
+        }
+
+        if (propertyName == nameof(FrontedControlConfigBase.IsGlowEnabled))
         {
             return FrontedPropertyEditorKind.ToggleSwitch;
         }
@@ -554,8 +585,7 @@ public class FrontedPropertyGridBuilder
             var kind = ResolveEditorKind(property);
             var isReadOnly = !selectedItem.IsEditableInEditor
                              || !property.CanWrite
-                             || property.Name == nameof(FrontedControlConfigBase.GaussianBlurRadius)
-                             && !selectedItem.Config.IsGaussianBlurEnabled;
+                             || IsEffectDetailDisabled(property.Name, selectedItem.Config);
             var groupName = ResolveGroupName(property.Name, selectedItem.Config);
             var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
             var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -589,7 +619,7 @@ public class FrontedPropertyGridBuilder
                 PropertyName = property.Name,
                 Description = NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)),
                 PropertyType = property.PropertyType,
-                EditorKind = isReadOnly && property.Name != nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                EditorKind = isReadOnly && !IsEffectDetailProperty(property.Name)
                     ? FrontedPropertyEditorKind.ReadOnly
                     : kind,
                 Value = value,
@@ -656,10 +686,10 @@ public class FrontedPropertyGridBuilder
                 "This plugin is not installed. Install guidance will be available in a future version."),
             "Plugin");
 
-        AddGaussianBlurRows(rows, selectedItem, messages, new HashSet<string>(StringComparer.Ordinal));
+        AddEffectRows(rows, selectedItem, messages, new HashSet<string>(StringComparer.Ordinal));
     }
 
-    private void AddGaussianBlurRows(
+    private void AddEffectRows(
         ICollection<FrontedPropertyEditorItem> rows,
         FrontedControlDesignItem selectedItem,
         IReadOnlyList<FrontedLayoutValidationMessage> messages,
@@ -668,7 +698,17 @@ public class FrontedPropertyGridBuilder
         foreach (var propertyName in new[]
                  {
                      nameof(FrontedControlConfigBase.IsGaussianBlurEnabled),
-                     nameof(FrontedControlConfigBase.GaussianBlurRadius)
+                     nameof(FrontedControlConfigBase.GaussianBlurRadius),
+                     nameof(FrontedControlConfigBase.IsShadowEnabled),
+                     nameof(FrontedControlConfigBase.ShadowColor),
+                     nameof(FrontedControlConfigBase.ShadowRadius),
+                     nameof(FrontedControlConfigBase.ShadowDepth),
+                     nameof(FrontedControlConfigBase.ShadowDirection),
+                     nameof(FrontedControlConfigBase.ShadowOpacity),
+                     nameof(FrontedControlConfigBase.IsGlowEnabled),
+                     nameof(FrontedControlConfigBase.GlowColor),
+                     nameof(FrontedControlConfigBase.GlowRadius),
+                     nameof(FrontedControlConfigBase.GlowOpacity)
                  })
         {
             if (!added.Add(propertyName))
@@ -712,8 +752,7 @@ public class FrontedPropertyGridBuilder
         var kind = ResolveEditorKind(property);
         var isReadOnly = !selectedItem.IsEditableInEditor
                          || !property.CanWrite
-                         || property.Name == nameof(FrontedControlConfigBase.GaussianBlurRadius)
-                         && !selectedItem.Config.IsGaussianBlurEnabled;
+                         || IsEffectDetailDisabled(property.Name, selectedItem.Config);
         var groupName = ResolveGroupName(property.Name, selectedItem.Config);
         var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
         var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -746,7 +785,7 @@ public class FrontedPropertyGridBuilder
             PropertyName = property.Name,
             Description = NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)) ?? string.Empty,
             PropertyType = property.PropertyType,
-            EditorKind = isReadOnly && property.Name != nameof(FrontedControlConfigBase.GaussianBlurRadius)
+            EditorKind = isReadOnly && !IsEffectDetailProperty(property.Name)
                 ? FrontedPropertyEditorKind.ReadOnly
                 : kind,
             Value = value,
@@ -932,6 +971,16 @@ public class FrontedPropertyGridBuilder
         }
 
         if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
+        }
+
+        if (property.Name == nameof(FrontedControlConfigBase.IsShadowEnabled))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
+        }
+
+        if (property.Name == nameof(FrontedControlConfigBase.IsGlowEnabled))
         {
             return FrontedPropertyEditorKind.ToggleSwitch;
         }
@@ -1143,6 +1192,11 @@ public class FrontedPropertyGridBuilder
             return "Resource";
         }
 
+        if (EffectPropertyNames.Contains(propertyName))
+        {
+            return "Effects";
+        }
+
         return IsAppearanceProperty(propertyName)
             ? "Appearance"
             : "ControlSpecific";
@@ -1261,6 +1315,58 @@ public class FrontedPropertyGridBuilder
         || propertyName.EndsWith("FontWeight", StringComparison.OrdinalIgnoreCase)
         || propertyName.EndsWith("FontSize", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// 判断属性是否为视觉效果（高斯模糊、阴影、发光）的细节属性。
+    /// </summary>
+    /// <param name="propertyName">属性名。</param>
+    /// <returns>属于效果细节属性时为 <see langword="true"/>。</returns>
+    /// <remarks>
+    /// 效果细节属性在对应开关关闭时应以禁用状态展示（保留原编辑器类型以正确显示值），
+    /// 而非切换为 <see cref="FrontedPropertyEditorKind.ReadOnly"/>。
+    /// </remarks>
+    private static bool IsEffectDetailProperty(string propertyName) =>
+        propertyName is nameof(FrontedControlConfigBase.GaussianBlurRadius)
+            or nameof(FrontedControlConfigBase.ShadowColor)
+            or nameof(FrontedControlConfigBase.ShadowRadius)
+            or nameof(FrontedControlConfigBase.ShadowDepth)
+            or nameof(FrontedControlConfigBase.ShadowDirection)
+            or nameof(FrontedControlConfigBase.ShadowOpacity)
+            or nameof(FrontedControlConfigBase.GlowColor)
+            or nameof(FrontedControlConfigBase.GlowRadius)
+            or nameof(FrontedControlConfigBase.GlowOpacity);
+
+    /// <summary>
+    /// 判断效果细节属性是否因对应开关关闭而处于禁用状态。
+    /// </summary>
+    /// <param name="propertyName">效果细节属性名。</param>
+    /// <param name="config">控件配置实例，用于读取开关状态。</param>
+    /// <returns>属性应禁用时为 <see langword="true"/>；非效果细节属性或开关已开启时为 <see langword="false"/>。</returns>
+    private static bool IsEffectDetailDisabled(string propertyName, FrontedControlConfigBase config)
+    {
+        if (propertyName == nameof(FrontedControlConfigBase.GaussianBlurRadius))
+        {
+            return !config.IsGaussianBlurEnabled;
+        }
+
+        if (propertyName is nameof(FrontedControlConfigBase.ShadowColor)
+            or nameof(FrontedControlConfigBase.ShadowRadius)
+            or nameof(FrontedControlConfigBase.ShadowDepth)
+            or nameof(FrontedControlConfigBase.ShadowDirection)
+            or nameof(FrontedControlConfigBase.ShadowOpacity))
+        {
+            return !config.IsShadowEnabled;
+        }
+
+        if (propertyName is nameof(FrontedControlConfigBase.GlowColor)
+            or nameof(FrontedControlConfigBase.GlowRadius)
+            or nameof(FrontedControlConfigBase.GlowOpacity))
+        {
+            return !config.IsGlowEnabled;
+        }
+
+        return false;
+    }
+
     private static bool TryGetStringOptions(string propertyName, out IReadOnlyList<object> options)
     {
         if (StringOptionProperties.TryGetValue(propertyName, out options!))
@@ -1304,14 +1410,10 @@ public class FrontedPropertyGridBuilder
             };
         }
 
-        if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
+        var effectOrder = GetAppearancePropertyOrder(property.Name);
+        if (effectOrder > 0)
         {
-            return 9000;
-        }
-
-        if (property.Name == nameof(FrontedControlConfigBase.GaussianBlurRadius))
-        {
-            return 9001;
+            return effectOrder;
         }
 
         return property.DeclaringType == typeof(FrontedControlConfigBase)
@@ -1328,6 +1430,7 @@ public class FrontedPropertyGridBuilder
         "Border" => 50,
         "Overlay" => 60,
         "Appearance" => 70,
+        "Effects" => 75,
         "Content" => 80,
         "ControlSpecific" => 90,
         _ => 100
@@ -1354,6 +1457,16 @@ public class FrontedPropertyGridBuilder
     {
         nameof(FrontedControlConfigBase.IsGaussianBlurEnabled) => 9000,
         nameof(FrontedControlConfigBase.GaussianBlurRadius) => 9001,
+        nameof(FrontedControlConfigBase.IsShadowEnabled) => 9100,
+        nameof(FrontedControlConfigBase.ShadowColor) => 9101,
+        nameof(FrontedControlConfigBase.ShadowRadius) => 9102,
+        nameof(FrontedControlConfigBase.ShadowDepth) => 9103,
+        nameof(FrontedControlConfigBase.ShadowDirection) => 9104,
+        nameof(FrontedControlConfigBase.ShadowOpacity) => 9105,
+        nameof(FrontedControlConfigBase.IsGlowEnabled) => 9200,
+        nameof(FrontedControlConfigBase.GlowColor) => 9201,
+        nameof(FrontedControlConfigBase.GlowRadius) => 9202,
+        nameof(FrontedControlConfigBase.GlowOpacity) => 9203,
         _ => 0
     };
 

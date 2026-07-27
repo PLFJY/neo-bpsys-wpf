@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -99,5 +101,95 @@ public static class FrontedEffectHostFactory
         }
 
         source.ClearValue(property);
+    }
+
+    /// <summary>
+    /// 根据 Config 效果配置，为内容元素构建 Border 包装链并返回最外层元素。
+    /// </summary>
+    /// <param name="content">要包装的内容元素。</param>
+    /// <param name="config">提供效果配置的控件配置实例。</param>
+    /// <returns>最外层元素（无效果时为 <paramref name="content"/> 本身）。</returns>
+    /// <remarks>
+    /// 包装顺序从内到外为：高斯模糊 → 发光 → 阴影。
+    /// 每层 Border 都是透明背景、无边框的纯效果载体。
+    /// </remarks>
+    public static FrameworkElement BuildEffectChain(FrameworkElement content, FrontedControlConfigBase config)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(config);
+
+        FrameworkElement inner = content;
+
+        if (config.IsGaussianBlurEnabled
+            && double.IsFinite(config.GaussianBlurRadius)
+            && config.GaussianBlurRadius > 0D)
+        {
+            var blurBorder = new Border
+            {
+                Effect = new BlurEffect
+                {
+                    Radius = config.GaussianBlurRadius,
+                    RenderingBias = RenderingBias.Performance
+                }
+            };
+            blurBorder.Child = inner;
+            inner = blurBorder;
+        }
+
+        if (config.IsGlowEnabled)
+        {
+            var glowBorder = new Border
+            {
+                Effect = new DropShadowEffect
+                {
+                    Color = ParseEffectColor(config.GlowColor, Colors.White),
+                    BlurRadius = Math.Max(0D, config.GlowRadius),
+                    ShadowDepth = 0D,
+                    Opacity = Math.Clamp(config.GlowOpacity, 0D, 1D)
+                }
+            };
+            glowBorder.Child = inner;
+            inner = glowBorder;
+        }
+
+        if (config.IsShadowEnabled)
+        {
+            var shadowBorder = new Border
+            {
+                Effect = new DropShadowEffect
+                {
+                    Color = ParseEffectColor(config.ShadowColor, Colors.Black),
+                    BlurRadius = Math.Max(0D, config.ShadowRadius),
+                    ShadowDepth = Math.Max(0D, config.ShadowDepth),
+                    Direction = config.ShadowDirection,
+                    Opacity = Math.Clamp(config.ShadowOpacity, 0D, 1D)
+                }
+            };
+            shadowBorder.Child = inner;
+            inner = shadowBorder;
+        }
+
+        return inner;
+    }
+
+    private static Color ParseEffectColor(string? text, Color fallback)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return fallback;
+        }
+
+        try
+        {
+            return (Color)ColorConverter.ConvertFromString(text)!;
+        }
+        catch (FormatException)
+        {
+            return fallback;
+        }
+        catch (NotSupportedException)
+        {
+            return fallback;
+        }
     }
 }

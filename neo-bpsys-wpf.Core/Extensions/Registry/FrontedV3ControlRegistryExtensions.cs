@@ -226,7 +226,7 @@ public static class FrontedV3ControlRegistryExtensions
                 throw new FrontedLayoutConfigException(
                     $"Control '{controlType.FullName}' property '{prop.OptionsPath}' cannot use reserved storage field " +
                     $"'{prop.Storage.TargetField}'. Reserved fields: Left, Top, Width, Height, ZIndex, Visibility, " +
-                    "BehaviorGuid, GaussianBlur, ControlType.");
+                    "BehaviorGuid, GaussianBlur, Shadow, Glow, ControlType.");
             }
         }
     }

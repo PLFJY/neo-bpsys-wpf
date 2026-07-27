@@ -343,6 +343,36 @@
   <data name="Designer.Property.IsGaussianBlurEnabled">
     <value>启用高斯模糊</value>
   </data>
+  <data name="Designer.Property.IsShadowEnabled">
+    <value>启用阴影</value>
+  </data>
+  <data name="Designer.Property.ShadowColor">
+    <value>阴影颜色</value>
+  </data>
+  <data name="Designer.Property.ShadowRadius">
+    <value>阴影半径</value>
+  </data>
+  <data name="Designer.Property.ShadowDepth">
+    <value>阴影深度</value>
+  </data>
+  <data name="Designer.Property.ShadowDirection">
+    <value>阴影方向</value>
+  </data>
+  <data name="Designer.Property.ShadowOpacity">
+    <value>阴影不透明度</value>
+  </data>
+  <data name="Designer.Property.IsGlowEnabled">
+    <value>启用发光</value>
+  </data>
+  <data name="Designer.Property.GlowColor">
+    <value>发光颜色</value>
+  </data>
+  <data name="Designer.Property.GlowRadius">
+    <value>发光半径</value>
+  </data>
+  <data name="Designer.Property.GlowOpacity">
+    <value>发光不透明度</value>
+  </data>
   <data name="Designer.Property.Height">
     <value>高度</value>
   </data>
@@ -537,6 +567,9 @@
   </data>
   <data name="Designer.PropertyGroup.Appearance">
     <value>外观</value>
+  </data>
+  <data name="Designer.PropertyGroup.Effects">
+    <value>效果</value>
   </data>
   <data name="Designer.PropertyGroup.Resource">
     <value>资源</value>

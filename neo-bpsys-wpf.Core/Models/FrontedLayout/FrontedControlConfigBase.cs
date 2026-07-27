@@ -65,4 +65,54 @@ public class FrontedControlConfigBase
     /// </summary>
     public double GaussianBlurRadius { get; set; }
 
+    /// <summary>
+    /// 获取或设置是否启用控件的静态阴影效果。
+    /// </summary>
+    public bool IsShadowEnabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置阴影颜色文本（如 <c>#FF000000</c> 或 WPF 颜色名）；为 <see langword="null"/> 时默认黑色。
+    /// </summary>
+    public string? ShadowColor { get; set; }
+
+    /// <summary>
+    /// 获取或设置阴影模糊半径（像素）。
+    /// </summary>
+    public double ShadowRadius { get; set; } = 5D;
+
+    /// <summary>
+    /// 获取或设置阴影深度（投影距离，像素）。
+    /// </summary>
+    public double ShadowDepth { get; set; } = 5D;
+
+    /// <summary>
+    /// 获取或设置阴影方向（角度，0 = 右，270 = 下）。
+    /// </summary>
+    public double ShadowDirection { get; set; } = 315D;
+
+    /// <summary>
+    /// 获取或设置阴影不透明度（0–1）。
+    /// </summary>
+    public double ShadowOpacity { get; set; } = 1D;
+
+    /// <summary>
+    /// 获取或设置是否启用控件的静态发光效果。
+    /// </summary>
+    public bool IsGlowEnabled { get; set; }
+
+    /// <summary>
+    /// 获取或设置发光颜色文本（如 <c>#FFFFFFFF</c> 或 WPF 颜色名）；为 <see langword="null"/> 时默认白色。
+    /// </summary>
+    public string? GlowColor { get; set; }
+
+    /// <summary>
+    /// 获取或设置发光模糊半径（像素）。
+    /// </summary>
+    public double GlowRadius { get; set; } = 20D;
+
+    /// <summary>
+    /// 获取或设置发光不透明度（0–1）。
+    /// </summary>
+    public double GlowOpacity { get; set; } = 1D;
+
 }

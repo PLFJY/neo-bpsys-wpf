@@ -468,6 +468,7 @@ public class FrontedCanvasConfigTest
                 "PlayerIndex": 0,
                 "IconSize": 38,
                 "IconGap": 2,
+                "Color": "#FF41A8FF",
                 "HorizontalAlignment": "Right",
                 "VerticalAlignment": "Center",
                 "ZIndex": 2
@@ -514,6 +515,7 @@ public class FrontedCanvasConfigTest
         Assert.True(talent.HasValidSurvivorPlayerIndex());
         Assert.Equal(38, talent.IconSize);
         Assert.Equal(2, talent.IconGap);
+        Assert.Equal("#FF41A8FF", talent.Color);
 
         var progress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
         Assert.Equal("GameProgressText", progress.ControlType);
@@ -521,6 +523,14 @@ public class FrontedCanvasConfigTest
         var mapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
         Assert.Equal("MapNameText", mapName.ControlType);
         Assert.Equal(string.Empty, mapName.EmptyText);
+    }
+
+    [Fact]
+    public void TalentTraitDisplayDefaultsToWhiteColorOverlay()
+    {
+        var config = new TalentTraitDisplayControlConfig();
+
+        Assert.Equal("#FFFFFFFF", config.Color);
     }
 
     private static BitmapSource CreateSinglePixelBitmap(byte alpha)
