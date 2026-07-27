@@ -104,7 +104,10 @@
     <value>Logo file is not valid</value>
   </data>
   <data name="ImageFileTooLarge">
-    <value>The image file is too large ({0}). The maximum supported size is {1}. Please compress the image or choose a smaller file.</value>
+    <value>The image file is too large ({0}). It must be compressed to {1} or less. Please compress it online at https://docsmall.com/image-compress and try again, or choose a smaller file.</value>
+  </data>
+  <data name="ImageDimensionsTooLarge">
+    <value>The image dimensions are too large ({0}×{1}). The longest side must be compressed to {2} pixels or less. Please compress it online at https://docsmall.com/image-compress and try again, or choose a smaller image.</value>
   </data>
   <data name="HexColor">
     <value>Hex Color</value>

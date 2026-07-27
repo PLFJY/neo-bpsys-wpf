@@ -104,7 +104,10 @@
     <value>ロゴファイルが無効です</value>
   </data>
   <data name="ImageFileTooLarge">
-    <value>画像ファイルが大きすぎます（{0}）。最大許容サイズは {1} です。画像を圧縮するか、より小さなファイルを選択してください。</value>
+    <value>画像ファイルが大きすぎます（{0}）。{1} 以下に圧縮する必要があります。https://docsmall.com/image-compress でオンライン圧縮してから再試行するか、より小さなファイルを選択してください。</value>
+  </data>
+  <data name="ImageDimensionsTooLarge">
+    <value>画像サイズが大きすぎます（{0}×{1}）。長辺を {2} ピクセル以下に圧縮する必要があります。https://docsmall.com/image-compress でオンライン圧縮してから再試行するか、より小さな画像を選択してください。</value>
   </data>
   <data name="HexColor">
     <value>16進カラー</value>

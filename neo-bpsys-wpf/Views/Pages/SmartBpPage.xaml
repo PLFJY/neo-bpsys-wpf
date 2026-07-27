@@ -13,10 +13,10 @@
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="900"
     d:DesignWidth="770"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -51,59 +51,31 @@
                     Margin="0,72,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
+                    <ui:SymbolIcon
+                        Margin="0,0,0,16"
+                        HorizontalAlignment="Center"
+                        FontSize="48"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Symbol="ScanText24" />
                     <TextBlock
                         HorizontalAlignment="Center"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
                         FontSize="28"
                         FontWeight="SemiBold"
-                        Text="{lex:Loc SmartBp}"
-                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell" />
+                        Text="{lex:Loc SmartBp}" />
                     <TextBlock
                         Margin="0,16,0,0"
                         HorizontalAlignment="Center"
                         Text="{Binding OverlayMessage}"
                         TextAlignment="Center"
                         TextWrapping="Wrap" />
-                    <Grid Margin="0,24,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ui:TextBox
-                            x:Name="SmartBpModulePathTextBox"
-                            Grid.Column="0"
-                            MinWidth="440"
-                            Text="{Binding SelectedModulePath, UpdateSourceTrigger=PropertyChanged}" />
-                        <ui:Button
-                            x:Name="SmartBpModuleBrowseFolderButton"
-                            Grid.Column="1"
-                            Margin="10,0,0,0"
-                            Command="{Binding BrowseModulePathCommand}"
-                            Content="{lex:Loc SmartBpModuleBrowseFolder}"
-                            Icon="{ui:SymbolIcon Symbol=Folder24}" />
-                    </Grid>
                     <ui:Button
-                        x:Name="SmartBpLoadLocalModuleButton"
-                        Margin="0,18,0,0"
+                        Margin="0,24,0,0"
                         HorizontalAlignment="Center"
                         Appearance="Primary"
                         Command="{Binding PrimaryActionCommand}"
                         Content="{Binding PrimaryActionText}"
                         Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
-                    <ui:Button
-                        x:Name="SmartBpSelectInstalledModulePathButton"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Command="{Binding SelectInstalledModuleFolderCommand}"
-                        Content="{lex:Loc SmartBpModuleSelectInstalledPath}"
-                        Icon="{ui:SymbolIcon Symbol=FolderOpen24}"
-                        Visibility="{Binding IsSelectInstalledModuleButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <ui:Button
-                        x:Name="SmartBpImportModuleArchiveButton"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Command="{Binding ImportModuleZipCommand}"
-                        Content="{lex:Loc SmartBpModuleSelectArchive}"
-                        Icon="{ui:SymbolIcon Symbol=Archive24}" />
                     <ProgressBar
                         Width="280"
                         Height="8"
@@ -112,8 +84,8 @@
                         IsIndeterminate="{Binding IsProgressIndeterminate}"
                         Maximum="100"
                         Minimum="0"
-                        Value="{Binding ProgressValue, Mode=OneWay}"
-                        Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Value="{Binding ProgressValue, Mode=OneWay}" />
                     <TextBlock
                         Margin="0,8,0,0"
                         HorizontalAlignment="Center"
@@ -121,6 +93,60 @@
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         Text="{Binding ProgressValue, StringFormat={}{0:0}%, Mode=OneWay}"
                         Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Margin="0,24,0,0"
+                        HorizontalAlignment="Center"
+                        Appearance="Secondary"
+                        Command="{Binding ToggleAdvancedOptionsCommand}"
+                        Content="{lex:Loc SmartBpModuleAdvancedOptions}">
+                        <ui:Button.Resources>
+                            <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsAdvancedOptionsExpanded}" Value="true">
+                                        <Setter Property="Icon" Value="{ui:SymbolIcon Symbol=ChevronDown24}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsAdvancedOptionsExpanded}" Value="false">
+                                        <Setter Property="Icon" Value="{ui:SymbolIcon Symbol=ChevronRight24}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:Button.Resources>
+                    </ui:Button>
+                    <StackPanel Margin="0,16,0,0" Visibility="{Binding IsAdvancedOptionsExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid Margin="0,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBox
+                                x:Name="SmartBpModulePathTextBox"
+                                Grid.Column="0"
+                                MinWidth="440"
+                                Text="{Binding SelectedModulePath, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:Button
+                                x:Name="SmartBpModuleBrowseFolderButton"
+                                Grid.Column="1"
+                                Margin="10,0,0,0"
+                                Command="{Binding BrowseModulePathCommand}"
+                                Content="{lex:Loc SmartBpModuleBrowseFolder}"
+                                Icon="{ui:SymbolIcon Symbol=Folder24}" />
+                        </Grid>
+                        <ui:Button
+                            x:Name="SmartBpSelectInstalledModulePathButton"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Command="{Binding SelectInstalledModuleFolderCommand}"
+                            Content="{lex:Loc SmartBpModuleSelectInstalledPath}"
+                            Icon="{ui:SymbolIcon Symbol=FolderOpen24}"
+                            Visibility="{Binding IsSelectInstalledModuleButtonVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            x:Name="SmartBpImportModuleArchiveButton"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ImportModuleZipCommand}"
+                            Content="{lex:Loc SmartBpModuleSelectArchive}"
+                            Icon="{ui:SymbolIcon Symbol=Archive24}" />
+                    </StackPanel>
                 </StackPanel>
             </Grid>
         </Border>

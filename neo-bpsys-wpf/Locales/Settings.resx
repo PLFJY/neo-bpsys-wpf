@@ -169,6 +169,12 @@
   <data name="SmartBpModuleRequired">
     <value>SmartBP 需要安装独立模块后使用。</value>
   </data>
+  <data name="SmartBpModuleNotInstalledDescription">
+    <value>SmartBP 是独立的模块，需要独立下载并安装后使用。</value>
+  </data>
+  <data name="SmartBpModuleAdvancedOptions">
+    <value>高级选项</value>
+  </data>
   <data name="SmartBpModuleDownloadAndInstall">
     <value>下载并安装</value>
   </data>

@@ -93,7 +93,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// 获取或设置遮罩提示消息。
     /// </summary>
     [ObservableProperty]
-    public partial string OverlayMessage { get; set; } = L("SmartBpModuleRequired");
+    public partial string OverlayMessage { get; set; } = L("SmartBpModuleNotInstalledDescription");
 
     /// <summary>
     /// 获取或设置主按钮文本。
@@ -106,6 +106,21 @@ public partial class SmartBpPageViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     public partial bool IsSelectInstalledModuleButtonVisible { get; set; } = true;
+
+    /// <summary>
+    /// 获取或设置高级选项区域是否展开。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsAdvancedOptionsExpanded { get; set; }
+
+    /// <summary>
+    /// 切换高级选项展开状态。
+    /// </summary>
+    [RelayCommand]
+    private void ToggleAdvancedOptions()
+    {
+        IsAdvancedOptionsExpanded = !IsAdvancedOptionsExpanded;
+    }
 
     /// <summary>
     /// 获取或设置操作进度是否可见。
@@ -403,8 +418,10 @@ public partial class SmartBpPageViewModel : ViewModelBase
             ? L("SmartBpModuleReinstall")
             : IsDebugMode || IsPreviewMode ? L("SmartBpModuleLoadLocal") : L("SmartBpModuleDownloadAndInstall");
         OverlayMessage = string.IsNullOrWhiteSpace(error)
-            ? L("SmartBpModuleRequired")
-            : string.Format(L("SmartBpModulePathModuleInvalidFormat"), error);
+            ? L("SmartBpModuleNotInstalledDescription")
+            : (IsAdvancedOptionsExpanded
+                ? string.Format(L("SmartBpModulePathModuleInvalidFormat"), error)
+                : L("SmartBpModuleNotInstalledDescription"));
         IsSelectInstalledModuleButtonVisible = true;
     }
 

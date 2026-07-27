@@ -86,6 +86,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedDesignerLocalizationService _localizationService;
     private readonly ISharedDataService _designerPreviewSharedDataService;
     private readonly IFrontedLocalResourceStore? _localResourceStore;
+    private readonly IFrontedImageSafetyService? _imageSafetyService;
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
     private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly IFrontedWindowService? _frontedWindowService;
@@ -256,7 +257,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ILogger<FrontedDesignerWindowViewModel> logger,
         ISettingsHostService? settingsHostService = null,
         IFrontedV3ControlRegistry? v3ControlRegistry = null,
-        FrontedV3StyleTransferService? styleTransferService = null)
+        FrontedV3StyleTransferService? styleTransferService = null,
+        IFrontedImageSafetyService? imageSafetyService = null)
     {
         _layoutService = layoutService;
         _designConverter = designConverter;
@@ -268,6 +270,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _localizationService = localizationService;
         _designerPreviewSharedDataService = designerPreviewSharedDataService;
         _localResourceStore = localResourceStore;
+        _imageSafetyService = imageSafetyService;
         _windowLayoutOptionsService = windowLayoutOptionsService;
         _packageManager = packageManager;
         _frontedWindowService = frontedWindowService;
@@ -1205,6 +1208,86 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 在导入本地图片到资源存储前进行预校验，校验失败时返回本地化的错误消息。
+    /// 与 <see cref="FrontedLocalResourceStore.StoreImageWithResult"/> 内部使用的
+    /// <see cref="FrontedImagePurpose.Background"/> 限制保持一致。
+    /// </summary>
+    /// <param name="sourcePath">本地图片的绝对路径。</param>
+    /// <returns>校验失败时返回错误消息；校验通过或未注入校验服务时返回 <see langword="null"/>。</returns>
+    private string? ValidateLocalImageForStorage(string sourcePath)
+    {
+        if (_imageSafetyService is null)
+        {
+            return null;
+        }
+
+        var validation = _imageSafetyService.ValidateFile(sourcePath, FrontedImagePurpose.Background);
+        if (validation.IsValid)
+        {
+            return null;
+        }
+
+        return BuildImageValidationFailureMessage(validation);
+    }
+
+    /// <summary>
+    /// 根据图片校验结果构建本地化的错误消息。文件大小超限和图片尺寸超限时
+    /// 返回包含实际值、目标压缩值与在线压缩工具链接的友好提示。
+    /// </summary>
+    /// <param name="validation">图片校验结果。</param>
+    /// <returns>用于错误提示的本地化消息。</returns>
+    private static string BuildImageValidationFailureMessage(FrontedImageValidationResult validation)
+    {
+        if (validation is { IsValid: false, ErrorCode: "ImageTooLarge" })
+        {
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageFileTooLarge"),
+                FormatFileSize(validation.FileBytes),
+                FormatFileSize(FrontedLayoutLimits.MaxBackgroundImageBytes));
+        }
+
+        if (validation is { IsValid: false, ErrorCode: "ImageTooManyPixels" })
+        {
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageDimensionsTooLarge"),
+                validation.PixelWidth,
+                validation.PixelHeight,
+                FrontedLayoutLimits.MaxBackgroundImageLongSide);
+        }
+
+        return validation.ErrorMessage ?? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture");
+    }
+
+    /// <summary>
+    /// 将字节数格式化为带二进制单位（B / KiB / MiB）的可读字符串，
+    /// 整数字节数省略小数部分。
+    /// </summary>
+    /// <param name="bytes">字节数。</param>
+    /// <returns>带单位的可读大小字符串。</returns>
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024)
+        {
+            var mib = bytes / (1024.0 * 1024);
+            return Math.Abs(mib - Math.Floor(mib)) < double.Epsilon
+                ? $"{(long)mib} MiB"
+                : $"{mib:F2} MiB";
+        }
+
+        if (bytes >= 1024)
+        {
+            var kib = bytes / 1024.0;
+            return Math.Abs(kib - Math.Floor(kib)) < double.Epsilon
+                ? $"{(long)kib} KiB"
+                : $"{kib:F2} KiB";
+        }
+
+        return $"{bytes} B";
+    }
+
+    /// <summary>
     /// 导入本地图片，并更新选中图片动画部件的编辑缓冲。
     /// </summary>
     /// <param name="sourcePath">本地图片的绝对路径。</param>
@@ -1213,6 +1296,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (_localResourceStore is null || AnimationPartEditBuffer is not { IsImage: true } editor)
         {
+            return false;
+        }
+
+        var validationMessage = ValidateLocalImageForStorage(sourcePath);
+        if (validationMessage is not null)
+        {
+            StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
             return false;
         }
 
@@ -2765,6 +2855,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
+        var validationMessage = ValidateLocalImageForStorage(sourcePath);
+        if (validationMessage is not null)
+        {
+            CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
+            return false;
+        }
+
         try
         {
             var result = _localResourceStore.StoreImageWithResult(sourcePath);
@@ -2819,6 +2916,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             if (_localResourceStore is null)
             {
+                return false;
+            }
+
+            var validationMessage = ValidateLocalImageForStorage(selectedResourcePath);
+            if (validationMessage is not null)
+            {
+                SetPropertyEditError(
+                    item,
+                    $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}",
+                    selectedResourcePath);
                 return false;
             }
 
