@@ -394,6 +394,23 @@ public class FrontedLayoutValidator
                         nameof(TalentTraitDisplayControlConfig.PlayerIndex)));
                 }
 
+                if (string.IsNullOrWhiteSpace(talent.Color))
+                {
+                    messages.Add(Error(
+                        "RequiredPropertyMissing",
+                        $"TalentTraitDisplay control '{item.Name}' requires Color.",
+                        item.Name,
+                        nameof(TalentTraitDisplayControlConfig.Color)));
+                }
+                else if (!ColorHelper.TryNormalizeHex(talent.Color, out _))
+                {
+                    messages.Add(Error(
+                        "InvalidColorHex",
+                        $"TalentTraitDisplay control '{item.Name}' Color must be #RRGGBB or #AARRGGBB.",
+                        item.Name,
+                        nameof(TalentTraitDisplayControlConfig.Color)));
+                }
+
                 break;
 
             case MapV2DisplayControlConfig mapV2:

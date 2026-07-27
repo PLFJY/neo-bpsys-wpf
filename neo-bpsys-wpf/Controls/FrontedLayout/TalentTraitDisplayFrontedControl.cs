@@ -200,7 +200,7 @@ public class TalentTraitDisplayFrontedControl : FrontedV3ControlBase
         private void Render()
         {
             Child = _config.DisplayKind == TalentTraitDisplayKind.HunterTrait
-                ? CreateTraitImage()
+                ? CreateTraitIcon()
                 : CreateTalentPanel();
         }
 
@@ -240,67 +240,78 @@ public class TalentTraitDisplayFrontedControl : FrontedV3ControlBase
                     continue;
                 }
 
-                var image = CreateIconImage(
+                var icon = CreateIconElement(
                     ImageHelper.GetTalentImageSource(
                         definition.Camp,
                         definition.TalentName,
                         false),
                     visibleIconIndex);
-                panel.Children.Add(image);
+                panel.Children.Add(icon);
                 visibleIconIndex++;
             }
 
             return panel;
         }
 
-        private Image CreateTraitImage()
+        private FrameworkElement CreateTraitIcon()
         {
-            var image = CreateIconImage(null, visibleIconIndex: 0);
+            var source = _sharedDataService.IsTraitVisible || !_config.RespectTraitVisibility
+                ? ImageHelper.GetTraitImageSource(_subscribedPlayer?.Trait.TraitName, false)
+                : null;
+            var icon = CreateIconElement(source, visibleIconIndex: 0);
             if (_config.RespectTraitVisibility && !_sharedDataService.IsTraitVisible)
             {
-                image.Visibility = Visibility.Collapsed;
-                return image;
+                icon.Visibility = Visibility.Collapsed;
             }
 
-            image.Source = ImageHelper.GetTraitImageSource(
-                _subscribedPlayer?.Trait.TraitName,
-                false);
-            return image;
+            return icon;
         }
 
-        private Image CreateIconImage(ImageSource? source, int visibleIconIndex)
+        private FrameworkElement CreateIconElement(ImageSource? source, int visibleIconIndex)
         {
-            var image = new Image
+            FrameworkElement icon = new Image
             {
                 Source = source,
                 Stretch = Stretch.UniformToFill
             };
 
+            if (source is not null && ColorHelper.TryParseColor(_config.Color, out var color))
+            {
+                icon = new Border
+                {
+                    Background = new SolidColorBrush(color),
+                    OpacityMask = new ImageBrush(source)
+                    {
+                        Stretch = Stretch.UniformToFill
+                    }
+                };
+            }
+
             var iconSize = _config.IconSize;
             if (iconSize > 0)
             {
-                image.Width = iconSize;
-                image.Height = iconSize;
+                icon.Width = iconSize;
+                icon.Height = iconSize;
             }
             else
             {
                 if (_config.Width.HasValue)
                 {
-                    image.Width = _config.Width.Value;
+                    icon.Width = _config.Width.Value;
                 }
 
                 if (_config.Height.HasValue)
                 {
-                    image.Height = _config.Height.Value;
+                    icon.Height = _config.Height.Value;
                 }
             }
 
             if (visibleIconIndex > 0 && _config.IconGap > 0)
             {
-                image.Margin = new Thickness(_config.IconGap, 0, 0, 0);
+                icon.Margin = new Thickness(_config.IconGap, 0, 0, 0);
             }
 
-            return image;
+            return icon;
         }
     }
 

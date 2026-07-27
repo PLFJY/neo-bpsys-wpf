@@ -168,7 +168,7 @@ v3 内置控件类型如下：
 | `Image` | 通用图片控件，根元素是承载图片和内部 overlay 的 `Grid`，用于队标、地图、角色图、Ban 位、pick 图等。 |
 | `BorderedImage` | 外层 `Border` + 内层 `Image` 的图片控件，用于需要独立外框、容器裁剪或由外框承接 resize 的图片区域。 |
 | `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
-| `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
+| `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标；可选颜色覆盖。 |
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
 | `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
 | `MapV2Display` | `MapV2Window` 地图 BP v2 控件，复用 `MapV2Presenter`；地图卡片正常/禁用外框颜色由布局配置控制。 |
@@ -258,7 +258,7 @@ Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `Curren
 
 | 控件 | 封装规则 |
 | --- | --- |
-| `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及黑白图标设置。 |
+| `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及 `Color` 单色覆盖；`Color` 默认为白色且为必填项。 |
 | `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局；正式预设包括单行、双行、横排局数、横排半场、竖排、竖排双行、竖排局数、竖排半场。`DisplayLanguage = FollowApp` 时按应用语言生成文本。 |
 | `MapNameText` | 地图 key 到本地化显示名的转换；未配置 `BindingPath` 时默认读取 `CurrentGame.PickedMap`。 |
 | `MapV2Display` | 通过 `MapKey` 读取 `CurrentGame.MapV2Dictionary`，复用 `MapV2Presenter`。 |

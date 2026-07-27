@@ -1,3 +1,5 @@
+using neo_bpsys_wpf.Core.Helpers;
+
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
@@ -32,6 +34,11 @@ public class TalentTraitDisplayControlConfig : FrontedControlConfigBase
     /// 图标间距。
     /// </summary>
     public double IconGap { get; set; }
+
+    /// <summary>
+    /// 图标颜色覆盖，默认白色。
+    /// </summary>
+    public string Color { get; set; } = ColorHelper.DefaultColorHex;
 
     /// <summary>
     /// 水平对齐。

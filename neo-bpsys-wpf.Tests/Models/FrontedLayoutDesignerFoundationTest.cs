@@ -719,6 +719,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal(TalentTraitDisplayKind.SurvivorTalent, talent.DisplayKind);
         Assert.Equal(0, talent.PlayerIndex);
         Assert.Equal(36, talent.IconSize);
+        Assert.Equal("#FFFFFFFF", talent.Color);
 
         var globalScore = Assert.IsType<GlobalScoreRowControlConfig>(factory.Create("GlobalScoreRow", document));
         Assert.Equal(TeamType.HomeTeam, globalScore.TeamType);

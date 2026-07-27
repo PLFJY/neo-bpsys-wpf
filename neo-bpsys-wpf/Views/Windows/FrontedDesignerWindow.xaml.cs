@@ -55,11 +55,15 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly Dictionary<int, FrameworkElement> _polygonVertexHandles = new();
     private readonly List<Line> _snapGuideLines = [];
     private readonly List<Border> _multiSelectionOutlines = [];
+    private readonly Dictionary<FrontedControlDesignItem, Border> _marqueeSelectionPreviewOutlines = [];
+    private readonly Dictionary<FrontedControlDesignItem, long> _marqueeSelectionEntryOrders = [];
     private readonly Dictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> _originalSelectedBounds = new();
     private Border? _selectionOutline;
     private Border? _parentSelectionOutline;
     private Border? _selectionLabel;
     private Border? _marqueeSelectionOutline;
+    private FrontedControlDesignItem? _lastMarqueeEnteredItem;
+    private long _marqueeSelectionEntrySequence;
     private FrameworkElement? _capturedElement;
     private InteractionMode _interactionMode = InteractionMode.None;
     private FrontedDesignerResizeHandleKind? _activeResizeHandle;
@@ -2239,6 +2243,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         _hitboxes.Clear();
         _resizeHandles.Clear();
         _multiSelectionOutlines.Clear();
+        _marqueeSelectionPreviewOutlines.Clear();
+        _marqueeSelectionEntryOrders.Clear();
+        _lastMarqueeEnteredItem = null;
+        _marqueeSelectionEntrySequence = 0;
         _selectionOutline = null;
         _parentSelectionOutline = null;
         _selectionLabel = null;
@@ -3513,6 +3521,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _marqueeSelectionOutline.Height = height;
         Canvas.SetLeft(_marqueeSelectionOutline, left);
         Canvas.SetTop(_marqueeSelectionOutline, top);
+        UpdateMarqueeSelectionPreview(new Rect(left, top, width, height), currentPosition);
     }
 
     private void CommitMarqueeSelection()
@@ -3538,15 +3547,134 @@ public partial class FrontedDesignerWindow : FluentWindow
             Canvas.GetTop(_marqueeSelectionOutline),
             _marqueeSelectionOutline.Width,
             _marqueeSelectionOutline.Height);
-        var selectedItems = _hitboxes
-            .Where(pair => marqueeBounds.IntersectsWith(new Rect(
-                Canvas.GetLeft(pair.Value),
-                Canvas.GetTop(pair.Value),
-                pair.Value.Width,
-                pair.Value.Height)))
-            .Select(pair => pair.Key)
+        var selectedItems = GetMarqueeSelectedItems(marqueeBounds);
+        var primaryItem = _lastMarqueeEnteredItem is not null && selectedItems.Contains(_lastMarqueeEnteredItem)
+            ? _lastMarqueeEnteredItem
+            : selectedItems
+                .OrderBy(item => _marqueeSelectionEntryOrders.GetValueOrDefault(item))
+                .LastOrDefault();
+        RunUserSelection(() => _viewModel.SelectDesignItems(selectedItems, primaryItem));
+    }
+
+    /// <summary>
+    /// 获取当前框选区域命中的可选控件。
+    /// </summary>
+    /// <param name="marqueeBounds">框选区域的逻辑画布坐标。</param>
+    /// <returns>命中控件。</returns>
+    private IReadOnlyList<FrontedControlDesignItem> GetMarqueeSelectedItems(Rect marqueeBounds)
+    {
+        if (_viewModel?.CurrentDocument is null)
+        {
+            return [];
+        }
+
+        return _viewModel.CurrentDocument.Controls
+            .Where(item => item.IsSelectableInEditor && _hitboxes.TryGetValue(item, out var hitbox)
+                && marqueeBounds.IntersectsWith(new Rect(
+                    Canvas.GetLeft(hitbox),
+                    Canvas.GetTop(hitbox),
+                    hitbox.Width,
+                    hitbox.Height)))
             .ToList();
-        RunUserSelection(() => _viewModel.SelectDesignItems(selectedItems, selectedItems.LastOrDefault()));
+    }
+
+    /// <summary>
+    /// 实时同步框选区域内控件的临时边框。此预览不改变 ViewModel 选择状态，
+    /// 因而不会在鼠标移动期间触发属性面板或渲染器更新。
+    /// </summary>
+    /// <param name="marqueeBounds">框选区域的逻辑画布坐标。</param>
+    /// <param name="currentPosition">当前鼠标逻辑画布坐标。</param>
+    private void UpdateMarqueeSelectionPreview(Rect marqueeBounds, Point currentPosition)
+    {
+        var selectedItems = GetMarqueeSelectedItems(marqueeBounds);
+        var selectedSet = selectedItems.ToHashSet();
+
+        var newlySelectedItems = selectedItems
+            .Where(item => !_marqueeSelectionPreviewOutlines.ContainsKey(item))
+            .OrderBy(item => GetMarqueeEntryProgress(item, currentPosition))
+            .ToList();
+        foreach (var item in newlySelectedItems)
+        {
+            _marqueeSelectionEntryOrders[item] = ++_marqueeSelectionEntrySequence;
+            _lastMarqueeEnteredItem = item;
+        }
+
+        foreach (var item in _marqueeSelectionPreviewOutlines.Keys
+                     .Where(item => !selectedSet.Contains(item))
+                     .ToList())
+        {
+            InteractionLayer.Children.Remove(_marqueeSelectionPreviewOutlines[item]);
+            _marqueeSelectionPreviewOutlines.Remove(item);
+            _marqueeSelectionEntryOrders.Remove(item);
+            if (ReferenceEquals(_lastMarqueeEnteredItem, item))
+            {
+                _lastMarqueeEnteredItem = selectedItems
+                    .OrderBy(candidate => _marqueeSelectionEntryOrders.GetValueOrDefault(candidate))
+                    .LastOrDefault();
+            }
+        }
+
+        foreach (var item in selectedItems)
+        {
+            if (!_marqueeSelectionPreviewOutlines.TryGetValue(item, out var outline))
+            {
+                outline = new Border
+                {
+                    BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
+                    BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
+                    Opacity = 0.65D,
+                    IsHitTestVisible = false
+                };
+                Panel.SetZIndex(outline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex + 1);
+                _marqueeSelectionPreviewOutlines.Add(item, outline);
+                InteractionLayer.Children.Add(outline);
+            }
+
+            var bounds = ResolveItemBounds(item);
+            outline.Width = bounds.Width;
+            outline.Height = bounds.Height;
+            Canvas.SetLeft(outline, bounds.Left);
+            Canvas.SetTop(outline, bounds.Top);
+        }
+    }
+
+    /// <summary>
+    /// 计算控件在当前拖拽方向上首次与框选区域相交的相对进度。
+    /// 数值越大，表示控件越晚被框进；用于解决一次鼠标移动同时命中多个控件的顺序。
+    /// </summary>
+    /// <param name="item">要计算的控件。</param>
+    /// <param name="currentPosition">当前鼠标逻辑画布坐标。</param>
+    /// <returns>从框选起点到当前指针位置的相对进入进度。</returns>
+    private double GetMarqueeEntryProgress(FrontedControlDesignItem item, Point currentPosition)
+    {
+        var bounds = ResolveItemBounds(item);
+        return Math.Max(
+            GetMarqueeAxisEntryProgress(_startMousePosition.X, currentPosition.X, bounds.Left, bounds.Left + bounds.Width),
+            GetMarqueeAxisEntryProgress(_startMousePosition.Y, currentPosition.Y, bounds.Top, bounds.Top + bounds.Height));
+    }
+
+    /// <summary>
+    /// 计算沿单一坐标轴扩展框选时，与目标区间首次相交的相对进度。
+    /// </summary>
+    /// <param name="start">框选起点坐标。</param>
+    /// <param name="current">当前指针坐标。</param>
+    /// <param name="minimum">目标区间最小坐标。</param>
+    /// <param name="maximum">目标区间最大坐标。</param>
+    /// <returns>相对进入进度。</returns>
+    private static double GetMarqueeAxisEntryProgress(
+        double start,
+        double current,
+        double minimum,
+        double maximum)
+    {
+        var delta = current - start;
+        if (Math.Abs(delta) < double.Epsilon)
+        {
+            return 0D;
+        }
+
+        var edge = delta > 0D ? minimum : maximum;
+        return Math.Max(0D, (edge - start) / delta);
     }
 
     private void CaptureOriginalSelectedBounds()
@@ -3582,6 +3710,16 @@ public partial class FrontedDesignerWindow : FluentWindow
             InteractionLayer.Children.Remove(_marqueeSelectionOutline);
             _marqueeSelectionOutline = null;
         }
+
+        foreach (var outline in _marqueeSelectionPreviewOutlines.Values)
+        {
+            InteractionLayer.Children.Remove(outline);
+        }
+
+        _marqueeSelectionPreviewOutlines.Clear();
+        _marqueeSelectionEntryOrders.Clear();
+        _lastMarqueeEnteredItem = null;
+        _marqueeSelectionEntrySequence = 0;
     }
 
     private void ScheduleSelectedInteractionVisualRefresh()
