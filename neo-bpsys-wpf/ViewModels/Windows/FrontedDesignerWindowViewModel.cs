@@ -3648,6 +3648,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        var primaryItem = SelectedDesignItem is { } primarySelectedItem && selectedItems.Contains(primarySelectedItem)
+            ? primarySelectedItem
+            : selectedItems[0];
+        if (!originalBounds.TryGetValue(primaryItem, out var primaryBounds))
+        {
+            return;
+        }
+
+        var appliedDeltaX = EffectiveSnapEnabled
+            ? FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                primaryBounds.Left + deltaX,
+                effectiveSnapEnabled: true,
+                SnapGridSize) - primaryBounds.Left
+            : FrontedDesignerGeometryHelper.Snap(primaryBounds.Left + deltaX) - primaryBounds.Left;
+        var appliedDeltaY = EffectiveSnapEnabled
+            ? FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                primaryBounds.Top + deltaY,
+                effectiveSnapEnabled: true,
+                SnapGridSize) - primaryBounds.Top
+            : FrontedDesignerGeometryHelper.Snap(primaryBounds.Top + deltaY) - primaryBounds.Top;
+
         foreach (var selectedItem in selectedItems)
         {
             if (!originalBounds.TryGetValue(selectedItem, out var bounds))
@@ -3655,15 +3676,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 continue;
             }
 
-            FrontedDesignerGeometryHelper.Move(
-                selectedItem,
-                bounds.Left,
-                bounds.Top,
-                deltaX,
-                deltaY,
-                CurrentDocument,
-                EffectiveSnapEnabled,
-                SnapGridSize);
+            // 多选控件必须使用主选中项计算出的同一吸附增量，
+            // 不能分别对每个绝对坐标取整，否则会破坏相对位置并造成拖动抖动。
+            selectedItem.Config.Left = bounds.Left + appliedDeltaX;
+            selectedItem.Config.Top = bounds.Top + appliedDeltaY;
             SyncLinkedOverlays(selectedItem);
         }
 
@@ -3701,16 +3717,26 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var selectedItems = GetMovableSelectedDesignItems();
         if (selectedItems.Count > 1)
         {
+            var primaryItem = SelectedDesignItem is { } primarySelectedItem && selectedItems.Contains(primarySelectedItem)
+                ? primarySelectedItem
+                : selectedItems[0];
+            var appliedDeltaX = EffectiveSnapEnabled
+                ? FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                    primaryItem.Config.Left + deltaX,
+                    effectiveSnapEnabled: true,
+                    SnapGridSize) - primaryItem.Config.Left
+                : FrontedDesignerGeometryHelper.Snap(primaryItem.Config.Left + deltaX) - primaryItem.Config.Left;
+            var appliedDeltaY = EffectiveSnapEnabled
+                ? FrontedDesignerGeometryHelper.NormalizeCoordinate(
+                    primaryItem.Config.Top + deltaY,
+                    effectiveSnapEnabled: true,
+                    SnapGridSize) - primaryItem.Config.Top
+                : FrontedDesignerGeometryHelper.Snap(primaryItem.Config.Top + deltaY) - primaryItem.Config.Top;
             var batchChangedItems = new List<FrontedControlDesignItem>();
             foreach (var selectedItem in selectedItems)
             {
-                FrontedDesignerGeometryHelper.MoveBy(
-                    selectedItem,
-                    deltaX,
-                    deltaY,
-                    CurrentDocument,
-                    EffectiveSnapEnabled,
-                    SnapGridSize);
+                selectedItem.Config.Left += appliedDeltaX;
+                selectedItem.Config.Top += appliedDeltaY;
                 batchChangedItems.Add(selectedItem);
                 foreach (var linkedOverlay in SyncLinkedOverlays(selectedItem))
                 {
@@ -3721,6 +3747,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 }
             }
 
+            CurrentDocument.IsDirty = true;
             OnDesignItemGeometryChanged(renderPreview: false);
             RequestDesignerGeometryPatch(batchChangedItems, updateSelection: true);
             return;

@@ -1739,6 +1739,42 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void DesignerViewModelMultiSelectMoveUsesOneSharedSnappedDelta()
+    {
+        var first = new FrontedControlDesignItem
+        {
+            Name = "First",
+            Config = new TextFrontedControlConfig { Left = 13, Top = 17, Width = 40, Height = 20 }
+        };
+        var second = new FrontedControlDesignItem
+        {
+            Name = "Second",
+            Config = new TextFrontedControlConfig { Left = 28, Top = 32, Width = 40, Height = 20 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second]),
+            SnapEnabled = true
+        };
+        viewModel.SelectDesignItems([first, second], first);
+
+        viewModel.MoveSelectedDesignItems(
+            new Dictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds>
+            {
+                [first] = new FrontedDesignerResolvedBounds(13, 17, 40, 20),
+                [second] = new FrontedDesignerResolvedBounds(28, 32, 40, 20)
+            },
+            deltaX: 5,
+            deltaY: 5,
+            renderPreview: false);
+
+        Assert.Equal(20, first.Config.Left);
+        Assert.Equal(20, first.Config.Top);
+        Assert.Equal(35, second.Config.Left);
+        Assert.Equal(35, second.Config.Top);
+    }
+
+    [Fact]
     public void DesignerViewModelApplyPropertyEditUpdatesAllSameTypeSelectedItemsExceptName()
     {
         var first = new FrontedControlDesignItem
