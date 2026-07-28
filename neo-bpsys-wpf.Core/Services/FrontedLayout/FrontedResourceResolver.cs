@@ -206,13 +206,6 @@ public class FrontedResourceResolver : IFrontedResourceResolver
             bitmap.BeginInit();
             bitmap.UriSource = new Uri(resolvedPath, UriKind.Absolute);
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            var longSide = Math.Max(validation.PixelWidth, validation.PixelHeight);
-            if (longSide > 1024)
-            {
-                bitmap.DecodePixelWidth = validation.PixelWidth >= validation.PixelHeight ? 1024 : 0;
-                bitmap.DecodePixelHeight = validation.PixelHeight > validation.PixelWidth ? 1024 : 0;
-            }
-
             bitmap.EndInit();
             bitmap.Freeze();
             CacheImage(cacheKey, bitmap);

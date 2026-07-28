@@ -246,6 +246,121 @@ public sealed class MemoryLeakFixPhase2Test
         });
     }
 
+    /// <summary>
+    /// 验证 Runtime 背景图按原始像素尺寸解码，避免放大已降采样的位图。
+    /// </summary>
+    [Fact]
+    public void ResourceResolver_BackgroundImage_PreservesOriginalPixelDimensions()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var resolver = new FrontedResourceResolver(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<FrontedResourceResolver>.Instance);
+            var tempFile = Path.Combine(Path.GetTempPath(), $"neo-bpsys-runtime-background-{Guid.NewGuid():N}.png");
+
+            try
+            {
+                WritePng(tempFile, 1440, 810);
+
+                var image = resolver.ResolveImage(tempFile, FrontedImagePurpose.Background);
+                var bitmap = Assert.IsAssignableFrom<BitmapSource>(image);
+
+                Assert.Equal(1440, bitmap.PixelWidth);
+                Assert.Equal(810, bitmap.PixelHeight);
+                Assert.Equal(1440L * 810 * 4, resolver.EstimatedCachedBytes);
+            }
+            finally
+            {
+                try { File.Delete(tempFile); } catch { }
+            }
+        });
+    }
+
+    /// <summary>
+    /// 验证包资源在 Runtime 中按原始像素尺寸解码。
+    /// </summary>
+    [Fact]
+    public void ResourceResolver_PackageResource_PreservesOriginalPixelDimensions()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var resolver = new FrontedResourceResolver(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<FrontedResourceResolver>.Instance);
+            var tempFile = Path.Combine(Path.GetTempPath(), $"neo-bpsys-runtime-package-{Guid.NewGuid():N}.png");
+
+            try
+            {
+                WritePng(tempFile, 1440, 810);
+
+                var image = resolver.ResolveImage(tempFile, FrontedImagePurpose.PackageResource);
+                var bitmap = Assert.IsAssignableFrom<BitmapSource>(image);
+
+                Assert.Equal(1440, bitmap.PixelWidth);
+                Assert.Equal(810, bitmap.PixelHeight);
+            }
+            finally
+            {
+                try { File.Delete(tempFile); } catch { }
+            }
+        });
+    }
+
+    /// <summary>
+    /// 验证符合安全限制的前台控件图片在 Runtime 中按原始像素尺寸解码。
+    /// </summary>
+    [Fact]
+    public void ResourceResolver_UiElement_PreservesOriginalPixelDimensions()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var resolver = new FrontedResourceResolver(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<FrontedResourceResolver>.Instance);
+            var tempFile = Path.Combine(Path.GetTempPath(), $"neo-bpsys-runtime-ui-{Guid.NewGuid():N}.png");
+
+            try
+            {
+                WritePng(tempFile, 1600, 900);
+
+                var image = resolver.ResolveImage(tempFile, FrontedImagePurpose.UiElement);
+                var bitmap = Assert.IsAssignableFrom<BitmapSource>(image);
+
+                Assert.Equal(1600, bitmap.PixelWidth);
+                Assert.Equal(900, bitmap.PixelHeight);
+            }
+            finally
+            {
+                try { File.Delete(tempFile); } catch { }
+            }
+        });
+    }
+
+    /// <summary>
+    /// 验证资源浏览器缩略图仍采用缩略图级别的解码尺寸。
+    /// </summary>
+    [Fact]
+    public void ResourceBrowserProvider_Thumbnail_DecodesAtThumbnailWidth()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var tempFile = Path.Combine(Path.GetTempPath(), $"neo-bpsys-thumbnail-{Guid.NewGuid():N}.png");
+
+            try
+            {
+                WritePng(tempFile, 1440, 810);
+
+                var image = FrontedResourceBrowserProvider.LoadThumbnail(tempFile);
+                var bitmap = Assert.IsAssignableFrom<BitmapSource>(image);
+
+                Assert.Equal(96, bitmap.PixelWidth);
+                Assert.True(bitmap.PixelHeight < 810);
+            }
+            finally
+            {
+                try { File.Delete(tempFile); } catch { }
+            }
+        });
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // 4. BackgroundImageTintProcessor 行为测试
     // ─────────────────────────────────────────────────────────────────────────
