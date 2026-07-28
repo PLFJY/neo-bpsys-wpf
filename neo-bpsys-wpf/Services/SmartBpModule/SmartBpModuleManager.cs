@@ -487,10 +487,20 @@ public sealed class SmartBpModuleManager
                 var candidate = FindModuleUnmanagedLibraryPath(moduleRoot, libraryName);
                 if (candidate == null)
                 {
-                    _logger.LogWarning(
-                        "SmartBP module native dependency was not found. LibraryName={LibraryName}, ModuleRoot={ModuleRoot}",
-                        libraryName,
-                        moduleRoot);
+                    if (IsOptionalPaddleBackendLibrary(libraryName))
+                    {
+                        _logger.LogDebug(
+                            "SmartBP module optional Paddle backend library was not found. LibraryName={LibraryName}, ModuleRoot={ModuleRoot}",
+                            libraryName,
+                            moduleRoot);
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "SmartBP module native dependency was not found. LibraryName={LibraryName}, ModuleRoot={ModuleRoot}",
+                            libraryName,
+                            moduleRoot);
+                    }
                     return IntPtr.Zero;
                 }
 
@@ -1744,6 +1754,18 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
+    /// 判断 native 库是否仅由 PaddleInference 用于探测可选计算后端。
+    /// </summary>
+    /// <param name="libraryName">P/Invoke 请求的库名。</param>
+    /// <returns>该库缺失不代表当前已选 Paddle runtime 不可用时返回 <see langword="true"/>。</returns>
+    private static bool IsOptionalPaddleBackendLibrary(string libraryName)
+    {
+        var fileName = Path.GetFileName(libraryName);
+        return string.Equals(fileName, "openblas", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(fileName, "openblas.dll", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// 为 Windows DLL 解析注册 SmartBP native 目录，并预加载已知依赖锚点。
     /// </summary>
     /// <param name="moduleRoot">SmartBP 模块根目录。</param>
@@ -1834,18 +1856,17 @@ public sealed class SmartBpModuleManager
     }
 
     /// <summary>
-    /// 构建 SmartBP 模块内 native 探测目录的有序集合。
+    /// 构建 SmartBP 模块加载所需 native 探测目录的有序集合。
     /// </summary>
     /// <param name="moduleRoot">SmartBP 模块根目录。</param>
-    /// <returns>native 探测目录，包含 RID 特定目录和模块根目录回退。</returns>
-    private static IReadOnlyList<string> GetModuleNativeSearchDirectories(string moduleRoot)
+    /// <returns>native 探测目录，包含模块 RID 特定目录、模块自带 CPU Paddle runtime 和模块根目录回退。</returns>
+    internal static IReadOnlyList<string> GetModuleNativeSearchDirectories(string moduleRoot)
     {
         if (string.IsNullOrWhiteSpace(moduleRoot)) return [];
 
         var directories = new List<string>
         {
-            Path.Combine(moduleRoot, "runtimes", SmartBpModuleConstants.Rid, "native"),
-            moduleRoot
+            Path.Combine(moduleRoot, "runtimes", SmartBpModuleConstants.Rid, "native")
         };
 
         var runtimesRoot = Path.Combine(moduleRoot, "runtimes");
@@ -1858,6 +1879,19 @@ public sealed class SmartBpModuleManager
                     directories.Add(nativeDirectory);
             }
         }
+
+        var paddleCpuRoot = Path.Combine(moduleRoot, "Runtime", "Paddle", "cpu");
+        if (Directory.Exists(paddleCpuRoot))
+        {
+            foreach (var versionDirectory in Directory.EnumerateDirectories(paddleCpuRoot))
+            {
+                var nativeDirectory = Path.Combine(versionDirectory, "native");
+                if (!directories.Contains(nativeDirectory, StringComparer.OrdinalIgnoreCase))
+                    directories.Add(nativeDirectory);
+            }
+        }
+
+        directories.Add(moduleRoot);
 
         return directories;
     }

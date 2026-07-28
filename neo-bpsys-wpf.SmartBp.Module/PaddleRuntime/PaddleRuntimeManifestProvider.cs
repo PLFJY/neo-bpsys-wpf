@@ -12,6 +12,8 @@ namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 /// </summary>
 public sealed class PaddleRuntimeManifestProvider : IPaddleRuntimeManifestProvider
 {
+    private const string PaddleInferenceRuntimeVersion = "3.3.1.70";
+
     /// <summary>
     /// URL 路径段中禁止出现的危险字符集合，用于防止 URL 注入。
     /// </summary>
@@ -25,7 +27,7 @@ public sealed class PaddleRuntimeManifestProvider : IPaddleRuntimeManifestProvid
     /// <summary>
     /// 获取当前 PaddleInference runtime 的固定版本号（与 MKL 包版本一致）。
     /// </summary>
-    public string PaddleInferenceVersion => AppConstants.PaddleInferenceRuntimeVersion;
+    public string PaddleInferenceVersion => PaddleInferenceRuntimeVersion;
 
     /// <summary>
     /// 根据 GPU Compute Capability 解析唯一匹配的 CUDA runtime 包。
@@ -120,12 +122,12 @@ public sealed class PaddleRuntimeManifestProvider : IPaddleRuntimeManifestProvid
         => char.IsLetterOrDigit(c) || c == '.' || c == '-' || c == '_';
 
     /// <summary>
-    /// 构造固定 manifest 列表。所有包版本统一为 <see cref="AppConstants.PaddleInferenceRuntimeVersion"/>。
+    /// 构造固定 manifest 列表。所有包版本统一为当前模块的 PaddleInference runtime 版本。
     /// </summary>
     /// <returns>包信息只读列表。</returns>
     private static IReadOnlyList<PaddleRuntimePackageInfo> BuildPackages()
     {
-        var version = AppConstants.PaddleInferenceRuntimeVersion;
+        var version = PaddleInferenceRuntimeVersion;
         // TODO: Phase 5 下载实际包后计算并填入真实 SHA-256
         const string placeholderHash = "";
         var expectedNativeFiles = new[] { "paddle_inference_c.dll" };

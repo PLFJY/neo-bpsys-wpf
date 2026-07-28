@@ -68,7 +68,7 @@
 | `GameGuidanceService` | 根据 `GameRule.json` 推进引导式 BP、导航页面、启动计时器和发送高亮消息 | 自由赛当前不支持引导 |
 | `TutorialService` | 运行页面教程包和总导览 flow，记录 Completed / Skipped / CoveredByFlow 状态 | 不替代 `GameGuidanceService`，flow 内部应引用 package |
 | `TutorialSignalService` | 在业务动作和交互式教程步骤之间传递 signal | 教程不应直接读取业务对象内部状态来判断用户动作 |
-| `SmartBpModuleManager` | SmartBP 模块目录校验、zip 导入、Release manifest 检查、动态加载、状态写入和旧 OCR 模型迁移 | Release 使用当前 app tag 的 manifest，不查询 latest release |
+| `SmartBpModuleManager` | SmartBP 模块目录校验、zip 导入、Release manifest 检查、动态加载、状态写入和旧 OCR 模型迁移 | Release 使用当前 app tag 的 manifest，不查询 latest release；模块 native 解析会显式包含模块自带的 CPU Paddle runtime 目录 |
 | `SmartBpService` | 模块内服务，对完整捕获帧 OCR 并按文本坐标重建赛后数据、写回 `CurrentGame` | 全流程自动 BP 仍是 TODO |
 | `OcrService` | 模块内服务，PaddleOCR 模型下载、删除、切换、推理和失败重建 | 受 `_ocrLock` 和 `_downloadLock` 保护，模型根目录来自模块根 |
 | `PluginService` | 启动时扫描、校验、加载插件并调用 `Initialize` | 不支持运行时热加载假设 |

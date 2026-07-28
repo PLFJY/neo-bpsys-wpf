@@ -10,6 +10,7 @@
     <Configurations>Debug;Release;Beta;Preview</Configurations>
     <Platforms>AnyCPU;x64</Platforms>
     <AssemblyName>neo-bpsys-wpf.SmartBp.Module</AssemblyName>
+    <PaddleInferenceRuntimeVersion>3.3.1.70</PaddleInferenceRuntimeVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -21,7 +22,7 @@
     <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260627" />
     <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260627" />
     <PackageReference Include="RapidOcrNet" Version="3.0.0" />
-    <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.3.1.70" ExcludeAssets="native" />
+    <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="$(PaddleInferenceRuntimeVersion)" ExcludeAssets="native" GeneratePathProperty="true" />
     <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />
     <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.3.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" ExcludeAssets="runtime" />
@@ -49,5 +50,14 @@
     <Content Include="Resources\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <!-- CPU Paddle runtime is owned by SmartBP, so it travels inside the module archive
+       rather than the main application's installation directory. -->
+  <ItemGroup>
+    <Content Include="$(PkgSdcb_PaddleInference_runtime_win64_mkl)\runtimes\win-x64\native\**\*.*"
+             Link="Runtime\Paddle\cpu\$(PaddleInferenceRuntimeVersion)\native\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

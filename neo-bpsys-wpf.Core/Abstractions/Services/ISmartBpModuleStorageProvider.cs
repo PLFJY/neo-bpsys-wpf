@@ -5,6 +5,8 @@ public interface ISmartBpModuleStorageProvider
 {
     /// <summary>获取模块根目录。</summary>
     string ModuleRoot { get; }
+    /// <summary>获取模块拥有的 Paddle runtime 根目录。</summary>
+    string PaddleRuntimeRoot { get; }
     /// <summary>获取 PaddleOCR 模型根目录。</summary>
     string OcrModelsRoot { get; }
     /// <summary>获取受管理的 Tesseract tessdata 根目录。</summary>
