@@ -293,6 +293,11 @@ public partial class SmartBpPageViewModel : ViewModelBase
             });
 
             await Task.WhenAll(tasks);
+
+            if (DownloadMirrorPresets.FindLowestLatencyOption(SmartBpModuleMirrorOptions) is { } fastestMirror)
+            {
+                SelectedSmartBpModuleMirror = fastestMirror.Value;
+            }
         }
         finally
         {
