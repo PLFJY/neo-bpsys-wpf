@@ -984,6 +984,36 @@
   <data name="CudaStatusDownloading" xml:space="preserve">
     <value>Downloading</value>
   </data>
+  <data name="CudaStagePreparing" xml:space="preserve">
+    <value>Preparing the CUDA dependency installation...</value>
+  </data>
+  <data name="CudaStageDownloadingPaddleRuntime" xml:space="preserve">
+    <value>Downloading the Paddle CUDA runtime...</value>
+  </data>
+  <data name="CudaStageDownloadingCudaToolkit" xml:space="preserve">
+    <value>Downloading the NVIDIA CUDA 11.8 installer...</value>
+  </data>
+  <data name="CudaStageVerifyingCudaToolkit" xml:space="preserve">
+    <value>Verifying the integrity of the NVIDIA CUDA 11.8 installer...</value>
+  </data>
+  <data name="CudaStageInstallingCudaToolkit" xml:space="preserve">
+    <value>Opening the NVIDIA CUDA 11.8 graphical installer. Approve the UAC prompt and complete the installation in the installer; the app will wait and detect the result automatically...</value>
+  </data>
+  <data name="CudaStageDownloadingCuDnn" xml:space="preserve">
+    <value>Downloading NVIDIA cuDNN 8.9.6...</value>
+  </data>
+  <data name="CudaStageVerifyingCuDnn" xml:space="preserve">
+    <value>Verifying the integrity of the NVIDIA cuDNN 8.9.6 package...</value>
+  </data>
+  <data name="CudaStageInstallingCuDnn" xml:space="preserve">
+    <value>Installing cuDNN 8.9.6 and updating the system PATH. Approve the UAC prompt...</value>
+  </data>
+  <data name="CudaInstallErrorDetails" xml:space="preserve">
+    <value>CUDA installation failed: {0}</value>
+  </data>
+  <data name="CudaInstallCancelled" xml:space="preserve">
+    <value>The installation was cancelled.</value>
+  </data>
   <data name="CudaStatusVersionMismatch" xml:space="preserve">
     <value>Component version incompatible, re-download required</value>
   </data>
@@ -1012,10 +1042,13 @@
     <value>Download CUDA Runtime Dependency</value>
   </data>
   <data name="CudaDependencyRequiredHint" xml:space="preserve">
-    <value>Download the CUDA runtime dependency before enabling hardware acceleration</value>
+    <value>Install NVIDIA CUDA 11.8 and cuDNN dependencies (about 4 GB; UAC approval is required) before enabling hardware acceleration</value>
   </data>
   <data name="CudaStatusDependencyReady" xml:space="preserve">
     <value>Dependency ready, hardware acceleration can be enabled</value>
+  </data>
+  <data name="CudaStatusPrerequisitesMissing" xml:space="preserve">
+    <value>NVIDIA CUDA/cuDNN redistributable dependencies are missing and need to be installed</value>
   </data>
   <data name="CudaStatusDownloadFailed" xml:space="preserve">
     <value>Download failed, please retry</value>

@@ -409,6 +409,24 @@
                         </Style>
                     </TextBlock.Style>
                 </TextBlock>
+                <TextBlock
+                    Margin="0,8,0,0"
+                    d:Text="CUDA 安装失败：Installer exited with code 1."
+                    d:Visibility="Visible"
+                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                    Text="{Binding CudaInstallationErrorText}"
+                    TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CudaInstallationErrorText}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
                 <StackPanel
                     Margin="0,10,0,0"
                     d:Visibility="Visible"
@@ -426,31 +444,42 @@
                 <StackPanel
                     Margin="0,10,0,0"
                     d:Visibility="Visible"
-                    Orientation="Horizontal"
                     Visibility="{Binding IsCudaDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ui:ProgressRing
-                        Width="26"
-                        Height="26"
-                        IsIndeterminate="True" />
-                    <ProgressBar
-                        Width="175"
-                        Height="20"
-                        Margin="10,0,0,0"
-                        Maximum="100"
-                        Value="{Binding CudaDownloadProgress}" />
                     <TextBlock
-                        Margin="10,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding CudaDownloadProgressText}" />
-                    <TextBlock
-                        Margin="10,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding CudaDownloadSpeedText}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding CancelCudaDownloadCommand}"
-                        Content="{lex:Loc CudaCancelDownload}"
-                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        FontWeight="SemiBold"
+                        Text="{Binding CudaDownloadStageText}"
+                        TextWrapping="Wrap" />
+                    <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                        <ui:ProgressRing
+                            Width="26"
+                            Height="26"
+                            VerticalAlignment="Center"
+                            IsIndeterminate="True" />
+                        <StackPanel
+                            Margin="10,0,0,0"
+                            Orientation="Horizontal"
+                            Visibility="{Binding IsCudaTransferActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ProgressBar
+                                Width="175"
+                                Height="20"
+                                VerticalAlignment="Center"
+                                Maximum="100"
+                                Value="{Binding CudaDownloadProgress}" />
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="{Binding CudaDownloadProgressText}" />
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="{Binding CudaDownloadSpeedText}" />
+                        </StackPanel>
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding CancelCudaDownloadCommand}"
+                            Content="{lex:Loc CudaCancelDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    </StackPanel>
                 </StackPanel>
                 <TextBlock
                     Margin="0,10,0,0"

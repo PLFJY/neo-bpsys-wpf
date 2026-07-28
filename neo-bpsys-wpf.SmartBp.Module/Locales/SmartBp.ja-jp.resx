@@ -984,6 +984,36 @@
   <data name="CudaStatusDownloading" xml:space="preserve">
     <value>ダウンロード中</value>
   </data>
+  <data name="CudaStagePreparing" xml:space="preserve">
+    <value>CUDA 依存関係のインストールを準備しています...</value>
+  </data>
+  <data name="CudaStageDownloadingPaddleRuntime" xml:space="preserve">
+    <value>Paddle CUDA runtime をダウンロードしています...</value>
+  </data>
+  <data name="CudaStageDownloadingCudaToolkit" xml:space="preserve">
+    <value>NVIDIA CUDA 11.8 インストーラーをダウンロードしています...</value>
+  </data>
+  <data name="CudaStageVerifyingCudaToolkit" xml:space="preserve">
+    <value>NVIDIA CUDA 11.8 インストーラーの整合性を確認しています...</value>
+  </data>
+  <data name="CudaStageInstallingCudaToolkit" xml:space="preserve">
+    <value>NVIDIA CUDA 11.8 のグラフィカルインストーラーを開いています。UAC ダイアログで許可し、インストーラーの画面に従って完了してください。アプリは待機して結果を自動検出します...</value>
+  </data>
+  <data name="CudaStageDownloadingCuDnn" xml:space="preserve">
+    <value>NVIDIA cuDNN 8.9.6 をダウンロードしています...</value>
+  </data>
+  <data name="CudaStageVerifyingCuDnn" xml:space="preserve">
+    <value>NVIDIA cuDNN 8.9.6 パッケージの整合性を確認しています...</value>
+  </data>
+  <data name="CudaStageInstallingCuDnn" xml:space="preserve">
+    <value>cuDNN 8.9.6 をインストールし、システム PATH を更新しています。UAC ダイアログで許可してください...</value>
+  </data>
+  <data name="CudaInstallErrorDetails" xml:space="preserve">
+    <value>CUDA のインストールに失敗しました：{0}</value>
+  </data>
+  <data name="CudaInstallCancelled" xml:space="preserve">
+    <value>インストールはキャンセルされました。</value>
+  </data>
   <data name="CudaStatusVersionMismatch" xml:space="preserve">
     <value>コンポーネントのバージョンが互換性なし、再ダウンロードが必要</value>
   </data>
@@ -1012,10 +1042,13 @@
     <value>CUDA ランタイム依存関係をダウンロード</value>
   </data>
   <data name="CudaDependencyRequiredHint" xml:space="preserve">
-    <value>ハードウェア アクセラレーションを有効化する前に CUDA ランタイム依存関係をダウンロードしてください</value>
+    <value>ハードウェア アクセラレーションを有効化する前に、NVIDIA CUDA 11.8 と cuDNN 依存関係（約 4 GB、UAC 承認が必要）をインストールしてください</value>
   </data>
   <data name="CudaStatusDependencyReady" xml:space="preserve">
     <value>依存関係の準備完了、ハードウェア アクセラレーションを有効化できます</value>
+  </data>
+  <data name="CudaStatusPrerequisitesMissing" xml:space="preserve">
+    <value>NVIDIA CUDA/cuDNN 再頒布可能コンポーネントが不足しています。ダウンロードしてインストールしてください</value>
   </data>
   <data name="CudaStatusDownloadFailed" xml:space="preserve">
     <value>ダウンロード失敗、再試行してください</value>

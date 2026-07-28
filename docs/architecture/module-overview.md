@@ -70,7 +70,7 @@
 | `TutorialSignalService` | 在业务动作和交互式教程步骤之间传递 signal | 教程不应直接读取业务对象内部状态来判断用户动作 |
 | `SmartBpModuleManager` | SmartBP 模块目录校验、zip 导入、Release manifest 检查、动态加载、状态写入和旧 OCR 模型迁移 | Release 使用当前 app tag 的 manifest，不查询 latest release；模块 native 解析会显式包含模块自带的 CPU Paddle runtime 目录 |
 | `SmartBpService` | 模块内服务，对完整捕获帧 OCR 并按文本坐标重建赛后数据、写回 `CurrentGame` | 全流程自动 BP 仍是 TODO |
-| `OcrService` | 模块内服务，PaddleOCR 模型下载、删除、切换、推理和失败重建 | 受 `_ocrLock` 和 `_downloadLock` 保护，模型根目录来自模块根 |
+| `OcrService` / `PaddleRuntime` | 模块内服务，PaddleOCR 模型下载、删除、切换、推理和失败重建；Paddle CPU/CUDA native runtime 由模块管理，CUDA Toolkit 是系统级 NVIDIA 前置条件 | CPU 固定随模块发布于 `Runtime/Paddle/cpu/`；启用 CUDA 时模块下载 Paddle native 包，并通过 UAC 打开 NVIDIA CUDA 11.8 图形安装程序、等待用户完成安装，再以隐藏的提权 PowerShell 把已静态链接 zlib 的 cuDNN 8.9.6 DLL 安装到 CUDA 的系统 `bin`、写入明确版本标记并确保该目录在系统 PATH；CUDA/cuDNN 安装包缓存在模块的 `Runtime/Paddle/Downloads/NVIDIA/`，重试时先校验哈希并复用，不把 CUDA/cuDNN DLL 写入主程序目录 |
 | `PluginService` | 启动时扫描、校验、加载插件并调用 `Initialize` | 不支持运行时热加载假设 |
 | `PluginMarketService` | 市场索引、README、镜像、下载队列、SHA-256 校验 | UI 集合更新必须回到 Dispatcher |
 | `WindowCaptureService` | WGC/BitBlt 窗口捕获、帧缓存、预览窗口 | 帧对象跨线程读取依赖锁和 `Freeze()` |
