@@ -77,6 +77,13 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
             SetStatus(new(PaddleCudaPrerequisiteInstallStatus.Invalid, false, 0, null, null, "This Paddle package requires an unsupported CUDA prerequisite version."));
             return;
         }
+
+        if (GetInstallStatus() == PaddleCudaPrerequisiteInstallStatus.Installed)
+        {
+            SetStatus(new(PaddleCudaPrerequisiteInstallStatus.Installed, false, 100, null, null, null));
+            return;
+        }
+
         if (!await _setupLock.WaitAsync(0, cancellationToken).ConfigureAwait(false)) return;
 
         var tempDirectory = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_SmartBpCuda_" + Guid.NewGuid().ToString("N"));

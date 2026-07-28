@@ -410,6 +410,11 @@ public partial class SmartBpModuleContentViewModel
         {
             statusKey = "CudaStatusPrerequisitesMissing";
         }
+        else if (installInfo.Status == PaddleRuntimeInstallStatus.NotInstalled
+                 && _paddleCudaPrerequisiteSetupService.Status.Status == PaddleCudaPrerequisiteInstallStatus.Installed)
+        {
+            statusKey = "CudaStatusModuleRuntimeMissing";
+        }
         else if (installInfo.Status == PaddleRuntimeInstallStatus.Installed && !IsCudaEnabled)
         {
             statusKey = "CudaStatusDependencyReady";

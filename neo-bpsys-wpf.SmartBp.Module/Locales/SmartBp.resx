@@ -984,6 +984,9 @@
   <data name="CudaStatusDownloading" xml:space="preserve">
     <value>正在下载</value>
   </data>
+  <data name="CudaStatusModuleRuntimeMissing" xml:space="preserve">
+    <value>系统 CUDA/cuDNN 已就绪，当前 SmartBP 模块缺少 Paddle CUDA runtime</value>
+  </data>
   <data name="CudaStagePreparing" xml:space="preserve">
     <value>正在准备 CUDA 依赖安装...</value>
   </data>
