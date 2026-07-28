@@ -84,6 +84,11 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public string? PickingBorderImagePath { get; set; }
 
     /// <summary>
+    /// 选择边框遮罩的填充颜色。为空时保持既有的白色填充。
+    /// </summary>
+    public string? PickingBorderFillColor { get; set; }
+
+    /// <summary>
     /// 选择边框运行时名称。
     /// </summary>
     public string? PickingBorderName { get; set; }

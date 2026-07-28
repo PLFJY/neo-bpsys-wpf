@@ -24,6 +24,11 @@ public class TextFrontedControl : FrontedV3ControlBase
         var buildContext = context.ToBuildContext();
         var border = FrontedControlFactoryHelper.CreateBorderWithoutCanvasLayout(context.ControlName ?? string.Empty);
         var textBlock = new TextBlock();
+        textBlock.Margin = new Thickness(
+            textConfig.ContentMarginLeft,
+            textConfig.ContentMarginTop,
+            textConfig.ContentMarginRight,
+            textConfig.ContentMarginBottom);
 
         if (textConfig.TextBinding?.GetActiveSources().Count > 0)
         {

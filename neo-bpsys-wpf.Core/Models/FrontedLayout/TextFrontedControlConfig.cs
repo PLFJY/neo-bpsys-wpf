@@ -46,6 +46,26 @@ public class TextFrontedControlConfig : FrontedControlConfigBase, IFrontedTextSt
     public string? TextWrapping { get; set; }
 
     /// <summary>
+    /// 文本内容左侧偏移。默认值为 0，不改变现有布局。
+    /// </summary>
+    public double ContentMarginLeft { get; set; }
+
+    /// <summary>
+    /// 文本内容顶部偏移。默认值为 0，不改变现有布局。
+    /// </summary>
+    public double ContentMarginTop { get; set; }
+
+    /// <summary>
+    /// 文本内容右侧偏移。默认值为 0，不改变现有布局。
+    /// </summary>
+    public double ContentMarginRight { get; set; }
+
+    /// <summary>
+    /// 文本内容底部偏移。默认值为 0，不改变现有布局。
+    /// </summary>
+    public double ContentMarginBottom { get; set; }
+
+    /// <summary>
     /// 字体族。
     /// </summary>
     public string? FontFamily { get; set; }

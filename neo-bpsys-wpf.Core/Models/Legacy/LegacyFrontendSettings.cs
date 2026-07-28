@@ -43,6 +43,7 @@ public sealed class LegacySettings
 /// <summary>
 /// 旧版文本样式设置，迁移后由 v3 布局文本属性替代。
 /// </summary>
+[JsonConverter(typeof(LegacyTextSettingsJsonConverter))]
 public sealed class LegacyTextSettings
 {
     private FontFamily? _fontFamily;
@@ -66,6 +67,12 @@ public sealed class LegacyTextSettings
     /// 字体大小。
     /// </summary>
     public double FontSize { get; set; }
+
+    /// <summary>
+    /// 无法解析的旧版文本字段名。仅供 legacy converter 生成诊断，不会写入 v3 包。
+    /// </summary>
+    [JsonIgnore]
+    internal List<string> InvalidFields { get; } = [];
 
     /// <summary>
     /// 从 <see cref="Color"/> 派生的前景画刷。

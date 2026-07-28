@@ -231,17 +231,6 @@ public class SettingsMigrationService : ISettingsMigrationService
                 : null,
             cancellationToken);
 
-        if (legacySettings.CutSceneWindowSettings?.IsBlackTalentAndTraitEnable == true)
-        {
-            _logger.LogWarning("Legacy CutSceneWindowSettings.IsBlackTalentAndTraitEnable has no active Designer v3 runtime setting and was not migrated.");
-        }
-
-        if (legacySettings.ScoreWindowSettings?.IsCampIconBlackVerEnabled == true
-            || legacySettings.WidgetsWindowSettings?.IsCampIconBlackVerEnabled == true)
-        {
-            _logger.LogWarning("Legacy camp icon black-version settings have no active Designer v3 runtime setting and were not migrated.");
-        }
-
         async Task MigrateWindowAsync(
             string legacyWindow,
             string legacyCanvas,
@@ -287,10 +276,30 @@ public class SettingsMigrationService : ISettingsMigrationService
             var targetConfig = FrontedWindowConfigCanvasAdapter.FromCanvasConfig(config);
             targetConfig.WindowSettings = windowConfig.WindowSettings;
             ApplyLegacyWindowSettings(targetConfig.WindowSettings, windowSize, backgroundColor, allowTransparency);
+            ApplyLegacyVisualSettings(targetConfig, outputWindow, legacySettings);
             var targetPath = Path.Combine(layoutRoot, $"{outputWindow}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             await File.WriteAllTextAsync(targetPath, JsonSerializer.Serialize(targetConfig, _jsonSerializerOptions), ct);
             _logger.LogInformation("Migrated legacy frontend settings to Designer v3 window layout: {Window}", outputWindow);
+        }
+    }
+
+    private static void ApplyLegacyVisualSettings(FrontedWindowConfig target, string outputWindow, LegacySettings settings)
+    {
+        if (outputWindow == "CutSceneWindow" && settings.CutSceneWindowSettings?.IsBlackTalentAndTraitEnable == true)
+        {
+            foreach (var control in target.ControlLayout.Controls.Values.OfType<TalentTraitDisplayControlConfig>())
+            {
+                control.Color = "#FF000000";
+            }
+        }
+
+        if (outputWindow == "ScoreGlobalWindow" && settings.ScoreWindowSettings?.IsCampIconBlackVerEnabled == true)
+        {
+            foreach (var control in target.ControlLayout.Controls.Values.OfType<GlobalScoreRowControlConfig>())
+            {
+                control.CampIconColor = neo_bpsys_wpf.Core.Enums.GlobalScoreCampIconColor.Black;
+            }
         }
     }
 

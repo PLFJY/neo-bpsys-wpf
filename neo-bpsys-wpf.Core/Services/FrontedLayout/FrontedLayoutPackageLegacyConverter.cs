@@ -1106,7 +1106,20 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 return null;
             }
 
-            return JsonSerializer.Deserialize<LegacySettings>(stream, _jsonOptions);
+            var legacySettings = JsonSerializer.Deserialize<LegacySettings>(stream, _jsonOptions);
+            if (legacySettings is not null)
+            {
+                foreach (var (styleSource, style) in EnumerateLegacyTextSettings(legacySettings))
+                {
+                    foreach (var field in style.InvalidFields)
+                    {
+                        messages.Add(Warning(CodeTextSettingsFieldInvalid,
+                            Args(new { Source = styleSource, Field = field })));
+                    }
+                }
+            }
+
+            return legacySettings;
         }
         catch (Exception ex)
         {
@@ -1262,6 +1275,26 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         else if (allowTransparency == false)
         {
             target.WindowSettings.BackgroundColor = DefaultOpaqueBackgroundColor;
+        }
+
+        if (mapping.TargetWindow == "CutSceneWindow"
+            && legacySettings.CutSceneWindowSettings?.IsBlackTalentAndTraitEnable == true)
+        {
+            foreach (var control in target.ControlLayout.Controls.Values.OfType<TalentTraitDisplayControlConfig>())
+            {
+                // 2.x switches the black icon asset variant. The v3 control uses the same icon
+                // alpha masks, so its explicit tint is the equivalent serializable representation.
+                control.Color = "#FF000000";
+            }
+        }
+
+        if (mapping.TargetWindow == "ScoreGlobalWindow"
+            && legacySettings.ScoreWindowSettings?.IsCampIconBlackVerEnabled == true)
+        {
+            foreach (var control in target.ControlLayout.Controls.Values.OfType<GlobalScoreRowControlConfig>())
+            {
+                control.CampIconColor = GlobalScoreCampIconColor.Black;
+            }
         }
     }
 
@@ -1518,6 +1551,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         IReadOnlyDictionary<string, string> valueMap,
         ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
+        if (control.PickingBorderAvailable
+            && blueprint.SpecialProperties.TryGetValue("PickingBorderFillColorResourceSourceKey", out var colorSourceKey)
+            && valueMap.TryGetValue($"{prefix}{colorSourceKey}", out var color))
+        {
+            control.PickingBorderFillColor = color;
+        }
+
         if (blueprint.ResourceSourceKey is null)
         {
             return;
@@ -1551,6 +1591,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
                 break;
         }
+
     }
 
     private static void RewriteKnownResourceStrings(
@@ -1758,8 +1799,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
             Image("SurTeamLogo", "Image", "CurrentGame.SurTeam.Logo", 251, 14, 85, 85, cornerRadius: 8, stretch: "Fill"),
             Text("SurTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentSurTeamMajorText", "CutSceneWindow.MajorPoints", 380, 42),
-            Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "CutSceneWindow.TeamName", 10, 38, 207, null, textWrapping: "WrapWithOverflow"),
-            Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "CutSceneWindow.TeamName", 1223, 38, 207, null, textWrapping: "WrapWithOverflow"),
+            Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "CutSceneWindow.TeamName", 10, 38, 207, null, textWrapping: "WrapWithOverflow", contentMarginRight: -14, horizontalAlignment: "Stretch"),
+            Text("HunTeamName", "Text", "CurrentGame.HunTeam.Name", "CutSceneWindow.TeamName", 1223, 38, 207, null, textWrapping: "WrapWithOverflow", contentMarginLeft: -14, horizontalAlignment: "Left"),
             Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "CutSceneWindow.MajorPoints", 971, 42),
             Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 1104, 14, 84, 85, cornerRadius: 8, stretch: "Fill"),
             Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 488, 0, 463, 112, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "UniformToFill"),
@@ -1972,6 +2013,32 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         result.Add(legacyName, new LegacyScoreGlobalCellBlueprint(team, game, half, isOvertime));
     }
 
+    private static IEnumerable<(string Source, LegacyTextSettings Style)> EnumerateLegacyTextSettings(LegacySettings settings)
+    {
+        foreach (var setting in new object?[]
+                 {
+                     settings.BpWindowSettings?.TextSettings,
+                     settings.CutSceneWindowSettings?.TextSettings,
+                     settings.ScoreWindowSettings?.TextSettings,
+                     settings.GameDataWindowSettings?.TextSettings,
+                     settings.WidgetsWindowSettings?.TextSettings
+                 })
+        {
+            if (setting is null)
+            {
+                continue;
+            }
+
+            foreach (var property in setting.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            {
+                if (property.GetValue(setting) is LegacyTextSettings textStyle)
+                {
+                    yield return ($"{setting.GetType().Name}.{property.Name}", textStyle);
+                }
+            }
+        }
+    }
+
     private static void AddBlueprints(
         IDictionary<LegacyLayoutKey, IReadOnlyList<LegacyControlBlueprint>> result,
         string window,
@@ -2010,7 +2077,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string? targetName = null,
         int zIndex = 0,
         string? staticText = null,
-        string? textWrapping = null)
+        string? textWrapping = null,
+        string? horizontalAlignment = null,
+        string? verticalAlignment = null,
+        string? textAlignment = null,
+        double contentMarginLeft = 0,
+        double contentMarginTop = 0,
+        double contentMarginRight = 0,
+        double contentMarginBottom = 0)
     {
         var style = GetTextStyleDefaults(textStyleSourceKey);
         return new LegacyControlBlueprint
@@ -2024,10 +2098,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             FontSize = style.FontSize,
             FontWeight = style.FontWeight,
             Color = style.Color,
-            HorizontalAlignment = "Center",
-            VerticalAlignment = "Center",
-            TextAlignment = "Center",
+            HorizontalAlignment = horizontalAlignment ?? style.HorizontalAlignment ?? "Center",
+            VerticalAlignment = verticalAlignment ?? style.VerticalAlignment ?? "Center",
+            TextAlignment = textAlignment ?? style.TextAlignment ?? "Center",
             TextWrapping = textWrapping ?? style.TextWrapping,
+            ContentMarginLeft = contentMarginLeft,
+            ContentMarginTop = contentMarginTop,
+            ContentMarginRight = contentMarginRight,
+            ContentMarginBottom = contentMarginBottom,
             ZIndex = zIndex,
             DefaultLeft = left,
             DefaultTop = top,
@@ -2227,12 +2305,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         Props(
             ("PickingBorderAvailable", "true"),
             ("PickingBorderName", name),
-            ("ResourceSourceKey", "PickingBorderImage"));
+            ("ResourceSourceKey", "PickingBorderImage"),
+            ("PickingBorderFillColorResourceSourceKey", "PickingBorderColor"));
 
     private static LegacyTextStyleDefaults GetTextStyleDefaults(string sourceKey)
     {
         const string white = "#FFFFFFFF";
-        const string notoSans = "Noto Sans";
+        const string notoSans = "pack://application:,,,/Assets/Fonts/#Noto Sans";
         const string pop = "pack://application:,,,/Assets/Fonts/#华康POP1体W5";
         const string hanyi = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简";
 
@@ -2260,13 +2339,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             "GameDataWindow.TeamName" => new(null, null, null, "WrapWithOverflow", notoSans, "Normal", white, 32),
             "GameDataWindow.GameScores" => new(null, null, null, null, pop, "Bold", white, 80),
             "GameDataWindow.MajorPoints" => new(null, null, null, null, "Arial", "Bold", white, 30),
-            "GameDataWindow.PlayerId" => new(null, null, null, null, notoSans, "Normal", white, 22),
+            "GameDataWindow.PlayerId" => new("Left", null, null, null, notoSans, "Normal", white, 22),
             "GameDataWindow.MapName" => new(null, null, null, null, hanyi, "Normal", white, 22),
             "GameDataWindow.GameProgress" => new(null, null, null, null, pop, "Normal", white, 20),
             "GameDataWindow.SurDataHeader" => new(null, null, null, null, notoSans, "Normal", white, 16),
-            "GameDataWindow.HunDataHeader" => new(null, null, null, null, notoSans, "Normal", white, 16),
+            "GameDataWindow.HunDataHeader" => new("Left", null, null, null, notoSans, "Normal", white, 16),
             "GameDataWindow.SurData" => new(null, null, null, null, pop, "Normal", white, 22),
-            "GameDataWindow.HunData" => new(null, null, null, null, pop, "Normal", white, 22),
+            "GameDataWindow.HunData" => new("Right", null, "Right", null, pop, "Normal", white, 22),
             "WidgetsWindow.BpOverview_TeamName" => new(null, null, null, "WrapWithOverflow", notoSans, "Normal", white, 22),
             "WidgetsWindow.BpOverview_GameProgress" => new(null, null, null, null, pop, "Normal", white, 22),
             "WidgetsWindow.BpOverview_GameScores" => new(null, null, null, null, pop, "Normal", white, 50),
@@ -2301,6 +2380,10 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             VerticalAlignment = blueprint.VerticalAlignment,
             TextAlignment = blueprint.TextAlignment,
             TextWrapping = blueprint.TextWrapping,
+            ContentMarginLeft = blueprint.ContentMarginLeft,
+            ContentMarginTop = blueprint.ContentMarginTop,
+            ContentMarginRight = blueprint.ContentMarginRight,
+            ContentMarginBottom = blueprint.ContentMarginBottom,
             FontFamily = blueprint.FontFamily,
             FontWeight = blueprint.FontWeight,
             Color = blueprint.Color,
@@ -2516,6 +2599,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             image.PickingBorderImagePath = pickingBorderImagePath;
         }
 
+        if (blueprint.SpecialProperties.TryGetValue("PickingBorderFillColor", out var pickingBorderFillColor))
+        {
+            image.PickingBorderFillColor = pickingBorderFillColor;
+        }
+
         if (image is BorderedImageFrontedControlConfig bordered)
         {
             bordered.ImageWidth = ReadNullableDoubleSpecialProperty(blueprint, "ImageWidth");
@@ -2554,7 +2642,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 && style is not null
                 && control is IFrontedTextStyleConfig textControl)
             {
-                ApplyLegacyTextStyle(textControl, style);
+                LegacyFrontedTextStyleMigrator.ApplyTextStyle(textControl, style);
                 messages.Add(Info(CodeTextSettingsApplied,
                     Args(new
                     {
@@ -2582,15 +2670,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_MapName", out var mapNameStyle)
             && mapNameStyle is not null)
         {
-            map.MapNameColor = FirstNonEmpty(mapNameStyle.Color, map.MapNameColor);
-            map.MapNameFontFamily = FirstNonEmpty(
-                LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(mapNameStyle.FontFamilySite),
-                map.MapNameFontFamily);
-            map.MapNameFontWeight = mapNameStyle.FontWeight.ToString();
-            if (mapNameStyle.FontSize > 0)
-            {
-                map.MapNameFontSize = mapNameStyle.FontSize;
-            }
+            LegacyFrontedTextStyleMigrator.ApplyMapV2TextStyle(
+                map, mapNameStyle, LegacyMapV2TextStyleTarget.MapName);
 
             messages.Add(Info(CodeTextSettingsApplied,
                 Args(new
@@ -2605,15 +2686,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_TeamName", out var teamNameStyle)
             && teamNameStyle is not null)
         {
-            map.TeamNameColor = FirstNonEmpty(teamNameStyle.Color, map.TeamNameColor);
-            map.TeamNameFontFamily = FirstNonEmpty(
-                LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(teamNameStyle.FontFamilySite),
-                map.TeamNameFontFamily);
-            map.TeamNameFontWeight = teamNameStyle.FontWeight.ToString();
-            if (teamNameStyle.FontSize > 0)
-            {
-                map.TeamNameFontSize = teamNameStyle.FontSize;
-            }
+            LegacyFrontedTextStyleMigrator.ApplyMapV2TextStyle(
+                map, teamNameStyle, LegacyMapV2TextStyleTarget.TeamName);
 
             messages.Add(Info(CodeTextSettingsApplied,
                 Args(new
@@ -2628,15 +2702,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         if (TryGetLegacyTextStyle(legacySettings, "WidgetsWindow.MapBpV2_CampWords", out var campStyle)
             && campStyle is not null)
         {
-            map.CampNameColor = FirstNonEmpty(campStyle.Color, map.CampNameColor);
-            map.CampNameFontFamily = FirstNonEmpty(
-                LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(campStyle.FontFamilySite),
-                map.CampNameFontFamily);
-            map.CampNameFontWeight = campStyle.FontWeight.ToString();
-            if (campStyle.FontSize > 0)
-            {
-                map.CampNameFontSize = campStyle.FontSize;
-            }
+            LegacyFrontedTextStyleMigrator.ApplyMapV2TextStyle(
+                map, campStyle, LegacyMapV2TextStyleTarget.CampName);
 
             messages.Add(Info(CodeTextSettingsApplied,
                 Args(new
@@ -2696,30 +2763,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         return style is not null;
     }
-
-    private static void ApplyLegacyTextStyle(IFrontedTextStyleConfig target, LegacyTextSettings style)
-    {
-        if (!string.IsNullOrWhiteSpace(style.Color))
-        {
-            target.Color = style.Color.Trim();
-        }
-
-        var fontFamily = LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(style.FontFamilySite);
-        if (!string.IsNullOrWhiteSpace(fontFamily))
-        {
-            target.FontFamily = fontFamily;
-        }
-
-        if (style.FontSize > 0)
-        {
-            target.FontSize = style.FontSize;
-        }
-
-        target.FontWeight = style.FontWeight.ToString();
-    }
-
-    private static string? FirstNonEmpty(string? value, string? fallback) =>
-        string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
 
     private static bool ReadBoolSpecialProperty(LegacyControlBlueprint blueprint, string key) =>
         blueprint.SpecialProperties.TryGetValue(key, out var value)
@@ -3030,6 +3073,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         public string? TextAlignment { get; init; }
 
         public string? TextWrapping { get; init; }
+
+        public double ContentMarginLeft { get; init; }
+
+        public double ContentMarginTop { get; init; }
+
+        public double ContentMarginRight { get; init; }
+
+        public double ContentMarginBottom { get; init; }
 
         public string? ImageBindingPath { get; init; }
 

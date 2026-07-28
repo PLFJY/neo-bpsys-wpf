@@ -245,19 +245,19 @@ public static class LegacyFrontedTextStyleMigrator
 
             if (settings?.TextSettings?.MapBpV2_MapName is { } mapNameStyle)
             {
-                ApplyMapV2MapNameStyle(map, mapNameStyle);
+                ApplyMapV2TextStyle(map, mapNameStyle, LegacyMapV2TextStyleTarget.MapName);
                 diagnostics?.Add($"Legacy text style applied: {window}/{canvas}/{name} <- WidgetsWindowSettings.TextSettings.MapBpV2_MapName");
             }
 
             if (settings?.TextSettings?.MapBpV2_TeamName is { } teamNameStyle)
             {
-                ApplyMapV2TeamNameStyle(map, teamNameStyle);
+                ApplyMapV2TextStyle(map, teamNameStyle, LegacyMapV2TextStyleTarget.TeamName);
                 diagnostics?.Add($"Legacy text style applied: {window}/{canvas}/{name} <- WidgetsWindowSettings.TextSettings.MapBpV2_TeamName");
             }
 
             if (settings?.TextSettings?.MapBpV2_CampWords is { } campWordsStyle)
             {
-                ApplyMapV2CampNameStyle(map, campWordsStyle);
+                ApplyMapV2TextStyle(map, campWordsStyle, LegacyMapV2TextStyleTarget.CampName);
                 diagnostics?.Add($"Legacy text style applied: {window}/{canvas}/{name} <- WidgetsWindowSettings.TextSettings.MapBpV2_CampWords");
             }
         }
@@ -296,7 +296,12 @@ public static class LegacyFrontedTextStyleMigrator
         }
     }
 
-    private static void ApplyTextStyle(IFrontedTextStyleConfig target, LegacyTextSettings style)
+    /// <summary>
+    /// 应用旧版 TextSettings 的四项基础外观属性。
+    /// </summary>
+    /// <param name="target">v3 文本样式目标。</param>
+    /// <param name="style">旧版文本样式。</param>
+    public static void ApplyTextStyle(IFrontedTextStyleConfig target, LegacyTextSettings style)
     {
         if (!string.IsNullOrWhiteSpace(style.Color))
         {
@@ -314,39 +319,48 @@ public static class LegacyFrontedTextStyleMigrator
             target.FontSize = style.FontSize;
         }
 
-        target.FontWeight = style.FontWeight.ToString();
-    }
-
-    private static void ApplyMapV2MapNameStyle(MapV2DisplayControlConfig target, LegacyTextSettings style)
-    {
-        target.MapNameColor = FirstNonEmpty(style.Color, target.MapNameColor);
-        target.MapNameFontFamily = FirstNonEmpty(NormalizeLegacyFontFamilySite(style.FontFamilySite), target.MapNameFontFamily);
-        target.MapNameFontWeight = style.FontWeight.ToString();
-        if (style.FontSize > 0)
+        if (!style.InvalidFields.Contains(nameof(LegacyTextSettings.FontWeight), StringComparer.Ordinal))
         {
-            target.MapNameFontSize = style.FontSize;
+            target.FontWeight = style.FontWeight.ToString();
         }
     }
 
-    private static void ApplyMapV2TeamNameStyle(MapV2DisplayControlConfig target, LegacyTextSettings style)
+    /// <summary>
+    /// 将旧版文本样式应用到 MapV2Display 的指定文本区域。
+    /// </summary>
+    /// <param name="target">MapV2Display 配置。</param>
+    /// <param name="style">旧版文本样式。</param>
+    /// <param name="part">MapV2 内部文本区域。</param>
+    public static void ApplyMapV2TextStyle(
+        MapV2DisplayControlConfig target,
+        LegacyTextSettings style,
+        LegacyMapV2TextStyleTarget part)
     {
-        target.TeamNameColor = FirstNonEmpty(style.Color, target.TeamNameColor);
-        target.TeamNameFontFamily = FirstNonEmpty(NormalizeLegacyFontFamilySite(style.FontFamilySite), target.TeamNameFontFamily);
-        target.TeamNameFontWeight = style.FontWeight.ToString();
-        if (style.FontSize > 0)
+        var color = FirstNonEmpty(style.Color, null);
+        var family = NormalizeLegacyFontFamilySite(style.FontFamilySite);
+        var weight = style.InvalidFields.Contains(nameof(LegacyTextSettings.FontWeight), StringComparer.Ordinal)
+            ? null
+            : style.FontWeight.ToString();
+        switch (part)
         {
-            target.TeamNameFontSize = style.FontSize;
-        }
-    }
-
-    private static void ApplyMapV2CampNameStyle(MapV2DisplayControlConfig target, LegacyTextSettings style)
-    {
-        target.CampNameColor = FirstNonEmpty(style.Color, target.CampNameColor);
-        target.CampNameFontFamily = FirstNonEmpty(NormalizeLegacyFontFamilySite(style.FontFamilySite), target.CampNameFontFamily);
-        target.CampNameFontWeight = style.FontWeight.ToString();
-        if (style.FontSize > 0)
-        {
-            target.CampNameFontSize = style.FontSize;
+            case LegacyMapV2TextStyleTarget.MapName:
+                target.MapNameColor = FirstNonEmpty(color, target.MapNameColor);
+                target.MapNameFontFamily = FirstNonEmpty(family, target.MapNameFontFamily);
+                if (weight is not null) target.MapNameFontWeight = weight;
+                if (style.FontSize > 0) target.MapNameFontSize = style.FontSize;
+                break;
+            case LegacyMapV2TextStyleTarget.TeamName:
+                target.TeamNameColor = FirstNonEmpty(color, target.TeamNameColor);
+                target.TeamNameFontFamily = FirstNonEmpty(family, target.TeamNameFontFamily);
+                if (weight is not null) target.TeamNameFontWeight = weight;
+                if (style.FontSize > 0) target.TeamNameFontSize = style.FontSize;
+                break;
+            case LegacyMapV2TextStyleTarget.CampName:
+                target.CampNameColor = FirstNonEmpty(color, target.CampNameColor);
+                target.CampNameFontFamily = FirstNonEmpty(family, target.CampNameFontFamily);
+                if (weight is not null) target.CampNameFontWeight = weight;
+                if (style.FontSize > 0) target.CampNameFontSize = style.FontSize;
+                break;
         }
     }
 
@@ -416,4 +430,19 @@ public static class LegacyFrontedTextStyleMigrator
 
     private static bool Contains(string name, string fragment) =>
         name.Contains(fragment, StringComparison.OrdinalIgnoreCase);
+}
+
+/// <summary>
+/// MapV2Display 中可接收旧版 TextSettings 的文本区域。
+/// </summary>
+public enum LegacyMapV2TextStyleTarget
+{
+    /// <summary>地图名称。</summary>
+    MapName,
+
+    /// <summary>队伍名称。</summary>
+    TeamName,
+
+    /// <summary>阵营名称。</summary>
+    CampName
 }
