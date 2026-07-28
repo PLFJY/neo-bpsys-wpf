@@ -134,6 +134,7 @@
                         </Grid>
                         <StackPanel
                             Margin="0,16,0,0"
+                            HorizontalAlignment="Center"
                             Orientation="Horizontal"
                             Visibility="{Binding IsSmartBpModuleMirrorSettingVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <TextBlock VerticalAlignment="Center" Text="{lex:Loc DownloadSource}" />
