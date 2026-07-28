@@ -85,6 +85,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<ICudaDeviceDetector, PaddleRuntime.CudaDeviceDetector>();
         services.AddSingleton<IPaddleRuntimeManifestProvider, PaddleRuntime.PaddleRuntimeManifestProvider>();
         services.AddSingleton<IPaddleRuntimeComponentService, PaddleRuntime.PaddleRuntimeComponentService>();
+        services.AddSingleton<IPaddleCudaPrerequisiteSetupService, PaddleRuntime.PaddleCudaPrerequisiteSetupService>();
         services.AddSingleton<IPaddleRuntimeState, PaddleRuntime.PaddleRuntimeState>();
         services.AddSingleton<IPaddleRuntimeBootstrapper, PaddleRuntime.PaddleRuntimeBootstrapper>();
         services.AddSingleton(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());

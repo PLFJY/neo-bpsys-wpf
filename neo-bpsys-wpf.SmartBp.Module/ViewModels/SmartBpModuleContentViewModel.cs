@@ -53,6 +53,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     // CUDA / Paddle runtime 设置卡片依赖的服务，由 SmartBpModuleContentViewModel.Cuda.cs 使用。
     private readonly ICudaDeviceDetector _cudaDeviceDetector = null!;
     private readonly IPaddleRuntimeComponentService _paddleRuntimeComponentService = null!;
+    private readonly IPaddleCudaPrerequisiteSetupService _paddleCudaPrerequisiteSetupService = null!;
     private readonly IPaddleRuntimeManifestProvider _paddleRuntimeManifestProvider = null!;
     private readonly IPaddleRuntimeState _paddleRuntimeState = null!;
     private readonly ISettingsHostService _settingsHostService = null!;
@@ -105,6 +106,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         IGameDataRecognitionDebugState gameDataRecognitionDebugState,
         ICudaDeviceDetector cudaDeviceDetector,
         IPaddleRuntimeComponentService paddleRuntimeComponentService,
+        IPaddleCudaPrerequisiteSetupService paddleCudaPrerequisiteSetupService,
         IPaddleRuntimeManifestProvider paddleRuntimeManifestProvider,
         IPaddleRuntimeState paddleRuntimeState,
         ISettingsHostService settingsHostService,
@@ -132,6 +134,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _gameDataRecognitionDebugState = gameDataRecognitionDebugState;
         _cudaDeviceDetector = cudaDeviceDetector;
         _paddleRuntimeComponentService = paddleRuntimeComponentService;
+        _paddleCudaPrerequisiteSetupService = paddleCudaPrerequisiteSetupService;
         _paddleRuntimeManifestProvider = paddleRuntimeManifestProvider;
         _paddleRuntimeState = paddleRuntimeState;
         _settingsHostService = settingsHostService;
@@ -198,6 +201,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         {
             RefreshCudaStatus();
             RefreshCudaUnsupportedReason();
+            RefreshCudaDownloadStageText();
+            RefreshCudaInstallationErrorText();
             RebuildOcrProviderSelections();
             RefreshOcrModelStatus();
             RefreshOcrProviderStatuses();

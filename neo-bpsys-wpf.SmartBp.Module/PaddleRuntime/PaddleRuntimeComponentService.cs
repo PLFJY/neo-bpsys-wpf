@@ -639,7 +639,7 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
             "Runtime",
             "Paddle",
             "cuda",
-            AppConstants.PaddleInferenceRuntimeVersion,
+            _manifestProvider.PaddleInferenceVersion,
             packageId);
 
     /// <summary>
@@ -696,7 +696,7 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
                     continue;
                 var versionMatches = string.Equals(
                     manifest.PackageVersion,
-                    AppConstants.PaddleInferenceRuntimeVersion,
+                    _manifestProvider.PaddleInferenceVersion,
                     StringComparison.Ordinal);
                 var found = new FoundInstall(packageDir, manifest, versionMatches);
                 if (versionMatches)

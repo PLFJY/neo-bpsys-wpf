@@ -177,6 +177,7 @@ public sealed class TesseractDataAssetManagerTest
     private sealed class FakeStorageProvider(string tesseractDataRoot) : ISmartBpModuleStorageProvider
     {
         public string ModuleRoot => Directory.GetParent(Directory.GetParent(tesseractDataRoot)!.FullName)!.FullName;
+        public string PaddleRuntimeRoot => System.IO.Path.Combine(ModuleRoot, "Runtime", "Paddle");
         public string OcrModelsRoot => Directory.GetParent(Directory.GetParent(tesseractDataRoot)!.FullName)!.FullName;
         public string TesseractDataRoot => tesseractDataRoot;
         public string RapidOcrModelsRoot => System.IO.Path.Combine(OcrModelsRoot, "RapidOCR", "Models");

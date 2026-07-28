@@ -50,6 +50,19 @@ public sealed class SmartBpModuleNativeDependencyTest : IDisposable
     }
 
     [Fact]
+    public void FindModuleUnmanagedLibraryPath_FindsModuleOwnedPaddleCpuRuntime()
+    {
+        var nativeRoot = Path.Combine(_root, "Runtime", "Paddle", "cpu", "3.3.1.70", "native");
+        Directory.CreateDirectory(nativeRoot);
+        var expected = Path.Combine(nativeRoot, "paddle_inference_c.dll");
+        File.WriteAllBytes(expected, []);
+
+        var actual = SmartBpModuleManager.FindModuleUnmanagedLibraryPath(_root, "paddle_inference_c");
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public async Task RapidOcrNet_InitializesAndDetectsThroughSmartBpModuleLoadContext()
     {
         var repositoryRoot = FindRepositoryRoot();

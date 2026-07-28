@@ -984,6 +984,36 @@
   <data name="CudaStatusDownloading" xml:space="preserve">
     <value>正在下载</value>
   </data>
+  <data name="CudaStagePreparing" xml:space="preserve">
+    <value>正在准备 CUDA 依赖安装...</value>
+  </data>
+  <data name="CudaStageDownloadingPaddleRuntime" xml:space="preserve">
+    <value>正在下载 Paddle CUDA runtime...</value>
+  </data>
+  <data name="CudaStageDownloadingCudaToolkit" xml:space="preserve">
+    <value>正在下载 NVIDIA CUDA 11.8 安装包...</value>
+  </data>
+  <data name="CudaStageVerifyingCudaToolkit" xml:space="preserve">
+    <value>正在校验 NVIDIA CUDA 11.8 安装包完整性...</value>
+  </data>
+  <data name="CudaStageInstallingCudaToolkit" xml:space="preserve">
+    <value>正在打开 NVIDIA CUDA 11.8 图形安装程序。请确认 UAC 授权并按照安装界面完成安装；程序会等待并自动检测结果...</value>
+  </data>
+  <data name="CudaStageDownloadingCuDnn" xml:space="preserve">
+    <value>正在下载 NVIDIA cuDNN 8.9.6...</value>
+  </data>
+  <data name="CudaStageVerifyingCuDnn" xml:space="preserve">
+    <value>正在校验 NVIDIA cuDNN 8.9.6 安装包完整性...</value>
+  </data>
+  <data name="CudaStageInstallingCuDnn" xml:space="preserve">
+    <value>正在安装 cuDNN 8.9.6 并更新系统 PATH，请在 UAC 弹窗中确认授权...</value>
+  </data>
+  <data name="CudaInstallErrorDetails" xml:space="preserve">
+    <value>CUDA 安装失败：{0}</value>
+  </data>
+  <data name="CudaInstallCancelled" xml:space="preserve">
+    <value>安装已取消。</value>
+  </data>
   <data name="CudaStatusVersionMismatch" xml:space="preserve">
     <value>组件版本不兼容，需要重新下载</value>
   </data>
@@ -1012,10 +1042,13 @@
     <value>下载 CUDA 运行时依赖</value>
   </data>
   <data name="CudaDependencyRequiredHint" xml:space="preserve">
-    <value>需要先下载 CUDA 运行时依赖才能启用硬件加速</value>
+    <value>需要先安装 NVIDIA CUDA 11.8 与 cuDNN 依赖（约 4 GB，需要 UAC 授权）才能启用硬件加速</value>
   </data>
   <data name="CudaStatusDependencyReady" xml:space="preserve">
     <value>依赖已就绪，可启用硬件加速</value>
+  </data>
+  <data name="CudaStatusPrerequisitesMissing" xml:space="preserve">
+    <value>缺少 NVIDIA CUDA/cuDNN 可再发行依赖，需要下载安装</value>
   </data>
   <data name="CudaStatusDownloadFailed" xml:space="preserve">
     <value>下载失败，请重试</value>

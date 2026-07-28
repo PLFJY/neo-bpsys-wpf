@@ -11,10 +11,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 /// <summary>
 /// SmartBP 模块 CUDA 硬件加速设置相关的视图模型逻辑（partial）。
-/// 流程：检测 NVIDIA GPU → （未安装时）显示"下载依赖"按钮 → 用户下载并安装 → 启用开关 →
-/// 利用全局重启服务提示用户重启以应用硬件加速。下载流程参照软件更新
-/// <c>UpdaterService</c>：fire-and-forget 启动，通过 <see cref="IPaddleRuntimeComponentService.DownloadStateChanged"/>
-/// 事件 + <see cref="IsCudaDownloading"/>/<see cref="IsCudaDependencyInstalled"/> 等属性同步 UI。
+/// 流程：检测 NVIDIA GPU → （未安装时）下载 Paddle runtime 与 NVIDIA 可再发行依赖 → 启用开关 →
+/// 利用全局重启服务提示用户重启以应用硬件加速。
 /// </summary>
 public partial class SmartBpModuleContentViewModel
 {
@@ -35,6 +33,16 @@ public partial class SmartBpModuleContentViewModel
     /// 语言切换后通过 <see cref="RefreshCudaUnsupportedReason"/> 重新解析，避免提示文本滞留旧语言。
     /// </summary>
     private string? _cudaUnsupportedReasonKey;
+
+    /// <summary>
+    /// 当前 <see cref="CudaDownloadStageText"/> 对应的资源键；无进行中操作时为 <see langword="null"/>。
+    /// </summary>
+    private string? _cudaDownloadStageKey;
+
+    /// <summary>
+    /// 最近一次 CUDA 安装失败的原始错误详情；无错误时为 <see langword="null"/>。
+    /// </summary>
+    private string? _cudaInstallationErrorDetail;
 
     /// <summary>
     /// 获取或设置是否检测到至少一张 NVIDIA CUDA 设备。
@@ -95,6 +103,24 @@ public partial class SmartBpModuleContentViewModel
     public partial string CudaDownloadSpeedText { get; set; } = "";
 
     /// <summary>
+    /// 获取或设置 CUDA 依赖下载、校验或安装阶段的本地化状态文本。
+    /// </summary>
+    [ObservableProperty]
+    public partial string CudaDownloadStageText { get; set; } = "";
+
+    /// <summary>
+    /// 获取或设置当前 CUDA 依赖操作是否具有可量化的网络传输进度。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsCudaTransferActive { get; set; }
+
+    /// <summary>
+    /// 获取或设置最近一次 CUDA 安装失败的常驻本地化错误文本；无错误时为 <see langword="null"/>。
+    /// </summary>
+    [ObservableProperty]
+    public partial string? CudaInstallationErrorText { get; set; }
+
+    /// <summary>
     /// 获取或设置是否需要重启应用以应用 CUDA 后端切换。
     /// </summary>
     [ObservableProperty]
@@ -146,8 +172,7 @@ public partial class SmartBpModuleContentViewModel
 
         ResolveSelectedCudaPackage();
 
-        IsCudaDependencyInstalled =
-            _paddleRuntimeComponentService.GetInstallStatus().Status == PaddleRuntimeInstallStatus.Installed;
+        IsCudaDependencyInstalled = IsCudaDependencyReady();
         // 开关状态仅在依赖已安装时才反映用户偏好；未安装时强制显示关闭，等待用户下载依赖。
         IsCudaEnabled = IsCudaDependencyInstalled
             && _settingsHostService.Settings.PreferredOcrBackend == OcrInferenceBackend.Cuda;
@@ -157,6 +182,7 @@ public partial class SmartBpModuleContentViewModel
 
         _paddleRuntimeState.StateChanged += (_, _) => BeginOnUiThread(RefreshCudaStatus);
         _paddleRuntimeComponentService.DownloadStateChanged += (_, _) => BeginOnUiThread(OnCudaDownloadStateChanged);
+        _paddleCudaPrerequisiteSetupService.StatusChanged += (_, _) => BeginOnUiThread(OnCudaPrerequisiteStateChanged);
         _globalRestartService.RestartRequiredStateChanged += (_, _) => BeginOnUiThread(OnCudaRestartRequiredChanged);
     }
 
@@ -201,11 +227,9 @@ public partial class SmartBpModuleContentViewModel
     }
 
     /// <summary>
-    /// 下载 CUDA runtime 依赖命令（fire-and-forget）。仅在依赖未安装时可用。
-    /// 参照软件更新 <c>UpdaterService.DownloadUpdate</c>：不 <see langword="await"/> 下载完成，
-    /// 进度与结果通过 <see cref="OnCudaDownloadStateChanged"/> 同步。
+    /// 下载并安装 CUDA runtime 与 NVIDIA 可再发行依赖。仅在依赖未安装时可用。
     /// </summary>
-    /// <returns>启动下载后的任务（不代表下载完成）。</returns>
+    /// <returns>下载、校验和安装完成后的任务。</returns>
     [RelayCommand(CanExecute = nameof(CanDownloadCudaDependency))]
     private async Task DownloadCudaDependencyAsync()
     {
@@ -217,24 +241,58 @@ public partial class SmartBpModuleContentViewModel
 
         // 清除上一次下载失败提示，开始新一轮下载。
         SetCudaUnsupportedReason(null);
+        SetCudaInstallationError(null);
 
         _cudaDownloadCts = new CancellationTokenSource();
         IsCudaDownloading = true;
         CudaDownloadProgress = 0;
         CudaDownloadProgressText = "";
         CudaDownloadSpeedText = "";
+        SetCudaDownloadStage("CudaStagePreparing", false);
         try
         {
-            // 参照软件更新：DownloadAsync 返回 Task.CompletedTask（fire-and-forget）。
-            // 下载完成由 DownloadStateChanged 事件 → OnCudaDownloadStateChanged 处理。
-            await _paddleRuntimeComponentService.DownloadAsync(_selectedCudaPackage, _cudaDownloadCts.Token);
+            if (_paddleRuntimeComponentService.GetInstallStatus().Status != PaddleRuntimeInstallStatus.Installed)
+            {
+                await _paddleRuntimeComponentService.DownloadAsync(_selectedCudaPackage, _cudaDownloadCts.Token);
+                await WaitForPaddleRuntimeInstallAsync(_cudaDownloadCts.Token);
+                if (_paddleRuntimeComponentService.LastInstallSucceeded != true)
+                {
+                    SetCudaUnsupportedReason("CudaStatusDownloadFailed");
+                    return;
+                }
+            }
+
+            await _paddleCudaPrerequisiteSetupService.InstallAsync(_selectedCudaPackage, _cudaDownloadCts.Token);
+            if (_paddleCudaPrerequisiteSetupService.Status.Status != PaddleCudaPrerequisiteInstallStatus.Installed)
+            {
+                SetCudaUnsupportedReason("CudaStatusDownloadFailed");
+                SetCudaInstallationError(_paddleCudaPrerequisiteSetupService.Status.ErrorMessage);
+            }
+            else
+            {
+                SetCudaUnsupportedReason(null);
+                SetCudaInstallationError(null);
+            }
         }
-        catch (InvalidOperationException)
+        catch (OperationCanceledException)
         {
-            // 已有下载进行中，同步状态即可。
+            SetCudaUnsupportedReason("CudaInstallCancelled");
+            SetCudaInstallationError(null);
+        }
+        catch (InvalidOperationException ex)
+        {
+            SetCudaInstallationError(ex.Message);
+            RefreshCudaStatus();
+        }
+        finally
+        {
             _cudaDownloadCts?.Dispose();
             _cudaDownloadCts = null;
-            IsCudaDownloading = _paddleRuntimeComponentService.IsDownloading;
+            IsCudaDownloading = false;
+            CudaDownloadProgress = 0;
+            CudaDownloadProgressText = "";
+            CudaDownloadSpeedText = "";
+            SetCudaDownloadStage(null, false);
             RefreshCudaStatus();
         }
     }
@@ -312,7 +370,7 @@ public partial class SmartBpModuleContentViewModel
         var componentService = _paddleRuntimeComponentService;
         var installInfo = componentService.GetInstallStatus();
 
-        IsCudaDependencyInstalled = installInfo.Status == PaddleRuntimeInstallStatus.Installed;
+        IsCudaDependencyInstalled = IsCudaDependencyReady();
 
         // 当前选中的 OCR 引擎（Paddle / Rapid / Tesseract）。CUDA 只服务于 PaddleOCR，
         // 其他引擎下即使 CUDA runtime 已就绪也不会被使用。
@@ -343,9 +401,14 @@ public partial class SmartBpModuleContentViewModel
         {
             statusKey = "CudaStatusRestartRequired";
         }
-        else if (componentService.IsDownloading)
+        else if (IsCudaDownloading)
         {
             statusKey = "CudaStatusDownloading";
+        }
+        else if (installInfo.Status == PaddleRuntimeInstallStatus.Installed
+                 && _paddleCudaPrerequisiteSetupService.Status.Status != PaddleCudaPrerequisiteInstallStatus.Installed)
+        {
+            statusKey = "CudaStatusPrerequisitesMissing";
         }
         else if (installInfo.Status == PaddleRuntimeInstallStatus.Installed && !IsCudaEnabled)
         {
@@ -400,42 +463,151 @@ public partial class SmartBpModuleContentViewModel
     }
 
     /// <summary>
-    /// 处理 CUDA runtime 组件下载状态变化：同步进度/速度文本，并在下载结束时更新安装状态与提示。
-    /// 参照软件更新 <c>RefreshUpdateDownloadState</c>：下载进行中只做属性赋值，
-    /// <b>不调用</b> <see cref="RefreshCudaStatus"/>（后者会通过 <see cref="GetInstallStatus"/>
-    /// 遍历文件系统，高频进度事件下会淹没 UI 线程导致卡死）。下载中状态文本固定为"下载中"，
-    /// 由 <see cref="OnIsCudaDownloadingChanged"/> 在 <see cref="IsCudaDownloading"/> 翻转时刷新一次。
+    /// 设置 CUDA 依赖操作的阶段资源键、显示文本以及是否展示可量化下载进度。
+    /// </summary>
+    /// <param name="key">本地化资源键；传 <see langword="null"/> 清除阶段文本。</param>
+    /// <param name="isTransferActive">当前阶段是否正在执行可量化的网络传输。</param>
+    private void SetCudaDownloadStage(string? key, bool isTransferActive)
+    {
+        _cudaDownloadStageKey = key;
+        CudaDownloadStageText = key is null ? "" : ResolveLocalizedOrRaw(key);
+        IsCudaTransferActive = isTransferActive;
+    }
+
+    /// <summary>
+    /// 语言切换后重新解析当前 CUDA 依赖操作的阶段文本。
+    /// </summary>
+    private void RefreshCudaDownloadStageText()
+    {
+        if (_cudaDownloadStageKey is null)
+            return;
+
+        CudaDownloadStageText = ResolveLocalizedOrRaw(_cudaDownloadStageKey);
+    }
+
+    /// <summary>
+    /// 设置最近一次 CUDA 安装错误详情，并生成独立于操作区生命周期的常驻错误文本。
+    /// </summary>
+    /// <param name="detail">原始错误详情；传 <see langword="null"/> 清除错误。</param>
+    private void SetCudaInstallationError(string? detail)
+    {
+        _cudaInstallationErrorDetail = string.IsNullOrWhiteSpace(detail) ? null : detail.Trim();
+        CudaInstallationErrorText = _cudaInstallationErrorDetail is null
+            ? null
+            : string.Format(ResolveLocalizedOrRaw("CudaInstallErrorDetails"), _cudaInstallationErrorDetail);
+    }
+
+    /// <summary>
+    /// 语言切换后重新生成最近一次 CUDA 安装错误的本地化文本。
+    /// </summary>
+    private void RefreshCudaInstallationErrorText()
+    {
+        if (_cudaInstallationErrorDetail is not null)
+            SetCudaInstallationError(_cudaInstallationErrorDetail);
+    }
+
+    /// <summary>
+    /// 处理 Paddle runtime 下载状态变化，并同步下载进度展示。
     /// </summary>
     private void OnCudaDownloadStateChanged()
     {
-        var wasDownloading = IsCudaDownloading;
-        IsCudaDownloading = _paddleRuntimeComponentService.IsDownloading;
+        if (_paddleRuntimeComponentService.IsDownloading && IsCudaDownloading)
+            SetCudaDownloadStage("CudaStageDownloadingPaddleRuntime", true);
+
         var progress = _paddleRuntimeComponentService.DownloadProgress ?? 0;
         var speed = _paddleRuntimeComponentService.DownloadSpeed ?? 0;
-        CudaDownloadProgress = progress;
-        CudaDownloadProgressText = IsCudaDownloading ? $"{progress:0.00}%" : "";
+        CudaDownloadProgress = progress * 0.1;
+        CudaDownloadProgressText = IsCudaDownloading ? $"{CudaDownloadProgress:0.00}%" : "";
         CudaDownloadSpeedText = IsCudaDownloading ? $"{speed / 1024 / 1024:0.00} MB/s" : "";
+    }
 
-        // 仅在下载结束（下降沿）时刷新安装状态并设置提示；
-        // 下载进行中不调用 RefreshCudaStatus，避免每次进度事件都遍历文件系统。
-        if (wasDownloading && !IsCudaDownloading)
+    /// <summary>
+    /// 处理 NVIDIA CUDA/cuDNN 可再发行依赖状态变化，并同步总体下载进度展示。
+    /// </summary>
+    private void OnCudaPrerequisiteStateChanged()
+    {
+        var status = _paddleCudaPrerequisiteSetupService.Status;
+        if (status.IsBusy)
         {
-            _cudaDownloadCts?.Dispose();
-            _cudaDownloadCts = null;
-
-            // RefreshCudaStatus 会同步 IsCudaDependencyInstalled 与状态文本。
-            RefreshCudaStatus();
-
-            if (_paddleRuntimeComponentService.LastInstallSucceeded != true)
+            var (stageKey, isTransferActive) = status.CurrentStep switch
             {
-                SetCudaUnsupportedReason("CudaStatusDownloadFailed");
-            }
-            else
-            {
-                SetCudaUnsupportedReason(null);
-            }
+                "DownloadingCudaToolkit" => ("CudaStageDownloadingCudaToolkit", true),
+                "VerifyingCudaToolkit" => ("CudaStageVerifyingCudaToolkit", false),
+                "InstallingCudaToolkit" => ("CudaStageInstallingCudaToolkit", false),
+                "DownloadingCuDnn" => ("CudaStageDownloadingCuDnn", true),
+                "VerifyingCuDnn" => ("CudaStageVerifyingCuDnn", false),
+                "InstallingCuDnn" => ("CudaStageInstallingCuDnn", false),
+                _ => ("CudaStagePreparing", false),
+            };
+            SetCudaDownloadStage(stageKey, isTransferActive);
+
+            var runtimeAlreadyInstalled = _paddleRuntimeComponentService.GetInstallStatus().Status == PaddleRuntimeInstallStatus.Installed;
+            CudaDownloadProgress = runtimeAlreadyInstalled
+                ? status.DownloadProgress
+                : 10 + status.DownloadProgress * 0.9;
+            CudaDownloadProgressText = isTransferActive ? $"{CudaDownloadProgress:0.00}%" : "";
+            CudaDownloadSpeedText = isTransferActive && status.DownloadSpeed is > 0
+                ? $"{status.DownloadSpeed.Value / 1024 / 1024:0.00} MB/s"
+                : "";
+        }
+        else if (!string.IsNullOrWhiteSpace(status.ErrorMessage))
+        {
+            SetCudaInstallationError(status.ErrorMessage);
+        }
+
+        RefreshCudaStatus();
+    }
+
+    /// <summary>
+    /// 等待 fire-and-forget Paddle CUDA runtime 组件下载完成。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>下载与安装完成后的任务。</returns>
+    private Task WaitForPaddleRuntimeInstallAsync(CancellationToken cancellationToken)
+    {
+        if (!_paddleRuntimeComponentService.IsDownloading)
+            return Task.CompletedTask;
+
+        var completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        EventHandler? handler = null;
+        handler = (_, _) =>
+        {
+            if (!_paddleRuntimeComponentService.IsDownloading)
+                completionSource.TrySetResult();
+        };
+        _paddleRuntimeComponentService.DownloadStateChanged += handler;
+        if (!_paddleRuntimeComponentService.IsDownloading)
+            completionSource.TrySetResult();
+
+        return WaitAndUnsubscribeAsync(completionSource.Task, handler, cancellationToken);
+    }
+
+    /// <summary>
+    /// 等待指定任务完成并解除 Paddle runtime 下载状态事件订阅。
+    /// </summary>
+    /// <param name="task">要等待的任务。</param>
+    /// <param name="handler">要解除的事件处理器。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>等待任务。</returns>
+    private async Task WaitAndUnsubscribeAsync(Task task, EventHandler handler, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await task.WaitAsync(cancellationToken);
+        }
+        finally
+        {
+            _paddleRuntimeComponentService.DownloadStateChanged -= handler;
         }
     }
+
+    /// <summary>
+    /// 判断 Paddle CUDA native runtime 与 NVIDIA 可再发行依赖是否均已就绪。
+    /// </summary>
+    /// <returns>两个依赖均已安装时返回 <see langword="true"/>。</returns>
+    private bool IsCudaDependencyReady()
+        => _paddleRuntimeComponentService.GetInstallStatus().Status == PaddleRuntimeInstallStatus.Installed
+           && _paddleCudaPrerequisiteSetupService.Status.Status == PaddleCudaPrerequisiteInstallStatus.Installed;
 
     /// <summary>
     /// 处理全局重启需求变化：同步 <see cref="IsCudaRestartRequired"/> 并刷新状态文本。

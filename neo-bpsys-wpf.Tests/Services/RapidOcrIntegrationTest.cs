@@ -215,6 +215,7 @@ public sealed class RapidOcrIntegrationTest : IDisposable
     private sealed class FakeStorage(string root) : ISmartBpModuleStorageProvider
     {
         public string ModuleRoot => root;
+        public string PaddleRuntimeRoot => Path.Combine(root, "Runtime", "Paddle");
         public string OcrModelsRoot => Path.Combine(root, "OCRModels");
         public string TesseractDataRoot => Path.Combine(OcrModelsRoot, "Tesseract", "tessdata");
         public string RapidOcrModelsRoot => Path.Combine(OcrModelsRoot, "RapidOCR", "Models");

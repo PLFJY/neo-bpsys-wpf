@@ -27,6 +27,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<PaddleOcrProvider> _logger;
     private readonly IPaddleRuntimeState _runtimeState;
+    private readonly IPaddleRuntimeManifestProvider _runtimeManifestProvider;
     private readonly IGlobalRestartService _globalRestartService;
     private readonly Lock _ocrLock = new();
     private readonly Lock _downloadLock = new();
@@ -84,17 +85,20 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// <param name="logger">日志记录器。</param>
     /// <param name="modelPathProvider">OCR 模型路径提供器。</param>
     /// <param name="runtimeState">Paddle runtime 运行时状态，用于决定推理后端（CPU/CUDA）。</param>
+    /// <param name="runtimeManifestProvider">Paddle runtime manifest 提供者，用于记录当前模块 runtime 版本。</param>
     /// <param name="globalRestartService">全局重启服务，用于在 CUDA 故障时标记需要重启。</param>
     public PaddleOcrProvider(
         ISettingsHostService settingsHostService,
         ILogger<PaddleOcrProvider> logger,
         ISmartBpOcrModelPathProvider modelPathProvider,
         IPaddleRuntimeState runtimeState,
+        IPaddleRuntimeManifestProvider runtimeManifestProvider,
         IGlobalRestartService globalRestartService)
     {
         _settingsHostService = settingsHostService;
         _logger = logger;
         _runtimeState = runtimeState;
+        _runtimeManifestProvider = runtimeManifestProvider;
         _globalRestartService = globalRestartService;
         SmartBpOcrModelRegistry.ConfigurePathProvider(modelPathProvider);
     }
@@ -513,11 +517,11 @@ public sealed class PaddleOcrProvider : IOcrProvider
         }
         catch (Exception ex)
         {
-            // 确定性 CUDA 库加载失败（DLL 缺失/损坏）：同进程无法恢复，标记需要重启。
-            if (IsCudaLibraryLoadFailure(ex))
+            // 确定性 CUDA runtime 故障：同进程无法切换到另一个 paddle_inference_c.dll，标记下次启动回退 CPU。
+            if (IsCudaRuntimeFailure(ex))
             {
                 RecordCudaFailureIfNeeded(ex);
-                _logger.LogError(ex, "CUDA library load failure detected, restart required.");
+                _logger.LogError(ex, "CUDA runtime failure detected, restart required for CPU fallback.");
                 return null;
             }
 
@@ -537,11 +541,11 @@ public sealed class PaddleOcrProvider : IOcrProvider
             }
             catch (Exception retryEx)
             {
-                // 重试仍然失败。如果是确定性库加载故障才标记重启，否则仅记录错误。
-                if (IsCudaLibraryLoadFailure(retryEx))
+                // 重试仍然失败。如果是确定性 CUDA runtime 故障才标记重启，否则仅记录错误。
+                if (IsCudaRuntimeFailure(retryEx))
                 {
                     RecordCudaFailureIfNeeded(retryEx);
-                    _logger.LogError(retryEx, "CUDA library load failure detected on retry, restart required.");
+                    _logger.LogError(retryEx, "CUDA runtime failure detected on retry, restart required for CPU fallback.");
                 }
                 else
                 {
@@ -555,9 +559,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// <summary>
     /// 在 CUDA 后端下检测到明确的 CUDA runtime 故障时，记录诊断信息并设置一次性 CPU 强制保护。
     /// 仅当 <see cref="IPaddleRuntimeState.ActiveBackend"/> 为 <see cref="OcrInferenceBackend.Cuda"/>
-    /// （bootstrap 已通过 GPU Predictor probe）且异常明确指向 CUDA 库加载/初始化失败时才触发。
-    /// 普通的 OCR 推理失败（模型问题、图像格式、内存不足、SEHException 等）不触发重启，
-    /// 避免误判导致用户被反复要求重启。
+    /// （bootstrap 已通过 GPU Predictor probe）且异常明确指向 CUDA 库加载失败或 Paddle GPU 执行失败时才触发。
     /// 触发时设置 <see cref="Settings.ForceCpuForNextLaunch"/>（一次性消费），下次启动强制 CPU
     /// 并立即清除标记，不会永久锁死 CUDA。
     /// </summary>
@@ -567,11 +569,11 @@ public sealed class PaddleOcrProvider : IOcrProvider
         if (_runtimeState.ActiveBackend != OcrInferenceBackend.Cuda)
             return;
 
-        if (!IsCudaLibraryLoadFailure(ex))
+        if (!IsCudaRuntimeFailure(ex))
             return;
 
         _settingsHostService.Settings.LastCudaFailure = ex.Message;
-        _settingsHostService.Settings.LastCudaFailureRuntimeVersion = AppConstants.PaddleInferenceRuntimeVersion;
+        _settingsHostService.Settings.LastCudaFailureRuntimeVersion = _runtimeManifestProvider.PaddleInferenceVersion;
         _settingsHostService.Settings.ForceCpuForNextLaunch = true;
         _ = _settingsHostService.SaveConfigAsync();
         _globalRestartService.IsRestartRequired = true;
@@ -613,6 +615,24 @@ public sealed class PaddleOcrProvider : IOcrProvider
             || text.Contains("paddle_inference", StringComparison.OrdinalIgnoreCase);
 
         return hasLoadFailure && hasCudaLibrary;
+    }
+
+    /// <summary>
+    /// 判断 CUDA runtime 是否已在 Paddle 实际执行阶段失败。
+    /// </summary>
+    /// <param name="ex">待判断的异常。</param>
+    /// <returns>明确为 CUDA runtime 失败返回 <see langword="true"/>。</returns>
+    private bool IsCudaRuntimeFailure(Exception ex)
+    {
+        if (_runtimeState.ActiveBackend != OcrInferenceBackend.Cuda)
+            return false;
+
+        if (IsCudaLibraryLoadFailure(ex))
+            return true;
+
+        // Paddle status code 2 在 Predictor 已成功构造后由 Run() 返回，表示 GPU 执行链
+        // （CUDA/cuDNN/kernel）不可用；继续重建同一 CUDA Predictor 不会恢复。
+        return ex.ToString().Contains("Paddle status code 2", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
