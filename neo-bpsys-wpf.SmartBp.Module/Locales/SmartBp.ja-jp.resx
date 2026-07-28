@@ -984,6 +984,9 @@
   <data name="CudaStatusDownloading" xml:space="preserve">
     <value>ダウンロード中</value>
   </data>
+  <data name="CudaStatusModuleRuntimeMissing" xml:space="preserve">
+    <value>システムの CUDA/cuDNN は準備済みですが、現在の SmartBP モジュールに Paddle CUDA runtime がありません</value>
+  </data>
   <data name="CudaStagePreparing" xml:space="preserve">
     <value>CUDA 依存関係のインストールを準備しています...</value>
   </data>
