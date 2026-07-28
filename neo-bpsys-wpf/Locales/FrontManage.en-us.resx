@@ -349,6 +349,9 @@
   <data name="LegacyConvert.TextSettingsReadFailed">
     <value>Legacy Config.json text settings could not be read. Reason: {Reason}</value>
   </data>
+  <data name="LegacyConvert.TextSettingsFieldInvalid">
+    <value>Legacy text setting field was skipped because its format is invalid: {Source}.{Field}</value>
+  </data>
   <data name="LegacyConvert.WindowSettingsInspectFailed">
     <value>Legacy Config.json window settings could not be inspected. Reason: {Reason}</value>
   </data>

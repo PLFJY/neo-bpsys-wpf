@@ -66,6 +66,36 @@ public sealed class FontWeightJsonConverter : JsonConverter<FontWeight>
         writer.WriteStringValue(name);
     }
 
+    /// <summary>
+    /// 尝试解析 2.x 实际序列化的 FontWeight 值。
+    /// </summary>
+    /// <param name="element">JSON 值。</param>
+    /// <param name="fontWeight">解析后的字重。</param>
+    /// <returns>是否为已知的旧版字重表示。</returns>
+    public static bool TryParseLegacy(JsonElement element, out FontWeight fontWeight)
+    {
+        if (element.ValueKind == JsonValueKind.Number
+            && element.TryGetInt32(out var number)
+            && NumberMap.TryGetValue(number, out fontWeight))
+        {
+            return true;
+        }
+
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            var text = element.GetString();
+            if (!string.IsNullOrWhiteSpace(text)
+                && (StringMap.TryGetValue(text, out fontWeight)
+                    || (int.TryParse(text, out number) && NumberMap.TryGetValue(number, out fontWeight))))
+            {
+                return true;
+            }
+        }
+
+        fontWeight = default;
+        return false;
+    }
+
     private static FontWeight ReadString(string? value)
     {
         if (!string.IsNullOrWhiteSpace(value) && StringMap.TryGetValue(value, out var fontWeight))

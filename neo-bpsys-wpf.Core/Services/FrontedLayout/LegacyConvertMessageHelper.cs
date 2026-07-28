@@ -173,6 +173,11 @@ public static partial class LegacyConvertMessageHelper
     public const string CodeTextSettingsReadFailed = "LegacyConvert.TextSettingsReadFailed";
 
     /// <summary>
+    /// 代码常量 —— 单个旧版文本设置字段格式无效，已跳过该字段。
+    /// </summary>
+    public const string CodeTextSettingsFieldInvalid = "LegacyConvert.TextSettingsFieldInvalid";
+
+    /// <summary>
     /// 代码常量 —— 旧版窗口设置无法检查。
     /// </summary>
     public const string CodeWindowSettingsInspectFailed = "LegacyConvert.WindowSettingsInspectFailed";

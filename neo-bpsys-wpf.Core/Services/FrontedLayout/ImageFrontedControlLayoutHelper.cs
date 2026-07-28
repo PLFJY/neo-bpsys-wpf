@@ -211,7 +211,7 @@ internal static class ImageFrontedControlLayoutHelper
         var overlay = new Border
         {
             Name = overlayName,
-            Background = Brushes.White,
+            Background = CreatePickingBorderBrush(config.PickingBorderFillColor),
             OpacityMask = CreateImageBrush(ResolveOverlayImage(
                 config.PickingBorderImagePath,
                 DefaultPickingBorderImagePath,
@@ -225,6 +225,23 @@ internal static class ImageFrontedControlLayoutHelper
         MarkAnimationPart(overlay, controlName, config.BehaviorGuid, FrontedAnimationPartNames.PickingBorder);
         RegisterGeneratedChildName(root, overlayName, overlay);
         root.Children.Add(overlay);
+    }
+
+    private static Brush CreatePickingBorderBrush(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+        {
+            return Brushes.White;
+        }
+
+        try
+        {
+            return new BrushConverter().ConvertFromString(color) as Brush ?? Brushes.White;
+        }
+        catch (FormatException)
+        {
+            return Brushes.White;
+        }
     }
 
     private static void MarkAnimationPart(

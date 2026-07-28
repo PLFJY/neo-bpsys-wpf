@@ -349,6 +349,9 @@
   <data name="LegacyConvert.TextSettingsReadFailed">
     <value>旧版 Config.json 文字设置无法读取。原因：{Reason}</value>
   </data>
+  <data name="LegacyConvert.TextSettingsFieldInvalid">
+    <value>旧版文字设置字段格式无效，已跳过：{Source}.{Field}</value>
+  </data>
   <data name="LegacyConvert.WindowSettingsInspectFailed">
     <value>旧版 Config.json 窗口设置无法检查。原因：{Reason}</value>
   </data>
