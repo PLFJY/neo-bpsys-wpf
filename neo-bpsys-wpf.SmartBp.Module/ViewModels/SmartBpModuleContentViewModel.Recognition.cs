@@ -593,7 +593,7 @@ public partial class SmartBpModuleContentViewModel
             baseGrid.Children.Add(image);
 
             window.Content = baseGrid;
-            window.ShowDialog();
+            window.Show();
         }
         catch (Exception ex)
         {
