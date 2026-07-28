@@ -252,6 +252,11 @@ public partial class SettingPageViewModel : ViewModelBase
             });
 
             await Task.WhenAll(tasks);
+
+            if (DownloadMirrorPresets.FindLowestLatencyOption(MirrorList) is { } fastestMirror)
+            {
+                Mirror = fastestMirror.Value;
+            }
         }
         finally
         {

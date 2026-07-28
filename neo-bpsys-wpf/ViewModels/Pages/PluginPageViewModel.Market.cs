@@ -528,6 +528,11 @@ public partial class PluginPageViewModel
             });
 
             await Task.WhenAll(tasks);
+
+            if (DownloadMirrorPresets.FindLowestLatencyOption(PluginMarketMirrorOptions) is { } fastestMirror)
+            {
+                SelectedPluginMarketMirror = fastestMirror.Value;
+            }
         }
         finally
         {
