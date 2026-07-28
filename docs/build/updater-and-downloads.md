@@ -73,7 +73,7 @@ manifest 中的 `Asset.Name`、`Asset.Url`、`Asset.Size` 和 `Asset.Sha256` 指
 
 ## 镜像设置
 
-应用更新、插件市场都使用 `DownloadMirrorPresets.GhProxyMirrorList` 作为 UI 候选；空字符串表示直连。设置页的 `Mirror` 变化会保存到 `Settings.GhProxyMirror`，并重置插件市场镜像缓存。
+应用更新、插件市场和 SmartBP 模块下载都使用 `DownloadMirrorPresets.GhProxyMirrorList` 作为 UI 候选；空字符串表示直连。设置页、插件市场设置和 SmartBP 模块下载高级选项共用 `Settings.GhProxyMirror` 持久化字段，切换后会重置插件市场镜像缓存。三个入口均可测试候选镜像延迟。
 
 应用更新下载会把 `mirror` 直接拼在 release asset URL 前。插件市场则只在中文环境且目标 URL 是 GitHub/GitHubusercontent 时自动应用镜像，并会探测候选镜像可用性。
 

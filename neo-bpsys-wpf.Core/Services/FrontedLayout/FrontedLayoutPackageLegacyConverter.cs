@@ -100,6 +100,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 // 1.x 包使用 MinorPointsHun 表示监管者小幅分，蓝图定义的 LegacyName 为 GameScoresHun。
                 ["MinorPointsHun"] = "GameScoresHun"
             },
+            [new LegacyLayoutKey("GameDataWindow", "BaseCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                // 部分旧包沿用比分窗口的 MinorPoints 命名。
+                ["MinorPointsSur"] = "GameScoresSur",
+                ["MinorPointsHun"] = "GameScoresHun"
+            },
             [new LegacyLayoutKey("WidgetsWindow", "BpOverViewCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 // 1.x 包在 BpOverview 画布中同样使用 MinorPointsSur/MinorPointsHun 表示小幅分。
@@ -1785,6 +1791,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Text("SurTeamName", "Text", "CurrentGame.SurTeam.Name", "GameDataWindow.TeamName", 186, 176, 290, null, textWrapping: "WrapWithOverflow"),
             Text("GameScoresSur", "Text", "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText", "GameDataWindow.GameScores", 476, 182, 52, 81),
             Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 556, 151, 328, 132, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "UniformToFill"),
+            Removed("MapMask", "The legacy map mask is part of the old Map visual and has no separate Designer v3 control."),
             Text("MapName", "MapNameText", "CurrentGame.PickedMap", "GameDataWindow.MapName", 556, 220, 328, 30, zIndex: 1),
             Folded("PickedMapName", "MapName", "Folded into the MapName business control, which renders the picked map name."),
             Text("GameProgress", "GameProgressText", null, "GameDataWindow.GameProgress", 556, 253, 328, 30, zIndex: 1),
@@ -1957,6 +1964,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         var name = $"{team}TeamGame{game}{(isOvertime ? "Overtime" : string.Empty)}{half}";
         result.Add(name, new LegacyScoreGlobalCellBlueprint(team, game, half, isOvertime));
+
+        // 较早的全局比分窗口使用 Main/Away 表示主客队，并以 Extra 表示加时。
+        // 这些名称只作为明确的 legacy 特例解析，仍复用既有的比分行聚合逻辑。
+        var legacyTeam = string.Equals(team, "Home", StringComparison.Ordinal) ? "MainTeam" : "Away";
+        var legacyName = $"{legacyTeam}Game{game}{(isOvertime ? "Extra" : string.Empty)}{half}";
+        result.Add(legacyName, new LegacyScoreGlobalCellBlueprint(team, game, half, isOvertime));
     }
 
     private static void AddBlueprints(

@@ -11,7 +11,7 @@
     <value>ソフトウェア更新</value>
   </data>
   <data name="DownloadSource">
-    <value>ダウンロード元（この設定はプラグインマーケットにも同期されます）：</value>
+    <value>ダウンロード元：</value>
   </data>
   <data name="DownloadPreviewVersion">
     <value>プレビュー版をダウンロードしますか？</value>

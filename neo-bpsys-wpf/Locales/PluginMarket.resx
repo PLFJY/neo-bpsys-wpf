@@ -59,7 +59,7 @@
     <value>插件市场设置</value>
   </data>
   <data name="PluginMarketMirrorLabel">
-    <value>Ghproxy</value>
+    <value>下载源</value>
   </data>
   <data name="PluginMarketSourceLabel">
     <value>插件源</value>

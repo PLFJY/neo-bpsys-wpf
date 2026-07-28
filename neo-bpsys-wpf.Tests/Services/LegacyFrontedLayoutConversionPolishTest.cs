@@ -897,6 +897,65 @@ public sealed class LegacyFrontedLayoutConversionPolishTest : IDisposable
         }
     }
 
+    [Fact]
+    public async Task ConverterResolvesLegacyNamingVariantsUsedByOlderPackages()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/GameDataWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "MinorPointsSur": { "Left": 476, "Top": 182 },
+                          "MinorPointsHun": { "Left": 919, "Top": 182 },
+                          "Map": { "Left": 564, "Top": 155 },
+                          "MapMask": { "Left": 564, "Top": 257 }
+                        }
+                        """,
+                    ["FrontElementsConfig/ScoreGlobalWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "MainTeamGame1FirstHalf": { "Left": 190, "Top": 85 },
+                          "MainTeamGame1SecondHalf": { "Left": 295, "Top": 85 },
+                          "MainTeamGame5ExtraFirstHalf": { "Left": 1274, "Top": 85 },
+                          "AwayGame1FirstHalf": { "Left": 190, "Top": 145 },
+                          "AwayGame1SecondHalf": { "Left": 295, "Top": 145 },
+                          "AwayGame5ExtraSecondHalf": { "Left": 1274, "Top": 145 }
+                        }
+                        """
+                });
+
+            var result = await ConvertAsync(Path.Combine(root, "builtIn"), root, archivePath, "converted.legacy.name-variants");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result),
+                string.Join(Environment.NewLine, result.Warnings));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var gameData = ReadLayout(archive, "FrontedLayouts/GameDataWindow.json");
+            var surScore = Assert.IsType<TextFrontedControlConfig>(gameData.Controls["GameScoresSur"]);
+            Assert.Equal("CurrentGame.MatchScore.CurrentSurTeamMinorScoreText", Assert.Single(surScore.TextBinding!.Sources).Path);
+            Assert.IsType<BorderedImageFrontedControlConfig>(gameData.Controls["Map"]);
+
+            var scoreGlobal = ReadLayout(archive, "FrontedLayouts/ScoreGlobalWindow.json");
+            var homeRow = Assert.IsType<GlobalScoreRowControlConfig>(scoreGlobal.Controls["HomeGlobalScoreRow"]);
+            var awayRow = Assert.IsType<GlobalScoreRowControlConfig>(scoreGlobal.Controls["AwayGlobalScoreRow"]);
+            Assert.Contains(homeRow.Cells, cell => cell.Id == "Game5OvertimeFirstHalf");
+            Assert.Contains(awayRow.Cells, cell => cell.Id == "Game5OvertimeSecondHalf");
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
     private static void WriteBuiltInScoreSurLayout(string builtInRoot)
     {
         WriteFile(
@@ -1252,7 +1311,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest : IDisposable
 
     private static IReadOnlyList<LegacyBlueprintAuditRow> ReadLegacyBlueprintAuditRows()
     {
-        var docPath = Path.Combine(FindRepositoryRoot(), "docs", "legacy-v3-control-blueprint-map.md");
+        var docPath = Path.Combine(FindRepositoryRoot(), "docs", "frontend", "legacy-v3-control-blueprint-map.md");
         return File.ReadLines(docPath)
             .Where(line => line.StartsWith("| ", StringComparison.Ordinal))
             .Select(line => line.Trim().Trim('|').Split('|').Select(cell => cell.Trim()).ToArray())

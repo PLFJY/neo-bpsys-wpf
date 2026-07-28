@@ -59,7 +59,7 @@
     <value>プラグインマーケット設定</value>
   </data>
   <data name="PluginMarketMirrorLabel">
-    <value>Ghproxy</value>
+    <value>ダウンロード元：</value>
   </data>
   <data name="PluginMarketSourceLabel">
     <value>プラグインソース</value>

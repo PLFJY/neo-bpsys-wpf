@@ -9,7 +9,9 @@ using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -29,6 +31,13 @@ public partial class PluginPageViewModel
     /// 防止同步插件源设置时重复保存。
     /// </summary>
     private bool _isSyncingPluginMarketSource;
+
+    /// <summary>
+    /// 镜像连通性测试使用的浏览器 User-Agent，避免部分 ghproxy 镜像拦截无 User-Agent 的请求。
+    /// </summary>
+    private const string MirrorLatencyTestUserAgent =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
 
     /// <summary>
     /// 已经提示过失败信息的下载任务。
@@ -89,6 +98,13 @@ public partial class PluginPageViewModel
     /// </summary>
     [ObservableProperty]
     public partial bool IsPluginMarketMirrorSettingVisible { get; set; }
+
+    /// <summary>
+    /// 获取或设置插件市场是否正在测试 GhProxy 镜像延迟。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(TestPluginMarketMirrorLatencyCommand))]
+    public partial bool IsTestingPluginMarketMirrorLatency { get; set; }
 
     /// <summary>
     /// 当前选中的插件市场源地址。
@@ -465,6 +481,65 @@ public partial class PluginPageViewModel
         await _settingsHostService.SaveConfigAsync();
         await RefreshMarketAsync();
     }
+
+    /// <summary>
+    /// 测试所有 GhProxy 镜像的延迟。
+    /// </summary>
+    /// <returns>延迟测试完成后结束的任务。</returns>
+    [RelayCommand(CanExecute = nameof(CanTestPluginMarketMirrorLatency))]
+    private async Task TestPluginMarketMirrorLatencyAsync()
+    {
+        if (IsTestingPluginMarketMirrorLatency)
+        {
+            return;
+        }
+
+        IsTestingPluginMarketMirrorLatency = true;
+        try
+        {
+            foreach (var item in PluginMarketMirrorOptions)
+            {
+                item.LatencyMs = null;
+            }
+
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(MirrorLatencyTestUserAgent);
+
+            var tasks = PluginMarketMirrorOptions.Select(async item =>
+            {
+                var testUrl = string.IsNullOrWhiteSpace(item.Value)
+                    ? "https://github.com/"
+                    : item.Value;
+
+                try
+                {
+                    var stopwatch = Stopwatch.StartNew();
+                    using var request = new HttpRequestMessage(HttpMethod.Head, testUrl);
+                    using var response = await httpClient.SendAsync(request);
+                    stopwatch.Stop();
+                    item.LatencyMs = response.IsSuccessStatusCode
+                        ? (int)stopwatch.ElapsedMilliseconds
+                        : -1;
+                }
+                catch
+                {
+                    item.LatencyMs = -1;
+                }
+            });
+
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            IsTestingPluginMarketMirrorLatency = false;
+        }
+    }
+
+    /// <summary>
+    /// 判断插件市场 GhProxy 延迟测试是否可以执行。
+    /// </summary>
+    /// <returns>未执行中的测试可以开始。</returns>
+    private bool CanTestPluginMarketMirrorLatency() => !IsTestingPluginMarketMirrorLatency;
 
     /// <summary>
     /// 加载选中插件的 README。
