@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -425,6 +426,90 @@ public sealed class LegacyFrontedLayoutConversionPolishTest : IDisposable
         Assert.Equal(40, scoreCells.Length);
         Assert.All(scoreCells, row => Assert.Equal("Aggregated", row.Status));
         Assert.All(scoreCells, row => Assert.Equal("Aggregated", row.PropertyParityStatus));
+    }
+
+    [Fact]
+    public async Task ConverterEmitsCanonicalBindingPathsForEverySupportedLegacyLayout()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/BpWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/GameDataWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/ScoreSurWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/ScoreHunWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/ScoreGlobalWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/WidgetsWindowConfig-BpOverViewCanvas.json"] = "{}",
+                    ["FrontElementsConfig/WidgetsWindowConfig-MapV2Canvas.json"] = "{}"
+                });
+
+            var result = await ConvertAsync(
+                Path.Combine(root, "missing-built-in"),
+                root,
+                archivePath,
+                "converted.legacy.binding-paths");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var layouts = new Dictionary<string, FrontedCanvasConfig>(StringComparer.Ordinal)
+            {
+                ["BpWindow"] = ReadLayout(archive, "FrontedLayouts/BpWindow.json"),
+                ["CutSceneWindow"] = ReadLayout(archive, "FrontedLayouts/CutSceneWindow.json"),
+                ["GameDataWindow"] = ReadLayout(archive, "FrontedLayouts/GameDataWindow.json"),
+                ["ScoreSurWindow"] = ReadLayout(archive, "FrontedLayouts/ScoreSurWindow.json"),
+                ["ScoreHunWindow"] = ReadLayout(archive, "FrontedLayouts/ScoreHunWindow.json"),
+                ["ScoreGlobalWindow"] = ReadLayout(archive, "FrontedLayouts/ScoreGlobalWindow.json"),
+                ["BpOverviewWindow"] = ReadLayout(archive, "FrontedLayouts/BpOverviewWindow.json"),
+                ["MapV2Window"] = ReadLayout(archive, "FrontedLayouts/MapV2Window.json")
+            };
+
+            var catalogPaths = EnumerateBindingTreeNodes(
+                    new FrontedBindingReflectionCatalogProvider().BuildCatalog())
+                .Select(node => node.FullPath)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .Cast<string>()
+                .ToHashSet(StringComparer.Ordinal);
+
+            foreach (var (windowName, layout) in layouts)
+            {
+                foreach (var (controlName, propertyName, path) in EnumerateControlBindingPaths(layout))
+                {
+                    Assert.True(
+                        catalogPaths.Contains(path),
+                        $"Legacy converter emitted unknown binding path '{path}' for {windowName}/{controlName}.{propertyName}.");
+                }
+            }
+
+            foreach (var windowName in new[] { "BpWindow", "CutSceneWindow", "GameDataWindow" })
+            {
+                var mapName = Assert.IsType<MapNameTextControlConfig>(layouts[windowName].Controls["MapName"]);
+                Assert.Equal("CurrentGame.PickedMap", mapName.BindingPath);
+            }
+
+            var scoreGlobal = layouts["ScoreGlobalWindow"];
+            AssertTextBindingPath(scoreGlobal, "HomeTeamName", "HomeTeam.Name");
+            AssertTextBindingPath(scoreGlobal, "AwayTeamName", "AwayTeam.Name");
+            AssertTextBindingPath(
+                scoreGlobal,
+                "HomeScoreTotal",
+                "CurrentGame.MatchScore.HomeTotalMinorScore");
+            AssertTextBindingPath(
+                scoreGlobal,
+                "AwayScoreTotal",
+                "CurrentGame.MatchScore.AwayTotalMinorScore");
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
     }
 
     [Fact]
@@ -1307,6 +1392,53 @@ public sealed class LegacyFrontedLayoutConversionPolishTest : IDisposable
         double fontSize)
     {
         var text = Assert.IsAssignableFrom<IFrontedTextStyleConfig>(control);
+    }
+
+    private static void AssertTextBindingPath(
+        FrontedCanvasConfig layout,
+        string controlName,
+        string expectedPath)
+    {
+        var control = Assert.IsType<TextFrontedControlConfig>(layout.Controls[controlName]);
+        Assert.Equal(expectedPath, Assert.Single(control.TextBinding!.Sources).Path);
+    }
+
+    private static IEnumerable<FrontedBindingTreeNode> EnumerateBindingTreeNodes(
+        IEnumerable<FrontedBindingTreeNode> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            yield return node;
+            foreach (var child in EnumerateBindingTreeNodes(node.Children))
+            {
+                yield return child;
+            }
+        }
+    }
+
+    private static IEnumerable<(string ControlName, string PropertyName, string Path)>
+        EnumerateControlBindingPaths(FrontedCanvasConfig layout)
+    {
+        foreach (var (controlName, control) in layout.Controls)
+        {
+            foreach (var property in control.GetType().GetProperties()
+                         .Where(property => property.PropertyType == typeof(string)
+                                            && property.Name.EndsWith("BindingPath", StringComparison.Ordinal)))
+            {
+                if (property.GetValue(control) is string path && !string.IsNullOrWhiteSpace(path))
+                {
+                    yield return (controlName, property.Name, path);
+                }
+            }
+
+            if (control is TextFrontedControlConfig { TextBinding: { } textBinding })
+            {
+                foreach (var source in textBinding.GetActiveSources())
+                {
+                    yield return (controlName, nameof(TextFrontedControlConfig.TextBinding), source.Path);
+                }
+            }
+        }
     }
 
     private static IReadOnlyList<LegacyBlueprintAuditRow> ReadLegacyBlueprintAuditRows()

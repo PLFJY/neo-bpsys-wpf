@@ -1910,10 +1910,10 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         AddBlueprints(result, "ScoreGlobalWindow", "BaseCanvas",
         [
             Removed("BaseCanvas", "The legacy Canvas is represented by FrontedWindowConfig.CanvasSettings and the fixed v3 BaseCanvas host."),
-            Text("MainTeamName", "Text", "CurrentGame.HomeTeam.Name", "ScoreWindow.ScoreGlobal_TeamName", 13, 96, 144, 26, targetName: "HomeTeamName"),
-            Text("AwayTeamName", "Text", "CurrentGame.AwayTeam.Name", "ScoreWindow.ScoreGlobal_TeamName", 13, 155, 144, null),
-            Text("MainScoreTotal", "Text", "CurrentGame.MatchScore.HomeTotalScore", "ScoreWindow.ScoreGlobal_Total", 1303, 89, 86, null, targetName: "HomeScoreTotal"),
-            Text("AwayScoreTotal", "Text", "CurrentGame.MatchScore.AwayTotalScore", "ScoreWindow.ScoreGlobal_Total", 1302, 147, 87, null),
+            Text("MainTeamName", "Text", "HomeTeam.Name", "ScoreWindow.ScoreGlobal_TeamName", 13, 96, 144, 26, targetName: "HomeTeamName"),
+            Text("AwayTeamName", "Text", "AwayTeam.Name", "ScoreWindow.ScoreGlobal_TeamName", 13, 155, 144, null),
+            Text("MainScoreTotal", "Text", "CurrentGame.MatchScore.HomeTotalMinorScore", "ScoreWindow.ScoreGlobal_Total", 1303, 89, 86, null, targetName: "HomeScoreTotal"),
+            Text("AwayScoreTotal", "Text", "CurrentGame.MatchScore.AwayTotalMinorScore", "ScoreWindow.ScoreGlobal_Total", 1302, 147, 87, null),
             ScoreRow("HomeGlobalScoreRow", TeamType.HomeTeam, "ScoreWindow.ScoreGlobal_Data"),
             ScoreRow("AwayGlobalScoreRow", TeamType.AwayTeam, "ScoreWindow.ScoreGlobal_Data")
         ]);
@@ -2397,7 +2397,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         return new MapNameTextControlConfig
         {
-            BindingPath = blueprint.BindingPath,
+            BindingPath = blueprint.TextBinding ?? blueprint.BindingPath,
             HorizontalAlignment = blueprint.HorizontalAlignment,
             VerticalAlignment = blueprint.VerticalAlignment,
             TextAlignment = blueprint.TextAlignment,
