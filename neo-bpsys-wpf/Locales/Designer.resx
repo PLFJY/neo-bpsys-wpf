@@ -814,6 +814,12 @@
   <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>监管者队伍名称</value>
   </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
+    <value>求生者队伍总小比分</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore">
+    <value>监管者队伍总小比分</value>
+  </data>
   <data name="Designer.Binding.Name">
     <value>名称</value>
   </data>

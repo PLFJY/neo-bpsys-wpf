@@ -28,6 +28,8 @@ public partial class MatchScoreState : ObservableObjectBase
     private string _awayMajorText = "W0  D0";
     private int _homeTotalMinorScore;
     private int _awayTotalMinorScore;
+    private int _currentSurTeamTotalMinorScore;
+    private int _currentHunTeamTotalMinorScore;
     private string _currentSurTeamMinorScoreText = "0";
     private string _currentHunTeamMinorScoreText = "0";
     private string _currentSurTeamMajorText = "W0  D0";
@@ -151,6 +153,26 @@ public partial class MatchScoreState : ObservableObjectBase
     {
         get => _awayTotalMinorScore;
         private set => SetProperty(ref _awayTotalMinorScore, value);
+    }
+
+    /// <summary>
+    /// 当前求生者队伍在所有已记录半场中的小比分总和。
+    /// </summary>
+    [JsonIgnore]
+    public int CurrentSurTeamTotalMinorScore
+    {
+        get => _currentSurTeamTotalMinorScore;
+        private set => SetProperty(ref _currentSurTeamTotalMinorScore, value);
+    }
+
+    /// <summary>
+    /// 当前监管者队伍在所有已记录半场中的小比分总和。
+    /// </summary>
+    [JsonIgnore]
+    public int CurrentHunTeamTotalMinorScore
+    {
+        get => _currentHunTeamTotalMinorScore;
+        private set => SetProperty(ref _currentHunTeamTotalMinorScore, value);
     }
 
     /// <summary>
@@ -378,6 +400,8 @@ public partial class MatchScoreState : ObservableObjectBase
     {
         CurrentSurTeamMajorText = GetMajorText(_currentDisplaySurTeamType);
         CurrentHunTeamMajorText = GetMajorText(_currentDisplayHunTeamType);
+        CurrentSurTeamTotalMinorScore = GetTotalMinorScore(_currentDisplaySurTeamType);
+        CurrentHunTeamTotalMinorScore = GetTotalMinorScore(_currentDisplayHunTeamType);
 
         var (surWin, surTie) = GetMajorWinTie(_currentDisplaySurTeamType);
         CurrentSurTeamMajorWin = surWin;
@@ -482,6 +506,9 @@ public partial class MatchScoreState : ObservableObjectBase
 
     private (int win, int tie) GetMajorWinTie(TeamType teamType) =>
         teamType == TeamType.HomeTeam ? (HomeMajorWin, HomeMajorTie) : (AwayMajorWin, AwayMajorTie);
+
+    private int GetTotalMinorScore(TeamType teamType) =>
+        teamType == TeamType.HomeTeam ? HomeTotalMinorScore : AwayTotalMinorScore;
 
     private static int? GetTeamMinorScore(ScoreHalf half, TeamType teamType, bool fallbackToZero)
     {

@@ -2911,6 +2911,8 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.HunPlayer.PictureShownWithFullCharacter", paths);
         Assert.Contains("CurrentGame.HunPlayer.PictureShownHeader", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore", paths);
         Assert.Contains("RemainingSeconds", paths);
         Assert.Contains("CountDownRemainingSeconds", paths);
         Assert.Contains("CountDownTotalSeconds", paths);
@@ -2939,6 +2941,8 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.SurTeam.Name", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
         Assert.Contains("CurrentGame.MatchScore.HomeTotalMinorScore", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore", paths);
         Assert.DoesNotContain("CurrentGame.SurTeam.Logo", paths);
         Assert.DoesNotContain("CurrentGame.PickedMapImage", paths);
         Assert.Contains("CurrentGame.GameProgress", paths);

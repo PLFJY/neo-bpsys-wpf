@@ -814,6 +814,12 @@
   <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>Hunter Team Name</value>
   </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
+    <value>Survivor Team Total Minor Score</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore">
+    <value>Hunter Team Total Minor Score</value>
+  </data>
   <data name="Designer.Binding.Name">
     <value>Name</value>
   </data>

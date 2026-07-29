@@ -814,6 +814,12 @@
   <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>ハンターチーム名</value>
   </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
+    <value>サバイバーチーム合計小得点</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore">
+    <value>ハンターチーム合計小得点</value>
+  </data>
   <data name="Designer.Binding.Name">
     <value>名前</value>
   </data>
