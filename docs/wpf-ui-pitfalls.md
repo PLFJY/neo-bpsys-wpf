@@ -117,7 +117,7 @@ BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的�
 11. 被选中控件的 hitbox、outline 和 handles 会使用 editor-only 高 ZIndex 放在其他 hitbox 上方，以便拖动重叠下层控件。该值不能写入 v3 JSON，也不能改变 preview/runtime `ZIndex`。
 12. 拖拽和缩放过程中要同步更新生成 preview root element 的 `Canvas.Left` / `Canvas.Top` / `Width` / `Height`，不要等 mouse-up 重渲染后才看到真实预览移动。mouse-up 可再重渲染一次保证一致。
 13. 选择边界优先使用显式 `Width` / `Height`；缺失时使用渲染 root element 的 `ActualWidth` / `ActualHeight`；再不可用才回退到 `40x24`。这对无 `Height` 的文本控件尤其重要。
-14. `Image` / `BorderedImage` 的 picking border 和 lock 是内部视觉层：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放图片控件时 overlay 自动跟随；`PickingBorderName` 保持运行时 namescope 目标不变。
+14. `Image` / `BorderedImage` 的 picking border 和 lock 是内部视觉层：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放图片控件时 overlay 自动跟随；picking border 的运行时名称由控件名自动生成。
 15. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除。新 Ban 位和 pick 图不要再新增专用业务控件，优先使用通用 `Image` binding + overlay。
 16. 视口导航优先于选择：Fit 模式根据 `ScrollViewer` viewport 和 Canvas 尺寸计算 `ZoomScale`；`Ctrl + mouse wheel` 进入手动缩放并保持 25% 到 200%；右键拖拽或 `Space + left mouse drag` 只平移 `ScrollViewer` offset。这些操作不能写回 layout 坐标，也不能改变当前选中控件。
 17. 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。

@@ -59,6 +59,16 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public string? LockImagePath { get; set; }
 
     /// <summary>
+    /// 是否为锁定覆盖层使用独立于主图片的拉伸方式。
+    /// </summary>
+    public bool UseIndependentLockStretch { get; set; }
+
+    /// <summary>
+    /// 锁定覆盖层的独立拉伸方式，仅在 <see cref="UseIndependentLockStretch"/> 为 <see langword="true"/> 时使用。
+    /// </summary>
+    public string? LockStretch { get; set; } = "UniformToFill";
+
+    /// <summary>
     /// 锁定覆盖层可见性绑定路径。
     /// </summary>
     public string? LockVisibilityBindingPath { get; set; }
@@ -84,14 +94,19 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public string? PickingBorderImagePath { get; set; }
 
     /// <summary>
+    /// 是否为选择边框覆盖层使用独立于主图片的拉伸方式。
+    /// </summary>
+    public bool UseIndependentPickingBorderStretch { get; set; }
+
+    /// <summary>
+    /// 选择边框覆盖层的独立拉伸方式，仅在 <see cref="UseIndependentPickingBorderStretch"/> 为 <see langword="true"/> 时使用。
+    /// </summary>
+    public string? PickingBorderStretch { get; set; } = "UniformToFill";
+
+    /// <summary>
     /// 选择边框遮罩的填充颜色。为空时保持既有的白色填充。
     /// </summary>
     public string? PickingBorderFillColor { get; set; }
-
-    /// <summary>
-    /// 选择边框运行时名称。
-    /// </summary>
-    public string? PickingBorderName { get; set; }
 
     /// <summary>
     /// 选择边框 ZIndex 偏移。

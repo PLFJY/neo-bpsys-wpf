@@ -28,6 +28,9 @@ public class FrontedPropertyEditorItem : ObservableObject
     private string? _groupName;
     private string? _groupDisplayName;
     private bool _isGroupHeaderVisible;
+    private string? _sectionName;
+    private string? _sectionDisplayName;
+    private bool _isSectionHeaderVisible;
     private bool _canBrowseBinding;
     private bool _canBrowseResource;
     private bool _isMultiSelectionMixedValue;
@@ -266,6 +269,44 @@ public class FrontedPropertyEditorItem : ObservableObject
         get => _isGroupHeaderVisible;
         set => SetProperty(ref _isGroupHeaderVisible, value);
     }
+
+    /// <summary>
+    /// 当前分组内的可选小节标识。
+    /// </summary>
+    public string? SectionName
+    {
+        get => _sectionName;
+        set
+        {
+            if (SetProperty(ref _sectionName, value))
+            {
+                OnPropertyChanged(nameof(IsSectionItem));
+            }
+        }
+    }
+
+    /// <summary>
+    /// 当前分组内小节的本地化显示名称。
+    /// </summary>
+    public string? SectionDisplayName
+    {
+        get => _sectionDisplayName;
+        set => SetProperty(ref _sectionDisplayName, value);
+    }
+
+    /// <summary>
+    /// 指示此行是否应显示所属小节标题。
+    /// </summary>
+    public bool IsSectionHeaderVisible
+    {
+        get => _isSectionHeaderVisible;
+        set => SetProperty(ref _isSectionHeaderVisible, value);
+    }
+
+    /// <summary>
+    /// 指示此行是否属于分组内的小节，应在属性网格中以缩进方式显示。
+    /// </summary>
+    public bool IsSectionItem => !string.IsNullOrWhiteSpace(SectionName);
 
     /// <summary>
     /// 指示此文本类行是否能打开绑定浏览器。

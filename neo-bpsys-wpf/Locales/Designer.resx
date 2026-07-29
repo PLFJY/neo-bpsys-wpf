@@ -458,31 +458,46 @@
     <value>内部图片高度</value>
   </data>
   <data name="Designer.Property.PickingBorderImagePath">
-    <value>选择框图片</value>
+    <value>图片</value>
   </data>
   <data name="Designer.Property.BanLockImagePath">
     <value>Ban 锁图片</value>
   </data>
   <data name="Designer.Property.Lockable">
-    <value>锁定覆盖层</value>
+    <value>启用</value>
   </data>
   <data name="Designer.Property.LockImagePath">
-    <value>锁定图片</value>
+    <value>图片</value>
+  </data>
+  <data name="Designer.Property.UseIndependentLockStretch">
+    <value>独立缩放</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentLockStretch">
+    <value>开启后使用下方的锁定图片缩放方式；关闭后跟随主图片缩放。</value>
+  </data>
+  <data name="Designer.Property.LockStretch">
+    <value>缩放</value>
   </data>
   <data name="Designer.Property.LockVisibilityBindingPath">
-    <value>锁定可见绑定</value>
+    <value>可见绑定</value>
   </data>
   <data name="Designer.Property.LockVisibleWhen">
-    <value>锁定显示条件</value>
+    <value>显示条件</value>
   </data>
   <data name="Designer.Property.PickingBorderAvailable">
-    <value>选择框覆盖层</value>
+    <value>启用</value>
   </data>
-  <data name="Designer.Property.PickingBorderName">
-    <value>选择框名称</value>
+  <data name="Designer.Property.UseIndependentPickingBorderStretch">
+    <value>独立缩放</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentPickingBorderStretch">
+    <value>开启后使用下方的选择框缩放方式；关闭后跟随主图片缩放。</value>
+  </data>
+  <data name="Designer.Property.PickingBorderStretch">
+    <value>缩放</value>
   </data>
   <data name="Designer.Property.PickingBorderZIndexOffset">
-    <value>选择框层级偏移</value>
+    <value>层级偏移</value>
   </data>
   <data name="Designer.Property.LocalizationKey">
     <value>本地化键</value>
@@ -551,7 +566,7 @@
     <value>锁定图片</value>
   </data>
   <data name="Designer.Property.LockZIndexOffset">
-    <value>锁定层级偏移</value>
+    <value>层级偏移</value>
   </data>
   <data name="Designer.PropertyGroup.Identity">
     <value>标识</value>
@@ -698,6 +713,30 @@
     <value>等比适应</value>
   </data>
   <data name="Designer.Option.Stretch.UniformToFill">
+    <value>等比裁剪填充</value>
+  </data>
+  <data name="Designer.Option.LockStretch.None">
+    <value>原始大小</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Fill">
+    <value>填充</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Uniform">
+    <value>等比适应</value>
+  </data>
+  <data name="Designer.Option.LockStretch.UniformToFill">
+    <value>等比裁剪填充</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.None">
+    <value>原始大小</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Fill">
+    <value>填充</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Uniform">
+    <value>等比适应</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.UniformToFill">
     <value>等比裁剪填充</value>
   </data>
   <data name="Designer.Option.FontWeight.Light">
@@ -937,6 +976,12 @@
   <data name="Designer.PropertyGroup.Overlay">
     <value>覆盖层</value>
   </data>
+  <data name="Designer.PropertySection.BanLock">
+    <value>Ban 位锁</value>
+  </data>
+  <data name="Designer.PropertySection.PickingBorder">
+    <value>选择框</value>
+  </data>
   <data name="Designer.ControlType.GameProgress">
     <value>对局进度</value>
   </data>
@@ -1121,7 +1166,7 @@
     <value>地图禁用时的卡片外框颜色。</value>
   </data>
   <data name="Designer.Property.PickingBorderFillColor">
-    <value>选择框填充颜色</value>
+    <value>填充颜色</value>
   </data>
   <data name="Designer.Option.MapNameFontWeight.Light">
     <value>细</value>

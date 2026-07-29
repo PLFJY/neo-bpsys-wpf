@@ -458,31 +458,46 @@
     <value>Inner Image Height</value>
   </data>
   <data name="Designer.Property.PickingBorderImagePath">
-    <value>Picking Border Image</value>
+    <value>Image</value>
   </data>
   <data name="Designer.Property.BanLockImagePath">
     <value>Ban Lock Image</value>
   </data>
   <data name="Designer.Property.Lockable">
-    <value>Lock Overlay</value>
+    <value>Enabled</value>
   </data>
   <data name="Designer.Property.LockImagePath">
-    <value>Lock Image</value>
+    <value>Image</value>
+  </data>
+  <data name="Designer.Property.UseIndependentLockStretch">
+    <value>Independent Stretch</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentLockStretch">
+    <value>When enabled, uses the lock image stretch below; otherwise follows the primary image stretch.</value>
+  </data>
+  <data name="Designer.Property.LockStretch">
+    <value>Stretch</value>
   </data>
   <data name="Designer.Property.LockVisibilityBindingPath">
-    <value>Lock Visibility Binding</value>
+    <value>Visibility Binding</value>
   </data>
   <data name="Designer.Property.LockVisibleWhen">
-    <value>Lock Visible When</value>
+    <value>Visibility Rule</value>
   </data>
   <data name="Designer.Property.PickingBorderAvailable">
-    <value>Picking Border Overlay</value>
+    <value>Enabled</value>
   </data>
-  <data name="Designer.Property.PickingBorderName">
-    <value>Picking Border Name</value>
+  <data name="Designer.Property.UseIndependentPickingBorderStretch">
+    <value>Independent Stretch</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentPickingBorderStretch">
+    <value>When enabled, uses the picking border stretch below; otherwise follows the primary image stretch.</value>
+  </data>
+  <data name="Designer.Property.PickingBorderStretch">
+    <value>Stretch</value>
   </data>
   <data name="Designer.Property.PickingBorderZIndexOffset">
-    <value>Picking Border Layer Offset</value>
+    <value>Layer Offset</value>
   </data>
   <data name="Designer.Property.LocalizationKey">
     <value>Localization Key</value>
@@ -551,7 +566,7 @@
     <value>Lock Image</value>
   </data>
   <data name="Designer.Property.LockZIndexOffset">
-    <value>Lock Layer Offset</value>
+    <value>Layer Offset</value>
   </data>
   <data name="Designer.PropertyGroup.Identity">
     <value>Identity</value>
@@ -698,6 +713,30 @@
     <value>Uniform</value>
   </data>
   <data name="Designer.Option.Stretch.UniformToFill">
+    <value>Uniform to Fill</value>
+  </data>
+  <data name="Designer.Option.LockStretch.None">
+    <value>Original Size</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Fill">
+    <value>Fill</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Uniform">
+    <value>Uniform</value>
+  </data>
+  <data name="Designer.Option.LockStretch.UniformToFill">
+    <value>Uniform to Fill</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.None">
+    <value>Original Size</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Fill">
+    <value>Fill</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Uniform">
+    <value>Uniform</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.UniformToFill">
     <value>Uniform to Fill</value>
   </data>
   <data name="Designer.Option.FontWeight.Light">
@@ -937,6 +976,12 @@
   <data name="Designer.PropertyGroup.Overlay">
     <value>Overlay</value>
   </data>
+  <data name="Designer.PropertySection.BanLock">
+    <value>Ban Lock</value>
+  </data>
+  <data name="Designer.PropertySection.PickingBorder">
+    <value>Picking Border</value>
+  </data>
   <data name="Designer.ControlType.GameProgress">
     <value>Game Progress</value>
   </data>
@@ -1121,7 +1166,7 @@
     <value>Map card outer border color when the map is banned.</value>
   </data>
   <data name="Designer.Property.PickingBorderFillColor">
-    <value>Picking Border Fill Color</value>
+    <value>Fill Color</value>
   </data>
   <data name="Designer.Option.MapNameFontWeight.Light">
     <value>Light</value>

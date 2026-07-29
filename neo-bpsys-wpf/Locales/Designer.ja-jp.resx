@@ -458,31 +458,46 @@
     <value>内部画像の高さ</value>
   </data>
   <data name="Designer.Property.PickingBorderImagePath">
-    <value>選択枠画像</value>
+    <value>画像</value>
   </data>
   <data name="Designer.Property.BanLockImagePath">
     <value>Ban ロック画像</value>
   </data>
   <data name="Designer.Property.Lockable">
-    <value>ロックオーバーレイ</value>
+    <value>有効</value>
   </data>
   <data name="Designer.Property.LockImagePath">
-    <value>ロック画像</value>
+    <value>画像</value>
+  </data>
+  <data name="Designer.Property.UseIndependentLockStretch">
+    <value>独立した伸縮</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentLockStretch">
+    <value>有効にすると下のロック画像伸縮を使用し、無効にするとメイン画像の伸縮に従います。</value>
+  </data>
+  <data name="Designer.Property.LockStretch">
+    <value>伸縮</value>
   </data>
   <data name="Designer.Property.LockVisibilityBindingPath">
-    <value>ロック表示バインド</value>
+    <value>表示バインド</value>
   </data>
   <data name="Designer.Property.LockVisibleWhen">
-    <value>ロック表示条件</value>
+    <value>表示条件</value>
   </data>
   <data name="Designer.Property.PickingBorderAvailable">
-    <value>選択枠オーバーレイ</value>
+    <value>有効</value>
   </data>
-  <data name="Designer.Property.PickingBorderName">
-    <value>選択枠名</value>
+  <data name="Designer.Property.UseIndependentPickingBorderStretch">
+    <value>独立した伸縮</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentPickingBorderStretch">
+    <value>有効にすると下の選択枠伸縮を使用し、無効にするとメイン画像の伸縮に従います。</value>
+  </data>
+  <data name="Designer.Property.PickingBorderStretch">
+    <value>伸縮</value>
   </data>
   <data name="Designer.Property.PickingBorderZIndexOffset">
-    <value>選択枠レイヤーのオフセット</value>
+    <value>レイヤーのオフセット</value>
   </data>
   <data name="Designer.Property.LocalizationKey">
     <value>ローカライズキー</value>
@@ -551,7 +566,7 @@
     <value>ロック画像</value>
   </data>
   <data name="Designer.Property.LockZIndexOffset">
-    <value>ロックレイヤーのオフセット</value>
+    <value>レイヤーのオフセット</value>
   </data>
   <data name="Designer.PropertyGroup.Identity">
     <value>識別</value>
@@ -698,6 +713,30 @@
     <value>縦横比を維持して収める</value>
   </data>
   <data name="Designer.Option.Stretch.UniformToFill">
+    <value>縦横比を維持して切り抜き</value>
+  </data>
+  <data name="Designer.Option.LockStretch.None">
+    <value>元のサイズ</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Fill">
+    <value>塗りつぶし</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Uniform">
+    <value>縦横比を維持して収める</value>
+  </data>
+  <data name="Designer.Option.LockStretch.UniformToFill">
+    <value>縦横比を維持して切り抜き</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.None">
+    <value>元のサイズ</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Fill">
+    <value>塗りつぶし</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Uniform">
+    <value>縦横比を維持して収める</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.UniformToFill">
     <value>縦横比を維持して切り抜き</value>
   </data>
   <data name="Designer.Option.FontWeight.Light">
@@ -937,6 +976,12 @@
   <data name="Designer.PropertyGroup.Overlay">
     <value>オーバーレイ</value>
   </data>
+  <data name="Designer.PropertySection.BanLock">
+    <value>Ban ロック</value>
+  </data>
+  <data name="Designer.PropertySection.PickingBorder">
+    <value>選択枠</value>
+  </data>
   <data name="Designer.ControlType.GameProgress">
     <value>ゲーム進行</value>
   </data>
@@ -1121,7 +1166,7 @@
     <value>マップが禁止されている時のカード外枠色です。</value>
   </data>
   <data name="Designer.Property.PickingBorderFillColor">
-    <value>選択枠の塗りつぶし色</value>
+    <value>塗りつぶし色</value>
   </data>
   <data name="Designer.Option.MapNameFontWeight.Light">
     <value>細字</value>

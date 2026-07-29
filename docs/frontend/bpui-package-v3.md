@@ -317,7 +317,7 @@ JSON 结构保持 Window-centric 三段模式：
 }
 ```
 
-图片控件 schema 值保持原始 `ControlType` 字符串：`Image` 表示通用图片控件，运行时根元素承载主图和内部 overlay；`BorderedImage` 表示外层 `Border` + 内部图片层，用于需要外层容器、裁剪框或由外框承接设计器 resize 的图片区域。`BindingPath` 用于动态 `ImageSource` 绑定，`ImagePath` 用于静态资源图片；两者同时存在时 `BindingPath` 优先，`ImagePath` 不会被导入器清空。`Image` / `BorderedImage` 均可保存 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`、`PickingBorderAvailable`、`PickingBorderImagePath`、`PickingBorderName`、`LockZIndexOffset` 和 `PickingBorderZIndexOffset`。旧字段继续兼容：`BanLockAvailable` 映射到 `Lockable`，`BanLockImagePath` 映射到 `LockImagePath`，`PickingBorder` 映射到 `PickingBorderAvailable`。包导入、导出和 roundtrip 不应翻译或重命名这些 `ControlType` 值，也不应丢弃新 overlay 字段或旧 alias 字段可解析出的含义。
+图片控件 schema 值保持原始 `ControlType` 字符串：`Image` 表示通用图片控件，运行时根元素承载主图和内部 overlay；`BorderedImage` 表示外层 `Border` + 内部图片层，用于需要外层容器、裁剪框或由外框承接设计器 resize 的图片区域。`BindingPath` 用于动态 `ImageSource` 绑定，`ImagePath` 用于静态资源图片；两者同时存在时 `BindingPath` 优先，`ImagePath` 不会被导入器清空。`Image` / `BorderedImage` 均可保存 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`、`PickingBorderAvailable`、`PickingBorderImagePath`、`LockZIndexOffset` 和 `PickingBorderZIndexOffset`；picking border 的运行时名称由控件名自动生成。旧字段继续兼容：`BanLockAvailable` 映射到 `Lockable`，`BanLockImagePath` 映射到 `LockImagePath`，`PickingBorder` 映射到 `PickingBorderAvailable`。包导入、导出和 roundtrip 不应翻译或重命名这些 `ControlType` 值，也不应丢弃新 overlay 字段或旧 alias 字段可解析出的含义。
 
 ## 8. 插件前台控件依赖
 

@@ -282,6 +282,14 @@ internal static class BuiltInPropertyDefinitionResolver
             return "Layout";
         }
 
+        if (propertyName.StartsWith("Lock", StringComparison.Ordinal)
+            || propertyName.StartsWith("UseIndependentLock", StringComparison.Ordinal)
+            || propertyName.StartsWith("PickingBorder", StringComparison.Ordinal)
+            || propertyName.StartsWith("UseIndependentPickingBorder", StringComparison.Ordinal))
+        {
+            return "Overlay";
+        }
+
         if (propertyName == nameof(FrontedControlConfigBase.BindingPath)
             || propertyName.EndsWith(nameof(FrontedControlConfigBase.BindingPath), StringComparison.Ordinal)
             || propertyName.EndsWith("ColorBindingPath", StringComparison.Ordinal))
@@ -330,6 +338,14 @@ internal static class BuiltInPropertyDefinitionResolver
         if (property.PropertyType == typeof(string) && TryGetStringOptions(property.Name, out _))
         {
             return FrontedPropertyEditorKind.Enum;
+        }
+
+        if (property.Name is nameof(ImageFrontedControlConfig.Lockable)
+            or nameof(ImageFrontedControlConfig.PickingBorderAvailable)
+            or nameof(ImageFrontedControlConfig.UseIndependentLockStretch)
+            or nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
         }
 
         if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled)
@@ -412,6 +428,12 @@ internal static class BuiltInPropertyDefinitionResolver
 
         if (propertyName.EndsWith("FontWeight", StringComparison.OrdinalIgnoreCase)
             && StringOptionProperties.TryGetValue("FontWeight", out options!))
+        {
+            return true;
+        }
+
+        if (propertyName.EndsWith("Stretch", StringComparison.OrdinalIgnoreCase)
+            && StringOptionProperties.TryGetValue("Stretch", out options!))
         {
             return true;
         }

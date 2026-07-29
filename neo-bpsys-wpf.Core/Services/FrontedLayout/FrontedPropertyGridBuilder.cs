@@ -270,6 +270,7 @@ public class FrontedPropertyGridBuilder
         var isReadOnly = !selectedItem.IsEditableInEditor
                          || property.Metadata.IsReadOnly
                          || IsEffectDetailDisabled(propertyName, config);
+        var isEditingDisabled = IsOverlayStretchEditingDisabled(propertyName, config);
         var groupName = property.Metadata.GroupName;
         var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, propertyName).ToList();
         var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -310,10 +311,12 @@ public class FrontedPropertyGridBuilder
             DisplayValue = GetDisplayValue(value, isReadOnly),
             EditText = GetEditTextValue(value, kind),
             IsReadOnly = isReadOnly,
+            IsEditingDisabled = isEditingDisabled,
             IsRequired = propertyName is nameof(FrontedControlConfigBase.Left)
                 or nameof(FrontedControlConfigBase.Top),
             Options = ResolveSchemaOptions(property, kind, propertyName),
             GroupName = groupName,
+            SectionName = ResolveOverlaySectionName(propertyName, config),
             ValidationErrors = validationErrors,
             ValidationMessages = validationMessages,
             CanBrowseBinding = canBrowseBinding,
@@ -353,6 +356,14 @@ public class FrontedPropertyGridBuilder
         if (propertyType == typeof(string) && TryGetStringOptions(propertyName, out _))
         {
             return FrontedPropertyEditorKind.Enum;
+        }
+
+        if (propertyName is nameof(ImageFrontedControlConfig.Lockable)
+            or nameof(ImageFrontedControlConfig.PickingBorderAvailable)
+            or nameof(ImageFrontedControlConfig.UseIndependentLockStretch)
+            or nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
         }
 
         if (propertyName == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
@@ -586,6 +597,7 @@ public class FrontedPropertyGridBuilder
             var isReadOnly = !selectedItem.IsEditableInEditor
                              || !property.CanWrite
                              || IsEffectDetailDisabled(property.Name, selectedItem.Config);
+            var isEditingDisabled = IsOverlayStretchEditingDisabled(property.Name, selectedItem.Config);
             var groupName = ResolveGroupName(property.Name, selectedItem.Config);
             var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
             var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -626,10 +638,12 @@ public class FrontedPropertyGridBuilder
                 DisplayValue = GetDisplayValue(value, isReadOnly),
                 EditText = GetEditTextValue(value, kind),
                 IsReadOnly = isReadOnly,
+                IsEditingDisabled = isEditingDisabled,
                 IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
                     or nameof(FrontedControlConfigBase.Top),
                 Options = ResolveOptions(property, kind),
                 GroupName = groupName,
+                SectionName = ResolveOverlaySectionName(property.Name, selectedItem.Config),
                 ValidationErrors = validationErrors,
                 ValidationMessages = validationMessages,
                 CanBrowseBinding = canBrowseBinding,
@@ -753,6 +767,7 @@ public class FrontedPropertyGridBuilder
         var isReadOnly = !selectedItem.IsEditableInEditor
                          || !property.CanWrite
                          || IsEffectDetailDisabled(property.Name, selectedItem.Config);
+        var isEditingDisabled = IsOverlayStretchEditingDisabled(property.Name, selectedItem.Config);
         var groupName = ResolveGroupName(property.Name, selectedItem.Config);
         var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
         var validationErrors = validationMessages.Select(message => message.Message).ToList();
@@ -792,10 +807,12 @@ public class FrontedPropertyGridBuilder
             DisplayValue = GetDisplayValue(value, isReadOnly),
             EditText = GetEditTextValue(value, kind),
             IsReadOnly = isReadOnly,
+            IsEditingDisabled = isEditingDisabled,
             IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
                 or nameof(FrontedControlConfigBase.Top),
             Options = ResolveOptions(property, kind),
             GroupName = groupName,
+            SectionName = ResolveOverlaySectionName(property.Name, selectedItem.Config),
             ValidationErrors = validationErrors,
             ValidationMessages = validationMessages,
             CanBrowseBinding = canBrowseBinding,
@@ -970,6 +987,14 @@ public class FrontedPropertyGridBuilder
             return FrontedPropertyEditorKind.Enum;
         }
 
+        if (property.Name is nameof(ImageFrontedControlConfig.Lockable)
+            or nameof(ImageFrontedControlConfig.PickingBorderAvailable)
+            or nameof(ImageFrontedControlConfig.UseIndependentLockStretch)
+            or nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch))
+        {
+            return FrontedPropertyEditorKind.ToggleSwitch;
+        }
+
         if (property.Name == nameof(FrontedControlConfigBase.IsGaussianBlurEnabled))
         {
             return FrontedPropertyEditorKind.ToggleSwitch;
@@ -1072,12 +1097,16 @@ public class FrontedPropertyGridBuilder
         {
             if (propertyName is nameof(ImageFrontedControlConfig.Lockable)
                 or nameof(ImageFrontedControlConfig.LockImagePath)
+                or nameof(ImageFrontedControlConfig.UseIndependentLockStretch)
+                or nameof(ImageFrontedControlConfig.LockStretch)
                 or nameof(ImageFrontedControlConfig.LockVisibilityBindingPath)
                 or nameof(ImageFrontedControlConfig.LockVisibleWhen)
                 or nameof(ImageFrontedControlConfig.LockZIndexOffset)
                 or nameof(ImageFrontedControlConfig.PickingBorderAvailable)
                 or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
-                or nameof(ImageFrontedControlConfig.PickingBorderName)
+                or nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch)
+                or nameof(ImageFrontedControlConfig.PickingBorderStretch)
+                or nameof(ImageFrontedControlConfig.PickingBorderFillColor)
                 or nameof(ImageFrontedControlConfig.PickingBorderZIndexOffset)
                 or nameof(ImageFrontedControlConfig.PickingBorder)
                 or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
@@ -1176,12 +1205,16 @@ public class FrontedPropertyGridBuilder
         if (config is ImageFrontedControlConfig
             && (propertyName is nameof(ImageFrontedControlConfig.Lockable)
                 or nameof(ImageFrontedControlConfig.LockImagePath)
+                or nameof(ImageFrontedControlConfig.UseIndependentLockStretch)
+                or nameof(ImageFrontedControlConfig.LockStretch)
                 or nameof(ImageFrontedControlConfig.LockVisibilityBindingPath)
                 or nameof(ImageFrontedControlConfig.LockVisibleWhen)
                 or nameof(ImageFrontedControlConfig.LockZIndexOffset)
                 or nameof(ImageFrontedControlConfig.PickingBorderAvailable)
                 or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
-                or nameof(ImageFrontedControlConfig.PickingBorderName)
+                or nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch)
+                or nameof(ImageFrontedControlConfig.PickingBorderStretch)
+                or nameof(ImageFrontedControlConfig.PickingBorderFillColor)
                 or nameof(ImageFrontedControlConfig.PickingBorderZIndexOffset)))
         {
             return "Overlay";
@@ -1367,6 +1400,56 @@ public class FrontedPropertyGridBuilder
         return false;
     }
 
+    private static bool IsOverlayStretchEditingDisabled(
+        string propertyName,
+        FrontedControlConfigBase config)
+    {
+        if (config is not ImageFrontedControlConfig imageConfig)
+        {
+            return false;
+        }
+
+        return propertyName switch
+        {
+            nameof(ImageFrontedControlConfig.LockStretch) =>
+                !imageConfig.UseIndependentLockStretch,
+            nameof(ImageFrontedControlConfig.PickingBorderStretch) =>
+                !imageConfig.UseIndependentPickingBorderStretch,
+            _ => false
+        };
+    }
+
+    private static string? ResolveOverlaySectionName(
+        string propertyName,
+        FrontedControlConfigBase config)
+    {
+        if (config is not ImageFrontedControlConfig)
+        {
+            return null;
+        }
+
+        return propertyName switch
+        {
+            nameof(ImageFrontedControlConfig.Lockable)
+                or nameof(ImageFrontedControlConfig.LockImagePath)
+                or nameof(ImageFrontedControlConfig.UseIndependentLockStretch)
+                or nameof(ImageFrontedControlConfig.LockStretch)
+                or nameof(ImageFrontedControlConfig.LockVisibilityBindingPath)
+                or nameof(ImageFrontedControlConfig.LockVisibleWhen)
+                or nameof(ImageFrontedControlConfig.LockZIndexOffset)
+                or nameof(ImageFrontedControlConfig.BanLockAvailable)
+                or nameof(ImageFrontedControlConfig.BanLockImagePath) => "BanLock",
+            nameof(ImageFrontedControlConfig.PickingBorderAvailable)
+                or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
+                or nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch)
+                or nameof(ImageFrontedControlConfig.PickingBorderStretch)
+                or nameof(ImageFrontedControlConfig.PickingBorderFillColor)
+                or nameof(ImageFrontedControlConfig.PickingBorderZIndexOffset)
+                or nameof(ImageFrontedControlConfig.PickingBorder) => "PickingBorder",
+            _ => null
+        };
+    }
+
     private static bool TryGetStringOptions(string propertyName, out IReadOnlyList<object> options)
     {
         if (StringOptionProperties.TryGetValue(propertyName, out options!))
@@ -1380,6 +1463,12 @@ public class FrontedPropertyGridBuilder
             return true;
         }
 
+        if (propertyName.EndsWith("Stretch", StringComparison.OrdinalIgnoreCase)
+            && StringOptionProperties.TryGetValue("Stretch", out options!))
+        {
+            return true;
+        }
+
         options = [];
         return false;
     }
@@ -1389,6 +1478,11 @@ public class FrontedPropertyGridBuilder
         if (propertyName.EndsWith("FontWeight", StringComparison.OrdinalIgnoreCase))
         {
             return "FontWeight";
+        }
+
+        if (propertyName.EndsWith("Stretch", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Stretch";
         }
 
         return propertyName;
@@ -1551,13 +1645,23 @@ public class FrontedPropertyGridBuilder
     private void MarkGroupHeaders(IReadOnlyList<FrontedPropertyEditorItem> rows)
     {
         string? currentGroup = null;
+        string? currentSection = null;
         foreach (var row in rows)
         {
-            row.IsGroupHeaderVisible = row.GroupName != currentGroup;
+            var isGroupChanged = row.GroupName != currentGroup;
+            row.IsGroupHeaderVisible = isGroupChanged;
             row.GroupDisplayName = string.IsNullOrWhiteSpace(row.GroupName)
                 ? row.GroupName
                 : _localizationService.GetGroupDisplayName(row.GroupName);
+            row.IsSectionHeaderVisible = !string.IsNullOrWhiteSpace(row.SectionName)
+                && (isGroupChanged || row.SectionName != currentSection);
+            row.SectionDisplayName = string.IsNullOrWhiteSpace(row.SectionName)
+                ? row.SectionName
+                : _localizationService.GetDesignerText(
+                    $"Designer.PropertySection.{row.SectionName}",
+                    row.SectionName);
             currentGroup = row.GroupName;
+            currentSection = row.SectionName;
         }
     }
 
