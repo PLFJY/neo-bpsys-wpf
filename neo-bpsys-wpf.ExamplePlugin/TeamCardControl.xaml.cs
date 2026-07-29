@@ -55,6 +55,7 @@ public partial class TeamCardControl : FrontedV3ControlBase
         new("Appearance.TextColor", FrontedV3Storage.ExtensionData("TextColor"),
             new FrontedV3PropertyMetadata
             {
+                DisplayNameKey = "TeamCardTextColor",
                 Semantic = FrontedV3PropertySemantic.Appearance,
                 DefaultValue = "White"
             });
@@ -68,6 +69,7 @@ public partial class TeamCardControl : FrontedV3ControlBase
         new("Content.TeamName", FrontedV3Storage.ExtensionData("TeamName"),
             new FrontedV3PropertyMetadata
             {
+                DisplayNameKey = "TeamCardTeamName",
                 Semantic = FrontedV3PropertySemantic.Other,
                 DefaultValue = "Team"
             });

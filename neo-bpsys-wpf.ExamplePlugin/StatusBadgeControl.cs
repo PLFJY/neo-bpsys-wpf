@@ -49,6 +49,7 @@ public class StatusBadgeControl : FrontedV3ControlBase
         new("Appearance.BadgeColor", FrontedV3Storage.ExtensionData("BadgeColor"),
             new FrontedV3PropertyMetadata
             {
+                DisplayNameKey = "StatusBadgeBadgeColor",
                 Semantic = FrontedV3PropertySemantic.Appearance,
                 DefaultValue = "#2D7DD2"
             });
@@ -62,6 +63,7 @@ public class StatusBadgeControl : FrontedV3ControlBase
         new("Content.StatusText", FrontedV3Storage.ExtensionData("StatusText"),
             new FrontedV3PropertyMetadata
             {
+                DisplayNameKey = "StatusBadgeStatusText",
                 Semantic = FrontedV3PropertySemantic.Other,
                 DefaultValue = "Status"
             });

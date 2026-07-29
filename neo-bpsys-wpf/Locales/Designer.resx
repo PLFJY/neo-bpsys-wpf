@@ -874,6 +874,267 @@
   <data name="Designer.Binding.GameProgress">
     <value>对局进度</value>
   </data>
+  <data name="Designer.Binding.CurrentGame">
+    <value>当前对局</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam">
+    <value>主队</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam">
+    <value>客队</value>
+  </data>
+  <data name="Designer.Binding.RemainingSeconds">
+    <value>剩余秒数</value>
+  </data>
+  <data name="Designer.Binding.CountDownRemainingSeconds">
+    <value>倒计时剩余秒数</value>
+  </data>
+  <data name="Designer.Binding.CountDownTotalSeconds">
+    <value>倒计时总秒数</value>
+  </data>
+  <data name="Designer.Binding.CanCurrentSurBannedList">
+    <value>当局求生者 Ban 位</value>
+  </data>
+  <data name="Designer.Binding.CanCurrentHunBannedList">
+    <value>当局监管者 Ban 位</value>
+  </data>
+  <data name="Designer.Binding.CanGlobalSurBannedList">
+    <value>全局求生者 Ban 位</value>
+  </data>
+  <data name="Designer.Binding.CanGlobalHunBannedList">
+    <value>全局监管者 Ban 位</value>
+  </data>
+  <data name="Designer.Binding.SurTeam">
+    <value>求生者方队伍</value>
+  </data>
+  <data name="Designer.Binding.HunTeam">
+    <value>监管者方队伍</value>
+  </data>
+  <data name="Designer.Binding.MatchScore">
+    <value>比分状态</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurBannedList">
+    <value>当局求生者禁用列表</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunBannedList">
+    <value>当局监管者禁用列表</value>
+  </data>
+  <data name="Designer.Binding.SurPlayerList">
+    <value>求生者上场选手</value>
+  </data>
+  <data name="Designer.Binding.HunPlayer">
+    <value>监管者上场选手</value>
+  </data>
+  <data name="Designer.Binding.PickedMap">
+    <value>选用地图</value>
+  </data>
+  <data name="Designer.Binding.BannedMap">
+    <value>禁用地图</value>
+  </data>
+  <data name="Designer.Binding.PickedMapImage">
+    <value>选用地图图片</value>
+  </data>
+  <data name="Designer.Binding.PickedMapImageLarge">
+    <value>选用地图大图</value>
+  </data>
+  <data name="Designer.Binding.BannedMapImage">
+    <value>禁用地图图片</value>
+  </data>
+  <data name="Designer.Binding.Camp">
+    <value>阵营</value>
+  </data>
+  <data name="Designer.Binding.ColorHex">
+    <value>队伍展示颜色</value>
+  </data>
+  <data name="Designer.Binding.GlobalBannedSurList">
+    <value>全局求生者禁用列表</value>
+  </data>
+  <data name="Designer.Binding.GlobalBannedHunList">
+    <value>全局监管者禁用列表</value>
+  </data>
+  <data name="Designer.Binding.Talent">
+    <value>天赋</value>
+  </data>
+  <data name="Designer.Binding.Trait">
+    <value>辅助特质</value>
+  </data>
+  <data name="Designer.Binding.Data">
+    <value>赛后数据</value>
+  </data>
+  <data name="Designer.Binding.PictureShown">
+    <value>显示图片</value>
+  </data>
+  <data name="Designer.Binding.PictureShownWithFullCharacter">
+    <value>全身立绘显示图片</value>
+  </data>
+  <data name="Designer.Binding.PictureShownHeader">
+    <value>头像显示图片</value>
+  </data>
+  <data name="Designer.Binding.GameId">
+    <value>游戏内 ID</value>
+  </data>
+  <data name="Designer.Binding.Image">
+    <value>图片</value>
+  </data>
+  <data name="Designer.Binding.IsOnField">
+    <value>是否上场</value>
+  </data>
+  <data name="Designer.Binding.CanOnFieldChange">
+    <value>是否可上场</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorWin">
+    <value>主队大比分胜场</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorTie">
+    <value>主队大比分平局</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorWin">
+    <value>客队大比分胜场</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorTie">
+    <value>客队大比分平局</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorText">
+    <value>主队大比分文本</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorText">
+    <value>客队大比分文本</value>
+  </data>
+  <data name="Designer.Binding.HomeTotalMinorScore">
+    <value>主队小比分总和</value>
+  </data>
+  <data name="Designer.Binding.AwayTotalMinorScore">
+    <value>客队小比分总和</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMinorScoreText">
+    <value>求生者方当前半场小比分</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMinorScoreText">
+    <value>监管者方当前半场小比分</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorText">
+    <value>求生者方大比分文本</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorText">
+    <value>监管者方大比分文本</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorWin">
+    <value>求生者方大比分胜场</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorTie">
+    <value>求生者方大比分平局</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorWin">
+    <value>监管者方大比分胜场</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorTie">
+    <value>监管者方大比分平局</value>
+  </data>
+  <data name="Designer.Binding.MapName">
+    <value>地图名称</value>
+  </data>
+  <data name="Designer.Binding.IsPicked">
+    <value>是否被选用</value>
+  </data>
+  <data name="Designer.Binding.IsBanned">
+    <value>是否被禁用</value>
+  </data>
+  <data name="Designer.Binding.IsGloballyDisabled">
+    <value>是否被全局禁用</value>
+  </data>
+  <data name="Designer.Binding.OperationTeam">
+    <value>操作队伍</value>
+  </data>
+  <data name="Designer.Binding.CanBePicked">
+    <value>是否可被选用</value>
+  </data>
+  <data name="Designer.Binding.CanBeBanned">
+    <value>是否可被禁用</value>
+  </data>
+  <data name="Designer.Binding.CanBeGloballyDisabled">
+    <value>是否可被全局禁用</value>
+  </data>
+  <data name="Designer.Binding.IsVisuallyBanned">
+    <value>是否视觉禁用</value>
+  </data>
+  <data name="Designer.Binding.IsCampVisible">
+    <value>阵营标识是否可见</value>
+  </data>
+  <data name="Designer.Binding.IsBreathing">
+    <value>呼吸灯是否开启</value>
+  </data>
+  <data name="Designer.Binding.ImageSource">
+    <value>地图图片</value>
+  </data>
+  <data name="Designer.Binding.BorrowedTime">
+    <value>回光返照</value>
+  </data>
+  <data name="Designer.Binding.FlywheelEffect">
+    <value>飞轮效应</value>
+  </data>
+  <data name="Designer.Binding.KneeJerkReflex">
+    <value>膝跳反射</value>
+  </data>
+  <data name="Designer.Binding.TideTurner">
+    <value>化险为夷</value>
+  </data>
+  <data name="Designer.Binding.ConfinedSpace">
+    <value>禁闭空间</value>
+  </data>
+  <data name="Designer.Binding.Detention">
+    <value>挽留</value>
+  </data>
+  <data name="Designer.Binding.Insolence">
+    <value>张狂</value>
+  </data>
+  <data name="Designer.Binding.TrumpCard">
+    <value>底牌</value>
+  </data>
+  <data name="Designer.Binding.TraitName">
+    <value>辅助特质名称</value>
+  </data>
+  <data name="Designer.Binding.DecodingProgress">
+    <value>破译进度</value>
+  </data>
+  <data name="Designer.Binding.PalletStrikes">
+    <value>砸板命中次数</value>
+  </data>
+  <data name="Designer.Binding.Rescues">
+    <value>救人次数</value>
+  </data>
+  <data name="Designer.Binding.Heals">
+    <value>治疗次数</value>
+  </data>
+  <data name="Designer.Binding.ContainmentTime">
+    <value>牵制时间</value>
+  </data>
+  <data name="Designer.Binding.RemainingCipher">
+    <value>剩余密码机数量</value>
+  </data>
+  <data name="Designer.Binding.PalletsDestroyed">
+    <value>破坏板子数</value>
+  </data>
+  <data name="Designer.Binding.SurvivorHits">
+    <value>命中求生者次数</value>
+  </data>
+  <data name="Designer.Binding.TerrorShocks">
+    <value>恐惧震慑次数</value>
+  </data>
+  <data name="Designer.Binding.Knockdowns">
+    <value>击倒次数</value>
+  </data>
+  <data name="Designer.Binding.BigImage">
+    <value>全身立绘</value>
+  </data>
+  <data name="Designer.Binding.HeaderImage">
+    <value>头像图片</value>
+  </data>
+  <data name="Designer.Binding.HeaderImageSingleColor">
+    <value>黑白头像</value>
+  </data>
+  <data name="Designer.Binding.HalfImage">
+    <value>半身立绘</value>
+  </data>
   <data name="Designer.BindingType.String">
     <value>文本</value>
   </data>
@@ -888,6 +1149,66 @@
   </data>
   <data name="Designer.BindingType.GameProgress">
     <value>对局进度</value>
+  </data>
+  <data name="Designer.BindingType.Team">
+    <value>队伍</value>
+  </data>
+  <data name="Designer.BindingType.Game">
+    <value>对局</value>
+  </data>
+  <data name="Designer.BindingType.Player">
+    <value>选手</value>
+  </data>
+  <data name="Designer.BindingType.Member">
+    <value>队员</value>
+  </data>
+  <data name="Designer.BindingType.Character">
+    <value>角色</value>
+  </data>
+  <data name="Designer.BindingType.MatchScoreState">
+    <value>比分状态</value>
+  </data>
+  <data name="Designer.BindingType.MapV2">
+    <value>地图 BP</value>
+  </data>
+  <data name="Designer.BindingType.Map">
+    <value>地图</value>
+  </data>
+  <data name="Designer.BindingType.Talent">
+    <value>天赋</value>
+  </data>
+  <data name="Designer.BindingType.Trait">
+    <value>辅助特质</value>
+  </data>
+  <data name="Designer.BindingType.PlayerData">
+    <value>赛后数据</value>
+  </data>
+  <data name="Designer.BindingType.Camp">
+    <value>阵营</value>
+  </data>
+  <data name="Designer.BindingType.Boolean">
+    <value>布尔值</value>
+  </data>
+  <data name="Designer.BindingType.Double">
+    <value>小数</value>
+  </data>
+  <data name="Designer.BindingType.ObservableCollection">
+    <value>集合</value>
+  </data>
+  <data name="Designer.BindingType.ObservableCollection`1">
+    <value>泛型集合</value>
+  </data>
+  <data name="Designer.BindingType.ScoreGame">
+    <value>比分单元</value>
+  </data>
+  <data name="Designer.BindingType.ScoreHalf">
+    <value>半场比分</value>
+  </data>
+  <data name="Designer.BindingType.ScoreGameKey">
+    <value>比分单元键</value>
+  </data>
+  <data name="Designer.BindingType.TraitType">
+    <value>辅助特质类型</value>
   </data>
   <data name="Designer.Value.True">
     <value>是</value>
@@ -2689,8 +3010,32 @@
   <data name="Designer.Option.VerticalDirection.FacingRight">
     <value>朝右</value>
   </data>
+  <data name="Designer.Option.GameKind.Normal">
+    <value>常规对局</value>
+  </data>
+  <data name="Designer.Option.GameKind.Overtime">
+    <value>加赛局</value>
+  </data>
+  <data name="Designer.Option.HalfKind.FirstHalf">
+    <value>上半场</value>
+  </data>
+  <data name="Designer.Option.HalfKind.SecondHalf">
+    <value>下半场</value>
+  </data>
   <data name="Designer.Option.DisplayLanguage.FollowApp">
     <value>跟随应用</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.System">
+    <value>系统默认</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.zh_Hans">
+    <value>简体中文</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.en_US">
+    <value>英语</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.ja_JP">
+    <value>日语</value>
   </data>
   <data name="Designer.Graph.Connection.IncompatibleTypes">
     <value>端口类型不兼容，无法连接</value>
@@ -3123,4 +3468,490 @@
   <data name="Designer.Graph.Property.FallbackValue"><value>回退数值</value></data><data name="Designer.Graph.Property.FallbackValue.Description"><value>事件字段缺失或无法转换为数值时使用的值。</value></data>
   <data name="Designer.Graph.ExternalValueInput"><value>已连接外部数值输入，手动值已禁用。</value></data>
   <data name="Designer.Graph.Property.ValueInputUnit"><value>外部数值单位</value></data><data name="Designer.Graph.Property.FromInputUnit"><value>起始外部数值单位</value></data><data name="Designer.Graph.Property.ToInputUnit"><value>目标外部数值单位</value></data><data name="Designer.Graph.Property.ValueInputUnit.Description"><value>决定外部数值按像素还是百分比应用。</value></data><data name="Designer.Option.ValueInputUnit.Absolute"><value>绝对值（像素）</value></data><data name="Designer.Option.ValueInputUnit.Percent"><value>百分比</value></data><data name="Designer.Option.FromInputUnit.Absolute"><value>绝对值（像素）</value></data><data name="Designer.Option.FromInputUnit.Percent"><value>百分比</value></data><data name="Designer.Option.ToInputUnit.Absolute"><value>绝对值（像素）</value></data><data name="Designer.Option.ToInputUnit.Percent"><value>百分比</value></data>
+  <data name="Designer.Property.ContentMarginLeft">
+    <value>内容左偏移</value>
+  </data>
+  <data name="Designer.Property.ContentMarginTop">
+    <value>内容上偏移</value>
+  </data>
+  <data name="Designer.Property.ContentMarginRight">
+    <value>内容右偏移</value>
+  </data>
+  <data name="Designer.Property.ContentMarginBottom">
+    <value>内容下偏移</value>
+  </data>
+  <data name="Designer.Property.Points">
+    <value>顶点列表</value>
+  </data>
+  <data name="Designer.PropertyDescription.Name">
+    <value>控件在画布中的唯一名称。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ControlType">
+    <value>控件类型标识。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Left">
+    <value>控件左上角在 Canvas 中的 X 坐标。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Top">
+    <value>控件左上角在 Canvas 中的 Y 坐标。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Width">
+    <value>控件宽度。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GaussianBlurRadius">
+    <value>静态高斯模糊半径（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsGaussianBlurEnabled">
+    <value>是否启用静态高斯模糊。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsShadowEnabled">
+    <value>是否启用静态阴影。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowColor">
+    <value>阴影颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowRadius">
+    <value>阴影模糊半径（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowDepth">
+    <value>阴影投影距离（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowDirection">
+    <value>阴影方向角度（0=右，270=下）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowOpacity">
+    <value>阴影不透明度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsGlowEnabled">
+    <value>是否启用静态发光。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowColor">
+    <value>发光颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowRadius">
+    <value>发光模糊半径（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowOpacity">
+    <value>发光不透明度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Height">
+    <value>控件高度。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ZIndex">
+    <value>Canvas 层级，数值越大越靠上。</value>
+  </data>
+  <data name="Designer.PropertyDescription.HorizontalAlignment">
+    <value>内容在控件内的水平对齐方式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalAlignment">
+    <value>内容在控件内的垂直对齐方式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextAlignment">
+    <value>文本的水平对齐方式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextWrapping">
+    <value>文本换行方式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Stretch">
+    <value>图片拉伸方式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontFamily">
+    <value>字体族名称。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontWeight">
+    <value>字重。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontSize">
+    <value>字号（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Color">
+    <value>文本颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ColorBindingPath">
+    <value>文本颜色绑定路径；有值时优先于静态颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BackgroundImage">
+    <value>画布背景图片。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorder">
+    <value>旧版选择框开关，兼容旧 JSON。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BanLockAvailable">
+    <value>旧版 Ban 锁开关，兼容旧 JSON。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Text">
+    <value>静态文本内容，仅在无有效文本绑定时使用。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StringFormat">
+    <value>文本绑定的格式字符串。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SizingMode">
+    <value>图片控件尺寸模式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipToBounds">
+    <value>是否裁剪超出外层边框的内容。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CornerRadius">
+    <value>图片圆角半径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ImageWidth">
+    <value>内层 Image 的显式宽度。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ImageHeight">
+    <value>内层 Image 的显式高度。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderImagePath">
+    <value>选用边框图片路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BanLockImagePath">
+    <value>旧版 Ban 锁图片路径，兼容旧 JSON。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Lockable">
+    <value>是否启用锁定覆盖层（Ban 锁定）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockImagePath">
+    <value>锁定覆盖层图片路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockStretch">
+    <value>锁定覆盖层的独立拉伸方式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockVisibilityBindingPath">
+    <value>锁定覆盖层可见性绑定路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockVisibleWhen">
+    <value>锁定覆盖层可见性规则。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderAvailable">
+    <value>是否启用选用边框覆盖层。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderStretch">
+    <value>选用边框的独立拉伸方式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderZIndexOffset">
+    <value>选用边框 ZIndex 偏移。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LocalizationKey">
+    <value>本地化资源 key。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FallbackText">
+    <value>资源 key 缺失时显示的备用文本。</value>
+  </data>
+  <data name="Designer.PropertyDescription.EmptyText">
+    <value>未选择地图时显示的文本。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamType">
+    <value>队伍类型（主队/客队）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MajorGameGap">
+    <value>大局之间的间距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.HalfGameGap">
+    <value>半场之间的间距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowCampIcon">
+    <value>是否显示阵营图标。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampIconColor">
+    <value>阵营图标颜色（求生者/监管者）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapKey">
+    <value>地图字典 key。</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayKind">
+    <value>天赋/辅助特质显示类型。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PlayerIndex">
+    <value>求生者位置序号（0-3）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IconSize">
+    <value>天赋/辅助特质图标宽高。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IconGap">
+    <value>图标之间的间距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.RespectTraitVisibility">
+    <value>监管者辅助特质是否跟随共享可见性。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BorderImagePath">
+    <value>外层边框图片路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillColor">
+    <value>形状填充颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.InitiallyHidden">
+    <value>是否在初始化时隐藏。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SlotKind">
+    <value>Ban 位来源（当前局/全局）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Camp">
+    <value>阵营（求生者/监管者）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Index">
+    <value>位置索引。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowLockOverlay">
+    <value>是否显示锁定覆盖层。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockImageSource">
+    <value>锁定覆盖层图片源。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockZIndexOffset">
+    <value>锁定覆盖层 ZIndex 偏移。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontFamily">
+    <value>地图名称字体族。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontWeight">
+    <value>地图名称字重。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameColor">
+    <value>地图名称颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontSize">
+    <value>地图名称字号。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontFamily">
+    <value>队伍名称字体族。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontWeight">
+    <value>队伍名称字重。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameColor">
+    <value>队伍名称颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontSize">
+    <value>队伍名称字号。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontFamily">
+    <value>阵营文字字体族。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontWeight">
+    <value>阵营文字字重。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameColor">
+    <value>阵营文字颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontSize">
+    <value>阵营文字字号。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderFillColor">
+    <value>选用边框遮罩填充颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Visibility">
+    <value>控件可见性。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellId">
+    <value>比分单元稳定 ID。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GameNumber">
+    <value>比分系统局号。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GameKind">
+    <value>普通局或加赛局。</value>
+  </data>
+  <data name="Designer.PropertyDescription.HalfKind">
+    <value>上半场或下半场。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellX">
+    <value>比分单元相对父行的 X 坐标。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellY">
+    <value>比分单元相对父行的 Y 坐标。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowCampIconOverride">
+    <value>单元级阵营图标显示覆盖。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampIconColorOverride">
+    <value>单元级阵营图标颜色覆盖。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradient">
+    <value>是否启用渐变填充。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillMode">
+    <value>形状填充模式（纯色/线性渐变）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseFillBinding">
+    <value>是否使用填充颜色绑定。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillBindingPath">
+    <value>填充颜色绑定路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradientStartBinding">
+    <value>是否绑定渐变起始色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientStartColor">
+    <value>渐变起始颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientStartBindingPath">
+    <value>渐变起始色绑定路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradientEndBinding">
+    <value>是否绑定渐变结束色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientEndColor">
+    <value>渐变结束颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientEndBindingPath">
+    <value>渐变结束色绑定路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientAngle">
+    <value>渐变角度（0-360 度）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.RadiusX">
+    <value>圆角 X 轴半径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.RadiusY">
+    <value>圆角 Y 轴半径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StrokeColor">
+    <value>描边颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StrokeThickness">
+    <value>描边粗细（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintColor">
+    <value>背景染色颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintBindingPath">
+    <value>染色颜色绑定路径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintMode">
+    <value>背景染色混合模式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintStrength">
+    <value>染色强度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextureStrength">
+    <value>原背景纹理明显程度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowMissingBackgroundPlaceholder">
+    <value>缺少背景时是否显示占位符。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Opacity">
+    <value>控件不透明度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VisualOffsetX">
+    <value>视觉水平偏移量（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VisualOffsetY">
+    <value>视觉垂直偏移量（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetLeft">
+    <value>左侧裁剪内缩量（像素或百分比）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetTop">
+    <value>顶部裁剪内缩量（像素或百分比）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetRight">
+    <value>右侧裁剪内缩量（像素或百分比）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetBottom">
+    <value>底部裁剪内缩量（像素或百分比）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ScaleX">
+    <value>水平缩放比例（1=原始大小）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ScaleY">
+    <value>垂直缩放比例（1=原始大小）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Rotation">
+    <value>旋转角度（度）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextColor">
+    <value>文本颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Foreground">
+    <value>前景色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Background">
+    <value>背景色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayMode">
+    <value>对局进度显示模式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalLanguageMode">
+    <value>竖排文本的语言模式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LatinVerticalMode">
+    <value>拉丁文本竖向显示模式。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalDirection">
+    <value>竖排文本方向。</value>
+  </data>
+  <data name="Designer.PropertyDescription.NumberStyle">
+    <value>数字显示风格。</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayLanguage">
+    <value>文本显示语言。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalTextSpacing">
+    <value>竖排模式字符间距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GroupSpacing">
+    <value>竖排分组模式中 Game 组和 Half 组的间距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowSeparator">
+    <value>是否显示分隔线。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SeparatorThickness">
+    <value>分隔线粗细（像素）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SeparatorColor">
+    <value>分隔线颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BackgroundColor">
+    <value>文本背景颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingLeft">
+    <value>左侧内边距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingTop">
+    <value>顶部内边距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingRight">
+    <value>右侧内边距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingBottom">
+    <value>底部内边距。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginLeft">
+    <value>文本内容左侧偏移量。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginTop">
+    <value>文本内容顶部偏移量。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginRight">
+    <value>文本内容右侧偏移量。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginBottom">
+    <value>文本内容底部偏移量。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Points">
+    <value>多边形顶点列表。</value>
+  </data>
+  <data name="Designer.Property.TeamCardTextColor">
+    <value>文字颜色</value>
+  </data>
+  <data name="Designer.Property.TeamCardTeamName">
+    <value>队伍名称</value>
+  </data>
+  <data name="Designer.Property.StatusBadgeBadgeColor">
+    <value>徽章颜色</value>
+  </data>
+  <data name="Designer.Property.StatusBadgeStatusText">
+    <value>状态文字</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamCardTextColor">
+    <value>队伍卡片中显示的文字颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamCardTeamName">
+    <value>队伍卡片中显示的队伍名称。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StatusBadgeBadgeColor">
+    <value>状态徽章的背景颜色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StatusBadgeStatusText">
+    <value>状态徽章中显示的文字。</value>
+  </data>
 </root>

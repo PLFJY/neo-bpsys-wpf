@@ -874,6 +874,267 @@
   <data name="Designer.Binding.GameProgress">
     <value>Game Progress</value>
   </data>
+  <data name="Designer.Binding.CurrentGame">
+    <value>Current Game</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam">
+    <value>Home Team</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam">
+    <value>Away Team</value>
+  </data>
+  <data name="Designer.Binding.RemainingSeconds">
+    <value>Remaining Seconds</value>
+  </data>
+  <data name="Designer.Binding.CountDownRemainingSeconds">
+    <value>Countdown Remaining Seconds</value>
+  </data>
+  <data name="Designer.Binding.CountDownTotalSeconds">
+    <value>Countdown Total Seconds</value>
+  </data>
+  <data name="Designer.Binding.CanCurrentSurBannedList">
+    <value>Current Survivor Ban Slots</value>
+  </data>
+  <data name="Designer.Binding.CanCurrentHunBannedList">
+    <value>Current Hunter Ban Slots</value>
+  </data>
+  <data name="Designer.Binding.CanGlobalSurBannedList">
+    <value>Global Survivor Ban Slots</value>
+  </data>
+  <data name="Designer.Binding.CanGlobalHunBannedList">
+    <value>Global Hunter Ban Slots</value>
+  </data>
+  <data name="Designer.Binding.SurTeam">
+    <value>Survivor Team</value>
+  </data>
+  <data name="Designer.Binding.HunTeam">
+    <value>Hunter Team</value>
+  </data>
+  <data name="Designer.Binding.MatchScore">
+    <value>Match Score</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurBannedList">
+    <value>Current Survivor Banned List</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunBannedList">
+    <value>Current Hunter Banned List</value>
+  </data>
+  <data name="Designer.Binding.SurPlayerList">
+    <value>Survivor Players On Field</value>
+  </data>
+  <data name="Designer.Binding.HunPlayer">
+    <value>Hunter Player On Field</value>
+  </data>
+  <data name="Designer.Binding.PickedMap">
+    <value>Picked Map</value>
+  </data>
+  <data name="Designer.Binding.BannedMap">
+    <value>Banned Map</value>
+  </data>
+  <data name="Designer.Binding.PickedMapImage">
+    <value>Picked Map Image</value>
+  </data>
+  <data name="Designer.Binding.PickedMapImageLarge">
+    <value>Picked Map Image (Large)</value>
+  </data>
+  <data name="Designer.Binding.BannedMapImage">
+    <value>Banned Map Image</value>
+  </data>
+  <data name="Designer.Binding.Camp">
+    <value>Faction</value>
+  </data>
+  <data name="Designer.Binding.ColorHex">
+    <value>Team Display Color</value>
+  </data>
+  <data name="Designer.Binding.GlobalBannedSurList">
+    <value>Global Survivor Banned List</value>
+  </data>
+  <data name="Designer.Binding.GlobalBannedHunList">
+    <value>Global Hunter Banned List</value>
+  </data>
+  <data name="Designer.Binding.Talent">
+    <value>Talents</value>
+  </data>
+  <data name="Designer.Binding.Trait">
+    <value>Active Trait</value>
+  </data>
+  <data name="Designer.Binding.Data">
+    <value>Post-Match Data</value>
+  </data>
+  <data name="Designer.Binding.PictureShown">
+    <value>Display Image</value>
+  </data>
+  <data name="Designer.Binding.PictureShownWithFullCharacter">
+    <value>Full Body Display Image</value>
+  </data>
+  <data name="Designer.Binding.PictureShownHeader">
+    <value>Portrait Display Image</value>
+  </data>
+  <data name="Designer.Binding.GameId">
+    <value>In-Game ID</value>
+  </data>
+  <data name="Designer.Binding.Image">
+    <value>Image</value>
+  </data>
+  <data name="Designer.Binding.IsOnField">
+    <value>Is On Field</value>
+  </data>
+  <data name="Designer.Binding.CanOnFieldChange">
+    <value>Can Change On Field</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorWin">
+    <value>Home Major Wins</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorTie">
+    <value>Home Major Ties</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorWin">
+    <value>Away Major Wins</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorTie">
+    <value>Away Major Ties</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorText">
+    <value>Home Major Score Text</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorText">
+    <value>Away Major Score Text</value>
+  </data>
+  <data name="Designer.Binding.HomeTotalMinorScore">
+    <value>Home Total Minor Score</value>
+  </data>
+  <data name="Designer.Binding.AwayTotalMinorScore">
+    <value>Away Total Minor Score</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMinorScoreText">
+    <value>Current Survivor Minor Score Text</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMinorScoreText">
+    <value>Current Hunter Minor Score Text</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorText">
+    <value>Survivor Major Score Text</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorText">
+    <value>Hunter Major Score Text</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorWin">
+    <value>Survivor Major Wins</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorTie">
+    <value>Survivor Major Ties</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorWin">
+    <value>Hunter Major Wins</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorTie">
+    <value>Hunter Major Ties</value>
+  </data>
+  <data name="Designer.Binding.MapName">
+    <value>Map Name</value>
+  </data>
+  <data name="Designer.Binding.IsPicked">
+    <value>Is Picked</value>
+  </data>
+  <data name="Designer.Binding.IsBanned">
+    <value>Is Banned</value>
+  </data>
+  <data name="Designer.Binding.IsGloballyDisabled">
+    <value>Is Globally Disabled</value>
+  </data>
+  <data name="Designer.Binding.OperationTeam">
+    <value>Operating Team</value>
+  </data>
+  <data name="Designer.Binding.CanBePicked">
+    <value>Can Be Picked</value>
+  </data>
+  <data name="Designer.Binding.CanBeBanned">
+    <value>Can Be Banned</value>
+  </data>
+  <data name="Designer.Binding.CanBeGloballyDisabled">
+    <value>Can Be Globally Disabled</value>
+  </data>
+  <data name="Designer.Binding.IsVisuallyBanned">
+    <value>Is Visually Banned</value>
+  </data>
+  <data name="Designer.Binding.IsCampVisible">
+    <value>Is Camp Visible</value>
+  </data>
+  <data name="Designer.Binding.IsBreathing">
+    <value>Is Breathing</value>
+  </data>
+  <data name="Designer.Binding.ImageSource">
+    <value>Map Image</value>
+  </data>
+  <data name="Designer.Binding.BorrowedTime">
+    <value>Borrowed Time</value>
+  </data>
+  <data name="Designer.Binding.FlywheelEffect">
+    <value>Flywheel Effect</value>
+  </data>
+  <data name="Designer.Binding.KneeJerkReflex">
+    <value>Knee-Jerk Reflex</value>
+  </data>
+  <data name="Designer.Binding.TideTurner">
+    <value>Tide Turner</value>
+  </data>
+  <data name="Designer.Binding.ConfinedSpace">
+    <value>Confined Space</value>
+  </data>
+  <data name="Designer.Binding.Detention">
+    <value>Detention</value>
+  </data>
+  <data name="Designer.Binding.Insolence">
+    <value>Insolence</value>
+  </data>
+  <data name="Designer.Binding.TrumpCard">
+    <value>Trump Card</value>
+  </data>
+  <data name="Designer.Binding.TraitName">
+    <value>Active Trait Name</value>
+  </data>
+  <data name="Designer.Binding.DecodingProgress">
+    <value>Decoding Progress</value>
+  </data>
+  <data name="Designer.Binding.PalletStrikes">
+    <value>Pallet Strikes</value>
+  </data>
+  <data name="Designer.Binding.Rescues">
+    <value>Rescues</value>
+  </data>
+  <data name="Designer.Binding.Heals">
+    <value>Heals</value>
+  </data>
+  <data name="Designer.Binding.ContainmentTime">
+    <value>Containment Time</value>
+  </data>
+  <data name="Designer.Binding.RemainingCipher">
+    <value>Remaining Ciphers</value>
+  </data>
+  <data name="Designer.Binding.PalletsDestroyed">
+    <value>Pallets Destroyed</value>
+  </data>
+  <data name="Designer.Binding.SurvivorHits">
+    <value>Survivor Hits</value>
+  </data>
+  <data name="Designer.Binding.TerrorShocks">
+    <value>Terror Shocks</value>
+  </data>
+  <data name="Designer.Binding.Knockdowns">
+    <value>Knockdowns</value>
+  </data>
+  <data name="Designer.Binding.BigImage">
+    <value>Full Body Art</value>
+  </data>
+  <data name="Designer.Binding.HeaderImage">
+    <value>Portrait</value>
+  </data>
+  <data name="Designer.Binding.HeaderImageSingleColor">
+    <value>Grayscale Portrait</value>
+  </data>
+  <data name="Designer.Binding.HalfImage">
+    <value>Half Body Art</value>
+  </data>
   <data name="Designer.BindingType.String">
     <value>Text</value>
   </data>
@@ -888,6 +1149,66 @@
   </data>
   <data name="Designer.BindingType.GameProgress">
     <value>Game Progress</value>
+  </data>
+  <data name="Designer.BindingType.Team">
+    <value>Team</value>
+  </data>
+  <data name="Designer.BindingType.Game">
+    <value>Game</value>
+  </data>
+  <data name="Designer.BindingType.Player">
+    <value>Player</value>
+  </data>
+  <data name="Designer.BindingType.Member">
+    <value>Member</value>
+  </data>
+  <data name="Designer.BindingType.Character">
+    <value>Character</value>
+  </data>
+  <data name="Designer.BindingType.MatchScoreState">
+    <value>Match Score State</value>
+  </data>
+  <data name="Designer.BindingType.MapV2">
+    <value>Map BP</value>
+  </data>
+  <data name="Designer.BindingType.Map">
+    <value>Map</value>
+  </data>
+  <data name="Designer.BindingType.Talent">
+    <value>Talents</value>
+  </data>
+  <data name="Designer.BindingType.Trait">
+    <value>Active Trait</value>
+  </data>
+  <data name="Designer.BindingType.PlayerData">
+    <value>Post-Match Data</value>
+  </data>
+  <data name="Designer.BindingType.Camp">
+    <value>Faction</value>
+  </data>
+  <data name="Designer.BindingType.Boolean">
+    <value>Boolean</value>
+  </data>
+  <data name="Designer.BindingType.Double">
+    <value>Decimal</value>
+  </data>
+  <data name="Designer.BindingType.ObservableCollection">
+    <value>Collection</value>
+  </data>
+  <data name="Designer.BindingType.ObservableCollection`1">
+    <value>Generic Collection</value>
+  </data>
+  <data name="Designer.BindingType.ScoreGame">
+    <value>Score Game Unit</value>
+  </data>
+  <data name="Designer.BindingType.ScoreHalf">
+    <value>Score Half</value>
+  </data>
+  <data name="Designer.BindingType.ScoreGameKey">
+    <value>Score Game Key</value>
+  </data>
+  <data name="Designer.BindingType.TraitType">
+    <value>Active Trait Type</value>
   </data>
   <data name="Designer.Value.True">
     <value>Yes</value>
@@ -2689,8 +3010,32 @@
   <data name="Designer.Option.VerticalDirection.FacingRight">
     <value>Facing Right</value>
   </data>
+  <data name="Designer.Option.GameKind.Normal">
+    <value>Regular Game</value>
+  </data>
+  <data name="Designer.Option.GameKind.Overtime">
+    <value>Overtime Game</value>
+  </data>
+  <data name="Designer.Option.HalfKind.FirstHalf">
+    <value>First Half</value>
+  </data>
+  <data name="Designer.Option.HalfKind.SecondHalf">
+    <value>Second Half</value>
+  </data>
   <data name="Designer.Option.DisplayLanguage.FollowApp">
     <value>Follow App</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.System">
+    <value>System Default</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.zh_Hans">
+    <value>Simplified Chinese</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.en_US">
+    <value>English</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.ja_JP">
+    <value>Japanese</value>
   </data>
   <data name="Designer.Graph.Connection.IncompatibleTypes">
     <value>Incompatible port types, cannot connect</value>
@@ -3121,4 +3466,490 @@
   <data name="Designer.Graph.Property.FallbackValue"><value>Fallback value</value></data><data name="Designer.Graph.Property.FallbackValue.Description"><value>Used when the event field is missing or cannot be converted to a number.</value></data>
   <data name="Designer.Graph.ExternalValueInput"><value>An external numeric input is connected; the manual value is disabled.</value></data>
   <data name="Designer.Graph.Property.ValueInputUnit"><value>External value unit</value></data><data name="Designer.Graph.Property.FromInputUnit"><value>From external value unit</value></data><data name="Designer.Graph.Property.ToInputUnit"><value>To external value unit</value></data><data name="Designer.Graph.Property.ValueInputUnit.Description"><value>Determines whether the external value is applied as pixels or a percentage.</value></data><data name="Designer.Option.ValueInputUnit.Absolute"><value>Absolute (pixels)</value></data><data name="Designer.Option.ValueInputUnit.Percent"><value>Percent</value></data><data name="Designer.Option.FromInputUnit.Absolute"><value>Absolute (pixels)</value></data><data name="Designer.Option.FromInputUnit.Percent"><value>Percent</value></data><data name="Designer.Option.ToInputUnit.Absolute"><value>Absolute (pixels)</value></data><data name="Designer.Option.ToInputUnit.Percent"><value>Percent</value></data>
+  <data name="Designer.Property.ContentMarginLeft">
+    <value>Content Left Margin</value>
+  </data>
+  <data name="Designer.Property.ContentMarginTop">
+    <value>Content Top Margin</value>
+  </data>
+  <data name="Designer.Property.ContentMarginRight">
+    <value>Content Right Margin</value>
+  </data>
+  <data name="Designer.Property.ContentMarginBottom">
+    <value>Content Bottom Margin</value>
+  </data>
+  <data name="Designer.Property.Points">
+    <value>Vertices</value>
+  </data>
+  <data name="Designer.PropertyDescription.Name">
+    <value>The unique name of the control on the canvas.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ControlType">
+    <value>The control type identifier.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Left">
+    <value>The X coordinate of the control's top-left corner on the canvas.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Top">
+    <value>The Y coordinate of the control's top-left corner on the canvas.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Width">
+    <value>The control width.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GaussianBlurRadius">
+    <value>Static Gaussian blur radius in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsGaussianBlurEnabled">
+    <value>Enable static Gaussian blur.</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsShadowEnabled">
+    <value>Enable static shadow.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowColor">
+    <value>Shadow color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowRadius">
+    <value>Shadow blur radius in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowDepth">
+    <value>Shadow projection depth in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowDirection">
+    <value>Shadow direction angle (0=right, 270=down).</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowOpacity">
+    <value>Shadow opacity (0-1).</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsGlowEnabled">
+    <value>Enable static glow.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowColor">
+    <value>Glow color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowRadius">
+    <value>Glow blur radius in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowOpacity">
+    <value>Glow opacity (0-1).</value>
+  </data>
+  <data name="Designer.PropertyDescription.Height">
+    <value>The control height.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ZIndex">
+    <value>Canvas layer; higher values render on top.</value>
+  </data>
+  <data name="Designer.PropertyDescription.HorizontalAlignment">
+    <value>Horizontal alignment of content within the control.</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalAlignment">
+    <value>Vertical alignment of content within the control.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextAlignment">
+    <value>Horizontal alignment of text.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextWrapping">
+    <value>Text wrapping mode.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Stretch">
+    <value>Image stretch mode.</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontFamily">
+    <value>Font family name.</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontWeight">
+    <value>Font weight.</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontSize">
+    <value>Font size in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Color">
+    <value>Text color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ColorBindingPath">
+    <value>Text color binding path; overrides static color when set.</value>
+  </data>
+  <data name="Designer.PropertyDescription.BackgroundImage">
+    <value>Canvas background image.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorder">
+    <value>Legacy picking border toggle, for old JSON compatibility.</value>
+  </data>
+  <data name="Designer.PropertyDescription.BanLockAvailable">
+    <value>Legacy Ban lock toggle, for old JSON compatibility.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Text">
+    <value>Static text content; used only when no valid text binding source is active.</value>
+  </data>
+  <data name="Designer.PropertyDescription.StringFormat">
+    <value>Format string for text binding.</value>
+  </data>
+  <data name="Designer.PropertyDescription.SizingMode">
+    <value>Image control sizing mode.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipToBounds">
+    <value>Clip content overflowing the outer border.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CornerRadius">
+    <value>Image corner radius.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ImageWidth">
+    <value>Explicit width of the inner image.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ImageHeight">
+    <value>Explicit height of the inner image.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderImagePath">
+    <value>Picking border image path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.BanLockImagePath">
+    <value>Legacy Ban lock image path, for old JSON compatibility.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Lockable">
+    <value>Enable lock overlay (Ban lock).</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockImagePath">
+    <value>Lock overlay image path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockStretch">
+    <value>Independent stretch mode of the lock overlay.</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockVisibilityBindingPath">
+    <value>Lock overlay visibility binding path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockVisibleWhen">
+    <value>Lock overlay visibility rule.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderAvailable">
+    <value>Enable picking border overlay.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderStretch">
+    <value>Independent stretch mode of the picking border.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderZIndexOffset">
+    <value>Picking border Z-index offset.</value>
+  </data>
+  <data name="Designer.PropertyDescription.LocalizationKey">
+    <value>Localization resource key.</value>
+  </data>
+  <data name="Designer.PropertyDescription.FallbackText">
+    <value>Fallback text shown when the resource key is missing.</value>
+  </data>
+  <data name="Designer.PropertyDescription.EmptyText">
+    <value>Text shown when no map is selected.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamType">
+    <value>Team type (Home/Away).</value>
+  </data>
+  <data name="Designer.PropertyDescription.MajorGameGap">
+    <value>Spacing between major games.</value>
+  </data>
+  <data name="Designer.PropertyDescription.HalfGameGap">
+    <value>Spacing between halves.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowCampIcon">
+    <value>Show the camp icon.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampIconColor">
+    <value>Camp icon color (Survivor/Hunter).</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapKey">
+    <value>Map dictionary key.</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayKind">
+    <value>Talent or active trait display kind.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PlayerIndex">
+    <value>Survivor position index (0-3).</value>
+  </data>
+  <data name="Designer.PropertyDescription.IconSize">
+    <value>Talent or active trait icon size.</value>
+  </data>
+  <data name="Designer.PropertyDescription.IconGap">
+    <value>Gap between icons.</value>
+  </data>
+  <data name="Designer.PropertyDescription.RespectTraitVisibility">
+    <value>Whether the hunter active trait follows shared visibility.</value>
+  </data>
+  <data name="Designer.PropertyDescription.BorderImagePath">
+    <value>Outer border image path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillColor">
+    <value>Shape fill color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.InitiallyHidden">
+    <value>Whether to hide initially.</value>
+  </data>
+  <data name="Designer.PropertyDescription.SlotKind">
+    <value>Ban slot source (current game/global).</value>
+  </data>
+  <data name="Designer.PropertyDescription.Camp">
+    <value>Camp (Survivor/Hunter).</value>
+  </data>
+  <data name="Designer.PropertyDescription.Index">
+    <value>Position index.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowLockOverlay">
+    <value>Whether to show the lock overlay.</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockImageSource">
+    <value>Lock overlay image source.</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockZIndexOffset">
+    <value>Lock overlay Z-index offset.</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontFamily">
+    <value>Map name font family.</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontWeight">
+    <value>Map name font weight.</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameColor">
+    <value>Map name color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontSize">
+    <value>Map name font size.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontFamily">
+    <value>Team name font family.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontWeight">
+    <value>Team name font weight.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameColor">
+    <value>Team name color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontSize">
+    <value>Team name font size.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontFamily">
+    <value>Camp name font family.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontWeight">
+    <value>Camp name font weight.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameColor">
+    <value>Camp name color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontSize">
+    <value>Camp name font size.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderFillColor">
+    <value>Picking border mask fill color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Visibility">
+    <value>Control visibility.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellId">
+    <value>Stable ID of the score cell.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GameNumber">
+    <value>Score system game number.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GameKind">
+    <value>Normal game or tiebreak game.</value>
+  </data>
+  <data name="Designer.PropertyDescription.HalfKind">
+    <value>First half or second half.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellX">
+    <value>Score cell X coordinate relative to the parent row.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellY">
+    <value>Score cell Y coordinate relative to the parent row.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowCampIconOverride">
+    <value>Cell-level camp icon display override.</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampIconColorOverride">
+    <value>Cell-level camp icon color override.</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradient">
+    <value>Enable gradient fill.</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillMode">
+    <value>Shape fill mode (solid/linear gradient).</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseFillBinding">
+    <value>Use fill color binding.</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillBindingPath">
+    <value>Fill color binding path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradientStartBinding">
+    <value>Bind the gradient start color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientStartColor">
+    <value>Gradient start color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientStartBindingPath">
+    <value>Gradient start color binding path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradientEndBinding">
+    <value>Bind the gradient end color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientEndColor">
+    <value>Gradient end color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientEndBindingPath">
+    <value>Gradient end color binding path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientAngle">
+    <value>Gradient angle (0-360 degrees).</value>
+  </data>
+  <data name="Designer.PropertyDescription.RadiusX">
+    <value>Corner X-axis radius.</value>
+  </data>
+  <data name="Designer.PropertyDescription.RadiusY">
+    <value>Corner Y-axis radius.</value>
+  </data>
+  <data name="Designer.PropertyDescription.StrokeColor">
+    <value>Stroke color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.StrokeThickness">
+    <value>Stroke thickness in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintColor">
+    <value>Background tint color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintBindingPath">
+    <value>Tint color binding path.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintMode">
+    <value>Background tint blend mode.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintStrength">
+    <value>Tint strength (0-1).</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextureStrength">
+    <value>Original background texture strength (0-1).</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowMissingBackgroundPlaceholder">
+    <value>Show a placeholder when the background is missing.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Opacity">
+    <value>Control opacity (0-1).</value>
+  </data>
+  <data name="Designer.PropertyDescription.VisualOffsetX">
+    <value>Visual horizontal offset in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.VisualOffsetY">
+    <value>Visual vertical offset in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetLeft">
+    <value>Left clip inset in pixels or percent.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetTop">
+    <value>Top clip inset in pixels or percent.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetRight">
+    <value>Right clip inset in pixels or percent.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetBottom">
+    <value>Bottom clip inset in pixels or percent.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ScaleX">
+    <value>Horizontal scale ratio (1=original size).</value>
+  </data>
+  <data name="Designer.PropertyDescription.ScaleY">
+    <value>Vertical scale ratio (1=original size).</value>
+  </data>
+  <data name="Designer.PropertyDescription.Rotation">
+    <value>Rotation angle in degrees.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextColor">
+    <value>Text color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Foreground">
+    <value>Foreground color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Background">
+    <value>Background color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayMode">
+    <value>Game progress display mode.</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalLanguageMode">
+    <value>Language mode for vertical text.</value>
+  </data>
+  <data name="Designer.PropertyDescription.LatinVerticalMode">
+    <value>Vertical display mode for Latin text.</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalDirection">
+    <value>Vertical text direction.</value>
+  </data>
+  <data name="Designer.PropertyDescription.NumberStyle">
+    <value>Number display style.</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayLanguage">
+    <value>Text display language.</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalTextSpacing">
+    <value>Character spacing in vertical mode.</value>
+  </data>
+  <data name="Designer.PropertyDescription.GroupSpacing">
+    <value>Gap between Game and Half groups in vertical grouped mode.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowSeparator">
+    <value>Show the separator line.</value>
+  </data>
+  <data name="Designer.PropertyDescription.SeparatorThickness">
+    <value>Separator thickness in pixels.</value>
+  </data>
+  <data name="Designer.PropertyDescription.SeparatorColor">
+    <value>Separator color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.BackgroundColor">
+    <value>Text background color.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingLeft">
+    <value>Left padding.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingTop">
+    <value>Top padding.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingRight">
+    <value>Right padding.</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingBottom">
+    <value>Bottom padding.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginLeft">
+    <value>Left offset of text content.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginTop">
+    <value>Top offset of text content.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginRight">
+    <value>Right offset of text content.</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginBottom">
+    <value>Bottom offset of text content.</value>
+  </data>
+  <data name="Designer.PropertyDescription.Points">
+    <value>Polygon vertex list.</value>
+  </data>
+  <data name="Designer.Property.TeamCardTextColor">
+    <value>Text Color</value>
+  </data>
+  <data name="Designer.Property.TeamCardTeamName">
+    <value>Team Name</value>
+  </data>
+  <data name="Designer.Property.StatusBadgeBadgeColor">
+    <value>Badge Color</value>
+  </data>
+  <data name="Designer.Property.StatusBadgeStatusText">
+    <value>Status Text</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamCardTextColor">
+    <value>Text color displayed in the team card.</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamCardTeamName">
+    <value>Team name displayed in the team card.</value>
+  </data>
+  <data name="Designer.PropertyDescription.StatusBadgeBadgeColor">
+    <value>Background color of the status badge.</value>
+  </data>
+  <data name="Designer.PropertyDescription.StatusBadgeStatusText">
+    <value>Text displayed in the status badge.</value>
+  </data>
 </root>
