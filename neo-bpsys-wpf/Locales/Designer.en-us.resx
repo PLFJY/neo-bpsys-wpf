@@ -853,6 +853,84 @@
   <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>Hunter Team Name</value>
   </data>
+  <data name="Designer.Binding.AwayTeam.Camp">
+    <value>Team Faction</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedHunList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedSurList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.Name">
+    <value>Team Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentHunBannedList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentSurBannedList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Character.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Camp">
+    <value>Player Faction</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Image">
+    <value>Player Photo</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Name">
+    <value>Player Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Trait.Image">
+    <value>Active Trait Icon</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Camp">
+    <value>Hunter Team Faction</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedHunList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedSurList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Character.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Camp">
+    <value>Player Faction</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Image">
+    <value>Player Photo</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Name">
+    <value>Player Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Trait.Image">
+    <value>Active Trait Icon</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Camp">
+    <value>Survivor Team Faction</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedHunList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedSurList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Camp">
+    <value>Team Faction</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedHunList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedSurList.Name">
+    <value>Character Name</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Name">
+    <value>Team Name</value>
+  </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
     <value>Survivor Team Total Minor Score</value>
   </data>

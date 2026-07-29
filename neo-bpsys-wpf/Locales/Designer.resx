@@ -853,6 +853,84 @@
   <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>监管者队伍名称</value>
   </data>
+  <data name="Designer.Binding.AwayTeam.Camp">
+    <value>队伍阵营</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedHunList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedSurList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.Name">
+    <value>队伍名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentHunBannedList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentSurBannedList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Character.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Camp">
+    <value>选手阵营</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Image">
+    <value>选手定妆照</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Name">
+    <value>选手名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Trait.Image">
+    <value>辅助特质图标</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Camp">
+    <value>监管者队伍阵营</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedHunList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedSurList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Character.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Camp">
+    <value>选手阵营</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Image">
+    <value>选手定妆照</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Name">
+    <value>选手名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Trait.Image">
+    <value>辅助特质图标</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Camp">
+    <value>求生者队伍阵营</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedHunList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedSurList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Camp">
+    <value>队伍阵营</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedHunList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedSurList.Name">
+    <value>角色名称</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Name">
+    <value>队伍名称</value>
+  </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
     <value>求生者队伍总小比分</value>
   </data>
@@ -863,7 +941,7 @@
     <value>名称</value>
   </data>
   <data name="Designer.Binding.Logo">
-    <value>队标</value>
+    <value>队伍 LOGO</value>
   </data>
   <data name="Designer.Binding.Member">
     <value>选手</value>
@@ -1418,7 +1496,7 @@
     <value>名称和绑定路径需要按 Enter 或点击应用按钮提交；\n无效值会保留文本并显示红色边框；\n颜色选择器更新 Hex 文本；应用按钮提交；\n组合框属性在显示本地化名称的同时提交原始值；\n绑定浏览器帮助选择合适的绑定路径；\n资源浏览器帮助选择 bpui/资源 URI；\nBorderedImage 有独立的边框/图片属性；\nBorderedImage 的调整大小目标可在外边框和内图片之间切换。</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content">
-    <value>Text|普通文本控件；TextBinding 可按顺序组合多个动态来源，没有来源时显示静态 Text。|来源顺序对应 {0}/{1}；StringFormat 为空时按 JoinSeparator 连接。\nLocalizedText|本地化文本控件；静态模式使用 LocalizationKey，TextBinding 模式先组合动态文本再尝试本地化。|动态结果找不到资源 key 时显示原始文本。\nImage|直接图片控件，根元素就是 Image；用于队标、地图、简单图片和旧 direct Image 语义。|BindingPath 绑定 ImageSource；BindingPath 为空时才使用 ImagePath 静态资源图；绑定优先，不会自动清空 ImagePath。\nBorderedImage|外层 Border + 内层 Image；用于需要外框、裁剪、圆角、内部图片尺寸或 resize 目标切换的图片区域。|BindingPath 与 ImagePath 优先级和 Image 一样；Width/Height 控制外框，ImageWidth/ImageHeight 控制内部图片。\nGameProgressText|按当前局数、半场、BO3/BO5 和加赛规则生成对局进度文本。|需要双行显示时设置 DisplayMode 为 TwoLine；不要把这类业务文案硬写进普通 Text。\nMapNameText|把地图枚举/key 转成本地化地图名；默认读取当前选图，也可以用 BindingPath 指向 picked/banned map 字段。|EmptyText 用于空地图兜底；BindingPath 应指向 Map/Map? 类型字段。\nGlobalScoreRow|全局比分行复合控件；父框内的 Cells 定义每个半场比分格，再读取 MatchScore 填充文本和阵营图标。|通常用于 ScoreGlobalWindow；编辑父行移动整行，编辑子格调整单个比分位置，不要拆成无父级的手写比分文本。\nTalentTraitDisplay|CutScene 天赋/辅助特质显示控件；按 DisplayKind 和 PlayerIndex 读取固定业务数据。|会跟随辅助特质可见性设置；不要在 JSON 中硬编码单个天赋图标。\nMapV2Display|Map BP v2 展示控件；通过 MapKey 复用 MapV2Presenter。|适合 MapV2Window 的地图 BP v2 布局；不要手写内部地图 BP v2 视觉元素。\n通用注意|BindingPath 用 Binding Browser 选择动态数据；ImagePath、BackgroundImage、LockImageSource 等资源路径用 Resource Browser 选择。|静态资源优先使用 Resources/xxx.png 或 bpui://...，不要长期依赖任意绝对路径；缺失或超限图片只应产生警告/空图，不应让前台崩溃。</value>
+    <value>Text|普通文本控件；TextBinding 可按顺序组合多个动态来源，没有来源时显示静态 Text。|来源顺序对应 {0}/{1}；StringFormat 为空时按 JoinSeparator 连接。\nLocalizedText|本地化文本控件；静态模式使用 LocalizationKey，TextBinding 模式先组合动态文本再尝试本地化。|动态结果找不到资源 key 时显示原始文本。\nImage|直接图片控件，根元素就是 Image；用于队伍 LOGO、地图、简单图片和旧 direct Image 语义。|BindingPath 绑定 ImageSource；BindingPath 为空时才使用 ImagePath 静态资源图；绑定优先，不会自动清空 ImagePath。\nBorderedImage|外层 Border + 内层 Image；用于需要外框、裁剪、圆角、内部图片尺寸或 resize 目标切换的图片区域。|BindingPath 与 ImagePath 优先级和 Image 一样；Width/Height 控制外框，ImageWidth/ImageHeight 控制内部图片。\nGameProgressText|按当前局数、半场、BO3/BO5 和加赛规则生成对局进度文本。|需要双行显示时设置 DisplayMode 为 TwoLine；不要把这类业务文案硬写进普通 Text。\nMapNameText|把地图枚举/key 转成本地化地图名；默认读取当前选图，也可以用 BindingPath 指向 picked/banned map 字段。|EmptyText 用于空地图兜底；BindingPath 应指向 Map/Map? 类型字段。\nGlobalScoreRow|全局比分行复合控件；父框内的 Cells 定义每个半场比分格，再读取 MatchScore 填充文本和阵营图标。|通常用于 ScoreGlobalWindow；编辑父行移动整行，编辑子格调整单个比分位置，不要拆成无父级的手写比分文本。\nTalentTraitDisplay|CutScene 天赋/辅助特质显示控件；按 DisplayKind 和 PlayerIndex 读取固定业务数据。|会跟随辅助特质可见性设置；不要在 JSON 中硬编码单个天赋图标。\nMapV2Display|Map BP v2 展示控件；通过 MapKey 复用 MapV2Presenter。|适合 MapV2Window 的地图 BP v2 布局；不要手写内部地图 BP v2 视觉元素。\n通用注意|BindingPath 用 Binding Browser 选择动态数据；ImagePath、BackgroundImage、LockImageSource 等资源路径用 Resource Browser 选择。|静态资源优先使用 Resources/xxx.png 或 bpui://...，不要长期依赖任意绝对路径；缺失或超限图片只应产生警告/空图，不应让前台崩溃。</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content">
     <value>"添加控件"插入内置/插件控件；\n复制的控件在粘贴时获得唯一编号名称；\n粘贴时会偏移新控件的位置；\n生成的覆盖层或不可编辑控件可能不可复制/删除；\n撤销/重做可恢复添加、删除、粘贴、重新排序操作。</value>

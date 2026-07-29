@@ -325,7 +325,7 @@ public partial class Team : ObservableObjectBase
     }
 
     /// <summary>
-    /// 导入队伍信息，包括队伍名字、队标Uri、选手列表
+    /// 导入队伍信息，包括队伍名字、队伍 LOGO Uri、选手列表
     /// </summary>
     /// <param name="newTeam">队伍信息</param>
     public void ImportTeamInfo(Team newTeam)

@@ -945,13 +945,13 @@
     <value>示例队伍卡片</value>
   </data>
   <data name="ExamplePlugin.TeamCard.Description">
-    <value>DEBUG 示例插件控件，用绑定数据显示队伍名称和队标。</value>
+    <value>DEBUG 示例插件控件，用绑定数据显示队伍名称和队伍 LOGO</value>
   </data>
   <data name="ExamplePlugin.TeamCard.TeamNameBindingPath">
     <value>队名绑定</value>
   </data>
   <data name="ExamplePlugin.TeamCard.LogoBindingPath">
-    <value>队标绑定</value>
+    <value>队伍 LOGO 绑定</value>
   </data>
   <data name="ExamplePlugin.TeamCard.BackgroundColor">
     <value>背景颜色</value>
@@ -963,7 +963,7 @@
     <value>圆角</value>
   </data>
   <data name="ExamplePlugin.TeamCard.LogoSize">
-    <value>队标尺寸</value>
+    <value>队伍 LOGO 尺寸</value>
   </data>
   <data name="ExamplePlugin.TeamCard.FontSize">
     <value>字体大小</value>

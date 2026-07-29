@@ -328,7 +328,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | 无绑定和无静态文本的 `Text` | overlay 标签 `[Text]` |
 | 无图片源的 `Image` | overlay 标签 `[Image]` |
 
-`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
+`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队伍 LOGO、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
 
 `InteractionLayer` 可以显示 fallback overlay 标签，帮助用户定位空控件：
 
@@ -593,7 +593,7 @@ CurrentGame.MatchScore.CurrentSurTeamMajorText
 CanCurrentSurBannedList[0]
 ```
 
-浏览器按属性行或专用编辑器携带的 `BindingTargetKind` 初始化过滤器。内置控件的推断规则为：`TextBinding.Sources` 使用文本过滤；`ImageFrontedControlConfig.BindingPath` 使用图片过滤；`GameProgressTextControlConfig.BindingPath` 使用 `GameProgress` 过滤；`MapNameTextControlConfig.BindingPath` 使用 `Map` 过滤；未知插件或未来控件默认使用 `Any`，避免宿主过早拒绝插件自定义路径。浏览器标题区会显示当前期望绑定类型，搜索结果遵守同一过滤器，例如文本模式搜索 `Logo` 不会返回队标图片，图片模式搜索 `Name` 不会返回字符串名称。
+浏览器按属性行或专用编辑器携带的 `BindingTargetKind` 初始化过滤器。内置控件的推断规则为：`TextBinding.Sources` 使用文本过滤；`ImageFrontedControlConfig.BindingPath` 使用图片过滤；`GameProgressTextControlConfig.BindingPath` 使用 `GameProgress` 过滤；`MapNameTextControlConfig.BindingPath` 使用 `Map` 过滤；未知插件或未来控件默认使用 `Any`，避免宿主过早拒绝插件自定义路径。浏览器标题区会显示当前期望绑定类型，搜索结果遵守同一过滤器，例如文本模式搜索 `Logo` 不会返回队伍 LOGO 图片，图片模式搜索 `Name` 不会返回字符串名称。
 
 浏览器只更新属性行编辑缓冲；Apply/Enter 前，选中控件 config 仍保持旧值。取消浏览器不会修改 `EditText`。
 

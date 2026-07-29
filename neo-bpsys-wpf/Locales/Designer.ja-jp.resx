@@ -853,6 +853,84 @@
   <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>ハンターチーム名</value>
   </data>
+  <data name="Designer.Binding.AwayTeam.Camp">
+    <value>チーム陣営</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.Name">
+    <value>チーム名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentHunBannedList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentSurBannedList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Character.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Camp">
+    <value>選手陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Image">
+    <value>選手写真</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Name">
+    <value>選手名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Trait.Image">
+    <value>補助特質アイコン</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Camp">
+    <value>ハンターチーム陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Character.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Camp">
+    <value>選手陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Image">
+    <value>選手写真</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Name">
+    <value>選手名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Trait.Image">
+    <value>補助特質アイコン</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Camp">
+    <value>サバイバーチーム陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Camp">
+    <value>チーム陣営</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Name">
+    <value>チーム名</value>
+  </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
     <value>サバイバーチーム合計小得点</value>
   </data>
