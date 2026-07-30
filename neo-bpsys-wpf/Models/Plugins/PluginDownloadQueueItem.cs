@@ -47,6 +47,7 @@ public partial class PluginDownloadQueueItem : ObservableObjectBase
     public bool IsInProgress =>
         Status is PluginDownloadQueueStatus.QueuePending
             or PluginDownloadQueueStatus.QueueDownloading
+            or PluginDownloadQueueStatus.QueuePaused
             or PluginDownloadQueueStatus.QueueExtracting;
 
     /// <summary>
@@ -78,4 +79,16 @@ public partial class PluginDownloadQueueItem : ObservableObjectBase
     /// </summary>
     [ObservableProperty]
     public partial bool CanCancel { get; set; } = true;
+
+    /// <summary>
+    /// 当前任务是否允许暂停。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool CanPause { get; set; }
+
+    /// <summary>
+    /// 当前任务是否允许恢复。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool CanResume { get; set; }
 }

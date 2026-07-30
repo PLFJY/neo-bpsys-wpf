@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.Archives;
 using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using neo_bpsys_wpf.Core.Services.Archives;
+using neo_bpsys_wpf.Core.Services;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using Xunit;
@@ -236,7 +238,8 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             provider,
             NullLogger<SmartBpModuleManager>.Instance,
             provider.GetRequiredService<ISettingsHostService>(),
-            new SevenZipArchiveService());
+            new SevenZipArchiveService(),
+            new FileDownloadService(() => new HttpClient()));
     }
 
     private void CreateModuleArchive(

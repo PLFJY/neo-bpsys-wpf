@@ -54,12 +54,14 @@ public sealed class SmartBpModuleManager
     private readonly ILogger<SmartBpModuleManager> _logger;
     private readonly ISettingsHostService _settingsHostService;
     private readonly IArchiveService _archiveService;
+    private readonly IFileDownloadService _fileDownloadService;
     private static readonly object NativeSearchPathSync = new();
     private static readonly HashSet<string> RegisteredNativeSearchDirectories = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, IntPtr> PreloadedNativeLibraries = new(StringComparer.OrdinalIgnoreCase);
     private ISmartBpModuleEntryPoint? _entryPoint;
     private IReadOnlyList<SmartBpFeatureCommand> _featureCommands = [];
     private bool _isModuleVersionOutdated;
+    private IFileDownloadOperation? _currentModuleDownload;
 
     /// <summary>
     /// 初始化 <see cref="SmartBpModuleManager"/> 类的新实例。
@@ -68,16 +70,19 @@ public sealed class SmartBpModuleManager
     /// <param name="logger">日志记录器。</param>
     /// <param name="settingsHostService">设置宿主服务。</param>
     /// <param name="archiveService">压缩包解压服务。</param>
+    /// <param name="fileDownloadService">统一文件下载服务。</param>
     public SmartBpModuleManager(
         IServiceProvider serviceProvider,
         ILogger<SmartBpModuleManager> logger,
         ISettingsHostService settingsHostService,
-        IArchiveService archiveService)
+        IArchiveService archiveService,
+        IFileDownloadService fileDownloadService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _settingsHostService = settingsHostService;
         _archiveService = archiveService;
+        _fileDownloadService = fileDownloadService;
         ModuleRoot = GetDefaultModuleRoot();
     }
 
@@ -85,6 +90,43 @@ public sealed class SmartBpModuleManager
     /// 模块加载状态变化时触发。
     /// </summary>
     public event EventHandler? ModuleStateChanged;
+
+    /// <summary>
+    /// 模块包下载状态变化时触发。
+    /// </summary>
+    public event EventHandler? DownloadStateChanged;
+
+    /// <summary>
+    /// 获取模块包是否正在下载或等待恢复。
+    /// </summary>
+    public bool IsDownloading => _currentModuleDownload?.State
+        is FileDownloadState.Downloading or FileDownloadState.Paused;
+
+    /// <summary>
+    /// 获取模块包下载是否已暂停。
+    /// </summary>
+    public bool IsDownloadPaused => _currentModuleDownload?.State == FileDownloadState.Paused;
+
+    /// <summary>
+    /// 获取模块包下载的最新进度快照。
+    /// </summary>
+    public FileDownloadProgress ModuleDownloadProgress =>
+        _currentModuleDownload?.Progress ?? FileDownloadProgress.Empty;
+
+    /// <summary>
+    /// 暂停当前模块包下载。
+    /// </summary>
+    public void PauseDownload() => _currentModuleDownload?.Pause();
+
+    /// <summary>
+    /// 恢复当前模块包下载。
+    /// </summary>
+    public void ResumeDownload() => _currentModuleDownload?.Resume();
+
+    /// <summary>
+    /// 取消当前模块包下载并保留部分文件以供下次续传。
+    /// </summary>
+    public void CancelDownload() => _currentModuleDownload?.Cancel();
 
     /// <summary>
     /// 已加载模块的本地版本低于远程发布标签要求的版本时触发。
@@ -665,22 +707,43 @@ public sealed class SmartBpModuleManager
         }
 
         var url = GetMirroredDownloadUrl(manifest.Asset.Url.Replace("{tag}", AppConstants.AppVersion, StringComparison.OrdinalIgnoreCase));
-        var tempRoot = Path.Combine(AppConstants.AppTempPath, "SmartBpModule", Guid.NewGuid().ToString("N"));
-        var archivePath = Path.Combine(tempRoot, manifest.Asset.Name);
-        Directory.CreateDirectory(tempRoot);
+        var downloadRoot = Path.Combine(
+            AppConstants.AppTempPath,
+            "SmartBpModule",
+            "Downloads",
+            AppConstants.AppVersion);
+        var archivePath = Path.Combine(downloadRoot, Path.GetFileName(manifest.Asset.Name));
+        Directory.CreateDirectory(downloadRoot);
         try
         {
             progress?.Report(5);
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(AppConstants.AppName);
             _logger.LogInformation(
                 "Downloading SmartBP module package. Url={Url}, ArchivePath={ArchivePath}",
                 url,
                 archivePath);
-            await using (var input = await httpClient.GetStreamAsync(url, cancellationToken))
-            await using (var output = File.Create(archivePath))
+            var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(
+                new Uri(url, UriKind.Absolute),
+                archivePath)
             {
-                await input.CopyToAsync(output, cancellationToken);
+                UserAgent = AppConstants.AppName
+            });
+            _currentModuleDownload = operation;
+            operation.StateChanged += OnModuleDownloadStateChanged;
+            try
+            {
+                operation.StateChanged += (_, _) =>
+                {
+                    if (operation.Progress.Percentage is { } percentage)
+                        progress?.Report(5 + percentage * 0.65);
+                };
+                await operation.StartAsync(cancellationToken);
+            }
+            finally
+            {
+                operation.StateChanged -= OnModuleDownloadStateChanged;
+                if (ReferenceEquals(_currentModuleDownload, operation))
+                    _currentModuleDownload = null;
+                DownloadStateChanged?.Invoke(this, EventArgs.Empty);
             }
 
             progress?.Report(70);
@@ -707,10 +770,13 @@ public sealed class SmartBpModuleManager
         }
         finally
         {
-            if (Directory.Exists(tempRoot))
-                Directory.Delete(tempRoot, recursive: true);
+            if (File.Exists(archivePath))
+                File.Delete(archivePath);
         }
     }
+
+    private void OnModuleDownloadStateChanged(object? sender, EventArgs e) =>
+        DownloadStateChanged?.Invoke(this, EventArgs.Empty);
 
     /// <summary>
     /// 通过暂存目录导入模块压缩包。

@@ -131,6 +131,12 @@ public partial class PluginPageViewModel
     public partial string PluginDownloadSpeedText { get; set; } = string.Empty;
 
     /// <summary>
+    /// 当前插件下载是否已暂停。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsPluginDownloadPaused { get; set; }
+
+    /// <summary>
     /// 插件市场镜像选项列表。
     /// </summary>
     public ObservableCollection<PluginMarketMirrorOption> PluginMarketMirrorOptions { get; } =
@@ -306,6 +312,7 @@ public partial class PluginPageViewModel
     private void RefreshDownloadState()
     {
         PluginDownloadProgress = _pluginMarketService.DownloadProgress;
+        IsPluginDownloadPaused = _pluginMarketService.IsDownloadPaused;
         PluginDownloadProgressText = _pluginMarketService.IsDownloading
             ? $"{_pluginMarketService.DownloadProgress:0.00}%"
             : string.Empty;
@@ -446,6 +453,18 @@ public partial class PluginPageViewModel
         _pluginMarketService.CancelDownload();
     }
 
+    [RelayCommand]
+    private void PausePluginMarketDownload()
+    {
+        _pluginMarketService.PauseDownload();
+    }
+
+    [RelayCommand]
+    private void ResumePluginMarketDownload()
+    {
+        _pluginMarketService.ResumeDownload();
+    }
+
     /// <summary>
     /// 取消指定下载任务。
     /// </summary>
@@ -458,6 +477,20 @@ public partial class PluginPageViewModel
         }
 
         _pluginMarketService.CancelDownload(item.QueueId);
+    }
+
+    [RelayCommand]
+    private void PausePluginMarketQueueItem(PluginDownloadQueueItem? item)
+    {
+        if (item != null)
+            _pluginMarketService.PauseDownload(item.QueueId);
+    }
+
+    [RelayCommand]
+    private void ResumePluginMarketQueueItem(PluginDownloadQueueItem? item)
+    {
+        if (item != null)
+            _pluginMarketService.ResumeDownload(item.QueueId);
     }
 
     /// <summary>

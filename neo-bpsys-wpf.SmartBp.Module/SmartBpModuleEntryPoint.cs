@@ -80,6 +80,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton(hostServices.GetRequiredService<IInfoBarService>());
         services.AddSingleton(hostServices.GetRequiredService<ISettingsHostService>());
         services.AddSingleton(hostServices.GetRequiredService<IGlobalRestartService>());
+        services.AddSingleton(hostServices.GetRequiredService<IFileDownloadService>());
         // Paddle / CUDA runtime 实现由 Module 自持（不再从宿主桥接）。
         // 实现类位于 neo_bpsys_wpf.SmartBp.Module.PaddleRuntime 命名空间，接口位于 Core。
         services.AddSingleton<ICudaDeviceDetector, PaddleRuntime.CudaDeviceDetector>();

@@ -245,4 +245,10 @@
   <data name="VersionName" xml:space="preserve">
     <value>帷幕的回响</value>
   </data>
+  <data name="PauseDownload" xml:space="preserve">
+    <value>暂停下载</value>
+  </data>
+  <data name="ResumeDownload" xml:space="preserve">
+    <value>继续下载</value>
+  </data>
 </root>

@@ -129,6 +129,11 @@ public interface IOcrService
     bool IsDownloading { get; }
 
     /// <summary>
+    /// 当前模型下载是否已暂停。
+    /// </summary>
+    bool IsDownloadPaused { get; }
+
+    /// <summary>
     /// 当前下载进度（0-100）；未知时为 <see langword="null"/>。
     /// </summary>
     double? DownloadProgress { get; }
@@ -183,6 +188,16 @@ public interface IOcrService
     /// 取消当前模型下载任务。
     /// </summary>
     void CancelDownload();
+
+    /// <summary>
+    /// 暂停当前模型下载。
+    /// </summary>
+    void PauseDownload();
+
+    /// <summary>
+    /// 恢复当前模型下载。
+    /// </summary>
+    void ResumeDownload();
 
     /// <summary>
     /// 尝试删除本地 OCR 模型。

@@ -151,6 +151,12 @@
   <data name="SmartBpModuleArchiveExtractingFormat">
     <value>正在解压：{0}%</value>
   </data>
+  <data name="SmartBpModuleDownloadingBytesFormat">
+    <value>正在下载：已接收 {0}</value>
+  </data>
+  <data name="SmartBpModuleDownloadingProgressFormat">
+    <value>正在下载：{0} / {1}</value>
+  </data>
   <data name="SmartBpModuleArchiveImportSucceeded">
     <value>SmartBP 模块包已导入并加载。</value>
   </data>
@@ -237,6 +243,9 @@
   </data>
   <data name="AppUpdateSha256Mismatch">
     <value>更新安装包完整性校验失败，为确保安全已拒绝安装。</value>
+  </data>
+  <data name="AppUpdateVerifyingHash">
+    <value>正在校验更新安装包完整性…</value>
   </data>
   <data name="RestartNow">
     <value>立即重启</value>

@@ -14,7 +14,6 @@
     <EmbeddedResource Remove="Host\**\*" />
     <None Remove="Host\**\*" />
     <ProjectReference Include="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
-    <PackageReference Include="Downloader" Version="5.9.5" ExcludeAssets="runtime" />
     <None Update="manifest.yml" CopyToOutputDirectory="Always" />
     <None Include="..\..\icon.png" Link="icon.png" CopyToOutputDirectory="Always" />
   </ItemGroup>

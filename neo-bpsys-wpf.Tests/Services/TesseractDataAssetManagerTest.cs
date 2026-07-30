@@ -3,12 +3,14 @@ extern alias smartbp;
 using System;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Services;
 using Xunit;
 using ITesseractDataAssetManager = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ITesseractDataAssetManager;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
@@ -116,7 +118,7 @@ public sealed class TesseractDataAssetManagerTest
         await File.WriteAllBytesAsync(Path.Combine(directory.Path, "chi_sim.traineddata"), [1]);
         await File.WriteAllBytesAsync(Path.Combine(directory.Path, "eng.traineddata"), [1]);
         var resolver = new Mock<IGitHubDownloadUrlResolver>();
-        var manager = new TesseractDataAssetManager(new FakeStorageProvider(directory.Path), new FakeSettingsService(), resolver.Object);
+        var manager = new TesseractDataAssetManager(new FakeStorageProvider(directory.Path), new FakeSettingsService(), resolver.Object, CreateDownloadService());
 
         await manager.InstallLanguagesAsync(["chi_sim", "eng"]);
 
@@ -130,7 +132,7 @@ public sealed class TesseractDataAssetManagerTest
         var resolver = new Mock<IGitHubDownloadUrlResolver>();
         resolver.Setup(x => x.ResolveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("resolver boom"));
-        var manager = new TesseractDataAssetManager(new FakeStorageProvider(directory.Path), new FakeSettingsService(), resolver.Object);
+        var manager = new TesseractDataAssetManager(new FakeStorageProvider(directory.Path), new FakeSettingsService(), resolver.Object, CreateDownloadService());
         SmartBpDownloadState? lastState = null;
         manager.StateChanged += (_, state) => lastState = state;
 
@@ -152,7 +154,7 @@ public sealed class TesseractDataAssetManagerTest
         var resolver = new Mock<IGitHubDownloadUrlResolver>();
         resolver.Setup(x => x.ResolveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(server.Url);
-        var manager = new TesseractDataAssetManager(new FakeStorageProvider(directory.Path), new FakeSettingsService(), resolver.Object);
+        var manager = new TesseractDataAssetManager(new FakeStorageProvider(directory.Path), new FakeSettingsService(), resolver.Object, CreateDownloadService());
 
         await manager.InstallLanguagesAsync(["eng"]);
 
@@ -164,7 +166,16 @@ public sealed class TesseractDataAssetManagerTest
 
     private static ITesseractDataAssetManager Create(string path, string languages = "chi_sim+eng")
     {
-        return new TesseractDataAssetManager(new FakeStorageProvider(path), new FakeSettingsService(languages), Mock.Of<IGitHubDownloadUrlResolver>());
+        return new TesseractDataAssetManager(
+            new FakeStorageProvider(path),
+            new FakeSettingsService(languages),
+            Mock.Of<IGitHubDownloadUrlResolver>(),
+            CreateDownloadService());
+    }
+
+    private static IFileDownloadService CreateDownloadService()
+    {
+        return new FileDownloadService(() => new HttpClient());
     }
 
     private sealed class FakeSettingsService(string languages = "chi_sim+eng") : ISmartBpRecognitionSettingsService

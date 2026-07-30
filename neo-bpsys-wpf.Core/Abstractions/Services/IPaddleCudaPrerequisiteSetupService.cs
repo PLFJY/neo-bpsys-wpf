@@ -24,13 +24,15 @@ public enum PaddleCudaPrerequisiteInstallStatus
 /// <param name="DownloadSpeed">当前下载速度（字节/秒）；非下载阶段为 <see langword="null"/>。</param>
 /// <param name="CurrentStep">当前处理步骤的稳定标识。</param>
 /// <param name="ErrorMessage">最近失败原因；非失败时为 <see langword="null"/>。</param>
+/// <param name="IsPaused">当前网络下载是否已暂停。</param>
 public sealed record PaddleCudaPrerequisiteSetupStatus(
     PaddleCudaPrerequisiteInstallStatus Status,
     bool IsBusy,
     double DownloadProgress,
     double? DownloadSpeed,
     string? CurrentStep,
-    string? ErrorMessage);
+    string? ErrorMessage,
+    bool IsPaused = false);
 
 /// <summary>
 /// 管理 SmartBP CUDA OCR 所需的系统级 NVIDIA CUDA/cuDNN 前置条件。
@@ -55,6 +57,16 @@ public interface IPaddleCudaPrerequisiteSetupService
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>安装流程任务。完成后请检查 <see cref="Status"/>。</returns>
     Task InstallAsync(PaddleRuntimePackageInfo package, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// 暂停当前网络下载。
+    /// </summary>
+    void PauseDownload();
+
+    /// <summary>
+    /// 恢复当前网络下载。
+    /// </summary>
+    void ResumeDownload();
 
     /// <summary>
     /// 状态变化时触发。

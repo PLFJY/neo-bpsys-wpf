@@ -57,13 +57,15 @@ internal sealed class RapidOcrModelAssetManager(
     IRapidOcrModelManifestProvider manifestProvider,
     ISmartBpRecognitionSettingsService settings,
     ISmartBpModuleStorageProvider storage,
-    ILogger<RapidOcrModelAssetManager> logger) : IRapidOcrModelAssetManager, IDisposable
+    ILogger<RapidOcrModelAssetManager> logger,
+    IFileDownloadService fileDownloadService) : IRapidOcrModelAssetManager, IDisposable
 {
     private const string InstallManifestFileName = ".smartbp-install.json";
     private const string OfficialManifestUrl =
         "https://raw.githubusercontent.com/RapidAI/RapidOCR/refs/heads/main/python/rapidocr/default_models.yaml";
     private const string DownloadFailure = "RapidOCR model download failed. Please verify the official ModelScope URL and file integrity.";
     private CancellationTokenSource? _downloadCts;
+    private IFileDownloadOperation? _currentDownload;
 
     /// <summary>
     /// 模型下载或安装状态变化事件。
@@ -91,6 +93,7 @@ internal sealed class RapidOcrModelAssetManager(
         try
         {
             await SmartBpParallelDownload.DownloadFileAsync(
+                fileDownloadService,
                 OfficialManifestUrl,
                 temporaryPath,
                 cancellationToken).ConfigureAwait(false);
@@ -136,7 +139,7 @@ internal sealed class RapidOcrModelAssetManager(
         var profile = await GetProfileAsync(profileId, cancellationToken).ConfigureAwait(false);
         _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var finalRoot = GetPaths(profile).Directory;
-        var temporaryRoot = finalRoot + ".install-" + Guid.NewGuid().ToString("N");
+        var temporaryRoot = finalRoot + ".install-download";
         try
         {
             Directory.CreateDirectory(temporaryRoot);
@@ -181,7 +184,9 @@ internal sealed class RapidOcrModelAssetManager(
         }
         finally
         {
-            if (Directory.Exists(temporaryRoot)) Directory.Delete(temporaryRoot, true);
+            if (Directory.Exists(temporaryRoot)
+                && !Directory.EnumerateFiles(temporaryRoot, "*.download.part", SearchOption.AllDirectories).Any())
+                Directory.Delete(temporaryRoot, true);
             _downloadCts?.Dispose();
             _downloadCts = null;
         }
@@ -198,6 +203,10 @@ internal sealed class RapidOcrModelAssetManager(
     }
 
     public void Cancel() => _downloadCts?.Cancel();
+
+    public void Pause() => _currentDownload?.Pause();
+
+    public void Resume() => _currentDownload?.Resume();
 
     public async Task<RapidOcrInstalledPaths> GetInstalledPathsAsync(CancellationToken cancellationToken = default)
     {
@@ -251,19 +260,22 @@ internal sealed class RapidOcrModelAssetManager(
             throw new InvalidDataException($"RapidOCR asset '{asset.FileName}' has no valid official download URL.");
         var downloadedPath = Path.Combine(targetRoot, Path.GetFileName(asset.FileName) + ".download");
         await SmartBpParallelDownload.DownloadFileAsync(
+            fileDownloadService,
             asset.DownloadUrl,
             downloadedPath,
             cancellationToken,
             progress =>
             {
-                var overall = from + (to - from) * progress.ProgressPercentage / 100D;
-                var length = progress.TotalBytesToReceive > 0 ? progress.TotalBytesToReceive : (long?)null;
-                TimeSpan? eta = length is > 0 && progress.BytesPerSecondSpeed > 1
-                    ? TimeSpan.FromSeconds(Math.Max(0, length.Value - progress.ReceivedBytesSize) / progress.BytesPerSecondSpeed)
+                var overall = from + (to - from) * (progress.Percentage ?? 0) / 100D;
+                var length = progress.TotalBytes;
+                TimeSpan? eta = length is > 0 && progress.BytesPerSecond > 1
+                    ? TimeSpan.FromSeconds(Math.Max(0, length.Value - progress.BytesReceived) / progress.BytesPerSecond)
                     : null;
                 Raise(new(true, overall, "SmartBpRapidOcrDownloading", asset.FileName,
-                    progress.ReceivedBytesSize, length, progress.BytesPerSecondSpeed, eta));
-            }).ConfigureAwait(false);
+                    progress.BytesReceived, length, progress.BytesPerSecond, eta,
+                    IsPaused: _currentDownload?.State == FileDownloadState.Paused));
+            },
+            operation => _currentDownload = operation).ConfigureAwait(false);
         var sourceBytes = await File.ReadAllBytesAsync(downloadedPath, cancellationToken).ConfigureAwait(false);
         ValidateSha256(sourceBytes, asset.Sha256, asset.RemotePath);
         var installedBytes = string.Equals(asset.Transform, "PaddleCharacterDictionaryYaml", StringComparison.OrdinalIgnoreCase)

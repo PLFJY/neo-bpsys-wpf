@@ -19,6 +19,11 @@ public interface IPluginMarketService
     bool IsDownloading { get; }
 
     /// <summary>
+    /// 当前插件下载是否已暂停。
+    /// </summary>
+    bool IsDownloadPaused { get; }
+
+    /// <summary>
     /// 当前是否存在已下载完成、等待安装的插件包。
     /// </summary>
     bool IsDownloadFinished { get; }
@@ -73,6 +78,28 @@ public interface IPluginMarketService
     /// 按队列项 ID 取消指定下载任务。
     /// </summary>
     void CancelDownload(string queueId);
+
+    /// <summary>
+    /// 暂停当前插件下载。
+    /// </summary>
+    void PauseDownload();
+
+    /// <summary>
+    /// 恢复当前插件下载。
+    /// </summary>
+    void ResumeDownload();
+
+    /// <summary>
+    /// 暂停指定的当前下载任务。
+    /// </summary>
+    /// <param name="queueId">队列项 ID。</param>
+    void PauseDownload(string queueId);
+
+    /// <summary>
+    /// 恢复指定的当前下载任务。
+    /// </summary>
+    /// <param name="queueId">队列项 ID。</param>
+    void ResumeDownload(string queueId);
 
     /// <summary>
     /// 清空镜像缓存。

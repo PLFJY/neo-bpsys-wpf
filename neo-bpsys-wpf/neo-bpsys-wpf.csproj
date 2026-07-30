@@ -236,7 +236,6 @@
         <Resource Include="Assets\wpfui.png" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Downloader" Version="5.9.5" />
         <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />

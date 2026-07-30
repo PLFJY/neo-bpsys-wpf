@@ -145,8 +145,22 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial string TesseractOcrStatus { get; set; } = "-";
 
+    /// <summary>
+    /// 获取或设置 Tesseract 数据是否正在下载。
+    /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseTesseractDownload))]
     public partial bool IsTesseractDataDownloading { get; set; }
+
+    /// <summary>
+    /// 获取或设置 Tesseract 数据下载是否已暂停。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseTesseractDownload))]
+    public partial bool IsTesseractDownloadPaused { get; set; }
+
+    /// <summary>当前是否可以暂停 Tesseract 数据下载。</summary>
+    public bool CanPauseTesseractDownload => IsTesseractDataDownloading && !IsTesseractDownloadPaused;
 
     [ObservableProperty]
     public partial double TesseractDownloadProgress { get; set; }
@@ -199,10 +213,24 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial string RapidOcrInstallActionText { get; set; } = "-";
 
+    /// <summary>
+    /// 获取或设置 RapidOCR 模型下载是否正在进行。
+    /// </summary>
     [NotifyCanExecuteChangedFor(nameof(DownloadRapidOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteRapidOcrModelCommand))]
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseRapidOcrDownload))]
     public partial bool IsRapidOcrDownloading { get; set; }
+
+    /// <summary>
+    /// 获取或设置 RapidOCR 模型下载是否已暂停。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseRapidOcrDownload))]
+    public partial bool IsRapidOcrDownloadPaused { get; set; }
+
+    /// <summary>当前是否可以暂停 RapidOCR 模型下载。</summary>
+    public bool CanPauseRapidOcrDownload => IsRapidOcrDownloading && !IsRapidOcrDownloadPaused;
 
     [ObservableProperty]
     public partial double RapidOcrDownloadProgress { get; set; }
@@ -423,6 +451,7 @@ public partial class SmartBpModuleContentViewModel
         _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsRapidOcrDownloading = state.IsDownloading;
+            IsRapidOcrDownloadPaused = state.IsPaused;
             RapidOcrDownloadProgress = state.Progress ?? 0;
             RapidOcrDownloadDetail = state.IsDownloading || !string.IsNullOrWhiteSpace(state.ErrorMessage)
                 ? FormatDownloadState(state)
@@ -443,6 +472,7 @@ public partial class SmartBpModuleContentViewModel
         _tesseractDataAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsTesseractDataDownloading = state.IsDownloading;
+            IsTesseractDownloadPaused = state.IsPaused;
             TesseractDownloadProgress = state.Progress ?? 0;
             TesseractDownloadDetail = FormatDownloadState(state);
             if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
@@ -945,6 +975,10 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     [RelayCommand] private void CancelTesseractDataDownload() => _tesseractDataAssetManager.Cancel();
 
+    [RelayCommand] private void PauseTesseractDataDownload() => _tesseractDataAssetManager.Pause();
+
+    [RelayCommand] private void ResumeTesseractDataDownload() => _tesseractDataAssetManager.Resume();
+
     /// <summary>
     /// 刷新 Tesseract 语言数据安装状态并更新 UI 提示。
     /// </summary>
@@ -1036,6 +1070,12 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     [RelayCommand]
     private void CancelRapidOcrDownload() => _rapidOcrModelAssetManager.Cancel();
+
+    [RelayCommand]
+    private void PauseRapidOcrDownload() => _rapidOcrModelAssetManager.Pause();
+
+    [RelayCommand]
+    private void ResumeRapidOcrDownload() => _rapidOcrModelAssetManager.Resume();
 
     /// <summary>
     /// 删除当前选择的 RapidOCR 模型配置档。

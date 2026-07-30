@@ -28,6 +28,10 @@ public interface ITesseractDataAssetManager
     Task DeleteAsync(IEnumerable<string> languages, CancellationToken cancellationToken = default);
     /// <summary>取消当前下载。</summary>
     void Cancel();
+    /// <summary>暂停当前下载。</summary>
+    void Pause();
+    /// <summary>恢复当前下载。</summary>
+    void Resume();
 }
 
 /// <summary>加载内置 RapidOCR 模型元数据。</summary>
@@ -73,6 +77,10 @@ public interface IRapidOcrModelAssetManager
     Task DeleteAsync(string profileId, CancellationToken cancellationToken = default);
     /// <summary>取消当前安装。</summary>
     void Cancel();
+    /// <summary>暂停当前安装下载。</summary>
+    void Pause();
+    /// <summary>恢复当前安装下载。</summary>
+    void Resume();
     /// <summary>获取已选配置档的校验后安装路径。</summary>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>安装路径。</returns>

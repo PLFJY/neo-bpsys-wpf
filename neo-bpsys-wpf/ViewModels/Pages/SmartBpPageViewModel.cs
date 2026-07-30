@@ -79,6 +79,13 @@ public partial class SmartBpPageViewModel : ViewModelBase
         SelectedModulePath = _moduleManager.GetPreferredModuleRoot();
         ConfigureLocalOnlyOverlayForDebugOrPreview();
         _moduleManager.ModuleStateChanged += (_, _) => SyncModuleState();
+        _moduleManager.DownloadStateChanged += (_, _) =>
+        {
+            if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
+                SyncModuleDownloadState();
+            else
+                Application.Current.Dispatcher.BeginInvoke(SyncModuleDownloadState);
+        };
         _moduleManager.ModuleVersionOutdated += OnModuleVersionOutdated;
         _settingsHostService.Settings.PropertyChanged += Settings_PropertyChanged;
         SyncGhProxyMirrorFromSettings();
@@ -342,6 +349,24 @@ public partial class SmartBpPageViewModel : ViewModelBase
     public partial double ProgressValue { get; set; }
 
     /// <summary>
+    /// 获取或设置当前操作进度的显示文本。
+    /// </summary>
+    [ObservableProperty]
+    public partial string ProgressDisplayText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 获取模块包下载控制是否可见。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsModuleDownloadActive { get; set; }
+
+    /// <summary>
+    /// 获取模块包下载是否已暂停。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsModuleDownloadPaused { get; set; }
+
+    /// <summary>
     /// 获取当前是否处于预览本地模式。
     /// </summary>
     public bool IsPreviewMode
@@ -429,6 +454,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
         IsProgressVisible = true;
         IsProgressIndeterminate = false;
         ProgressValue = 0;
+        ProgressDisplayText = "0%";
 
         if (!_moduleManager.IsModuleVersionOutdated)
         {
@@ -462,12 +488,21 @@ public partial class SmartBpPageViewModel : ViewModelBase
             // Progress<double> 的 5/70/80/100 报告点保持不变。
             var extractionProgress = new Progress<ArchiveProgress>(p =>
             {
+                IsProgressIndeterminate = false;
                 ProgressValue = 80 + p.Percentage * 0.18;
+                ProgressDisplayText = $"{ProgressValue:0}%";
                 OverlayMessage = string.Format(L("SmartBpModuleArchiveExtractingFormat"), p.Percentage);
             });
             var installed = await _moduleManager.DownloadAndInstallCurrentModuleAsync(
                 SelectedModulePath,
-                new Progress<double>(value => ProgressValue = value),
+                new Progress<double>(value =>
+                {
+                    if (value >= 70)
+                        IsProgressIndeterminate = false;
+                    ProgressValue = value;
+                    if (!IsProgressIndeterminate)
+                        ProgressDisplayText = $"{value:0}%";
+                }),
                 extractionProgress);
             IsProgressVisible = false;
             if (installed)
@@ -488,6 +523,50 @@ public partial class SmartBpPageViewModel : ViewModelBase
         OverlayMessage = IsPreviewMode
             ? L("SmartBpModulePreviewLoadOrImportArchive")
             : L("SmartBpModuleDownloadInstallFailed");
+    }
+
+    [RelayCommand]
+    private void PauseModuleDownload() => _moduleManager.PauseDownload();
+
+    [RelayCommand]
+    private void ResumeModuleDownload() => _moduleManager.ResumeDownload();
+
+    [RelayCommand]
+    private void CancelModuleDownload() => _moduleManager.CancelDownload();
+
+    private void SyncModuleDownloadState()
+    {
+        IsModuleDownloadActive = _moduleManager.IsDownloading;
+        IsModuleDownloadPaused = _moduleManager.IsDownloadPaused;
+        if (!IsModuleDownloadActive)
+            return;
+
+        var progress = _moduleManager.ModuleDownloadProgress;
+        IsProgressIndeterminate = progress.TotalBytes is null;
+        if (progress.TotalBytes is { } totalBytes)
+        {
+            ProgressValue = 5 + (progress.Percentage ?? 0) * 0.65;
+            ProgressDisplayText = $"{ProgressValue:0}%";
+            OverlayMessage = string.Format(
+                L("SmartBpModuleDownloadingProgressFormat"),
+                FormatFileSize(progress.BytesReceived),
+                FormatFileSize(totalBytes));
+        }
+        else
+        {
+            ProgressDisplayText = string.Format(
+                L("SmartBpModuleDownloadingBytesFormat"),
+                FormatFileSize(progress.BytesReceived));
+            OverlayMessage = ProgressDisplayText;
+        }
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        var mebibytes = bytes / 1024D / 1024D;
+        return mebibytes >= 0.1
+            ? $"{mebibytes:0.0} MiB"
+            : $"{bytes / 1024D:0.0} KiB";
     }
 
     /// <summary>

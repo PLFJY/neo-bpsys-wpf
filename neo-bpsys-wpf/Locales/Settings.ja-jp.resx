@@ -151,6 +151,12 @@
   <data name="SmartBpModuleArchiveExtractingFormat">
     <value>展開中: {0}%</value>
   </data>
+  <data name="SmartBpModuleDownloadingBytesFormat">
+    <value>ダウンロード中：{0} 受信済み</value>
+  </data>
+  <data name="SmartBpModuleDownloadingProgressFormat">
+    <value>ダウンロード中：{0} / {1}</value>
+  </data>
   <data name="SmartBpModuleArchiveImportSucceeded">
     <value>SmartBP モジュールパッケージをインポートして読み込みました。</value>
   </data>
@@ -237,6 +243,9 @@
   </data>
   <data name="AppUpdateSha256Mismatch">
     <value>更新インストーラーの整合性チェックに失敗しました。安全のためインストールを拒否しました。</value>
+  </data>
+  <data name="AppUpdateVerifyingHash">
+    <value>更新インストーラーの整合性を確認しています…</value>
   </data>
   <data name="RestartNow">
     <value>今すぐ再起動</value>

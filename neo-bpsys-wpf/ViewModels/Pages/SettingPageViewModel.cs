@@ -485,7 +485,6 @@ public partial class SettingPageViewModel : ViewModelBase
         {
             new() { Name = ".Net Runtime", Url = "https://github.com/dotnet/runtime" },
             new() { Name = "CommunityToolkit.Mvvm", Url = "https://github.com/CommunityToolkit/dotnet" },
-            new() { Name = "Downloader", Url = "https://github.com/bezzad/Downloader" },
             new() { Name = "hyjiacan.pinyin4net", Url = "https://gitee.com/hyjiacan/Pinyin4Net" },
             new() { Name = "OpenCvSharp", Url = "https://github.com/shimat/opencvsharp" },
             new() { Name = "PixiEditor.ColorPicker", Url = "https://github.com/PixiEditor/ColorPicker" },

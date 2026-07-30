@@ -1024,4 +1024,7 @@
   <data name="DoNotAskGameStateSaveDirectoryAgain">
     <value>保存先を今後確認しませんか？</value>
   </data>
+  <data name="QueuePaused">
+    <value>ダウンロードを一時停止しました</value>
+  </data>
 </root>

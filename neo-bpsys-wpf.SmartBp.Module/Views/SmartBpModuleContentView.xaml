@@ -204,8 +204,22 @@
                         Height="20"
                         Margin="0,8,0,0"
                         HorizontalAlignment="Left"
-                        IsIndeterminate="True"
-                        Visibility="{Binding IsOcrModelLoading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        IsIndeterminate="True">
+                        <ui:ProgressRing.Style>
+                            <Style TargetType="ui:ProgressRing">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsOcrModelLoading}" Value="True" />
+                                            <Condition Binding="{Binding IsModelDownloadPaused}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:ProgressRing.Style>
+                    </ui:ProgressRing>
                     <TextBlock
                         Margin="0,4,0,0"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
@@ -221,6 +235,24 @@
                             Command="{Binding DownloadSelectedOcrModelCommand}"
                             Content="{lex:Loc Download}"
                             Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding PauseOcrModelDownloadCommand}"
+                            Content="{lex:Loc PauseDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Pause24}"
+                            Visibility="{Binding CanPauseModelDownload, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding ResumeOcrModelDownloadCommand}"
+                            Content="{lex:Loc ResumeDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Play24}"
+                            Visibility="{Binding IsModelDownloadPaused, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding CancelOcrModelDownloadCommand}"
+                            Content="{lex:Loc SmartBpCancelDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Command="{Binding DeleteSelectedOcrModelCommand}"
@@ -264,9 +296,22 @@
                             Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
                         <ui:Button
                             Margin="0,0,8,8"
+                            Command="{Binding PauseRapidOcrDownloadCommand}"
+                            Content="{lex:Loc PauseDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Pause24}"
+                            Visibility="{Binding CanPauseRapidOcrDownload, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding ResumeRapidOcrDownloadCommand}"
+                            Content="{lex:Loc ResumeDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Play24}"
+                            Visibility="{Binding IsRapidOcrDownloadPaused, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
                             Command="{Binding CancelRapidOcrDownloadCommand}"
                             Content="{lex:Loc SmartBpCancelDownload}"
-                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            Visibility="{Binding IsRapidOcrDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Command="{Binding DeleteRapidOcrModelCommand}"
@@ -331,9 +376,22 @@
                             Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
                         <ui:Button
                             Margin="0,0,8,8"
+                            Command="{Binding PauseTesseractDataDownloadCommand}"
+                            Content="{lex:Loc PauseDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Pause24}"
+                            Visibility="{Binding CanPauseTesseractDownload, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding ResumeTesseractDataDownloadCommand}"
+                            Content="{lex:Loc ResumeDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Play24}"
+                            Visibility="{Binding IsTesseractDownloadPaused, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
                             Command="{Binding CancelTesseractDataDownloadCommand}"
                             Content="{lex:Loc SmartBpCancelDownload}"
-                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            Visibility="{Binding IsTesseractDataDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Command="{Binding DeleteTesseractDataCommand}"
@@ -454,7 +512,18 @@
                             Width="26"
                             Height="26"
                             VerticalAlignment="Center"
-                            IsIndeterminate="True" />
+                            IsIndeterminate="True">
+                            <ui:ProgressRing.Style>
+                                <Style TargetType="ui:ProgressRing">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCudaDownloadPaused}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:ProgressRing.Style>
+                        </ui:ProgressRing>
                         <StackPanel
                             Margin="10,0,0,0"
                             Orientation="Horizontal"
@@ -474,6 +543,18 @@
                                 VerticalAlignment="Center"
                                 Text="{Binding CudaDownloadSpeedText}" />
                         </StackPanel>
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding PauseCudaDownloadCommand}"
+                            Content="{lex:Loc PauseDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Pause24}"
+                            Visibility="{Binding CanPauseCudaDownload, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ResumeCudaDownloadCommand}"
+                            Content="{lex:Loc ResumeDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Play24}"
+                            Visibility="{Binding IsCudaDownloadPaused, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <ui:Button
                             Margin="10,0,0,0"
                             Command="{Binding CancelCudaDownloadCommand}"

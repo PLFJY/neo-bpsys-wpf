@@ -288,7 +288,20 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
+    [NotifyPropertyChangedFor(nameof(CanPauseModelDownload))]
     public partial bool IsModelDownloading { get; set; }
+
+    /// <summary>
+    /// PaddleOCR 模型下载是否已暂停。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseModelDownload))]
+    public partial bool IsModelDownloadPaused { get; set; }
+
+    /// <summary>
+    /// 当前是否可以暂停 PaddleOCR 模型下载。
+    /// </summary>
+    public bool CanPauseModelDownload => IsModelDownloading && !IsModelDownloadPaused;
 
     /// <summary>
     /// OCR 首选模型是否正在后台加载。
@@ -505,6 +518,18 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 暂停 PaddleOCR 模型下载。
+    /// </summary>
+    [RelayCommand]
+    private void PauseOcrModelDownload() => _ocrService.PauseDownload();
+
+    /// <summary>
+    /// 恢复 PaddleOCR 模型下载。
+    /// </summary>
+    [RelayCommand]
+    private void ResumeOcrModelDownload() => _ocrService.ResumeDownload();
+
+    /// <summary>
     /// 切换当前 PaddleOCR 模型。
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanSwitchSelectedOcrModel))]
@@ -637,6 +662,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private void SyncDownloadStateFromService()
     {
         IsModelDownloading = _ocrService.IsDownloading;
+        IsModelDownloadPaused = _ocrService.IsDownloadPaused;
         ModelDownloadStageText = _ocrService.DownloadStatusText;
 
         if (_ocrService.DownloadProgress is double progress)

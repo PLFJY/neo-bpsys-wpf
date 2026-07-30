@@ -24,6 +24,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
             <cv:LatencyToBrushConverter x:Key="LatencyToBrushConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
@@ -327,14 +328,33 @@
                                                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                         Text="{Binding SpeedText}" />
                                                 </StackPanel>
-                                                <ui:Button
-                                                    Margin="0,8,0,0"
-                                                    Appearance="Secondary"
-                                                    Command="{Binding DataContext.CancelPluginMarketQueueItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Content="{lex:Loc PluginMarketCancelDownload}"
-                                                    Icon="{ui:SymbolIcon Symbol=Dismiss24}"
-                                                    IsEnabled="{Binding CanCancel}" />
+                                                <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                                    <ui:Button
+                                                        Margin="0,0,8,0"
+                                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                                        Appearance="Secondary"
+                                                        Command="{Binding DataContext.PausePluginMarketQueueItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="{lex:Loc PauseDownload}"
+                                                        Icon="{ui:SymbolIcon Symbol=Pause24}"
+                                                        Visibility="{Binding CanPause, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    <ui:Button
+                                                        Margin="0,0,8,0"
+                                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                                        Appearance="Secondary"
+                                                        Command="{Binding DataContext.ResumePluginMarketQueueItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="{lex:Loc ResumeDownload}"
+                                                        Icon="{ui:SymbolIcon Symbol=Play24}"
+                                                        Visibility="{Binding CanResume, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    <ui:Button
+                                                        Appearance="Secondary"
+                                                        Command="{Binding DataContext.CancelPluginMarketQueueItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Content="{lex:Loc PluginMarketCancelDownload}"
+                                                        Icon="{ui:SymbolIcon Symbol=Dismiss24}"
+                                                        IsEnabled="{Binding CanCancel}" />
+                                                </StackPanel>
                                                 <TextBlock
                                                     Margin="0,8,0,0"
                                                     HorizontalAlignment="Left"
@@ -501,6 +521,20 @@
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
                                     Text="{Binding DataContext.PluginDownloadSpeedText, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                    Command="{Binding DataContext.PausePluginMarketDownloadCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Content="{lex:Loc PauseDownload}"
+                                    Icon="{ui:SymbolIcon Symbol=Pause24}"
+                                    Visibility="{Binding DataContext.IsPluginDownloadPaused, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                    Command="{Binding DataContext.ResumePluginMarketDownloadCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Content="{lex:Loc ResumeDownload}"
+                                    Icon="{ui:SymbolIcon Symbol=Play24}"
+                                    Visibility="{Binding DataContext.IsPluginDownloadPaused, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding DataContext.CancelPluginMarketDownloadCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"

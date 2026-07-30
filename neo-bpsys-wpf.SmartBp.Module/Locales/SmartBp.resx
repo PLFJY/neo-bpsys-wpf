@@ -1056,4 +1056,10 @@
   <data name="CudaStatusDownloadFailed" xml:space="preserve">
     <value>下载失败，请重试</value>
   </data>
+  <data name="PauseDownload" xml:space="preserve">
+    <value>暂停下载</value>
+  </data>
+  <data name="ResumeDownload" xml:space="preserve">
+    <value>继续下载</value>
+  </data>
 </root>

@@ -79,6 +79,16 @@ public interface IPaddleRuntimeComponentService
     void CancelDownload();
 
     /// <summary>
+    /// 暂停正在进行的下载。
+    /// </summary>
+    void PauseDownload();
+
+    /// <summary>
+    /// 恢复已暂停的下载。
+    /// </summary>
+    void ResumeDownload();
+
+    /// <summary>
     /// 删除已安装的 CUDA 组件。
     /// </summary>
     /// <returns>删除是否成功。</returns>
@@ -88,6 +98,11 @@ public interface IPaddleRuntimeComponentService
     /// 当前是否正在下载。
     /// </summary>
     bool IsDownloading { get; }
+
+    /// <summary>
+    /// 当前下载是否已暂停。
+    /// </summary>
+    bool IsDownloadPaused { get; }
 
     /// <summary>
     /// 当前下载是否已完成（含校验与安装）。参照 <c>UpdaterService.IsDownloadFinished</c>。

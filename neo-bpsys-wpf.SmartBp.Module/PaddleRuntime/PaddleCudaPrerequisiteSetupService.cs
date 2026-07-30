@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net.Http;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -34,21 +33,25 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
     ];
     private static readonly Uri CudaInstallerUri = new("https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/" + CudaInstallerFileName);
     private static readonly Uri CudnnUri = new("https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/" + CudnnFileName);
-    private static readonly HttpClient HttpClient = new() { Timeout = Timeout.InfiniteTimeSpan };
     private readonly ILogger<PaddleCudaPrerequisiteSetupService> _logger;
+    private readonly IFileDownloadService _fileDownloadService;
     private readonly string _downloadCacheDirectory;
     private readonly SemaphoreSlim _setupLock = new(1, 1);
     private PaddleCudaPrerequisiteSetupStatus _status;
+    private IFileDownloadOperation? _currentDownload;
 
     /// <summary>初始化系统 CUDA 前置条件安装服务。</summary>
     /// <param name="logger">日志记录器。</param>
     /// <param name="moduleStorage">SmartBP 模块存储路径提供器。</param>
+    /// <param name="fileDownloadService">统一文件下载服务。</param>
     public PaddleCudaPrerequisiteSetupService(
         ILogger<PaddleCudaPrerequisiteSetupService> logger,
-        ISmartBpModuleStorageProvider moduleStorage)
+        ISmartBpModuleStorageProvider moduleStorage,
+        IFileDownloadService fileDownloadService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ArgumentNullException.ThrowIfNull(moduleStorage);
+        _fileDownloadService = fileDownloadService ?? throw new ArgumentNullException(nameof(fileDownloadService));
         _downloadCacheDirectory = Path.Combine(moduleStorage.PaddleRuntimeRoot, "Downloads", "NVIDIA");
         _status = new PaddleCudaPrerequisiteSetupStatus(GetInstallStatus(), false, 0, null, null, null);
     }
@@ -58,6 +61,12 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
 
     /// <inheritdoc />
     public event EventHandler? StatusChanged;
+
+    /// <inheritdoc />
+    public void PauseDownload() => _currentDownload?.Pause();
+
+    /// <inheritdoc />
+    public void ResumeDownload() => _currentDownload?.Resume();
 
     /// <inheritdoc />
     public IReadOnlyList<string> GetDllSearchDirectories()
@@ -177,22 +186,19 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
             }
         }
 
-        var partialPath = cachedPath + ".download";
-        TryDeleteFile(partialPath);
         try
         {
             SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, downloadStep, null));
-            await DownloadAsync(source, partialPath, cancellationToken).ConfigureAwait(false);
+            await DownloadAsync(source, cachedPath, cancellationToken).ConfigureAwait(false);
             SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, verifyStep, null));
-            if (!hasExpectedHash(partialPath, expectedHash))
+            if (!hasExpectedHash(cachedPath, expectedHash))
                 throw new InvalidDataException("Downloaded NVIDIA installer integrity verification failed.");
 
-            File.Move(partialPath, cachedPath, overwrite: true);
             return cachedPath;
         }
         catch
         {
-            TryDeleteFile(partialPath);
+            TryDeleteFile(cachedPath);
             throw;
         }
     }
@@ -227,41 +233,34 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
 
     private async Task DownloadAsync(Uri source, string destination, CancellationToken cancellationToken)
     {
-        using var response = await HttpClient.GetAsync(source, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
-        var length = response.Content.Headers.ContentLength;
-        await using var input = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        await using var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, useAsync: true);
-        var buffer = new byte[81920];
-        long received = 0;
-        long lastReportedBytes = 0;
-        var speedWatch = Stopwatch.StartNew();
-        var lastReportAt = TimeSpan.Zero;
-        while (true)
+        var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(source, destination)
         {
-            var read = await input.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
-            if (read == 0) break;
-            await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
-            received += read;
-            var elapsedSinceReport = speedWatch.Elapsed - lastReportAt;
-            if (elapsedSinceReport < TimeSpan.FromMilliseconds(200))
-                continue;
-
-            var speed = (received - lastReportedBytes) / elapsedSinceReport.TotalSeconds;
-            SetStatus(_status with
-            {
-                DownloadProgress = length is > 0 ? received * 100d / length.Value : 0,
-                DownloadSpeed = speed
-            });
-            lastReportedBytes = received;
-            lastReportAt = speedWatch.Elapsed;
+            UserAgent = "neo-bpsys-wpf"
+        });
+        _currentDownload = operation;
+        operation.StateChanged += OnStateChanged;
+        try
+        {
+            await operation.StartAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            operation.StateChanged -= OnStateChanged;
+            if (ReferenceEquals(_currentDownload, operation))
+                _currentDownload = null;
         }
 
-        SetStatus(_status with
+        void OnStateChanged(object? sender, EventArgs args)
         {
-            DownloadProgress = length is > 0 ? 100 : _status.DownloadProgress,
-            DownloadSpeed = null
-        });
+            SetStatus(_status with
+            {
+                DownloadProgress = operation.Progress.Percentage ?? 0,
+                DownloadSpeed = operation.State == FileDownloadState.Paused
+                    ? 0
+                    : operation.Progress.BytesPerSecond,
+                IsPaused = operation.State == FileDownloadState.Paused
+            });
+        }
     }
 
     private async Task InstallCuDnnElevatedAsync(string archivePath, string cudaBin, string tempDirectory, CancellationToken cancellationToken)

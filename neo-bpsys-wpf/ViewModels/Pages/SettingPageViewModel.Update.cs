@@ -47,6 +47,24 @@ public partial class SettingPageViewModel : ViewModelBase
     public partial bool IsDownloading { get; set; }
 
     /// <summary>
+    /// 更新下载是否已暂停。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsDownloadPaused { get; set; }
+
+    /// <summary>
+    /// 更新下载进度区域是否可见。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsUpdateDownloadProgressVisible { get; set; }
+
+    /// <summary>
+    /// 更新安装包哈希校验状态是否可见。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsUpdateHashVerificationVisible { get; set; }
+
+    /// <summary>
     /// 更新是否已下载完成。
     /// </summary>
     [ObservableProperty]
@@ -141,9 +159,12 @@ public partial class SettingPageViewModel : ViewModelBase
     private void RefreshUpdateDownloadState()
     {
         IsDownloading = UpdaterService.IsDownloading;
+        IsDownloadPaused = UpdaterService.IsDownloadPaused;
+        IsUpdateHashVerificationVisible = IsDownloading && UpdaterService.IsVerifyingHash;
+        IsUpdateDownloadProgressVisible = IsDownloading && !IsUpdateHashVerificationVisible;
         DownloadProgress = UpdaterService.DownloadProgress;
-        DownloadProgressText = IsDownloading ? $"{DownloadProgress:0.00}%" : string.Empty;
-        MbPerSecondSpeed = IsDownloading
+        DownloadProgressText = IsUpdateDownloadProgressVisible ? $"{DownloadProgress:0.00}%" : string.Empty;
+        MbPerSecondSpeed = IsUpdateDownloadProgressVisible
             ? $"{(UpdaterService.DownloadBytesPerSecond / 1024 / 1024):0.00} MB/s"
             : string.Empty;
         IsDownloadFinished = UpdaterService.IsDownloadFinished;
@@ -169,6 +190,18 @@ public partial class SettingPageViewModel : ViewModelBase
     private void CancelDownload()
     {
         UpdaterService.CancelDownload();
+    }
+
+    [RelayCommand]
+    private void PauseDownload()
+    {
+        UpdaterService.PauseDownload();
+    }
+
+    [RelayCommand]
+    private void ResumeDownload()
+    {
+        UpdaterService.ResumeDownload();
     }
     
     private void SyncMirrorFromSettings()

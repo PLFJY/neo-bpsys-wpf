@@ -237,4 +237,10 @@
   <data name="VersionName" xml:space="preserve">
     <value>幕間の残響</value>
   </data>
+  <data name="PauseDownload" xml:space="preserve">
+    <value>ダウンロードを一時停止</value>
+  </data>
+  <data name="ResumeDownload" xml:space="preserve">
+    <value>ダウンロードを再開</value>
+  </data>
 </root>

@@ -73,6 +73,24 @@
                         Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
                     <ui:Button
                         Margin="8,0,0,0"
+                        Command="{Binding PauseRuntimeDownloadCommand}"
+                        Content="暂停下载"
+                        Icon="{ui:SymbolIcon Symbol=Pause24}"
+                        Visibility="{Binding CanPauseRuntimeDownload, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Command="{Binding ResumeRuntimeDownloadCommand}"
+                        Content="继续下载"
+                        Icon="{ui:SymbolIcon Symbol=Play24}"
+                        Visibility="{Binding IsRuntimeDownloadPaused, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Command="{Binding CancelRuntimeSetupCommand}"
+                        Content="取消"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}"
+                        Visibility="{Binding IsRuntimeSetupBusy, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
                         Command="{Binding RecheckRuntimeCommand}"
                         Content="重新检测"
                         Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
