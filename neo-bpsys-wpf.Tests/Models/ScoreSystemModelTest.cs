@@ -238,6 +238,35 @@ public class ScoreSystemModelTest
     }
 
     [Fact]
+    public void CurrentCampTotalMinorScoresFollowCurrentTeamMapping()
+    {
+        var state = MatchScoreState.CreateDefault();
+        var game = state.Games.Single(scoreGame =>
+            scoreGame.Key == new ScoreGameKey(1, ScoreGameKind.Normal));
+        SetHalf(game.FirstHalf, GameResult.Escape3);
+        game.SecondHalf.Result = GameResult.Out4;
+        game.SecondHalf.SurTeamTypeWhenRecorded = TeamType.AwayTeam;
+        game.SecondHalf.HunTeamTypeWhenRecorded = TeamType.HomeTeam;
+        state.Recalculate(isBo3Mode: false);
+
+        state.RefreshCurrentDisplay(
+            GameProgress.Game1SecondHalf,
+            TeamType.HomeTeam,
+            TeamType.AwayTeam);
+
+        Assert.Equal(8, state.CurrentSurTeamTotalMinorScore);
+        Assert.Equal(1, state.CurrentHunTeamTotalMinorScore);
+
+        state.RefreshCurrentDisplay(
+            GameProgress.Game1SecondHalf,
+            TeamType.AwayTeam,
+            TeamType.HomeTeam);
+
+        Assert.Equal(1, state.CurrentSurTeamTotalMinorScore);
+        Assert.Equal(8, state.CurrentHunTeamTotalMinorScore);
+    }
+
+    [Fact]
     public void FreeProgressDoesNotLeaveStaleTotals()
     {
         var state = MatchScoreState.CreateDefault();

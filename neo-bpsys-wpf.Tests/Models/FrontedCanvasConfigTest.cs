@@ -341,6 +341,86 @@ public class FrontedCanvasConfigTest
         Assert.Equal(ImageSizingMode.OverflowCrop, image.SizingMode);
     }
 
+    /// <summary>
+    /// 未声明覆盖层拉伸字段时，应默认跟随主图片的拉伸方式。
+    /// </summary>
+    [Fact]
+    public void ImageOverlayStretchDefaultsFollowPrimaryImage()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "Logo": {
+                "ControlType": "Image",
+                "Left": 10,
+                "Top": 20
+              },
+              "Pick": {
+                "ControlType": "BorderedImage",
+                "Left": 30,
+                "Top": 40
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        foreach (var image in new ImageFrontedControlConfig[]
+                 {
+                     Assert.IsType<ImageFrontedControlConfig>(config.Controls["Logo"]),
+                     Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["Pick"])
+                 })
+        {
+            Assert.False(image.UseIndependentLockStretch);
+            Assert.Equal("UniformToFill", image.LockStretch);
+            Assert.False(image.UseIndependentPickingBorderStretch);
+            Assert.Equal("UniformToFill", image.PickingBorderStretch);
+        }
+    }
+
+    /// <summary>
+    /// 图片覆盖层的独立拉伸开关和枚举值应按 JSON 契约读取。
+    /// </summary>
+    [Fact]
+    public void ReadsImageOverlayStretchSettings()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "Logo": {
+                "ControlType": "Image",
+                "Left": 10,
+                "Top": 20,
+                "UseIndependentLockStretch": false,
+                "LockStretch": "UniformToFill",
+                "UseIndependentPickingBorderStretch": true,
+                "PickingBorderStretch": "None"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var image = Assert.IsType<ImageFrontedControlConfig>(config.Controls["Logo"]);
+        Assert.False(image.UseIndependentLockStretch);
+        Assert.Equal("UniformToFill", image.LockStretch);
+        Assert.True(image.UseIndependentPickingBorderStretch);
+        Assert.Equal("None", image.PickingBorderStretch);
+    }
+
+    /// <summary>
+    /// Picking Border 的运行时名称由控件名自动生成，不应作为布局配置字段暴露。
+    /// </summary>
+    [Fact]
+    public void ImageConfigDoesNotExposePickingBorderName()
+    {
+        Assert.Null(typeof(ImageFrontedControlConfig).GetProperty("PickingBorderName"));
+    }
+
     [Fact]
     public void ReadsTextControlStaticText()
     {

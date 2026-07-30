@@ -14,6 +14,6 @@ export function ImageOverlays({ name, config, runtime, resources, defaultPicking
   const isLockVisible = lockVisible(config, runtime)
   return <>
     {config.Lockable ? <img data-lock-overlay data-animation-part="LockOverlay" data-runtime-name={`${name}LockOverlay`} src={resources[config.LockImagePath ?? '']} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: finite(config.LockZIndexOffset, 1), visibility: isLockVisible ? 'visible' : 'hidden', pointerEvents: 'none' }} /> : null}
-    <PickingBorderRenderer runtimeName={config.PickingBorderName || name} behaviorGuid={config.BehaviorGuid ?? ''} available={config.PickingBorderAvailable} imageUrl={config.PickingBorderImagePath ? resources[config.PickingBorderImagePath] : defaultPickingBorderResourceUrl} fillColor={config.PickingBorderFillColor} zIndex={finite(config.PickingBorderZIndexOffset, 2)} />
+    <PickingBorderRenderer runtimeName={`${name}PickingBorder`} behaviorGuid={config.BehaviorGuid ?? ''} available={config.PickingBorderAvailable} imageUrl={config.PickingBorderImagePath ? resources[config.PickingBorderImagePath] : defaultPickingBorderResourceUrl} fillColor={config.PickingBorderFillColor} zIndex={finite(config.PickingBorderZIndexOffset, 2)} />
   </>
 }

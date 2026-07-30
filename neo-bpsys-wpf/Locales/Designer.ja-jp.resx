@@ -458,31 +458,46 @@
     <value>内部画像の高さ</value>
   </data>
   <data name="Designer.Property.PickingBorderImagePath">
-    <value>選択枠画像</value>
+    <value>画像</value>
   </data>
   <data name="Designer.Property.BanLockImagePath">
     <value>Ban ロック画像</value>
   </data>
   <data name="Designer.Property.Lockable">
-    <value>ロックオーバーレイ</value>
+    <value>有効</value>
   </data>
   <data name="Designer.Property.LockImagePath">
-    <value>ロック画像</value>
+    <value>画像</value>
+  </data>
+  <data name="Designer.Property.UseIndependentLockStretch">
+    <value>独立した伸縮</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentLockStretch">
+    <value>有効にすると下のロック画像伸縮を使用し、無効にするとメイン画像の伸縮に従います。</value>
+  </data>
+  <data name="Designer.Property.LockStretch">
+    <value>伸縮</value>
   </data>
   <data name="Designer.Property.LockVisibilityBindingPath">
-    <value>ロック表示バインド</value>
+    <value>表示バインド</value>
   </data>
   <data name="Designer.Property.LockVisibleWhen">
-    <value>ロック表示条件</value>
+    <value>表示条件</value>
   </data>
   <data name="Designer.Property.PickingBorderAvailable">
-    <value>選択枠オーバーレイ</value>
+    <value>有効</value>
   </data>
-  <data name="Designer.Property.PickingBorderName">
-    <value>選択枠名</value>
+  <data name="Designer.Property.UseIndependentPickingBorderStretch">
+    <value>独立した伸縮</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseIndependentPickingBorderStretch">
+    <value>有効にすると下の選択枠伸縮を使用し、無効にするとメイン画像の伸縮に従います。</value>
+  </data>
+  <data name="Designer.Property.PickingBorderStretch">
+    <value>伸縮</value>
   </data>
   <data name="Designer.Property.PickingBorderZIndexOffset">
-    <value>選択枠レイヤーのオフセット</value>
+    <value>レイヤーのオフセット</value>
   </data>
   <data name="Designer.Property.LocalizationKey">
     <value>ローカライズキー</value>
@@ -551,7 +566,7 @@
     <value>ロック画像</value>
   </data>
   <data name="Designer.Property.LockZIndexOffset">
-    <value>ロックレイヤーのオフセット</value>
+    <value>レイヤーのオフセット</value>
   </data>
   <data name="Designer.PropertyGroup.Identity">
     <value>識別</value>
@@ -700,6 +715,30 @@
   <data name="Designer.Option.Stretch.UniformToFill">
     <value>縦横比を維持して切り抜き</value>
   </data>
+  <data name="Designer.Option.LockStretch.None">
+    <value>元のサイズ</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Fill">
+    <value>塗りつぶし</value>
+  </data>
+  <data name="Designer.Option.LockStretch.Uniform">
+    <value>縦横比を維持して収める</value>
+  </data>
+  <data name="Designer.Option.LockStretch.UniformToFill">
+    <value>縦横比を維持して切り抜き</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.None">
+    <value>元のサイズ</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Fill">
+    <value>塗りつぶし</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.Uniform">
+    <value>縦横比を維持して収める</value>
+  </data>
+  <data name="Designer.Option.PickingBorderStretch.UniformToFill">
+    <value>縦横比を維持して切り抜き</value>
+  </data>
   <data name="Designer.Option.FontWeight.Light">
     <value>細字</value>
   </data>
@@ -814,6 +853,90 @@
   <data name="Designer.Binding.CurrentGame.HunTeam.Name">
     <value>ハンターチーム名</value>
   </data>
+  <data name="Designer.Binding.AwayTeam.Camp">
+    <value>チーム陣営</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam.Name">
+    <value>チーム名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentHunBannedList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.CurrentSurBannedList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Character.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Camp">
+    <value>選手陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Image">
+    <value>選手写真</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Member.Name">
+    <value>選手名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunPlayer.Trait.Image">
+    <value>補助特質アイコン</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Camp">
+    <value>ハンターチーム陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Character.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Camp">
+    <value>選手陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Image">
+    <value>選手写真</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Member.Name">
+    <value>選手名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurPlayerList.Trait.Image">
+    <value>補助特質アイコン</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Camp">
+    <value>サバイバーチーム陣営</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Camp">
+    <value>チーム陣営</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedHunList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.GlobalBannedSurList.Name">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam.Name">
+    <value>チーム名</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
+    <value>サバイバーチーム合計小得点</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore">
+    <value>ハンターチーム合計小得点</value>
+  </data>
   <data name="Designer.Binding.Name">
     <value>名前</value>
   </data>
@@ -829,6 +952,267 @@
   <data name="Designer.Binding.GameProgress">
     <value>ゲーム進行</value>
   </data>
+  <data name="Designer.Binding.CurrentGame">
+    <value>現在のゲーム</value>
+  </data>
+  <data name="Designer.Binding.HomeTeam">
+    <value>ホームチーム</value>
+  </data>
+  <data name="Designer.Binding.AwayTeam">
+    <value>アウェイチーム</value>
+  </data>
+  <data name="Designer.Binding.RemainingSeconds">
+    <value>残り秒数</value>
+  </data>
+  <data name="Designer.Binding.CountDownRemainingSeconds">
+    <value>カウントダウン残り秒数</value>
+  </data>
+  <data name="Designer.Binding.CountDownTotalSeconds">
+    <value>カウントダウン総秒数</value>
+  </data>
+  <data name="Designer.Binding.CanCurrentSurBannedList">
+    <value>現在のサバイバー Ban 枠</value>
+  </data>
+  <data name="Designer.Binding.CanCurrentHunBannedList">
+    <value>現在のハンター Ban 枠</value>
+  </data>
+  <data name="Designer.Binding.CanGlobalSurBannedList">
+    <value>全体サバイバー Ban 枠</value>
+  </data>
+  <data name="Designer.Binding.CanGlobalHunBannedList">
+    <value>全体ハンター Ban 枠</value>
+  </data>
+  <data name="Designer.Binding.SurTeam">
+    <value>サバイバー陣営チーム</value>
+  </data>
+  <data name="Designer.Binding.HunTeam">
+    <value>ハンター陣営チーム</value>
+  </data>
+  <data name="Designer.Binding.MatchScore">
+    <value>マッチスコア</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurBannedList">
+    <value>現在のサバイバー Ban リスト</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunBannedList">
+    <value>現在のハンター Ban リスト</value>
+  </data>
+  <data name="Designer.Binding.SurPlayerList">
+    <value>サバイバー出場選手</value>
+  </data>
+  <data name="Designer.Binding.HunPlayer">
+    <value>ハンター出場選手</value>
+  </data>
+  <data name="Designer.Binding.PickedMap">
+    <value>選択マップ</value>
+  </data>
+  <data name="Designer.Binding.BannedMap">
+    <value>Ban マップ</value>
+  </data>
+  <data name="Designer.Binding.PickedMapImage">
+    <value>選択マップ画像</value>
+  </data>
+  <data name="Designer.Binding.PickedMapImageLarge">
+    <value>選択マップ大画像</value>
+  </data>
+  <data name="Designer.Binding.BannedMapImage">
+    <value>Ban マップ画像</value>
+  </data>
+  <data name="Designer.Binding.Camp">
+    <value>陣営</value>
+  </data>
+  <data name="Designer.Binding.ColorHex">
+    <value>チーム表示色</value>
+  </data>
+  <data name="Designer.Binding.GlobalBannedSurList">
+    <value>全体サバイバー Ban リスト</value>
+  </data>
+  <data name="Designer.Binding.GlobalBannedHunList">
+    <value>全体ハンター Ban リスト</value>
+  </data>
+  <data name="Designer.Binding.Talent">
+    <value>タレント</value>
+  </data>
+  <data name="Designer.Binding.Trait">
+    <value>補助特質</value>
+  </data>
+  <data name="Designer.Binding.Data">
+    <value>試合後データ</value>
+  </data>
+  <data name="Designer.Binding.PictureShown">
+    <value>表示画像</value>
+  </data>
+  <data name="Designer.Binding.PictureShownWithFullCharacter">
+    <value>全身立ち絵表示画像</value>
+  </data>
+  <data name="Designer.Binding.PictureShownHeader">
+    <value>顔アイコン表示画像</value>
+  </data>
+  <data name="Designer.Binding.GameId">
+    <value>ゲーム内 ID</value>
+  </data>
+  <data name="Designer.Binding.Image">
+    <value>画像</value>
+  </data>
+  <data name="Designer.Binding.IsOnField">
+    <value>出場中かどうか</value>
+  </data>
+  <data name="Designer.Binding.CanOnFieldChange">
+    <value>出場変更可能か</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorWin">
+    <value>ホーム大勝利数</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorTie">
+    <value>ホーム大引き分け数</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorWin">
+    <value>アウェイ大勝利数</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorTie">
+    <value>アウェイ大引き分け数</value>
+  </data>
+  <data name="Designer.Binding.HomeMajorText">
+    <value>ホーム大スコアテキスト</value>
+  </data>
+  <data name="Designer.Binding.AwayMajorText">
+    <value>アウェイ大スコアテキスト</value>
+  </data>
+  <data name="Designer.Binding.HomeTotalMinorScore">
+    <value>ホーム小計スコア合計</value>
+  </data>
+  <data name="Designer.Binding.AwayTotalMinorScore">
+    <value>アウェイ小計スコア合計</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMinorScoreText">
+    <value>現在のサバイバー小計スコアテキスト</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMinorScoreText">
+    <value>現在のハンター小計スコアテキスト</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorText">
+    <value>サバイバー大スコアテキスト</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorText">
+    <value>ハンター大スコアテキスト</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorWin">
+    <value>サバイバー大勝利数</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMajorTie">
+    <value>サバイバー大引き分け数</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorWin">
+    <value>ハンター大勝利数</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMajorTie">
+    <value>ハンター大引き分け数</value>
+  </data>
+  <data name="Designer.Binding.MapName">
+    <value>マップ名</value>
+  </data>
+  <data name="Designer.Binding.IsPicked">
+    <value>選択されたか</value>
+  </data>
+  <data name="Designer.Binding.IsBanned">
+    <value>Ban されたか</value>
+  </data>
+  <data name="Designer.Binding.IsGloballyDisabled">
+    <value>全体無効化されたか</value>
+  </data>
+  <data name="Designer.Binding.OperationTeam">
+    <value>操作チーム</value>
+  </data>
+  <data name="Designer.Binding.CanBePicked">
+    <value>選択可能か</value>
+  </data>
+  <data name="Designer.Binding.CanBeBanned">
+    <value>Ban 可能か</value>
+  </data>
+  <data name="Designer.Binding.CanBeGloballyDisabled">
+    <value>全体無効化可能か</value>
+  </data>
+  <data name="Designer.Binding.IsVisuallyBanned">
+    <value>視覚的に Ban されているか</value>
+  </data>
+  <data name="Designer.Binding.IsCampVisible">
+    <value>陣営表示が見えるか</value>
+  </data>
+  <data name="Designer.Binding.IsBreathing">
+    <value>呼吸灯が点灯中か</value>
+  </data>
+  <data name="Designer.Binding.ImageSource">
+    <value>マップ画像</value>
+  </data>
+  <data name="Designer.Binding.BorrowedTime">
+    <value>借りてきた時間</value>
+  </data>
+  <data name="Designer.Binding.FlywheelEffect">
+    <value>慣性の効果</value>
+  </data>
+  <data name="Designer.Binding.KneeJerkReflex">
+    <value>膝蓋腱反射</value>
+  </data>
+  <data name="Designer.Binding.TideTurner">
+    <value>危機一髪</value>
+  </data>
+  <data name="Designer.Binding.ConfinedSpace">
+    <value>閉鎖空間</value>
+  </data>
+  <data name="Designer.Binding.Detention">
+    <value>拘留</value>
+  </data>
+  <data name="Designer.Binding.Insolence">
+    <value>傲慢</value>
+  </data>
+  <data name="Designer.Binding.TrumpCard">
+    <value>切り札</value>
+  </data>
+  <data name="Designer.Binding.TraitName">
+    <value>補助特質名</value>
+  </data>
+  <data name="Designer.Binding.DecodingProgress">
+    <value>暗号解読進度</value>
+  </data>
+  <data name="Designer.Binding.PalletStrikes">
+    <value>板叩き回数</value>
+  </data>
+  <data name="Designer.Binding.Rescues">
+    <value>救助回数</value>
+  </data>
+  <data name="Designer.Binding.Heals">
+    <value>治療回数</value>
+  </data>
+  <data name="Designer.Binding.ContainmentTime">
+    <value>牽制時間</value>
+  </data>
+  <data name="Designer.Binding.RemainingCipher">
+    <value>残り暗号機数</value>
+  </data>
+  <data name="Designer.Binding.PalletsDestroyed">
+    <value>破壊した板数</value>
+  </data>
+  <data name="Designer.Binding.SurvivorHits">
+    <value>サバイバー命中回数</value>
+  </data>
+  <data name="Designer.Binding.TerrorShocks">
+    <value>テラーショック回数</value>
+  </data>
+  <data name="Designer.Binding.Knockdowns">
+    <value>ダウン回数</value>
+  </data>
+  <data name="Designer.Binding.BigImage">
+    <value>全身立ち絵</value>
+  </data>
+  <data name="Designer.Binding.HeaderImage">
+    <value>顔アイコン</value>
+  </data>
+  <data name="Designer.Binding.HeaderImageSingleColor">
+    <value>白黒顔アイコン</value>
+  </data>
+  <data name="Designer.Binding.HalfImage">
+    <value>半身立ち絵</value>
+  </data>
   <data name="Designer.BindingType.String">
     <value>テキスト</value>
   </data>
@@ -843,6 +1227,66 @@
   </data>
   <data name="Designer.BindingType.GameProgress">
     <value>ゲーム進行</value>
+  </data>
+  <data name="Designer.BindingType.Team">
+    <value>チーム</value>
+  </data>
+  <data name="Designer.BindingType.Game">
+    <value>ゲーム</value>
+  </data>
+  <data name="Designer.BindingType.Player">
+    <value>プレイヤー</value>
+  </data>
+  <data name="Designer.BindingType.Member">
+    <value>メンバー</value>
+  </data>
+  <data name="Designer.BindingType.Character">
+    <value>キャラクター</value>
+  </data>
+  <data name="Designer.BindingType.MatchScoreState">
+    <value>マッチスコア状態</value>
+  </data>
+  <data name="Designer.BindingType.MapV2">
+    <value>マップ BP</value>
+  </data>
+  <data name="Designer.BindingType.Map">
+    <value>マップ</value>
+  </data>
+  <data name="Designer.BindingType.Talent">
+    <value>タレント</value>
+  </data>
+  <data name="Designer.BindingType.Trait">
+    <value>補助特質</value>
+  </data>
+  <data name="Designer.BindingType.PlayerData">
+    <value>試合後データ</value>
+  </data>
+  <data name="Designer.BindingType.Camp">
+    <value>陣営</value>
+  </data>
+  <data name="Designer.BindingType.Boolean">
+    <value>真偽値</value>
+  </data>
+  <data name="Designer.BindingType.Double">
+    <value>小数</value>
+  </data>
+  <data name="Designer.BindingType.ObservableCollection">
+    <value>コレクション</value>
+  </data>
+  <data name="Designer.BindingType.ObservableCollection`1">
+    <value>ジェネリックコレクション</value>
+  </data>
+  <data name="Designer.BindingType.ScoreGame">
+    <value>スコアゲーム単位</value>
+  </data>
+  <data name="Designer.BindingType.ScoreHalf">
+    <value>スコアハーフ</value>
+  </data>
+  <data name="Designer.BindingType.ScoreGameKey">
+    <value>スコアゲームキー</value>
+  </data>
+  <data name="Designer.BindingType.TraitType">
+    <value>補助特質タイプ</value>
   </data>
   <data name="Designer.Value.True">
     <value>はい</value>
@@ -930,6 +1374,12 @@
   </data>
   <data name="Designer.PropertyGroup.Overlay">
     <value>オーバーレイ</value>
+  </data>
+  <data name="Designer.PropertySection.BanLock">
+    <value>Ban ロック</value>
+  </data>
+  <data name="Designer.PropertySection.PickingBorder">
+    <value>選択枠</value>
   </data>
   <data name="Designer.ControlType.GameProgress">
     <value>ゲーム進行</value>
@@ -1115,7 +1565,7 @@
     <value>マップが禁止されている時のカード外枠色です。</value>
   </data>
   <data name="Designer.Property.PickingBorderFillColor">
-    <value>選択枠の塗りつぶし色</value>
+    <value>塗りつぶし色</value>
   </data>
   <data name="Designer.Option.MapNameFontWeight.Light">
     <value>細字</value>
@@ -2638,8 +3088,32 @@
   <data name="Designer.Option.VerticalDirection.FacingRight">
     <value>右向き</value>
   </data>
+  <data name="Designer.Option.GameKind.Normal">
+    <value>通常ゲーム</value>
+  </data>
+  <data name="Designer.Option.GameKind.Overtime">
+    <value>延長戦</value>
+  </data>
+  <data name="Designer.Option.HalfKind.FirstHalf">
+    <value>前半</value>
+  </data>
+  <data name="Designer.Option.HalfKind.SecondHalf">
+    <value>後半</value>
+  </data>
   <data name="Designer.Option.DisplayLanguage.FollowApp">
     <value>アプリに従う</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.System">
+    <value>システム既定</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.zh_Hans">
+    <value>簡体字中国語</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.en_US">
+    <value>英語</value>
+  </data>
+  <data name="Designer.Option.DisplayLanguage.ja_JP">
+    <value>日本語</value>
   </data>
   <data name="Designer.Graph.Connection.IncompatibleTypes">
     <value>ポートタイプが互換性がありません</value>
@@ -3070,4 +3544,490 @@
   <data name="Designer.Graph.Property.FallbackValue"><value>フォールバック値</value></data><data name="Designer.Graph.Property.FallbackValue.Description"><value>イベント フィールドが存在しない、または数値に変換できない場合に使用します。</value></data>
   <data name="Designer.Graph.ExternalValueInput"><value>外部数値入力が接続されているため、手動値は無効です。</value></data>
   <data name="Designer.Graph.Property.ValueInputUnit"><value>外部数値の単位</value></data><data name="Designer.Graph.Property.FromInputUnit"><value>開始外部数値の単位</value></data><data name="Designer.Graph.Property.ToInputUnit"><value>終了外部数値の単位</value></data><data name="Designer.Graph.Property.ValueInputUnit.Description"><value>外部数値をピクセルまたはパーセントとして適用します。</value></data><data name="Designer.Option.ValueInputUnit.Absolute"><value>絶対値（ピクセル）</value></data><data name="Designer.Option.ValueInputUnit.Percent"><value>パーセント</value></data><data name="Designer.Option.FromInputUnit.Absolute"><value>絶対値（ピクセル）</value></data><data name="Designer.Option.FromInputUnit.Percent"><value>パーセント</value></data><data name="Designer.Option.ToInputUnit.Absolute"><value>絶対値（ピクセル）</value></data><data name="Designer.Option.ToInputUnit.Percent"><value>パーセント</value></data>
+  <data name="Designer.Property.ContentMarginLeft">
+    <value>コンテンツ左マージン</value>
+  </data>
+  <data name="Designer.Property.ContentMarginTop">
+    <value>コンテンツ上マージン</value>
+  </data>
+  <data name="Designer.Property.ContentMarginRight">
+    <value>コンテンツ右マージン</value>
+  </data>
+  <data name="Designer.Property.ContentMarginBottom">
+    <value>コンテンツ下マージン</value>
+  </data>
+  <data name="Designer.Property.Points">
+    <value>頂点リスト</value>
+  </data>
+  <data name="Designer.PropertyDescription.Name">
+    <value>キャンバス上のコントロールの一意名。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ControlType">
+    <value>コントロールタイプ識別子。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Left">
+    <value>キャンバス上のコントロール左上の X 座標。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Top">
+    <value>キャンバス上のコントロール左上の Y 座標。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Width">
+    <value>コントロールの幅。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GaussianBlurRadius">
+    <value>静的ガウスぼかし半径（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsGaussianBlurEnabled">
+    <value>静的ガウスぼかしを有効にする。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsShadowEnabled">
+    <value>静的シャドウを有効にする。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowColor">
+    <value>シャドウ色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowRadius">
+    <value>シャドウぼかし半径（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowDepth">
+    <value>シャドウ投影距離（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowDirection">
+    <value>シャドウ方向角度（0=右、270=下）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShadowOpacity">
+    <value>シャドウ不透明度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IsGlowEnabled">
+    <value>静的グローを有効にする。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowColor">
+    <value>グロー色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowRadius">
+    <value>グローぼかし半径（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GlowOpacity">
+    <value>グロー不透明度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Height">
+    <value>コントロールの高さ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ZIndex">
+    <value>キャンバスレイヤー、値が大きいほど前面。</value>
+  </data>
+  <data name="Designer.PropertyDescription.HorizontalAlignment">
+    <value>コントロール内コンテンツの水平配置。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalAlignment">
+    <value>コントロール内コンテンツの垂直配置。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextAlignment">
+    <value>テキストの水平配置。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextWrapping">
+    <value>テキスト折り返し方法。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Stretch">
+    <value>画像伸縮モード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontFamily">
+    <value>フォントファミリー名。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontWeight">
+    <value>フォントの太さ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FontSize">
+    <value>フォントサイズ（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Color">
+    <value>テキスト色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ColorBindingPath">
+    <value>テキスト色バインドパス。設定時は静的色より優先。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BackgroundImage">
+    <value>キャンバス背景画像。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorder">
+    <value>旧版選用枠トグル、旧 JSON 互換用。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BanLockAvailable">
+    <value>旧版 Ban ロックトグル、旧 JSON 互換用。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Text">
+    <value>静的テキスト。有効なテキストバインドがない場合のみ使用。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StringFormat">
+    <value>テキストバインドの書式文字列。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SizingMode">
+    <value>画像コントロールのサイズモード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipToBounds">
+    <value>外枠をはみ出すコンテンツをクリップ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CornerRadius">
+    <value>画像角丸半径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ImageWidth">
+    <value>内側画像の明示的な幅。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ImageHeight">
+    <value>内側画像の明示的な高さ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderImagePath">
+    <value>選用枠画像パス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BanLockImagePath">
+    <value>旧版 Ban ロック画像パス、旧 JSON 互換用。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Lockable">
+    <value>ロックオーバーレイを有効にする（Ban ロック）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockImagePath">
+    <value>ロックオーバーレイ画像パス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockStretch">
+    <value>ロックオーバーレイの独立伸縮モード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockVisibilityBindingPath">
+    <value>ロックオーバーレイ表示バインドパス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockVisibleWhen">
+    <value>ロックオーバーレイ表示条件。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderAvailable">
+    <value>選用枠オーバーレイを有効にする。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderStretch">
+    <value>選用枠の独立伸縮モード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderZIndexOffset">
+    <value>選用枠 Z インデックスオフセット。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LocalizationKey">
+    <value>ローカライズリソースキー。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FallbackText">
+    <value>リソースキー不在時の代替テキスト。</value>
+  </data>
+  <data name="Designer.PropertyDescription.EmptyText">
+    <value>地図未選択時の表示テキスト。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamType">
+    <value>チーム種別（ホーム/アウェイ）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MajorGameGap">
+    <value>大局間のスペーシング。</value>
+  </data>
+  <data name="Designer.PropertyDescription.HalfGameGap">
+    <value>ハーフ間のスペーシング。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowCampIcon">
+    <value>陣営アイコンを表示。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampIconColor">
+    <value>陣営アイコン色（サバイバー/ハンター）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapKey">
+    <value>地図辞書キー。</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayKind">
+    <value>タレント/補助特質表示タイプ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PlayerIndex">
+    <value>サバイバー位置インデックス（0-3）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IconSize">
+    <value>タレント/補助特質アイコンサイズ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.IconGap">
+    <value>アイコン間の間隔。</value>
+  </data>
+  <data name="Designer.PropertyDescription.RespectTraitVisibility">
+    <value>ハンター補助特質が共有表示設定に従うか。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BorderImagePath">
+    <value>外枠画像パス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillColor">
+    <value>図形塗りつぶし色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.InitiallyHidden">
+    <value>初期状態で非表示にするか。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SlotKind">
+    <value>Ban 枠来源（現在のゲーム/全局）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Camp">
+    <value>陣営（サバイバー/ハンター）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Index">
+    <value>位置インデックス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowLockOverlay">
+    <value>ロックオーバーレイを表示するか。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockImageSource">
+    <value>ロックオーバーレイ画像ソース。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LockZIndexOffset">
+    <value>ロックオーバーレイ Z インデックスオフセット。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontFamily">
+    <value>地図名フォントファミリー。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontWeight">
+    <value>地図名フォントの太さ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameColor">
+    <value>地図名の色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapNameFontSize">
+    <value>地図名フォントサイズ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontFamily">
+    <value>チーム名フォントファミリー。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontWeight">
+    <value>チーム名フォントの太さ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameColor">
+    <value>チーム名の色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamNameFontSize">
+    <value>チーム名フォントサイズ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontFamily">
+    <value>陣営名フォントファミリー。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontWeight">
+    <value>陣営名フォントの太さ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameColor">
+    <value>陣営名の色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampNameFontSize">
+    <value>陣営名フォントサイズ。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PickingBorderFillColor">
+    <value>選用枠マスク塗りつぶし色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Visibility">
+    <value>コントロール表示。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellId">
+    <value>スコアセルの安定 ID。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GameNumber">
+    <value>スコアシステム局番号。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GameKind">
+    <value>通常局または延長戦。</value>
+  </data>
+  <data name="Designer.PropertyDescription.HalfKind">
+    <value>前半または後半。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellX">
+    <value>親行に対するスコアセルの X 座標。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CellY">
+    <value>親行に対するスコアセルの Y 座標。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowCampIconOverride">
+    <value>セルレベルの陣営アイコン表示上書き。</value>
+  </data>
+  <data name="Designer.PropertyDescription.CampIconColorOverride">
+    <value>セルレベルの陣営アイコン色上書き。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradient">
+    <value>グラデーション塗りつぶしを有効にする。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillMode">
+    <value>図形塗りつぶしモード（純色/線形グラデーション）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseFillBinding">
+    <value>塗りつぶし色バインドを使用。</value>
+  </data>
+  <data name="Designer.PropertyDescription.FillBindingPath">
+    <value>塗りつぶし色バインドパス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradientStartBinding">
+    <value>グラデーション開始色をバインド。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientStartColor">
+    <value>グラデーション開始色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientStartBindingPath">
+    <value>グラデーション開始色バインドパス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.UseGradientEndBinding">
+    <value>グラデーション終了色をバインド。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientEndColor">
+    <value>グラデーション終了色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientEndBindingPath">
+    <value>グラデーション終了色バインドパス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GradientAngle">
+    <value>グラデーション角度（0-360 度）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.RadiusX">
+    <value>角丸 X 軸半径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.RadiusY">
+    <value>角丸 Y 軸半径。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StrokeColor">
+    <value>縁取り色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StrokeThickness">
+    <value>縁取りの太さ（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintColor">
+    <value>背景ティント色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintBindingPath">
+    <value>ティント色バインドパス。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintMode">
+    <value>背景ティント合成モード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TintStrength">
+    <value>ティント強度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextureStrength">
+    <value>元背景テクスチャの強度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowMissingBackgroundPlaceholder">
+    <value>背景不在時プレースホルダーを表示。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Opacity">
+    <value>コントロール不透明度（0-1）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VisualOffsetX">
+    <value>視覚的水平オフセット（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VisualOffsetY">
+    <value>視覚的垂直オフセット（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetLeft">
+    <value>左クリップ内側（ピクセルまたはパーセント）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetTop">
+    <value>上クリップ内側（ピクセルまたはパーセント）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetRight">
+    <value>右クリップ内側（ピクセルまたはパーセント）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ClipInsetBottom">
+    <value>下クリップ内側（ピクセルまたはパーセント）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ScaleX">
+    <value>水平スケール比（1=元サイズ）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ScaleY">
+    <value>垂直スケール比（1=元サイズ）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Rotation">
+    <value>回転角度（度）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextColor">
+    <value>テキスト色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Foreground">
+    <value>前景色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Background">
+    <value>背景色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayMode">
+    <value>ゲーム進行表示モード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalLanguageMode">
+    <value>縦書きテキストの言語モード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.LatinVerticalMode">
+    <value>ラテン文字縦書きモード。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalDirection">
+    <value>縦書きテキストの方向。</value>
+  </data>
+  <data name="Designer.PropertyDescription.NumberStyle">
+    <value>数字表示スタイル。</value>
+  </data>
+  <data name="Designer.PropertyDescription.DisplayLanguage">
+    <value>テキスト表示言語。</value>
+  </data>
+  <data name="Designer.PropertyDescription.VerticalTextSpacing">
+    <value>縦書きモードの文字間隔。</value>
+  </data>
+  <data name="Designer.PropertyDescription.GroupSpacing">
+    <value>縦書きグループモードの Game グループと Half グループの間隔。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ShowSeparator">
+    <value>区切り線を表示。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SeparatorThickness">
+    <value>区切り線の太さ（ピクセル）。</value>
+  </data>
+  <data name="Designer.PropertyDescription.SeparatorColor">
+    <value>区切り線の色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.BackgroundColor">
+    <value>テキスト背景色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingLeft">
+    <value>左パディング。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingTop">
+    <value>上パディング。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingRight">
+    <value>右パディング。</value>
+  </data>
+  <data name="Designer.PropertyDescription.PaddingBottom">
+    <value>下パディング。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginLeft">
+    <value>テキストコンテンツの左オフセット。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginTop">
+    <value>テキストコンテンツの上オフセット。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginRight">
+    <value>テキストコンテンツの右オフセット。</value>
+  </data>
+  <data name="Designer.PropertyDescription.ContentMarginBottom">
+    <value>テキストコンテンツの下オフセット。</value>
+  </data>
+  <data name="Designer.PropertyDescription.Points">
+    <value>多角形頂点リスト。</value>
+  </data>
+  <data name="Designer.Property.TeamCardTextColor">
+    <value>テキスト色</value>
+  </data>
+  <data name="Designer.Property.TeamCardTeamName">
+    <value>チーム名</value>
+  </data>
+  <data name="Designer.Property.StatusBadgeBadgeColor">
+    <value>バッジ色</value>
+  </data>
+  <data name="Designer.Property.StatusBadgeStatusText">
+    <value>ステータステキスト</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamCardTextColor">
+    <value>チームカードに表示されるテキスト色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.TeamCardTeamName">
+    <value>チームカードに表示されるチーム名。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StatusBadgeBadgeColor">
+    <value>ステータスバッジの背景色。</value>
+  </data>
+  <data name="Designer.PropertyDescription.StatusBadgeStatusText">
+    <value>ステータスバッジに表示されるテキスト。</value>
+  </data>
 </root>

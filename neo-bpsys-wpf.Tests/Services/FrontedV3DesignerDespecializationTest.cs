@@ -540,6 +540,41 @@ public class FrontedV3DesignerDespecializationTest
     // -------------------------------------------------------------------
 
     /// <summary>
+    /// V3 属性 Schema 应将图片覆盖层的独立开关和拉伸枚举放入 Overlay 分组，
+    /// 并为它们声明对应的编辑器类型。
+    /// </summary>
+    [Fact]
+    public void ImageOverlayStretchPropertiesUseSchemaEditors()
+    {
+        var properties = BuiltInPropertyDefinitionResolver.GetProperties(
+            new BorderedImageFrontedControlConfig());
+
+        var lockToggle = properties.Single(property =>
+            property.OptionsPath == nameof(ImageFrontedControlConfig.UseIndependentLockStretch));
+        var pickingToggle = properties.Single(property =>
+            property.OptionsPath == nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch));
+        var lockAvailable = properties.Single(property =>
+            property.OptionsPath == nameof(ImageFrontedControlConfig.Lockable));
+        var pickingAvailable = properties.Single(property =>
+            property.OptionsPath == nameof(ImageFrontedControlConfig.PickingBorderAvailable));
+        var lockStretch = properties.Single(property =>
+            property.OptionsPath == nameof(ImageFrontedControlConfig.LockStretch));
+        var pickingStretch = properties.Single(property =>
+            property.OptionsPath == nameof(ImageFrontedControlConfig.PickingBorderStretch));
+
+        Assert.Equal("Overlay", lockToggle.Metadata.GroupName);
+        Assert.Equal("Overlay", pickingToggle.Metadata.GroupName);
+        Assert.Equal("Overlay", lockStretch.Metadata.GroupName);
+        Assert.Equal("Overlay", pickingStretch.Metadata.GroupName);
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, lockToggle.Metadata.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, pickingToggle.Metadata.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, lockAvailable.Metadata.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, pickingAvailable.Metadata.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.Enum, lockStretch.Metadata.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.Enum, pickingStretch.Metadata.EditorKind);
+    }
+
+    /// <summary>
     /// Designer 属性编辑必须通过 <see cref="FrontedV3PropertyDefinition.Storage"/>
     /// 写入 Config，不通过 propertyName 字符串反射写入。编辑 <c>Color</c> 属性后，
     /// Config 的 <c>Color</c> 字段必须被更新；其他字段不得被波及。

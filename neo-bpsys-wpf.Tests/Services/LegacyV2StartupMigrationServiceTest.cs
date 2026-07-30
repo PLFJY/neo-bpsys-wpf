@@ -41,9 +41,37 @@ public sealed class LegacyV2StartupMigrationServiceTest
             Assert.True(File.Exists(Path.Combine(packageRoot, "manifest.json")));
             Assert.True(File.Exists(Path.Combine(packageRoot, "migration-state.json")));
             Assert.True(File.Exists(Path.Combine(packageRoot, "FrontedLayouts", "BpWindow.json")));
+            Assert.True(File.Exists(Path.Combine(packageRoot, "FrontedLayouts", "ScoreGlobalWindow.json")));
             Assert.True(Directory.Exists(Path.Combine(packageRoot, "FrontedLayouts")));
             var bpWindow = JsonSerializer.Deserialize<FrontedWindowConfig>(
-                await File.ReadAllTextAsync(Path.Combine(packageRoot, "FrontedLayouts", "BpWindow.json")))!;
+                await File.ReadAllTextAsync(Path.Combine(packageRoot, "FrontedLayouts", "BpWindow.json")))!
+                .ToCanvasConfig();
+            var mapName = Assert.IsType<MapNameTextControlConfig>(bpWindow.Controls["MapName"]);
+            Assert.Equal("CurrentGame.PickedMap", mapName.BindingPath);
+
+            var scoreGlobalWindow = JsonSerializer.Deserialize<FrontedWindowConfig>(
+                await File.ReadAllTextAsync(Path.Combine(packageRoot, "FrontedLayouts", "ScoreGlobalWindow.json")))!
+                .ToCanvasConfig();
+            Assert.Equal(
+                "HomeTeam.Name",
+                Assert.Single(
+                    Assert.IsType<TextFrontedControlConfig>(
+                        scoreGlobalWindow.Controls["HomeTeamName"]).TextBinding!.Sources).Path);
+            Assert.Equal(
+                "AwayTeam.Name",
+                Assert.Single(
+                    Assert.IsType<TextFrontedControlConfig>(
+                        scoreGlobalWindow.Controls["AwayTeamName"]).TextBinding!.Sources).Path);
+            Assert.Equal(
+                "CurrentGame.MatchScore.HomeTotalMinorScore",
+                Assert.Single(
+                    Assert.IsType<TextFrontedControlConfig>(
+                        scoreGlobalWindow.Controls["HomeScoreTotal"]).TextBinding!.Sources).Path);
+            Assert.Equal(
+                "CurrentGame.MatchScore.AwayTotalMinorScore",
+                Assert.Single(
+                    Assert.IsType<TextFrontedControlConfig>(
+                        scoreGlobalWindow.Controls["AwayScoreTotal"]).TextBinding!.Sources).Path);
 
             var activeState = await fixture.PackageManager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal(result.PackageId, activeState.PackageId);
@@ -243,6 +271,9 @@ public sealed class LegacyV2StartupMigrationServiceTest
                   "SurTeamName": { "Left": 321, "Top": 654, "Width": 222, "Height": 44 }
                 }
                 """);
+            await File.WriteAllTextAsync(
+                Path.Combine(AppConstants.AppDataPath, "ScoreGlobalWindowConfig-BaseCanvas.json"),
+                "{}");
             return legacyJson;
         }
 

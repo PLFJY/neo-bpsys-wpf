@@ -167,7 +167,7 @@ v3 内置控件类型如下：
 | --- | --- |
 | `Text` | 文本、队名、比分、倒计时等。 |
 | `LocalizedText` | 根据本地化资源 key 显示静态文本，主要用于表头、标签等不应写死在 JSON 中的用户可见文本。 |
-| `Image` | 通用图片控件，根元素是承载图片和内部 overlay 的 `Grid`，用于队标、地图、角色图、Ban 位、pick 图等。 |
+| `Image` | 通用图片控件，根元素是承载图片和内部 overlay 的 `Grid`，用于队伍 LOGO、地图、角色图、Ban 位、pick 图等。 |
 | `BorderedImage` | 外层 `Border` + 内层 `Image` 的图片控件，用于需要独立外框、容器裁剪或由外框承接 resize 的图片区域。 |
 | `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
 | `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标；可选颜色覆盖。 |
@@ -232,9 +232,10 @@ source 顺序对应 `{0}`、`{1}`、`{2}`。`StringFormat` 非空时使用当前
 | 字段 | 用途 |
 | --- | --- |
 | `Lockable` / `LockImagePath` | 在图片上叠加锁定图。 |
+| `UseIndependentLockStretch` / `LockStretch` | 控制锁定图是否使用独立的 `Stretch`；关闭独立设置时跟随主图当前的 `Stretch`。 |
 | `LockVisibilityBindingPath` / `LockVisibleWhen` | 绑定 bool 可见性；Ban 位常用 `CanCurrent*BannedList[i]` 或 `CanGlobal*BannedList[i]`，并设置 `VisibleWhenFalse`。 |
 | `PickingBorderAvailable` / `PickingBorderImagePath` | 在 pick 图上叠加呼吸边框图。 |
-| `PickingBorderName` | 注册到 namescope 的稳定动画目标名，例如 `SurPickingBorder0`、`HunPickingBorder`。 |
+| `UseIndependentPickingBorderStretch` / `PickingBorderStretch` | 控制呼吸边框是否使用独立的 `Stretch`；关闭独立设置时跟随主图当前的 `Stretch`。 |
 
 Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `CurrentGame.CurrentSurBannedList[i].HeaderImageSingleColor` / `CurrentGame.CurrentHunBannedList[i].HeaderImageSingleColor`，全局 Ban 绑定 `CurrentGame.SurTeam.GlobalBannedSurList[i].HeaderImageSingleColor` / `CurrentGame.HunTeam.GlobalBannedHunList[i].HeaderImageSingleColor`。选手图片可绑定 `PictureShown`、`PictureShownWithFullCharacter` 或 `PictureShownHeader`。
 
@@ -271,10 +272,11 @@ Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `Curren
 
 | 兼容点 | 策略 |
 | --- | --- |
-| 元素名 | 生成稳定覆盖控件名，例如 `SurPickingBorder0`、`SurPickingBorder1`、`SurPickingBorder2`、`SurPickingBorder3` 和 `HunPickingBorder`。 |
+| 元素名 | 由图片控件名自动生成稳定覆盖控件名，例如 `SurPick0PickingBorder`、`HunPickPickingBorder`。 |
 | 对齐 | overlay 是 `Image` / `BorderedImage` 内部视觉层，跟随主图片控件位置和尺寸。 |
+| 拉伸 | 锁定图和选择边框分别由 `UseIndependentLockStretch` / `UseIndependentPickingBorderStretch` 决定使用自身的 Stretch 枚举或跟随主图。未声明新字段时两个开关默认关闭，独立 Stretch 值默认 `UniformToFill`。 |
 | 层级 | overlay 使用 `LockZIndexOffset` / `PickingBorderZIndexOffset` 位于主图上方。 |
-| Ban 锁 | 新字段为 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`。 |
+| Ban 锁 | 新字段为 `Lockable`、`LockImagePath`、`UseIndependentLockStretch`、`LockStretch`、`LockVisibilityBindingPath`、`LockVisibleWhen`。 |
 | 动画 | 默认动画由内置行为文档提供，不在运行时硬编码。 |
 
 旧 JSON 字段继续兼容读取：`BanLockAvailable` 映射到 `Lockable`，`BanLockImagePath` 映射到 `LockImagePath`，`PickingBorder` 映射到 `PickingBorderAvailable`，`PickingBorderImagePath` 保持原名。Property Grid 和新默认布局优先显示新字段名。

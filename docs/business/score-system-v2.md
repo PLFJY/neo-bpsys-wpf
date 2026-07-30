@@ -81,6 +81,8 @@ MatchScoreState
   ├─ AwayMajorText
   ├─ HomeTotalMinorScore
   ├─ AwayTotalMinorScore
+  ├─ CurrentSurTeamTotalMinorScore
+  ├─ CurrentHunTeamTotalMinorScore
   ├─ CurrentSurTeamMinorScoreText
   ├─ CurrentHunTeamMinorScoreText
   ├─ CurrentSurTeamMajorText
@@ -274,6 +276,7 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 | `AwayMajorWin` / `AwayMajorTie` | 客队大比分胜/平。 |
 | `HomeMajorText` / `AwayMajorText` | 前台大比分文本，建议保持当前 `W{Win}  D{Tie}` 风格。 |
 | `HomeTotalMinorScore` / `AwayTotalMinorScore` | 所有已记录半场的主客小比分合计。 |
+| `CurrentSurTeamTotalMinorScore` / `CurrentHunTeamTotalMinorScore` | 将全场主客总小比分按当前求生者/监管者阵营映射后的合计；换边时随当前队伍映射刷新。 |
 | `CurrentSurTeamMinorScoreText` | 当前求生者队伍在当前半场窗口中应显示的累计小比分文本（同 Game 内从第一半到当前半场已记录小比分之和）。 |
 | `CurrentHunTeamMinorScoreText` | 当前监管者队伍在当前半场窗口中应显示的累计小比分文本（同 Game 内从第一半到当前半场已记录小比分之和）。 |
 | `CurrentSurTeamMajorText` | 当前求生者队伍对应的大比分文本。 |

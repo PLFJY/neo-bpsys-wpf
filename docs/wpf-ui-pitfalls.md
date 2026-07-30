@@ -96,7 +96,7 @@ snackbarService.SetSnackbarPresenter(SnbPre);
 
 `FrontedWindowBase` 会把内容自动包进 `Viewbox`，并设置 `Stretch.Fill`。前台窗口内部布局应以固定画布和绑定宽高为基础，不要假设窗口内容原样作为根元素存在。
 
-Designer v3 的 `Image` 控件有 `Auto`、`FillContainer`、`OverflowCrop` 三种 `SizingMode`。旧 XAML 同时存在 direct fixed-size `ui:Image`、`Border + Image + ClipToBounds`、默认 `Border` 内图片和自定义 `MapV2Presenter`，迁移时必须逐个按旧结构选择模式。队标和 MapBp v1 地图通常用 `FillContainer`；角色裁剪图通常用 `OverflowCrop`；GameData 求生者表头头像这类旧默认 `Image` 应保留 `Auto`。BpWindow 的求生者 pick 使用 `OverflowCrop + UniformToFill`，监管者 pick 保留旧 XAML 中本地 `Stretch="Uniform"` 的效果。`CornerRadius` 只负责圆角裁剪，不应顺手把所有图片改成填满容器。
+Designer v3 的 `Image` 控件有 `Auto`、`FillContainer`、`OverflowCrop` 三种 `SizingMode`。旧 XAML 同时存在 direct fixed-size `ui:Image`、`Border + Image + ClipToBounds`、默认 `Border` 内图片和自定义 `MapV2Presenter`，迁移时必须逐个按旧结构选择模式。队伍 LOGO 和 MapBp v1 地图通常用 `FillContainer`；角色裁剪图通常用 `OverflowCrop`；GameData 求生者表头头像这类旧默认 `Image` 应保留 `Auto`。BpWindow 的求生者 pick 使用 `OverflowCrop + UniformToFill`，监管者 pick 保留旧 XAML 中本地 `Stretch="Uniform"` 的效果。`CornerRadius` 只负责圆角裁剪，不应顺手把所有图片改成填满容器。
 
 BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的稳定 `BehaviorGuid` 查找 `SurPick0..3`、`HunPick`，并通过 `part:{BehaviorGuid}:PickingBorder` 查找内部呼吸边框。修改内置布局时必须同步维护 `Resources/FrontedBehaviors/BpWindow.behaviors.json`；旧 `PickingBorderOverlay` 控件已移除。
 
@@ -117,7 +117,7 @@ BpWindow 已由 v3 renderer 生成控件。默认动画通过行为文档中的�
 11. 被选中控件的 hitbox、outline 和 handles 会使用 editor-only 高 ZIndex 放在其他 hitbox 上方，以便拖动重叠下层控件。该值不能写入 v3 JSON，也不能改变 preview/runtime `ZIndex`。
 12. 拖拽和缩放过程中要同步更新生成 preview root element 的 `Canvas.Left` / `Canvas.Top` / `Width` / `Height`，不要等 mouse-up 重渲染后才看到真实预览移动。mouse-up 可再重渲染一次保证一致。
 13. 选择边界优先使用显式 `Width` / `Height`；缺失时使用渲染 root element 的 `ActualWidth` / `ActualHeight`；再不可用才回退到 `40x24`。这对无 `Height` 的文本控件尤其重要。
-14. `Image` / `BorderedImage` 的 picking border 和 lock 是内部视觉层：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放图片控件时 overlay 自动跟随；`PickingBorderName` 保持运行时 namescope 目标不变。
+14. `Image` / `BorderedImage` 的 picking border 和 lock 是内部视觉层：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放图片控件时 overlay 自动跟随；picking border 的运行时名称由控件名自动生成。
 15. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除。新 Ban 位和 pick 图不要再新增专用业务控件，优先使用通用 `Image` binding + overlay。
 16. 视口导航优先于选择：Fit 模式根据 `ScrollViewer` viewport 和 Canvas 尺寸计算 `ZoomScale`；`Ctrl + mouse wheel` 进入手动缩放并保持 25% 到 200%；右键拖拽或 `Space + left mouse drag` 只平移 `ScrollViewer` offset。这些操作不能写回 layout 坐标，也不能改变当前选中控件。
 17. 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。

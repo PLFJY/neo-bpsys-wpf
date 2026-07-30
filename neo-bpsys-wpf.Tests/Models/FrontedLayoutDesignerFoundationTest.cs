@@ -1905,8 +1905,7 @@ public class FrontedLayoutDesignerFoundationTest
                 Left = 10,
                 BindingPath = "CurrentGame.SurTeam.Logo",
                 ImagePath = "Resources/logo.png",
-                PickingBorderAvailable = true,
-                PickingBorderName = "PickingBorder"
+                PickingBorderAvailable = true
             }
         };
         var text = new FrontedControlDesignItem
@@ -1926,7 +1925,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(imageRows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name)).RequiresExplicitCommit);
         Assert.True(imageRows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath)).RequiresExplicitCommit);
         Assert.True(imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)).RequiresExplicitCommit);
-        Assert.True(imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderName)).RequiresExplicitCommit);
         Assert.False(textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Text)).RequiresExplicitCommit);
     }
 
@@ -2911,6 +2909,8 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.HunPlayer.PictureShownWithFullCharacter", paths);
         Assert.Contains("CurrentGame.HunPlayer.PictureShownHeader", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore", paths);
         Assert.Contains("RemainingSeconds", paths);
         Assert.Contains("CountDownRemainingSeconds", paths);
         Assert.Contains("CountDownTotalSeconds", paths);
@@ -2939,6 +2939,8 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.SurTeam.Name", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
         Assert.Contains("CurrentGame.MatchScore.HomeTotalMinorScore", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore", paths);
         Assert.DoesNotContain("CurrentGame.SurTeam.Logo", paths);
         Assert.DoesNotContain("CurrentGame.PickedMapImage", paths);
         Assert.Contains("CurrentGame.GameProgress", paths);
@@ -3080,6 +3082,81 @@ public class FrontedLayoutDesignerFoundationTest
         var normalTextRow = rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.HorizontalAlignment));
         Assert.False(normalTextRow.CanBrowseBinding);
         Assert.False(normalTextRow.CanBrowseResource);
+    }
+
+    /// <summary>
+    /// Image 与 BorderedImage 的覆盖层拉伸设置应使用开关和枚举编辑器，
+    /// 并在关闭独立设置时禁用对应枚举项。
+    /// </summary>
+    /// <param name="useBorderedImage">是否使用 BorderedImage 配置。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PropertyGridBuildsIndependentOverlayStretchEditors(bool useBorderedImage)
+    {
+        ImageFrontedControlConfig config = useBorderedImage
+            ? new BorderedImageFrontedControlConfig()
+            : new ImageFrontedControlConfig();
+        config.UseIndependentLockStretch = false;
+        config.UseIndependentPickingBorderStretch = false;
+
+        var item = new FrontedControlDesignItem
+        {
+            Name = useBorderedImage ? "BorderedPick" : "Pick",
+            Config = config
+        };
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+
+        var lockToggle = Assert.Single(
+            rows,
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.UseIndependentLockStretch));
+        var pickingToggle = Assert.Single(
+            rows,
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.UseIndependentPickingBorderStretch));
+        var lockAvailable = Assert.Single(
+            rows,
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.Lockable));
+        var pickingAvailable = Assert.Single(
+            rows,
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderAvailable));
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, lockToggle.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, pickingToggle.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, lockAvailable.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.ToggleSwitch, pickingAvailable.EditorKind);
+        Assert.Equal("Overlay", lockToggle.GroupName);
+        Assert.Equal("Overlay", pickingToggle.GroupName);
+        Assert.Equal("BanLock", lockToggle.SectionName);
+        Assert.Equal("PickingBorder", pickingToggle.SectionName);
+        Assert.True(lockAvailable.IsSectionHeaderVisible);
+        Assert.True(pickingAvailable.IsSectionHeaderVisible);
+
+        var lockStretch = Assert.Single(
+            rows,
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.LockStretch));
+        var pickingStretch = Assert.Single(
+            rows,
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderStretch));
+        Assert.Equal(FrontedPropertyEditorKind.Enum, lockStretch.EditorKind);
+        Assert.Equal(FrontedPropertyEditorKind.Enum, pickingStretch.EditorKind);
+        Assert.Equal("Overlay", lockStretch.GroupName);
+        Assert.Equal("Overlay", pickingStretch.GroupName);
+        Assert.Equal(
+            ["None", "Fill", "Uniform", "UniformToFill"],
+            lockStretch.Options?.Cast<FrontedPropertyEditorOption>()
+                .Select(option => option.Value)
+                .Cast<string>()
+                .ToArray());
+        Assert.True(lockStretch.IsEditingDisabled);
+        Assert.True(pickingStretch.IsEditingDisabled);
+
+        config.UseIndependentLockStretch = true;
+        config.UseIndependentPickingBorderStretch = true;
+        rows = BuildPropertyRows(CreateDocument([item]), item);
+
+        Assert.False(rows.Single(
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.LockStretch)).IsEditingDisabled);
+        Assert.False(rows.Single(
+            row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderStretch)).IsEditingDisabled);
     }
 
     [Theory]

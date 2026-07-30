@@ -77,8 +77,8 @@ internal static class ImageFrontedControlLayoutHelper
         }
 
         root.Children.Add(CreatePrimaryContentHost(config, image));
-        AddLockOverlay(root, name, config, context);
-        AddPickingBorderOverlay(root, name, config, context);
+        AddLockOverlay(root, name, config, context, image.Stretch);
+        AddPickingBorderOverlay(root, name, config, context, image.Stretch);
         return root;
     }
 
@@ -90,8 +90,8 @@ internal static class ImageFrontedControlLayoutHelper
     {
         var root = new Grid();
         root.Children.Add(CreatePrimaryContentHost(config, image));
-        AddLockOverlay(root, controlName, config, context);
-        AddPickingBorderOverlay(root, controlName, config, context);
+        AddLockOverlay(root, controlName, config, context, image.Stretch);
+        AddPickingBorderOverlay(root, controlName, config, context, image.Stretch);
         return root;
     }
 
@@ -154,7 +154,8 @@ internal static class ImageFrontedControlLayoutHelper
         Grid root,
         string controlName,
         ImageFrontedControlConfig config,
-        FrontedControlBuildContext context)
+        FrontedControlBuildContext context,
+        Stretch primaryStretch)
     {
         if (!config.Lockable)
         {
@@ -166,7 +167,12 @@ internal static class ImageFrontedControlLayoutHelper
         {
             Name = overlayName,
             Source = ResolveOverlayImage(config.LockImagePath, DefaultLockImagePath, context),
-            Stretch = Stretch.Fill,
+            Stretch = ResolveOverlayStretch(
+                config.UseIndependentLockStretch,
+                config.LockStretch,
+                primaryStretch,
+                context,
+                nameof(config.LockStretch)),
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             IsHitTestVisible = false
@@ -197,16 +203,21 @@ internal static class ImageFrontedControlLayoutHelper
         Grid root,
         string controlName,
         ImageFrontedControlConfig config,
-        FrontedControlBuildContext context)
+        FrontedControlBuildContext context,
+        Stretch primaryStretch)
     {
         if (!config.PickingBorderAvailable)
         {
             return;
         }
 
-        var overlayName = string.IsNullOrWhiteSpace(config.PickingBorderName)
-            ? $"{controlName}PickingBorder"
-            : config.PickingBorderName;
+        var overlayName = $"{controlName}PickingBorder";
+        var overlayStretch = ResolveOverlayStretch(
+            config.UseIndependentPickingBorderStretch,
+            config.PickingBorderStretch,
+            primaryStretch,
+            context,
+            nameof(config.PickingBorderStretch));
 
         var overlay = new Border
         {
@@ -215,7 +226,7 @@ internal static class ImageFrontedControlLayoutHelper
             OpacityMask = CreateImageBrush(ResolveOverlayImage(
                 config.PickingBorderImagePath,
                 DefaultPickingBorderImagePath,
-                context)),
+                context), overlayStretch),
             Visibility = Visibility.Hidden,
             Opacity = 0,
             IsHitTestVisible = false
@@ -270,16 +281,37 @@ internal static class ImageFrontedControlLayoutHelper
         return source ?? context.ResourceResolver.ResolveImage(fallbackPath, FrontedImagePurpose.UiElement);
     }
 
-    private static ImageBrush? CreateImageBrush(ImageSource? imageSource)
+    private static ImageBrush? CreateImageBrush(ImageSource? imageSource, Stretch stretch)
     {
         if (imageSource is null)
         {
             return null;
         }
 
-        var brush = new ImageBrush(imageSource) { Stretch = Stretch.Fill };
+        var brush = new ImageBrush(imageSource) { Stretch = stretch };
         RenderOptions.SetBitmapScalingMode(brush, BitmapScalingMode.HighQuality);
         return brush;
+    }
+
+    private static Stretch ResolveOverlayStretch(
+        bool useIndependentStretch,
+        string? independentStretch,
+        Stretch primaryStretch,
+        FrontedControlBuildContext context,
+        string propertyName)
+    {
+        if (!useIndependentStretch)
+        {
+            return primaryStretch;
+        }
+
+        var resolvedStretch = Stretch.Fill;
+        FrontedControlFactoryHelper.TryApplyEnum<Stretch>(
+            independentStretch,
+            value => resolvedStretch = value,
+            context,
+            propertyName);
+        return resolvedStretch;
     }
 
     private static void RegisterGeneratedChildName(FrameworkElement root, string name, FrameworkElement child)

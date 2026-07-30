@@ -119,12 +119,12 @@ Canvas 级字段同样必须校验：
 其他重要语义名称也需要谨慎处理：
 
 1. Score 系列窗口的布局测试或文档可能依赖已记录的控件名。
-2. `Image.PickingBorderName` 注册运行时 animation target 名称，不是独立可编辑控件。
+2. 图片控件自动为 picking border 生成运行时名称，不提供独立的命名字段。
 3. 未来任何 linked control、binding target、animation target 都必须纳入引用扫描和重命名重构逻辑。
 
 ## 4. 引用字段与重命名重构
 
-部分 config 字段可能引用其他控件名。当前 Designer v3 内置控件没有 layout-item 级别的控件名引用字段；pick 呼吸边框使用 `Image.PickingBorderName` 注册 namescope 名称。
+部分 config 字段可能引用其他控件名。当前 Designer v3 内置控件没有 layout-item 级别的控件名引用字段；pick 呼吸边框的运行时名称由图片控件名自动生成。
 
 未来可能出现的引用字段：
 
@@ -276,7 +276,9 @@ WPF 中没有可见内容的元素可能很难点击，甚至无法点击。常�
 6. `Image` / `BorderedImage` 的 lock 和 picking border 是内部视觉层，不在普通控件列表显示，不生成普通 hitbox，也不能直接选中、拖拽或缩放；行为图通过稳定 part 引用定位这些内部视觉层。
 7. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已从 Designer v3 控件模型中移除；Ban 位必须使用 `Image` + `Lockable` overlay，pick 呼吸边框必须使用 `Image` / `BorderedImage` + `PickingBorderAvailable`。
 8. overlay 不反向驱动目标图片。移动或缩放图片控件时，内部 overlay 自动跟随图片根元素位置和尺寸。
-9. 交互优先级为：resize handle、视口平移、拖动已选控件、单击选择、空白点击清除。按住 Space 时左键拖拽用于平移，不会选择或移动控件；右键拖拽同样只平移视口。
+9. lock 与 picking border 各自提供“独立缩放”开关和 Stretch 枚举 ComboBox。开关开启时使用对应 overlay 的独立枚举值；关闭时禁用该 ComboBox，并跟随主图片的实际 Stretch。
+10. Overlay 属性面板在“覆盖层”下分为“Ban 位锁”和“选择框”小节；小节内属性使用简短名称并缩进显示，两个小节的“启用”均使用 ToggleSwitch。
+11. 交互优先级为：resize handle、视口平移、拖动已选控件、单击选择、空白点击清除。按住 Space 时左键拖拽用于平移，不会选择或移动控件；右键拖拽同样只平移视口。
 
 图片控件选择/缩放语义：
 
@@ -326,7 +328,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | 无绑定和无静态文本的 `Text` | overlay 标签 `[Text]` |
 | 无图片源的 `Image` | overlay 标签 `[Image]` |
 
-`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
+`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队伍 LOGO、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
 
 `InteractionLayer` 可以显示 fallback overlay 标签，帮助用户定位空控件：
 
@@ -347,7 +349,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | Business | `MapNameText`, `GameProgressText`, `TalentTraitDisplay`, `GlobalScoreRow`, `MapV2Display` |
 | Score/BP | `GlobalScoreRow`, `Image` |
 
-`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除，不应出现在 Add Control 列表中。Ban 位和 pick 图应添加 `Image`，再通过 `BindingPath`、`Lockable`、`LockVisibilityBindingPath`、`PickingBorderAvailable` 和 `PickingBorderName` 配置。
+`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除，不应出现在 Add Control 列表中。Ban 位和 pick 图应添加 `Image`，再通过 `BindingPath`、`Lockable`、`LockVisibilityBindingPath` 和 `PickingBorderAvailable` 配置。
 
 `GlobalScoreRow` 是一个目的明确的复合控件，不应拆成一组无父级的顶层比分控件。编辑器中点击行主体会选中父级比分行，可移动或缩放整行；点击行内比分格 overlay 会选中该子格，同时父级仍作为当前顶层设计项。父级移动只修改 `GlobalScoreRow.Left/Top`，子格相对 `X/Y` 不变；子格移动或缩放只修改对应 `GlobalScoreCellConfig.X/Y/Width/Height`，并在合理范围内夹到父框内。子格属性面板显示 `Id`、`GameNumber`、`GameKind`、`HalfKind`、相对几何、`Visibility` 和样式覆盖项；字体、颜色、字号和 `ShowCampIcon` 留空表示继承父级。图层面板只显示顶层设计控件，`GlobalScoreRow.Cells` 不作为全局图层项。选中父行后，右侧属性面板显示专用 Score Cells 列表；点击列表项会选择对应内部比分格，但 `SelectedDesignItem` 仍保持父行。子格不能删除、复制、粘贴或拖入全局图层面板，也不能参与全局 ZIndex 拖拽、跨层投放或顶/底投放区。子格拖动、缩放和属性编辑都会进入 Designer undo/redo 栈，但这不是通用多选模型。
 
@@ -535,7 +537,7 @@ Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示�
 2. 运行时关键控件的 `Name` 只读。
 3. 普通控件改名必须非空、匹配 `^[A-Za-z_][A-Za-z0-9_]*$`，并在当前 Canvas 内唯一。
 4. 如果未来出现 layout-item 级别的控件名引用字段，改名前必须先实现引用感知重命名，避免静默断开引用。
-5. 新布局优先使用 `Image` / `BorderedImage` 的 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`、`PickingBorderAvailable`、`PickingBorderImagePath` 和 `PickingBorderName` 配置内部覆盖层。覆盖层不是独立设计项，不生成普通 hitbox。
+5. 新布局优先使用 `Image` / `BorderedImage` 的 `Lockable`、`LockImagePath`、`UseIndependentLockStretch`、`LockStretch`、`LockVisibilityBindingPath`、`LockVisibleWhen`、`PickingBorderAvailable`、`PickingBorderImagePath`、`UseIndependentPickingBorderStretch` 和 `PickingBorderStretch` 配置内部覆盖层。覆盖层不是独立设计项，不生成普通 hitbox。
 6. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已不再支持，普通 Add Control 不应提供这些入口。
 
 ## 13. Binding Browser
@@ -591,7 +593,7 @@ CurrentGame.MatchScore.CurrentSurTeamMajorText
 CanCurrentSurBannedList[0]
 ```
 
-浏览器按属性行或专用编辑器携带的 `BindingTargetKind` 初始化过滤器。内置控件的推断规则为：`TextBinding.Sources` 使用文本过滤；`ImageFrontedControlConfig.BindingPath` 使用图片过滤；`GameProgressTextControlConfig.BindingPath` 使用 `GameProgress` 过滤；`MapNameTextControlConfig.BindingPath` 使用 `Map` 过滤；未知插件或未来控件默认使用 `Any`，避免宿主过早拒绝插件自定义路径。浏览器标题区会显示当前期望绑定类型，搜索结果遵守同一过滤器，例如文本模式搜索 `Logo` 不会返回队标图片，图片模式搜索 `Name` 不会返回字符串名称。
+浏览器按属性行或专用编辑器携带的 `BindingTargetKind` 初始化过滤器。内置控件的推断规则为：`TextBinding.Sources` 使用文本过滤；`ImageFrontedControlConfig.BindingPath` 使用图片过滤；`GameProgressTextControlConfig.BindingPath` 使用 `GameProgress` 过滤；`MapNameTextControlConfig.BindingPath` 使用 `Map` 过滤；未知插件或未来控件默认使用 `Any`，避免宿主过早拒绝插件自定义路径。浏览器标题区会显示当前期望绑定类型，搜索结果遵守同一过滤器，例如文本模式搜索 `Logo` 不会返回队伍 LOGO 图片，图片模式搜索 `Name` 不会返回字符串名称。
 
 浏览器只更新属性行编辑缓冲；Apply/Enter 前，选中控件 config 仍保持旧值。取消浏览器不会修改 `EditText`。
 
