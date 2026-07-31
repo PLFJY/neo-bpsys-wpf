@@ -83,6 +83,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private static readonly IReadOnlyDictionary<LegacyLayoutKey, IReadOnlyDictionary<string, string>> LegacyBlueprintNameAliases =
         new Dictionary<LegacyLayoutKey, IReadOnlyDictionary<string, string>>
         {
+            [new LegacyLayoutKey("BpWindow", "BaseCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                // 部分 1.x 包沿用比分窗口的 MinorPoints 命名。
+                ["MinorPointsSur"] = "GameScoresSur",
+                ["MinorPointsHun"] = "GameScoresHun"
+            },
             [new LegacyLayoutKey("ScoreGlobalWindow", "BaseCanvas")] = new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 // 1.x 包使用 v3 目标名 HomeTeamName 作为旧版控件名，蓝图定义的 LegacyName 为 MainTeamName。
@@ -1804,6 +1810,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Text("HunTeamMajorPoint", "Text", "CurrentGame.MatchScore.CurrentHunTeamMajorText", "CutSceneWindow.MajorPoints", 971, 42),
             Image("HunTeamLogo", "Image", "CurrentGame.HunTeam.Logo", 1104, 14, 84, 85, cornerRadius: 8, stretch: "Fill"),
             Image("Map", "BorderedImage", "CurrentGame.PickedMapImage", 488, 0, 463, 112, zIndex: -1, sizingMode: ImageSizingMode.FillContainer, stretch: "UniformToFill"),
+            Rectangle("MapMask", "#FF000000", 487, 83, 465, 29),
             Text("MapName", "MapNameText", "CurrentGame.PickedMap", "CutSceneWindow.MapName", 488, 51, 463, null),
             Text("GameProgress", "GameProgressText", null, "CutSceneWindow.GameProgress", 488, 82, 463, 30, zIndex: 1),
             Image("SurPick0", "BorderedImage", "CurrentGame.SurPlayerList[0].Character.BigImage", 1, 115, 346, 308.5, sizingMode: ImageSizingMode.OverflowCrop, stretch: "UniformToFill", clipToBounds: true, verticalAlignment: "Top", specialProperties: Props(("ImageWidth", "556.5"))),
@@ -2177,6 +2184,28 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             Status = LegacyControlBlueprintStatus.Mapped
         };
 
+    private static LegacyControlBlueprint Rectangle(
+        string legacyName,
+        string fillColor,
+        double? left,
+        double? top,
+        double? width,
+        double? height,
+        int zIndex = 0) =>
+        new()
+        {
+            LegacyName = legacyName,
+            TargetName = legacyName,
+            TargetControlType = "Rectangle",
+            Color = fillColor,
+            ZIndex = zIndex,
+            DefaultLeft = left,
+            DefaultTop = top,
+            DefaultWidth = width,
+            DefaultHeight = height,
+            Status = LegacyControlBlueprintStatus.Mapped
+        };
+
     private static LegacyControlBlueprint Talent(
         string legacyName,
         TalentTraitDisplayKind displayKind,
@@ -2361,6 +2390,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             "GameProgressText" => CreateDefaultGameProgressText(blueprint),
             "Image" => CreateDefaultImage(blueprint),
             "BorderedImage" => CreateDefaultBorderedImage(blueprint),
+            "Rectangle" => CreateDefaultRectangle(blueprint),
             "TalentTraitDisplay" => CreateDefaultTalentTrait(blueprint),
             "GlobalScoreRow" => CreateDefaultGlobalScoreRow(blueprint),
             "MapV2Display" => CreateDefaultMapV2Display(blueprint),
@@ -2463,6 +2493,16 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         };
         ApplyImageSpecialProperties(image, blueprint);
         return image;
+    }
+
+    private static RectangleFrontedControlConfig CreateDefaultRectangle(LegacyControlBlueprint blueprint)
+    {
+        return new RectangleFrontedControlConfig
+        {
+            FillColor = blueprint.Color,
+            Width = blueprint.DefaultWidth,
+            Height = blueprint.DefaultHeight
+        };
     }
 
     private static TalentTraitDisplayControlConfig CreateDefaultTalentTrait(LegacyControlBlueprint blueprint)

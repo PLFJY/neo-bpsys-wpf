@@ -682,6 +682,46 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
+    public async Task LegacyConverterMapsMinorPointsAliasesAndCutSceneMapMask()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var legacyArchive = Path.Combine(root, "legacy-minor-points.bpui");
+            CreateLegacyMinorPointsAliasBpuiArchive(legacyArchive);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                Path.Combine(root, "builtIn"),
+                Path.Combine(root, "temp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.minor-points-aliases",
+                Name = "minor-points aliases"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Equal(3, result.LayoutCount);
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var cutSceneLayout = JsonSerializer.Deserialize<FrontedWindowConfig>(
+                ReadZipEntry(archive, "FrontedLayouts/CutSceneWindow.json"))!
+                .ToCanvasConfig();
+            var mapMask = Assert.IsType<RectangleFrontedControlConfig>(cutSceneLayout.Controls["MapMask"]);
+            Assert.Equal("#FF000000", mapMask.FillColor);
+            Assert.Contains(result.Infos, info => info.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && info.Contains("BpWindow", StringComparison.Ordinal)
+                && info.Contains("MinorPointsSur", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && info.Contains("GameDataWindow", StringComparison.Ordinal)
+                && info.Contains("MinorPointsHun", StringComparison.Ordinal));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task ConvertedLegacyPackageImportsThroughV3ImporterAndCanActivate()
     {
         var root = CreateTempDirectory();
@@ -1697,6 +1737,55 @@ public class FrontedLayoutPackageManagerTest : IDisposable
               "AwayTeamGame2SecondHalf": {
                 "Left": 450,
                 "Top": 150
+              }
+            }
+            """);
+    }
+
+    private static void CreateLegacyMinorPointsAliasBpuiArchive(string archivePath)
+    {
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(archive, "Config.json", "{}");
+        WriteZipEntry(
+            archive,
+            "FrontElementsConfig/BpWindowConfig-BaseCanvas.json",
+            """
+            {
+              "MinorPointsSur": {
+                "Left": 622,
+                "Top": 746
+              },
+              "MinorPointsHun": {
+                "Left": 784,
+                "Top": 746
+              }
+            }
+            """);
+        WriteZipEntry(
+            archive,
+            "FrontElementsConfig/GameDataWindowConfig-BaseCanvas.json",
+            """
+            {
+              "MinorPointsSur": {
+                "Left": 476,
+                "Top": 182
+              },
+              "MinorPointsHun": {
+                "Left": 919,
+                "Top": 182
+              }
+            }
+            """);
+        WriteZipEntry(
+            archive,
+            "FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json",
+            """
+            {
+              "MapMask": {
+                "Left": 488,
+                "Top": 0,
+                "Width": 463,
+                "Height": 112
               }
             }
             """);
