@@ -316,6 +316,9 @@
   <data name="LegacyConvert.ResourceCopied">
     <value>旧版资源已复制：{FileName}</value>
   </data>
+  <data name="LegacyConvert.ImageCompressed">
+    <value>图片“{FileName}”体积过大，已被压缩（{OriginalSize} → {CompressedSize}）。</value>
+  </data>
   <data name="LegacyConvert.GlobalScoreCellsAggregated">
     <value>旧版全局比分格已聚合：{Team} -&gt; {TargetName}</value>
   </data>

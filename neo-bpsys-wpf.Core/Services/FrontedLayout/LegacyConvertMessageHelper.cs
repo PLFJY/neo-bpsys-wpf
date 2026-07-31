@@ -118,6 +118,11 @@ public static partial class LegacyConvertMessageHelper
     public const string CodeResourceCopied = "LegacyConvert.ResourceCopied";
 
     /// <summary>
+    /// 代码常量 —— 旧版图片超过安全阈值，已在转换后的包中压缩。
+    /// </summary>
+    public const string CodeImageCompressed = "LegacyConvert.ImageCompressed";
+
+    /// <summary>
     /// 代码常量 —— 旧版全局比分格已聚合。
     /// </summary>
     public const string CodeGlobalScoreCellsAggregated = "LegacyConvert.GlobalScoreCellsAggregated";

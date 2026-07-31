@@ -12,11 +12,14 @@ using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using SkiaSharp;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -984,6 +987,57 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
+    public async Task LegacyConverterCompressesOversizedConfiguredBackgroundAndReportsWarning()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var legacyArchive = Path.Combine(root, "legacy-large-image.bpui");
+            var sourceImage = CreateNoisePng(1200, 1200);
+            Assert.True(sourceImage.LongLength > FrontedLayoutLimits.MaxBackgroundImageBytes);
+            CreateLegacyBpuiArchive(
+                legacyArchive,
+                includeConfig: true,
+                includeResource: true,
+                includeKnownLayout: true,
+                resourceBytes: sourceImage);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                Path.Combine(root, "builtIn"),
+                Path.Combine(root, "convertTemp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.compressed-image",
+                Name = "Compressed image"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            var warning = Assert.Single(result.Messages, message =>
+                message.Code == LegacyConvertMessageHelper.CodeImageCompressed);
+            Assert.Equal(
+                neo_bpsys_wpf.Core.Enums.FrontedLayoutPackageLegacyConvertMessageSeverity.Warning,
+                warning.Severity);
+            Assert.True(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var manifest = ReadManifest(archive);
+            var resource = Assert.Single(manifest.Content.Resources);
+            var entry = Assert.Single(archive.Entries, item => item.FullName == resource.Path);
+            Assert.True(entry.Length <= FrontedLayoutLimits.MaxBackgroundImageBytes);
+            Assert.True(entry.Length < sourceImage.LongLength);
+            using var resourceStream = entry.Open();
+            Assert.Equal(
+                resource.Sha256,
+                Convert.ToHexString(SHA256.HashData(resourceStream)).ToLowerInvariant());
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task RenameInstalledPackageUpdatesDisplayNameWithoutChangingStableIdentity()
     {
         var root = CreateTempDirectory();
@@ -1603,7 +1657,8 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         bool includeConfig,
         bool includeResource,
         bool includeKnownLayout,
-        bool includeUnknownLayout = false)
+        bool includeUnknownLayout = false,
+        byte[]? resourceBytes = null)
     {
         if (File.Exists(archivePath))
         {
@@ -1629,7 +1684,7 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         {
             var resource = archive.CreateEntry("CustomUi/bg.png");
             using var stream = resource.Open();
-            stream.Write(TinyPngBytes);
+            stream.Write(resourceBytes ?? TinyPngBytes);
         }
 
         if (includeKnownLayout)
@@ -1895,6 +1950,17 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     private static byte[] TinyPngBytes =>
         Convert.FromBase64String(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=");
+
+    private static byte[] CreateNoisePng(int width, int height)
+    {
+        using var bitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+        var pixels = new SKColor[width * height];
+        new Random(42).NextBytes(MemoryMarshal.AsBytes(pixels.AsSpan()));
+        bitmap.Pixels = pixels;
+        using var image = SKImage.FromBitmap(bitmap);
+        using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
+        return encoded.ToArray();
+    }
 
     private static void WriteTinyPng(string path)
     {

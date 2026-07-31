@@ -84,6 +84,8 @@ legacy 兼容只允许存在于启动迁移服务和显式 legacy `.bpui` 转换
 
 转换结果中的 `Infos` 用于记录成功复制资源、正常聚合等信息，`Diagnostics` 用于记录技术细节和近似处理；`Warnings`、`UnsupportedProperties` 和 `MissingResources` 才表示需要用户留意的问题。UI 不应把纯 `Infos` / `Diagnostics` 当作警告弹出，用户弹窗也不应展示 `Closest candidates` 等原始技术诊断。
 
+旧 `Config.json` 明确引用的背景图和控件 UI 图在转换时按各自安全阈值检查。超过阈值的 PNG/JPEG 使用 SkiaSharp 在暂存副本中等比缩放并按原格式重编码，随后重算资源 SHA256；转换结果增加 `LegacyConvert.ImageCompressed` warning，用户可看到文件名及压缩前后体积。此规则只属于显式 legacy migration，不修改源归档，也不扩展为普通 v3 包的读取期重写。
+
 旧 `TextSettings` 迁移由 Core 中的共享样式迁移器处理，本地 `Config.json` 启动迁移和旧 `.bpui` 包转换使用同一套映射规则。转换器会把旧字体写法如 `./#汉仪第五人格体简`、`./#华康POP1体W5` 以及内置 `Noto Sans` 归一化为 `pack://application:,,,/Assets/Fonts/#...`，普通系统字体名保留；单个样式字段格式无效时仅跳过该字段并记录本地化 warning，其余可解析字段继续迁移。样式应用记录只进入 `Diagnostics`，不作为用户警告弹窗。
 
 旧 `WidgetsWindow/MapV2Canvas` 会转换为 `MapV2Window`。`MapV2Display` 已提供地图名、队名、阵营文字三组字体/颜色/字号配置，以及 `PickingBorderImagePath`、`PickingBorderFillColor`。普通 `Image` 和 `BorderedImage` 也使用相同的 `PickingBorderFillColor` 表达 opacity-mask 的填充色。旧 `MapBpV2_*` 文本样式和 picking border 图片/颜色可以写入这些 v3 字段，不再需要提示“MapV2Display 无 v3 image/color config”。CutScene 的非对称队名文字区域使用通用 `Text.ContentMargin*` 保存内部内容偏移；缺失这些字段的既有 v3 包保持原有视觉。

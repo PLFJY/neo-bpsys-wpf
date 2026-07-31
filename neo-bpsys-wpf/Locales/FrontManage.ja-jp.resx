@@ -313,6 +313,9 @@
   <data name="LegacyConvert.ResourceCopied">
     <value>旧リソースをコピーしました：{FileName}</value>
   </data>
+  <data name="LegacyConvert.ImageCompressed">
+    <value>画像「{FileName}」のファイルサイズが大きすぎるため、圧縮しました（{OriginalSize} → {CompressedSize}）。</value>
+  </data>
   <data name="LegacyConvert.GlobalScoreCellsAggregated">
     <value>旧グローバルスコアセルを集約しました：{Team} -&gt; {TargetName}</value>
   </data>

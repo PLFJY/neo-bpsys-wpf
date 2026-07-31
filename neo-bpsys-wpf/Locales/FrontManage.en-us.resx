@@ -316,6 +316,9 @@
   <data name="LegacyConvert.ResourceCopied">
     <value>Legacy resource copied: {FileName}</value>
   </data>
+  <data name="LegacyConvert.ImageCompressed">
+    <value>The image “{FileName}” was too large and has been compressed ({OriginalSize} → {CompressedSize}).</value>
+  </data>
   <data name="LegacyConvert.GlobalScoreCellsAggregated">
     <value>Legacy global score cells aggregated: {Team} -&gt; {TargetName}</value>
   </data>

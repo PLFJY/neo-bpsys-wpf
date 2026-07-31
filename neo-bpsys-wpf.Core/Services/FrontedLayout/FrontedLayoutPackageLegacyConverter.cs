@@ -50,6 +50,27 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         ".svg"
     };
 
+    private static readonly IReadOnlyDictionary<string, FrontedImagePurpose> LegacyConfigImagePurposes =
+        new Dictionary<string, FrontedImagePurpose>(StringComparer.Ordinal)
+        {
+            ["BpWindowSettings.BgImageUri"] = FrontedImagePurpose.Background,
+            ["CutSceneWindowSettings.BgUri"] = FrontedImagePurpose.Background,
+            ["ScoreWindowSettings.SurScoreBgImageUri"] = FrontedImagePurpose.Background,
+            ["ScoreWindowSettings.HunScoreBgImageUri"] = FrontedImagePurpose.Background,
+            ["ScoreWindowSettings.GlobalScoreBgImageUri"] = FrontedImagePurpose.Background,
+            ["ScoreWindowSettings.GlobalScoreBgImageUriBo3"] = FrontedImagePurpose.Background,
+            ["GameDataWindowSettings.BgImageUri"] = FrontedImagePurpose.Background,
+            ["WidgetsWindowSettings.MapBpBgUri"] = FrontedImagePurpose.Background,
+            ["WidgetsWindowSettings.BpOverviewBgUri"] = FrontedImagePurpose.Background,
+            ["WidgetsWindowSettings.MapBpV2BgUri"] = FrontedImagePurpose.Background,
+            ["BpWindowSettings.CurrentBanLockImageUri"] = FrontedImagePurpose.UiElement,
+            ["BpWindowSettings.GlobalBanLockImageUri"] = FrontedImagePurpose.UiElement,
+            ["BpWindowSettings.PickingBorderImageUri"] = FrontedImagePurpose.UiElement,
+            ["WidgetsWindowSettings.CurrentBanLockImageUri"] = FrontedImagePurpose.UiElement,
+            ["WidgetsWindowSettings.GlobalBanLockImageUri"] = FrontedImagePurpose.UiElement,
+            ["WidgetsWindowSettings.MapBpV2PickingBorderImageUri"] = FrontedImagePurpose.UiElement
+        };
+
     private static readonly Dictionary<string, LegacyLayoutMapping> LegacyLayoutFileMap =
         new(StringComparer.OrdinalIgnoreCase)
         {
@@ -149,6 +170,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private readonly string _tempRoot;
     private readonly IFrontedLayoutPackageImporter? _packageImporter;
     private readonly FrontedLayoutValidator _validator;
+    private readonly FrontedImageCompressionService _imageCompressionService;
     private readonly ILogger<FrontedLayoutPackageLegacyConverter> _logger;
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -186,16 +208,19 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     /// <param name="packageImporter">包导入器（可选）。</param>
     /// <param name="validator">布局校验器（可选）。</param>
     /// <param name="logger">日志记录器（可选）。</param>
+    /// <param name="imageCompressionService">旧版图片压缩服务（可选）。</param>
     public FrontedLayoutPackageLegacyConverter(
         string builtInLayoutRoot,
         string tempRoot,
         IFrontedLayoutPackageImporter? packageImporter = null,
         FrontedLayoutValidator? validator = null,
-        ILogger<FrontedLayoutPackageLegacyConverter>? logger = null)
+        ILogger<FrontedLayoutPackageLegacyConverter>? logger = null,
+        FrontedImageCompressionService? imageCompressionService = null)
     {
         _tempRoot = tempRoot;
         _packageImporter = packageImporter;
         _validator = validator ?? new FrontedLayoutValidator();
+        _imageCompressionService = imageCompressionService ?? new FrontedImageCompressionService();
         _logger = logger ?? NullLogger<FrontedLayoutPackageLegacyConverter>.Instance;
     }
 
@@ -295,7 +320,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             Directory.CreateDirectory(stagingRoot);
-            var resourceState = CopyCustomUiResources(source.CustomUiRoot, stagingRoot, packageId, messages);
+            var imagePurposes = ReadLegacyImagePurposes(source);
+            var resourceState = CopyCustomUiResources(
+                source.CustomUiRoot,
+                stagingRoot,
+                packageId,
+                imagePurposes,
+                messages);
             var manifest = CreateManifest(request, packageId);
             manifest.Content.Resources = resourceState.Resources;
 
@@ -992,10 +1023,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                && values.Max() - values.Min() > 1;
     }
 
-    private static ResourceConvertState CopyCustomUiResources(
+    private ResourceConvertState CopyCustomUiResources(
         string? customUiRoot,
         string stagingRoot,
         string packageId,
+        IReadOnlyDictionary<string, FrontedImagePurpose> imagePurposes,
         ICollection<FrontedLayoutPackageLegacyConvertMessage> messages)
     {
         var state = new ResourceConvertState(packageId);
@@ -1015,22 +1047,111 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
             var extension = Path.GetExtension(fullFile);
             var kind = ImageExtensions.Contains(extension) ? "Image" : "Other";
-            var sha256 = ComputeSha256(fullFile);
-            var safeName = CreateResourceFileName(Path.GetFileNameWithoutExtension(fullFile), sha256, extension);
             var folder = kind == "Image" ? "images" : "other";
+            var targetFolder = Path.Combine(stagingRoot, "resources", folder);
+            Directory.CreateDirectory(targetFolder);
+            var workingPath = Path.Combine(targetFolder, $".{Guid.NewGuid():N}{extension}");
+            File.Copy(fullFile, workingPath, overwrite: false);
+
+            FrontedImageCompressionResult? compression = null;
+            if (kind == "Image"
+                && imagePurposes.TryGetValue(Path.GetFileName(fullFile), out var purpose))
+            {
+                compression = _imageCompressionService.CompressIfNeeded(workingPath, purpose);
+            }
+
+            var sha256 = ComputeSha256(workingPath);
+            var safeName = CreateResourceFileName(Path.GetFileNameWithoutExtension(fullFile), sha256, extension);
             var relativePath = ToZipPath("resources", folder, safeName);
             var targetPath = Path.Combine(stagingRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-            File.Copy(fullFile, targetPath, overwrite: false);
+            File.Move(workingPath, targetPath, overwrite: false);
             var uri = $"bpui://{packageId}/{relativePath}";
 
             state.Add(fullFile, uri, relativePath, kind, sha256, safeName);
             messages.Add(Info(CodeResourceCopied,
                 Args(new { FileName = Path.GetFileName(fullFile) })));
+            if (compression?.WasCompressed == true)
+            {
+                messages.Add(Warning(CodeImageCompressed,
+                    Args(new
+                    {
+                        FileName = Path.GetFileName(fullFile),
+                        OriginalSize = FormatFileSize(compression.OriginalBytes),
+                        CompressedSize = FormatFileSize(compression.CompressedBytes)
+                    })));
+            }
         }
 
         return state;
     }
+
+    private static IReadOnlyDictionary<string, FrontedImagePurpose> ReadLegacyImagePurposes(
+        ILegacyFrontendInputSource source)
+    {
+        var result = new Dictionary<string, FrontedImagePurpose>(StringComparer.OrdinalIgnoreCase);
+        if (!File.Exists(source.ConfigPath))
+        {
+            return result;
+        }
+
+        try
+        {
+            using var stream = source.OpenConfig();
+            if (stream.Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            {
+                return result;
+            }
+
+            var root = JsonNode.Parse(
+                stream,
+                nodeOptions: null,
+                documentOptions: new JsonDocumentOptions { MaxDepth = FrontedLayoutLimits.MaxJsonDepth });
+            if (root is not JsonObject rootObject)
+            {
+                return result;
+            }
+
+            foreach (var (field, purpose) in LegacyConfigImagePurposes)
+            {
+                var separator = field.IndexOf('.', StringComparison.Ordinal);
+                var sectionName = field[..separator];
+                var propertyName = field[(separator + 1)..];
+                if (rootObject[sectionName] is not JsonObject section
+                    || section[propertyName] is not JsonValue value
+                    || !value.TryGetValue<string>(out var configuredPath)
+                    || string.IsNullOrWhiteSpace(configuredPath))
+                {
+                    continue;
+                }
+
+                var normalizedPath = Environment.ExpandEnvironmentVariables(configuredPath)
+                    .Replace('\\', '/');
+                var fileName = normalizedPath[(normalizedPath.LastIndexOf('/') + 1)..];
+                if (string.IsNullOrWhiteSpace(fileName))
+                {
+                    continue;
+                }
+
+                if (!result.TryGetValue(fileName, out var existing)
+                    || purpose == FrontedImagePurpose.UiElement
+                    || existing != FrontedImagePurpose.UiElement)
+                {
+                    result[fileName] = purpose;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // The existing Config reader reports the user-facing conversion warning.
+        }
+
+        return result;
+    }
+
+    private static string FormatFileSize(long bytes) =>
+        bytes >= 1024L * 1024L
+            ? $"{bytes / (1024D * 1024D):0.00} MiB"
+            : $"{bytes / 1024D:0.0} KiB";
 
     private static IReadOnlyDictionary<string, string> ReadFrontendConfigValueMap(
         ILegacyFrontendInputSource source,

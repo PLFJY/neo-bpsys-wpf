@@ -174,7 +174,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
 
             BringBackendWindowToFront();
             NavigateToLayoutPackageManager();
-            var result = await ImportPackageAsync(normalizedPath, cancellationToken);
+            var (result, conversionWarning) = await ImportPackageAsync(normalizedPath, cancellationToken);
             if (!result.Success)
             {
                 return Fail(result.ErrorMessage ?? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportFailed"));
@@ -188,8 +188,17 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, result.PackageId));
             NavigateToLayoutPackageManager();
-            _infoBarService.ShowSuccessInfoBar(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedInstalled")}: {result.PackageId}");
+            var successMessage =
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedInstalled")}: {result.PackageId}";
+            if (string.IsNullOrWhiteSpace(conversionWarning))
+            {
+                _infoBarService.ShowSuccessInfoBar(successMessage);
+            }
+            else
+            {
+                _infoBarService.ShowWarningInfoBar($"{successMessage}{Environment.NewLine}{conversionWarning}");
+            }
+
             return new BpuiFileActivationResult(true, result.PackageId, null);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -204,7 +213,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         }
     }
 
-    private async Task<FrontedLayoutPackageImportResult> ImportPackageAsync(
+    private async Task<(FrontedLayoutPackageImportResult Result, string? ConversionWarning)> ImportPackageAsync(
         string packagePath,
         CancellationToken cancellationToken)
     {
@@ -217,7 +226,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         }, cancellationToken);
         if (!result.IsLegacyPackage)
         {
-            return result;
+            return (result, null);
         }
 
         var packageId = $"converted.legacy.{DateTimeOffset.Now:yyyyMMddHHmmss}.{Guid.NewGuid():N}"[..42];
@@ -237,20 +246,24 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         LogLegacyConversion(convertResult, packageId);
         if (!convertResult.Success || string.IsNullOrWhiteSpace(convertResult.ConvertedPackagePath))
         {
-            return new FrontedLayoutPackageImportResult
+            return (new FrontedLayoutPackageImportResult
             {
                 Success = false,
                 ErrorMessage = convertResult.ErrorMessage ?? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LegacyPackageConvertFailed")
-            };
+            }, null);
         }
 
-        return await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        var imported = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
         {
             PackagePath = convertResult.ConvertedPackagePath,
             ReplaceExisting = true,
             ActivateAfterImport = true,
             PreserveMissingPlugins = true
         }, cancellationToken);
+        var conversionWarning = LegacyConversionMessageFormatter.HasUserFacingWarnings(convertResult)
+            ? LegacyConversionMessageFormatter.BuildUserSummary(convertResult)
+            : null;
+        return (imported, conversionWarning);
     }
 
     private void LogLegacyConversion(FrontedLayoutPackageLegacyConvertResult convertResult, string packageId)
