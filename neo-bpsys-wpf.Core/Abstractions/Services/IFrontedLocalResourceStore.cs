@@ -13,7 +13,7 @@ public interface IFrontedLocalResourceStore
     /// <summary>
     /// 复制本地图片并返回便于编辑器会话清理的详细信息。
     /// </summary>
-    FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath);
+    FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath, bool compressOversizedImage = false);
 
     /// <summary>
     /// 将本地 bpui 资源 URI 解析为其物理文件路径。
@@ -44,11 +44,17 @@ public sealed record FrontedLocalResourceStoreResult
     /// <param name="resourceUri">存储后的 bpui 资源 URI。</param>
     /// <param name="physicalPath">物理复制文件路径。</param>
     /// <param name="wasNewlyCreated">是否为新复制的文件。</param>
-    public FrontedLocalResourceStoreResult(string resourceUri, string physicalPath, bool wasNewlyCreated)
+    /// <param name="wasCompressed">是否先在临时副本中压缩了超限图片。</param>
+    public FrontedLocalResourceStoreResult(
+        string resourceUri,
+        string physicalPath,
+        bool wasNewlyCreated,
+        bool wasCompressed = false)
     {
         ResourceUri = resourceUri;
         PhysicalPath = physicalPath;
         WasNewlyCreated = wasNewlyCreated;
+        WasCompressed = wasCompressed;
     }
 
     /// <summary>
@@ -65,6 +71,11 @@ public sealed record FrontedLocalResourceStoreResult
     /// 是否为新复制的文件。
     /// </summary>
     public bool WasNewlyCreated { get; }
+
+    /// <summary>
+    /// 指示源图片是否因超限而在保存前被压缩。
+    /// </summary>
+    public bool WasCompressed { get; }
 }
 
 /// <summary>

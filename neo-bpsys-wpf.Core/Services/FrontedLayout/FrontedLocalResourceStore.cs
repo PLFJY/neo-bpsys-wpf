@@ -27,6 +27,7 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
 
     private readonly string _imagesFolder;
     private readonly IFrontedImageSafetyService _imageSafetyService;
+    private readonly FrontedImageCompressionService _imageCompressionService = new();
 
     public FrontedLocalResourceStore()
         : this(AppConstants.FrontedLayoutLocalImagesPath)
@@ -54,7 +55,7 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
         return StoreImageWithResult(sourcePath).ResourceUri;
     }
 
-    public FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath)
+    public FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath, bool compressOversizedImage = false)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
@@ -73,44 +74,87 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
             throw new NotSupportedException($"Unsupported image extension: {extension}");
         }
 
-        var validation = _imageSafetyService.ValidateFile(fullSourcePath, FrontedImagePurpose.Background);
-        if (!validation.IsValid)
+        var workingPath = fullSourcePath;
+        var wasCompressed = false;
+        string? temporaryPath = null;
+        try
         {
-            throw validation.ErrorCode switch
+            var validation = _imageSafetyService.ValidateFile(workingPath, FrontedImagePurpose.Background);
+            if (!validation.IsValid)
             {
-                "ImageTooLarge" => new InvalidDataException("ImageTooLarge"),
-                "ImageTooManyPixels" => new InvalidDataException("ImageTooManyPixels"),
-                "UnsupportedImageFormat" => new NotSupportedException("UnsupportedImageFormat"),
-                _ => new InvalidDataException(validation.ErrorMessage ?? "Image validation failed.")
-            };
+                if (compressOversizedImage
+                    && validation.ErrorCode is "ImageTooLarge" or "ImageTooManyPixels")
+                {
+                    temporaryPath = CreateTemporaryImageCopy(fullSourcePath, extension);
+                    var compression = _imageCompressionService.CompressIfNeeded(
+                        temporaryPath,
+                        FrontedImagePurpose.Background);
+                    if (!compression.WasCompressed)
+                    {
+                        throw new InvalidDataException(compression.ErrorCode ?? "ImageCompressionLimitNotReached");
+                    }
+
+                    workingPath = temporaryPath;
+                    wasCompressed = true;
+                    validation = _imageSafetyService.ValidateFile(workingPath, FrontedImagePurpose.Background);
+                }
+
+                if (!validation.IsValid)
+                {
+                    throw validation.ErrorCode switch
+                    {
+                        "ImageTooLarge" => new InvalidDataException("ImageTooLarge"),
+                        "ImageTooManyPixels" => new InvalidDataException("ImageTooManyPixels"),
+                        "UnsupportedImageFormat" => new NotSupportedException("UnsupportedImageFormat"),
+                        _ => new InvalidDataException(validation.ErrorMessage ?? "Image validation failed.")
+                    };
+                }
+            }
+
+            Directory.CreateDirectory(_imagesFolder);
+
+            var hash = ComputeSha256(workingPath);
+            var fileName = CreateFileName(Path.GetFileNameWithoutExtension(fullSourcePath), hash, extension);
+            var targetPath = Path.Combine(_imagesFolder, fileName);
+
+            if (File.Exists(targetPath))
+            {
+                var existingHash = ComputeSha256(targetPath);
+                if (!string.Equals(existingHash, hash, StringComparison.OrdinalIgnoreCase))
+                {
+                    fileName = CreateFileName(Path.GetFileNameWithoutExtension(fullSourcePath), hash, extension, forceHashOnly: true);
+                    targetPath = Path.Combine(_imagesFolder, fileName);
+                }
+            }
+
+            var wasNewlyCreated = !File.Exists(targetPath);
+            if (wasNewlyCreated)
+            {
+                File.Copy(workingPath, targetPath, overwrite: false);
+            }
+
+            return new FrontedLocalResourceStoreResult(
+                $"bpui://local/resources/images/{fileName}",
+                targetPath,
+                wasNewlyCreated,
+                wasCompressed);
         }
-
-        Directory.CreateDirectory(_imagesFolder);
-
-        var hash = ComputeSha256(fullSourcePath);
-        var fileName = CreateFileName(Path.GetFileNameWithoutExtension(fullSourcePath), hash, extension);
-        var targetPath = Path.Combine(_imagesFolder, fileName);
-
-        if (File.Exists(targetPath))
+        finally
         {
-            var existingHash = ComputeSha256(targetPath);
-            if (!string.Equals(existingHash, hash, StringComparison.OrdinalIgnoreCase))
+            if (temporaryPath is not null && File.Exists(temporaryPath))
             {
-                fileName = CreateFileName(Path.GetFileNameWithoutExtension(fullSourcePath), hash, extension, forceHashOnly: true);
-                targetPath = Path.Combine(_imagesFolder, fileName);
+                File.Delete(temporaryPath);
             }
         }
+    }
 
-        var wasNewlyCreated = !File.Exists(targetPath);
-        if (wasNewlyCreated)
-        {
-            File.Copy(fullSourcePath, targetPath, overwrite: false);
-        }
-
-        return new FrontedLocalResourceStoreResult(
-            $"bpui://local/resources/images/{fileName}",
-            targetPath,
-            wasNewlyCreated);
+    private static string CreateTemporaryImageCopy(string sourcePath, string extension)
+    {
+        var temporaryRoot = Path.Combine(Path.GetTempPath(), AppConstants.AppName, "image-compression");
+        Directory.CreateDirectory(temporaryRoot);
+        var temporaryPath = Path.Combine(temporaryRoot, $"{Guid.NewGuid():N}{extension}");
+        File.Copy(sourcePath, temporaryPath, overwrite: false);
+        return temporaryPath;
     }
 
     public IReadOnlyList<FrontedLocalFontResourceStoreResult> StorePackageFontWithResult(

@@ -3,7 +3,7 @@ using System.Windows.Controls;
 namespace neo_bpsys_wpf.Controls;
 
 /// <summary>
-/// 显示图片压缩建议及在线压缩工具链接的消息内容控件。
+/// 显示图片压缩建议的消息内容控件。
 /// </summary>
 public partial class ImageCompressionMessageContent : UserControl
 {

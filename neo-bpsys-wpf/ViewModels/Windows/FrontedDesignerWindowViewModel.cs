@@ -400,9 +400,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public partial string StatusMessage { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isStatusImageCompressionLinkVisible;
-
-    [ObservableProperty]
     public partial string CurrentWindowCanvasDisplay { get; set; } = string.Empty;
 
     [ObservableProperty]
@@ -831,19 +828,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string _canvasPropertiesStatus = string.Empty;
 
     [ObservableProperty]
-    private bool _isCanvasImageCompressionLinkVisible;
-
-    partial void OnStatusMessageChanged(string value)
-    {
-        IsStatusImageCompressionLinkVisible = false;
-    }
-
-    partial void OnCanvasPropertiesStatusChanged(string value)
-    {
-        IsCanvasImageCompressionLinkVisible = false;
-    }
-
-    [ObservableProperty]
     private string _windowOptionsWindowTypeName = string.Empty;
 
     [ObservableProperty]
@@ -1224,16 +1208,35 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 根据资源浏览器选择更新选中动画部件的图片编辑缓冲，并在本地超限图片时提供压缩选项。
+    /// </summary>
+    /// <param name="selectedResourcePath">选中的内置、包内或绝对图片路径。</param>
+    /// <returns>编辑缓冲已更新时返回 <see langword="true"/>。</returns>
+    public async Task<bool> ApplyAnimationPartImageResourceSelectionAsync(string selectedResourcePath)
+    {
+        if (AnimationPartEditBuffer is not { IsImage: true } editor)
+        {
+            return false;
+        }
+
+        if (!IsAbsoluteFilePath(selectedResourcePath))
+        {
+            editor.ImagePath = selectedResourcePath;
+            return true;
+        }
+
+        return await StoreLocalAnimationPartImageAsync(selectedResourcePath);
+    }
+
+    /// <summary>
     /// 在导入本地图片到资源存储前进行预校验，校验失败时返回本地化的错误消息。
     /// 与 <see cref="FrontedLocalResourceStore.StoreImageWithResult"/> 内部使用的
     /// <see cref="FrontedImagePurpose.Background"/> 限制保持一致。
     /// </summary>
     /// <param name="sourcePath">本地图片的绝对路径。</param>
     /// <returns>校验失败时返回错误消息；校验通过或未注入校验服务时返回 <see langword="null"/>。</returns>
-    private string? ValidateLocalImageForStorage(string sourcePath, out bool requiresImageCompression)
+    private string? ValidateLocalImageForStorage(string sourcePath)
     {
-        requiresImageCompression = false;
-
         if (_imageSafetyService is null)
         {
             return null;
@@ -1245,14 +1248,56 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return null;
         }
 
-        requiresImageCompression = validation.ErrorCode is "ImageTooLarge" or "ImageTooManyPixels";
-
         return BuildImageValidationFailureMessage(validation);
+    }
+
+    private async Task<(FrontedLocalResourceStoreResult? Result, string? ErrorMessage)> StoreLocalImageWithOptionalCompressionAsync(
+        string sourcePath)
+    {
+        if (_localResourceStore is null)
+        {
+            return (null, "Local resource store is unavailable.");
+        }
+
+        var validation = _imageSafetyService?.ValidateFile(sourcePath, FrontedImagePurpose.Background);
+        var compressOversizedImage = false;
+        if (validation is { IsValid: false })
+        {
+            if (validation.ErrorCode is not ("ImageTooLarge" or "ImageTooManyPixels"))
+            {
+                return (null, BuildImageValidationFailureMessage(validation));
+            }
+
+            var compress = await MessageBoxHelper.ShowConfirmAsync(
+                string.Format(
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressionMessage"),
+                    BuildImageValidationFailureMessage(validation)),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressionTitle"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CompressAndApplyImage"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
+            if (!compress)
+            {
+                return (null, BuildImageValidationFailureMessage(validation));
+            }
+
+            compressOversizedImage = true;
+        }
+
+        try
+        {
+            return (await Task.Run(
+                () => _localResourceStore.StoreImageWithResult(sourcePath, compressOversizedImage)), null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to store local fronted image.");
+            return (null, ex.Message);
+        }
     }
 
     /// <summary>
     /// 根据图片校验结果构建本地化的错误消息。文件大小超限和图片尺寸超限时
-    /// 返回包含实际值与目标压缩值的友好提示；在线压缩工具链接由界面单独显示。
+    /// 返回包含实际值与目标压缩值的友好提示。
     /// </summary>
     /// <param name="validation">图片校验结果。</param>
     /// <returns>用于错误提示的本地化消息。</returns>
@@ -1319,11 +1364,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        var validationMessage = ValidateLocalImageForStorage(sourcePath, out var requiresImageCompression);
+        var validationMessage = ValidateLocalImageForStorage(sourcePath);
         if (validationMessage is not null)
         {
             StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
-            IsStatusImageCompressionLinkVisible = requiresImageCompression;
             return false;
         }
 
@@ -1340,6 +1384,35 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {ex.Message}";
             return false;
         }
+    }
+
+    /// <summary>
+    /// 导入本地图片，并在超限时由用户选择是否压缩后更新选中图片动画部件的编辑缓冲。
+    /// </summary>
+    /// <param name="sourcePath">本地图片的绝对路径。</param>
+    /// <returns>图片导入并选中时返回 <see langword="true"/>。</returns>
+    public async Task<bool> StoreLocalAnimationPartImageAsync(string sourcePath)
+    {
+        if (AnimationPartEditBuffer is not { IsImage: true } editor)
+        {
+            return false;
+        }
+
+        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(sourcePath);
+        if (result is null)
+        {
+            StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {errorMessage}";
+            return false;
+        }
+
+        editor.ImagePath = result.ResourceUri;
+        RecordPendingImportedResource(result, "AnimationPart ImagePath", wasApplied: true);
+        if (result.WasCompressed)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+        }
+
+        return true;
     }
 
     partial void OnControlFilterTextChanged(string value)
@@ -2792,9 +2865,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ApplyBackgroundImage()
+    private async Task ApplyBackgroundImageAsync()
     {
-        ApplyCanvasBackgroundEdit(BackgroundImageEditText);
+        await ApplyCanvasBackgroundEditAsync(BackgroundImageEditText);
     }
 
     /// <summary>
@@ -2849,6 +2922,30 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             : ApplyCanvasBackgroundEdit(selectedResourcePath);
     }
 
+    /// <summary>
+    /// 应用资源浏览器选中的 Canvas 背景图片，并在本地超限图片时提供压缩选项。
+    /// </summary>
+    /// <param name="selectedResourcePath">选中的资源 URI 或文件路径。</param>
+    /// <returns>资源已接受时返回 <see langword="true"/>。</returns>
+    public async Task<bool> ApplyCanvasBackgroundResourceSelectionAsync(string selectedResourcePath)
+    {
+        return IsAbsoluteFilePath(selectedResourcePath)
+            ? await StoreLocalBackgroundImageAsync(selectedResourcePath)
+            : ApplyCanvasBackgroundEdit(selectedResourcePath);
+    }
+
+    /// <summary>
+    /// 根据文本输入应用 Canvas 背景图片 URI，并在绝对本地图片超限时提供压缩选项。
+    /// </summary>
+    /// <param name="backgroundImage">背景图片 URI 或路径。</param>
+    /// <returns>编辑被接受时返回 <see langword="true"/>。</returns>
+    public async Task<bool> ApplyCanvasBackgroundEditAsync(string? backgroundImage)
+    {
+        return IsAbsoluteFilePath(backgroundImage)
+            ? await StoreLocalBackgroundImageAsync(backgroundImage!)
+            : ApplyCanvasBackgroundEdit(backgroundImage);
+    }
+
     [RelayCommand]
     private void ClearBackgroundImage()
     {
@@ -2876,11 +2973,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        var validationMessage = ValidateLocalImageForStorage(sourcePath, out var requiresImageCompression);
+        var validationMessage = ValidateLocalImageForStorage(sourcePath);
         if (validationMessage is not null)
         {
             CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
-            IsCanvasImageCompressionLinkVisible = requiresImageCompression;
             return false;
         }
 
@@ -2897,6 +2993,30 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {ex.Message}";
             return false;
         }
+    }
+
+    /// <summary>
+    /// 将本地背景图片复制到可编辑包资源存储，并在超限时由用户选择是否压缩后应用其 BPUI URI。
+    /// </summary>
+    /// <param name="sourcePath">用户选择的本地图片文件。</param>
+    /// <returns>文件导入并应用时返回 <see langword="true"/>。</returns>
+    public async Task<bool> StoreLocalBackgroundImageAsync(string sourcePath)
+    {
+        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(sourcePath);
+        if (result is null)
+        {
+            CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {errorMessage}";
+            return false;
+        }
+
+        var applied = ApplyCanvasBackgroundEdit(result.ResourceUri);
+        RecordPendingImportedResource(result, "Canvas BackgroundImage", applied);
+        if (result.WasCompressed)
+        {
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+        }
+
+        return applied;
     }
 
     [RelayCommand(CanExecute = nameof(CanCopyBo5ToBo3))]
@@ -2941,14 +3061,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return false;
             }
 
-            var validationMessage = ValidateLocalImageForStorage(selectedResourcePath, out var requiresImageCompression);
+            var validationMessage = ValidateLocalImageForStorage(selectedResourcePath);
             if (validationMessage is not null)
             {
                 SetPropertyEditError(
                     item,
                     $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}",
                     selectedResourcePath);
-                IsStatusImageCompressionLinkVisible = requiresImageCompression;
                 return false;
             }
 
@@ -2974,6 +3093,41 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         return ApplyPropertyEdit(item, selectedResourcePath);
+    }
+
+    /// <summary>
+    /// 将资源浏览器结果应用到图片/资源属性行，并在本地超限图片时提供压缩选项。
+    /// </summary>
+    /// <param name="item">接收资源值的属性行。</param>
+    /// <param name="selectedResourcePath">选中的资源 URI 或文件路径。</param>
+    /// <returns>属性已更新时返回 <see langword="true"/>。</returns>
+    public async Task<bool> ApplyPropertyResourceSelectionAsync(
+        FrontedPropertyEditorItem item,
+        string selectedResourcePath)
+    {
+        if (!IsAbsoluteFilePath(selectedResourcePath))
+        {
+            return ApplyPropertyEdit(item, selectedResourcePath);
+        }
+
+        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(selectedResourcePath);
+        if (result is null)
+        {
+            SetPropertyEditError(
+                item,
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {errorMessage}",
+                selectedResourcePath);
+            return false;
+        }
+
+        var applied = ApplyPropertyEdit(item, result.ResourceUri);
+        RecordPendingImportedResource(result, item.PropertyName, applied);
+        if (result.WasCompressed)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+        }
+
+        return applied;
     }
 
     /// <summary>
@@ -4342,6 +4496,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 应用属性编辑，并在资源属性输入超限本地图片时提供压缩选项。
+    /// </summary>
+    /// <param name="item">要编辑的属性行。</param>
+    /// <param name="newValue">待应用的属性值。</param>
+    /// <returns>属性已更新时返回 <see langword="true"/>。</returns>
+    public async Task<bool> ApplyPropertyEditAsync(FrontedPropertyEditorItem item, object? newValue)
+    {
+        if (item.CanBrowseResource
+            && newValue is string text
+            && IsAbsoluteFilePath(text))
+        {
+            return await ApplyPropertyResourceSelectionAsync(item, text);
+        }
+
+        return ApplyPropertyEdit(item, newValue);
     }
 
     private IReadOnlyList<FrontedControlDesignItem> GetPropertyEditTargets(string propertyName)

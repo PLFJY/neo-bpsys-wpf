@@ -12,11 +12,14 @@ using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using SkiaSharp;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -682,6 +685,46 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
+    public async Task LegacyConverterMapsMinorPointsAliasesAndCutSceneMapMask()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var legacyArchive = Path.Combine(root, "legacy-minor-points.bpui");
+            CreateLegacyMinorPointsAliasBpuiArchive(legacyArchive);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                Path.Combine(root, "builtIn"),
+                Path.Combine(root, "temp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.minor-points-aliases",
+                Name = "minor-points aliases"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Equal(3, result.LayoutCount);
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var cutSceneLayout = JsonSerializer.Deserialize<FrontedWindowConfig>(
+                ReadZipEntry(archive, "FrontedLayouts/CutSceneWindow.json"))!
+                .ToCanvasConfig();
+            var mapMask = Assert.IsType<RectangleFrontedControlConfig>(cutSceneLayout.Controls["MapMask"]);
+            Assert.Equal("#FF000000", mapMask.FillColor);
+            Assert.Contains(result.Infos, info => info.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && info.Contains("BpWindow", StringComparison.Ordinal)
+                && info.Contains("MinorPointsSur", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("ControlGeometryFuzzyMatched", StringComparison.Ordinal)
+                && info.Contains("GameDataWindow", StringComparison.Ordinal)
+                && info.Contains("MinorPointsHun", StringComparison.Ordinal));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task ConvertedLegacyPackageImportsThroughV3ImporterAndCanActivate()
     {
         var root = CreateTempDirectory();
@@ -936,6 +979,57 @@ public class FrontedLayoutPackageManagerTest : IDisposable
 
             Assert.False(Directory.Exists(packageFolder));
             Assert.True(Directory.Exists(siblingFolder));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task LegacyConverterCompressesOversizedConfiguredBackgroundAndReportsWarning()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var legacyArchive = Path.Combine(root, "legacy-large-image.bpui");
+            var sourceImage = CreateNoisePng(1200, 1200);
+            Assert.True(sourceImage.LongLength > FrontedLayoutLimits.MaxBackgroundImageBytes);
+            CreateLegacyBpuiArchive(
+                legacyArchive,
+                includeConfig: true,
+                includeResource: true,
+                includeKnownLayout: true,
+                resourceBytes: sourceImage);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                Path.Combine(root, "builtIn"),
+                Path.Combine(root, "convertTemp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.compressed-image",
+                Name = "Compressed image"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            var warning = Assert.Single(result.Messages, message =>
+                message.Code == LegacyConvertMessageHelper.CodeImageCompressed);
+            Assert.Equal(
+                neo_bpsys_wpf.Core.Enums.FrontedLayoutPackageLegacyConvertMessageSeverity.Warning,
+                warning.Severity);
+            Assert.True(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var manifest = ReadManifest(archive);
+            var resource = Assert.Single(manifest.Content.Resources);
+            var entry = Assert.Single(archive.Entries, item => item.FullName == resource.Path);
+            Assert.True(entry.Length <= FrontedLayoutLimits.MaxBackgroundImageBytes);
+            Assert.True(entry.Length < sourceImage.LongLength);
+            using var resourceStream = entry.Open();
+            Assert.Equal(
+                resource.Sha256,
+                Convert.ToHexString(SHA256.HashData(resourceStream)).ToLowerInvariant());
         }
         finally
         {
@@ -1563,7 +1657,8 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         bool includeConfig,
         bool includeResource,
         bool includeKnownLayout,
-        bool includeUnknownLayout = false)
+        bool includeUnknownLayout = false,
+        byte[]? resourceBytes = null)
     {
         if (File.Exists(archivePath))
         {
@@ -1589,7 +1684,7 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         {
             var resource = archive.CreateEntry("CustomUi/bg.png");
             using var stream = resource.Open();
-            stream.Write(TinyPngBytes);
+            stream.Write(resourceBytes ?? TinyPngBytes);
         }
 
         if (includeKnownLayout)
@@ -1702,6 +1797,55 @@ public class FrontedLayoutPackageManagerTest : IDisposable
             """);
     }
 
+    private static void CreateLegacyMinorPointsAliasBpuiArchive(string archivePath)
+    {
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(archive, "Config.json", "{}");
+        WriteZipEntry(
+            archive,
+            "FrontElementsConfig/BpWindowConfig-BaseCanvas.json",
+            """
+            {
+              "MinorPointsSur": {
+                "Left": 622,
+                "Top": 746
+              },
+              "MinorPointsHun": {
+                "Left": 784,
+                "Top": 746
+              }
+            }
+            """);
+        WriteZipEntry(
+            archive,
+            "FrontElementsConfig/GameDataWindowConfig-BaseCanvas.json",
+            """
+            {
+              "MinorPointsSur": {
+                "Left": 476,
+                "Top": 182
+              },
+              "MinorPointsHun": {
+                "Left": 919,
+                "Top": 182
+              }
+            }
+            """);
+        WriteZipEntry(
+            archive,
+            "FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json",
+            """
+            {
+              "MapMask": {
+                "Left": 488,
+                "Top": 0,
+                "Width": 463,
+                "Height": 112
+              }
+            }
+            """);
+    }
+
     private static void WriteBuiltInLayoutForLegacyConversion(string builtInRoot)
     {
         var layoutPath = Path.Combine(builtInRoot, "ScoreSurWindow.json");
@@ -1806,6 +1950,17 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     private static byte[] TinyPngBytes =>
         Convert.FromBase64String(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=");
+
+    private static byte[] CreateNoisePng(int width, int height)
+    {
+        using var bitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+        var pixels = new SKColor[width * height];
+        new Random(42).NextBytes(MemoryMarshal.AsBytes(pixels.AsSpan()));
+        bitmap.Pixels = pixels;
+        using var image = SKImage.FromBitmap(bitmap);
+        using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
+        return encoded.ToArray();
+    }
 
     private static void WriteTinyPng(string path)
     {

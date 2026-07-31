@@ -78,11 +78,13 @@ legacy 兼容只允许存在于启动迁移服务和显式 legacy `.bpui` 转换
 
 `ScoreGlobalWindow` 下还保留一个限定规则：旧名以 `Main` 开头时可映射为 v3 的 `Home` 前缀。旧版 `HomeTeamGame*FirstHalf` / `HomeTeamGame*SecondHalf`、`AwayTeamGame*FirstHalf` / `AwayTeamGame*SecondHalf` 以及 `Game*Overtime*Half` 不再逐个迁移为顶层控件，而是聚合到 `HomeGlobalScoreRow` / `AwayGlobalScoreRow` 的 `Cells` 子格中，并把旧绝对坐标换算为相对父行的 `X/Y/Width/Height`。另有更早期包使用 `MainTeamGame*` / `AwayGame*`，并以 `Extra` 代替 `Overtime`；这些显式名称同样聚合到对应比分行。间距不规则、overtime 单元迁入子格等细节只记录为内部诊断，不再为每个旧半场格子报 unmatched。
 
-`GameDataWindow/BaseCanvas` 中，早期 `MinorPointsSur` / `MinorPointsHun` 分别作为 `GameScoresSur` / `GameScoresHun` 的名称别名处理。旧 `MapMask` 仅属于旧版地图视觉的内部遮罩，没有独立的 Designer v3 控件；转换器会识别并忽略该名称，不会覆盖 `Map` 的几何。
+`BpWindow/BaseCanvas` 与 `GameDataWindow/BaseCanvas` 中，早期 `MinorPointsSur` / `MinorPointsHun` 分别作为 `GameScoresSur` / `GameScoresHun` 的名称别名处理。旧 `CutSceneWindow/BaseCanvas` 的 `MapMask` 是黑色矩形遮罩；转换器将其映射为同名 v3 `Rectangle`，保留旧包中的几何并使用旧窗口的黑色默认填充。
 
 旧 `WidgetsWindow/BpOverViewCanvas` 会转换为 `BpOverviewWindow`，旧 `HunBanCurrentLock*` / `SurBanCurrentLock*` 锁定遮罩几何会合并到对应 v3 `HunBanCurrent*` / `SurBanCurrent*`。如果目标本体几何也存在，以目标本体为准；如果只有锁遮罩几何，则用它作为 fallback。旧 Config 中可解析到 `CustomUi/` 的 Ban 锁图和 BpWindow picking border 图片/颜色会写入 v3 控件配置。
 
 转换结果中的 `Infos` 用于记录成功复制资源、正常聚合等信息，`Diagnostics` 用于记录技术细节和近似处理；`Warnings`、`UnsupportedProperties` 和 `MissingResources` 才表示需要用户留意的问题。UI 不应把纯 `Infos` / `Diagnostics` 当作警告弹出，用户弹窗也不应展示 `Closest candidates` 等原始技术诊断。
+
+旧 `Config.json` 明确引用的背景图和控件 UI 图在转换时按各自安全阈值检查。超过阈值的 PNG/JPEG 使用 SkiaSharp 在暂存副本中等比缩放并按原格式重编码，随后重算资源 SHA256；转换结果增加 `LegacyConvert.ImageCompressed` warning，用户可看到文件名及压缩前后体积。此规则只属于显式 legacy migration，不修改源归档，也不扩展为普通 v3 包的读取期重写。
 
 旧 `TextSettings` 迁移由 Core 中的共享样式迁移器处理，本地 `Config.json` 启动迁移和旧 `.bpui` 包转换使用同一套映射规则。转换器会把旧字体写法如 `./#汉仪第五人格体简`、`./#华康POP1体W5` 以及内置 `Noto Sans` 归一化为 `pack://application:,,,/Assets/Fonts/#...`，普通系统字体名保留；单个样式字段格式无效时仅跳过该字段并记录本地化 warning，其余可解析字段继续迁移。样式应用记录只进入 `Diagnostics`，不作为用户警告弹窗。
 

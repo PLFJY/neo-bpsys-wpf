@@ -90,6 +90,8 @@ var recognizedData = await Task.Run(
 
 后台部分不要直接操作 UI 对象。它读取的是已冻结的 `BitmapSource` 和 OpenCvSharp `Mat`。识别完成后写回 `CurrentGame` 数据，调用方通常来自 UI 命令；如果未来从纯后台线程触发写回，需要重新检查绑定对象和集合更新线程。
 
+旧版 `.bpui` 转换同样通过 `Task.Run` 执行解压、资源复制、SkiaSharp 图片压缩、布局转换和重新打包。转换器本身不访问 WPF 对象；调用方在 `await` 完成后才在 Dispatcher 线程显示警告、刷新包列表或激活布局包。
+
 ## async void
 
 当前代码中的 `async void` 主要出现在 WPF 生命周期/事件处理器：

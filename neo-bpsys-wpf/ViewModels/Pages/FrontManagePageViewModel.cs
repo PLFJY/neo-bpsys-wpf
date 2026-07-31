@@ -334,11 +334,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         try
         {
             var importedFromLegacy = false;
-            var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-            {
-                PackagePath = path
-            });
-            result = await HandleMissingPluginImportAsync(path, result, replaceExisting: false);
+            var result = await ImportPackageWithOptionalImageCompressionAsync(path, replaceExisting: false);
 
             if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
             {
@@ -352,12 +348,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                     return;
                 }
 
-                result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-                {
-                    PackagePath = path,
-                    ReplaceExisting = true
-                });
-                result = await HandleMissingPluginImportAsync(path, result, replaceExisting: true);
+                result = await ImportPackageWithOptionalImageCompressionAsync(path, replaceExisting: true);
             }
 
             if (result.IsLegacyPackage)
@@ -401,13 +392,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                     return;
                 }
 
-                result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-                {
-                    PackagePath = convertResult.ConvertedPackagePath
-                });
-                result = await HandleMissingPluginImportAsync(
+                result = await ImportPackageWithOptionalImageCompressionAsync(
                     convertResult.ConvertedPackagePath,
-                    result,
                     replaceExisting: false);
 
                 if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
@@ -422,14 +408,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                         return;
                     }
 
-                    result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-                    {
-                        PackagePath = convertResult.ConvertedPackagePath,
-                        ReplaceExisting = true
-                    });
-                    result = await HandleMissingPluginImportAsync(
+                    result = await ImportPackageWithOptionalImageCompressionAsync(
                         convertResult.ConvertedPackagePath,
-                        result,
                         replaceExisting: true);
                 }
 
@@ -485,6 +465,14 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportSucceeded")}: {result.PackageId} "
                 + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LayoutCount")}: {result.LayoutCount}, "
                 + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ResourceCount")}: {result.ResourceCount}";
+            if (result.CompressedImages.Count > 0)
+            {
+                await MessageBoxHelper.ShowInfoAsync(
+                    string.Format(
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImagesCompressed"),
+                        result.CompressedImages.Count),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImageCompressionTitle"));
+            }
             if (await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
@@ -509,6 +497,50 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             _logger?.LogWarning(ex, "Failed to import fronted layout package.");
             PackageManagerStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportFailed")}: {ex.Message}";
         }
+    }
+
+    private async Task<FrontedLayoutPackageImportResult> ImportPackageWithOptionalImageCompressionAsync(
+        string packagePath,
+        bool replaceExisting)
+    {
+        if (_packageImporter is null)
+        {
+            return new FrontedLayoutPackageImportResult
+            {
+                Success = false,
+                ErrorMessage = "Package importer is unavailable."
+            };
+        }
+
+        var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        {
+            PackagePath = packagePath,
+            ReplaceExisting = replaceExisting
+        });
+        if (!result.HasOversizedImages)
+        {
+            return await HandleMissingPluginImportAsync(packagePath, result, replaceExisting);
+        }
+
+        var compress = await MessageBoxHelper.ShowConfirmAsync(
+            string.Format(
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImageCompressionMessage"),
+                result.OversizedImages.Count),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImageCompressionTitle"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CompressAndImportPackage"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
+        if (!compress)
+        {
+            return result;
+        }
+
+        result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        {
+            PackagePath = packagePath,
+            ReplaceExisting = replaceExisting,
+            CompressOversizedImages = true
+        });
+        return await HandleMissingPluginImportAsync(packagePath, result, replaceExisting);
     }
 
     private async Task<FrontedLayoutPackageImportResult> HandleMissingPluginImportAsync(
