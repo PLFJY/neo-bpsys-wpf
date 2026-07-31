@@ -230,9 +230,18 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     /// <param name="request">转换请求参数。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>转换结果，包含转换后的布局、消息和资源信息。</returns>
-    public async Task<FrontedLayoutPackageLegacyConvertResult> ConvertAsync(
+    public Task<FrontedLayoutPackageLegacyConvertResult> ConvertAsync(
         FrontedLayoutPackageLegacyConvertRequest request,
         CancellationToken cancellationToken = default)
+    {
+        return Task.Run(
+            () => ConvertArchiveCoreAsync(request, cancellationToken),
+            cancellationToken);
+    }
+
+    private async Task<FrontedLayoutPackageLegacyConvertResult> ConvertArchiveCoreAsync(
+        FrontedLayoutPackageLegacyConvertRequest request,
+        CancellationToken cancellationToken)
     {
         var messages = new List<FrontedLayoutPackageLegacyConvertMessage>();
         var extractionRoot = Path.Combine(_tempRoot, "extract", Guid.NewGuid().ToString("N"));
@@ -273,7 +282,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             _logger.LogWarning(ex, "Invalid legacy bpui archive.");
             return Fail($"Invalid legacy package archive: {ex.Message}", messages);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogWarning(ex, "Failed to convert legacy bpui package.");
             return Fail(ex.Message, messages);
@@ -289,11 +298,13 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedLayoutPackageLegacyConvertRequest request,
         CancellationToken cancellationToken = default)
     {
-        return ConvertLegacyInputAsync(
-            new LegacyLocalAppDataInputSource(appDataRoot),
-            request,
-            createArchive: false,
-            replaceExisting: true,
+        return Task.Run(
+            () => ConvertLegacyInputAsync(
+                new LegacyLocalAppDataInputSource(appDataRoot),
+                request,
+                createArchive: false,
+                replaceExisting: true,
+                cancellationToken),
             cancellationToken);
     }
 
