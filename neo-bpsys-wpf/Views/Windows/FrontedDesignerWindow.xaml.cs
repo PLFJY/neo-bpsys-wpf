@@ -939,14 +939,14 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void PropertyTextBox_OnKeyDown(object sender, KeyEventArgs e)
+    private async void PropertyTextBox_OnKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter)
         {
             return;
         }
 
-        var committed = ApplyPropertyEditorValue(sender);
+        var committed = await ApplyPropertyEditorValueAsync(sender);
         if (committed)
         {
             FocusDesignSurface();
@@ -955,9 +955,9 @@ public partial class FrontedDesignerWindow : FluentWindow
         e.Handled = true;
     }
 
-    private void PropertyTextApplyButton_OnClick(object sender, RoutedEventArgs e)
+    private async void PropertyTextApplyButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (ApplyPropertyEditorValue(sender))
+        if (await ApplyPropertyEditorValueAsync(sender))
         {
             FocusDesignSurface();
         }
@@ -1034,7 +1034,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void BrowseResourceButton_OnClick(object sender, RoutedEventArgs e)
+    private async void BrowseResourceButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_resourceBrowserProvider is null
             || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
@@ -1053,12 +1053,15 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
         {
             item.EditText = window.SelectedResourcePath;
-            _viewModel?.ApplyPropertyResourceSelection(item, window.SelectedResourcePath);
+            if (_viewModel is not null)
+            {
+                await _viewModel.ApplyPropertyResourceSelectionAsync(item, window.SelectedResourcePath);
+            }
             FocusDesignSurface();
         }
     }
 
-    private void BrowseCanvasBackgroundResourceButton_OnClick(object sender, RoutedEventArgs e)
+    private async void BrowseCanvasBackgroundResourceButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_resourceBrowserProvider is null || _viewModel is null)
         {
@@ -1075,12 +1078,12 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
         {
-            _viewModel.ApplyCanvasBackgroundResourceSelection(window.SelectedResourcePath);
+            await _viewModel.ApplyCanvasBackgroundResourceSelectionAsync(window.SelectedResourcePath);
             FocusDesignSurface();
         }
     }
 
-    private void BrowseAnimationPartImageResourceButton_OnClick(object sender, RoutedEventArgs e)
+    private async void BrowseAnimationPartImageResourceButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_resourceBrowserProvider is null
             || _viewModel?.AnimationPartEditBuffer is not { IsImage: true } editor)
@@ -1098,11 +1101,11 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
         {
-            _viewModel.ApplyAnimationPartImageResourceSelection(window.SelectedResourcePath);
+            await _viewModel.ApplyAnimationPartImageResourceSelectionAsync(window.SelectedResourcePath);
         }
     }
 
-    private void ChooseLocalAnimationPartImageButton_OnClick(object sender, RoutedEventArgs e)
+    private async void ChooseLocalAnimationPartImageButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_filePickerService is null || _viewModel?.AnimationPartEditBuffer is not { IsImage: true })
         {
@@ -1112,11 +1115,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         var file = _filePickerService.PickImage();
         if (!string.IsNullOrWhiteSpace(file))
         {
-            _viewModel.StoreLocalAnimationPartImage(file);
+            await _viewModel.StoreLocalAnimationPartImageAsync(file);
         }
     }
 
-    private void ChooseLocalCanvasBackgroundButton_OnClick(object sender, RoutedEventArgs e)
+    private async void ChooseLocalCanvasBackgroundButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_filePickerService is null || _viewModel is null)
         {
@@ -1126,7 +1129,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         var file = _filePickerService.PickImage();
         if (!string.IsNullOrWhiteSpace(file))
         {
-            _viewModel.StoreLocalBackgroundImage(file);
+            await _viewModel.StoreLocalBackgroundImageAsync(file);
         }
     }
 
@@ -1349,6 +1352,25 @@ public partial class FrontedDesignerWindow : FluentWindow
                 : item.Value;
 
         return _viewModel.ApplyPropertyEdit(item, value);
+    }
+
+    private async Task<bool> ApplyPropertyEditorValueAsync(object sender)
+    {
+        if (IsPropertyEditorCommitSuppressed()
+            || _viewModel is null
+            || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
+        {
+            return false;
+        }
+
+        var value = sender is System.Windows.Controls.TextBox textBox
+            ? textBox.Text
+            : item.EditorKind is FrontedPropertyEditorKind.Text
+                or FrontedPropertyEditorKind.Number
+                ? item.EditText
+                : item.Value;
+
+        return await _viewModel.ApplyPropertyEditAsync(item, value);
     }
 
     private bool IsPropertyEditorCommitSuppressed()

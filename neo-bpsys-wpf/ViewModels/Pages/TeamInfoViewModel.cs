@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
-using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
@@ -36,6 +36,7 @@ public partial class TeamInfoPageViewModel
     /// </summary>
     public partial class TeamInfoViewModel : ViewModelBase
     {
+        private static readonly FrontedImageCompressionService ImageCompressionService = new();
 #pragma warning disable CS8618 
         /// <summary>
         /// 用于设计时预览的无参构造函数。
@@ -185,7 +186,7 @@ public partial class TeamInfoPageViewModel
         }
 
         [RelayCommand]
-        private void SetTeamLogo()
+        private async Task SetTeamLogoAsync()
         {
             var fileName = _filePickerService.PickImage();
 
@@ -193,14 +194,13 @@ public partial class TeamInfoPageViewModel
                 return;
             try
             {
-                var validation = _imageSafetyService.ValidateFile(fileName, FrontedImagePurpose.UiElement);
-                if (!validation.IsValid)
+                var image = await LoadTeamImageWithOptionalCompressionAsync(fileName, "LogoFileIsNotValid");
+                if (image is null)
                 {
-                    _ = ShowImageValidationFailureAsync(validation, "LogoFileIsNotValid");
                     return;
                 }
 
-                CurrentTeam.Logo = new BitmapImage(new Uri(fileName));
+                CurrentTeam.Logo = image;
             }
             catch
             {
@@ -517,7 +517,7 @@ public partial class TeamInfoPageViewModel
         }
 
         [RelayCommand]
-        private void SetMemberImage(Member member)
+        private async Task SetMemberImageAsync(Member member)
         {
             var imagePath = _filePickerService.PickImage();
             if (imagePath == null)
@@ -525,14 +525,13 @@ public partial class TeamInfoPageViewModel
 
             try
             {
-                var validation = _imageSafetyService.ValidateFile(imagePath, FrontedImagePurpose.UiElement);
-                if (!validation.IsValid)
+                var image = await LoadTeamImageWithOptionalCompressionAsync(imagePath, "ImageMaybeDamagedOrUnsupported");
+                if (image is null)
                 {
-                    _ = ShowImageValidationFailureAsync(validation, "ImageMaybeDamagedOrUnsupported");
                     return;
                 }
 
-                member.Image = new BitmapImage(new Uri(imagePath));
+                member.Image = image;
                 ClearMemberImageCommand.NotifyCanExecuteChanged();
             }
             catch
@@ -555,7 +554,7 @@ public partial class TeamInfoPageViewModel
 
         /// <summary>
         /// 根据图片校验结果构建弹窗消息。当文件大小超限时返回包含实际大小与目标压缩大小的友好提示；
-        /// 当图片尺寸超限时返回包含实际尺寸与最长边上限的友好提示；两者均会推荐在线压缩工具。
+        /// 当图片尺寸超限时返回包含实际尺寸与最长边上限的友好提示。
         /// 其他校验失败则回退到 <paramref name="fallbackKey"/> 对应的本地化文本。
         /// </summary>
         /// <param name="validation">图片校验结果。</param>
@@ -586,7 +585,7 @@ public partial class TeamInfoPageViewModel
         }
 
         /// <summary>
-        /// 显示图片校验失败提示。大小或尺寸超限时，在建议文本下方提供在线压缩工具链接。
+        /// 显示图片校验失败提示。
         /// </summary>
         /// <param name="validation">图片校验结果。</param>
         /// <param name="fallbackKey">非文件大小/尺寸超限类错误使用的本地化资源键。</param>
@@ -594,9 +593,88 @@ public partial class TeamInfoPageViewModel
         private static Task ShowImageValidationFailureAsync(FrontedImageValidationResult validation, string fallbackKey)
         {
             var message = BuildImageValidationFailureMessage(validation, fallbackKey);
-            return validation is { IsValid: false, ErrorCode: "ImageTooLarge" or "ImageTooManyPixels" }
-                ? MessageBoxHelper.ShowErrorAsync(new ImageCompressionMessageContent(message))
-                : MessageBoxHelper.ShowErrorAsync(message);
+            return MessageBoxHelper.ShowErrorAsync(message);
+        }
+
+        private async Task<BitmapImage?> LoadTeamImageWithOptionalCompressionAsync(string sourcePath, string fallbackKey)
+        {
+            var validation = _imageSafetyService.ValidateFile(sourcePath, FrontedImagePurpose.UiElement);
+            if (validation.IsValid)
+            {
+                return new BitmapImage(new Uri(sourcePath));
+            }
+
+            if (validation.ErrorCode is not ("ImageTooLarge" or "ImageTooManyPixels"))
+            {
+                await ShowImageValidationFailureAsync(validation, fallbackKey);
+                return null;
+            }
+
+            var message = string.Format(
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionMessage"),
+                BuildImageValidationFailureMessage(validation, fallbackKey));
+            if (!await MessageBoxHelper.ShowConfirmAsync(
+                    message,
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionTitle"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "CompressAndApplyImage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
+            {
+                return null;
+            }
+
+            try
+            {
+                var imageBytes = await Task.Run(() => CompressTeamImage(sourcePath));
+                if (imageBytes is null)
+                {
+                    await MessageBoxHelper.ShowErrorAsync(
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionFailed"));
+                    return null;
+                }
+
+                await MessageBoxHelper.ShowInfoAsync(
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressed"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionTitle"));
+                return CreateBitmapImage(imageBytes);
+            }
+            catch (Exception ex)
+            {
+                await MessageBoxHelper.ShowErrorAsync(ex.Message);
+                return null;
+            }
+        }
+
+        private static byte[]? CompressTeamImage(string sourcePath)
+        {
+            var extension = Path.GetExtension(sourcePath);
+            var temporaryRoot = Path.Combine(Path.GetTempPath(), AppConstants.AppName, "image-compression");
+            Directory.CreateDirectory(temporaryRoot);
+            var temporaryPath = Path.Combine(temporaryRoot, $"{Guid.NewGuid():N}{extension}");
+            try
+            {
+                File.Copy(sourcePath, temporaryPath, overwrite: false);
+                var result = ImageCompressionService.CompressIfNeeded(temporaryPath, FrontedImagePurpose.UiElement);
+                return result.WasCompressed ? File.ReadAllBytes(temporaryPath) : null;
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath))
+                {
+                    File.Delete(temporaryPath);
+                }
+            }
+        }
+
+        private static BitmapImage CreateBitmapImage(byte[] imageBytes)
+        {
+            using var stream = new MemoryStream(imageBytes, writable: false);
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.StreamSource = stream;
+            image.EndInit();
+            image.Freeze();
+            return image;
         }
 
         /// <summary>

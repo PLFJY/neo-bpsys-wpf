@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using SkiaSharp;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -2106,6 +2107,35 @@ public class FrontedCanvasConfigTest
             var store = new FrontedLocalResourceStore(Path.Combine(root, "images"));
 
             Assert.Throws<NotSupportedException>(() => store.StoreImage(source));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void FrontedLocalResourceStoreCompressesOversizedImageWhenExplicitlyRequested()
+    {
+        var root = CreateTempFolder();
+        try
+        {
+            var source = Path.Combine(root, "oversized.png");
+            using (var bitmap = new SKBitmap(5000, 1000, SKColorType.Rgba8888, SKAlphaType.Unpremul))
+            {
+                bitmap.Erase(SKColors.CornflowerBlue);
+                using var image = SKImage.FromBitmap(bitmap);
+                using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
+                File.WriteAllBytes(source, encoded.ToArray());
+            }
+
+            var store = new FrontedLocalResourceStore(Path.Combine(root, "images"));
+            var result = store.StoreImageWithResult(source, compressOversizedImage: true);
+
+            Assert.True(result.WasCompressed);
+            Assert.True(new FrontedImageSafetyService()
+                .ValidateFile(result.PhysicalPath, FrontedImagePurpose.Background)
+                .IsValid);
         }
         finally
         {
