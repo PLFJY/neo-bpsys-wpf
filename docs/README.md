@@ -11,7 +11,7 @@
 | IOC 容器 | [Microsoft.Extensions.DependencyInjection](https://learn.microsoft.com/zh-cn/dotnet/core/extensions/dependency-injection-usage) |
 | 拼音库 | [hyjiacan.pinyin4net](https://gitee.com/hyjiacan/Pinyin4Net) |
 | MVVM | [CommunityToolkit.Mvvm](https://learn.microsoft.com/zh-cn/dotnet/communitytoolkit/mvvm/) |
-| 下载器 | [Downloader](https://github.com/bezzad/Downloader) |
+| 文件下载 | `IFileDownloadService`（统一封装 `Downloader` 的暂停、原生进度与自动断点续传） |
 
 构建与版本细节见 [build/build-release-and-versioning.md](build/build-release-and-versioning.md)。
 

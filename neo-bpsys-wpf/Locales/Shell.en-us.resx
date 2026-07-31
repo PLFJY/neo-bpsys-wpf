@@ -1021,4 +1021,7 @@
   <data name="DoNotAskGameStateSaveDirectoryAgain">
     <value>Do not ask for the save location again?</value>
   </data>
+  <data name="QueuePaused">
+    <value>Download paused</value>
+  </data>
 </root>

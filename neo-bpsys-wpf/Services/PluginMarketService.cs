@@ -1,4 +1,3 @@
-using Downloader;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -6,7 +5,6 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
-using System.ComponentModel;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -14,6 +12,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
+using System.Text;
 using System.Windows;
 using neo_bpsys_wpf.Core.Models.Archives;
 
@@ -32,11 +31,11 @@ public class PluginMarketService : IPluginMarketService
     private static ILogger<PluginMarketService>? StaticLogger => IAppHost.TryGetService<ILogger<PluginMarketService>>();
     private readonly ISettingsHostService _settingsHostService;
     private readonly IArchiveService _archiveService;
+    private readonly IFileDownloadService _fileDownloadService;
     private readonly Lock _downloadLock = new();
     private CancellationTokenSource? _downloadCts;
-    private DownloadService? _currentDownloader;
+    private IFileDownloadOperation? _currentDownload;
     private QueuedPluginDownloadRequest? _currentDownloadRequest;
-    private PluginDownloadExecutionContext? _currentDownloadContext;
     private readonly ObservableCollection<PluginDownloadQueueItem> _downloadQueueInternal = [];
     private readonly Queue<QueuedPluginDownloadRequest> _pendingDownloads = new();
     private readonly IGitHubDownloadUrlResolver _githubDownloadUrlResolver;
@@ -50,12 +49,14 @@ public class PluginMarketService : IPluginMarketService
         ILogger<PluginMarketService> logger,
         ISettingsHostService settingsHostService,
         IArchiveService archiveService,
-        IGitHubDownloadUrlResolver githubDownloadUrlResolver)
+        IGitHubDownloadUrlResolver githubDownloadUrlResolver,
+        IFileDownloadService fileDownloadService)
     {
         _logger = logger;
         _settingsHostService = settingsHostService;
         _archiveService = archiveService;
         _githubDownloadUrlResolver = githubDownloadUrlResolver;
+        _fileDownloadService = fileDownloadService;
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
         DownloadQueue = new ReadOnlyObservableCollection<PluginDownloadQueueItem>(_downloadQueueInternal);
@@ -70,6 +71,11 @@ public class PluginMarketService : IPluginMarketService
     /// 当前是否有任务正在下载。
     /// </summary>
     public bool IsDownloading { get; private set; }
+
+    /// <summary>
+    /// 当前插件下载是否已暂停。
+    /// </summary>
+    public bool IsDownloadPaused { get; private set; }
 
     /// <summary>
     /// 当前是否存在已经下载完成、等待安装的插件包。
@@ -187,14 +193,14 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     public void CancelDownload()
     {
-        DownloadService? currentDownloader;
+        IFileDownloadOperation? currentDownload;
         lock (_downloadLock)
         {
             _downloadCts?.Cancel();
-            currentDownloader = _currentDownloader;
+            currentDownload = _currentDownload;
         }
 
-        currentDownloader?.CancelAsync();
+        currentDownload?.Cancel();
     }
 
     /// <summary>
@@ -202,7 +208,7 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     public void CancelDownload(string queueId)
     {
-        DownloadService? currentDownloader = null;
+        IFileDownloadOperation? currentDownload = null;
         PluginDownloadQueueItem? canceledQueueItem = null;
 
         lock (_downloadLock)
@@ -210,7 +216,7 @@ public class PluginMarketService : IPluginMarketService
             if (_currentDownloadRequest?.QueueItem.QueueId == queueId)
             {
                 _downloadCts?.Cancel();
-                currentDownloader = _currentDownloader;
+                currentDownload = _currentDownload;
                 canceledQueueItem = _currentDownloadRequest.QueueItem;
             }
             else if (_pendingDownloads.Count > 0)
@@ -235,7 +241,7 @@ public class PluginMarketService : IPluginMarketService
             }
         }
 
-        if (canceledQueueItem != null && currentDownloader == null)
+        if (canceledQueueItem != null && currentDownload == null)
         {
             UpdateQueueItem(canceledQueueItem, queueItem =>
             {
@@ -246,8 +252,52 @@ public class PluginMarketService : IPluginMarketService
             });
         }
 
-        currentDownloader?.CancelAsync();
+        currentDownload?.Cancel();
         RaiseDownloadStateChanged();
+    }
+
+    /// <inheritdoc />
+    public void PauseDownload()
+    {
+        IFileDownloadOperation? operation;
+        lock (_downloadLock)
+            operation = _currentDownload;
+        operation?.Pause();
+    }
+
+    /// <inheritdoc />
+    public void ResumeDownload()
+    {
+        IFileDownloadOperation? operation;
+        lock (_downloadLock)
+            operation = _currentDownload;
+        operation?.Resume();
+    }
+
+    /// <inheritdoc />
+    public void PauseDownload(string queueId)
+    {
+        IFileDownloadOperation? operation = null;
+        lock (_downloadLock)
+        {
+            if (_currentDownloadRequest?.QueueItem.QueueId == queueId)
+                operation = _currentDownload;
+        }
+
+        operation?.Pause();
+    }
+
+    /// <inheritdoc />
+    public void ResumeDownload(string queueId)
+    {
+        IFileDownloadOperation? operation = null;
+        lock (_downloadLock)
+        {
+            if (_currentDownloadRequest?.QueueItem.QueueId == queueId)
+                operation = _currentDownload;
+        }
+
+        operation?.Resume();
     }
 
     /// <summary>
@@ -297,32 +347,18 @@ public class PluginMarketService : IPluginMarketService
     }
 
     /// <summary>
-    /// 创建单个插件下载任务使用的下载器。
-    /// </summary>
-    private DownloadService CreateDownloadService()
-    {
-        var downloadOpt = new DownloadConfiguration
-        {
-            ChunkCount = 8,
-            ParallelDownload = true,
-            MaxTryAgainOnFailure = 5,
-            ParallelCount = 6,
-        };
-        var service = new DownloadService(downloadOpt);
-        service.DownloadProgressChanged += Downloader_DownloadProgressChanged;
-        service.DownloadFileCompleted += OnDownloadFileCompletedAsync;
-        return service;
-    }
-
-    /// <summary>
     /// 更新当前下载进度和速度。
     /// </summary>
-    private void Downloader_DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
+    private void OnCurrentDownloadStateChanged(object? sender, EventArgs e)
     {
+        if (sender is not IFileDownloadOperation operation)
+            return;
+        var progress = operation.Progress;
         lock (_downloadLock)
         {
-            DownloadProgress = e.ProgressPercentage;
-            DownloadBytesPerSecond = e.BytesPerSecondSpeed;
+            DownloadProgress = progress.Percentage ?? 0;
+            DownloadBytesPerSecond = progress.BytesPerSecond;
+            IsDownloadPaused = operation.State == FileDownloadState.Paused;
         }
 
         var currentRequest = _currentDownloadRequest;
@@ -330,9 +366,18 @@ public class PluginMarketService : IPluginMarketService
         {
             UpdateQueueItem(currentRequest.QueueItem, queueItem =>
             {
-                queueItem.Progress = e.ProgressPercentage;
-                queueItem.ProgressText = $"{e.ProgressPercentage:0.00}%";
-                queueItem.SpeedText = $"{(e.BytesPerSecondSpeed / 1024 / 1024):0.00} MB/s";
+                queueItem.Progress = progress.Percentage ?? 0;
+                queueItem.ProgressText = progress.Percentage is { } percentage
+                    ? $"{percentage:0.00}%"
+                    : string.Empty;
+                queueItem.SpeedText = operation.State == FileDownloadState.Paused
+                    ? string.Empty
+                    : $"{(progress.BytesPerSecond / 1024 / 1024):0.00} MB/s";
+                queueItem.Status = operation.State == FileDownloadState.Paused
+                    ? PluginDownloadQueueStatus.QueuePaused
+                    : PluginDownloadQueueStatus.QueueDownloading;
+                queueItem.CanPause = operation.State == FileDownloadState.Downloading;
+                queueItem.CanResume = operation.State == FileDownloadState.Paused;
             });
         }
 
@@ -413,26 +458,32 @@ public class PluginMarketService : IPluginMarketService
         var downloadSessionPath = Path.Combine(
             AppConstants.AppTempPath,
             "PluginMarket",
+            "Sessions",
             request.QueueItem.PluginId,
             request.QueueItem.QueueId);
-        var tempArchivePath = Path.Combine(downloadSessionPath, "package.archive");
+        var downloadCacheKey = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
+            $"{request.Item.Id}\n{request.Item.Version}\n{request.Item.Sha256}\n{request.Item.ResolvedDownloadUrl}")));
+        var downloadCachePath = Path.Combine(
+            AppConstants.AppTempPath,
+            "PluginMarket",
+            "Downloads",
+            downloadCacheKey);
+        var tempArchivePath = Path.Combine(downloadCachePath, "package.archive");
         var extractPath = Path.Combine(downloadSessionPath, "extract");
-        var downloadService = CreateDownloadService();
 
         if (Directory.Exists(downloadSessionPath))
         {
             Directory.Delete(downloadSessionPath, true);
         }
         Directory.CreateDirectory(downloadSessionPath);
-
-        var completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var executionContext = new PluginDownloadExecutionContext(
-            request,
-            downloadSessionPath,
-            tempArchivePath,
-            extractPath,
-            downloadService,
-            completionSource);
+        Directory.CreateDirectory(downloadCachePath);
+        var download = _fileDownloadService.CreateDownload(new FileDownloadRequest(
+            new Uri(request.Item.ResolvedDownloadUrl, UriKind.Absolute),
+            tempArchivePath)
+        {
+            UserAgent = AppConstants.AppName
+        });
+        download.StateChanged += OnCurrentDownloadStateChanged;
 
         lock (_downloadLock)
         {
@@ -441,15 +492,16 @@ public class PluginMarketService : IPluginMarketService
             DownloadProgress = 0;
             DownloadBytesPerSecond = 0;
             CurrentDownloadPluginId = request.QueueItem.PluginId;
-            _currentDownloader = downloadService;
+            _currentDownload = download;
             _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(request.CancellationToken);
-            _currentDownloadContext = executionContext;
         }
 
         UpdateQueueItem(request.QueueItem, queueItem =>
         {
             queueItem.Status = PluginDownloadQueueStatus.QueueDownloading;
             queueItem.CanCancel = true;
+            queueItem.CanPause = true;
+            queueItem.CanResume = false;
             queueItem.Progress = 0;
             queueItem.ProgressText = "0.00%";
             queueItem.SpeedText = string.Empty;
@@ -460,20 +512,102 @@ public class PluginMarketService : IPluginMarketService
 
         try
         {
-            _ = downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempArchivePath);
-            await completionSource.Task;
+            await download.StartAsync(_downloadCts.Token);
+            await EnsureDownloadedArchiveReadyAsync(tempArchivePath, _downloadCts.Token);
+            ValidateDownloadedPackageHash(request.Item, tempArchivePath);
+
+            Directory.CreateDirectory(extractPath);
+            UpdateQueueItem(request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueExtracting;
+                queueItem.CanPause = false;
+                queueItem.CanResume = false;
+                queueItem.Progress = 100;
+                queueItem.ProgressText = "100.00%";
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = string.Empty;
+            });
+            var extractionProgress = new Progress<ArchiveProgress>(progress =>
+            {
+                UpdateQueueItem(request.QueueItem, queueItem =>
+                {
+                    queueItem.Progress = progress.Percentage;
+                    queueItem.ProgressText = $"{progress.Percentage:0.00}%";
+                });
+            });
+            await _archiveService.ExtractToDirectoryAsync(
+                tempArchivePath,
+                extractPath,
+                extractionProgress,
+                _downloadCts.Token);
+
+            var result = new PluginPackageDownloadResult
+            {
+                ExtractedDirectoryPath = extractPath,
+                QueueItem = request.QueueItem
+            };
+            lock (_downloadLock)
+            {
+                _completedDownloadResults.Enqueue(result);
+                IsDownloadFinished = true;
+            }
+            UpdateQueueItem(request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueDownloaded;
+                queueItem.CanCancel = false;
+                queueItem.CanPause = false;
+                queueItem.CanResume = false;
+                queueItem.Progress = 100;
+                queueItem.ProgressText = "100.00%";
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = string.Empty;
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            lock (_downloadLock)
+                IsDownloadFinished = _completedDownloadResults.Count > 0;
+            CleanupDownloadArtifacts(downloadSessionPath);
+            UpdateQueueItem(request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;
+                queueItem.CanCancel = false;
+                queueItem.CanPause = false;
+                queueItem.CanResume = false;
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = string.Empty;
+            });
+        }
+        catch (Exception ex)
+        {
+            lock (_downloadLock)
+                IsDownloadFinished = _completedDownloadResults.Count > 0;
+            CleanupDownloadArtifacts(downloadSessionPath);
+            if (File.Exists(tempArchivePath))
+                File.Delete(tempArchivePath);
+            UpdateQueueItem(request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueFailed;
+                queueItem.CanCancel = false;
+                queueItem.CanPause = false;
+                queueItem.CanResume = false;
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = ex.Message;
+            });
+            _logger.LogError(ex, "Error downloading plugin package for {PluginId}", request.QueueItem.PluginId);
         }
         finally
         {
+            download.StateChanged -= OnCurrentDownloadStateChanged;
             lock (_downloadLock)
             {
                 IsDownloading = false;
+                IsDownloadPaused = false;
                 DownloadProgress = 0;
                 DownloadBytesPerSecond = 0;
                 CurrentDownloadPluginId = string.Empty;
-                _currentDownloader = null;
+                _currentDownload = null;
                 _currentDownloadRequest = null;
-                _currentDownloadContext = null;
                 _downloadCts?.Dispose();
                 _downloadCts = null;
             }
@@ -484,149 +618,6 @@ public class PluginMarketService : IPluginMarketService
             }
 
             RaiseDownloadStateChanged();
-        }
-    }
-
-    private async void OnDownloadFileCompletedAsync(object? sender, AsyncCompletedEventArgs e)
-    {
-        PluginDownloadExecutionContext? context;
-        lock (_downloadLock)
-        {
-            context = _currentDownloadContext;
-        }
-
-        if (context == null || !ReferenceEquals(sender, context.DownloadService))
-        {
-            return;
-        }
-
-        if (e.Cancelled)
-        {
-            lock (_downloadLock)
-            {
-                IsDownloadFinished = _completedDownloadResults.Count > 0;
-            }
-            CleanupDownloadArtifacts(context.DownloadSessionPath);
-            UpdateQueueItem(context.Request.QueueItem, queueItem =>
-            {
-                queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;
-                queueItem.CanCancel = false;
-                queueItem.SpeedText = string.Empty;
-                queueItem.ErrorMessage = string.Empty;
-            });
-            context.CompletionSource.TrySetResult();
-            return;
-        }
-
-        if (e.Error != null)
-        {
-            lock (_downloadLock)
-            {
-                IsDownloadFinished = _completedDownloadResults.Count > 0;
-            }
-            CleanupDownloadArtifacts(context.DownloadSessionPath);
-            UpdateQueueItem(context.Request.QueueItem, queueItem =>
-            {
-                queueItem.Status = PluginDownloadQueueStatus.QueueFailed;
-                queueItem.CanCancel = false;
-                queueItem.SpeedText = string.Empty;
-                queueItem.ErrorMessage = e.Error.Message;
-            });
-            _logger.LogError(e.Error, "Error downloading plugin package for {PluginId}",
-                context.Request.QueueItem.PluginId);
-            context.CompletionSource.TrySetResult();
-            return;
-        }
-
-        try
-        {
-            var cancellationToken = _downloadCts?.Token ?? context.Request.CancellationToken;
-            cancellationToken.ThrowIfCancellationRequested();
-            await EnsureDownloadedArchiveReadyAsync(context.TempArchivePath, cancellationToken);
-            ValidateDownloadedPackageHash(context.Request.Item, context.TempArchivePath);
-
-            Directory.CreateDirectory(context.ExtractPath);
-
-            UpdateQueueItem(context.Request.QueueItem, queueItem =>
-            {
-                queueItem.Status = PluginDownloadQueueStatus.QueueExtracting;
-                queueItem.Progress = 100;
-                queueItem.ProgressText = "100.00%";
-                queueItem.SpeedText = string.Empty;
-                queueItem.ErrorMessage = string.Empty;
-            });
-
-            var extractionProgress = new Progress<ArchiveProgress>(p =>
-            {
-                UpdateQueueItem(context.Request.QueueItem, queueItem =>
-                {
-                    queueItem.Progress = p.Percentage;
-                    queueItem.ProgressText = $"{p.Percentage:0.00}%";
-                });
-            });
-
-            await _archiveService.ExtractToDirectoryAsync(
-                context.TempArchivePath,
-                context.ExtractPath,
-                extractionProgress,
-                cancellationToken);
-
-            var result = new PluginPackageDownloadResult
-            {
-                ExtractedDirectoryPath = context.ExtractPath,
-                QueueItem = context.Request.QueueItem
-            };
-
-            lock (_downloadLock)
-            {
-                _completedDownloadResults.Enqueue(result);
-                IsDownloadFinished = true;
-            }
-
-            UpdateQueueItem(context.Request.QueueItem, queueItem =>
-            {
-                queueItem.Status = PluginDownloadQueueStatus.QueueDownloaded;
-                queueItem.CanCancel = false;
-                queueItem.Progress = 100;
-                queueItem.ProgressText = "100.00%";
-                queueItem.SpeedText = string.Empty;
-                queueItem.ErrorMessage = string.Empty;
-            });
-        }
-        catch (OperationCanceledException)
-        {
-            lock (_downloadLock)
-            {
-                IsDownloadFinished = _completedDownloadResults.Count > 0;
-            }
-            CleanupDownloadArtifacts(context.DownloadSessionPath);
-            UpdateQueueItem(context.Request.QueueItem, queueItem =>
-            {
-                queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;
-                queueItem.CanCancel = false;
-                queueItem.SpeedText = string.Empty;
-                queueItem.ErrorMessage = string.Empty;
-            });
-        }
-        catch (Exception ex)
-        {
-            lock (_downloadLock)
-            {
-                IsDownloadFinished = _completedDownloadResults.Count > 0;
-            }
-            CleanupDownloadArtifacts(context.DownloadSessionPath);
-            UpdateQueueItem(context.Request.QueueItem, queueItem =>
-            {
-                queueItem.Status = PluginDownloadQueueStatus.QueueFailed;
-                queueItem.CanCancel = false;
-                queueItem.SpeedText = string.Empty;
-                queueItem.ErrorMessage = ex.Message;
-            });
-            _logger.LogError(ex, "Error downloading plugin package for {PluginId}", context.Request.QueueItem.PluginId);
-        }
-        finally
-        {
-            context.CompletionSource.TrySetResult();
         }
     }
 
@@ -659,17 +650,6 @@ public class PluginMarketService : IPluginMarketService
         PluginMarketItem Item,
         PluginDownloadQueueItem QueueItem,
         CancellationToken CancellationToken);
-
-    /// <summary>
-    /// 表示一个正在执行的插件下载上下文。
-    /// </summary>
-    private sealed record PluginDownloadExecutionContext(
-        QueuedPluginDownloadRequest Request,
-        string DownloadSessionPath,
-        string TempArchivePath,
-        string ExtractPath,
-        DownloadService DownloadService,
-        TaskCompletionSource CompletionSource);
 
     /// <summary>
     /// 等待下载的压缩包可以被正常读取。

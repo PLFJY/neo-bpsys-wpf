@@ -178,7 +178,7 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写
 
 自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入。区域选择、等待开始、加载和对局内会阻断当前帧的内容识别与新操作生成，并停止调度后续 tick；已经排队或正在应用的角色 BP 操作会继续完成，队列排空后才以 `SmartBpCharacterBpEnded` 正常完成 GameGuidance 和自动识别，不触发取消事件。区域选择不属于 MapBP 或角色 BP 识别范围。用户手动停止仍会立即取消当前识别。
 
-PaddleOCR 模型、RapidOCR 模型和 Tesseract 语言文件统一使用 Downloader 的并行分片下载：单文件 8 个分片、最多 6 个并发连接、失败最多重试 5 次，并启用断点续传和下载前磁盘空间检查。多个安装资源仍按顺序处理，避免同时下载模型造成网络、内存与磁盘争抢；取消令牌会停止当前分片任务。
+PaddleOCR 模型、RapidOCR 模型和 Tesseract 语言文件统一经 `SmartBpParallelDownload` 适配到宿主 `IFileDownloadService`：文件按顺序处理，单个文件支持暂停、继续、取消后保留分片，以及由 `Downloader` 管理的 HTTP Range 续传；百分比和速度直接采用 `Downloader` 原生进度回调。服务端不支持 Range 时会安全地从头下载。瞬时网络错误最多重试 5 次。多个安装资源仍按顺序处理，避免同时下载模型造成网络、内存与磁盘争抢。
 
 当前不识别 MapBP，不识别天赋结果，不直接修改 `CurrentGame`。
 
@@ -267,7 +267,7 @@ SmartBP 支持三种 OCR Provider，一次只运行所选 Provider，不提供�
 
 `SmartBpOcrProviderSelector` 根据 `SmartBpRecognitionSettings.OcrProviderMode` 显式选择当前 Provider。Tesseract 的 `traineddata` 通过 `ITesseractDataAssetManager` 管理。RapidOCR 资产由 `IRapidOcrModelAssetManager` 下载到 `{SmartBpModuleRoot}\OCRModels\RapidOCR\Models\{profileId}`；只有选中 profile 的 det、cls、rec、dict 均存在且 RapidOcrNet 能初始化时才为 ready，不隐式使用包内拉丁模型。
 
-RapidOCR manifest 预置中、日、英三个官方组合。检测、分类、识别模型和匹配字典的完整 ModelScope URL 摘自 RapidOCR 官方 `python/rapidocr/default_models.yaml`，不在代码中推导或拼接；模型使用官方 SHA-256，字典固定校验官方文件内容。下载复用 `SmartBpParallelDownload` 的并行分片、续传、重试和取消能力，并使用临时目录和安装完成后的原子提升。RapidOCR 将 `Mat` 在内存中转换为 `SKBitmap`，输出统一映射到输入粗区域坐标；可选预处理变体只在同尺寸图像上运行并去重。
+RapidOCR manifest 预置中、日、英三个官方组合。检测、分类、识别模型和匹配字典的完整 ModelScope URL 摘自 RapidOCR 官方 `python/rapidocr/default_models.yaml`，不在代码中推导或拼接；模型使用官方 SHA-256，字典固定校验官方文件内容。下载经 `SmartBpParallelDownload` 复用统一服务的暂停、续传、重试和取消能力，并使用稳定下载暂存目录和安装完成后的原子提升。RapidOCR 将 `Mat` 在内存中转换为 `SKBitmap`，输出统一映射到输入粗区域坐标；可选预处理变体只在同尺寸图像上运行并去重。
 
 每次安装会在 profile 目录写入 `.smartbp-install.json`，记录 profile、上游版本和内置 manifest 指纹。普通状态刷新比较安装记录与当前内置 manifest；版本或任一资产 URL、文件名、SHA-256、转换声明变化时提示更新。“检查模型更新”还会通过统一下载器临时读取 RapidOCR 官方 `default_models.yaml`，按当前识别模型的官方 ONNX URL 比较上游版本。若官方版本已领先内置 manifest，UI 会要求先更新 SmartBP 模块，不会把旧模型误标为可安装更新。旧版安装没有记录时标为“未知（旧版安装）”并提示更新，但现有完整模型仍可继续使用。
 

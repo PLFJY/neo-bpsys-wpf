@@ -4,13 +4,13 @@
 
 WPF UI 对象只能在创建它们的 UI 线程访问。包括 `Window`、`Page`、`FrameworkElement`、`ObservableCollection` 绑定集合、`SymbolIcon`、InfoBar/Snackbar 控件等。
 
-后台任务、下载器回调、OCR 推理线程、WGC 帧回调如果要更新 UI 或绑定集合，必须切回 `Application.Current.Dispatcher`。
+后台任务、下载进度事件、OCR 推理线程、WGC 帧回调如果要更新 UI 或绑定集合，必须切回 `Application.Current.Dispatcher`。
 
 ## 已有安全模式
 
 ### PluginMarketService
 
-插件市场下载队列由后台下载器回调驱动，但队列是 `ObservableCollection<PluginDownloadQueueItem>`。服务用 `RunOnUiThread` 包装集合写入和状态更新：
+插件市场下载队列由统一下载服务的状态事件驱动，但队列是 `ObservableCollection<PluginDownloadQueueItem>`。服务用 `RunOnUiThread` 包装集合写入和状态更新：
 
 ```csharp
 if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
@@ -28,15 +28,21 @@ Application.Current.Dispatcher.Invoke(action);
 
 这些 ViewModel 在处理下载状态或设置同步事件时先检查 `Dispatcher.CheckAccess()`，不在 UI 线程时用 `Dispatcher.Invoke(...)`。
 
-### UpdaterService
+### 统一文件下载服务
 
-更新下载完成回调是 `async void`，来自 Downloader 事件。它需要弹窗或安装提示时使用：
+宿主将 `IFileDownloadService` 注册为单例；应用更新、插件包、SmartBP 模块与 OCR 模型、CUDA 依赖和 WebRenderer Runtime 安装包都通过它创建独立的 `IFileDownloadOperation`。调用方等待 `StartAsync`，并用 `Pause`、`Resume`、`Cancel` 控制当前操作，不再维护各自的 HTTP 下载循环。
 
-```csharp
-await Application.Current.Dispatcher.InvokeAsync(async () => { ... });
-```
+统一服务是 `Downloader` 的生命周期薄封装：保持原有的 8 分片、最多 6 路并行配置，直接转发 `DownloadProgressChangedEventArgs` 中的百分比、已接收字节和速度，不自行重算百分比，也不在服务层节流进度事件。
 
-这是事件处理器场景下的必要妥协，但异常处理必须在方法内部完成。
+未完成内容和 `Downloader` 的自动续传元数据一并保存在最终路径旁的 `.download.part`；没有额外的 `.download.json`。暂停、取消和瞬时失败会保留该文件，后续对同一目标路径创建的新操作由 `Downloader` 发送 HTTP Range 请求续传。启动已有分片前会探测服务端是否仍支持 Range；不支持时丢弃旧分片并由 `Downloader` 从头下载，避免把完整响应写入旧分片。
+
+业务层应为可续传资产选择稳定的下载目标路径，不要每次重试都创建随机临时文件名。下载完成后服务会原子提交最终文件并删除旁路元数据；安装、解压和校验仍由业务服务负责。
+
+服务端未返回完整大小时，`FileDownloadProgress.Percentage` 和 `TotalBytes` 为 `null`，但 `BytesReceived` 仍会持续更新。UI 此时应显示不定进度和已接收容量，不得保留某个旧百分比造成“卡住”的假象。
+
+`IFileDownloadOperation.StateChanged` 可能从后台线程触发。它只提供状态与数值快照，不直接操作 WPF 对象；ViewModel 或含 `ObservableCollection` 的服务仍须通过 Dispatcher 传播到 UI。
+
+WebRenderer sidecar 的 `RemoteAssetFetcher` 是受 IPC、内容类型、大小和重定向策略约束的页面资源缓存，不对应用户可控的下载任务，因此保持独立实现。
 
 ### WindowCaptureService
 
@@ -92,15 +98,13 @@ var recognizedData = await Task.Run(
 | --- | --- |
 | `App.OnStartup` / `App.OnExit` | WPF override 签名 |
 | `App.OnDispatcherUnhandledException` | WPF 事件 |
-| `UpdaterService.OnDownloadFileCompletedAsync` | Downloader 事件 |
-| `PluginMarketService.OnDownloadFileCompletedAsync` | Downloader 事件 |
 
 `async void` 不应出现在普通业务方法中。事件处理器内必须自行捕获异常、清理状态并通知 UI。
 
 ## 安全修改规则
 
 1. 更新 WPF 控件、`ObservableCollection`、绑定属性前确认当前线程。
-2. 下载器、OCR、捕获回调里不要直接弹窗，优先 Dispatcher。
+2. 下载进度事件、OCR、捕获回调里不要直接弹窗，优先 Dispatcher。
 3. 后台任务要支持取消令牌，至少不要吞掉 `OperationCanceledException` 后留下错误状态。
 4. 使用锁保护共享状态时，不要在锁内执行长时间下载、OCR、弹窗或 Dispatcher 同步等待。
 5. 新增事件订阅时考虑 singleton 生命周期和解绑。

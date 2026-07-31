@@ -92,8 +92,32 @@
                         HorizontalAlignment="Center"
                         FontSize="12"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        Text="{Binding ProgressValue, StringFormat={}{0:0}%, Mode=OneWay}"
+                        Text="{Binding ProgressDisplayText, Mode=OneWay}"
                         Visibility="{Binding IsProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <StackPanel
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal"
+                        Visibility="{Binding IsModuleDownloadActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ui:Button
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                            Command="{Binding PauseModuleDownloadCommand}"
+                            Content="{lex:Loc PauseDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Pause24}"
+                            Visibility="{Binding IsModuleDownloadPaused, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <ui:Button
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                            Command="{Binding ResumeModuleDownloadCommand}"
+                            Content="{lex:Loc ResumeDownload}"
+                            Icon="{ui:SymbolIcon Symbol=Play24}"
+                            Visibility="{Binding IsModuleDownloadPaused, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:Button
+                            Margin="8,0,0,0"
+                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                            Command="{Binding CancelModuleDownloadCommand}"
+                            Content="{lex:Loc Stop}"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                    </StackPanel>
                     <ui:Button
                         Margin="0,24,0,0"
                         HorizontalAlignment="Center"

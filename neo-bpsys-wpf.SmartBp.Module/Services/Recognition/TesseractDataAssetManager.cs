@@ -12,7 +12,8 @@ namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 public sealed class TesseractDataAssetManager(
     ISmartBpModuleStorageProvider storage,
     ISmartBpRecognitionSettingsService settingsService,
-    IGitHubDownloadUrlResolver urlResolver) : ITesseractDataAssetManager
+    IGitHubDownloadUrlResolver urlResolver,
+    IFileDownloadService fileDownloadService) : ITesseractDataAssetManager
 {
     private static readonly TesseractManagedLanguage[] Assets =
     [
@@ -21,6 +22,7 @@ public sealed class TesseractDataAssetManager(
         new("jpn", "SmartBpTesseractLanguageJapanese", "https://github.com/tesseract-ocr/tessdata/raw/main/jpn.traineddata")
     ];
     private CancellationTokenSource? _downloadCts;
+    private IFileDownloadOperation? _currentDownload;
 
     /// <inheritdoc />
     public event EventHandler<SmartBpDownloadState>? StateChanged;
@@ -95,6 +97,12 @@ public sealed class TesseractDataAssetManager(
     /// <inheritdoc />
     public void Cancel() => _downloadCts?.Cancel();
 
+    /// <inheritdoc />
+    public void Pause() => _currentDownload?.Pause();
+
+    /// <inheritdoc />
+    public void Resume() => _currentDownload?.Resume();
+
     /// <summary>
     /// 下载单个 Tesseract 语言数据文件并汇总整体进度。
     /// </summary>
@@ -112,28 +120,31 @@ public sealed class TesseractDataAssetManager(
         Raise(new(true, baseProgress, "SmartBpTesseractDataDownloading", fileName));
         var resolvedUrl = await urlResolver.ResolveAsync(asset.Url, token).ConfigureAwait(false);
         await SmartBpParallelDownload.DownloadFileAsync(
+            fileDownloadService,
             resolvedUrl,
             destination,
             token,
             progress =>
             {
-                var length = progress.TotalBytesToReceive > 0 ? progress.TotalBytesToReceive : (long?)null;
+                var length = progress.TotalBytes;
                 var overallProgress = count > 0
-                    ? (index + progress.ProgressPercentage / 100D) / count * 100D
+                    ? (index + (progress.Percentage ?? 0) / 100D) / count * 100D
                     : 100D;
-                TimeSpan? eta = length is > 0 && progress.BytesPerSecondSpeed > 1
-                    ? TimeSpan.FromSeconds(Math.Max(0, length.Value - progress.ReceivedBytesSize) / progress.BytesPerSecondSpeed)
+                TimeSpan? eta = length is > 0 && progress.BytesPerSecond > 1
+                    ? TimeSpan.FromSeconds(Math.Max(0, length.Value - progress.BytesReceived) / progress.BytesPerSecond)
                     : null;
                 Raise(new(
                     true,
                     overallProgress,
                     "SmartBpTesseractDataDownloading",
                     fileName,
-                    progress.ReceivedBytesSize,
+                    progress.BytesReceived,
                     length,
-                    progress.BytesPerSecondSpeed,
-                    eta));
-            }).ConfigureAwait(false);
+                    progress.BytesPerSecond,
+                    eta,
+                    IsPaused: _currentDownload?.State == FileDownloadState.Paused));
+            },
+            operation => _currentDownload = operation).ConfigureAwait(false);
         Raise(new(true, count == 0 ? 100 : (index + 1D) / count * 100, "SmartBpTesseractDataDownloading", fileName));
     }
 

@@ -14,7 +14,6 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using Xunit;
-using SmartBpParallelDownload = smartbp::neo_bpsys_wpf.Services.SmartBpParallelDownload;
 using SmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpSceneGateService;
 using SmartBpRecognitionScene = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionScene;
 using SmartBpRecognitionSettings = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionSettings;
@@ -101,20 +100,6 @@ public sealed class SmartBpSceneGateAndModelSourceTest
         var filtered = SmartBpAutoRecognitionCoordinator.FilterAutomaticRequestByPhase(request, phase);
 
         Assert.Empty(filtered.RequestedFields);
-    }
-
-    [Fact]
-    public void ManagedAssetDownloads_UseUpdaterGradeParallelConfiguration()
-    {
-        var configuration = SmartBpParallelDownload.CreateConfiguration(
-            new Uri("https://huggingface.co/owner/repo/model.gguf"));
-
-        Assert.True(configuration.ParallelDownload);
-        Assert.Equal(8, configuration.ChunkCount);
-        Assert.Equal(6, configuration.ParallelCount);
-        Assert.Equal(5, configuration.MaxTryAgainOnFailure);
-        Assert.True(configuration.EnableAutoResumeDownload);
-        Assert.True(configuration.CheckDiskSizeBeforeDownload);
     }
 
     [Fact]

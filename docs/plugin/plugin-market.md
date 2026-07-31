@@ -42,16 +42,21 @@ README 加载后会重写相对链接和相对图片地址，避免 WPF Markdown
 | 功能 | 说明 |
 | --- | --- |
 | 队列去重 | 当前下载和等待队列中已有同 ID 插件时拒绝重复入队 |
+| 当前任务暂停/继续 | `PauseDownload()` / `ResumeDownload()` |
+| 指定任务暂停/继续 | `PauseDownload(queueId)` / `ResumeDownload(queueId)`；只对当前传输项生效 |
 | 当前任务取消 | `CancelDownload()` |
 | 指定任务取消 | `CancelDownload(queueId)` |
-| 进度/速度 | 来自 Downloader 的 `DownloadProgressChanged` |
+| 进度/速度 | 来自 `IFileDownloadOperation.StateChanged` 的进度快照 |
 | 完成消费 | `ConsumeCompletedDownload()` 返回解压目录 |
 
-下载过程临时目录：
+下载过程使用稳定缓存路径保存可续传分片，并用独立会话目录承载解压结果：
 
 ```text
-%TEMP%\neo-bpsys-wpf\PluginMarket\{pluginId}\{queueId}
+%TEMP%\neo-bpsys-wpf\PluginMarket\Downloads\{requestHash}\package.archive.download.part
+%TEMP%\neo-bpsys-wpf\PluginMarket\Sessions\{pluginId}\{queueId}\extract
 ```
+
+取消或瞬时失败只清理解压会话，保留下载分片和来源元数据；重新提交相同插件版本与下载契约时会从已有字节继续。
 
 ## SHA-256 校验
 

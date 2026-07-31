@@ -151,6 +151,12 @@
   <data name="SmartBpModuleArchiveExtractingFormat">
     <value>Extracting: {0}%</value>
   </data>
+  <data name="SmartBpModuleDownloadingBytesFormat">
+    <value>Downloading: {0} received</value>
+  </data>
+  <data name="SmartBpModuleDownloadingProgressFormat">
+    <value>Downloading: {0} / {1}</value>
+  </data>
   <data name="SmartBpModuleArchiveImportSucceeded">
     <value>SmartBP module package imported and loaded.</value>
   </data>
@@ -237,6 +243,9 @@
   </data>
   <data name="AppUpdateSha256Mismatch">
     <value>Integrity check failed for the update installer. Installation was blocked for your safety.</value>
+  </data>
+  <data name="AppUpdateVerifyingHash">
+    <value>Verifying update installer integrity…</value>
   </data>
   <data name="RestartNow">
     <value>Restart Now</value>

@@ -1,10 +1,7 @@
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Downloader;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -33,8 +30,7 @@ internal sealed record PaddleRuntimeInstallManifest(
 /// <summary>
 /// <see cref="IPaddleRuntimeComponentService"/> 的实现。负责 Paddle CUDA runtime NuGet 包的
 /// 下载、SHA-256 校验、ZIP 提取、原子安装、状态查询与删除。
-/// 下载流程参照 <see cref="UpdaterService"/>：长生命周期 <see cref="DownloadService"/>，
-/// fire-and-forget 启动下载，<see cref="DownloadService.DownloadFileCompleted"/> 事件处理完成逻辑。
+/// 文件传输由宿主统一下载服务负责，并在完成后执行校验与安装。
 /// </summary>
 public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentService
 {
@@ -45,22 +41,14 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
     private static readonly JsonSerializerOptions JsonWriteOptions = new() { WriteIndented = true };
     private static readonly JsonSerializerOptions JsonReadOptions = new() { PropertyNameCaseInsensitive = true };
 
-    /// <summary>
-    /// 进度事件节流间隔：<see cref="DownloadStateChanged"/> 事件在进度回调中最少间隔的 tick 数。
-    /// <see cref="DownloadService"/> 构造时捕获 UI 线程的 <see cref="SynchronizationContext"/>，
-    /// <see cref="DownloadService.DownloadProgressChanged"/> 事件在 UI 线程触发；
-    /// 大包 + 8 chunk 并行时每秒触发数百次，直接淹没 UI 线程导致卡死。
-    /// 节流到每 200ms 一次，保证 ProgressBar 平滑更新的同时不阻塞 UI 响应。
-    /// </summary>
-    private static readonly long ProgressThrottleIntervalTicks = TimeSpan.FromMilliseconds(200).Ticks;
-
     private readonly ILogger<PaddleRuntimeComponentService> _logger;
     private readonly IPaddleRuntimeManifestProvider _manifestProvider;
     private readonly ISmartBpModuleStorageProvider _moduleStorage;
 
     private readonly Lock _downloadLock = new();
-    private readonly DownloadService _downloader;
+    private readonly IFileDownloadService _fileDownloadService;
     private CancellationTokenSource? _downloadCts;
+    private IFileDownloadOperation? _currentDownload;
 
     private bool _isDownloading;
     private bool _isDownloadFinished;
@@ -69,61 +57,30 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
     private double? _downloadSpeed;
 
     /// <summary>
-    /// 进度节流计时器，用于限制 <see cref="DownloadStateChanged"/> 事件在进度回调中的触发频率。
-    /// </summary>
-    private readonly Stopwatch _progressStopwatch = Stopwatch.StartNew();
-
-    /// <summary>
-    /// 上一次触发 <see cref="DownloadStateChanged"/> 事件的 <see cref="Stopwatch.ElapsedTicks"/>。
-    /// </summary>
-    private long _lastProgressEventTicks;
-
-    /// <summary>
-    /// 当前下载对应的包信息，用于 DownloadFileCompleted 事件中校验和安装。
-    /// </summary>
-    private PaddleRuntimePackageInfo? _pendingPackage;
-
-    /// <summary>
-    /// 当前下载对应的临时文件路径，用于 DownloadFileCompleted 事件中处理。
+    /// 当前下载对应的临时文件路径，用于校验、安装和清理。
     /// </summary>
     private string? _pendingDownloadPath;
 
     /// <summary>
-    /// 当前下载对应的 <see cref="Task"/> 引用，用于观察异常。
-    /// fire-and-forget 模式下不 <see langword="await"/> 该 Task，但通过 <see cref="ContinueWith"/>
-    /// 注册延续观察 faulted 状态，确保即使 <see cref="DownloadService.DownloadFileCompleted"/>
-    /// 事件未触发也能兜底重置下载状态，避免下载永久卡住。
-    /// </summary>
-    private Task? _pendingDownloadTask;
-
-    /// <summary>
     /// 初始化 <see cref="PaddleRuntimeComponentService"/> 类的新实例。
-    /// 创建长生命周期的 <see cref="DownloadService"/> 并订阅其进度与完成事件。
+    /// 复用宿主统一下载服务。
     /// CUDA runtime 下载与安装到模块目录（<see cref="ISmartBpModuleStorageProvider.ModuleRoot"/>）下。
     /// </summary>
     /// <param name="logger">日志记录器。</param>
     /// <param name="manifestProvider">Paddle runtime manifest 提供者，用于构造 NuGet 下载 URL。</param>
     /// <param name="moduleStorage">模块存储提供者，提供模块根目录用于存放下载与安装的 runtime 组件。</param>
+    /// <param name="fileDownloadService">统一文件下载服务。</param>
     /// <exception cref="ArgumentNullException">任一参数为 <see langword="null"/>。</exception>
     public PaddleRuntimeComponentService(
         ILogger<PaddleRuntimeComponentService> logger,
         IPaddleRuntimeManifestProvider manifestProvider,
-        ISmartBpModuleStorageProvider moduleStorage)
+        ISmartBpModuleStorageProvider moduleStorage,
+        IFileDownloadService fileDownloadService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _manifestProvider = manifestProvider ?? throw new ArgumentNullException(nameof(manifestProvider));
         _moduleStorage = moduleStorage ?? throw new ArgumentNullException(nameof(moduleStorage));
-
-        var downloadOpt = new DownloadConfiguration
-        {
-            ChunkCount = 8,
-            ParallelDownload = true,
-            MaxTryAgainOnFailure = 5,
-            ParallelCount = 6,
-        };
-        _downloader = new DownloadService(downloadOpt);
-        _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
-        _downloader.DownloadFileCompleted += Downloader_DownloadFileCompletedAsync;
+        _fileDownloadService = fileDownloadService ?? throw new ArgumentNullException(nameof(fileDownloadService));
     }
 
     /// <inheritdoc/>
@@ -147,6 +104,16 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
             {
                 return _isDownloadFinished;
             }
+        }
+    }
+
+    /// <inheritdoc/>
+    public bool IsDownloadPaused
+    {
+        get
+        {
+            lock (_downloadLock)
+                return _currentDownload?.State == FileDownloadState.Paused;
         }
     }
 
@@ -236,10 +203,7 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
             _lastInstallSucceeded = null;
             _downloadProgress = 0;
             _downloadSpeed = 0;
-            // 重置节流计时基准，确保首个进度事件能立即触发（不被旧的 _lastProgressEventTicks 阻挡）。
-            _lastProgressEventTicks = 0;
             _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _pendingPackage = package;
         }
 
         RaiseDownloadStateChanged();
@@ -255,32 +219,16 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
 
         try
         {
-            // fire-and-forget：参照 UpdaterService.DownloadUpdate，不 await。
-            // 下载完成由 DownloadFileCompleted 事件处理（校验、安装、状态更新）。
-            // 保留 Task 引用并注册异常观察延续，确保即使 DownloadFileCompleted 事件
-            // 未触发（Downloader 库边缘情况）也能兜底重置状态，避免下载永久卡住。
-            _pendingDownloadTask = _downloader.DownloadFileTaskAsync(downloadUrl, _pendingDownloadPath);
-            _pendingDownloadTask.ContinueWith(
-                static (t, state) =>
-                {
-                    if (!t.IsFaulted)
-                        return;
-                    var self = (PaddleRuntimeComponentService)state!;
-                    self._logger.LogError(t.Exception,
-                        "Paddle CUDA runtime download task faulted (observed via ContinueWith).");
-
-                    // 兜底重置：若 DownloadFileCompleted 已处理则 IsDownloading 已为 false，跳过。
-                    lock (self._downloadLock)
-                    {
-                        if (!self._isDownloading)
-                            return;
-                    }
-
-                    self.TryCleanupDownloadResidue();
-                    self.ResetDownloadState(isDownloadFinished: false, installSucceeded: false);
-                },
-                this,
-                TaskScheduler.Default);
+            var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(
+                new Uri(downloadUrl, UriKind.Absolute),
+                _pendingDownloadPath)
+            {
+                UserAgent = AppConstants.AppName
+            });
+            operation.StateChanged += OnDownloadOperationStateChanged;
+            lock (_downloadLock)
+                _currentDownload = operation;
+            _ = RunDownloadAndInstallAsync(package, _pendingDownloadPath, operation);
         }
         catch (Exception ex)
         {
@@ -302,8 +250,14 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
         {
             _downloadCts?.Cancel();
         }
-        _downloader.CancelAsync();
+        _currentDownload?.Cancel();
     }
+
+    /// <inheritdoc/>
+    public void PauseDownload() => _currentDownload?.Pause();
+
+    /// <inheritdoc/>
+    public void ResumeDownload() => _currentDownload?.Resume();
 
     /// <inheritdoc/>
     public bool DeleteComponent()
@@ -340,89 +294,54 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
         }
     }
 
-    /// <summary>
-    /// 下载进度变化回调：更新进度与速度字段，并按 200ms 节流触发 <see cref="DownloadStateChanged"/> 事件。
-    /// <see cref="DownloadService"/> 构造时捕获 UI 线程的 <see cref="SynchronizationContext"/>，
-    /// 此回调在 UI 线程触发；大包 + 8 chunk 并行时每秒触发数百次，若不节流会淹没 UI 线程导致卡死。
-    /// 下载完成时由 <see cref="Downloader_DownloadFileCompletedAsync"/> → <see cref="ResetDownloadState"/>
-    /// 无条件触发一次事件，确保最终状态不被节流丢失。
-    /// </summary>
-    private void Downloader_DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
+    private void OnDownloadOperationStateChanged(object? sender, EventArgs e)
     {
+        if (sender is not IFileDownloadOperation operation)
+            return;
         lock (_downloadLock)
         {
-            _downloadProgress = e.ProgressPercentage;
-            _downloadSpeed = e.BytesPerSecondSpeed;
+            _downloadProgress = operation.Progress.Percentage;
+            _downloadSpeed = operation.State == FileDownloadState.Paused
+                ? 0
+                : operation.Progress.BytesPerSecond;
 
-            // 节流：距上次触发不足 200ms 则跳过，避免高频进度事件淹没 UI 线程。
-            var now = _progressStopwatch.ElapsedTicks;
-            if (now - _lastProgressEventTicks < ProgressThrottleIntervalTicks)
-                return;
-            _lastProgressEventTicks = now;
         }
 
         RaiseDownloadStateChanged();
     }
 
     /// <summary>
-    /// 下载完成回调：参照 <see cref="UpdaterService.OnDownloadFileCompletedAsync"/>。
-    /// 处理取消、错误、成功三种情况；成功时执行 SHA-256 校验、ZIP 提取、原子安装。
-    /// 不再通过 <see cref="TaskCompletionSource{TResult}"/> 向调用方回传结果，
-    /// 而是更新 <see cref="IsDownloadFinished"/> 与 <see cref="LastInstallSucceeded"/> 属性，
-    /// 由 <see cref="DownloadStateChanged"/> 事件通知订阅者。
+    /// 等待文件下载完成并执行 SHA-256 校验、ZIP 提取和原子安装。
     /// </summary>
-    private async void Downloader_DownloadFileCompletedAsync(object? sender, AsyncCompletedEventArgs e)
+    private async Task RunDownloadAndInstallAsync(
+        PaddleRuntimePackageInfo package,
+        string downloadPath,
+        IFileDownloadOperation operation)
     {
-        PaddleRuntimePackageInfo? package;
-        string? downloadPath;
-        lock (_downloadLock)
+        try
         {
-            package = _pendingPackage;
-            downloadPath = _pendingDownloadPath;
+            await operation.StartAsync(_downloadCts?.Token ?? CancellationToken.None).ConfigureAwait(false);
+            var success = await Task.Run(() => VerifyAndInstallAsync(package, downloadPath, CancellationToken.None))
+                .ConfigureAwait(false);
+            TryCleanupDownloadResidue();
+            ResetDownloadState(isDownloadFinished: success, installSucceeded: success);
         }
-
-        if (package is null || downloadPath is null)
-        {
-            // 无进行中的下载任务，忽略事件。
-            ResetDownloadState(isDownloadFinished: false, installSucceeded: null);
-            return;
-        }
-
-        if (e.Cancelled)
+        catch (OperationCanceledException)
         {
             _logger.LogWarning(
                 "Paddle CUDA runtime download cancelled. PackageId={PackageId}", package.PackageId);
-            TryCleanupDownloadResidue();
             ResetDownloadState(isDownloadFinished: false, installSucceeded: false);
-            return;
-        }
-
-        if (e.Error is not null)
-        {
-            _logger.LogError(e.Error,
-                "Paddle CUDA runtime download failed. PackageId={PackageId}", package.PackageId);
-            TryCleanupDownloadResidue();
-            ResetDownloadState(isDownloadFinished: false, installSucceeded: false);
-            return;
-        }
-
-        // 下载成功，执行校验和安装（在线程池执行，不阻塞下载器事件线程）。
-        var success = false;
-        try
-        {
-            success = await Task.Run(() => VerifyAndInstallAsync(package, downloadPath, CancellationToken.None))
-                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Paddle CUDA runtime install failed. PackageId={PackageId}", package.PackageId);
-            success = false;
+                "Paddle CUDA runtime download or install failed. PackageId={PackageId}", package.PackageId);
+            TryCleanupDownloadResidue();
+            ResetDownloadState(isDownloadFinished: false, installSucceeded: false);
         }
         finally
         {
-            TryCleanupDownloadResidue();
-            ResetDownloadState(isDownloadFinished: success, installSucceeded: success);
+            operation.StateChanged -= OnDownloadOperationStateChanged;
         }
     }
 
@@ -527,9 +446,8 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
             _downloadSpeed = null;
             _downloadCts?.Dispose();
             _downloadCts = null;
-            _pendingPackage = null;
             _pendingDownloadPath = null;
-            _pendingDownloadTask = null;
+            _currentDownload = null;
         }
 
         RaiseDownloadStateChanged();

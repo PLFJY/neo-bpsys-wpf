@@ -91,6 +91,13 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     /// <summary>获取 runtime 安装引导流程是否忙。</summary>
     public bool IsRuntimeSetupBusy { get; private set; }
 
+    /// <summary>获取 runtime installer 下载是否已暂停。</summary>
+    public bool IsRuntimeDownloadPaused { get; private set; }
+
+    /// <summary>获取 runtime installer 是否处于可暂停的下载阶段。</summary>
+    public bool CanPauseRuntimeDownload =>
+        RuntimeSetupState == WebRendererRuntimeSetupState.Downloading;
+
     /// <summary>获取 runtime 安装引导流程当前阶段。</summary>
     public WebRendererRuntimeSetupState RuntimeSetupState { get; private set; }
 
@@ -118,6 +125,9 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
     [RelayCommand] private void OpenUrl() => Process.Start(new ProcessStartInfo(LocalUrl) { UseShellExecute = true });
     [RelayCommand(CanExecute = nameof(CanStartRuntimeSetup))]
     private async Task DownloadAndInstallRuntimeAsync() => await _runtimeSetupService.RunSetupAsync(CancellationToken.None);
+    [RelayCommand] private void PauseRuntimeDownload() => _runtimeSetupService.PauseDownload();
+    [RelayCommand] private void ResumeRuntimeDownload() => _runtimeSetupService.ResumeDownload();
+    [RelayCommand] private void CancelRuntimeSetup() => _runtimeSetupService.Cancel();
     [RelayCommand] private void OpenRuntimeDownloadPage() => Process.Start(new ProcessStartInfo("https://dotnet.microsoft.com/download/dotnet/10.0") { UseShellExecute = true });
     [RelayCommand(CanExecute = nameof(CanStartRuntimeSetup))]
     private async Task RecheckRuntimeAsync() => await DetectRuntimeAsync();
@@ -164,9 +174,10 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
         RuntimeSetupState = setupStatus.State;
         RuntimeDownloadProgress = setupStatus.DownloadProgress;
         IsRuntimeSetupBusy = setupStatus.IsBusy;
+        IsRuntimeDownloadPaused = setupStatus.State == WebRendererRuntimeSetupState.Paused;
         IsRuntimeAwaitingRestart = setupStatus.State == WebRendererRuntimeSetupState.AwaitingRestart;
         RuntimeSetupMessage = BuildRuntimeSetupMessage(setupStatus);
-        foreach (var name in new[] { nameof(RuntimeSetupState), nameof(RuntimeDownloadProgress), nameof(IsRuntimeSetupBusy), nameof(IsRuntimeAwaitingRestart), nameof(RuntimeSetupMessage) })
+        foreach (var name in new[] { nameof(RuntimeSetupState), nameof(RuntimeDownloadProgress), nameof(IsRuntimeSetupBusy), nameof(IsRuntimeDownloadPaused), nameof(CanPauseRuntimeDownload), nameof(IsRuntimeAwaitingRestart), nameof(RuntimeSetupMessage) })
             OnPropertyChanged(name);
         DownloadAndInstallRuntimeCommand.NotifyCanExecuteChanged();
         RecheckRuntimeCommand.NotifyCanExecuteChanged();
@@ -177,6 +188,7 @@ public sealed partial class WebRendererManagementViewModel : ViewModelBase
         WebRendererRuntimeSetupState.Idle => null,
         WebRendererRuntimeSetupState.FetchingRelease => "正在查询最新版本...",
         WebRendererRuntimeSetupState.Downloading => $"正在下载 ASP.NET Core Runtime {status.PendingVersion}... {status.DownloadProgress:0}%",
+        WebRendererRuntimeSetupState.Paused => $"ASP.NET Core Runtime {status.PendingVersion} 下载已暂停，已完成 {status.DownloadProgress:0}%。",
         WebRendererRuntimeSetupState.Verifying => "正在校验 installer 完整性...",
         WebRendererRuntimeSetupState.Installing => "正在安装（请在 UAC 弹窗中确认）...",
         WebRendererRuntimeSetupState.AwaitingRestart => "安装完成。请点击应用右上角的重启按钮以启动 Web 前台。",

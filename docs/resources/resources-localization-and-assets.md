@@ -147,7 +147,7 @@ I18nHelper.GetLocalizedStringFromAnyHostDictionary("SomeKey")
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加对应功能族 neutral resx，并尽量补齐 `.en-us`、`.ja-jp`，避免用户看到裸 key。禁止重新引入单一 `Lang.resx`。
 
-SmartBP OCR 不维护模块内角色别名表；OCR 只解析区域和槽位，角色名匹配统一交给 `ICharacterSelectionService` / `CharacterSelectionService`，并且匹配时必须限定在传入阵营内，不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`。RapidOCR profile 由 `Resources/SmartBp/RapidOcrModelManifest.json` 声明，安装到 `OCRModels/RapidOCR/Models/{profileId}/`。中、日、英模型及字典的完整 ModelScope 地址摘自 RapidOCR 官方 `python/rapidocr/default_models.yaml`；模型 SHA-256 使用官方值，字典则固定校验官方文件内容，不得在代码中拼接地址。下载统一使用 `SmartBpParallelDownload`。AppData 只保存 SmartBP 配置，不保存托管模型文件。
+SmartBP OCR 不维护模块内角色别名表；OCR 只解析区域和槽位，角色名匹配统一交给 `ICharacterSelectionService` / `CharacterSelectionService`，并且匹配时必须限定在传入阵营内，不得跨阵营查询。Tesseract traineddata 属于托管模型资产，固定下载到 SmartBP 模块目录的 `OCRModels/Tesseract/tessdata/`。RapidOCR profile 由 `Resources/SmartBp/RapidOcrModelManifest.json` 声明，安装到 `OCRModels/RapidOCR/Models/{profileId}/`。中、日、英模型及字典的完整 ModelScope 地址摘自 RapidOCR 官方 `python/rapidocr/default_models.yaml`；模型 SHA-256 使用官方值，字典则固定校验官方文件内容，不得在代码中拼接地址。模块内下载经 `SmartBpParallelDownload` 适配到宿主 `IFileDownloadService`，暂停或取消后保留旁路分片供下次续传。AppData 只保存 SmartBP 配置，不保存托管模型文件。
 
 RapidOCR manifest 的 `version` 和每个资产的下载契约共同生成安装指纹；安装目录内的 `.smartbp-install.json` 用于判断当前模型是否落后于随模块发布的 manifest。更新官方模型条目时必须同步提升版本或更新资产契约，并更新对应测试。
 

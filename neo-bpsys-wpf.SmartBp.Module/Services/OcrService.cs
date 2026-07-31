@@ -1,4 +1,3 @@
-using Downloader;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -15,6 +14,7 @@ using System.Formats.Tar;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Security.Cryptography;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -29,11 +29,13 @@ public sealed class PaddleOcrProvider : IOcrProvider
     private readonly IPaddleRuntimeState _runtimeState;
     private readonly IPaddleRuntimeManifestProvider _runtimeManifestProvider;
     private readonly IGlobalRestartService _globalRestartService;
+    private readonly IFileDownloadService _fileDownloadService;
     private readonly Lock _ocrLock = new();
     private readonly Lock _downloadLock = new();
 
     private PaddleOcrAll? _ocr;
     private CancellationTokenSource? _downloadCts;
+    private IFileDownloadOperation? _currentDownload;
     private int _currentDownloadStep = 1;
     private int _totalDownloadSteps = 1;
     private int _missingModelWarningShown;
@@ -48,6 +50,11 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// 当前是否处于模型下载中。
     /// </summary>
     public bool IsDownloading { get; private set; }
+
+    /// <summary>
+    /// 当前模型下载是否已暂停。
+    /// </summary>
+    public bool IsDownloadPaused => _currentDownload?.State == FileDownloadState.Paused;
 
     /// <summary>
     /// 当前下载进度（0-100）；未知时为 <see langword="null"/>。
@@ -87,19 +94,22 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// <param name="runtimeState">Paddle runtime 运行时状态，用于决定推理后端（CPU/CUDA）。</param>
     /// <param name="runtimeManifestProvider">Paddle runtime manifest 提供者，用于记录当前模块 runtime 版本。</param>
     /// <param name="globalRestartService">全局重启服务，用于在 CUDA 故障时标记需要重启。</param>
+    /// <param name="fileDownloadService">统一文件下载服务。</param>
     public PaddleOcrProvider(
         ISettingsHostService settingsHostService,
         ILogger<PaddleOcrProvider> logger,
         ISmartBpOcrModelPathProvider modelPathProvider,
         IPaddleRuntimeState runtimeState,
         IPaddleRuntimeManifestProvider runtimeManifestProvider,
-        IGlobalRestartService globalRestartService)
+        IGlobalRestartService globalRestartService,
+        IFileDownloadService fileDownloadService)
     {
         _settingsHostService = settingsHostService;
         _logger = logger;
         _runtimeState = runtimeState;
         _runtimeManifestProvider = runtimeManifestProvider;
         _globalRestartService = globalRestartService;
+        _fileDownloadService = fileDownloadService;
         SmartBpOcrModelRegistry.ConfigurePathProvider(modelPathProvider);
     }
 
@@ -617,6 +627,20 @@ public sealed class PaddleOcrProvider : IOcrProvider
         return hasLoadFailure && hasCudaLibrary;
     }
 
+    /// <inheritdoc />
+    public void PauseDownload()
+    {
+        _currentDownload?.Pause();
+        RaiseDownloadStateChanged();
+    }
+
+    /// <inheritdoc />
+    public void ResumeDownload()
+    {
+        _currentDownload?.Resume();
+        RaiseDownloadStateChanged();
+    }
+
     /// <summary>
     /// 判断 CUDA runtime 是否已在 Paddle 实际执行阶段失败。
     /// </summary>
@@ -768,10 +792,8 @@ public sealed class PaddleOcrProvider : IOcrProvider
         DownloadStatusText = stageText;
         RaiseDownloadStateChanged();
 
-        var tempDirectory = Path.Combine(
-            AppConstants.AppTempPath,
-            "OcrModelDownload",
-            Guid.NewGuid().ToString("N"));
+        var cacheKey = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(sourceUri.AbsoluteUri)));
+        var tempDirectory = Path.Combine(AppConstants.AppTempPath, "OcrModelDownload", cacheKey);
         Directory.CreateDirectory(tempDirectory);
 
         try
@@ -782,7 +804,9 @@ public sealed class PaddleOcrProvider : IOcrProvider
         }
         finally
         {
-            if (Directory.Exists(tempDirectory))
+            var archivePath = Path.Combine(tempDirectory, "model.tar");
+            var hasResumablePartial = File.Exists(archivePath + ".download.part");
+            if (Directory.Exists(tempDirectory) && !hasResumablePartial)
             {
                 Directory.Delete(tempDirectory, recursive: true);
             }
@@ -803,10 +827,12 @@ public sealed class PaddleOcrProvider : IOcrProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
         await SmartBpParallelDownload.DownloadFileAsync(
+            _fileDownloadService,
             sourceUrl,
             destinationFilePath,
             cancellationToken,
-            args => Downloader_DownloadProgressChanged(this, args));
+            progress => OnDownloadProgressChanged(progress),
+            operation => _currentDownload = operation);
     }
 
     /// <summary>
@@ -913,11 +939,10 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// <summary>
     /// 处理下载进度变化并更新总体进度。
     /// </summary>
-    /// <param name="sender">事件发送方。</param>
-    /// <param name="e">下载进度参数。</param>
-    private void Downloader_DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
+    /// <param name="progress">下载进度参数。</param>
+    private void OnDownloadProgressChanged(FileDownloadProgress progress)
     {
-        var stepProgress = e.ProgressPercentage / 100.0;
+        var stepProgress = (progress.Percentage ?? 0) / 100.0;
         var overallProgress = ((_currentDownloadStep - 1) + stepProgress) / _totalDownloadSteps * 100;
 
         DownloadProgress = overallProgress;

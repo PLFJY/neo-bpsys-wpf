@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
+using neo_bpsys_wpf.Core.Services;
 using OpenCvSharp;
 using RapidOcrNet;
 using SkiaSharp;
@@ -81,7 +83,8 @@ public sealed class RapidOcrIntegrationTest : IDisposable
         var storage = new FakeStorage(_root);
         var settings = new FakeSettings();
         var manager = new RapidOcrModelAssetManager(new FakeManifest(profile), settings, storage,
-            NullLogger<RapidOcrModelAssetManager>.Instance);
+            NullLogger<RapidOcrModelAssetManager>.Instance,
+            new FileDownloadService(() => new HttpClient()));
 
         var missing = await manager.GetStatusAsync(TestContext.Current.CancellationToken);
         Assert.False(missing.IsInstalled);
@@ -235,6 +238,8 @@ public sealed class RapidOcrIntegrationTest : IDisposable
             Task.FromResult(new RapidOcrModelUpdateCheckResult(null, "v3.8.0", "v3.8.0", false, true));
         public Task InstallAsync(string profileId, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task DeleteAsync(string profileId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public void Pause() => StateChanged?.Invoke(this, new SmartBpDownloadState(true, null, "paused", IsPaused: true));
+        public void Resume() => StateChanged?.Invoke(this, new SmartBpDownloadState(true, null, "resumed", null));
         public void Cancel() => StateChanged?.Invoke(this, new SmartBpDownloadState(false, null, "cancelled", null));
         public Task<RapidOcrInstalledPaths> GetInstalledPathsAsync(CancellationToken cancellationToken = default) => Task.FromResult(paths);
     }

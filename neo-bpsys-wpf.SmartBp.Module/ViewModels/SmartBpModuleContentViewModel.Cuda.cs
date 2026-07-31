@@ -82,7 +82,15 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanToggleCuda))]
     [NotifyPropertyChangedFor(nameof(CanDownloadCudaDependency))]
+    [NotifyPropertyChangedFor(nameof(CanPauseCudaDownload))]
     public partial bool IsCudaDownloading { get; set; }
+
+    /// <summary>
+    /// 获取或设置当前 CUDA 依赖下载是否已暂停。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseCudaDownload))]
+    public partial bool IsCudaDownloadPaused { get; set; }
 
     /// <summary>
     /// 获取或设置 CUDA runtime 组件下载进度（0-100）。
@@ -112,6 +120,7 @@ public partial class SmartBpModuleContentViewModel
     /// 获取或设置当前 CUDA 依赖操作是否具有可量化的网络传输进度。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanPauseCudaDownload))]
     public partial bool IsCudaTransferActive { get; set; }
 
     /// <summary>
@@ -155,6 +164,11 @@ public partial class SmartBpModuleContentViewModel
     /// 获取"下载 CUDA 依赖"按钮是否可点击：仅在 GPU 受支持、依赖未安装且无进行中下载时允许。
     /// </summary>
     public bool CanDownloadCudaDependency => IsCudaSupported && !IsCudaDependencyInstalled && !IsCudaDownloading;
+
+    /// <summary>
+    /// 获取当前是否可以暂停 CUDA 依赖文件传输。
+    /// </summary>
+    public bool CanPauseCudaDownload => IsCudaDownloading && IsCudaTransferActive && !IsCudaDownloadPaused;
 
     /// <summary>
     /// 初始化 CUDA 加速设置卡片：检测设备、解析匹配包、查询安装状态、订阅运行时与下载事件、刷新状态。
@@ -289,6 +303,7 @@ public partial class SmartBpModuleContentViewModel
             _cudaDownloadCts?.Dispose();
             _cudaDownloadCts = null;
             IsCudaDownloading = false;
+            IsCudaDownloadPaused = false;
             CudaDownloadProgress = 0;
             CudaDownloadProgressText = "";
             CudaDownloadSpeedText = "";
@@ -305,6 +320,26 @@ public partial class SmartBpModuleContentViewModel
     {
         _cudaDownloadCts?.Cancel();
         _paddleRuntimeComponentService.CancelDownload();
+    }
+
+    /// <summary>
+    /// 暂停当前 CUDA 依赖文件传输。
+    /// </summary>
+    [RelayCommand]
+    private void PauseCudaDownload()
+    {
+        _paddleRuntimeComponentService.PauseDownload();
+        _paddleCudaPrerequisiteSetupService.PauseDownload();
+    }
+
+    /// <summary>
+    /// 恢复当前 CUDA 依赖文件传输。
+    /// </summary>
+    [RelayCommand]
+    private void ResumeCudaDownload()
+    {
+        _paddleRuntimeComponentService.ResumeDownload();
+        _paddleCudaPrerequisiteSetupService.ResumeDownload();
     }
 
     /// <summary>
@@ -516,6 +551,7 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     private void OnCudaDownloadStateChanged()
     {
+        IsCudaDownloadPaused = _paddleRuntimeComponentService.IsDownloadPaused;
         if (_paddleRuntimeComponentService.IsDownloading && IsCudaDownloading)
             SetCudaDownloadStage("CudaStageDownloadingPaddleRuntime", true);
 
@@ -532,6 +568,7 @@ public partial class SmartBpModuleContentViewModel
     private void OnCudaPrerequisiteStateChanged()
     {
         var status = _paddleCudaPrerequisiteSetupService.Status;
+        IsCudaDownloadPaused = status.IsPaused;
         if (status.IsBusy)
         {
             var (stageKey, isTransferActive) = status.CurrentStep switch

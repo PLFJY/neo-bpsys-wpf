@@ -1001,13 +1001,15 @@ public sealed record SmartBpOcrContactSheetRegion(
 /// <param name="BytesPerSecond">估算下载速度。</param>
 /// <param name="Eta">估算剩余时间。</param>
 /// <param name="ErrorMessage">操作失败时的详细错误消息。</param>
+/// <param name="IsPaused">下载是否已暂停。</param>
 public record SmartBpDownloadState(bool IsDownloading, double? Progress, string Status,
     string? CurrentFileName = null,
     long? BytesReceived = null,
     long? TotalBytes = null,
     double? BytesPerSecond = null,
     TimeSpan? Eta = null,
-    string? ErrorMessage = null);
+    string? ErrorMessage = null,
+    bool IsPaused = false);
 
 /// <summary>描述一个可下载 Tesseract 语言数据资产。</summary>
 /// <param name="Language">Tesseract 语言标识。</param>

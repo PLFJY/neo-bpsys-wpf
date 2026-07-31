@@ -1,8 +1,6 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
-using Downloader;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -19,6 +17,8 @@ public enum WebRendererRuntimeSetupState
     FetchingRelease,
     /// <summary>正在下载 installer。</summary>
     Downloading,
+    /// <summary>installer 下载已暂停。</summary>
+    Paused,
     /// <summary>正在校验 installer 哈希。</summary>
     Verifying,
     /// <summary>正在执行静默安装（等待 UAC 确认与 installer 退出）。</summary>
@@ -52,6 +52,7 @@ public sealed record WebRendererRuntimeSetupStatus(
     /// </summary>
     public bool IsBusy => State is WebRendererRuntimeSetupState.FetchingRelease
         or WebRendererRuntimeSetupState.Downloading
+        or WebRendererRuntimeSetupState.Paused
         or WebRendererRuntimeSetupState.Verifying
         or WebRendererRuntimeSetupState.Installing;
 }
@@ -68,8 +69,11 @@ public sealed class WebRendererRuntimeSetupService
     private readonly WebRendererRuntimeReleaseFeed _releaseFeed;
     private readonly IGlobalRestartService _globalRestartService;
     private readonly ILogger<WebRendererRuntimeSetupService> _logger;
+    private readonly IFileDownloadService _fileDownloadService;
     private int _running;
     private WebRendererRuntimeSetupStatus _status = WebRendererRuntimeSetupStatus.Idle;
+    private IFileDownloadOperation? _currentDownload;
+    private CancellationTokenSource? _setupCancellation;
 
     /// <summary>
     /// 初始化 <see cref="WebRendererRuntimeSetupService"/>。
@@ -78,16 +82,19 @@ public sealed class WebRendererRuntimeSetupService
     /// <param name="releaseFeed">官方 release metadata 查询服务。</param>
     /// <param name="globalRestartService">全局重启状态服务。</param>
     /// <param name="logger">日志记录器。</param>
+    /// <param name="fileDownloadService">统一文件下载服务。</param>
     public WebRendererRuntimeSetupService(
         WebRendererRuntimeDetector runtimeDetector,
         WebRendererRuntimeReleaseFeed releaseFeed,
         IGlobalRestartService globalRestartService,
-        ILogger<WebRendererRuntimeSetupService> logger)
+        ILogger<WebRendererRuntimeSetupService> logger,
+        IFileDownloadService fileDownloadService)
     {
         _runtimeDetector = runtimeDetector;
         _releaseFeed = releaseFeed;
         _globalRestartService = globalRestartService;
         _logger = logger;
+        _fileDownloadService = fileDownloadService;
     }
 
     /// <summary>
@@ -100,6 +107,15 @@ public sealed class WebRendererRuntimeSetupService
     /// </summary>
     public event EventHandler? StatusChanged;
 
+    /// <summary>暂停 runtime installer 下载。</summary>
+    public void PauseDownload() => _currentDownload?.Pause();
+
+    /// <summary>恢复 runtime installer 下载。</summary>
+    public void ResumeDownload() => _currentDownload?.Resume();
+
+    /// <summary>取消安装引导流程并保留部分下载文件。</summary>
+    public void Cancel() => _setupCancellation?.Cancel();
+
     /// <summary>
     /// 执行完整的下载-校验-安装-重启标记流程。
     /// </summary>
@@ -109,12 +125,19 @@ public sealed class WebRendererRuntimeSetupService
     {
         if (Interlocked.CompareExchange(ref _running, 1, 0) != 0)
             return;
+        _setupCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         try
         {
-            await RunSetupCoreAsync(cancellationToken).ConfigureAwait(false);
+            await RunSetupCoreAsync(_setupCancellation.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (_setupCancellation.IsCancellationRequested)
+        {
+            SetStatus(WebRendererRuntimeSetupStatus.Idle);
         }
         finally
         {
+            _setupCancellation.Dispose();
+            _setupCancellation = null;
             _running = 0;
         }
     }
@@ -211,30 +234,35 @@ public sealed class WebRendererRuntimeSetupService
 
     private async Task DownloadInstallerAsync(WebRendererRuntimeReleaseInfo release, string installerPath, CancellationToken cancellationToken)
     {
-        var downloadOpt = new DownloadConfiguration
+        var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(
+            new Uri(release.DownloadUrl, UriKind.Absolute),
+            installerPath)
         {
-            ChunkCount = 8,
-            ParallelDownload = true,
-            MaxTryAgainOnFailure = 5,
-            ParallelCount = 6
-        };
-        using var downloader = new DownloadService(downloadOpt);
-        downloader.DownloadProgressChanged += (_, e) =>
-        {
-            var progress = e.ProgressPercentage;
-            if (progress >= 0)
-                SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Downloading, progress, release.Version, null));
-        };
-
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromMinutes(15));
+            UserAgent = "neo-bpsys-wpf"
+        });
+        _currentDownload = operation;
+        operation.StateChanged += OnStateChanged;
         try
         {
-            await downloader.DownloadFileTaskAsync(release.DownloadUrl, installerPath).ConfigureAwait(false);
+            await operation.StartAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        finally
         {
-            throw new TimeoutException("下载超时（15 分钟）。");
+            operation.StateChanged -= OnStateChanged;
+            if (ReferenceEquals(_currentDownload, operation))
+                _currentDownload = null;
+        }
+
+        void OnStateChanged(object? sender, EventArgs args)
+        {
+            var state = operation.State == FileDownloadState.Paused
+                ? WebRendererRuntimeSetupState.Paused
+                : WebRendererRuntimeSetupState.Downloading;
+            SetStatus(new WebRendererRuntimeSetupStatus(
+                state,
+                operation.Progress.Percentage ?? 0,
+                release.Version,
+                null));
         }
     }
 

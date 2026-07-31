@@ -49,6 +49,8 @@ public sealed class OcrService : IOcrService
     /// <inheritdoc />
     public bool IsDownloading => _paddle.IsDownloading;
     /// <inheritdoc />
+    public bool IsDownloadPaused => _paddle.IsDownloadPaused;
+    /// <inheritdoc />
     public double? DownloadProgress => _paddle.DownloadProgress;
     /// <inheritdoc />
     public string DownloadStatusText => _paddle.DownloadStatusText;
@@ -103,6 +105,10 @@ public sealed class OcrService : IOcrService
         _paddle.DownloadModelAsync(modelKey, cancellationToken);
     /// <inheritdoc />
     public void CancelDownload() => _paddle.CancelDownload();
+    /// <inheritdoc />
+    public void PauseDownload() => _paddle.PauseDownload();
+    /// <inheritdoc />
+    public void ResumeDownload() => _paddle.ResumeDownload();
     /// <inheritdoc />
     public bool TryDeleteModel(string modelKey, out string errorMessage) =>
         _paddle.TryDeleteModel(modelKey, out errorMessage);

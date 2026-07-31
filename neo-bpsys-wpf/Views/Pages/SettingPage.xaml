@@ -23,6 +23,7 @@
     mc:Ignorable="d">
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
         <cv:LatencyToBrushConverter x:Key="LatencyToBrushConverter" />
         <Style x:Key="Title" TargetType="TextBlock">
@@ -202,11 +203,12 @@
                             <StackPanel
                                 Margin="10,0,0,0"
                                 Orientation="Horizontal"
-                                Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                Visibility="{Binding IsUpdateDownloadProgressVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <ui:ProgressRing
                                     Width="26"
                                     Height="26"
-                                    IsIndeterminate="True" />
+                                    IsIndeterminate="True"
+                                    Visibility="{Binding IsDownloadPaused, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                                 <ProgressBar
                                     Width="175"
                                     Height="20"
@@ -224,13 +226,38 @@
                                     d:Text="10.00 Mb/s"
                                     Text="{Binding MbPerSecondSpeed}" />
                                 <ui:Button
-                                    Margin="10,10,0,0"
+                                    Margin="10,0,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                    Command="{Binding PauseDownloadCommand}"
+                                    Content="{lex:Loc PauseDownload}"
+                                    Icon="{ui:SymbolIcon Symbol=Pause24}"
+                                    Visibility="{Binding IsDownloadPaused, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                    Command="{Binding ResumeDownloadCommand}"
+                                    Content="{lex:Loc ResumeDownload}"
+                                    Icon="{ui:SymbolIcon Symbol=Play24}"
+                                    Visibility="{Binding IsDownloadPaused, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
                                     HorizontalAlignment="Left"
                                     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
                                     Command="{Binding CancelDownloadCommand}"
                                     Content="{lex:Loc Stop}"
                                     Icon="{ui:SymbolIcon Symbol=Stop24}"
                                     Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </StackPanel>
+                            <StackPanel
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal"
+                                Visibility="{Binding IsUpdateHashVerificationVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <ui:SymbolIcon Symbol="ShieldCheckmark24" />
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="{lex:Loc AppUpdateVerifyingHash}" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>

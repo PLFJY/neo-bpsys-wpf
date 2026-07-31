@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -5,6 +6,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Services;
 using neo_bpsys_wpf.Core.Services.Archives;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
@@ -48,6 +50,14 @@ public partial class App
 
         // TaskBar manipulation
         services.AddSingleton<ITaskBarService, TaskBarService>();
+
+        services.AddHttpClient("FileDownloads", client => client.Timeout = Timeout.InfiniteTimeSpan);
+        services.AddSingleton<IFileDownloadService>(serviceProvider =>
+        {
+            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+            return new FileDownloadService(
+                () => httpClientFactory.CreateClient("FileDownloads"));
+        });
 
         //UpdaterService
         services.AddSingleton<IUpdaterService, UpdaterService>();

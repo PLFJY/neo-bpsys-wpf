@@ -1025,4 +1025,7 @@
   <data name="DoNotAskGameStateSaveDirectoryAgain">
     <value>是否不再询问保存路径？</value>
   </data>
+  <data name="QueuePaused">
+    <value>下载已暂停</value>
+  </data>
 </root>

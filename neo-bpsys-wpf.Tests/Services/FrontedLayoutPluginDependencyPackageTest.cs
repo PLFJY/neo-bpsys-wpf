@@ -1146,6 +1146,8 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
 
         public bool IsDownloading => false;
 
+        public bool IsDownloadPaused => false;
+
         public bool IsDownloadFinished => _completedDownloads.Count > 0;
 
         public double DownloadProgress => 0;
@@ -1211,6 +1213,22 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         }
 
         public void CancelDownload(string queueId)
+        {
+        }
+
+        public void PauseDownload()
+        {
+        }
+
+        public void ResumeDownload()
+        {
+        }
+
+        public void PauseDownload(string queueId)
+        {
+        }
+
+        public void ResumeDownload(string queueId)
         {
         }
 

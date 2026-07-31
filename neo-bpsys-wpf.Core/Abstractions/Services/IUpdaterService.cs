@@ -16,13 +16,17 @@ public interface IUpdaterService
     /// </summary>
     ReleaseInfo NewVersionInfo { get; set; }
     /// <summary>
-    /// 下载器对象
-    /// </summary>
-    object Downloader { get; }
-    /// <summary>
     /// 当前是否正在下载更新。
     /// </summary>
     bool IsDownloading { get; }
+    /// <summary>
+    /// 当前更新下载是否已暂停。
+    /// </summary>
+    bool IsDownloadPaused { get; }
+    /// <summary>
+    /// 当前是否正在校验更新安装包的 SHA-256 哈希。
+    /// </summary>
+    bool IsVerifyingHash { get; }
     /// <summary>
     /// 当前下载进度（0-100）。
     /// </summary>
@@ -49,6 +53,14 @@ public interface IUpdaterService
     /// 取消当前更新下载。
     /// </summary>
     void CancelDownload();
+    /// <summary>
+    /// 暂停当前更新下载。
+    /// </summary>
+    void PauseDownload();
+    /// <summary>
+    /// 恢复当前更新下载。
+    /// </summary>
+    void ResumeDownload();
     /// <summary>
     /// 安装更新
     /// </summary> 

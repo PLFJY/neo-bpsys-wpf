@@ -64,7 +64,8 @@ sidecar 是 framework-dependent 的 `net10.0` 应用，不携带 runtime。`WebR
 | 阶段 | 行为 |
 | --- | --- |
 | `FetchingRelease` | `WebRendererRuntimeReleaseFeed` 查询 Microsoft 官方 release metadata，解析最新 10.0.x 版本、win-x64 installer 直链与 SHA-512；网络失败时回退到内置常量 `KnownFallbackVersion`（当前 `10.0.10`）与稳定 CDN URL pattern |
-| `Downloading` | 使用 `Downloader` 包并行分片下载到 `%TEMP%\neo-bpsys-wpf_WebRenderer\`，实时回传进度 |
+| `Downloading` | 通过宿主 `IFileDownloadService` 下载到 `%TEMP%\neo-bpsys-wpf_WebRenderer\`，实时回传进度并支持暂停、取消后续传 |
+| `Paused` | 下载已暂停，保留分片；继续后从已有字节恢复 |
 | `Verifying` | 若 release metadata 提供 SHA-512，使用 `SHA512.HashDataAsync` 校验；hash 缺失则跳过并记录 warning |
 | `Installing` | 以 `/quiet /norestart` 参数、`Verb=runas`（UAC 提升）唤起 installer 静默安装；UAC 拒绝或退出码非 0 时回退为手动安装引导 |
 | `AwaitingRestart` | 设置 `IGlobalRestartService.IsRestartRequired = true`，应用标题栏出现"需要重启"按钮，由用户点击触发 `App.Current.Restart()` |
