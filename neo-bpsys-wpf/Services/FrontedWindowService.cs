@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using WPFLocalizeExtension.Extensions;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -210,9 +211,25 @@ public class FrontedWindowService : IFrontedWindowService
             _services.GetRequiredService<IFrontedRenderer>(),
             _services.GetRequiredService<ISharedDataService>(),
             _services.GetService<IFrontedBehaviorRuntime>(),
-            _services.GetService<ILogger<FrontedWindowBase>>(),
-            _services.GetService<ISettingsHostService>());
+            _services.GetService<ILogger<FrontedWindowBase>>());
+
+        BindBuiltInV3WindowTitle(window, registration);
         return window;
+    }
+
+    private static void BindBuiltInV3WindowTitle(
+        FrontedWindowBase window,
+        FrontedWindowRegistration registration)
+    {
+        if (!registration.IsBuiltIn)
+        {
+            return;
+        }
+
+        var localizationKey =
+            $"neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:Designer.Window.{registration.LocalId}";
+        var titleLocalization = new LocExtension(localizationKey);
+        _ = titleLocalization.SetBinding(window, Window.TitleProperty);
     }
 
     /// <summary>
