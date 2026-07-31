@@ -76,7 +76,7 @@ Designer v3 中通过 Resource Browser 选择 Canvas 背景、`ScoreGlobalWindow
 
 的导入校验会拒绝跨包资源引用和 `bpui://local/...` 引用。包 `package-a` 中的布局可以引用 `bpui://package-a/...`、`Resources/...`、`pack://application:,,,/...`；不应引用 `bpui://package-b/...`。导出前存在的 `bpui://local/...` 必须重写为导出包自己的 `PackageId`。导入安装时资源保持在 `%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/resources/`，不会合并到共享目录。
 
-的 legacy `.bpui` 转换会把旧 `CustomUi/` 中的图片复制到转换后包的 `resources/images/`，并在 manifest 的 `Content.Resources` 中记录 `Kind = Image` 和 `Sha256`。如果旧 `Config.json` 的明确前台图片字段指向这些文件，转换后的布局会改写为 `bpui://{PackageId}/resources/images/...`；缺失或无法安全映射的旧资源只产生 warning，不写入全局 `CustomUi`。明确映射为背景图或控件 UI 图的 PNG/JPEG 如果超过对应图片安全阈值，会在转换暂存区使用 SkiaSharp 等比缩放、重编码，压缩完成后再计算资源文件名和 SHA256，并通过转换警告提示压缩前后体积；源 `.bpui` 不会被修改。普通 manifest-based v3 包导入仍只做校验，不在读取/安装时静默重写资源。
+的 legacy `.bpui` 转换会把旧 `CustomUi/` 中的图片复制到转换后包的 `resources/images/`，并在 manifest 的 `Content.Resources` 中记录 `Kind = Image` 和 `Sha256`。如果旧 `Config.json` 的明确前台图片字段指向这些文件，转换后的布局会改写为 `bpui://{PackageId}/resources/images/...`；缺失或无法安全映射的旧资源只产生 warning，不写入全局 `CustomUi`。明确映射为背景图或控件 UI 图的 PNG/JPEG 如果超过对应图片安全阈值，会在转换暂存区使用 SkiaSharp 等比缩放、重编码，压缩完成后再计算资源文件名和 SHA256，并通过转换警告提示压缩前后体积；源 `.bpui` 不会被修改。普通 manifest-based v3 包导入默认仍只做校验：当任一图片因体积或像素尺寸超限而导入失败时，界面会汇总所有超限图片并提供“压缩后导入”选项；只有用户确认后，才在临时导入副本中以 SkiaSharp 压缩全部超限图片、更新 manifest 中受影响资源的 SHA256 并安装，源 `.bpui` 不会被修改。
 
 ## Assets 与字体
 

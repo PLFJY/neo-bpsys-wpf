@@ -16,7 +16,7 @@ public sealed class FrontedImageCompressionService
 
     /// <summary>
     /// 当图片超过指定用途的安全阈值时，就地压缩该图片。
-    /// 当前仅重编码 PNG、JPEG 和 JPG；其他格式保持原文件不变。
+    /// 支持 PNG、JPEG、BMP、GIF、WebP 和 ICO；不能被 SkiaSharp 安全重编码的格式保持原文件不变。
     /// </summary>
     /// <param name="path">导入暂存区中的图片路径。</param>
     /// <param name="purpose">图片用途，用于选择文件体积和像素阈值。</param>
@@ -33,6 +33,10 @@ public sealed class FrontedImageCompressionService
         {
             ".png" => SKEncodedImageFormat.Png,
             ".jpg" or ".jpeg" => SKEncodedImageFormat.Jpeg,
+            ".bmp" => SKEncodedImageFormat.Bmp,
+            ".gif" => SKEncodedImageFormat.Gif,
+            ".webp" => SKEncodedImageFormat.Webp,
+            ".ico" => SKEncodedImageFormat.Ico,
             _ => (SKEncodedImageFormat?)null
         };
         if (format is null)
@@ -169,7 +173,7 @@ public sealed class FrontedImageCompressionService
     }
 
     private static IEnumerable<int> GetQualitySteps(SKEncodedImageFormat format) =>
-        format == SKEncodedImageFormat.Jpeg ? JpegQualitySteps : [100];
+        format is SKEncodedImageFormat.Jpeg or SKEncodedImageFormat.Webp ? JpegQualitySteps : [100];
 
     private static SKBitmap? Resize(SKBitmap source, int width, int height)
     {

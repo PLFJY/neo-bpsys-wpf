@@ -211,6 +211,18 @@
   <data name="PackageImportFailed">
     <value>Layout package import failed</value>
   </data>
+  <data name="PackageImageCompressionTitle">
+    <value>Compress package images</value>
+  </data>
+  <data name="PackageImageCompressionMessage">
+    <value>{0} image(s) in the package exceed the import limits. Compress them in a temporary copy and continue importing?</value>
+  </data>
+  <data name="CompressAndImportPackage">
+    <value>Compress and import</value>
+  </data>
+  <data name="PackageImagesCompressed">
+    <value>{0} oversized package image(s) were compressed before import.</value>
+  </data>
   <data name="PackageAlreadyExists">
     <value>Package already exists</value>
   </data>

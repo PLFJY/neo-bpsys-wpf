@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
@@ -190,13 +191,21 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             NavigateToLayoutPackageManager();
             var successMessage =
                 $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageActivatedInstalled")}: {result.PackageId}";
-            if (string.IsNullOrWhiteSpace(conversionWarning))
+            var imageCompressionWarning = result.CompressedImages.Count == 0
+                ? null
+                : string.Format(
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImagesCompressed"),
+                    result.CompressedImages.Count);
+            var warnings = new[] { conversionWarning, imageCompressionWarning }
+                .Where(warning => !string.IsNullOrWhiteSpace(warning));
+            var warningMessage = string.Join(Environment.NewLine, warnings!);
+            if (string.IsNullOrWhiteSpace(warningMessage))
             {
                 _infoBarService.ShowSuccessInfoBar(successMessage);
             }
             else
             {
-                _infoBarService.ShowWarningInfoBar($"{successMessage}{Environment.NewLine}{conversionWarning}");
+                _infoBarService.ShowWarningInfoBar($"{successMessage}{Environment.NewLine}{warningMessage}");
             }
 
             return new BpuiFileActivationResult(true, result.PackageId, null);
@@ -217,13 +226,8 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         string packagePath,
         CancellationToken cancellationToken)
     {
-        var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-        {
-            PackagePath = packagePath,
-            ReplaceExisting = true,
-            ActivateAfterImport = true,
-            PreserveMissingPlugins = true
-        }, cancellationToken);
+        var result = await ImportWithOptionalImageCompressionAsync(packagePath, cancellationToken);
+
         if (!result.IsLegacyPackage)
         {
             return (result, null);
@@ -253,17 +257,51 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             }, null);
         }
 
-        var imported = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-        {
-            PackagePath = convertResult.ConvertedPackagePath,
-            ReplaceExisting = true,
-            ActivateAfterImport = true,
-            PreserveMissingPlugins = true
-        }, cancellationToken);
+        var imported = await ImportWithOptionalImageCompressionAsync(
+            convertResult.ConvertedPackagePath,
+            cancellationToken);
         var conversionWarning = LegacyConversionMessageFormatter.HasUserFacingWarnings(convertResult)
             ? LegacyConversionMessageFormatter.BuildUserSummary(convertResult)
             : null;
         return (imported, conversionWarning);
+    }
+
+    private async Task<FrontedLayoutPackageImportResult> ImportWithOptionalImageCompressionAsync(
+        string packagePath,
+        CancellationToken cancellationToken)
+    {
+        var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        {
+            PackagePath = packagePath,
+            ReplaceExisting = true,
+            ActivateAfterImport = true,
+            PreserveMissingPlugins = true
+        }, cancellationToken);
+        if (!result.HasOversizedImages)
+        {
+            return result;
+        }
+
+        var compress = await MessageBoxHelper.ShowConfirmAsync(
+            string.Format(
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImageCompressionMessage"),
+                result.OversizedImages.Count),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImageCompressionTitle"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CompressAndImportPackage"),
+            I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
+        if (!compress)
+        {
+            return result;
+        }
+
+        return await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        {
+            PackagePath = packagePath,
+            ReplaceExisting = true,
+            ActivateAfterImport = true,
+            PreserveMissingPlugins = true,
+            CompressOversizedImages = true
+        }, cancellationToken);
     }
 
     private void LogLegacyConversion(FrontedLayoutPackageLegacyConvertResult convertResult, string packageId)

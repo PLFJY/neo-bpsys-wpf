@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -25,6 +26,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private readonly ILogger<FrontedLayoutPackageImporter> _logger;
     private readonly FrontedLayoutValidator _validator;
     private readonly IFrontedImageSafetyService _imageSafetyService;
+    private readonly FrontedImageCompressionService _imageCompressionService;
     private readonly IFrontedV3ControlRegistry? _controlRegistry;
     private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -80,6 +82,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         _pluginMetadataProvider = pluginMetadataProvider;
         _validator = new FrontedLayoutValidator(controlRegistry);
         _imageSafetyService = new FrontedImageSafetyService();
+        _imageCompressionService = new FrontedImageCompressionService();
     }
 
     /// <summary>
@@ -105,12 +108,24 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 return Fail("PackageTooLarge");
             }
 
+            var oversizedArchiveImages = FindOversizedArchiveImages(request.PackagePath);
+            if (oversizedArchiveImages.Count > 0 && !request.CompressOversizedImages)
+            {
+                return new FrontedLayoutPackageImportResult
+                {
+                    Success = false,
+                    ErrorMessage = "OversizedPackageImages",
+                    OversizedImages = oversizedArchiveImages
+                };
+            }
+
             Directory.CreateDirectory(stagingRoot);
-            ExtractZipSafely(request.PackagePath, stagingRoot);
+            ExtractZipSafely(request.PackagePath, stagingRoot, request.CompressOversizedImages);
             var result = await ImportStagedDirectoryAsync(
                 stagingRoot,
                 request.ReplaceExisting,
                 request.ActivateAfterImport,
+                request.CompressOversizedImages,
                 cancellationToken);
             if (result.Success)
             {
@@ -162,7 +177,8 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 stagingRoot,
                 replaceExisting,
                 activateAfterImport,
-                cancellationToken);
+                compressOversizedImages: false,
+                cancellationToken: cancellationToken);
             if (result.Success)
             {
                 stagingRoot = string.Empty;
@@ -185,6 +201,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         string stagingRoot,
         bool replaceExisting,
         bool activateAfterImport,
+        bool compressOversizedImages,
         CancellationToken cancellationToken)
     {
         var manifestPath = Path.Combine(stagingRoot, ManifestFileName);
@@ -213,7 +230,11 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 : Fail($"Invalid package manifest: {ex.Message}");
         }
 
-        var validation = await ValidatePackageAsync(stagingRoot, manifest, cancellationToken);
+        var validation = await ValidatePackageAsync(
+            stagingRoot,
+            manifest,
+            compressOversizedImages,
+            cancellationToken);
         if (!validation.Success)
         {
             return validation;
@@ -268,7 +289,8 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             LayoutCount = manifest.Content.Layouts.Count,
             ResourceCount = manifest.Content.Resources.Count,
             MissingPluginControls = missingPluginControls,
-            UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies
+            UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies,
+            CompressedImages = validation.CompressedImages
         };
     }
 
@@ -301,6 +323,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private async Task<FrontedLayoutPackageImportResult> ValidatePackageAsync(
         string stagingRoot,
         FrontedLayoutPackageManifest? manifest,
+        bool compressOversizedImages,
         CancellationToken cancellationToken)
     {
         if (manifest is null)
@@ -454,6 +477,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             }
         }
 
+        var oversizedImages = new List<FrontedLayoutPackageImageIssue>();
         foreach (var resource in manifest.Content.Resources)
         {
             if (!IsSafeRelativePath(resource.Path))
@@ -476,6 +500,19 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                     knownUiImage: false);
                 if (!validation.IsValid)
                 {
+                    if (validation.ErrorCode is "ImageTooLarge" or "ImageTooManyPixels")
+                    {
+                        oversizedImages.Add(new FrontedLayoutPackageImageIssue
+                        {
+                            ResourcePath = resource.Path,
+                            ErrorCode = validation.ErrorCode,
+                            FileBytes = validation.FileBytes,
+                            PixelWidth = validation.PixelWidth,
+                            PixelHeight = validation.PixelHeight
+                        });
+                        continue;
+                    }
+
                     return Fail(validation.ErrorCode ?? "InvalidImageResource");
                 }
             }
@@ -486,7 +523,102 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             }
         }
 
-        return new FrontedLayoutPackageImportResult { Success = true };
+        if (oversizedImages.Count == 0)
+        {
+            return new FrontedLayoutPackageImportResult { Success = true };
+        }
+
+        if (!compressOversizedImages)
+        {
+            return new FrontedLayoutPackageImportResult
+            {
+                Success = false,
+                ErrorMessage = "OversizedPackageImages",
+                OversizedImages = oversizedImages
+            };
+        }
+
+        var compressedImages = await Task.Run(
+            () => CompressOversizedImages(stagingRoot, manifest.Content.Resources, oversizedImages, cancellationToken),
+            cancellationToken);
+        if (compressedImages is null)
+        {
+            return new FrontedLayoutPackageImportResult
+            {
+                Success = false,
+                ErrorMessage = "PackageImageCompressionFailed",
+                OversizedImages = oversizedImages
+            };
+        }
+
+        foreach (var issue in oversizedImages)
+        {
+            var resourcePath = CombineInsideRoot(stagingRoot, issue.ResourcePath);
+            var validation = _imageSafetyService.ValidateFile(
+                resourcePath,
+                FrontedImagePurpose.PackageResource,
+                knownBackgroundImage: false,
+                knownUiImage: false);
+            if (!validation.IsValid)
+            {
+                return new FrontedLayoutPackageImportResult
+                {
+                    Success = false,
+                    ErrorMessage = validation.ErrorCode ?? "PackageImageCompressionFailed",
+                    OversizedImages = [issue]
+                };
+            }
+        }
+
+        await File.WriteAllTextAsync(
+            Path.Combine(stagingRoot, ManifestFileName),
+            JsonSerializer.Serialize(manifest, _jsonSerializerOptions),
+            cancellationToken);
+
+        return new FrontedLayoutPackageImportResult
+        {
+            Success = true,
+            CompressedImages = compressedImages
+        };
+    }
+
+    private List<FrontedLayoutPackageImageCompression>? CompressOversizedImages(
+        string stagingRoot,
+        IEnumerable<FrontedLayoutPackageResourceEntry> resources,
+        IEnumerable<FrontedLayoutPackageImageIssue> issues,
+        CancellationToken cancellationToken)
+    {
+        var resourcesByPath = resources.ToDictionary(resource => resource.Path, StringComparer.OrdinalIgnoreCase);
+        var results = new List<FrontedLayoutPackageImageCompression>();
+        foreach (var issue in issues)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var resourcePath = CombineInsideRoot(stagingRoot, issue.ResourcePath);
+            var compression = _imageCompressionService.CompressIfNeeded(
+                resourcePath,
+                FrontedImagePurpose.PackageResource);
+            if (!compression.WasCompressed
+                || !resourcesByPath.TryGetValue(issue.ResourcePath, out var resource))
+            {
+                return null;
+            }
+
+            resource.Sha256 = ComputeSha256(resourcePath);
+            results.Add(new FrontedLayoutPackageImageCompression
+            {
+                ResourcePath = resource.Path,
+                OriginalBytes = compression.OriginalBytes,
+                CompressedBytes = compression.CompressedBytes
+            });
+        }
+
+        return results;
+    }
+
+    private static string ComputeSha256(string path)
+    {
+        using var stream = File.OpenRead(path);
+        return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
     }
 
     private static string? ValidateManifestTextLengths(FrontedLayoutPackageManifest manifest)
@@ -627,7 +759,51 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                || propertyName.EndsWith("BorderImagePath", StringComparison.Ordinal);
     }
 
-    private static void ExtractZipSafely(string zipPath, string stagingRoot)
+    private List<FrontedLayoutPackageImageIssue> FindOversizedArchiveImages(string zipPath)
+    {
+        using var archive = ZipFile.OpenRead(zipPath);
+        var manifestEntry = archive.Entries.FirstOrDefault(entry =>
+            string.Equals(entry.FullName, ManifestFileName, StringComparison.OrdinalIgnoreCase));
+        if (manifestEntry is null || manifestEntry.Length > FrontedLayoutLimits.MaxManifestBytes)
+        {
+            return [];
+        }
+
+        FrontedLayoutPackageManifest? manifest;
+        try
+        {
+            using var stream = manifestEntry.Open();
+            manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(stream, _jsonSerializerOptions);
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+
+        if (manifest is null)
+        {
+            return [];
+        }
+
+        var imageResourcePaths = manifest.Content.Resources
+            .Select(resource => resource.Path.Replace('\\', '/'))
+            .Where(IsImageResource)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return archive.Entries
+            .Select(entry => new { Entry = entry, Path = entry.FullName.Replace('\\', '/') })
+            .Where(item => imageResourcePaths.Contains(item.Path)
+                           && item.Entry.Length > FrontedLayoutLimits.MaxPackageSingleEntryBytes)
+            .Select(item => new FrontedLayoutPackageImageIssue
+            {
+                ResourcePath = item.Path,
+                ErrorCode = "ImageTooLarge",
+                FileBytes = item.Entry.Length
+            })
+            .ToList();
+    }
+
+    private static void ExtractZipSafely(string zipPath, string stagingRoot, bool allowImageCompression)
     {
         if (new FileInfo(zipPath).Length > FrontedLayoutLimits.MaxPackageArchiveBytes)
         {
@@ -644,7 +820,18 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         long totalUncompressedBytes = 0;
         foreach (var entry in archive.Entries)
         {
-            if (entry.Length > FrontedLayoutLimits.MaxPackageSingleEntryBytes)
+            var entryName = entry.FullName.Replace('\\', '/');
+            if (string.IsNullOrWhiteSpace(entryName)
+                || Path.IsPathRooted(entryName)
+                || entryName.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(segment => segment is "." or ".."))
+            {
+                throw new InvalidDataException($"Unsafe zip entry: {entry.FullName}");
+            }
+
+            var maxEntryBytes = allowImageCompression && IsImageResource(entryName)
+                ? FrontedLayoutLimits.MaxCompressiblePackageImageSourceBytes
+                : FrontedLayoutLimits.MaxPackageSingleEntryBytes;
+            if (entry.Length > maxEntryBytes)
             {
                 throw new InvalidDataException("PackageEntryTooLarge");
             }
@@ -653,14 +840,6 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             if (totalUncompressedBytes > FrontedLayoutLimits.MaxPackageExtractedBytes)
             {
                 throw new InvalidDataException("PackageExtractedTooLarge");
-            }
-
-            var entryName = entry.FullName.Replace('\\', '/');
-            if (string.IsNullOrWhiteSpace(entryName)
-                || Path.IsPathRooted(entryName)
-                || entryName.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(segment => segment is "." or ".."))
-            {
-                throw new InvalidDataException($"Unsafe zip entry: {entry.FullName}");
             }
 
             if (IsForbiddenPluginPayloadEntry(entryName))

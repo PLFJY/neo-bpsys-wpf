@@ -43,5 +43,6 @@ public static class FrontedLayoutLimits
     public const long MaxPackageArchiveBytes = 50 * 1024 * 1024;
     public const long MaxPackageExtractedBytes = 100 * 1024 * 1024;
     public const long MaxPackageSingleEntryBytes = 10 * 1024 * 1024;
+    public const long MaxCompressiblePackageImageSourceBytes = MaxPackageArchiveBytes;
     public const int MaxPackageEntries = 1000;
 }

@@ -1847,11 +1847,6 @@
                                     Opacity="0.78"
                                     Text="{Binding CanvasPropertiesStatus}"
                                     TextWrapping="Wrap" />
-                                <ui:HyperlinkButton
-                                    Margin="0,4,0,0"
-                                    Content="https://docsmall.com/image-compress"
-                                    NavigateUri="https://docsmall.com/image-compress"
-                                    Visibility="{Binding IsCanvasImageCompressionLinkVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             </StackPanel>
                         </Expander>
                         <Expander
@@ -1988,11 +1983,6 @@
                             Content="{lex:Loc Fit}"
                             ToolTip="{lex:Loc Fit}" />
                     </StackPanel>
-                    <ui:HyperlinkButton
-                        Margin="0,4,0,0"
-                        Content="https://docsmall.com/image-compress"
-                        NavigateUri="https://docsmall.com/image-compress"
-                        Visibility="{Binding IsStatusImageCompressionLinkVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
                 <StackPanel
                     Grid.Column="2"

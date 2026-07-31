@@ -211,6 +211,18 @@
   <data name="PackageImportFailed">
     <value>布局包导入失败</value>
   </data>
+  <data name="PackageImageCompressionTitle">
+    <value>压缩包内图片</value>
+  </data>
+  <data name="PackageImageCompressionMessage">
+    <value>包内有 {0} 张图片超过导入限制。是否在不修改源 BPUI 文件的情况下压缩这些图片后继续导入？</value>
+  </data>
+  <data name="CompressAndImportPackage">
+    <value>压缩并导入</value>
+  </data>
+  <data name="PackageImagesCompressed">
+    <value>包内 {0} 张图片体积或尺寸过大，已压缩后导入。</value>
+  </data>
   <data name="PackageAlreadyExists">
     <value>布局包已存在</value>
   </data>

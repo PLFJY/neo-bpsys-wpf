@@ -27,6 +27,12 @@ public sealed class FrontedLayoutPackageImportRequest
     /// 保留的插件控件在设计器中显示为占位符，并在运行时渲染时跳过。
     /// </summary>
     public bool PreserveMissingPlugins { get; set; } = true;
+
+    /// <summary>
+    /// 指示是否允许在导入暂存副本中压缩所有超出图片安全限制的资源后重试导入。
+    /// 源 <c>.bpui</c> 文件不会被修改。
+    /// </summary>
+    public bool CompressOversizedImages { get; set; }
 }
 
 /// <summary>
@@ -80,6 +86,22 @@ public sealed class FrontedLayoutPackageImportResult
     public bool PackageAlreadyExists { get; set; }
 
     /// <summary>
+    /// 因文件体积或像素尺寸超出导入限制而未能直接导入的图片资源。
+    /// 调用方可征得用户确认后，以 <see cref="FrontedLayoutPackageImportRequest.CompressOversizedImages"/> 重试。
+    /// </summary>
+    public List<FrontedLayoutPackageImageIssue> OversizedImages { get; set; } = [];
+
+    /// <summary>
+    /// 指示导入是否因超限图片而提供了压缩重试选项。
+    /// </summary>
+    public bool HasOversizedImages => OversizedImages.Count > 0;
+
+    /// <summary>
+    /// 此次导入中已在暂存副本压缩的图片资源。
+    /// </summary>
+    public List<FrontedLayoutPackageImageCompression> CompressedImages { get; set; } = [];
+
+    /// <summary>
     /// 指示包是否包含其插件缺失的控件。
     /// </summary>
     public bool HasMissingPluginControls => MissingPluginControls.Count > 0;
@@ -99,6 +121,58 @@ public sealed class FrontedLayoutPackageImportResult
     /// </summary>
     public List<FrontedLayoutPackagePluginDependencyIssue> UnsatisfiedPluginDependencies { get; set; } = [];
 
+}
+
+/// <summary>
+/// 描述一个因安全限制而无法直接导入的包内图片资源。
+/// </summary>
+public sealed class FrontedLayoutPackageImageIssue
+{
+    /// <summary>
+    /// 包内资源的相对路径。
+    /// </summary>
+    public string ResourcePath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 图片校验失败代码。
+    /// </summary>
+    public string ErrorCode { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 图片文件的字节数。
+    /// </summary>
+    public long FileBytes { get; set; }
+
+    /// <summary>
+    /// 图片像素宽度；无法读取时为零。
+    /// </summary>
+    public int PixelWidth { get; set; }
+
+    /// <summary>
+    /// 图片像素高度；无法读取时为零。
+    /// </summary>
+    public int PixelHeight { get; set; }
+}
+
+/// <summary>
+/// 描述一次包内图片压缩的结果。
+/// </summary>
+public sealed class FrontedLayoutPackageImageCompression
+{
+    /// <summary>
+    /// 包内资源的相对路径。
+    /// </summary>
+    public string ResourcePath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 压缩前的文件字节数。
+    /// </summary>
+    public long OriginalBytes { get; set; }
+
+    /// <summary>
+    /// 压缩后的文件字节数。
+    /// </summary>
+    public long CompressedBytes { get; set; }
 }
 
 /// <summary>

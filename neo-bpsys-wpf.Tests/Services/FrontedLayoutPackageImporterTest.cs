@@ -7,9 +7,11 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.V3.Properties;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
+using SkiaSharp;
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
@@ -204,6 +206,96 @@ public sealed class FrontedLayoutPackageImporterTest
         }
     }
 
+    /// <summary>
+    /// 验证包内所有超出尺寸限制的图片都会在用户确认后压缩，而不是只处理遇到的第一张。
+    /// </summary>
+    [Fact]
+    public async Task Import_WithConfirmedImageCompression_CompressesEveryOversizedImage()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "oversized-images.bpui");
+            var firstImage = CreateSolidPng(5000, 1000, SKColors.CornflowerBlue);
+            var secondImage = CreateSolidPng(4500, 1200, SKColors.OrangeRed);
+            using (var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+                {
+                    PackageId = "oversized-images",
+                    Name = "Oversized Images",
+                    Content = new FrontedLayoutPackageManifestContent
+                    {
+                        Layouts =
+                        [
+                            new FrontedLayoutPackageLayoutEntry
+                            {
+                                Window = "BpWindow",
+                                Path = "FrontedLayouts/BpWindow.json"
+                            }
+                        ],
+                        Resources =
+                        [
+                            new FrontedLayoutPackageResourceEntry { Id = "first", Kind = "image", Path = "Resources/Images/first.png" },
+                            new FrontedLayoutPackageResourceEntry { Id = "second", Kind = "image", Path = "Resources/Images/second.png" }
+                        ]
+                    }
+                }));
+                WriteZipEntry(archive, "FrontedLayouts/BpWindow.json", """
+                    {
+                      "Version": 3,
+                      "CanvasSettings": { "CanvasWidth": 100, "CanvasHeight": 100 },
+                      "ControlLayout": { "RequiredPlugins": [], "Controls": {} }
+                    }
+                    """);
+                WriteZipEntry(archive, "Resources/Images/first.png", firstImage);
+                WriteZipEntry(archive, "Resources/Images/second.png", secondImage);
+            }
+
+            var packageRoot = Path.Combine(root, "packages");
+            var importer = CreateImporter(packageRoot, Path.Combine(root, "temp"));
+
+            var initial = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(initial.Success);
+            Assert.True(initial.HasOversizedImages);
+            Assert.Equal(2, initial.OversizedImages.Count);
+
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath,
+                CompressOversizedImages = true
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Equal(2, result.CompressedImages.Count);
+
+            var installedRoot = Path.Combine(packageRoot, "oversized-images");
+            var safety = new FrontedImageSafetyService();
+            foreach (var imagePath in new[] { "Resources/Images/first.png", "Resources/Images/second.png" })
+            {
+                var installedImagePath = Path.Combine(installedRoot, imagePath);
+                Assert.True(safety.ValidateFile(installedImagePath, FrontedImagePurpose.PackageResource).IsValid);
+            }
+
+            var manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(
+                await File.ReadAllTextAsync(Path.Combine(installedRoot, "manifest.json")))!;
+            foreach (var resource in manifest.Content.Resources)
+            {
+                var installedImagePath = Path.Combine(installedRoot, resource.Path);
+                var actualHash = Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(installedImagePath))).ToLowerInvariant();
+                Assert.Equal(actualHash, resource.Sha256);
+            }
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
     private static FrontedLayoutPackageImporter CreateImporter(string packageRoot, string tempRoot)
     {
         return new FrontedLayoutPackageImporter(
@@ -255,6 +347,22 @@ public sealed class FrontedLayoutPackageImporterTest
         using var stream = entry.Open();
         using var writer = new StreamWriter(stream);
         writer.Write(text);
+    }
+
+    private static void WriteZipEntry(ZipArchive archive, string entryName, byte[] content)
+    {
+        var entry = archive.CreateEntry(entryName);
+        using var stream = entry.Open();
+        stream.Write(content);
+    }
+
+    private static byte[] CreateSolidPng(int width, int height, SKColor color)
+    {
+        using var bitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Unpremul);
+        bitmap.Erase(color);
+        using var image = SKImage.FromBitmap(bitmap);
+        using var encoded = image.Encode(SKEncodedImageFormat.Png, 100);
+        return encoded.ToArray();
     }
 
     private static string CreateTempDirectory()

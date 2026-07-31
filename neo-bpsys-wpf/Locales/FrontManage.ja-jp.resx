@@ -208,6 +208,18 @@
   <data name="PackageImportFailed">
     <value>レイアウトパッケージのインポートに失敗しました</value>
   </data>
+  <data name="PackageImageCompressionTitle">
+    <value>パッケージ画像を圧縮</value>
+  </data>
+  <data name="PackageImageCompressionMessage">
+    <value>パッケージ内の {0} 件の画像がインポート制限を超えています。元の BPUI ファイルを変更せずに圧縮してからインポートしますか？</value>
+  </data>
+  <data name="CompressAndImportPackage">
+    <value>圧縮してインポート</value>
+  </data>
+  <data name="PackageImagesCompressed">
+    <value>大きすぎるパッケージ画像 {0} 件を圧縮してからインポートしました。</value>
+  </data>
   <data name="PackageAlreadyExists">
     <value>パッケージは既に存在します</value>
   </data>
