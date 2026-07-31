@@ -1006,130 +1006,115 @@
                                 </UniformGrid>
                             </StackPanel>
                         </StackPanel>
-                        <TextBlock
-                            Grid.Row="1"
-                            Margin="0,16,0,0"
-                            FontSize="18"
-                            FontWeight="SemiBold"
-                            Text="{lex:Loc Properties}" />
-                        <ui:Button
-                            Grid.Row="1"
-                            Margin="0,8,0,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            Appearance="Secondary"
-                            Command="{Binding ApplyAppearanceToSameTypeCommand}"
-                            Content="{lex:Loc Designer.PropertyEditor.ApplyToSameType}"
-                            Icon="{ui:SymbolIcon Symbol=Copy24}"
-                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToSameType.ToolTip}">
-                            <ui:Button.Style>
-                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CanShowPeerStyleTransferButton}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:Button.Style>
-                        </ui:Button>
-                        <ui:Button
-                            Grid.Row="1"
-                            Margin="0,8,4,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            Appearance="Secondary"
-                            Command="{Binding ApplyParentStyleToChildrenCommand}"
-                            Icon="{ui:SymbolIcon Symbol=PaintBrush24}"
-                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToChildren}">
-                            <ui:Button.Style>
-                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:Button.Style>
-                        </ui:Button>
-                        <ui:Button
-                            Grid.Row="1"
-                            Margin="0,8,8,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            Appearance="Secondary"
-                            Command="{Binding ClearChildStyleOverridesCommand}"
-                            Icon="{ui:SymbolIcon Symbol=Eraser24}"
-                            ToolTip="{lex:Loc Designer.PropertyEditor.ClearChildOverrides}">
-                            <ui:Button.Style>
-                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:Button.Style>
-                        </ui:Button>
-                        <ui:Button
-                            Grid.Row="1"
-                            Margin="0,8,12,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            Appearance="Secondary"
-                            Command="{Binding ApplyLayoutTemplateCommand}"
-                            Icon="{ui:SymbolIcon Symbol=Table24}"
-                            ToolTip="{lex:Loc Designer.PropertyEditor.ApplyLayoutTemplate}">
-                            <ui:Button.Style>
-                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasLayoutTemplate}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
+                        <StackPanel Grid.Row="1" Margin="0,16,0,0">
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Text="{lex:Loc Properties}" />
+                            <WrapPanel Margin="0,8,0,0">
+                                <ui:Button
+                                    Margin="0,0,4,4"
+                                    Appearance="Secondary"
+                                    Command="{Binding ApplyAppearanceToSameTypeCommand}"
+                                    Content="{lex:Loc Designer.PropertyEditor.ApplyToSameType}"
+                                    Icon="{ui:SymbolIcon Symbol=Copy24}"
+                                    ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToSameType.ToolTip}">
+                                    <ui:Button.Style>
+                                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
                                             <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:Button.Style>
-                        </ui:Button>
-                        <ItemsControl
-                            Grid.Row="1"
-                            Margin="0,8,12,0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Bottom"
-                            ItemsSource="{Binding LayoutTemplates}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="{x:Type vm:FrontedV3LayoutTemplateViewModel}">
-                                    <ui:Button
-                                        Margin="4,0,0,0"
-                                        Appearance="Secondary"
-                                        Command="{Binding DataContext.ApplyLayoutTemplateByNameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                        CommandParameter="{Binding Id}"
-                                        Content="{Binding DisplayName}"
-                                        Icon="{ui:SymbolIcon Symbol=Table24}"
-                                        ToolTip="{Binding ToolTip}" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                            <ItemsControl.Style>
-                                <Style TargetType="{x:Type ItemsControl}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ItemsControl.Style>
-                        </ItemsControl>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding CanShowPeerStyleTransferButton}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:Button.Style>
+                                </ui:Button>
+                                <ui:Button
+                                    Margin="0,0,4,4"
+                                    Appearance="Secondary"
+                                    Command="{Binding ApplyParentStyleToChildrenCommand}"
+                                    Icon="{ui:SymbolIcon Symbol=PaintBrush24}"
+                                    ToolTip="{lex:Loc Designer.PropertyEditor.ApplyToChildren}">
+                                    <ui:Button.Style>
+                                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:Button.Style>
+                                </ui:Button>
+                                <ui:Button
+                                    Margin="0,0,4,4"
+                                    Appearance="Secondary"
+                                    Command="{Binding ClearChildStyleOverridesCommand}"
+                                    Icon="{ui:SymbolIcon Symbol=Eraser24}"
+                                    ToolTip="{lex:Loc Designer.PropertyEditor.ClearChildOverrides}">
+                                    <ui:Button.Style>
+                                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasChildAppearanceProperties}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:Button.Style>
+                                </ui:Button>
+                                <ui:Button
+                                    Margin="0,0,4,4"
+                                    Appearance="Secondary"
+                                    Command="{Binding ApplyLayoutTemplateCommand}"
+                                    Icon="{ui:SymbolIcon Symbol=Table24}"
+                                    ToolTip="{lex:Loc Designer.PropertyEditor.ApplyLayoutTemplate}">
+                                    <ui:Button.Style>
+                                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasLayoutTemplate}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:Button.Style>
+                                </ui:Button>
+                            </WrapPanel>
+                            <ItemsControl ItemsSource="{Binding LayoutTemplates}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:FrontedV3LayoutTemplateViewModel}">
+                                        <ui:Button
+                                            Margin="0,0,4,4"
+                                            Appearance="Secondary"
+                                            Command="{Binding DataContext.ApplyLayoutTemplateByNameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding Id}"
+                                            Content="{Binding DisplayName}"
+                                            Icon="{ui:SymbolIcon Symbol=Table24}"
+                                            ToolTip="{Binding ToolTip}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                                <ItemsControl.Style>
+                                    <Style TargetType="{x:Type ItemsControl}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasNamedLayoutTemplates}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ItemsControl.Style>
+                            </ItemsControl>
+                        </StackPanel>
                         <Grid Grid.Row="2" Margin="0,8,0,8">
 
                             <ItemsControl ItemsSource="{Binding PropertyEditorItems}">
