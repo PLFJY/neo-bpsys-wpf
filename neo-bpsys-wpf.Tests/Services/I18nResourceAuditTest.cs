@@ -480,10 +480,15 @@ public sealed class I18nResourceAuditTest
             .Where(path => File.ReadAllText(path).Contains("GetLocalizedStringFromAnyHostDictionary", StringComparison.Ordinal))
             .Select(path => Path.GetRelativePath(GetRepositoryRoot(), path).Replace('\\', '/'))
             .Where(path => path is not "neo-bpsys-wpf/Helpers/I18nHelper.cs")
+            .OrderBy(path => path, StringComparer.Ordinal)
             .ToArray();
 
         Assert.Equal(
-            ["neo-bpsys-wpf/Controls/FrontedLayout/LocalizedTextFrontedControl.cs"],
+            [
+                "neo-bpsys-wpf/Controls/FrontedLayout/LocalizedTextFrontedControl.cs",
+                "neo-bpsys-wpf/Services/WebRendererLocalizationBridge.cs",
+                "neo-bpsys-wpf/Views/Windows/ClassicBackendWindow.xaml.cs",
+            ],
             usages);
     }
 

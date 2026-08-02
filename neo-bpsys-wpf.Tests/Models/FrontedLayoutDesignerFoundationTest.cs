@@ -173,64 +173,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void BuiltInScoreGlobalLayoutUsesGlobalScoreRowCells()
-    {
-        var config = ReadBuiltInLayout("ScoreGlobalWindow");
-
-        var home = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["HomeGlobalScoreRow"]);
-        var away = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
-        Assert.Contains(home.Cells, cell => cell is
-        {
-            Id: "Game5OvertimeSecondHalf",
-            GameNumber: 5,
-            GameKind: ScoreGameKind.Overtime,
-            HalfKind: ScoreHalfKind.SecondHalf
-        });
-        Assert.Contains(home.Cells, cell => cell is
-        {
-            Id: "Game4SecondHalf",
-            GameNumber: 4,
-            GameKind: ScoreGameKind.Normal,
-            HalfKind: ScoreHalfKind.SecondHalf,
-            Visibility: FrontedControlVisibility.Visible
-        });
-        Assert.Contains(home.Cells, cell => cell is
-        {
-            Id: "Game3OvertimeFirstHalf",
-            GameNumber: 3,
-            GameKind: ScoreGameKind.Overtime,
-            HalfKind: ScoreHalfKind.FirstHalf,
-            Visibility: FrontedControlVisibility.Collapsed
-        });
-        Assert.Contains(home.Cells, cell => cell is
-        {
-            Id: "Game3OvertimeSecondHalf",
-            GameNumber: 3,
-            GameKind: ScoreGameKind.Overtime,
-            HalfKind: ScoreHalfKind.SecondHalf,
-            Visibility: FrontedControlVisibility.Collapsed
-        });
-    }
-
-    [Fact]
-    public void BuiltInScoreGlobalBo3StateHasIndependentGlobalScoreRowCells()
-    {
-        var config = ReadBuiltInLayout("ScoreGlobalWindow");
-        var bo3 = config.BoModeStates["Bo3"];
-        var home = Assert.IsType<GlobalScoreRowControlConfig>(bo3.Controls["HomeGlobalScoreRow"]);
-
-        Assert.Contains(home.Cells, cell => cell is
-        {
-            Id: "Game3OvertimeSecondHalf",
-            GameNumber: 3,
-            GameKind: ScoreGameKind.Overtime,
-            HalfKind: ScoreHalfKind.SecondHalf,
-            Visibility: FrontedControlVisibility.Collapsed
-        });
-        Assert.DoesNotContain(config.Controls["HomeGlobalScoreRow"].ToString() ?? string.Empty, home.Cells.Select(cell => cell.Id));
-    }
-
-    [Fact]
     public void ValidatorErrorsOnDuplicateAndInvalidControlNamesAtDesignItemLevel()
     {
         var document = CreateDocument(

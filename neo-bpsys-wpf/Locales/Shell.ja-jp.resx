@@ -1027,4 +1027,15 @@
   <data name="QueuePaused">
     <value>ダウンロードを一時停止しました</value>
   </data>
+  <data name="ImageFileTooLarge">
+    <value>画像ファイルが大きすぎます（{0}）。{1} 以下に圧縮する必要があります。</value>
+  </data>
+  <data name="ImageDimensionsTooLarge">
+    <value>画像サイズが大きすぎます（{0}×{1}）。長辺を {2} ピクセル以下に圧縮する必要があります。</value>
+  </data>
+  <data name="ImageCompressionTitle"><value>画像を圧縮</value></data>
+  <data name="ImageCompressionMessage"><value>{0} 圧縮して続行しますか？元画像は変更されません。</value></data>
+  <data name="CompressAndApplyImage"><value>圧縮して適用</value></data>
+  <data name="ImageCompressed"><value>大きすぎる画像を圧縮して適用しました。</value></data>
+  <data name="ImageCompressionFailed"><value>画像の圧縮に失敗したため、適用できませんでした。</value></data>
 </root>

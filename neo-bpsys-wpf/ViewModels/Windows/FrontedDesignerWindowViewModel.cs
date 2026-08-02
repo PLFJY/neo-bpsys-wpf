@@ -1270,10 +1270,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             var compress = await MessageBoxHelper.ShowConfirmAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressionMessage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionMessage"),
                     BuildImageValidationFailureMessage(validation)),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressionTitle"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CompressAndApplyImage"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionTitle"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "CompressAndApplyImage"),
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
             if (!compress)
             {
@@ -1307,7 +1307,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageFileTooLarge"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageFileTooLarge"),
                 FormatFileSize(validation.FileBytes),
                 FormatFileSize(FrontedLayoutLimits.MaxBackgroundImageBytes));
         }
@@ -1316,7 +1316,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageDimensionsTooLarge"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageDimensionsTooLarge"),
                 validation.PixelWidth,
                 validation.PixelHeight,
                 FrontedLayoutLimits.MaxBackgroundImageLongSide);
@@ -1409,7 +1409,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RecordPendingImportedResource(result, "AnimationPart ImagePath", wasApplied: true);
         if (result.WasCompressed)
         {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressed");
         }
 
         return true;
@@ -3013,7 +3013,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RecordPendingImportedResource(result, "Canvas BackgroundImage", applied);
         if (result.WasCompressed)
         {
-            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressed");
         }
 
         return applied;
@@ -3124,7 +3124,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RecordPendingImportedResource(result, item.PropertyName, applied);
         if (result.WasCompressed)
         {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressed");
         }
 
         return applied;

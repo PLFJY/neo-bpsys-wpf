@@ -566,7 +566,7 @@ public partial class TeamInfoPageViewModel
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageFileTooLarge"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageFileTooLarge"),
                     FormatFileSize(validation.FileBytes),
                     FormatFileSize(FrontedLayoutLimits.MaxUiImageBytes));
             }
@@ -575,7 +575,7 @@ public partial class TeamInfoPageViewModel
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageDimensionsTooLarge"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageDimensionsTooLarge"),
                     validation.PixelWidth,
                     validation.PixelHeight,
                     FrontedLayoutLimits.MaxUiImageLongSide);
@@ -611,12 +611,12 @@ public partial class TeamInfoPageViewModel
             }
 
             var message = string.Format(
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionMessage"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionMessage"),
                 BuildImageValidationFailureMessage(validation, fallbackKey));
             if (!await MessageBoxHelper.ShowConfirmAsync(
                     message,
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionTitle"),
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "CompressAndApplyImage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionTitle"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "CompressAndApplyImage"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
             {
                 return null;
@@ -628,13 +628,13 @@ public partial class TeamInfoPageViewModel
                 if (imageBytes is null)
                 {
                     await MessageBoxHelper.ShowErrorAsync(
-                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionFailed"));
+                        I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionFailed"));
                     return null;
                 }
 
                 await MessageBoxHelper.ShowInfoAsync(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressed"),
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ImageCompressionTitle"));
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressed"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionTitle"));
                 return CreateBitmapImage(imageBytes);
             }
             catch (Exception ex)

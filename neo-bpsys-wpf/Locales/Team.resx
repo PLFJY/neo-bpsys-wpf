@@ -103,17 +103,6 @@
   <data name="LogoFileIsNotValid">
     <value>Logo 文件不合法</value>
   </data>
-  <data name="ImageFileTooLarge">
-    <value>图片文件过大（{0}），需要压缩到 {1} 以内。</value>
-  </data>
-  <data name="ImageDimensionsTooLarge">
-    <value>图片尺寸过大（{0}×{1}），最长边需要压缩到 {2} 像素以内。</value>
-  </data>
-  <data name="ImageCompressionTitle"><value>压缩图片</value></data>
-  <data name="ImageCompressionMessage"><value>{0} 是否压缩后继续使用？源图片不会被修改。</value></data>
-  <data name="CompressAndApplyImage"><value>压缩并应用</value></data>
-  <data name="ImageCompressed"><value>图片体积或尺寸过大，已压缩后应用。</value></data>
-  <data name="ImageCompressionFailed"><value>图片压缩失败，无法应用该图片。</value></data>
   <data name="HexColor">
     <value>十六进制颜色</value>
   </data>

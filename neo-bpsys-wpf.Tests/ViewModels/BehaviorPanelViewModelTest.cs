@@ -271,7 +271,7 @@ public class BehaviorPanelViewModelTest
 
         panel.SelectedBehavior.Trigger.AddFilter();
 
-        Assert.Equal("Event.RemainingSeconds", Assert.Single(panel.SelectedBehavior.Trigger.Filters).Left);
+        Assert.Equal("Event.CountDownRemainingSeconds", Assert.Single(panel.SelectedBehavior.Trigger.Filters).Left);
     }
 
     [Fact]

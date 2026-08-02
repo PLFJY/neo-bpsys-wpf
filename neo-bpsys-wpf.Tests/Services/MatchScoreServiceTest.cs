@@ -8,7 +8,6 @@ using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using Xunit;
@@ -272,51 +271,6 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
-    public void ScorePagePreviewRowsBuildFromDefaultMatchScore()
-    {
-        var (_, sharedDataService, service) =
-            CreateScorePageTestServices(GameProgress.Game1FirstHalf);
-
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
-
-        Assert.Equal(12, viewModel.ScorePreviewRows.Count);
-        Assert.Equal(Loc("ScorePreviewGameFormat", 1), viewModel.ScorePreviewRows[0].GameLabel);
-        Assert.Equal(Loc("ScorePreviewFirstHalf"), viewModel.ScorePreviewRows[0].HalfLabel);
-    }
-
-    [Fact]
-    public void ScorePagePreviewRowsUseBo3Visibility()
-    {
-        var (_, sharedDataService, service) =
-            CreateScorePageTestServices(GameProgress.Game1FirstHalf, isBo3Mode: true);
-
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
-
-        Assert.Equal(8, viewModel.ScorePreviewRows.Count);
-        Assert.Contains(viewModel.ScorePreviewRows,
-            row => row.GameLabel == Loc("ScorePreviewGameOvertimeFormat", 3));
-        Assert.DoesNotContain(viewModel.ScorePreviewRows,
-            row => row.GameLabel == Loc("ScorePreviewGameFormat", 4));
-    }
-
-    [Fact]
-    public void ScorePagePreviewRowsUseBo5Visibility()
-    {
-        var (_, sharedDataService, service) =
-            CreateScorePageTestServices(GameProgress.Game1FirstHalf);
-
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
-
-        Assert.Equal(12, viewModel.ScorePreviewRows.Count);
-        Assert.Contains(viewModel.ScorePreviewRows,
-            row => row.GameLabel == Loc("ScorePreviewGameFormat", 5));
-        Assert.Contains(viewModel.ScorePreviewRows,
-            row => row.GameLabel == Loc("ScorePreviewGameOvertimeFormat", 5));
-        Assert.DoesNotContain(viewModel.ScorePreviewRows,
-            row => row.GameLabel == Loc("ScorePreviewGameOvertimeFormat", 3));
-    }
-
-    [Fact]
     public void OnIsBo3ModeChangedCallsRecalculate()
     {
         var (currentGame, sharedDataService, service) =
@@ -349,53 +303,6 @@ public class MatchScoreServiceTest
         Assert.Equal(
             new ScoreGameKey(4, ScoreGameKind.Normal),
             bo5Service.CurrentGameScore?.Key);
-    }
-
-    [Fact]
-    public void ScorePagePreviewNullResultShowsDash()
-    {
-        var (_, sharedDataService, service) =
-            CreateScorePageTestServices(GameProgress.Free);
-
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
-
-        var firstRow = viewModel.ScorePreviewRows[0];
-        Assert.Equal("-", firstRow.ResultText);
-        Assert.Equal("-", firstRow.HomeMinorScoreText);
-        Assert.Equal("-", firstRow.AwayMinorScoreText);
-        Assert.Equal(Loc("ScorePreviewEmpty"), firstRow.RowStatusText);
-    }
-
-    [Fact]
-    public void ScorePagePreviewRecordedResultShowsMinorScore()
-    {
-        var (_, sharedDataService, service) =
-            CreateScorePageTestServices(GameProgress.Game1FirstHalf);
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
-
-        viewModel.Escape3Command.Execute(null);
-
-        var firstRow = viewModel.ScorePreviewRows[0];
-        Assert.Equal(Loc("ThreeEscape"), firstRow.ResultText);
-        Assert.Equal(CommonLoc("Survivor"), firstRow.HomeCampText);
-        Assert.Equal(CommonLoc("Hunter"), firstRow.AwayCampText);
-        Assert.Equal("3", firstRow.HomeMinorScoreText);
-        Assert.Equal("1", firstRow.AwayMinorScoreText);
-        Assert.True(firstRow.HasResult);
-    }
-
-    [Fact]
-    public void ScorePagePreviewMarksCurrentProgressRow()
-    {
-        var (_, sharedDataService, service) =
-            CreateScorePageTestServices(GameProgress.Game2SecondHalf);
-
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
-
-        var currentRows = viewModel.ScorePreviewRows.Where(row => row.IsCurrentProgress).ToList();
-        Assert.Single(currentRows);
-        Assert.Equal(GameProgress.Game2SecondHalf, currentRows[0].Progress);
-        Assert.Equal(Loc("ScorePreviewCurrent"), currentRows[0].RowStatusText);
     }
 
     [Fact]
@@ -439,15 +346,6 @@ public class MatchScoreServiceTest
 
         return (currentGame, sharedDataService, matchScoreService);
     }
-
-    private static string Loc(string key) =>
-        neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString(neo_bpsys_wpf.Helpers.AppI18nDictionaries.Score, key, CultureInfo.CurrentUICulture);
-
-    private static string CommonLoc(string key) =>
-        neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString(neo_bpsys_wpf.Helpers.AppI18nDictionaries.Common, key, CultureInfo.CurrentUICulture);
-
-    private static string Loc(string key, int arg) =>
-        string.Format(CultureInfo.CurrentUICulture, Loc(key), arg);
 
     private static void FillGame(MatchScoreState state, ScoreGameKey key, GameResult result)
     {

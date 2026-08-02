@@ -1024,4 +1024,15 @@
   <data name="QueuePaused">
     <value>Download paused</value>
   </data>
+  <data name="ImageFileTooLarge">
+    <value>The image file is too large ({0}). It must be compressed to {1} or less.</value>
+  </data>
+  <data name="ImageDimensionsTooLarge">
+    <value>The image dimensions are too large ({0}×{1}). The longest side must be compressed to {2} pixels or less.</value>
+  </data>
+  <data name="ImageCompressionTitle"><value>Compress image</value></data>
+  <data name="ImageCompressionMessage"><value>{0} Compress and continue? The source image will not be changed.</value></data>
+  <data name="CompressAndApplyImage"><value>Compress and apply</value></data>
+  <data name="ImageCompressed"><value>The oversized image was compressed and applied.</value></data>
+  <data name="ImageCompressionFailed"><value>Image compression failed and the image could not be applied.</value></data>
 </root>
