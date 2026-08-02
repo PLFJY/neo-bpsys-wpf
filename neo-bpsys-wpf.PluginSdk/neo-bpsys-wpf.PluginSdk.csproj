@@ -5,7 +5,7 @@
         <RootNamespace>neo_bpsys_wpf.PluginSdk</RootNamespace>
         <Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Version>0.3.0</Version>
+		<Version>3.0.0</Version>
 		<Platforms>AnyCPU;x64</Platforms>
 		<UseWPF>true</UseWPF>
     </PropertyGroup>
