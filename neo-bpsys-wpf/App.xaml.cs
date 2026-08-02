@@ -78,7 +78,7 @@ public partial class App : AppBase
                     Directory.CreateDirectory(AppConstants.LogPath);
 
                 loggingBuilder.ClearProviders();
-                // 自定义文件日志：每次启动创建带时间戳的新文件，保留最近 10 次运行
+                // 自定义文件日志：当前运行始终写入 latest.txt，正常退出时按启动时间归档为 log-{时间}.txt
                 loggingBuilder.AddProvider(new FileLoggerProvider(AppConstants.LogPath, GetInitialAppLogLevel()));
             })
             .ConfigureServices(ConfigureServices)
@@ -179,6 +179,9 @@ public partial class App : AppBase
                 }
             }
         }
+
+        // 正常退出时将 latest.txt 按启动时间归档；若未正常退出（崩溃），latest.txt 保留供下次启动归档
+        FileLoggerProvider.FinalizeRun();
 
         base.OnExit(e);
     }
