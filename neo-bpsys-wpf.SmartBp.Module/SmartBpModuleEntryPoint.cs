@@ -116,7 +116,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
         services.AddSingleton<ISmartBpRecognitionRegionProfileService, SmartBpRecognitionRegionProfileService>();
 
-        // 自动识别流水线：裁剪、OCR 识别、状态合并、候选操作、GameGuidance 同步与实际应用。
+        // 自动识别流水线：裁剪、OCR、候选操作，以及基于宿主槽位状态的统一对账。
         services.AddSingleton<ISmartBpRecognitionFrameCropper, SmartBpRecognitionFrameCropper>();
         services.AddSingleton<ISmartBpFrameRingBuffer, SmartBpFrameRingBuffer>();
         services.AddSingleton<ISmartBpCropChangeDetector, SmartBpCropChangeDetector>();
@@ -128,22 +128,16 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<SmartBpOcrRegionParser>();
         services.AddSingleton<ISmartBpOcrBpRecognitionService, SmartBpOcrBpRecognitionService>();
         services.AddSingleton<ISmartBpOcrSnapshotDeltaRecognitionService, SmartBpOcrSnapshotDeltaRecognitionService>();
-        services.AddSingleton<ISmartBpGuidanceSyncService, SmartBpGuidanceSyncService>();
-        services.AddSingleton<ISmartBpProgressInferenceService, SmartBpProgressInferenceService>();
-        services.AddSingleton<ISmartBpProgressSyncService, SmartBpProgressSyncService>();
+        services.AddSingleton<SmartBpHistoricalFrameReviewService>();
+        services.AddSingleton<ISmartBpReconciliationService, SmartBpReconciliationService>();
         services.AddSingleton<ISmartBpGameStateSyncService, SmartBpGameStateSyncService>();
         services.AddSingleton<SmartBpCandidateOperationBuilder>();
-        services.AddSingleton<ISmartBpTransitionReplayService, SmartBpTransitionReplayService>();
         services.AddSingleton<ISmartBpBusinessStateMerger, SmartBpBusinessStateMerger>();
-        services.AddSingleton<ISmartBpRecognitionStateStore, SmartBpRecognitionStateStore>();
         services.AddSingleton<ISmartBpSnapshotRecognitionPlanner, SmartBpSnapshotRecognitionPlanner>();
-        services.AddSingleton<ISmartBpRecognitionLedger, SmartBpRecognitionLedger>();
-        services.AddSingleton<ISmartBpWorkflowBackfillService, SmartBpWorkflowBackfillService>();
         services.AddSingleton<ISmartBpDetectedOperationApplier, SmartBpDetectedOperationApplier>();
         services.AddSingleton<ISmartBpSceneGateService, SmartBpSceneGateService>();
         services.AddSingleton<SmartBpAutoRecognitionCoordinator>();
         services.AddSingleton<ISmartBpAutoRecognitionCoordinator>(provider => provider.GetRequiredService<SmartBpAutoRecognitionCoordinator>());
-        services.AddSingleton<ISmartBpStepCommitScheduler>(provider => provider.GetRequiredService<SmartBpAutoRecognitionCoordinator>());
         services.AddSingleton<ISmartBpDebugLog, SmartBpDebugLog>();
         services.AddSingleton<SmartBpModuleContentViewModel>();
         services.AddTransient<SmartBpModuleContentView>();

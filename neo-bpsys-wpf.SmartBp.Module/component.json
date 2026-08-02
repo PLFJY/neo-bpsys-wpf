@@ -1,6 +1,6 @@
 {
   "ComponentId": "SmartBpModule",
-  "ModuleVersion": "26.08.01",
+  "ModuleVersion": "26.08.02",
   "RuntimeAbiVersion": 1,
   "Rid": "win-x64",
   "EntryAssembly": "neo-bpsys-wpf.SmartBp.Module.dll",

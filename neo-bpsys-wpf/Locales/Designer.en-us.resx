@@ -3236,6 +3236,12 @@
   <data name="Designer.Behaviors.Payload.TargetBehaviorGuid">
     <value>Target behavior ID</value>
   </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterName">
+    <value>Old character name</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterName">
+    <value>New character name</value>
+  </data>
   <data name="Designer.Behaviors.Payload.OldCharacterId">
     <value>Old character ID</value>
   </data>
@@ -3290,11 +3296,17 @@
   <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description">
     <value>The stable behavior ID of the target control.</value>
   </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterName.Description">
+    <value>The canonical name in the active localized character catalog before the change.</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterName.Description">
+    <value>The canonical name in the active localized character catalog after the change.</value>
+  </data>
   <data name="Designer.Behaviors.Payload.OldCharacterId.Description">
-    <value>The character ID before the change.</value>
+    <value>Compatibility field containing the canonical localized character name before the change.</value>
   </data>
   <data name="Designer.Behaviors.Payload.NewCharacterId.Description">
-    <value>The character ID after the change.</value>
+    <value>Compatibility field containing the canonical localized character name after the change.</value>
   </data>
   <data name="Designer.Behaviors.Payload.HasOldCharacter.Description">
     <value>Whether a character existed before the change.</value>

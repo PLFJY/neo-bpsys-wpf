@@ -170,15 +170,14 @@ internal sealed partial class SmartBpOcrTextResolver(ICharacterSelectionService 
     public SmartBpNormalizedCharacter ResolveCharacterFromLine(string text, Camp camp, int slotIndex, string? provider = null)
     {
         if (SmartBpBusinessStateParser.IsUnselected(text))
-            return new(text, null, null, camp, slotIndex, 1, [], "unselected", false, "unselected slot");
+            return new(text, null, camp, slotIndex, 1, [], "unselected", false, "unselected slot");
         if (IsStatusOrPhaseText(text))
-            return new(text, null, null, camp, slotIndex, 0, [], "filtered-status", false, "status or phase text");
+            return new(text, null, camp, slotIndex, 0, [], "filtered-status", false, "status or phase text");
         var result = characterSelectionService.ResolveCharacterDetailed(text, camp);
         var resolved = result.CanonicalName ?? "unresolved";
         var diagnostic = $"raw={text}; provider={provider ?? "unknown"}; camp={camp}; result={resolved}; matchMode={result.MatchMode}; score={result.Score:0.00}; safe={result.IsAutoApplySafe}; reason={result.Reason}";
         return new(
             text,
-            result.CanonicalName,
             result.CanonicalName,
             camp,
             slotIndex,
@@ -464,12 +463,13 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
     public SmartBpOcrParsedRegionResult ParseDetailed(
         SmartBpRecognitionRegion region,
         IReadOnlyList<OcrTextLine> lines,
-        SmartBpOcrFieldParseContext? parseContext = null)
+        SmartBpOcrFieldParseContext? parseContext = null,
+        double regionWidth = 0)
     {
         var diagnostics = new List<string>();
         foreach (var line in lines.Where(line => IsStatusLine(line.Text)))
             diagnostics.Add($"ocr-ignore region={SmartBpOcrBpRecognitionService.ToRegionId(region)} raw={line.Text} provider={line.Provider ?? "unknown"} confidence={line.Confidence:0.00} reason=status-line");
-        var result = Parse(region, lines, diagnostics, parseContext);
+        var result = Parse(region, lines, diagnostics, parseContext, regionWidth);
         IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots = result.PickedHun != null ? [result.PickedHun] : result.Slots;
         var unresolved = slots.Count == 0 || slots.Any(slot => SmartBpBusinessStateParser.IsUnselected(slot.CharacterName));
         var safe = slots.Where(slot => !SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)).All(slot => slot.IsAutoApplySafe);
@@ -487,12 +487,13 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         SmartBpRecognitionRegion region,
         IReadOnlyList<OcrTextLine> lines,
         ICollection<string> diagnostics,
-        SmartBpOcrFieldParseContext? parseContext = null)
+        SmartBpOcrFieldParseContext? parseContext = null,
+        double regionWidth = 0)
     {
         return region switch
         {
-            SmartBpRecognitionRegion.RightTop => ParseBanRegion(lines, Camp.Sur, "banned_sur", 4, diagnostics),
-            SmartBpRecognitionRegion.LeftTop => ParseBanRegion(lines, Camp.Hun, "banned_hun", 2, diagnostics),
+            SmartBpRecognitionRegion.RightTop => ParseBanRegion(lines, Camp.Sur, "banned_sur", 4, diagnostics, regionWidth),
+            SmartBpRecognitionRegion.LeftTop => ParseBanRegion(lines, Camp.Hun, "banned_hun", 2, diagnostics, regionWidth),
             SmartBpRecognitionRegion.LeftBottom => ParseSurvivorPickRegion(lines, diagnostics, parseContext),
             SmartBpRecognitionRegion.RightBottom => ParseHunterPickRegion(lines, diagnostics),
             _ => new SmartBpFocusedBusinessExtractionResult()
@@ -504,30 +505,87 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         Camp camp,
         string field,
         int count,
-        ICollection<string> diagnostics)
+        ICollection<string> diagnostics,
+        double regionWidth)
     {
         var regionId = field == "banned_sur" ? "right_top" : "left_top";
-        var candidates = lines.Where(line => !IsStatusLine(line.Text))
-            .Select(line => new { Line = line, Character = resolver.ResolveCharacterFromLine(line.Text, camp, -1, line.Provider) })
+        var contentLines = lines.Where(line => !IsStatusLine(line.Text)).ToArray();
+        if (regionWidth <= 0)
+            regionWidth = contentLines.Select(line => Math.Max(line.BoundingBox.Right, line.CenterX * 2)).DefaultIfEmpty(count).Max();
+        var candidates = contentLines
+            .Select(line => new
+            {
+                Line = line,
+                Character = resolver.ResolveCharacterFromLine(line.Text, camp, -1, line.Provider),
+                IsExplicitEmpty = SmartBpBusinessStateParser.IsUnselected(line.Text)
+            })
             .ToArray();
         foreach (var candidate in candidates)
             AddResolverDiagnostics(diagnostics, regionId, candidate.Line, candidate.Character);
-        var matches = candidates
-            .Where(item => item.Character.ResolvedCharacterKey != null)
-            .GroupBy(item => item.Character.ResolvedCharacterKey, StringComparer.Ordinal)
-            .Select(group => group.OrderByDescending(item => item.Character.Confidence).First())
-            .OrderBy(item => item.Line.CenterX)
-            .ThenBy(item => item.Line.CenterY)
-            .Take(count)
-            .ToArray();
         var slots = DefaultPlayerSlots(count);
-        for (var i = 0; i < matches.Length; i++)
+        foreach (var group in candidates
+                     .Where(item => item.Character.ResolvedCharacterName != null || item.IsExplicitEmpty)
+                     .GroupBy(item => ResolveBanVisualSlot(item.Line.CenterX, regionWidth, count)))
         {
-            slots[i].CharacterName = matches[i].Character.ResolvedCharacterKey!;
-            ApplyRecognitionMetadata(slots[i], matches[i].Character);
+            var ordered = group
+                .OrderByDescending(item => item.Character.IsAutoApplySafe)
+                .ThenByDescending(item => item.Character.ResolvedCharacterName is not null
+                    ? item.Character.Confidence
+                    : item.Line.Confidence)
+                .ToArray();
+            var best = ordered[0];
+            var bestScore = best.Character.ResolvedCharacterName is not null ? best.Character.Confidence : best.Line.Confidence;
+            var conflicting = ordered.Skip(1).Any(item =>
+                !string.Equals(item.Character.ResolvedCharacterName, best.Character.ResolvedCharacterName, StringComparison.Ordinal) ||
+                item.IsExplicitEmpty != best.IsExplicitEmpty);
+            var secondScore = ordered.Skip(1).Select(item => item.Character.ResolvedCharacterName is not null
+                    ? item.Character.Confidence
+                    : item.Line.Confidence)
+                .DefaultIfEmpty(0)
+                .Max();
+            if (conflicting && (!best.Character.IsAutoApplySafe || bestScore - secondScore < .08))
+            {
+                slots[group.Key].SlotState = SmartBpRecognizedSlotState.Unknown;
+                slots[group.Key].RecognitionReason = $"conflicting OCR candidates in fixed visual slot {group.Key}";
+                diagnostics.Add($"{field}[{group.Key}]: conflicting candidates retained as Unknown; no candidate was shifted.");
+                continue;
+            }
+
+            if (best.IsExplicitEmpty && best.Character.ResolvedCharacterName is null)
+            {
+                slots[group.Key].SlotState = SmartBpRecognizedSlotState.Empty;
+                slots[group.Key].CharacterName = "未选择";
+                slots[group.Key].RecognitionConfidence = best.Line.Confidence;
+                slots[group.Key].IsAutoApplySafe = best.Line.Confidence >= .90;
+                slots[group.Key].RecognitionReason = "explicit OCR empty-slot label mapped by fixed geometry";
+                slots[group.Key].BoundingBox = best.Line.BoundingBox;
+            }
+            else
+            {
+                slots[group.Key].CharacterName = best.Character.ResolvedCharacterName!;
+                ApplyRecognitionMetadata(slots[group.Key], best.Character, best.Line.BoundingBox);
+            }
+            diagnostics.Add($"{field}: centerX={best.Line.CenterX:0.0}/{regionWidth:0.0} -> fixed slot {group.Key}.");
         }
         diagnostics.Add($"{field}: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}"))}]");
         return new() { Phase = "未知", TargetField = field, Slots = slots };
+    }
+
+    private static int ResolveBanVisualSlot(double centerX, double regionWidth, int count)
+    {
+        if (regionWidth <= 0 || count <= 1)
+            return 0;
+
+        if (count != 4)
+            return Math.Clamp((int)(centerX / (regionWidth / count)), 0, count - 1);
+
+        var normalizedX = Math.Clamp(centerX / regionWidth, 0, 1);
+        double[] anchors = [.19, .38, .57, .76];
+        return anchors
+            .Select((anchor, index) => (Index: index, Distance: Math.Abs(anchor - normalizedX)))
+            .OrderBy(item => item.Distance)
+            .ThenBy(item => item.Index)
+            .First().Index;
     }
 
     private SmartBpFocusedBusinessExtractionResult ParseSurvivorPickRegion(
@@ -607,8 +665,10 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         if (playerRowScored != null)
             AssignPickedSurPlayerIdsBySlot(slots, slotCenters, playerRowScored.Lines, xMin, xMax, diagnostics);
 
-        // 在 DistributeChara / SurvivorTalent 模式下，输出 talent/extra 行忽略诊断。
-        if (mode is SmartBpPickedSurOcrParseMode.DistributeChara or SmartBpPickedSurOcrParseMode.SurvivorTalent)
+        // 全局快照和已选定角色阶段均可能包含 talent/extra 行，只把角色行和选手 ID 行写入业务槽位。
+        if (mode is SmartBpPickedSurOcrParseMode.GlobalSnapshot or
+            SmartBpPickedSurOcrParseMode.DistributeChara or
+            SmartBpPickedSurOcrParseMode.SurvivorTalent)
             AddIgnoredPickedSurRowDiagnostics(scoredRows, characterRowScored, playerRowScored, diagnostics);
 
         diagnostics.Add("picked_sur slot assignment:");
@@ -707,7 +767,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
                 continue;
             }
             var resolved = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider);
-            if (resolved.ResolvedCharacterKey != null)
+            if (resolved.ResolvedCharacterName != null)
             {
                 features.ValidSurvivorCharacterCount++;
                 continue;
@@ -803,8 +863,8 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             foreach (var line in sr.Lines)
             {
                 var resolved = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider);
-                if (resolved.ResolvedCharacterKey != null)
-                    diagnostics.Add($"picked_sur ignored lower-row character candidate row={sr.PhysicalIndex} raw={line.Text} result={resolved.ResolvedCharacterKey} reason=below-player-id-row");
+                if (resolved.ResolvedCharacterName != null)
+                    diagnostics.Add($"picked_sur ignored lower-row character candidate row={sr.PhysicalIndex} raw={line.Text} result={resolved.ResolvedCharacterName} reason=below-player-id-row");
             }
         }
     }
@@ -848,14 +908,19 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
     {
         var resolved = resolver.ResolveCharacterFromLine(item.Text, Camp.Sur, slot.Index, item.Provider);
         AddResolverDiagnostics(diagnostics, "left_bottom", item.Line, resolved);
-        if (resolved.ResolvedCharacterKey != null)
+        if (resolved.ResolvedCharacterName != null)
         {
-            slot.CharacterName = resolved.ResolvedCharacterKey;
-            ApplyRecognitionMetadata(slot, resolved);
+            slot.CharacterName = resolved.ResolvedCharacterName!;
+            ApplyRecognitionMetadata(slot, resolved, item.BoundingBox);
         }
         else if (SmartBpBusinessStateParser.IsUnselected(item.Text))
         {
             slot.CharacterName = "未选择";
+            slot.SlotState = SmartBpRecognizedSlotState.Empty;
+            slot.RecognitionConfidence = item.Confidence;
+            slot.IsAutoApplySafe = item.Confidence >= .90;
+            slot.RecognitionReason = "explicit OCR empty-slot label";
+            slot.BoundingBox = item.BoundingBox;
         }
     }
 
@@ -921,8 +986,8 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             foreach (var line in rows[rowIndex])
             {
                 var resolved = resolver.ResolveCharacterFromLine(line.Text, Camp.Sur, -1, line.Provider);
-                if (resolved.ResolvedCharacterKey != null)
-                    diagnostics.Add($"picked_sur ignored lower-row character candidate row={rowIndex} raw={line.Text} result={resolved.ResolvedCharacterKey} reason=below-player-id-row");
+                if (resolved.ResolvedCharacterName != null)
+                    diagnostics.Add($"picked_sur ignored lower-row character candidate row={rowIndex} raw={line.Text} result={resolved.ResolvedCharacterName} reason=below-player-id-row");
             }
         }
     }
@@ -1004,15 +1069,15 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         foreach (var candidate in candidates)
             AddResolverDiagnostics(diagnostics, "right_bottom", candidate.Line, candidate.Character);
         var anchor = candidates
-            .Where(item => item.Character.ResolvedCharacterKey != null)
+            .Where(item => item.Character.ResolvedCharacterName != null)
             .OrderBy(item => item.Line.CenterY)
             .ThenBy(item => item.Line.CenterX)
             .FirstOrDefault();
         var slot = new SmartBpRecognizedPlayerCharacterSlot { Index = 0, CharacterName = "未选择" };
         if (anchor != null)
         {
-            slot.CharacterName = anchor.Character.ResolvedCharacterKey!;
-            ApplyRecognitionMetadata(slot, anchor.Character);
+            slot.CharacterName = anchor.Character.ResolvedCharacterName!;
+            ApplyRecognitionMetadata(slot, anchor.Character, anchor.Line.BoundingBox);
             slot.PlayerId = FindNearestPlayerIdBelow(anchor.Line, 0, [anchor.Line], contentLines, Camp.Hun);
         }
 
@@ -1037,7 +1102,7 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             .Where(line => !ReferenceEquals(line, anchor))
             .Where(line => line.CenterY > anchor.CenterY)
             .Where(line => line.CenterX >= leftBoundary && line.CenterX <= rightBoundary)
-            .Where(line => resolver.ResolveCharacterFromLine(line.Text, camp, anchorIndex, line.Provider).ResolvedCharacterKey == null)
+            .Where(line => resolver.ResolveCharacterFromLine(line.Text, camp, anchorIndex, line.Provider).ResolvedCharacterName == null)
             .Where(line => !IsStatusLine(line.Text))
             .OrderBy(line => line.CenterY)
             .ThenBy(line => Math.Abs(line.CenterX - anchor.CenterX))
@@ -1062,11 +1127,14 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
 
     private static void ApplyRecognitionMetadata(
         SmartBpRecognizedCharacterSlot slot,
-        SmartBpNormalizedCharacter character)
+        SmartBpNormalizedCharacter character,
+        Rect? boundingBox = null)
     {
+        slot.SlotState = SmartBpRecognizedSlotState.Selected;
         slot.RecognitionConfidence = character.Confidence;
         slot.IsAutoApplySafe = character.IsAutoApplySafe && character.Confidence >= .90;
         slot.RecognitionReason = $"matchMode={character.MatchMode}; {character.RecognitionReason ?? character.Warnings.FirstOrDefault()}";
+        slot.BoundingBox = boundingBox;
     }
 
     private static bool IsStatusLine(string text)
@@ -1238,7 +1306,11 @@ internal sealed class SmartBpOcrBpRecognitionService(
         var effectiveParseContext = request.ParseContext ?? new SmartBpOcrFieldParseContext { AuthoritativePhase = phase.Phase };
         foreach (var regionText in regionTexts.Where(item => item.Region is not SmartBpRecognitionRegion.PhaseTop and not SmartBpRecognitionRegion.TopCenterStatus and not SmartBpRecognitionRegion.TopLeftStatus))
         {
-            var parsedRegion = parser.ParseDetailed(regionText.Region, regionText.Lines, effectiveParseContext);
+            var parsedRegion = parser.ParseDetailed(
+                regionText.Region,
+                regionText.Lines,
+                effectiveParseContext,
+                dimensions.GetValueOrDefault(regionText.Region).Width);
             parsed[regionText.Region] = parsedRegion.Result;
             diagnostics.AddRange(parsedRegion.Diagnostics);
             foreach (var line in regionText.Lines)
@@ -1431,16 +1503,34 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
         new()
         {
             Index = slot.Index,
-            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "unknown" : "selected",
-            CharacterName = slot.CharacterName
+            SlotState = slot.SlotState switch
+            {
+                SmartBpRecognizedSlotState.Selected => "selected",
+                SmartBpRecognizedSlotState.Empty => "empty",
+                _ => "unknown"
+            },
+            CharacterName = slot.CharacterName,
+            RecognitionConfidence = slot.RecognitionConfidence,
+            IsAutoApplySafe = slot.IsAutoApplySafe,
+            RecognitionReason = slot.RecognitionReason,
+            BoundingBox = slot.BoundingBox
         };
 
     private static SmartBpSnapshotDeltaSlot ToDeltaSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
         new()
         {
             Index = slot.Index,
-            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "unknown" : "selected",
+            SlotState = slot.SlotState switch
+            {
+                SmartBpRecognizedSlotState.Selected => "selected",
+                SmartBpRecognizedSlotState.Empty => "empty",
+                _ => "unknown"
+            },
             CharacterName = slot.CharacterName,
-            PlayerId = slot.PlayerId
+            PlayerId = slot.PlayerId,
+            RecognitionConfidence = slot.RecognitionConfidence,
+            IsAutoApplySafe = slot.IsAutoApplySafe,
+            RecognitionReason = slot.RecognitionReason,
+            BoundingBox = slot.BoundingBox
         };
 }

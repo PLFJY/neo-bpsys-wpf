@@ -11,14 +11,16 @@
 | PaddleOCR NVIDIA CUDA 加速 | 可选；拥有受支持的 NVIDIA GPU 时，用户可在 SmartBP 设置卡片下载匹配的 CUDA runtime 组件并启用 GPU 推理；CPU/GPU native runtime 物理隔离，故障自动回退 CPU，不预装进主安装包 |
 | Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
 | 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 模块移除；BP 状态识别仅支持 OCR Provider |
-| GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
-| 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
-| 自由全同步 | 实验能力；不依赖 GameGuidance，识别四类角色槽位并通过 `ICharacterSelectionService` 无动画同步，默认不启用 |
+| GameGuidance 自动追赶 | 可选；统一 Reconciliation 按槽位和前置业务状态逐步调用 `NextStepAsync()`；引导落后时会从同局短时原始帧补充遗漏角色，不允许跳过未完成步骤；原地等待优先于回退 |
+| 识别结果自动应用 | 可选；仅对宿主 `Pending` 槽位通过 `ICharacterSelectionService` 应用高置信度角色或目标之前的明确空操作；自动选角播放正常动画 |
+| 手动强制同步 | 当前帧固定全图解析四类 Ban/Pick 区域，不受当前 phase/Guidance Action 过滤；角色以 `playAnimation=false` 直接写入主程序，随后按宿主槽位直接定位 Guidance；不作为自动模式运行 |
 | 自动 BP 画面切换 | TODO |
 
-自动循环通过细分场景门禁限制写入：只在角色 BP 中应用角色操作，天赋阶段只同步引导，区域选择、等待开始、加载和对局内会丢弃延迟结果并暂停。区域选择和 MapBP 均不在此识别范围内。
+自动循环通过细分场景门禁限制写入：角色 BP 中应用当前角色操作；求生者/监管者天赋调整阶段只允许用画面中仍可见的对应阵营 Ban/Pick 字段完成最终角色补写并同步引导；区域选择、等待开始、加载和对局内会丢弃延迟结果并暂停。区域选择和 MapBP 均不在此识别范围内。
 
-SmartBP 自动循环以区域门控 OCR 为入口，不使用手工任务选择作为正常入口。默认每个 tick 先 OCR `TopCenterStatus` / `TopLeftStatus`，再由本地 planner 按工作流未完成步骤、最近阶段和字段陈旧程度选择需要刷新的内容区域。OCR 默认使用 Paddle，也可由用户显式切换为 Tesseract；一次只运行所选 Provider，不提供自动 fallback 或 ensemble。裁剪图可合并为无标签 contact sheet，Provider 只读取文字、置信度和边界框；阶段、禁用、选择、玩家 ID 均由本地规则、区域 ID、坐标和角色候选字典解释。SmartBP 自动识别不再包含 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合或 AI OCR transcript 分支；旧配置中的策略值会回退为 `PureOcr`。本地识别状态会保留未返回字段，不再因为快节奏阶段切换把旧字段清空。候选操作按 GameGuidance 工作流顺序从尚未完成的角色步骤回填到当前步骤，并且先尝试应用/跳过 pending 操作，再经过短暂阶段切换提交屏障后才根据识别到的阶段同步 GameGuidance，因此阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤。内存 ledger 与当前状态 no-op 检查共同防止重复应用；补录默认不播放动画，可由用户显式开启。步骤变化继续复用 GameGuidance 原有导航、计时器、高亮与事件逻辑。地图 BP、天赋角色操作和自动切屏仍未实现。
+SmartBP 自动循环以区域门控 OCR 为入口，不使用手工任务选择作为正常入口。每个活动 BP tick 在识别当前 phase 后读取四类角色槽位，避免上一帧 phase 预先删掉本帧追赶所需的较早字段。OCR 默认使用 Paddle，也可由用户显式切换为 Tesseract 或 RapidOCR；一次只运行所选 Provider，不提供自动 fallback 或 ensemble。Provider 只读取文字、置信度和边界框；阶段、禁用、选择、玩家 ID 均由本地规则、区域 ID、固定槽位几何和角色候选字典解释。未识别槽位为 `Unknown`，只有明确空槽位证据才是 `Empty`，缺失的前位或中间位不会令后续 Ban 候选左移。
+
+识别层不跨帧维护第二份 Ban/Pick 业务状态。轻量捕获按独立于 OCR 的较高频率写入绑定 GameGuid/GameProgress 的有界滚动原始帧缓冲；容量下限考虑 OCR 周期和已观测处理耗时，旧局帧不会作为新局证据。自动链路先比较 `Action + 规范化 Indexes`，并检查目标之前的宿主 Pending 槽位洞；对齐且没有新槽位证据时不会执行 Reconciliation 或历史 OCR。宿主槽位已提交不能单独证明同 Action 下一组已开始；只有下一组固定槽位被明确识别，或两组之间的其他 Action 已完成，才提高目标。中间 Ban 未完成时保留在前一 Pick 组；下一 Pick 槽出现后才允许据此确认并逐步跨过明确空 Ban。真正落后且 Guidance 未超过目标时，默认只回看目标之前两个工作流步骤，每个步骤最多选择一张代表帧，并只识别 Phase 和该 Action 对应区域；Phase/Action 不对齐的帧整帧拒绝。历史结果只为宿主 `Pending` 或 `CommittedEmpty` 且当前帧未明确选择的槽位补充高置信角色，不补 Empty、不覆盖当前角色或宿主 `CommittedCharacter`，也不将后续角色前移。安全角色可把同槽 `CommittedEmpty` 升级为 `CommittedCharacter`，该补充播放正常动画但不移动 Guidance。原地等待优先于回退；只有 Guidance 至少领先目标两个工作流步骤、当前 Action 已不同且目标槽位有安全 `Selected` 强证据时，才逐步回退到最早未满足前置步骤并重新逐步前进。补充结果只存在于本次对账，随后仍由 Reconciliation 按工作流顺序应用；若仍缺少某一步所需的明确证据，自动追赶会停在该最早未完成步骤。`DistributeChara` 之后允许把安全且唯一的缺失角色补进第一个宿主空位，再依据玩家 ID 做必要交换；没有实际补位或交换操作时不会重复触发。步骤变化继续复用 GameGuidance 原有导航、计时器、高亮与事件逻辑。手动强制同步不回看历史帧。地图 BP、天赋角色操作和自动切屏仍未实现。
 
 BP 识别路径读取 SmartBP 模块资源中的 `BpRecognitionLayoutProfile.json` 粗裁剪配置。用户可通过通用 `RegionEditorWindow` 在当前捕获帧或内置测试图上可视化调整全部区域，结果保存为 AppData 下的 SmartBP recognition profile 覆盖；运行时与编辑器读取同一份配置。自动循环每 tick 先 OCR `TopCenterStatus`，用归一化、编辑距离和关键词覆盖评分识别阵营选择、双方天赋调整及即将进入区域选择；未知结果只跳过本 tick，弱 transition 需连续两次确认，强 transition 会立即阻止新内容识别并进入排空停止。`TopLeftStatus` 保留为稍晚出现的区域选择/等待开始硬确认，两种区域不会合并使用。post-BP latch 设置后，后续阶段波动不会恢复内容 OCR、字段合并或候选操作生成。这套配置独立于 PaddleOCR 赛后数据 OCR 细区域。Tesseract traineddata、Paddle/RapidOCR 模型、内置测试帧、OCR 别名和 SmartBP 默认区域配置均随 SmartBP 模块 `Resources` 或模块目录管理，不放在主程序 `Resources`。AppData 中只保存纯配置（如 `SmartBp/RecognitionSettings.json`、`SmartBp/BpRecognitionLayoutProfile.json`）。默认仍为识别预览；只有用户显式启用自动应用后，才会通过角色选择服务应用已解析候选。不识别 MapBP。
 
@@ -80,7 +82,7 @@ Designer v3 独立编辑器（`FrontedDesignerWindow`）已实现并作为设计
 
 ## 代码中观察到的边界
 
-1. `neo-bpsys-wpf.Tests` 中 SmartBP 测试大多是注释中的手工调试样例，不能当作完整自动测试覆盖。
+1. SmartBP 已覆盖固定 Ban 槽位、Unknown/Empty、Observation TTL、跨局隔离、缓冲容量和 Guidance 补偿等自动回归；真实赛事画面、不同缩放与 OCR Provider 组合仍需持续扩充样本。
 2. `App.xaml.cs` 更新检查条件写作 `#if !DEBUG && !Preview`，而项目配置定义 `PREVIEW`。这是代码观察到的命名 caveat；本文档不声称其运行时效果已经通过编译验证，本任务也不修改代码。
 3. `GameRule.json` 是项目内规则配置，不是外部权威赛事规则源。
 4. 前台默认布局依赖文件命名约定，插件窗口默认布局缺失时恢复默认会失败。

@@ -133,7 +133,7 @@ internal sealed class SmartBpCharacterResolver(ICharacterSelectionService charac
     public SmartBpNormalizedCharacter Resolve(string? rawName, Camp camp, int slot, double confidence)
     {
         if (SmartBpBusinessStateParser.IsUnselected(rawName))
-            return new(rawName, null, null, camp, slot, confidence, []);
+            return new(rawName, null, camp, slot, confidence, []);
 
         var result = characterSelectionService.ResolveCharacterDetailed(rawName ?? string.Empty, camp);
         string[] warnings = result.Character == null
@@ -142,7 +142,6 @@ internal sealed class SmartBpCharacterResolver(ICharacterSelectionService charac
         var reason = $"matchMode={result.MatchMode}; score={result.Score:0.00}; safe={result.IsAutoApplySafe}; reason={result.Reason}";
         return new(
             rawName,
-            result.CanonicalName,
             result.CanonicalName,
             camp,
             slot,

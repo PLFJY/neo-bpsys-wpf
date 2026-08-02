@@ -170,6 +170,16 @@ SharedDataService.HomeTeam/AwayTeam.GlobalBannedSur(Hun)List 变化
 
 Score System v2 的设计方向见 [score-system-v2.md](../business/score-system-v2.md)。后，权威比分状态由现有 `Core.Models.Game.MatchScore` 持有，类型为 `MatchScoreState`；`IMatchScoreService` 只操作 `ISharedDataService.CurrentGame.MatchScore`，页面 ViewModel、前台窗口 ViewModel、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。后台 `ScorePageViewModel` 的比分按钮已改为写入 `IMatchScoreService.CurrentHalf`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”按钮；清除按钮位于旧“小比分清零”位置，会把当前半场结果设为 `null`。后台 `ScorePage` 的导播比分预览表只读显示 `CurrentGame.MatchScore.Games` 派生行，跟随全局 `CurrentGame.GameProgress` 和 BO3/BO5 状态，不提供手动场次选择；`ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow` 默认 v3 布局均读取 `CurrentGame.MatchScore`。绑定浏览器除主客队总小比分外，还暴露 `CurrentSurTeamTotalMinorScore` / `CurrentHunTeamTotalMinorScore`，按当前阵营映射提供全场总小比分并随换边刷新。运行时不再把 `MatchScoreState` 派生值同步回 `Team.Score`；`Team.Score` 仅作为旧 JSON/旧 DTO 的反序列化兼容数据存在，不能作为权威写入点。
 
+## SmartBP 的权威状态与视觉证据
+
+SmartBP 不持有第二份长期 Ban/Pick 业务状态。当前角色与空槽位是否已经提交，由 `CurrentGame` 的角色数据和 `BpSlotCommitState` 共同表达；`BpSlotCommitState` 严格绑定 `Game.Guid + GameProgress`，每个 Ban/Pick 槽位区分 `Pending`、`CommittedEmpty`、`CommittedCharacter`。普通后台点击和 SmartBP 都只能通过 `ICharacterSelectionService` 修改这些状态。旧对局 JSON 没有该字段时，新建全部为 `Pending` 的状态；这不会把旧数据里的普通 `null` 猜成已经提交的空操作。
+
+OCR 输出首先形成当前帧证据：阶段、字段、固定视觉槽位、Unknown/Empty/Selected、候选角色、玩家 ID、置信度、安全标记、原因和边界框。协调器每次新建业务结果，不跨帧保存长期完整 Ban/Pick 快照。滚动帧缓冲只保存绑定 GameGuid/GameProgress 的原始捕获帧，不是业务状态源；读取时拒绝其他对局上下文。自动链路先以可值比较的 `Action + 规范化 Indexes` 工作流位置和宿主 Pending 槽位洞做廉价触发判断；位置对齐且没有新槽位证据时不运行 Reconciliation，也不调度历史 OCR。真正落后时，回看服务默认只取目标之前两个工作流步骤，每步最多识别一张代表帧，且历史 Phase/Action 必须与被补步骤一致；结果只把安全角色补入本次临时证据。宿主只有 `Pending` 或 `CommittedEmpty` 才可补入，当前帧已有明确角色、历史 Empty、Action 不一致或宿主已经是 `CommittedCharacter` 时均不补入。
+
+自动识别和手动强制同步统一进入 Reconciliation，但语义严格分开。自动追赶根据当前 phase、工作流 Action/Indexes、当前帧已选槽位、一次性回看补充证据与宿主提交状态确定目标，然后从 Guidance 当前步骤开始逐步应用、复读宿主状态并调用 `NextStepAsync()`；任何未完成的 Ban/Pick 都会阻断后续前进，自动路径不调用 `MoveToStepAsync()`。宿主中当前 Pick 槽已经提交不能单独证明同 Action 的下一组 Pick 已开始；只有下一组固定槽位出现安全角色，或两组之间的其他 Action 已经完成，才会提高目标。中间 Ban 仍为 `Pending` 时先停在前一 Pick 组；下一 Pick 槽真正出现后，才允许把其前面的明确空 Ban 作为前置步骤提交并逐步追上。若较早的 `CommittedEmpty` 槽位后来出现安全角色，只通过正常角色服务升级同一槽位并播放动画，不因此移动 Guidance。原地等待优先于回退；只有 Guidance 至少领先目标两个工作流步骤、当前 Action 与目标 Action 不同且目标槽位有安全 `Selected` 强证据时，才逐次 `PrevStepAsync()` 回到最早未满足前置步骤，再逐步前进。普通 Ban/Pick 严格使用视觉槽位 Index，明确空 Ban 只在步骤已经越过，或同一步骤更后槽位已明确选中从而证明前槽为空洞时提交；不会用后续角色向前压缩，也不会覆盖已提交角色。`DistributeChara` 是唯一例外：安全且唯一的缺失角色可以补入第一个宿主空位，再按玩家 ID 交换。回看补充角色与当前帧角色走相同的候选校验和 `ICharacterSelectionService`，不是直接写集合；Guidance 已经超过目标时不再调度历史回看。自动选择角色传 `playAnimation=true`。手动强制同步对当前帧固定 OCR 四类角色区域，并使用不依赖当前 phase/Guidance Action 的全局字段解析契约；phase 只负责随后定位工作流步骤，不能过滤非当前 Action 的角色区域。四类明确角色先以 `playAnimation=false` 直接写入主程序，再依据写入后的宿主槽位寻找当前 phase 下最早未完成步骤，可直接调用 `MoveToStepAsync()`；手动路径不读取历史帧。角色写回、明确空操作和 Guidance 移动分别返回成功或失败，Guidance 无法对齐不能撤销已安全写回的角色。
+
+角色业务身份统一使用当前语言角色表中的规范 `Character.Name`。`Character.ImageFileName` 只用于 `ImageHelper` 加载头像和立绘，不得进入文本解析结果、SmartBP 操作、角色选择日志或前台行为筛选 payload；旧行为 payload 的 `OldCharacterId` / `NewCharacterId` 仅作为兼容字段保留，其值同样是规范名称，新配置应使用 `OldCharacterName` / `NewCharacterName`。
+
 `SharedDataService.NewGame()` 创建新 `Game` 时会 clone 当前 `CurrentGame.MatchScore`，避免新旧对局共享同一个可变比分实例。导入旧 JSON 时如果没有 `MatchScore` 字段，`Game` 会创建默认 `MatchScoreState`，以兼容旧保存记录；如果旧记录只有 `Team.Score` 值，当前实现不会尝试反推出完整 per-Game/per-Half 历史，只保留反序列化得到的旧字段并记录 warning。导入新格式时，任何有效 `MatchScore` 都不会被旧字段覆盖。
 
 ## 事件模式
@@ -198,5 +208,5 @@ Score System v2 的设计方向见 [score-system-v2.md](../business/score-system
 3. 导入队伍应通过 `ImportTeamInfo`，不要替换 `HomeTeam` / `AwayTeam`。
 4. 全局 Ban 有“记录列表”和“显示列表”两层，修改时要确认目标是哪一层。
 5. `ObservableCollection` 应在 UI 线程更新；后台回调更新集合前先看 [threading-dispatcher-and-async.md](threading-dispatcher-and-async.md)。
-6. SmartBP 写回赛后数据时直接修改 `CurrentGame` 中的 `PlayerData`，不要再维护 OCR 专用数据副本。
+6. SmartBP 写回赛后数据时直接修改 `CurrentGame` 中的 `PlayerData`；BP 识别写回统一经过 `ICharacterSelectionService`，不要维护 OCR 专用业务数据副本。
 7. 导入对局（`ImportGameAsync`）后必须清空旧的 `RecordList` 暂存记录，不能把导入的生效列表反写到记录列表。

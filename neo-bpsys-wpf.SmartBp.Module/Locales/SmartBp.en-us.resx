@@ -225,9 +225,6 @@
   <data name="SmartBpEnableAutoApply" xml:space="preserve">
     <value>Automatically apply recognition results</value>
   </data>
-  <data name="SmartBpResetLedger" xml:space="preserve">
-    <value>Reset SmartBP recognition ledger</value>
-  </data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve">
     <value>Enable debug log</value>
   </data>
@@ -240,17 +237,14 @@
   <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve">
     <value>OCR interval milliseconds</value>
   </data>
-  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve">
-    <value>OCR field stale refresh milliseconds</value>
-  </data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve">
-    <value>OCR workflow look-behind steps</value>
+    <value>Historical review workflow steps</value>
   </data>
   <data name="SmartBpTransitionReplayWindow" xml:space="preserve">
-    <value>Transition replay window (ms)</value>
+    <value>Historical review frame window (ms)</value>
   </data>
   <data name="SmartBpTransitionReplayMinimumConfidence" xml:space="preserve">
-    <value>Transition replay correction minimum confidence</value>
+    <value>Historical supplement minimum confidence</value>
   </data>
   <data name="SmartBpOcrProviderSection" xml:space="preserve">
     <value>OCR provider</value>
@@ -369,9 +363,6 @@
   <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve">
     <value>Recognize current phase</value>
   </data>
-  <data name="SmartBpDebugTools" xml:space="preserve">
-    <value>Debug tools</value>
-  </data>
   <data name="SmartBpRecognizeSelectedPhase" xml:space="preserve">
     <value>Recognize selected test-image phase</value>
   </data>
@@ -399,12 +390,6 @@
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
     <value>Follow page navigation when sync moves step</value>
   </data>
-  <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
-    <value>Diagnose and auto-sync progress</value>
-  </data>
-  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve">
-    <value>When automatic recognition finds that GameGuidance clearly differs from the screen, confirm with full OCR and sync forward.</value>
-  </data>
   <data name="SmartBpForceSyncGameState" xml:space="preserve">
     <value>Force sync game state</value>
   </data>
@@ -419,9 +404,6 @@
   </data>
   <data name="SmartBpAlreadyRunning" xml:space="preserve">
     <value>SmartBP is already running. Do not start it again.</value>
-  </data>
-  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
-    <value>Free full sync is experimental and may write slots without workflow context. Guided workflow is recommended.</value>
   </data>
   <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
     <value>Window capture is kept running while automatic recognition is active. Stop automatic recognition before stopping capture.</value>
@@ -438,11 +420,8 @@
   <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
     <value>Minimum delay between automatic recognition runs in milliseconds.</value>
   </data>
-  <data name="SmartBpTooltipFieldStale" xml:space="preserve">
-    <value>Refresh a field after it has remained stale for this duration.</value>
-  </data>
   <data name="SmartBpTooltipBackfill" xml:space="preserve">
-    <value>Number of workflow steps eligible for late backfill.</value>
+    <value>Reviews this many previous workflow steps only when the observed Action/slots differ from GameGuidance or an earlier Pending slot hole exists. Default: 2. At most one Action-aligned representative frame is recognized per step.</value>
   </data>
   <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
     <value>Outputs OCR region and text-position diagnostics.</value>
@@ -458,12 +437,6 @@
   </data>
   <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
     <value>Test recognition speed</value>
-  </data>
-  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
-    <value>Guided workflow (recommended)</value>
-  </data>
-  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
-    <value>Free full sync (experimental)</value>
   </data>
   <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
     <value>Automatic recognition interval</value>

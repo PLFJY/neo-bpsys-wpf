@@ -3236,6 +3236,12 @@
   <data name="Designer.Behaviors.Payload.TargetBehaviorGuid">
     <value>対象動作 ID</value>
   </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterName">
+    <value>変更前のキャラクター名</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterName">
+    <value>変更後のキャラクター名</value>
+  </data>
   <data name="Designer.Behaviors.Payload.OldCharacterId">
     <value>旧キャラクター ID</value>
   </data>
@@ -3290,11 +3296,17 @@
   <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description">
     <value>対象コントロールの安定した動作 ID です。</value>
   </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterName.Description">
+    <value>変更前の現在の言語のキャラクター一覧にある正式名です。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterName.Description">
+    <value>変更後の現在の言語のキャラクター一覧にある正式名です。</value>
+  </data>
   <data name="Designer.Behaviors.Payload.OldCharacterId.Description">
-    <value>変更前のキャラクター ID です。</value>
+    <value>互換フィールドです。変更前の現在の言語の正式なキャラクター名が入ります。</value>
   </data>
   <data name="Designer.Behaviors.Payload.NewCharacterId.Description">
-    <value>変更後のキャラクター ID です。</value>
+    <value>互換フィールドです。変更後の現在の言語の正式なキャラクター名が入ります。</value>
   </data>
   <data name="Designer.Behaviors.Payload.HasOldCharacter.Description">
     <value>変更前にキャラクターが存在したかどうかです。</value>

@@ -225,9 +225,6 @@
   <data name="SmartBpEnableAutoApply" xml:space="preserve">
     <value>自动应用识别结果</value>
   </data>
-  <data name="SmartBpResetLedger" xml:space="preserve">
-    <value>重置 SmartBP 识别记录</value>
-  </data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve">
     <value>启用调试日志</value>
   </data>
@@ -240,17 +237,14 @@
   <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve">
     <value>OCR 识别间隔毫秒</value>
   </data>
-  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve">
-    <value>OCR 字段陈旧刷新毫秒</value>
-  </data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve">
-    <value>OCR 回看工作流步数</value>
+    <value>历史回看工作流步数</value>
   </data>
   <data name="SmartBpTransitionReplayWindow" xml:space="preserve">
-    <value>阶段切换回看窗口（毫秒）</value>
+    <value>历史回看帧窗口（毫秒）</value>
   </data>
   <data name="SmartBpTransitionReplayMinimumConfidence" xml:space="preserve">
-    <value>阶段切换回看纠正最低置信度</value>
+    <value>历史回看补充最低置信度</value>
   </data>
   <data name="SmartBpOcrProviderSection" xml:space="preserve">
     <value>OCR 提供程序</value>
@@ -369,9 +363,6 @@
   <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve">
     <value>识别当前阶段</value>
   </data>
-  <data name="SmartBpDebugTools" xml:space="preserve">
-    <value>调试工具</value>
-  </data>
   <data name="SmartBpRecognizeSelectedPhase" xml:space="preserve">
     <value>识别所选测试图阶段</value>
   </data>
@@ -399,12 +390,6 @@
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
     <value>同步步骤时跟随页面导航</value>
   </data>
-  <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
-    <value>智能诊断并自动同步进度</value>
-  </data>
-  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve">
-    <value>自动识别发现对局引导步骤与画面状态明显不一致时，使用全量 OCR 确认后自动向前同步。</value>
-  </data>
   <data name="SmartBpForceSyncGameState" xml:space="preserve">
     <value>强制同步对局状态</value>
   </data>
@@ -419,9 +404,6 @@
   </data>
   <data name="SmartBpAlreadyRunning" xml:space="preserve">
     <value>SmartBP 已在运行，请勿重复启动。</value>
-  </data>
-  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
-    <value>自由全同步为实验功能，可能在没有工作流上下文时写入识别槽位。推荐使用引导工作流。</value>
   </data>
   <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
     <value>自动识别运行时会保持窗口捕获；请先停止自动识别再停止捕获。</value>
@@ -438,11 +420,8 @@
   <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
     <value>控制 OCR 自动识别两次截图之间的间隔。间隔低于实际处理耗时时会造成结果滞后和界面卡顿。建议先运行“测试识别速度”，最低值会设为实测最大耗时 + 250ms。</value>
   </data>
-  <data name="SmartBpTooltipFieldStale" xml:space="preserve">
-    <value>字段超过此时间未刷新就重新 OCR。太短会重复识别并增加 CPU 占用，太长可能保留旧结果。建议 1000–3000ms，并应大于单次 OCR 耗时。</value>
-  </data>
   <data name="SmartBpTooltipBackfill" xml:space="preserve">
-    <value>允许回看并补录的工作流步骤数量。数值越大越能补快节奏遗漏，但也更可能把旧画面误配到更早步骤。通常建议 1–3；流程稳定时保持 2。</value>
+    <value>仅在画面 Action/槽位与对局引导不一致，或目标之前仍有 Pending 槽位洞时，回看此前多少个工作流步骤。默认 2；每步最多识别一张与该步骤 Action 对齐的代表帧。</value>
   </data>
   <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
     <value>输出 OCR 区域、文字框和匹配调试信息，便于定位识别问题。会增加磁盘写入和少量处理开销；日常使用建议关闭，排障时临时开启。</value>
@@ -458,12 +437,6 @@
   </data>
   <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
     <value>测试识别速度</value>
-  </data>
-  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
-    <value>引导工作流（推荐）</value>
-  </data>
-  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
-    <value>自由全同步（实验性）</value>
   </data>
   <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
     <value>自动识别间隔</value>

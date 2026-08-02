@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.Json;
@@ -426,7 +427,7 @@ internal static class SmartBpAutomaticParser
     /// <summary>
     /// 将单个字段快照 JSON 响应（形如 <c>{"field":"...","slots":[...]}</c> 或
     /// <c>{"field":"picked_hun","picked_hun":{...}}</c>）解析为 <see cref="SmartBpSnapshotFieldUpdate"/>，
-    /// 并校验 slot_state。返回的更新可直接交给 <see cref="ISmartBpRecognitionStateStore.ApplyFieldSnapshot"/>。
+    /// 并校验 slot_state。返回结果只表示本次字段识别，不承担跨帧业务状态存储职责。
     /// </summary>
     /// <param name="raw">模型返回的原始 JSON 响应；使用提示词修复模式时已经过修复。</param>
     /// <param name="expectedField">期望的业务字段标识。</param>
@@ -651,105 +652,6 @@ internal static class SmartBpAutomaticParser
     }
 }
 
-internal sealed class SmartBpGuidanceSyncService(
-    IGameGuidanceService guidance,
-    ISmartBpRecognitionSettingsService settings,
-    ISmartBpDebugLog? debugLog = null) : ISmartBpGuidanceSyncService
-{
-    public async Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpBusinessStateRecognitionResult businessState, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var isTalentLocked = businessState.Phase == "天赋已锁定";
-        var action = GameAction.None;
-        if (!isTalentLocked && !SmartBpAutomaticMapping.TryMapPhase(businessState.Phase, out action))
-            return Reject($"The detected BP phase '{businessState.Phase}' cannot be synchronized.");
-        WriteDiagnostic(
-            $"SmartBP guidance sync: phase={businessState.Phase} -> action={(isTalentLocked ? "TalentLocked" : action)}; thread={Environment.CurrentManagedThreadId}; dispatcherAccess={GetDispatcherAccess()}.");
-
-        var snapshot = guidance.GetRuntimeSnapshot();
-        WriteDiagnostic($"Current guidance: {FormatGuidanceSnapshot(snapshot)}.");
-        if (!snapshot.IsStarted)
-        {
-            var error = await guidance.StartGuidance(settings.Settings.EnableAutoGuidancePageNavigation);
-            if (!string.IsNullOrWhiteSpace(error)) return Reject(error);
-            snapshot = guidance.GetRuntimeSnapshot();
-            WriteDiagnostic($"Guidance started for sync: {FormatGuidanceSnapshot(snapshot)}.");
-        }
-        if (!snapshot.IsStarted || snapshot.Workflow.Count == 0) return Reject("GameGuidance is not available.");
-
-        if (isTalentLocked)
-            return await SyncTalentLockedAsync(snapshot, cancellationToken);
-
-        GameGuidanceStepSnapshot? target = null;
-        if (snapshot.CurrentAction == action && snapshot.CurrentStepIndex >= 0)
-            target = snapshot.Workflow.FirstOrDefault(x => x.StepIndex == snapshot.CurrentStepIndex);
-        if (target == null)
-        {
-            var last = Math.Min(snapshot.Workflow.Count - 1,
-                Math.Max(snapshot.CurrentStepIndex, -1) + settings.Settings.GuidanceSyncLookAheadSteps);
-            target = snapshot.Workflow
-                .Where(x => x.StepIndex > snapshot.CurrentStepIndex && x.StepIndex <= last && x.Action == action)
-                .OrderBy(x => x.StepIndex)
-                .FirstOrDefault();
-        }
-        if (target == null) return Reject($"No forward {action} step exists within the configured lookahead window.", action);
-        WriteDiagnostic($"Target guidance: {FormatStepSnapshot(target)}.");
-        if (target.StepIndex == snapshot.CurrentStepIndex)
-            return new(false, true, "Current GameGuidance step already matches the detected stage.", target.Action, target.Indexes, target.StepIndex);
-
-        cancellationToken.ThrowIfCancellationRequested();
-        var moveError = await guidance.MoveToStepAsync(target.StepIndex, settings.Settings.EnableAutoGuidancePageNavigation);
-        var finalSnapshot = guidance.GetRuntimeSnapshot();
-        WriteDiagnostic($"MoveToStepAsync completed: moved={string.IsNullOrWhiteSpace(moveError)}; dispatcherAccess={GetDispatcherAccess()}; result={(string.IsNullOrWhiteSpace(moveError) ? "OK" : moveError)}.");
-        WriteDiagnostic($"Final guidance: {FormatGuidanceSnapshot(finalSnapshot)}.");
-        if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, action);
-        return new(true, true, $"GameGuidance moved forward to step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
-    }
-
-    private async Task<SmartBpGuidanceSyncResult> SyncTalentLockedAsync(GameGuidanceRuntimeSnapshot snapshot, CancellationToken cancellationToken)
-    {
-        if (snapshot.CurrentAction is GameAction.PickSurTalent or GameAction.PickHunTalent)
-            return new(false, true, "Current GameGuidance step already matches the locked talent phase.", snapshot.CurrentAction, snapshot.CurrentIndexes, snapshot.CurrentStepIndex);
-
-        var last = Math.Min(snapshot.Workflow.Count - 1,
-            Math.Max(snapshot.CurrentStepIndex, -1) + settings.Settings.GuidanceSyncLookAheadSteps);
-        var candidates = snapshot.Workflow
-            .Where(x => x.StepIndex > snapshot.CurrentStepIndex && x.StepIndex <= last &&
-                        x.Action is GameAction.PickSurTalent or GameAction.PickHunTalent or GameAction.EndGuidance)
-            .OrderBy(x => x.StepIndex)
-            .ToArray();
-        if (candidates.Length == 0) return Reject("No forward talent or end step exists within the configured lookahead window.");
-        if (candidates.Length > 1) return Reject("Talent locked phase is ambiguous; not syncing automatically.");
-
-        var target = candidates[0];
-        WriteDiagnostic($"Target guidance: {FormatStepSnapshot(target)}.");
-        cancellationToken.ThrowIfCancellationRequested();
-        var moveError = await guidance.MoveToStepAsync(target.StepIndex, settings.Settings.EnableAutoGuidancePageNavigation);
-        var finalSnapshot = guidance.GetRuntimeSnapshot();
-        WriteDiagnostic($"MoveToStepAsync completed: moved={string.IsNullOrWhiteSpace(moveError)}; dispatcherAccess={GetDispatcherAccess()}; result={(string.IsNullOrWhiteSpace(moveError) ? "OK" : moveError)}.");
-        WriteDiagnostic($"Final guidance: {FormatGuidanceSnapshot(finalSnapshot)}.");
-        if (!string.IsNullOrWhiteSpace(moveError)) return Reject(moveError, target.Action);
-        return new(true, true, $"GameGuidance moved forward to locked talent context step {target.StepIndex}.", target.Action, target.Indexes, target.StepIndex);
-    }
-
-    private static SmartBpGuidanceSyncResult Reject(string reason, GameAction? action = null) =>
-        new(false, false, reason, action, [], null);
-
-    private void WriteDiagnostic(string message) => debugLog?.Write("GuidanceSync", message);
-
-    private static bool GetDispatcherAccess()
-        => System.Windows.Application.Current?.Dispatcher.CheckAccess() == true;
-
-    private static string FormatGuidanceSnapshot(GameGuidanceRuntimeSnapshot snapshot)
-        => $"step={snapshot.CurrentStepIndex} action={snapshot.CurrentAction?.ToString() ?? "null"} indexes={FormatIndexes(snapshot.CurrentIndexes)}";
-
-    private static string FormatStepSnapshot(GameGuidanceStepSnapshot step)
-        => $"step={step.StepIndex} action={step.Action} indexes={FormatIndexes(step.Indexes)}";
-
-    private static string FormatIndexes(IEnumerable<int>? indexes)
-        => indexes is null ? "[]" : $"[{string.Join(", ", indexes)}]";
-}
-
 internal sealed class SmartBpCandidateOperationBuilder(
     ISmartBpCharacterResolver resolver,
     ISharedDataService shared,
@@ -807,16 +709,29 @@ internal sealed class SmartBpCandidateOperationBuilder(
         var messages = new List<string>();
         foreach (var slot in slots)
         {
-            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
             if (guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(slot.Index))
             {
                 messages.Add($"Skipped: index not in current GameGuidance indexes ({camp}[{slot.Index}] {slot.CharacterName}).");
                 continue;
             }
+            if (slot.SlotState == SmartBpRecognizedSlotState.Unknown)
+            {
+                messages.Add($"Skipped: Unknown observation cannot modify host state ({camp}[{slot.Index}]).");
+                continue;
+            }
+            if (slot.SlotState == SmartBpRecognizedSlotState.Empty)
+            {
+                var emptyConfidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
+                operations.Add(new(SmartBpDetectedOperationKind.CommitEmptyBan, action, guidanceIndexes.ToArray(), camp,
+                    slot.Index, null, null, null, emptyConfidence,
+                    slot.RecognitionReason ?? "Explicit empty Ban observation."));
+                continue;
+            }
+            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
             var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
             var resolved = resolver.Resolve(slot.CharacterName, camp, slot.Index, confidence);
             operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, slot.Index, slot.CharacterName,
-                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, null, confidence,
+                resolved.ResolvedCharacterName, null, confidence,
                 slot.RecognitionReason ?? $"Business-state snapshot phase {action} produced slot {slot.Index}."));
         }
         return new(operations, messages);
@@ -828,17 +743,33 @@ internal sealed class SmartBpCandidateOperationBuilder(
         var messages = new List<string>();
         foreach (var slot in slots)
         {
-            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
             var internalSlot = hunterSlot ? -1 : slot.Index;
             if (!hunterSlot && guidanceIndexes.Count > 0 && !guidanceIndexes.Contains(internalSlot))
             {
                 messages.Add($"Skipped: index not in current GameGuidance indexes ({camp}[{internalSlot}] {slot.CharacterName}).");
                 continue;
             }
+            if (slot.SlotState == SmartBpRecognizedSlotState.Unknown)
+            {
+                messages.Add($"Skipped: Unknown observation cannot modify host state ({camp}[{internalSlot}]).");
+                continue;
+            }
+            if (slot.SlotState == SmartBpRecognizedSlotState.Empty)
+            {
+                var emptyKind = hunterSlot
+                    ? SmartBpDetectedOperationKind.CommitEmptyHunterPick
+                    : SmartBpDetectedOperationKind.CommitEmptySurvivorPick;
+                var emptyConfidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
+                operations.Add(new(emptyKind, action, guidanceIndexes.ToArray(), camp, internalSlot,
+                    null, null, slot.PlayerId, emptyConfidence,
+                    slot.RecognitionReason ?? "Explicit empty Pick observation."));
+                continue;
+            }
+            if (SmartBpBusinessStateParser.IsUnselected(slot.CharacterName)) continue;
             var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
             var resolved = resolver.Resolve(slot.CharacterName, camp, internalSlot, confidence);
             operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, internalSlot, slot.CharacterName,
-                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId, confidence,
+                resolved.ResolvedCharacterName, slot.PlayerId, confidence,
                 slot.RecognitionReason ?? (hunterSlot ? "Business-state snapshot mapped hunter visual slot 0 to internal hunter slot -1." : $"Business-state snapshot phase {action} produced slot {internalSlot}.")));
         }
         return new(operations, messages);
@@ -874,7 +805,7 @@ internal sealed class SmartBpCandidateOperationBuilder(
                 ? $"Place the detected character into fixed survivor player slot {internalSlot}."
                 : $"Focused {action} extraction matched the authoritative guidance step.";
             operations.Add(new(kind, action, guidanceIndexes.ToArray(), camp, internalSlot,
-                slot.CharacterName, resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName,
+                slot.CharacterName, resolved.ResolvedCharacterName,
                 slot.PlayerId, slot.Confidence, reason));
         }
         return operations;
@@ -887,71 +818,88 @@ internal sealed class SmartBpCandidateOperationBuilder(
         var operations = new List<SmartBpDetectedOperation>();
         var messages = new List<string>();
         var evidence = slots
+            .Where(x => x.SlotState == SmartBpRecognizedSlotState.Selected)
+            .Where(x => x.IsAutoApplySafe && x.RecognitionConfidence >= .95)
             .Where(x => !SmartBpBusinessStateParser.IsUnselected(x.CharacterName) && x.Index is >= 0 and < 4)
             .OrderBy(x => x.Index)
             .ToArray();
-        var resolvedSlots = new List<(SmartBpRecognizedPlayerCharacterSlot Slot, int Target, SmartBpNormalizedCharacter Character, string DisplayName, double Confidence)>();
+        var resolvedRoles = new List<(SmartBpRecognizedPlayerCharacterSlot Slot, SmartBpNormalizedCharacter Character, double Confidence)>();
         foreach (var slot in evidence)
         {
             var playerIdText = string.IsNullOrWhiteSpace(slot.PlayerId) ? "<missing>" : slot.PlayerId;
             messages.Add($"Distribution visual slot {slot.Index}: char={slot.CharacterName}, player_id={playerIdText}.");
-            if (string.IsNullOrWhiteSpace(slot.PlayerId))
-            {
-                messages.Add($"Skipped distribution visual slot {slot.Index}: player_id missing; state preserved.");
-                continue;
-            }
-
-            var playerMatch = matcher.MatchSurvivorPlayer(slot.PlayerId);
-            if (!playerMatch.IsMatched || !playerMatch.IsSafe)
-            {
-                messages.Add($"Skipped distribution visual slot {slot.Index}: player_id '{slot.PlayerId}' did not match a survivor player safely ({playerMatch.Reason}).");
-                continue;
-            }
-            var target = playerMatch.Index;
-            messages.Add($"Player identity matched: {slot.PlayerId} -> internal Sur[{target}] ({playerMatch.DisplayName}), score={playerMatch.Score:0.00}.");
-
-            var confidence = slot.IsAutoApplySafe ? slot.RecognitionConfidence : Math.Min(slot.RecognitionConfidence, .89);
-            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, target, confidence);
+            var confidence = slot.RecognitionConfidence;
+            var resolved = resolver.Resolve(slot.CharacterName, Camp.Sur, slot.Index, confidence);
             if (resolved.ResolvedCharacterName == null)
             {
-                messages.Add($"Skipped distribution for player {playerMatch.DisplayName}: unresolved character '{slot.CharacterName}'.");
+                messages.Add($"Skipped distribution visual slot {slot.Index}: unresolved character '{slot.CharacterName}'.");
                 continue;
             }
-            resolvedSlots.Add((slot, target, resolved, playerMatch.DisplayName ?? slot.PlayerId!, confidence));
+            resolvedRoles.Add((slot, resolved, confidence));
         }
 
-        var canRecoverMissingPicks = evidence.Length == 4 &&
-                                      resolvedSlots.Count == 4 &&
-                                      resolvedSlots.Select(item => item.Target).Distinct().Count() == 4 &&
-                                      resolvedSlots.Select(item => item.Character.ResolvedCharacterName).Distinct(StringComparer.Ordinal).Count() == 4 &&
-                                      resolvedSlots.All(item => item.Confidence >= .95);
-        if (evidence.Length == 4 && !canRecoverMissingPicks)
-            messages.Add("Distribution recovery skipped: full player-ID assignment evidence is incomplete, ambiguous, duplicated, unresolved, or below 0.95 confidence; local survivor picks are preserved.");
+        var duplicateRoles = resolvedRoles
+            .GroupBy(item => item.Character.ResolvedCharacterName!, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToHashSet(StringComparer.Ordinal);
+        if (duplicateRoles.Count > 0)
+            messages.Add($"Distribution recovery rejected duplicated role evidence=[{string.Join(',', duplicateRoles)}]; duplicated roles are not filled or shifted.");
+        var uniqueRoles = resolvedRoles
+            .Where(item => !duplicateRoles.Contains(item.Character.ResolvedCharacterName!))
+            .ToArray();
 
         var simulated = shared.CurrentGame.SurPlayerList.Select(x => x.Character?.Name).ToArray();
-        var recoveryGroup = canRecoverMissingPicks ? $"distribution-recovery:{Guid.NewGuid():N}" : null;
-        if (canRecoverMissingPicks)
+        var missingRoles = uniqueRoles
+            .Where(item => Array.FindIndex(simulated, name => string.Equals(
+                name,
+                item.Character.ResolvedCharacterName,
+                StringComparison.Ordinal)) < 0)
+            .OrderBy(item => item.Slot.Index)
+            .ToArray();
+        var recoveryGroup = missingRoles.Length > 0 ? $"distribution-recovery:{Guid.NewGuid():N}" : null;
+        foreach (var item in missingRoles)
         {
-            foreach (var item in resolvedSlots.OrderBy(x => x.Slot.Index))
+            var emptySlot = Array.FindIndex(simulated, string.IsNullOrWhiteSpace);
+            if (emptySlot < 0)
             {
-                if (Array.FindIndex(simulated, name => string.Equals(name, item.Character.ResolvedCharacterName, StringComparison.Ordinal)) >= 0)
-                    continue;
-                var emptySlot = Array.FindIndex(simulated, string.IsNullOrWhiteSpace);
-                if (emptySlot < 0)
-                {
-                    messages.Add("Distribution recovery skipped: no empty survivor slot remains for a missing Pick; local state is preserved.");
-                    return new([], messages);
-                }
-                operations.Add(new(SmartBpDetectedOperationKind.PickSurvivor, GameAction.DistributeChara,
-                    guidanceIndexes.ToArray(), Camp.Sur, emptySlot, item.Slot.CharacterName,
-                    item.Character.ResolvedCharacterKey, item.Character.ResolvedCharacterName, item.Slot.PlayerId,
-                    item.Confidence, $"Distribution recovery: fill empty survivor slot {emptySlot} with {item.Character.ResolvedCharacterName} before player-ID assignment.",
-                    DependencyGroup: recoveryGroup, RequireEmptySurvivorSlot: true));
-                simulated[emptySlot] = item.Character.ResolvedCharacterName;
+                messages.Add($"Distribution recovery held {item.Character.ResolvedCharacterName}: no empty survivor slot remains; existing selections are preserved.");
+                break;
             }
+            operations.Add(new(SmartBpDetectedOperationKind.PickSurvivor, GameAction.DistributeChara,
+                guidanceIndexes.ToArray(), Camp.Sur, emptySlot, item.Slot.CharacterName,
+                item.Character.ResolvedCharacterName, item.Slot.PlayerId,
+                item.Confidence, $"Distribution recovery: safe current-frame role evidence fills available survivor slot {emptySlot}; visual slot {item.Slot.Index} is not treated as the internal Pick slot.",
+                DependencyGroup: recoveryGroup, RequireEmptySurvivorSlot: true));
+            simulated[emptySlot] = item.Character.ResolvedCharacterName;
+            messages.Add($"Distribution recovery planned: fill available Sur[{emptySlot}] with {item.Character.ResolvedCharacterName} from visual slot {item.Slot.Index}.");
         }
 
-        foreach (var item in resolvedSlots)
+        var assignments = new List<(SmartBpRecognizedPlayerCharacterSlot Slot, int Target, SmartBpNormalizedCharacter Character, string DisplayName, double Confidence)>();
+        foreach (var item in uniqueRoles)
+        {
+            if (string.IsNullOrWhiteSpace(item.Slot.PlayerId))
+            {
+                messages.Add($"Distribution assignment skipped for visual slot {item.Slot.Index}: player_id missing; role recovery remains allowed.");
+                continue;
+            }
+            var playerMatch = matcher.MatchSurvivorPlayer(item.Slot.PlayerId);
+            if (!playerMatch.IsMatched || !playerMatch.IsSafe)
+            {
+                messages.Add($"Distribution assignment skipped for visual slot {item.Slot.Index}: player_id '{item.Slot.PlayerId}' did not match safely ({playerMatch.Reason}).");
+                continue;
+            }
+            assignments.Add((item.Slot, playerMatch.Index, item.Character,
+                playerMatch.DisplayName ?? item.Slot.PlayerId, item.Confidence));
+            messages.Add($"Player identity matched: {item.Slot.PlayerId} -> internal Sur[{playerMatch.Index}] ({playerMatch.DisplayName}), score={playerMatch.Score:0.00}.");
+        }
+
+        var conflictedTargets = assignments
+            .GroupBy(item => item.Target)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToHashSet();
+        foreach (var item in assignments.Where(item => !conflictedTargets.Contains(item.Target)))
         {
             var slot = item.Slot;
             var target = item.Target;
@@ -972,7 +920,7 @@ internal sealed class SmartBpCandidateOperationBuilder(
             messages.Add($"Distribution operation: swap existing {resolved.ResolvedCharacterName} source={source} target={target}.");
             operations.Add(new(SmartBpDetectedOperationKind.SwapSurvivors, GameAction.DistributeChara,
                 guidanceIndexes.ToArray(), Camp.Sur, target, slot.CharacterName,
-                resolved.ResolvedCharacterKey, resolved.ResolvedCharacterName, slot.PlayerId,
+                resolved.ResolvedCharacterName, slot.PlayerId,
                 item.Confidence, $"Distribution: place existing character {resolved.ResolvedCharacterName} onto player {item.DisplayName} internal slot {target}.",
                 DependencyGroup: recoveryGroup));
             (simulated[source], simulated[target]) = (simulated[target], simulated[source]);
@@ -991,7 +939,9 @@ internal sealed class SmartBpCandidateOperationBuilder(
                 Index = x.SlotIndex,
                 CharacterName = x.CharacterName!,
                 PlayerId = x.PlayerId,
-                RecognitionConfidence = x.Confidence
+                SlotState = SmartBpRecognizedSlotState.Selected,
+                RecognitionConfidence = x.Confidence,
+                IsAutoApplySafe = x.Confidence >= .90
             });
         return BuildDistribution(slots, guidanceIndexes).Operations;
     }
@@ -1001,8 +951,7 @@ internal sealed class SmartBpDetectedOperationApplier(
     ICharacterSelectionService selection,
     IGameGuidanceService guidance,
     ISharedDataService shared,
-    ISmartBpRecognitionSettingsService settings,
-    ISmartBpRecognitionLedger ledger) : ISmartBpDetectedOperationApplier
+    ISmartBpRecognitionSettingsService settings) : ISmartBpDetectedOperationApplier
 {
     public async Task<SmartBpOperationApplyResult> ApplyAsync(IReadOnlyList<SmartBpDetectedOperation> operations, CancellationToken cancellationToken = default)
     {
@@ -1022,17 +971,20 @@ internal sealed class SmartBpDetectedOperationApplier(
                 continue;
             }
             var snapshot = guidance.GetRuntimeSnapshot();
-            var key = SmartBpWorkflowBackfillService.CreateKey(shared.CurrentGame.GameProgress, operation);
-            if (key != null && ledger.IsStepOperationCompleted(key)) { skipped++; messages.Add($"Skipped: recognition ledger already completed {Describe(operation)}."); continue; }
-            if (!ValidateWorkflowSource(operation, snapshot, out var workflowError)) { skipped++; MarkSkipped(key, workflowError); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: {workflowError} for {Describe(operation)}."); continue; }
-            if (operation.Confidence < 0.90) { skipped++; MarkSkipped(key, "low confidence"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: low confidence for {Describe(operation)}."); continue; }
-            if (operation.ResolvedCharacterKey == null) { skipped++; MarkSkipped(key, "unresolved character"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
-            var dictionary = operation.Camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
-            if (!dictionary.TryGetValue(operation.ResolvedCharacterKey, out var character)) { skipped++; MarkSkipped(key, "resolved key missing"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: resolved character key no longer exists: {operation.ResolvedCharacterKey}."); continue; }
-            var playAnimation = operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep ||
-                                operation.ApplyMode == SmartBpDetectedOperationApplyMode.Backfill &&
-                                settings.Settings.PlayBackfillAnimations;
-            if (playAnimation && operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep && settings.Settings.RecognitionVisualBufferMilliseconds > 0)
+            if (!ValidateWorkflowSource(operation, snapshot, out var workflowError)) { skipped++; MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: {workflowError} for {Describe(operation)}."); continue; }
+            if (operation.Confidence < 0.90) { skipped++; MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: low confidence for {Describe(operation)}."); continue; }
+            var isEmptyCommit = operation.Kind is SmartBpDetectedOperationKind.CommitEmptyBan or
+                SmartBpDetectedOperationKind.CommitEmptySurvivorPick or
+                SmartBpDetectedOperationKind.CommitEmptyHunterPick;
+            Character? character = null;
+            if (!isEmptyCommit)
+            {
+                if (operation.ResolvedCharacterName == null) { skipped++; MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: unresolved character for {Describe(operation)}."); continue; }
+                var dictionary = operation.Camp == Camp.Sur ? shared.SurCharaDict : shared.HunCharaDict;
+                if (!dictionary.TryGetValue(operation.ResolvedCharacterName, out character)) { skipped++; MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: resolved character name no longer exists: {operation.ResolvedCharacterName}."); continue; }
+            }
+            var playAnimation = operation.ApplyMode != SmartBpDetectedOperationApplyMode.FreeSync;
+            if (playAnimation && settings.Settings.RecognitionVisualBufferMilliseconds > 0)
                 await Task.Delay(settings.Settings.RecognitionVisualBufferMilliseconds, cancellationToken);
 
             switch (operation.Kind)
@@ -1041,25 +993,43 @@ internal sealed class SmartBpDetectedOperationApplier(
                     if (!TryGetBanSlot(operation.Camp, operation.SlotIndex, out var banned))
                     {
                         skipped++;
-                        MarkSkipped(key, "invalid ban slot");
                         messages.Add($"Skipped: invalid ban slot for {Describe(operation)}.");
                         continue;
                     }
-                    if (IsSameCharacter(banned, character))
+                    var banCommitState = operation.Camp == Camp.Sur
+                        ? selection.GetCurrentBpSlotCommitState().SurvivorBans[operation.SlotIndex]
+                        : selection.GetCurrentBpSlotCommitState().HunterBans[operation.SlotIndex];
+                    if (IsSameCharacter(banned, character) && banCommitState == BpSlotCommitState.CommittedCharacter)
                     {
                         skipped++;
-                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same ban for {Describe(operation)}.");
                         continue;
                     }
                     await selection.BanCharacterAsync(operation.Camp, operation.SlotIndex, character, playAnimation);
-                    messages.Add($"{AppliedPrefix(operation, playAnimation)} BanCharacter {operation.Camp}[{operation.SlotIndex}] {character.Name}");
+                    messages.Add($"{AppliedPrefix(operation)} BanCharacter {operation.Camp}[{operation.SlotIndex}] {character!.Name}");
+                    break;
+                case SmartBpDetectedOperationKind.CommitEmptyBan:
+                    var banStates = operation.Camp == Camp.Sur
+                        ? selection.GetCurrentBpSlotCommitState().SurvivorBans
+                        : selection.GetCurrentBpSlotCommitState().HunterBans;
+                    if (operation.SlotIndex < 0 || operation.SlotIndex >= banStates.Count)
+                    {
+                        skipped++;
+                        continue;
+                    }
+                    if (banStates[operation.SlotIndex] == BpSlotCommitState.CommittedEmpty)
+                    {
+                        skipped++;
+                        messages.Add($"Skipped: host already contains explicit empty Ban for {Describe(operation)}.");
+                        continue;
+                    }
+                    await selection.CommitEmptyBanAsync(operation.Camp, operation.SlotIndex, playAnimation);
+                    messages.Add($"Applied explicit empty Ban {operation.Camp}[{operation.SlotIndex}].");
                     break;
                 case SmartBpDetectedOperationKind.PickSurvivor:
                     if (operation.SlotIndex is < 0 or >= 4)
                     {
                         skipped++;
-                        MarkSkipped(key, "invalid survivor slot");
                         MarkDependencyFailed(operation, failedDependencyGroups);
                         messages.Add($"Skipped: invalid survivor slot for {Describe(operation)}.");
                         continue;
@@ -1067,37 +1037,48 @@ internal sealed class SmartBpDetectedOperationApplier(
                     if (operation.RequireEmptySurvivorSlot && shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character != null)
                     {
                         skipped++;
-                        MarkSkipped(key, "survivor recovery target is no longer empty");
                         MarkDependencyFailed(operation, failedDependencyGroups);
                         messages.Add($"Skipped: survivor recovery target is no longer empty for {Describe(operation)}.");
                         continue;
                     }
-                    if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character))
+                    if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character) &&
+                        selection.GetCurrentBpSlotCommitState().SurvivorPicks[operation.SlotIndex] == BpSlotCommitState.CommittedCharacter)
                     {
                         skipped++;
-                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
                         continue;
                     }
                     await selection.SelectSurvivorAsync(operation.SlotIndex, character, playAnimation);
-                    messages.Add($"{AppliedPrefix(operation, playAnimation)} PickSurvivor Sur[{operation.SlotIndex}] {character.Name}");
+                    messages.Add($"{AppliedPrefix(operation)} PickSurvivor Sur[{operation.SlotIndex}] {character!.Name}");
                     break;
                 case SmartBpDetectedOperationKind.PickHunter:
-                    if (IsSameCharacter(shared.CurrentGame.HunPlayer.Character, character))
+                    if (IsSameCharacter(shared.CurrentGame.HunPlayer.Character, character) &&
+                        selection.GetCurrentBpSlotCommitState().HunterPick == BpSlotCommitState.CommittedCharacter)
                     {
                         skipped++;
-                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
                         continue;
                     }
                     await selection.SelectHunterAsync(character, playAnimation);
-                    messages.Add($"{AppliedPrefix(operation, playAnimation)} PickHunter {character.Name}");
+                    messages.Add($"{AppliedPrefix(operation)} PickHunter {character!.Name}");
+                    break;
+                case SmartBpDetectedOperationKind.CommitEmptySurvivorPick:
+                    if (operation.SlotIndex is < 0 or >= 4)
+                    {
+                        skipped++;
+                        continue;
+                    }
+                    await selection.CommitEmptySurvivorPickAsync(operation.SlotIndex, playAnimation);
+                    messages.Add($"Applied explicit empty survivor Pick Sur[{operation.SlotIndex}].");
+                    break;
+                case SmartBpDetectedOperationKind.CommitEmptyHunterPick:
+                    await selection.CommitEmptyHunterPickAsync(playAnimation);
+                    messages.Add("Applied explicit empty hunter Pick.");
                     break;
                 case SmartBpDetectedOperationKind.SwapSurvivors:
                     if (operation.SlotIndex is < 0 or >= 4)
                     {
                         skipped++;
-                        MarkSkipped(key, "invalid survivor swap target");
                         MarkDependencyFailed(operation, failedDependencyGroups);
                         messages.Add($"Skipped: invalid survivor swap target for {Describe(operation)}.");
                         continue;
@@ -1105,28 +1086,25 @@ internal sealed class SmartBpDetectedOperationApplier(
                     if (IsSameCharacter(shared.CurrentGame.SurPlayerList[operation.SlotIndex].Character, character))
                     {
                         skipped++;
-                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op same character for {Describe(operation)}.");
                         continue;
                     }
                     var sourceMatch = shared.CurrentGame.SurPlayerList
                         .Select((player, index) => (player, index))
                         .FirstOrDefault(x => IsSameCharacter(x.player.Character, character));
-                    if (sourceMatch.player == null) { skipped++; MarkSkipped(key, "no source slot contains target character"); MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: no source slot contains target character for {Describe(operation)}."); continue; }
+                    if (sourceMatch.player == null) { skipped++; MarkDependencyFailed(operation, failedDependencyGroups); messages.Add($"Skipped: no source slot contains target character for {Describe(operation)}."); continue; }
                     var source = sourceMatch.index;
                     if (source == operation.SlotIndex)
                     {
                         skipped++;
-                        MarkCompleted(key);
                         messages.Add($"Skipped: no-op swap source and target are the same for {Describe(operation)}.");
                         continue;
                     }
                     await selection.SwapSurvivorsAsync(source, operation.SlotIndex, playAnimation);
-                    messages.Add($"{AppliedPrefix(operation, playAnimation)} SwapSurvivors source={source} target={operation.SlotIndex} {character.Name}");
+                    messages.Add($"{AppliedPrefix(operation)} SwapSurvivors source={source} target={operation.SlotIndex} {character!.Name}");
                     break;
             }
             applied++;
-            MarkCompleted(key);
         }
         return new(applied, skipped, messages);
     }
@@ -1141,8 +1119,11 @@ internal sealed class SmartBpDetectedOperationApplier(
             var valid = operation.Kind switch
             {
                 SmartBpDetectedOperationKind.BanCharacter => operation.Camp is Camp.Sur or Camp.Hun && operation.SlotIndex >= 0,
+                SmartBpDetectedOperationKind.CommitEmptyBan => operation.Camp is Camp.Sur or Camp.Hun && operation.SlotIndex >= 0,
                 SmartBpDetectedOperationKind.PickSurvivor => operation.Camp == Camp.Sur && operation.SlotIndex is >= 0 and < 4,
+                SmartBpDetectedOperationKind.CommitEmptySurvivorPick => operation.Camp == Camp.Sur && operation.SlotIndex is >= 0 and < 4,
                 SmartBpDetectedOperationKind.PickHunter => operation.Camp == Camp.Hun && operation.SlotIndex == -1,
+                SmartBpDetectedOperationKind.CommitEmptyHunterPick => operation.Camp == Camp.Hun && operation.SlotIndex == -1,
                 _ => false
             };
             error = valid ? "" : "invalid free-sync operation contract";
@@ -1150,38 +1131,66 @@ internal sealed class SmartBpDetectedOperationApplier(
         }
         if (operation.ApplyMode == SmartBpDetectedOperationApplyMode.CurrentStep)
         {
-            if (snapshot.CurrentAction != operation.SourceGuidanceAction) { error = "current GameGuidance action mismatch"; return false; }
-            if (!snapshot.CurrentIndexes.SequenceEqual(operation.SourceGuidanceIndexes)) { error = "GameGuidance indexes changed"; return false; }
+            if (snapshot.CurrentAction is not { } currentAction)
+            {
+                error = "current GameGuidance action is unavailable";
+                return false;
+            }
+            var currentPosition = new SmartBpWorkflowPosition(currentAction, snapshot.CurrentIndexes);
+            var sourcePosition = new SmartBpWorkflowPosition(
+                operation.SourceGuidanceAction,
+                operation.SourceGuidanceIndexes);
+            if (!currentPosition.Equals(sourcePosition))
+            {
+                error = $"GameGuidance position changed from {sourcePosition} to {currentPosition}";
+                return false;
+            }
+            if (operation.SourceWorkflowStepIndex is { } sourceStep && snapshot.CurrentStepIndex != sourceStep)
+            {
+                error = $"GameGuidance step changed from {sourceStep} to {snapshot.CurrentStepIndex}";
+                return false;
+            }
             error = "";
             return true;
         }
 
-        if (operation.SourceWorkflowStepIndex is not { } stepIndex) { error = "backfill source workflow step is missing"; return false; }
-        var step = snapshot.Workflow.FirstOrDefault(item => item.StepIndex == stepIndex);
-        if (step == null) { error = "backfill source workflow step no longer exists"; return false; }
-        if (step.Action != operation.SourceGuidanceAction || !step.Indexes.SequenceEqual(operation.SourceGuidanceIndexes))
+        if (operation.ApplyMode == SmartBpDetectedOperationApplyMode.AutomaticSupplement)
         {
-            error = "backfill source workflow action or indexes changed";
-            return false;
+            if (operation.SourceWorkflowStepIndex is not { } sourceStepIndex)
+            {
+                error = "automatic supplement source step is unavailable";
+                return false;
+            }
+            var sourceStep = snapshot.Workflow.FirstOrDefault(step => step.StepIndex == sourceStepIndex);
+            if (sourceStep is null ||
+                !new SmartBpWorkflowPosition(sourceStep.Action, sourceStep.Indexes).Equals(
+                    new SmartBpWorkflowPosition(operation.SourceGuidanceAction, operation.SourceGuidanceIndexes)))
+            {
+                error = $"automatic supplement source position does not match workflow step {sourceStepIndex}";
+                return false;
+            }
+            if (sourceStepIndex >= snapshot.CurrentStepIndex)
+            {
+                error = $"automatic supplement source step {sourceStepIndex} is not earlier than current step {snapshot.CurrentStepIndex}";
+                return false;
+            }
+            var validKind = operation.Kind is SmartBpDetectedOperationKind.BanCharacter or
+                SmartBpDetectedOperationKind.PickSurvivor or
+                SmartBpDetectedOperationKind.PickHunter;
+            error = validKind ? "" : "automatic supplement only accepts concrete character operations";
+            return validKind;
         }
-        error = "";
-        return true;
+
+        error = "unsupported operation apply mode";
+        return false;
     }
 
-    private void MarkCompleted(SmartBpWorkflowOperationKey? key)
+    private static string AppliedPrefix(SmartBpDetectedOperation operation) => operation.ApplyMode switch
     {
-        if (key != null) ledger.MarkCompleted(key);
-    }
-
-    private void MarkSkipped(SmartBpWorkflowOperationKey? key, string reason)
-    {
-        if (key != null) ledger.MarkSkipped(key, reason);
-    }
-
-    private static string AppliedPrefix(SmartBpDetectedOperation operation, bool playAnimation) =>
-        operation.ApplyMode == SmartBpDetectedOperationApplyMode.Backfill
-            ? $"Backfilled{(playAnimation ? " with animation" : " without animation")}: Applied"
-            : "Applied";
+        SmartBpDetectedOperationApplyMode.CurrentStep => "Guided catch-up with animation: Applied",
+        SmartBpDetectedOperationApplyMode.AutomaticSupplement => "Automatic same-slot supplement with animation: Applied",
+        _ => "Force-synced without animation: Applied"
+    };
 
     private bool TryGetBanSlot(Camp camp, int slotIndex, out Character? character)
     {
@@ -1200,8 +1209,6 @@ internal sealed class SmartBpDetectedOperationApplier(
     {
         if (ReferenceEquals(left, right)) return true;
         if (left == null || right == null) return false;
-        if (!string.IsNullOrWhiteSpace(left.ImageFileName) && !string.IsNullOrWhiteSpace(right.ImageFileName))
-            return string.Equals(left.ImageFileName, right.ImageFileName, StringComparison.Ordinal);
         return !string.IsNullOrWhiteSpace(left.Name) &&
                !string.IsNullOrWhiteSpace(right.Name) &&
                string.Equals(left.Name, right.Name, StringComparison.Ordinal);
@@ -1226,19 +1233,15 @@ internal enum SmartBpRecognitionDebugMode
 
 internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpSnapshotRecognitionPlanner planner,
-    ISmartBpRecognitionStateStore stateStore,
-    ISmartBpRecognitionLedger ledger,
     ISmartBpFrameRingBuffer frameRingBuffer,
     ISmartBpRecognitionSettingsService settings,
-    ISmartBpGuidanceSyncService guidanceSync,
-    ISmartBpProgressSyncService progressSync,
     IGameGuidanceService guidance,
-    ISmartBpWorkflowBackfillService backfill,
+    ICharacterSelectionService selection,
     SmartBpCandidateOperationBuilder candidateBuilder,
-    ISmartBpDetectedOperationApplier applier,
     ISmartBpSceneGateService sceneGate,
     ISmartBpOcrBpRecognitionService ocrRecognition,
-    ISmartBpTransitionReplayService? transitionReplay = null) : ISmartBpAutoRecognitionCoordinator, ISmartBpStepCommitScheduler
+    SmartBpHistoricalFrameReviewService historicalReview,
+    ISmartBpReconciliationService reconciliation) : ISmartBpAutoRecognitionCoordinator
 {
     private readonly SemaphoreSlim _tickGate = new(1, 1);
     private readonly object _cancellationLock = new();
@@ -1252,11 +1255,24 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private long _postBpDetectedFrameSequence;
     private int _transitionToAreaSelectionConsecutiveCount;
     private SmartBpLifecycleCategory _lastStableLifecycleCategory = SmartBpLifecycleCategory.Unknown;
-    private int? _progressMismatchTargetStepIndex;
-    private int _progressMismatchConsecutiveCount;
-    private DateTimeOffset _progressAutoCorrectionCooldownUntil = DateTimeOffset.MinValue;
-    private string? _lastTransitionReplayKey;
     public bool IsRunning => _runCancellation is { IsCancellationRequested: false };
+
+    /// <inheritdoc />
+    public void SampleFrame(BitmapSource frame)
+    {
+        ArgumentNullException.ThrowIfNull(frame);
+        var sequence = Interlocked.Increment(ref _frameSequence);
+        frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
+    }
+
+    /// <inheritdoc />
+    public void ResetCaptureContext()
+    {
+        CancelCurrentAutomaticTick();
+        frameRingBuffer.Reset();
+        _lastSnapshotFingerprint = null;
+        _stableSnapshotCount = 0;
+    }
 
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
@@ -1268,7 +1284,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }
         _lastSnapshotFingerprint = null;
         _stableSnapshotCount = 0;
-        _lastTransitionReplayKey = null;
         ClearPostBpLatch();
         return Task.CompletedTask;
     }
@@ -1303,17 +1318,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     // OCR-only 执行矩阵：完整调试 OCR 所有 BP 字段；仅阶段识别只 OCR 状态/阶段；自动模式使用规划器请求的字段。
     public async Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default)
-        => await RecognizeFullBpSnapshotAsync(frame, mergeIntoStateStore: true, cancellationToken).ConfigureAwait(false);
+        => await RecognizeFullBpSnapshotAsync(frame, isDryRun: false, cancellationToken).ConfigureAwait(false);
 
     public async Task<SmartBpAutoRecognitionTickResult> RecognizeFullBpSnapshotAsync(
         BitmapSource frame,
-        bool mergeIntoStateStore,
+        bool isDryRun,
         CancellationToken cancellationToken = default)
     {
         CancelCurrentAutomaticTick();
         return await RunOneTickCoreAsync(
             frame,
-            isDryRun: !mergeIntoStateStore,
+            isDryRun,
             cancellationToken,
             SmartBpRecognitionDebugMode.FullStrategy,
             linkToAutomaticRunCancellation: false,
@@ -1339,6 +1354,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             : await _tickGate.WaitAsync(0, cancellationToken).ConfigureAwait(false);
         if (!gateAcquired)
             return Failure("An automatic recognition tick is already running.");
+        var tickStartedAt = Stopwatch.GetTimestamp();
         CancellationTokenSource linked;
         lock (_cancellationLock)
         {
@@ -1356,18 +1372,19 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         try
         {
             var sequence = Interlocked.Increment(ref _frameSequence);
+            var captureTimestamp = DateTimeOffset.Now;
             if (!isDebugPreview && !isDryRun && _hasDetectedPostBp)
                 return CreateLatchedPostBpResult(sequence);
-            frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
+            frameRingBuffer.AddFrame(sequence, frame, captureTimestamp);
             var guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var request = debugMode == SmartBpRecognitionDebugMode.FullStrategy
-                ? BuildFullStrategyDebugRequest(stateStore.Snapshot)
-                : planner.BuildRequest(guidanceSnapshot, stateStore.Snapshot, ledger.GetSnapshot());
+                ? BuildFullStrategyDebugRequest(CreateCurrentFrameState("未知"))
+                : planner.BuildRequest(guidanceSnapshot);
             SmartBpRegionSnapshot? regionSnapshot = null;
             SmartBpPhaseRecognitionResult phaseResult;
             SmartBpCroppedFrame? phaseCrop;
             IReadOnlyList<SmartBpCroppedFrame> contentCrops;
-            SmartBpBusinessStateRecognitionResult state;
+            SmartBpBusinessStateRecognitionResult state = CreateCurrentFrameState("未知");
             var messages = new List<string>(request.Diagnostics);
             if (isDryRun)
                 messages.Add("Speed-test dry run: recognition request shape matches automatic tick, but local merge, auto apply, and GameGuidance sync are disabled.");
@@ -1394,8 +1411,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 if (localStatus.PostBpStatus?.IsPostBp == true || IsPrimaryPostBpPhase(localStatus.Phase.Phase))
                 {
                     phaseResult = new SmartBpPhaseRecognitionResult { Phase = localStatus.Phase.Phase };
-                    stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                    state = stateStore.Snapshot;
+                    state = CreateCurrentFrameState(phaseResult.Phase);
                     var statusGate = sceneGate.Classify(phaseResult, state,
                         new Dictionary<string, string> { ["top_left_status"] = statusRaw }, guidanceSnapshot);
                     messages.Add($"TopLeftStatus hard confirmation: {phaseResult.Phase}; final_phase={phaseResult.Phase}.");
@@ -1413,8 +1429,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                         if (confirmed)
                         {
                             phaseResult = new SmartBpPhaseRecognitionResult { Phase = "即将进入区域选择" };
-                            stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                            state = stateStore.Snapshot;
+                            state = CreateCurrentFrameState(phaseResult.Phase);
                             var transitionGate = new SmartBpSceneGateResult(
                                 SmartBpRecognitionScene.OutOfBp, false, false, true,
                                 "top-center lifecycle reached transition to area selection");
@@ -1463,9 +1478,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     .SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")));
                 phaseResult = phaseOnlyOcr.Phase;
                 phaseCrop = null;
-                if (!isDryRun)
-                    stateStore.ApplyPhase(phaseResult.Phase, sequence);
-                state = stateStore.Snapshot;
+                state = CreateCurrentFrameState(phaseResult.Phase);
                 rawResponses = new Dictionary<string, string> { ["ocr_phase"] = phaseRaw };
                 messages.AddRange(phaseOnlyOcr.Diagnostics);
                 var preContentGate = sceneGate.Classify(phaseResult, state, rawResponses, guidanceSnapshot);
@@ -1492,10 +1505,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 messages.AddRange(phaseOnlyOcr.Diagnostics);
             }
 
-            var gateBeforeContent = sceneGate.Classify(phaseResult, stateStore.Snapshot, rawResponses, guidanceSnapshot);
+            var gateBeforeContent = sceneGate.Classify(phaseResult, state, rawResponses, guidanceSnapshot);
             if ((!gateBeforeContent.IsBpRecognitionAllowed && !isDebugPreview) || request.RequestedRegions.Count == 0)
             {
-                state = stateStore.Snapshot;
                 contentCrops = [];
                 messages.Add(request.RequestedRegions.Count == 0
                     ? "OCR skipped content recognition because no fields were requested."
@@ -1504,14 +1516,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             else
             {
                 var tickMode = DescribeRecognitionTickMode(debugMode);
-                var beforeMerge = stateStore.Snapshot;
                 messages.Add($"OCR role-distribution diagnostics: saved_frame_id={sequence}; tick_mode={tickMode}; planner_requested_fields=[{string.Join(", ", request.RequestedFields)}]; ocr_requested_regions=[{string.Join(", ", request.RequestedRegions.Select(item => $"{item.Region}->{item.TargetField}"))}].");
                 var ocrParseContext = new SmartBpOcrFieldParseContext
                 {
                     AuthoritativePhase = phaseResult.Phase,
-                    CurrentGuidanceAction = guidanceSnapshot.CurrentAction,
-                    SurvivorPickLocked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, phaseResult.Phase),
-                    IsAutomaticMode = !isDebugPreview
+                    CurrentGuidanceAction = debugMode == SmartBpRecognitionDebugMode.FullStrategy
+                        ? null
+                        : guidanceSnapshot.CurrentAction,
+                    SurvivorPickLocked = debugMode != SmartBpRecognitionDebugMode.FullStrategy &&
+                                         SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, phaseResult.Phase),
+                    IsAutomaticMode = !isDebugPreview,
+                    IsGlobalSnapshot = debugMode == SmartBpRecognitionDebugMode.FullStrategy
                 };
                 var ocr = await ocrRecognition.RecognizeAsync(frame, new SmartBpOcrRecognitionRequest(
                     request.RequestedRegions.Select(item => item.Region).Distinct().ToArray(),
@@ -1522,26 +1537,19 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 raw = string.IsNullOrWhiteSpace(raw) ? ocrRaw : raw + "\n\nocr raw:\n" + ocrRaw;
                 rawResponses = new Dictionary<string, string>(rawResponses) { ["ocr"] = ocrRaw };
                 messages.Add($"OCR role-distribution diagnostics: phase_result={phaseResult.Phase}; ocr_raw_lines=[{string.Join(" | ", ocr.Regions.SelectMany(region => region.Lines.Select(line => $"[{SmartBpOcrBpRecognitionService.ToRegionId(region.Region)}] {line.Text}")))}].");
-                messages.Add($"OCR role-distribution diagnostics: parsed_local_state_before_merge={FormatBusinessStateForDiagnostics(ocr.BusinessState)}.");
-                messages.Add($"OCR role-distribution diagnostics: StateStore before merge={FormatBusinessStateForDiagnostics(beforeMerge)}.");
+                messages.Add($"OCR current-frame state={FormatBusinessStateForDiagnostics(ocr.BusinessState)}.");
                 messages.AddRange(ocr.Diagnostics);
-                var delta = ToDelta(ocr.BusinessState, request.RequestedFields);
-                if (!string.Equals(delta.Phase, phaseResult.Phase, StringComparison.Ordinal))
+                if (!string.Equals(ocr.BusinessState.Phase, phaseResult.Phase, StringComparison.Ordinal))
                 {
-                    messages.Add($"OCR content phase={delta.Phase} ignored; authoritative phase gate remains {phaseResult.Phase}.");
-                    delta.Phase = phaseResult.Phase;
+                    messages.Add($"OCR content phase={ocr.BusinessState.Phase} ignored; authoritative phase gate remains {phaseResult.Phase}.");
                     ocr.BusinessState.Phase = phaseResult.Phase;
                 }
-                if (isDryRun)
-                    messages.Add("Speed-test dry run: skipped OCR StateStore merge.");
-                else
-                    messages.AddRange(MergeDeltaWithAutomaticGuards(delta, sequence, phaseResult.Phase, !isDebugPreview, guidanceSnapshot));
-                state = isDryRun ? ocr.BusinessState : stateStore.Snapshot;
-                messages.Add($"OCR role-distribution diagnostics: StateStore after merge={FormatBusinessStateForDiagnostics(state)}.");
+                state = ocr.BusinessState;
+                messages.AddRange(ApplyCurrentFrameGuards(state, phaseResult.Phase, guidanceSnapshot));
+                messages.Add($"OCR guarded current-frame state={FormatBusinessStateForDiagnostics(state)}.");
                 contentCrops = [];
             }
 
-            state = isDryRun ? state : stateStore.Snapshot;
             guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var gate = sceneGate.Classify(phaseResult, state, rawResponses, guidanceSnapshot);
             messages.Add($"Scene: {gate.Scene}; BP recognition allowed: {gate.IsBpRecognitionAllowed}; Character operations allowed: {gate.IsCharacterOperationAllowed}; Action: {(gate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}; Reason: {gate.Reason}.");
@@ -1562,90 +1570,104 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                     RawResponses = new Dictionary<string, string> { ["snapshot_delta"] = raw }
                 };
                 return new(state, phaseResult, null, phaseCrop, null, dryRunSync, guidanceSnapshot,
-                    [], messages, dryRunApply, raw, null, dryRunSnapshot, null, contentCrops, gate);
+                    [], messages, dryRunApply, raw, null, dryRunSnapshot, contentCrops, gate);
             }
 
-            var isFreeSync = settings.Settings.RecognitionApplyMode == SmartBpRecognitionApplyMode.FreeFullSync;
-            SmartBpTransitionReplayResult? replay = null;
-            if (!isDebugPreview && !isFreeSync && gate.IsCharacterOperationAllowed &&
-                SmartBpAutomaticMapping.TryMapPhase(phaseResult.Phase, out var targetAction) &&
-                guidanceSnapshot.CurrentAction is { } currentAction && currentAction != targetAction)
+            SmartBpCatchUpTriggerDecision? catchUpTrigger = null;
+            var requiresGuidanceStart = !guidanceSnapshot.IsStarted &&
+                                        settings.Settings.EnableAutoGuidanceSync &&
+                                        SmartBpAutomaticMapping.TryMapPhase(state.Phase, out _);
+            if (!isDebugPreview && gate.IsCharacterOperationAllowed &&
+                (settings.Settings.EnableAutoApplyRecognition || settings.Settings.EnableAutoGuidanceSync))
             {
-                var replayKey = $"{guidanceSnapshot.CurrentStepIndex}:{currentAction}:{targetAction}";
-                if (!string.Equals(_lastTransitionReplayKey, replayKey, StringComparison.Ordinal))
+                catchUpTrigger = SmartBpCatchUpTriggerEvaluator.Evaluate(
+                    guidanceSnapshot,
+                    state,
+                    selection.GetCurrentBpSlotCommitState());
+                messages.Add($"Automatic catch-up precheck: {catchUpTrigger.Reason}.");
+                if (catchUpTrigger.ShouldReviewHistory)
                 {
-                    replay = transitionReplay == null
-                        ? null
-                        : await transitionReplay.BuildAsync(guidanceSnapshot, targetAction, sequence, tickToken).ConfigureAwait(false);
-                    _lastTransitionReplayKey = replayKey;
-                    if (replay != null)
-                    {
-                        messages.AddRange(replay.Diagnostics);
-                        messages.AddRange(replay.Frames.Select(item =>
-                            $"Transition replay frame={item.FrameSequence} field={item.Field} candidates={item.CandidateCount}: {string.Join(" ", item.Diagnostics)}"));
-                    }
+                    var review = await historicalReview.SupplementAsync(
+                        state,
+                        sequence,
+                        guidanceSnapshot,
+                        tickToken).ConfigureAwait(false);
+                    state = review.State;
+                    messages.AddRange(review.Diagnostics);
+                    messages.Add($"Historical review summary: reviewed_frames={review.ReviewedFrameCount}; supplemented_slots={review.SupplementedSlotCount}; merge_mode=supplement-only.");
+                    catchUpTrigger = SmartBpCatchUpTriggerEvaluator.Evaluate(
+                        guidanceSnapshot,
+                        state,
+                        selection.GetCurrentBpSlotCommitState());
+                }
+                else
+                {
+                    messages.Add("Historical review not triggered; no historical OCR was scheduled.");
                 }
             }
-            else
-            {
-                _lastTransitionReplayKey = null;
-            }
-            var plan = !gate.IsCharacterOperationAllowed
-                ? new SmartBpWorkflowBackfillPlan([], [$"Character operations blocked by scene gate: {gate.Reason}."])
-                : isFreeSync
-                ? new SmartBpWorkflowBackfillPlan([], ["Free full sync bypasses GameGuidance workflow planning."])
-                : backfill.BuildPlan(state, guidanceSnapshot);
-            var plannedOperations = !gate.IsCharacterOperationAllowed
-                ? []
-                : isFreeSync
-                ? BuildFreeSyncOperations(state, candidateBuilder)
-                : plan.StepCandidates.SelectMany(item => item.Operations).ToArray();
-            var replayOperations = replay?.Operations ?? [];
-            var operations = replayOperations.Concat(plannedOperations).ToArray();
-            messages.AddRange(plan.Diagnostics);
-            messages.AddRange(plan.StepCandidates.Select(item => $"Step {item.StepIndex} {item.Action} [{string.Join(",", item.Indexes)}]: {item.Reason} Candidates={item.Operations.Count}."));
+
+            var operations = gate.IsCharacterOperationAllowed
+                ? BuildCurrentFrameOperations(state, candidateBuilder)
+                : [];
+            var distributionOperations = gate.IsCharacterOperationAllowed &&
+                                         catchUpTrigger?.TargetStep?.Action == GameAction.DistributeChara
+                ? candidateBuilder.BuildWithDiagnostics(
+                    state,
+                    GameAction.DistributeChara,
+                    catchUpTrigger.TargetStep.Indexes).Operations.ToArray()
+                : [];
+            if (distributionOperations.Length > 0)
+                operations = operations.Concat(distributionOperations).ToArray();
             var fingerprint = JsonSerializer.Serialize(state);
             _stableSnapshotCount = string.Equals(_lastSnapshotFingerprint, fingerprint, StringComparison.Ordinal)
                 ? _stableSnapshotCount + 1
                 : 1;
             _lastSnapshotFingerprint = fingerprint;
             var requiredStable = Math.Max(1, settings.Settings.RequiredStableSnapshots);
+            var shouldRunReconciliation = requiresGuidanceStart ||
+                                          catchUpTrigger?.ShouldReconcile == true ||
+                                          distributionOperations.Length > 0;
+            SmartBpReconciliationResult? reconciliationResult = isDebugPreview
+                ? null
+                : gate.IsCharacterOperationAllowed &&
+                  (settings.Settings.EnableAutoApplyRecognition || settings.Settings.EnableAutoGuidanceSync) &&
+                  shouldRunReconciliation &&
+                  _stableSnapshotCount >= requiredStable
+                    ? await reconciliation.ReconcileAsync(state, SmartBpReconciliationMode.Automatic, tickToken)
+                    : null;
+            if (reconciliationResult is not null)
+                messages.AddRange(reconciliationResult.Diagnostics);
             SmartBpOperationApplyResult applyResult = isDebugPreview
                 ? new(0, operations.Length, ["Recognition debug preview: operation application is disabled."])
-                : settings.Settings.EnableAutoApplyRecognition && _stableSnapshotCount >= requiredStable
-                ? await applier.ApplyAsync(operations, tickToken)
+                : reconciliationResult is not null
+                    ? new(
+                        reconciliationResult.CharacterApplyResult.AppliedCount + reconciliationResult.EmptyApplyResult.AppliedCount,
+                        reconciliationResult.CharacterApplyResult.SkippedCount + reconciliationResult.EmptyApplyResult.SkippedCount,
+                        reconciliationResult.CharacterApplyResult.Messages.Concat(reconciliationResult.EmptyApplyResult.Messages).ToArray())
+                : !shouldRunReconciliation
+                    ? new(0, operations.Length, ["Skipped: automatic catch-up trigger was not met; Action/Indexes are aligned and no Pending/CommittedEmpty slot has new role evidence."])
                 : settings.Settings.EnableAutoApplyRecognition
-                    ? replayOperations.Count > 0
-                        ? await applier.ApplyAsync(replayOperations, tickToken)
-                        : new(0, operations.Length, [$"Skipped: waiting for stable BP snapshots ({_stableSnapshotCount}/{requiredStable})."])
+                    ? new(0, operations.Length, [$"Skipped: waiting for stable BP observations ({_stableSnapshotCount}/{requiredStable})."])
                     : new(0, operations.Length, operations.Length == 0
                     ? ["Skipped: auto apply disabled; no candidate operations were generated."]
                     : operations.Select(x => $"Skipped: auto apply disabled for step {x.SourceWorkflowStepIndex} {x.Kind} {x.Camp}[{x.SlotIndex}] {x.RawCharacterName ?? "null"}.").ToArray());
-            if (settings.Settings.EnableAutoGuidanceSync &&
-                SmartBpAutomaticMapping.TryMapPhase(state.Phase, out var detectedAction) &&
-                guidanceSnapshot.CurrentAction != null &&
-                guidanceSnapshot.CurrentAction != detectedAction &&
-                operations.Length > 0)
-            {
-                var hold = Math.Min(settings.Settings.PhaseTransitionCommitHoldMilliseconds, settings.Settings.PhaseTransitionCommitHoldMaxMilliseconds);
-                if (hold > 0)
-                {
-                    messages.Add($"Transition commit hold {hold}ms before guidance sync; pending operations were processed first.");
-                    await Task.Delay(hold, tickToken);
-                }
-            }
-            SmartBpGuidanceSyncResult? sync = !isDebugPreview && gate.IsBpRecognitionAllowed && !isFreeSync && settings.Settings.EnableAutoGuidanceSync
-                ? await guidanceSync.SyncAsync(state, tickToken)
-                : new(false, false, isDebugPreview
-                    ? "Recognition debug preview: GameGuidance synchronization is disabled."
-                    : isFreeSync
-                    ? "Free full sync does not synchronize GameGuidance."
-                    : "Automatic GameGuidance synchronization is disabled.", null, [], null);
+            SmartBpGuidanceSyncResult? sync = reconciliationResult is not null && settings.Settings.EnableAutoGuidanceSync
+                ? new(
+                    reconciliationResult.GuidanceResult.Moved,
+                    reconciliationResult.GuidanceResult.Succeeded,
+                    reconciliationResult.GuidanceResult.Message,
+                    reconciliationResult.GuidanceResult.TargetAction,
+                    reconciliationResult.GuidanceResult.TargetIndexes,
+                    reconciliationResult.GuidanceResult.TargetStepIndex)
+                : new(false, !isDebugPreview && settings.Settings.EnableAutoGuidanceSync && !shouldRunReconciliation,
+                    isDebugPreview
+                        ? "Recognition debug preview: GameGuidance synchronization is disabled."
+                        : settings.Settings.EnableAutoGuidanceSync && !shouldRunReconciliation
+                            ? "Automatic catch-up was not triggered because Action/Indexes are aligned and no Pending/CommittedEmpty slot has new role evidence."
+                            : "Automatic GameGuidance synchronization is disabled.", null, [], null);
             var finalGuidanceSnapshot = guidance.GetRuntimeSnapshot();
-            var progress = !isDebugPreview && !isDryRun && gate.IsBpRecognitionAllowed && !isFreeSync
-                ? await HandleProgressAlignmentAsync(frame, state, finalGuidanceSnapshot, messages, tickToken)
-                : (Alignment: (SmartBpProgressAlignmentResult?)null, Sync: (SmartBpProgressSyncResult?)null);
-            if (progress.Sync?.Moved == true)
+            var progressSync = reconciliationResult?.GuidanceResult;
+            if (progressSync?.Moved == true)
                 finalGuidanceSnapshot = guidance.GetRuntimeSnapshot();
             var snapshotForUi = regionSnapshot ?? new SmartBpRegionSnapshot
             {
@@ -1657,7 +1679,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
                 RawResponses = new Dictionary<string, string> { ["snapshot_delta"] = raw }
             };
             return new(state, phaseResult, null, phaseCrop, null, sync, finalGuidanceSnapshot,
-                operations, messages, applyResult, raw, null, snapshotForUi, plan, contentCrops, gate, progress.Alignment, progress.Sync);
+                operations, messages, applyResult, raw, null, snapshotForUi, contentCrops, gate, progressSync);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -1665,6 +1687,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }
         finally
         {
+            frameRingBuffer.ReportOcrProcessingDuration(Stopwatch.GetElapsedTime(tickStartedAt));
             lock (_cancellationLock)
             {
                 if (linkToAutomaticRunCancellation && ReferenceEquals(_currentTickCancellation, linked))
@@ -1685,123 +1708,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
 
     private SmartBpAutoRecognitionTickResult Failure(string error) =>
         new(null, null, null, null, null, null, guidance.GetRuntimeSnapshot(), [], [], null, "", error);
-
-    private async Task<(SmartBpProgressAlignmentResult? Alignment, SmartBpProgressSyncResult? Sync)> HandleProgressAlignmentAsync(
-        BitmapSource frame,
-        SmartBpBusinessStateRecognitionResult state,
-        GameGuidanceRuntimeSnapshot guidanceSnapshot,
-        ICollection<string> messages,
-        CancellationToken cancellationToken)
-    {
-        var options = new SmartBpProgressInferenceOptions(
-            false,
-            settings.Settings.GuidanceSyncLookAheadSteps,
-            settings.Settings.SmartBpProgressInferenceMinimumScore,
-            settings.Settings.SmartBpProgressInferenceMinimumScoreMargin);
-        var alignment = progressSync.CheckAlignment(state, guidanceSnapshot, options);
-        messages.Add($"Progress alignment check: {(alignment.IsAligned ? "aligned" : alignment.IsAmbiguous ? "ambiguous" : "misaligned")}. {alignment.Reason}");
-        if (alignment.IsAligned)
-        {
-            _progressMismatchTargetStepIndex = null;
-            _progressMismatchConsecutiveCount = 0;
-            return (alignment, null);
-        }
-
-        if (alignment.IsAmbiguous ||
-            !settings.Settings.EnableSmartBpProgressAutoCorrection ||
-            alignment.Inference.TargetStepIndex is not { } targetStep)
-        {
-            if (alignment.IsAmbiguous)
-                messages.Add("Progress auto correction skipped because inference is ambiguous.");
-            else
-                messages.Add("Progress auto correction skipped because the setting is disabled.");
-            return (alignment, null);
-        }
-
-        if (targetStep <= guidanceSnapshot.CurrentStepIndex)
-        {
-            messages.Add($"Progress auto correction skipped because target step {targetStep} is not forward from current step {guidanceSnapshot.CurrentStepIndex}.");
-            return (alignment, null);
-        }
-
-        var now = DateTimeOffset.Now;
-        if (now < _progressAutoCorrectionCooldownUntil)
-        {
-            messages.Add($"Progress auto correction skipped by cooldown until {_progressAutoCorrectionCooldownUntil:O}.");
-            return (alignment, null);
-        }
-
-        if (_progressMismatchTargetStepIndex == targetStep)
-            _progressMismatchConsecutiveCount++;
-        else
-        {
-            _progressMismatchTargetStepIndex = targetStep;
-            _progressMismatchConsecutiveCount = 1;
-        }
-
-        var required = Math.Max(1, settings.Settings.SmartBpProgressMismatchConfirmationCount);
-        messages.Add($"Progress mismatch stable count={_progressMismatchConsecutiveCount}/{required}; target=step {targetStep}.");
-        if (_progressMismatchConsecutiveCount < required)
-            return (alignment, null);
-
-        messages.Add("Progress mismatch is stable; requesting full OCR confirmation snapshot.");
-        var confirmation = await RecognizeFullBpSnapshotForProgressConfirmationAsync(frame, guidanceSnapshot, cancellationToken);
-        foreach (var diagnostic in confirmation.Diagnostics)
-            messages.Add(diagnostic);
-        var confirmedSync = await progressSync.ForceSyncAsync(
-            confirmation.BusinessState,
-            SmartBpProgressSyncMode.AutomaticDiagnostic,
-            cancellationToken);
-        foreach (var diagnostic in confirmedSync.Diagnostics)
-            messages.Add(diagnostic);
-        messages.Add(confirmedSync.Message);
-        if (confirmedSync.Moved)
-        {
-            _progressMismatchTargetStepIndex = null;
-            _progressMismatchConsecutiveCount = 0;
-            _progressAutoCorrectionCooldownUntil = now.AddMilliseconds(settings.Settings.SmartBpProgressAutoCorrectionCooldownMs);
-            messages.Add($"Progress auto correction cooldown started: {settings.Settings.SmartBpProgressAutoCorrectionCooldownMs}ms.");
-        }
-
-        return (alignment, confirmedSync);
-    }
-
-    private async Task<(SmartBpBusinessStateRecognitionResult BusinessState, IReadOnlyList<string> Diagnostics)> RecognizeFullBpSnapshotForProgressConfirmationAsync(
-        BitmapSource frame,
-        GameGuidanceRuntimeSnapshot guidanceSnapshot,
-        CancellationToken cancellationToken)
-    {
-        var diagnostics = new List<string> { "Full BP OCR confirmation snapshot requested for progress sync." };
-        var phaseOcr = await ocrRecognition.RecognizeAsync(
-            frame,
-            new SmartBpOcrRecognitionRequest([], IncludePhase: true),
-            cancellationToken).ConfigureAwait(false);
-        diagnostics.AddRange(phaseOcr.Diagnostics);
-        var phase = phaseOcr.Phase.Phase;
-        var parseContext = new SmartBpOcrFieldParseContext
-        {
-            AuthoritativePhase = phase,
-            CurrentGuidanceAction = guidanceSnapshot.CurrentAction,
-            SurvivorPickLocked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, phase),
-            IsAutomaticMode = true
-        };
-        var content = await ocrRecognition.RecognizeAsync(
-            frame,
-            new SmartBpOcrRecognitionRequest(
-                [
-                    SmartBpRecognitionRegion.RightTop,
-                    SmartBpRecognitionRegion.LeftTop,
-                    SmartBpRecognitionRegion.LeftBottom,
-                    SmartBpRecognitionRegion.RightBottom
-                ],
-                IncludePhase: false,
-                ParseContext: parseContext),
-            cancellationToken).ConfigureAwait(false);
-        content.BusinessState.Phase = phase;
-        diagnostics.AddRange(content.Diagnostics);
-        diagnostics.Add($"Full BP OCR confirmation recognized: {FormatBusinessStateForDiagnostics(content.BusinessState)}.");
-        return (content.BusinessState, diagnostics);
-    }
 
     private SmartBpAutoRecognitionTickResult LatchAndCreatePostBpPausedResult(
         long frameSequence,
@@ -1826,7 +1732,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private SmartBpAutoRecognitionTickResult CreateLatchedPostBpResult(long frameSequence)
     {
         var phase = new SmartBpPhaseRecognitionResult { Phase = _postBpPhase };
-        var state = stateStore.Snapshot;
+        var state = CreateCurrentFrameState(_postBpPhase);
         var messages = new List<string>
         {
             $"Post-BP latch already set at frame_sequence={_postBpDetectedFrameSequence}; ignored recognition tick frame_sequence={frameSequence}.",
@@ -1851,9 +1757,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         _postBpDetectedFrameSequence = 0;
         _transitionToAreaSelectionConsecutiveCount = 0;
         _lastStableLifecycleCategory = SmartBpLifecycleCategory.Unknown;
-        _progressMismatchTargetStepIndex = null;
-        _progressMismatchConsecutiveCount = 0;
-        _progressAutoCorrectionCooldownUntil = DateTimeOffset.MinValue;
     }
 
     private SmartBpAutoRecognitionTickResult CreateLifecycleBlockedResult(
@@ -1862,12 +1765,12 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         string raw,
         string reason)
     {
-        var state = stateStore.Snapshot;
+        var state = CreateCurrentFrameState("未知");
         var phase = new SmartBpPhaseRecognitionResult { Phase = state.Phase };
         var gate = new SmartBpSceneGateResult(SmartBpRecognitionScene.Unknown, false, false, false, reason);
         messages.Add("content_recognition_allowed=False; no BP OCR, Business OCR fusion, field merge, or candidate operation generation was run.");
         return new(state, phase, null, null, null, null, guidance.GetRuntimeSnapshot(), [], messages.ToArray(),
-            new SmartBpOperationApplyResult(0, 0, []), raw, null, null, null, [], gate);
+            new SmartBpOperationApplyResult(0, 0, []), raw, null, null, [], gate);
     }
 
     private static bool IsPrimaryPostBpPhase(string phase) =>
@@ -1880,11 +1783,9 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     {
         var allowedFields = authoritativePhase switch
         {
-            "屏蔽求生者" => new HashSet<string>(["banned_sur"], StringComparer.Ordinal),
-            "屏蔽监管者" => new HashSet<string>(["banned_hun"], StringComparer.Ordinal),
-            "选择求生者" or "求生者选择角色中" or "求生者选择天赋中" =>
-                new HashSet<string>(["picked_sur"], StringComparer.Ordinal),
-            "选择监管者" => new HashSet<string>(["picked_hun"], StringComparer.Ordinal),
+            "屏蔽求生者" or "屏蔽监管者" or "选择求生者" or "求生者选择角色中" or
+                "求生者选择天赋中" or "选择监管者" or "监管者选择天赋中" =>
+                new HashSet<string>(["banned_sur", "banned_hun", "picked_sur", "picked_hun"], StringComparer.Ordinal),
             _ => new HashSet<string>(StringComparer.Ordinal)
         };
         var filtered = request.RequestedRegions
@@ -1906,8 +1807,8 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         HashSet<string>? allowedFields = category switch
         {
             SmartBpLifecycleCategory.CharacterBpActive => null,
-            SmartBpLifecycleCategory.SurvivorTalentAdjust => new(["picked_sur"], StringComparer.Ordinal),
-            SmartBpLifecycleCategory.HunterTalentAdjust => new(["picked_hun"], StringComparer.Ordinal),
+            SmartBpLifecycleCategory.SurvivorTalentAdjust or SmartBpLifecycleCategory.HunterTalentAdjust =>
+                new(["banned_sur", "banned_hun", "picked_sur", "picked_hun"], StringComparer.Ordinal),
             _ => new(StringComparer.Ordinal)
         };
         if (allowedFields == null) return request;
@@ -1918,144 +1819,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         return new SmartBpSnapshotDeltaRequest(filtered, request.Diagnostics, request.CurrentKnownState);
     }
 
-    private IReadOnlyList<string> MergeDeltaWithAutomaticGuards(
-        SmartBpSnapshotDeltaResult delta,
-        long frameSequence,
+    private static IReadOnlyList<string> ApplyCurrentFrameGuards(
+        SmartBpBusinessStateRecognitionResult state,
         string authoritativePhase,
-        bool enforceAutomaticGuards,
         GameGuidanceRuntimeSnapshot guidanceSnapshot)
     {
-        var locked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, authoritativePhase);
-        var hasPickedSur = delta.Updates.Any(update => update.Field == "picked_sur");
-        if (!enforceAutomaticGuards)
-        {
-            if (!locked)
-            {
-                var unlockedDiagnostics = stateStore.ApplyDelta(delta, frameSequence, DateTimeOffset.Now).ToList();
-                if (hasPickedSur)
-                    unlockedDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-                return unlockedDiagnostics;
-            }
-            var evidenceUpdate = delta.Updates.FirstOrDefault(update => update.Field == "picked_sur");
-            var rest = delta.Updates.Where(update => update.Field != "picked_sur").ToList();
-            var debugDiagnostics = new List<string>();
-            if (evidenceUpdate != null)
-            {
-                debugDiagnostics.AddRange(stateStore.ApplyDistributionEvidence(evidenceUpdate, frameSequence, DateTimeOffset.Now));
-                debugDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-            }
-            if (rest.Count > 0)
-                debugDiagnostics.AddRange(stateStore.ApplyDelta(new SmartBpSnapshotDeltaResult { Phase = delta.Phase, Updates = rest }, frameSequence, DateTimeOffset.Now));
-            return debugDiagnostics;
-        }
-        if (_hasDetectedPostBp)
-            return [$"Ignored all BP field updates because post-BP latch phase={_postBpPhase} is set."];
-
-        var request = new SmartBpSnapshotDeltaRequest(
-            delta.Updates.Select(update => (RegionForField(update.Field), update.Field)).ToArray(),
-            []);
-        var allowed = FilterAutomaticRequestByPhase(request, authoritativePhase).RequestedFields.ToHashSet(StringComparer.Ordinal);
-        var diagnostics = delta.Updates
-            .Where(update => !allowed.Contains(update.Field))
-            .Select(update => update.Field == "picked_hun"
-                ? $"Ignored picked_hun update because authoritative phase={authoritativePhase} does not allow hunter pick updates."
-                : $"Ignored {update.Field} update because authoritative phase={authoritativePhase} does not allow that field.")
-            .ToList();
-
-        var pickedSurEvidence = locked
-            ? delta.Updates.FirstOrDefault(update => update.Field == "picked_sur" && allowed.Contains(update.Field))
-            : null;
-        if (pickedSurEvidence != null)
-        {
-            diagnostics.AddRange(stateStore.ApplyDistributionEvidence(pickedSurEvidence, frameSequence, DateTimeOffset.Now));
-            diagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-        }
-        else if (!locked && hasPickedSur && allowed.Contains("picked_sur"))
-        {
-            diagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-        }
-
-        var guarded = new SmartBpSnapshotDeltaResult
-        {
-            Phase = authoritativePhase,
-            Updates = delta.Updates.Where(update => allowed.Contains(update.Field) && !(locked && update.Field == "picked_sur")).ToList()
-        };
-        diagnostics.AddRange(stateStore.ApplyDelta(guarded, frameSequence, DateTimeOffset.Now));
-        return diagnostics;
+        state.Phase = authoritativePhase;
+        return
+        [
+            $"Current-frame slot evidence retained without SmartBP state merge; guidanceStep={guidanceSnapshot.CurrentStepIndex}; action={guidanceSnapshot.CurrentAction}."
+        ];
     }
-
-    private IReadOnlyList<string> MergeFieldWithAutomaticGuards(
-        string field,
-        SmartBpSnapshotFieldUpdate update,
-        long frameSequence,
-        string authoritativePhase,
-        bool enforceAutomaticGuards,
-        GameGuidanceRuntimeSnapshot guidanceSnapshot)
-    {
-        var locked = SmartBpAutomaticMapping.IsSurvivorPickLocked(guidanceSnapshot, authoritativePhase);
-        if (!enforceAutomaticGuards)
-        {
-            if (locked && field == "picked_sur")
-            {
-                var debugDiagnostics = stateStore.ApplyDistributionEvidence(update, frameSequence, DateTimeOffset.Now).ToList();
-                debugDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-                return debugDiagnostics;
-            }
-            var unlockedDiagnostics = stateStore.ApplyFieldSnapshot(field, update, frameSequence, DateTimeOffset.Now).ToList();
-            if (field == "picked_sur")
-                unlockedDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-            return unlockedDiagnostics;
-        }
-        if (_hasDetectedPostBp)
-            return [$"Ignored {field} update because post-BP latch phase={_postBpPhase} is set."];
-        var request = new SmartBpSnapshotDeltaRequest([(RegionForField(field), field)], []);
-        if (!FilterAutomaticRequestByPhase(request, authoritativePhase).RequestedFields.Contains(field, StringComparer.Ordinal))
-        {
-            return
-            [
-                field == "picked_hun"
-                    ? $"Ignored picked_hun update because authoritative phase={authoritativePhase} does not allow hunter pick updates."
-                    : $"Ignored {field} update because authoritative phase={authoritativePhase} does not allow that field."
-            ];
-        }
-        if (locked && field == "picked_sur")
-        {
-            var lockedDiagnostics = stateStore.ApplyDistributionEvidence(update, frameSequence, DateTimeOffset.Now).ToList();
-            lockedDiagnostics.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-            return lockedDiagnostics;
-        }
-        var result = stateStore.ApplyFieldSnapshot(field, update, frameSequence, DateTimeOffset.Now).ToList();
-        if (field == "picked_sur")
-            result.Add(BuildSurvivorPickLockDecisionDiagnostic(locked, guidanceSnapshot, authoritativePhase));
-        return result;
-    }
-
-    /// <summary>
-    /// 构造求生者选择锁定决策的诊断日志行，暴露 action、phase 和 lock 原因。
-    /// </summary>
-    /// <param name="locked">锁定状态。</param>
-    /// <param name="snapshot">当前 GameGuidance 运行时快照。</param>
-    /// <param name="authoritativePhase">权威识别阶段名。</param>
-    /// <returns>诊断日志行。</returns>
-    private static string BuildSurvivorPickLockDecisionDiagnostic(bool locked, GameGuidanceRuntimeSnapshot snapshot, string authoritativePhase)
-    {
-        var actionText = snapshot.IsStarted && snapshot.CurrentAction != null
-            ? snapshot.CurrentAction.ToString()
-            : "none";
-        var modeText = locked
-            ? "picked_sur stored as distribution evidence."
-            : "picked_sur slot-index merge allowed.";
-        return $"Survivor pick lock decision: {(locked ? "locked" : "unlocked")}; action={actionText}; phase={authoritativePhase}; {modeText}";
-    }
-
-    private static SmartBpRecognitionRegion RegionForField(string field) => field switch
-    {
-        "banned_sur" => SmartBpRecognitionRegion.RightTop,
-        "banned_hun" => SmartBpRecognitionRegion.LeftTop,
-        "picked_sur" => SmartBpRecognitionRegion.LeftBottom,
-        "picked_hun" => SmartBpRecognitionRegion.RightBottom,
-        _ => throw new ArgumentOutOfRangeException(nameof(field), field, "Unknown SmartBP field.")
-    };
 
     private static SmartBpAutoRecognitionTickResult CreatePostBpPausedResult(
         SmartBpBusinessStateRecognitionResult state,
@@ -2072,7 +1846,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         messages.Add("Skipped content field recognition because BP ended.");
         return new(state, phaseResult, null, phaseCrop, null, null, guidanceSnapshot,
             [], messages.ToArray(), new(0, 0, ["Skipped: BP ended before content recognition; no character operations were generated."]),
-            raw, null, null, null, [], gate);
+            raw, null, null, [], gate);
     }
 
     private async Task<SmartBpAutoRecognitionTickResult> RunPhaseOnlyDebugCoreAsync(
@@ -2099,11 +1873,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             rawResponses = new Dictionary<string, string> { ["ocr_phase"] = raw };
             messages.AddRange(ocr.Diagnostics);
 
-            var state = stateStore.Snapshot;
+            var state = CreateCurrentFrameState(phaseResult.Phase);
             var gate = sceneGate.Classify(phaseResult, state, rawResponses, guidance.GetRuntimeSnapshot());
             messages.Add($"Scene: {gate.Scene}; BP recognition allowed: {gate.IsBpRecognitionAllowed}; Character operations allowed: {gate.IsCharacterOperationAllowed}; Action: {(gate.ShouldPauseAutomaticRecognition ? "automatic recognition paused" : "continue monitoring")}; Reason: {gate.Reason}.");
             return new(state, phaseResult, null, phaseCrop, null, null, guidance.GetRuntimeSnapshot(),
-                [], messages, new(0, 0, ["Phase-only debug: operation generation is disabled."]), raw, null, null, null, [], gate);
+                [], messages, new(0, 0, ["Phase-only debug: operation generation is disabled."]), raw, null, null, [], gate);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -2135,7 +1909,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     private static SmartBpRecognitionPath ResolveRecognitionPath(SmartBpSnapshotDeltaRequest request) =>
         request.RequestedFields.Count == 0 ? SmartBpRecognitionPath.PhaseOnly : SmartBpRecognitionPath.FieldSnapshot;
 
-    private static SmartBpDetectedOperation[] BuildFreeSyncOperations(
+    private static SmartBpDetectedOperation[] BuildCurrentFrameOperations(
         SmartBpBusinessStateRecognitionResult state,
         SmartBpCandidateOperationBuilder builder)
     {
@@ -2148,14 +1922,6 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         }.SelectMany(items => items)
          .Select(operation => operation with { ApplyMode = SmartBpDetectedOperationApplyMode.FreeSync, SourceWorkflowStepIndex = null })
          .ToArray();
-    }
-
-    public async Task<SmartBpStepCommitResult> ProcessTickAsync(BitmapSource frame, CancellationToken cancellationToken = default)
-    {
-        var result = await RunOneTickAsync(frame, cancellationToken).ConfigureAwait(false);
-        if (result.BusinessState == null || result.BackfillPlan == null)
-            throw new InvalidOperationException(result.Error ?? "SmartBP step commit tick failed.");
-        return new(result.BusinessState, result.BackfillPlan, result.ApplyResult, result.GuidanceSync, result.CandidateMessages);
     }
 
     private static string DescribeRecognitionTickMode(SmartBpRecognitionDebugMode debugMode) =>
@@ -2190,34 +1956,13 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             };
     }
 
-    private static SmartBpSnapshotDeltaResult ToDelta(SmartBpBusinessStateRecognitionResult state, IReadOnlyCollection<string> requestedFields)
-    {
-        var updates = new List<SmartBpSnapshotFieldUpdate>();
-        if (requestedFields.Contains("banned_sur"))
-            updates.Add(new() { Field = "banned_sur", Slots = state.BannedSur.Select(ToDeltaSlot).ToList() });
-        if (requestedFields.Contains("banned_hun"))
-            updates.Add(new() { Field = "banned_hun", Slots = state.BannedHun.Select(ToDeltaSlot).ToList() });
-        if (requestedFields.Contains("picked_sur"))
-            updates.Add(new() { Field = "picked_sur", Slots = state.PickedSur.Select(ToDeltaSlot).ToList() });
-        if (requestedFields.Contains("picked_hun"))
-            updates.Add(new() { Field = "picked_hun", PickedHun = ToDeltaSlot(state.PickedHun) });
-        return new() { Phase = state.Phase, Updates = updates };
-    }
-
-    private static SmartBpSnapshotDeltaSlot ToDeltaSlot(SmartBpRecognizedCharacterSlot slot) =>
+    private static SmartBpBusinessStateRecognitionResult CreateCurrentFrameState(string phase) =>
         new()
         {
-            Index = slot.Index,
-            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
-            CharacterName = slot.CharacterName
-        };
-
-    private static SmartBpSnapshotDeltaSlot ToDeltaSlot(SmartBpRecognizedPlayerCharacterSlot slot) =>
-        new()
-        {
-            Index = slot.Index,
-            SlotState = SmartBpBusinessStateParser.IsUnselected(slot.CharacterName) ? "empty" : "selected",
-            CharacterName = slot.CharacterName,
-            PlayerId = slot.PlayerId
+            Phase = phase,
+            BannedSur = Enumerable.Range(0, 4).Select(index => new SmartBpRecognizedCharacterSlot { Index = index }).ToList(),
+            BannedHun = Enumerable.Range(0, 2).Select(index => new SmartBpRecognizedCharacterSlot { Index = index }).ToList(),
+            PickedSur = Enumerable.Range(0, 4).Select(index => new SmartBpRecognizedPlayerCharacterSlot { Index = index }).ToList(),
+            PickedHun = new SmartBpRecognizedPlayerCharacterSlot { Index = 0 }
         };
 }

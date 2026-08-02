@@ -38,6 +38,10 @@ public partial class CharacterSelectionService(
     }
 #endif
     /// <inheritdoc/>
+    public BpSlotCommitStateSnapshot GetCurrentBpSlotCommitState() =>
+        sharedDataService.CurrentGame.BpSlotCommitState.CreateSnapshot();
+
+    /// <inheritdoc/>
     public CharacterResolveResult ResolveCharacterDetailed(string text, Camp camp)
     {
         var rawText = text ?? string.Empty;
@@ -176,10 +180,11 @@ public partial class CharacterSelectionService(
     public async Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
         _logger.LogInformation(
-            "CharacterSelection SelectSurvivorAsync requested: dispatcherAccess={DispatcherAccess}, playerIndex={PlayerIndex}, character={Character}",
+            "CharacterSelection SelectSurvivorAsync requested: dispatcherAccess={DispatcherAccess}, playerIndex={PlayerIndex}, characterName={CharacterName}, playAnimation={PlayAnimation}",
             HasUiAccess(),
             playerIndex,
-            GetCharacterId(character));
+            GetCharacterName(character),
+            playAnimation);
         await InvokeOnUiAsync(() => SelectSurvivorOnUiAsync(playerIndex, character, playAnimation, isRecordGlobalBan));
     }
 
@@ -208,9 +213,10 @@ public partial class CharacterSelectionService(
     public async Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
         _logger.LogInformation(
-            "CharacterSelection SelectHunterAsync requested: dispatcherAccess={DispatcherAccess}, character={Character}",
+            "CharacterSelection SelectHunterAsync requested: dispatcherAccess={DispatcherAccess}, characterName={CharacterName}, playAnimation={PlayAnimation}",
             HasUiAccess(),
-            GetCharacterId(character));
+            GetCharacterName(character),
+            playAnimation);
         await InvokeOnUiAsync(() => SelectHunterOnUiAsync(character, playAnimation, isRecordGlobalBan));
     }
 
@@ -239,11 +245,11 @@ public partial class CharacterSelectionService(
     public Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true)
     {
         _logger.LogInformation(
-            "CharacterSelection BanCharacterAsync requested: dispatcherAccess={DispatcherAccess}, camp={Camp}, index={Index}, character={Character}",
+            "CharacterSelection BanCharacterAsync requested: dispatcherAccess={DispatcherAccess}, camp={Camp}, index={Index}, characterName={CharacterName}",
             HasUiAccess(),
             camp,
             index,
-            GetCharacterId(character));
+            GetCharacterName(character));
         return InvokeOnUiAsync(() => BanCharacterOnUi(camp, index, character));
     }
 
@@ -254,21 +260,66 @@ public partial class CharacterSelectionService(
             HasUiAccess());
         // 更新数据
         if (camp == Camp.Sur)
+        {
             sharedDataService.CurrentGame.CurrentSurBannedList[index] = character;
+            sharedDataService.CurrentGame.BpSlotCommitState.SurvivorBans[index] = character is null
+                ? BpSlotCommitState.Pending
+                : BpSlotCommitState.CommittedCharacter;
+        }
         else
+        {
             sharedDataService.CurrentGame.CurrentHunBannedList[index] = character;
+            sharedDataService.CurrentGame.BpSlotCommitState.HunterBans[index] = character is null
+                ? BpSlotCommitState.Pending
+                : BpSlotCommitState.CommittedCharacter;
+        }
         
         CharacterBanned?.Invoke(this, new CharacterBannedEventArgs(camp, index));
     }
 
     /// <inheritdoc/>
+    public Task CommitEmptyBanAsync(Camp camp, int index, bool playAnimation = true) =>
+        InvokeOnUiAsync(() => CommitEmptyBanOnUi(camp, index));
+
+    private void CommitEmptyBanOnUi(Camp camp, int index)
+    {
+        if (camp == Camp.Sur)
+        {
+            sharedDataService.CurrentGame.CurrentSurBannedList[index] = null;
+            sharedDataService.CurrentGame.BpSlotCommitState.SurvivorBans[index] = BpSlotCommitState.CommittedEmpty;
+        }
+        else
+        {
+            sharedDataService.CurrentGame.CurrentHunBannedList[index] = null;
+            sharedDataService.CurrentGame.BpSlotCommitState.HunterBans[index] = BpSlotCommitState.CommittedEmpty;
+        }
+
+        CharacterBanned?.Invoke(this, new CharacterBannedEventArgs(camp, index));
+    }
+
+    /// <inheritdoc/>
+    public Task CommitEmptySurvivorPickAsync(int playerIndex, bool playAnimation = true) =>
+        InvokeOnUiAsync(() =>
+        {
+            CommitSurvivorPick(playerIndex, null, isRecordGlobalBan: true, BpSlotCommitState.CommittedEmpty);
+        });
+
+    /// <inheritdoc/>
+    public Task CommitEmptyHunterPickAsync(bool playAnimation = true) =>
+        InvokeOnUiAsync(() =>
+        {
+            CommitHunterPick(null, isRecordGlobalBan: true, BpSlotCommitState.CommittedEmpty);
+        });
+
+    /// <inheritdoc/>
     public async Task SwapSurvivorsAsync(int sourceIndex, int targetIndex, bool playAnimation = true)
     {
         _logger.LogInformation(
-            "CharacterSelection SwapSurvivorsAsync requested: dispatcherAccess={DispatcherAccess}, source={Source}, target={Target}",
+            "CharacterSelection SwapSurvivorsAsync requested: dispatcherAccess={DispatcherAccess}, source={Source}, target={Target}, playAnimation={PlayAnimation}",
             HasUiAccess(),
             sourceIndex,
-            targetIndex);
+            targetIndex,
+            playAnimation);
         await InvokeOnUiAsync(() => SwapSurvivorsOnUiAsync(sourceIndex, targetIndex, playAnimation));
     }
 
@@ -303,14 +354,20 @@ public partial class CharacterSelectionService(
             });
     }
 
-    private void CommitSurvivorPick(int playerIndex, Character? character, bool isRecordGlobalBan)
+    private void CommitSurvivorPick(
+        int playerIndex,
+        Character? character,
+        bool isRecordGlobalBan,
+        BpSlotCommitState? explicitCommitState = null)
     {
         _logger.LogInformation(
-            "CharacterSelection CommitSurvivorPick: dispatcherAccess={DispatcherAccess}, playerIndex={PlayerIndex}, character={Character}",
+            "CharacterSelection CommitSurvivorPick: dispatcherAccess={DispatcherAccess}, playerIndex={PlayerIndex}, characterName={CharacterName}",
             HasUiAccess(),
             playerIndex,
-            GetCharacterId(character));
+            GetCharacterName(character));
         sharedDataService.CurrentGame.SurPlayerList[playerIndex].Character = character;
+        sharedDataService.CurrentGame.BpSlotCommitState.SurvivorPicks[playerIndex] = explicitCommitState ??
+            (character is null ? BpSlotCommitState.Pending : BpSlotCommitState.CommittedCharacter);
         if (isRecordGlobalBan && sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
         {
             var targetIndex = (int)sharedDataService.CurrentGame.GameProgress / 2 * 4 + playerIndex;
@@ -320,13 +377,18 @@ public partial class CharacterSelectionService(
         CharacterSelected?.Invoke(this, new CharacterSelectedEventArgs(Camp.Sur, playerIndex));
     }
 
-    private void CommitHunterPick(Character? character, bool isRecordGlobalBan)
+    private void CommitHunterPick(
+        Character? character,
+        bool isRecordGlobalBan,
+        BpSlotCommitState? explicitCommitState = null)
     {
         _logger.LogInformation(
-            "CharacterSelection CommitHunterPick: dispatcherAccess={DispatcherAccess}, character={Character}",
+            "CharacterSelection CommitHunterPick: dispatcherAccess={DispatcherAccess}, characterName={CharacterName}",
             HasUiAccess(),
-            GetCharacterId(character));
+            GetCharacterName(character));
         sharedDataService.CurrentGame.HunPlayer.Character = character;
+        sharedDataService.CurrentGame.BpSlotCommitState.HunterPick = explicitCommitState ??
+            (character is null ? BpSlotCommitState.Pending : BpSlotCommitState.CommittedCharacter);
         if (isRecordGlobalBan && sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
         {
             var targetIndex = (int)sharedDataService.CurrentGame.GameProgress / 2;
@@ -344,6 +406,10 @@ public partial class CharacterSelectionService(
             sourceIndex,
             targetIndex);
         sharedDataService.CurrentGame.SwapCharactersInPlayers(sourceIndex, targetIndex);
+        (sharedDataService.CurrentGame.BpSlotCommitState.SurvivorPicks[sourceIndex],
+            sharedDataService.CurrentGame.BpSlotCommitState.SurvivorPicks[targetIndex]) =
+            (sharedDataService.CurrentGame.BpSlotCommitState.SurvivorPicks[targetIndex],
+                sharedDataService.CurrentGame.BpSlotCommitState.SurvivorPicks[sourceIndex]);
         CharacterSelected?.Invoke(this, new CharacterSelectedEventArgs(Camp.Sur, sourceIndex));
         CharacterSelected?.Invoke(this, new CharacterSelectedEventArgs(Camp.Sur, targetIndex));
     }
@@ -389,8 +455,11 @@ public partial class CharacterSelectionService(
         AddEventPayload(request.Payload, "Camp", camp.ToString());
         AddEventPayload(request.Payload, "PlayerIndex", playerIndex);
         AddEventPayload(request.Payload, "TargetBehaviorGuid", targetGuid);
-        AddEventPayload(request.Payload, "OldCharacterId", GetCharacterId(oldCharacter));
-        AddEventPayload(request.Payload, "NewCharacterId", GetCharacterId(newCharacter));
+        AddEventPayload(request.Payload, "OldCharacterName", GetCharacterName(oldCharacter));
+        AddEventPayload(request.Payload, "NewCharacterName", GetCharacterName(newCharacter));
+        // Legacy aliases remain readable by existing behavior graphs, but now carry the same canonical name.
+        AddEventPayload(request.Payload, "OldCharacterId", GetCharacterName(oldCharacter));
+        AddEventPayload(request.Payload, "NewCharacterId", GetCharacterName(newCharacter));
         AddEventPayload(request.Payload, "HasOldCharacter", HasCharacter(oldCharacter));
         AddEventPayload(request.Payload, "HasNewCharacter", HasCharacter(newCharacter));
         return request;
@@ -431,10 +500,8 @@ public partial class CharacterSelectionService(
     private static string GetBpPickControlName(Camp camp, int playerIndex) =>
         camp == Camp.Sur ? $"SurPick{playerIndex}" : "HunPick";
 
-    private static string? GetCharacterId(Character? character) =>
-        HasCharacter(character)
-            ? !string.IsNullOrWhiteSpace(character!.ImageFileName) ? character.ImageFileName : character.Name
-            : null;
+    private static string? GetCharacterName(Character? character) =>
+        HasCharacter(character) ? character!.Name : null;
 
     private static bool HasCharacter(Character? character) =>
         character is not null && !string.IsNullOrWhiteSpace(character.Name);
@@ -449,8 +516,7 @@ public partial class CharacterSelectionService(
             .Select(character => new CharacterCandidate(
                 character,
                 character.Name,
-                NormalizeCharacterName(character.Name),
-                GetCharacterId(character) ?? character.Name))
+                NormalizeCharacterName(character.Name)))
             .Where(candidate => candidate.Normalized.Length > 0)
             .DistinctBy(candidate => candidate.Name, StringComparer.Ordinal);
     }
@@ -468,7 +534,6 @@ public partial class CharacterSelectionService(
             camp,
             candidate.Character,
             candidate.Name,
-            candidate.CharacterKey,
             score,
             matchMode,
             isAutoApplySafe,
@@ -480,7 +545,7 @@ public partial class CharacterSelectionService(
         double score,
         string matchMode,
         string reason) =>
-        new(rawText, camp, null, null, null, score, matchMode, false, reason);
+        new(rawText, camp, null, null, score, matchMode, false, reason);
 
     private static CharacterResolveResult Ambiguous(
         string rawText,
@@ -488,7 +553,7 @@ public partial class CharacterSelectionService(
         double score,
         string matchMode,
         IEnumerable<string> candidates) =>
-        new(rawText, camp, null, null, null, Math.Min(score, .89), matchMode, false, $"ambiguous candidates: {string.Join(", ", candidates)}");
+        new(rawText, camp, null, null, Math.Min(score, .89), matchMode, false, $"ambiguous candidates: {string.Join(", ", candidates)}");
 
     private static CharacterCandidate[] FindShortNameCorrection(
         IReadOnlyList<CharacterCandidate> candidates,
@@ -546,7 +611,7 @@ public partial class CharacterSelectionService(
         return trimmed;
     }
 
-    private sealed record CharacterCandidate(Character Character, string Name, string Normalized, string CharacterKey);
+    private sealed record CharacterCandidate(Character Character, string Name, string Normalized);
     private sealed record ScoredCandidate(CharacterCandidate Candidate, double Score);
 
     private static readonly (char Left, char Right)[] QuotePairs =

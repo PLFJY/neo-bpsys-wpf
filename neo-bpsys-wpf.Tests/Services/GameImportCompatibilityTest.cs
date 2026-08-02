@@ -97,6 +97,56 @@ public class GameImportCompatibilityTest
     }
 
     [Fact]
+    public async Task OldSerializedGameWithoutBpCommitStateLoadsSafely()
+    {
+        var sourceGame = new Game(
+            new Team(Camp.Sur, TeamType.HomeTeam),
+            new Team(Camp.Hun, TeamType.AwayTeam),
+            GameProgress.Game2FirstHalf);
+        var node = JsonNode.Parse(JsonSerializer.Serialize(sourceGame, CreateJsonOptions()))!.AsObject();
+        node.Remove(nameof(Game.BpSlotCommitState));
+        var filePath = WriteJson(node.ToJsonString());
+        var sharedDataService = CreateSharedDataService();
+
+        try
+        {
+            await sharedDataService.ImportGameAsync(filePath);
+
+            var state = sharedDataService.CurrentGame.BpSlotCommitState;
+            Assert.Equal(sharedDataService.CurrentGame.Guid, state.GameGuid);
+            Assert.Equal(GameProgress.Game2FirstHalf, state.GameProgress);
+            Assert.All(state.SurvivorBans, item => Assert.Equal(BpSlotCommitState.Pending, item));
+            Assert.All(state.HunterBans, item => Assert.Equal(BpSlotCommitState.Pending, item));
+            Assert.All(state.SurvivorPicks, item => Assert.Equal(BpSlotCommitState.Pending, item));
+            Assert.Equal(BpSlotCommitState.Pending, state.HunterPick);
+        }
+        finally
+        {
+            File.Delete(filePath);
+        }
+    }
+
+    [Fact]
+    public void BpCommitStateRoundTripsWithGameContext()
+    {
+        var game = new Game(
+            new Team(Camp.Sur, TeamType.HomeTeam),
+            new Team(Camp.Hun, TeamType.AwayTeam),
+            GameProgress.Game3SecondHalf);
+        game.BpSlotCommitState.SurvivorBans[1] = BpSlotCommitState.CommittedEmpty;
+        game.BpSlotCommitState.SurvivorPicks[2] = BpSlotCommitState.CommittedCharacter;
+
+        var json = JsonSerializer.Serialize(game, CreateJsonOptions());
+        var restored = JsonSerializer.Deserialize<Game>(json, CreateJsonOptions());
+
+        Assert.NotNull(restored);
+        Assert.Equal(game.Guid, restored.BpSlotCommitState.GameGuid);
+        Assert.Equal(game.GameProgress, restored.BpSlotCommitState.GameProgress);
+        Assert.Equal(BpSlotCommitState.CommittedEmpty, restored.BpSlotCommitState.SurvivorBans[1]);
+        Assert.Equal(BpSlotCommitState.CommittedCharacter, restored.BpSlotCommitState.SurvivorPicks[2]);
+    }
+
+    [Fact]
     public async Task ImportGameDoesNotOverwriteValidMatchScoreWithLegacyMirror()
     {
         var sourceGame = new Game(

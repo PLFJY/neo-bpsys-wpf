@@ -129,6 +129,8 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.PlayerIndex");
         Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.OldCharacterId");
         Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.NewCharacterId");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.OldCharacterName");
+        Assert.Contains(field.ConditionFieldOptions, option => option.ValuePath == "Event.NewCharacterName");
 
         field.ConditionFieldValue = "Event.HasOldCharacter";
         Assert.Equal("Event.HasOldCharacter", ifNode.Properties["Left"].GetString());
