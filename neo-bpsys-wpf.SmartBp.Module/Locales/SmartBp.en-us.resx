@@ -385,7 +385,7 @@
     <value>Delete selected language data</value>
   </data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
-    <value>Enable automatic GameGuidance sync</value>
+    <value>Enable automatic match guidance sync</value>
   </data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
     <value>Follow page navigation when sync moves step</value>
@@ -421,7 +421,7 @@
     <value>Minimum delay between automatic recognition runs in milliseconds.</value>
   </data>
   <data name="SmartBpTooltipBackfill" xml:space="preserve">
-    <value>Reviews this many previous workflow steps only when the observed Action/slots differ from GameGuidance or an earlier Pending slot hole exists. Default: 2. At most one Action-aligned representative frame is recognized per step.</value>
+    <value>Reviews this many previous workflow steps only when the observed Action/slots differ from match guidance or an earlier Pending slot hole exists. Default: 2. At most one Action-aligned representative frame is recognized per step.</value>
   </data>
   <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
     <value>Outputs OCR region and text-position diagnostics.</value>
@@ -503,6 +503,9 @@
   </data>
   <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
     <value>Open recognition log window</value>
+  </data>
+  <data name="SmartBpRecognizePostGameData" xml:space="preserve">
+    <value>Recognize post-game data</value>
   </data>
   <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
     <value>SmartBP Recognition Debug Log</value>

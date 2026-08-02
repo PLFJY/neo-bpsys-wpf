@@ -48,6 +48,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
     private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
     private readonly IGameDataRecognitionDebugState _gameDataRecognitionDebugState = null!;
+    private readonly ISmartBpService _smartBpService = null!;
     // CUDA / Paddle runtime 设置卡片依赖的服务，由 SmartBpModuleContentViewModel.Cuda.cs 使用。
     private readonly ICudaDeviceDetector _cudaDeviceDetector = null!;
     private readonly IPaddleRuntimeComponentService _paddleRuntimeComponentService = null!;
@@ -100,6 +101,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpOcrBpRecognitionService ocrBpRecognitionService,
         ISmartBpModuleStorageProvider smartBpModuleStorage,
         IGameDataRecognitionDebugState gameDataRecognitionDebugState,
+        ISmartBpService smartBpService,
         ICudaDeviceDetector cudaDeviceDetector,
         IPaddleRuntimeComponentService paddleRuntimeComponentService,
         IPaddleCudaPrerequisiteSetupService paddleCudaPrerequisiteSetupService,
@@ -126,6 +128,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _ocrBpRecognitionService = ocrBpRecognitionService;
         _smartBpModuleStorage = smartBpModuleStorage;
         _gameDataRecognitionDebugState = gameDataRecognitionDebugState;
+        _smartBpService = smartBpService;
         _cudaDeviceDetector = cudaDeviceDetector;
         _paddleRuntimeComponentService = paddleRuntimeComponentService;
         _paddleCudaPrerequisiteSetupService = paddleCudaPrerequisiteSetupService;

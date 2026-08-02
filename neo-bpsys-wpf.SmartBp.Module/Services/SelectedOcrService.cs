@@ -147,6 +147,37 @@ public sealed class OcrService : IOcrService
             UsePreprocessingVariants = true
         });
     }
+
+    /// <inheritdoc />
+    public OcrSingleTextResult? RecognizeSingleText(Mat img, OcrRecognitionOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(img);
+        if (img.Empty())
+            return null;
+
+        var provider = _selector.GetSelectedProvider();
+        if (!provider.IsReady)
+        {
+            _logger.LogWarning("Selected OCR provider {Provider} is not ready; single-text recognition was not downgraded.", provider.Kind);
+            return null;
+        }
+
+        if (provider.Kind == SmartBpOcrProviderKind.Paddle)
+            return _paddle.RecognizeSingleText(img);
+
+        options ??= new OcrRecognitionOptions
+        {
+            Psm = 10,
+            PreferChinese = false,
+            PreferEnglish = false,
+            UsePreprocessingVariants = false
+        };
+        var result = provider.RecognizeTextLines(img, options);
+        var best = result.Lines.OrderByDescending(line => line.Confidence).FirstOrDefault();
+        return best == null
+            ? null
+            : new OcrSingleTextResult(best.Text, best.Confidence, best.Provider ?? provider.Kind.ToString());
+    }
 }
 
 /// <summary>选择唯一一个已配置的 OCR Provider，不做自动降级。</summary>

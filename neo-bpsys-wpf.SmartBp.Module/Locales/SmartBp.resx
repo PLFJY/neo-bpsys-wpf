@@ -385,7 +385,7 @@
     <value>删除所选语言数据</value>
   </data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
-    <value>启用 GameGuidance 自动同步</value>
+    <value>启用同步对局引导</value>
   </data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
     <value>同步步骤时跟随页面导航</value>
@@ -503,6 +503,9 @@
   </data>
   <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
     <value>打开识别日志窗口</value>
+  </data>
+  <data name="SmartBpRecognizePostGameData" xml:space="preserve">
+    <value>识别赛后数据</value>
   </data>
   <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
     <value>SmartBP 识别调试日志</value>

@@ -32,10 +32,12 @@ internal static partial class GameDataTableOcrParser
             .ToArray();
         diagnostics.Add($"name candidates={names.Length}");
 
-        var values = names.Select(_ => new string[5]).ToArray();
+        var values = names
+            .Select(_ => Enumerable.Repeat(string.Empty, 5).ToArray())
+            .ToArray();
         var evidence = names.Select(_ => new bool[5]).ToArray();
         if (names.Length == 0)
-            return new([], diagnostics);
+            return new([], diagnostics, []);
 
         // 名称文本右边界定义左侧资料区的终点；等级/天赋数字位于其左侧，不参与统计列聚类。
         var dataStartX = names.Max(name => name.RightX);
@@ -52,13 +54,23 @@ internal static partial class GameDataTableOcrParser
         if (numeric.Length == 0)
         {
             diagnostics.Add("no numeric table candidates to the right of player/character text");
-            return BuildRows(names, values, evidence, diagnostics);
+            return BuildRows(names, values, evidence, diagnostics, []);
         }
 
         var left = numeric.Min(item => item.Line.CenterX);
         var right = numeric.Max(item => item.Line.CenterX);
         var step = right > left ? (right - left) / 4d : 1d;
-        diagnostics.Add($"data grid inferred left={left:0.#}; right={right:0.#}; step={step:0.#}");
+        var expectedCenters = Enumerable.Range(0, 5)
+            .Select(column => left + step * column)
+            .ToArray();
+        var expectedRowCenters = names
+            .Select((name, rowIndex) => numeric
+                .Where(item => FindNearestRow(names, item.Line.CenterY) == rowIndex)
+                .Select(item => item.Line.CenterY)
+                .DefaultIfEmpty(name.CenterY + 24)
+                .Average())
+            .ToArray();
+        diagnostics.Add($"data grid inferred left={left:0.#}; right={right:0.#}; step={step:0.#}; expected_centers=[{string.Join(",", expectedCenters.Select(value => value.ToString("0.#")))}]");
 
         foreach (var item in numeric)
         {
@@ -85,14 +97,35 @@ internal static partial class GameDataTableOcrParser
             diagnostics.Add($"assigned data row={rowIndex} column={columnIndex} value=[{item.Digits}] x={item.Line.CenterX:0.#} y={item.Line.CenterY:0.#}");
         }
 
-        return BuildRows(names, values, evidence, diagnostics);
+        var missingCells = new List<GameDataTableMissingCell>();
+        for (var rowIndex = 0; rowIndex < names.Length; rowIndex++)
+        {
+            for (var columnIndex = 0; columnIndex < values[rowIndex].Length; columnIndex++)
+            {
+                if (!string.IsNullOrEmpty(values[rowIndex][columnIndex]) || evidence[rowIndex][columnIndex])
+                    continue;
+
+                var expectedX = expectedCenters[columnIndex];
+                var nearest = numeric
+                    .Where(item => FindNearestRow(names, item.Line.CenterY) == rowIndex)
+                    .OrderBy(item => Math.Abs(item.Line.CenterX - expectedX))
+                    .FirstOrDefault();
+                diagnostics.Add(nearest == null
+                    ? $"missing data row={rowIndex} column={columnIndex} expected_x={expectedX:0.#} nearest_candidate=none"
+                    : $"missing data row={rowIndex} column={columnIndex} expected_x={expectedX:0.#} nearest_candidate=[{nearest.Line.Text}] x={nearest.Line.CenterX:0.#} distance={Math.Abs(nearest.Line.CenterX - expectedX):0.#}");
+                missingCells.Add(new(rowIndex, columnIndex, expectedX, expectedRowCenters[rowIndex]));
+            }
+        }
+
+        return BuildRows(names, values, evidence, diagnostics, missingCells);
     }
 
     private static GameDataTableParseResult BuildRows(
         IReadOnlyList<NameCandidate> names,
         IReadOnlyList<string[]> values,
         IReadOnlyList<bool[]> evidence,
-        List<string> diagnostics)
+        List<string> diagnostics,
+        IReadOnlyList<GameDataTableMissingCell> missingCells)
     {
         var rows = names.Select((name, index) => new GameDataTableRow(
             index,
@@ -104,7 +137,7 @@ internal static partial class GameDataTableOcrParser
             name.RawText)).ToArray();
         diagnostics.AddRange(rows.Select(row =>
             $"parsed row={row.RowIndex} y={row.CenterY:0.#} complete={row.HasAllDataColumns} player=[{row.PlayerName}] character=[{row.CharacterName}] values=[{string.Join(",", row.Values)}]"));
-        return new(rows, diagnostics);
+        return new(rows, diagnostics, missingCells);
     }
 
     private static int FindNearestRow(IReadOnlyList<NameCandidate> names, double y) => names
@@ -133,6 +166,18 @@ internal static partial class GameDataTableOcrParser
 internal sealed record GameDataTableRow(int RowIndex, string PlayerName, string CharacterName, IReadOnlyList<string> Values, bool HasAllDataColumns, double CenterY, string RawNameText);
 
 /// <summary>
+/// 一处未被整表 OCR 识别到的数据格及其推断位置。
+/// </summary>
+/// <param name="RowIndex">数据行索引。</param>
+/// <param name="ColumnIndex">数据列索引。</param>
+/// <param name="ExpectedCenterX">数据格推断中心 X 坐标。</param>
+/// <param name="ExpectedCenterY">数据格推断中心 Y 坐标。</param>
+internal sealed record GameDataTableMissingCell(int RowIndex, int ColumnIndex, double ExpectedCenterX, double ExpectedCenterY);
+
+/// <summary>
 /// 整表 OCR 解析结果。
 /// </summary>
-internal sealed record GameDataTableParseResult(IReadOnlyList<GameDataTableRow> Rows, IReadOnlyList<string> Diagnostics);
+internal sealed record GameDataTableParseResult(
+    IReadOnlyList<GameDataTableRow> Rows,
+    IReadOnlyList<string> Diagnostics,
+    IReadOnlyList<GameDataTableMissingCell> MissingCells);

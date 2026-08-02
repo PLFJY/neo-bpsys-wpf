@@ -682,6 +682,15 @@ public partial class SmartBpModuleContentViewModel
         DebugLogText = "";
     }
 
+    /// <summary>
+    /// 从 DEBUG 区触发赛后数据识别，并将识别结果写入共享对局数据。
+    /// </summary>
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task RecognizePostGameDataAsync()
+    {
+        await _smartBpService.AutoFillGameDataAsync();
+    }
+
     /// <summary>将缓冲的日志消息写入 <see cref="DebugLogText"/> 并清空缓冲区。</summary>
     private void FlushDebugLogBuffer()
     {
@@ -1371,6 +1380,7 @@ public partial class SmartBpModuleContentViewModel
 
     private void ApplyRegionGatedResult(SmartBpAutoRecognitionTickResult result)
     {
+        WriteStandardBpRecognitionDebugLog(result);
         RefreshStrategyDebugSections(result);
         RawResponse = result.RawJson;
         StageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
@@ -1387,6 +1397,47 @@ public partial class SmartBpModuleContentViewModel
         RequestMetrics = FormatRecognitionTiming();
         LastError = result.Error ?? "";
         RefreshRecognitionDebugLogText();
+    }
+
+    /// <summary>
+    /// 将标准 BP 对局流本次识别的原始响应、诊断和候选结果写入统一调试日志窗口。
+    /// </summary>
+    /// <param name="result">本次自动或手动识别结果。</param>
+    private void WriteStandardBpRecognitionDebugLog(SmartBpAutoRecognitionTickResult result)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine(
+            $"tick result: phase=[{result.PhaseResult?.Phase ?? "unknown"}]; " +
+            $"scene=[{result.SceneGate?.Scene.ToString() ?? "unknown"}]; " +
+            $"operations={result.Operations.Count}; " +
+            $"applied={result.ApplyResult?.AppliedCount.ToString() ?? "-"}; " +
+            $"skipped={result.ApplyResult?.SkippedCount.ToString() ?? "-"}; " +
+            $"error=[{result.Error ?? string.Empty}].");
+
+        if (result.CandidateMessages.Count > 0)
+        {
+            builder.AppendLine("candidate_messages:");
+            foreach (var message in result.CandidateMessages)
+                builder.AppendLine($"  {message}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.RawJson))
+        {
+            builder.AppendLine("raw_response:");
+            builder.AppendLine(result.RawJson);
+        }
+
+        if (result.RegionSnapshot?.RawResponses is { Count: > 0 } rawResponses)
+        {
+            builder.AppendLine("region_raw_responses:");
+            foreach (var response in rawResponses)
+            {
+                builder.AppendLine($"  [{response.Key}]");
+                builder.AppendLine(response.Value);
+            }
+        }
+
+        _debugLog.Write("standard-bp", builder.ToString().TrimEnd());
     }
 
     private string FormatProgressSyncResult(SmartBpProgressSyncResult result)

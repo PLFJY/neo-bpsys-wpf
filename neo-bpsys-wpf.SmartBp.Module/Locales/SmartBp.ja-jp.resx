@@ -385,7 +385,7 @@
     <value>選択した言語データを削除</value>
   </data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
-    <value>GameGuidance 自動同期を有効化</value>
+    <value>対局ガイダンスの自動同期を有効化</value>
   </data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
     <value>同期でステップ移動時にページナビゲーションに追従</value>
@@ -421,7 +421,7 @@
     <value>OCR 自動認識の 2 回のスクリーンショット間の間隔を制御します。実際の処理時間より短い間隔は結果遅延と UI カクつきの原因になります。先に「認識速度テスト」を実行してください。最小値は実測最大時間 + 250ms に設定されます。</value>
   </data>
   <data name="SmartBpTooltipBackfill" xml:space="preserve">
-    <value>画面の Action/スロットが GameGuidance と異なる場合、または対象より前に Pending スロットの欠落がある場合だけ、直前のステップをこの数だけ確認します。既定値は 2 で、各ステップにつき Action が一致する代表フレームを最大 1 枚認識します。</value>
+    <value>画面の Action/スロットが対局ガイダンスと異なる場合、または対象より前に Pending スロットの欠落がある場合だけ、直前のステップをこの数だけ確認します。既定値は 2 で、各ステップにつき Action が一致する代表フレームを最大 1 枚認識します。</value>
   </data>
   <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
     <value>OCR 領域、テキスト枠、マッチングデバッグ情報を出力し、認識問題の特定に役立てます。ディスク書き込みとわずかな処理オーバーヘッドが増えます。日常使用ではオフを推奨し、トラブルシューティング時に一時的にオンにしてください。</value>
@@ -503,6 +503,9 @@
   </data>
   <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
     <value>認識ログウィンドウを開く</value>
+  </data>
+  <data name="SmartBpRecognizePostGameData" xml:space="preserve">
+    <value>試合後データを認識</value>
   </data>
   <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
     <value>SmartBP 認識デバッグログ</value>

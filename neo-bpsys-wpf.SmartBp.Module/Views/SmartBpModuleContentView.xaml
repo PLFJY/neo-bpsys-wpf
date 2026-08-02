@@ -745,6 +745,11 @@
                     FontFamily="Consolas"
                     Style="{StaticResource SmartBpDebugOutputTextBox}"
                     Text="{Binding GameDataRecognitionDiagnosticsText}" />
+                <ui:Button
+                    Margin="0,8,0,0"
+                    Command="{Binding RecognizePostGameDataCommand}"
+                    Content="{lex:Loc SmartBpRecognizePostGameData}"
+                    Icon="{ui:SymbolIcon Symbol=Scan24}" />
                 <ComboBox
                     Margin="0,10,0,0"
                     DisplayMemberPath="Id"
@@ -805,7 +810,6 @@
                 <TextBlock Text="{Binding DebugFinalBusinessState}" />
                 <ui:Button
                     Margin="0,8,0,0"
-                    HorizontalAlignment="Left"
                     Command="{Binding OpenRecognitionDebugLogWindowCommand}"
                     Content="{lex:Loc SmartBpOpenRecognitionDebugLogWindow}"
                     Icon="{ui:SymbolIcon Symbol=Open24}" />
