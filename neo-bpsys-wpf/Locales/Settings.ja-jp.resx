@@ -235,6 +235,12 @@
   <data name="SmartBpModuleArchiveFiles">
     <value>SmartBP モジュールアーカイブ</value>
   </data>
+  <data name="SmartBpModuleSetDebugPath">
+    <value>Debug パスに設定</value>
+  </data>
+  <data name="SmartBpModuleDebugPathNotFound">
+    <value>SmartBP モジュールの Debug 出力ディレクトリが見つかりませんでした。先に SmartBP モジュールプロジェクトをビルドしてください。</value>
+  </data>
   <data name="AppUpdateHashFileMissing">
     <value>更新パッケージに SHA-256 ファイルが含まれていないため、ダウンロードを停止しました。</value>
   </data>

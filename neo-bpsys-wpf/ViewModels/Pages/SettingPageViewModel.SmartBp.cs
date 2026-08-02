@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.SmartBpModule;
@@ -165,6 +166,90 @@ public partial class SettingPageViewModel
     {
         SmartBpModuleRoot = SmartBpModuleManager.GetDefaultModuleRoot();
         await SaveSmartBpModuleRootAsync();
+    }
+
+    /// <summary>
+    /// 自动从主程序所在目录向上查找 SmartBP 模块项目的 Debug 输出目录并设置为模块路径。
+    /// </summary>
+    [RelayCommand]
+    private async Task SetSmartBpModuleRootToDebugPathAsync()
+    {
+        var debugPath = FindSmartBpModuleDebugOutput();
+        if (debugPath == null)
+        {
+            SmartBpModulePathStatus = I18nHelper.GetLocalizedString(
+                AppI18nDictionaries.Settings,
+                "SmartBpModuleDebugPathNotFound");
+            _logger.LogWarning(
+                "Could not locate SmartBP module debug output directory from base directory: {BaseDirectory}",
+                AppContext.BaseDirectory);
+            return;
+        }
+
+        SmartBpModuleRoot = debugPath;
+        _logger.LogInformation("Located SmartBP module debug output directory: {DebugPath}", debugPath);
+        await SaveSmartBpModuleRootAsync();
+    }
+
+    /// <summary>
+    /// 从主程序基础目录向上查找 SmartBP 模块项目的 Debug 输出目录。
+    /// 优先返回包含 component.json 的完整输出目录，其次返回仅包含入口程序集的开发目录。
+    /// </summary>
+    /// <returns>找到的 Debug 输出目录完整路径；未找到时返回 <see langword="null"/>。</returns>
+    private static string? FindSmartBpModuleDebugOutput()
+    {
+        const string moduleProjectName = "neo-bpsys-wpf.SmartBp.Module";
+        var entryAssembly = SmartBpModuleConstants.EntryAssemblyName;
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+
+        for (int i = 0; i < 8 && dir != null; i++)
+        {
+            var binDebugDirs = new[]
+            {
+                Path.Combine(dir.FullName, moduleProjectName, "bin", "Debug"),
+                Path.Combine(dir.FullName, moduleProjectName, "bin", "x64", "Debug"),
+            };
+
+            foreach (var binDebugDir in binDebugDirs)
+            {
+                if (!Directory.Exists(binDebugDir))
+                    continue;
+
+                try
+                {
+                    string? withManifest = null;
+                    string? withoutManifest = null;
+                    foreach (var entry in Directory.EnumerateFiles(binDebugDir, entryAssembly, SearchOption.AllDirectories))
+                    {
+                        var candidate = Path.GetDirectoryName(entry);
+                        if (candidate == null)
+                            continue;
+                        if (File.Exists(Path.Combine(candidate, "component.json")))
+                        {
+                            withManifest = candidate;
+                            break;
+                        }
+
+                        withoutManifest ??= candidate;
+                    }
+
+                    if (withManifest != null)
+                        return withManifest;
+                    if (withoutManifest != null)
+                        return withoutManifest;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+                catch (DirectoryNotFoundException)
+                {
+                }
+            }
+
+            dir = dir.Parent;
+        }
+
+        return null;
     }
 
     /// <summary>

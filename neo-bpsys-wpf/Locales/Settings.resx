@@ -235,6 +235,12 @@
   <data name="SmartBpModuleArchiveFiles">
     <value>SmartBP 模块归档</value>
   </data>
+  <data name="SmartBpModuleSetDebugPath">
+    <value>设置为 Debug 路径</value>
+  </data>
+  <data name="SmartBpModuleDebugPathNotFound">
+    <value>未找到 SmartBP 模块 Debug 输出目录，请先构建 SmartBP 模块项目。</value>
+  </data>
   <data name="AppUpdateHashFileMissing">
     <value>更新包缺少 SHA-256 校验文件，已停止下载。</value>
   </data>
