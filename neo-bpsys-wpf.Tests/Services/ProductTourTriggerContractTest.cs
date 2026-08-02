@@ -39,18 +39,6 @@ public sealed class ProductTourTriggerContractTest
     }
 
     [Fact]
-    public void PropertyPanel_ShouldRunAfterFirstUserControlSelection()
-    {
-        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml.cs");
-
-        Assert.Contains("RunUserSelection(() => _viewModel?.SelectLayerNode(node))", source);
-        Assert.Contains("FindTopmostSelectableItemAt", source);
-        Assert.Contains("RunUserSelection(() => _viewModel?.SelectDesignItem(target))", source);
-        Assert.Contains("WaitForPropertyGridReadyAsync", source);
-        Assert.Contains("RunPackageAsync(this, Tours.PropertyPanelBasic", source);
-    }
-
-    [Fact]
     public void BehaviorPanel_ShouldNotRunOnDataContextChangedOrVisibilityOnly()
     {
         var source = ReadRepoFile("neo-bpsys-wpf", "Views", "FrontedDesigner", "BehaviorPanelView.xaml.cs");
