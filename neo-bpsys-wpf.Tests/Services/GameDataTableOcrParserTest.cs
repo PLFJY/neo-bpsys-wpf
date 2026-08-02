@@ -78,6 +78,68 @@ public sealed class GameDataTableOcrParserTest
         Assert.False(row.HasAllDataColumns);
     }
 
+    [Fact]
+    public void ParserReturnsStableFiveColumnLayout()
+    {
+        var lines = new List<OcrTextLine>();
+        for (var row = 0; row < 5; row++)
+        {
+            var nameY = 140 + row * 100;
+            lines.Add(Line($"玩家{row}(角色{row})", 80, nameY));
+            for (var col = 0; col < 5; col++)
+                lines.Add(Line($"{row}{col + 1}", 250 + col * 110, nameY + 35));
+        }
+
+        var result = GameDataTableOcrParser.Parse(lines);
+
+        Assert.NotNull(result.Layout);
+        Assert.Equal(5, result.Layout!.ColumnCenters.Count);
+        Assert.Equal(5, result.Layout.RowCenters.Count);
+        Assert.Equal(5, result.Layout.ColumnCenters.Distinct().Count());
+        for (var i = 0; i < 5; i++)
+            Assert.Equal(250 + i * 110, result.Layout.ColumnCenters[i], 1);
+    }
+
+    [Fact]
+    public void NumericGridBoundsContainAllExpectedCellCenters()
+    {
+        var lines = new List<OcrTextLine>();
+        for (var row = 0; row < 5; row++)
+        {
+            var nameY = 140 + row * 100;
+            lines.Add(Line($"玩家{row}(角色{row})", 80, nameY));
+            for (var col = 0; col < 5; col++)
+                lines.Add(Line($"{row}{col + 1}", 250 + col * 110, nameY + 35));
+        }
+
+        var result = GameDataTableOcrParser.Parse(lines);
+        Assert.NotNull(result.Layout);
+
+        var bounds = result.Layout!.NumericGridBounds;
+        for (var row = 0; row < 5; row++)
+        {
+            for (var col = 0; col < 5; col++)
+            {
+                var cx = result.Layout.ColumnCenters[col];
+                var cy = result.Layout.RowCenters[row];
+                Assert.True(bounds.Contains(new OpenCvSharp.Point((int)cx, (int)cy)),
+                    $"cell center ({cx},{cy}) for row={row} col={col} not in bounds {bounds}");
+            }
+        }
+    }
+
+    [Fact]
+    public void LayoutIsUnavailableWhenNoRowsCanBeInferred()
+    {
+        var result = GameDataTableOcrParser.Parse(
+        [
+            Line("无效文本", 80, 40),
+            Line("7", 250, 175)
+        ]);
+
+        Assert.Null(result.Layout);
+    }
+
     private static OcrTextLine Line(string text, double x, double y) =>
         new(text, 1, new Rect((int)x - 20, (int)y - 10, 40, 20), x, y, "test");
 }

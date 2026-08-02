@@ -18,13 +18,21 @@ public sealed class SmartBpFeatureService : ISmartBpFeatureService
     {
         _moduleManager = moduleManager;
         _moduleManager.ModuleStateChanged += (_, _) => ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+        _moduleManager.PostGameRecognitionProgressChanged += (_, e) => PostGameRecognitionProgressChanged?.Invoke(this, e);
     }
 
     /// <inheritdoc />
     public event EventHandler? ModuleStateChanged;
 
     /// <inheritdoc />
+    public event EventHandler<SmartBpPostGameRecognitionProgressEventArgs>? PostGameRecognitionProgressChanged;
+
+    /// <inheritdoc />
     public bool IsModuleLoaded => _moduleManager.IsModuleLoaded;
+
+    /// <inheritdoc />
+    public SmartBpPostGameRecognitionProgress CurrentPostGameRecognitionProgress
+        => _moduleManager.CurrentPostGameRecognitionProgress;
 
     /// <inheritdoc />
     public Task AutoFillGameDataAsync(CancellationToken cancellationToken = default)

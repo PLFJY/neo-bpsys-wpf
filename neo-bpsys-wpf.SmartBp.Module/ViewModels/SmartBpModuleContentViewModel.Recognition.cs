@@ -14,6 +14,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
+using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Windows;
 using Wpf.Ui.Controls;
 
@@ -688,7 +689,35 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand(AllowConcurrentExecutions = false)]
     private async Task RecognizePostGameDataAsync()
     {
-        await _smartBpService.AutoFillGameDataAsync();
+        IsRecognizingPostGameData = true;
+        try
+        {
+            await _smartBpService.AutoFillGameDataAsync();
+        }
+        finally
+        {
+            IsRecognizingPostGameData = false;
+        }
+    }
+
+    [ObservableProperty]
+    public partial bool IsRecognizingPostGameData { get; set; }
+
+    [ObservableProperty]
+    public partial int PostGameRecognitionProgressPercent { get; set; }
+
+    [ObservableProperty]
+    public partial string PostGameRecognitionStageText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 将赛后数据识别进度快照应用到可观察属性，驱动进度条与阶段文本。
+    /// 必须在 UI 线程调用。
+    /// </summary>
+    /// <param name="progress">进度快照。</param>
+    private void ApplyPostGameRecognitionProgress(PostGameRecognitionProgress progress)
+    {
+        PostGameRecognitionProgressPercent = progress.Percent;
+        PostGameRecognitionStageText = progress.StageText;
     }
 
     /// <summary>将缓冲的日志消息写入 <see cref="DebugLogText"/> 并清空缓冲区。</summary>

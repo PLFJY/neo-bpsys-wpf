@@ -1038,4 +1038,22 @@
   <data name="ResumeDownload" xml:space="preserve">
     <value>ダウンロードを再開</value>
   </data>
+  <data name="SmartBpPostGameStagePreparing" xml:space="preserve">
+    <value>認識を準備中…</value>
+  </data>
+  <data name="SmartBpPostGameStagePrimaryOcr" xml:space="preserve">
+    <value>メインテーブルを認識中…</value>
+  </data>
+  <data name="SmartBpPostGameStageGridOcr" xml:space="preserve">
+    <value>数値グリッドを認識中…</value>
+  </data>
+  <data name="SmartBpPostGameStageSingleCell" xml:space="preserve">
+    <value>欠落セルを補完中…</value>
+  </data>
+  <data name="SmartBpPostGameStageApplying" xml:space="preserve">
+    <value>認識結果を適用中…</value>
+  </data>
+  <data name="SmartBpPostGameStageCompleted" xml:space="preserve">
+    <value>認識完了</value>
+  </data>
 </root>

@@ -1,3 +1,5 @@
+using neo_bpsys_wpf.Core.Models.SmartBpModule;
+
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
@@ -21,4 +23,14 @@ public interface ISmartBpFeatureService
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>异步任务。</returns>
     Task AutoFillGameDataAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 赛后数据识别进度变化时触发。
+    /// </summary>
+    event EventHandler<SmartBpPostGameRecognitionProgressEventArgs>? PostGameRecognitionProgressChanged;
+
+    /// <summary>
+    /// 获取最近一次赛后数据识别进度快照；未开始识别时为 <see cref="SmartBpPostGameRecognitionProgress.Idle"/>。
+    /// </summary>
+    SmartBpPostGameRecognitionProgress CurrentPostGameRecognitionProgress { get; }
 }

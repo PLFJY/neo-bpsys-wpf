@@ -49,6 +49,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
     private readonly IGameDataRecognitionDebugState _gameDataRecognitionDebugState = null!;
     private readonly ISmartBpService _smartBpService = null!;
+    private readonly IPostGameRecognitionProgressSource _postGameRecognitionProgressSource = null!;
     // CUDA / Paddle runtime 设置卡片依赖的服务，由 SmartBpModuleContentViewModel.Cuda.cs 使用。
     private readonly ICudaDeviceDetector _cudaDeviceDetector = null!;
     private readonly IPaddleRuntimeComponentService _paddleRuntimeComponentService = null!;
@@ -102,6 +103,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpModuleStorageProvider smartBpModuleStorage,
         IGameDataRecognitionDebugState gameDataRecognitionDebugState,
         ISmartBpService smartBpService,
+        IPostGameRecognitionProgressSource postGameRecognitionProgressSource,
         ICudaDeviceDetector cudaDeviceDetector,
         IPaddleRuntimeComponentService paddleRuntimeComponentService,
         IPaddleCudaPrerequisiteSetupService paddleCudaPrerequisiteSetupService,
@@ -129,6 +131,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _smartBpModuleStorage = smartBpModuleStorage;
         _gameDataRecognitionDebugState = gameDataRecognitionDebugState;
         _smartBpService = smartBpService;
+        _postGameRecognitionProgressSource = postGameRecognitionProgressSource;
         _cudaDeviceDetector = cudaDeviceDetector;
         _paddleRuntimeComponentService = paddleRuntimeComponentService;
         _paddleCudaPrerequisiteSetupService = paddleCudaPrerequisiteSetupService;
@@ -137,7 +140,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _settingsHostService = settingsHostService;
         _globalRestartService = globalRestartService;
         _gameDataRecognitionDebugState.SnapshotChanged += (_, _) => BeginOnUiThread(RefreshGameDataRecognitionDebugText);
+        _postGameRecognitionProgressSource.ProgressChanged += (_, e) => BeginOnUiThread(() => ApplyPostGameRecognitionProgress(e.Progress));
         RefreshGameDataRecognitionDebugText();
+        ApplyPostGameRecognitionProgress(_postGameRecognitionProgressSource.CurrentProgress);
         InitializeRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         _ocrService.ModelLoadStateChanged += OcrService_ModelLoadStateChanged;

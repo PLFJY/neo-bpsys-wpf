@@ -19,4 +19,10 @@ public interface ISmartBpModuleEntryPoint
     /// </summary>
     /// <returns>功能命令列表。</returns>
     IReadOnlyList<SmartBpFeatureCommand> GetFeatureCommands();
+
+    /// <summary>
+    /// 获取赛后数据识别进度源；模块未提供时返回 null。
+    /// </summary>
+    /// <returns>进度源实例，或 null。</returns>
+    ISmartBpPostGameRecognitionProgressSource? GetPostGameRecognitionProgressSource();
 }

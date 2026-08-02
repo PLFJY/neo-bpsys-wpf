@@ -1038,4 +1038,22 @@
   <data name="ResumeDownload" xml:space="preserve">
     <value>Resume download</value>
   </data>
+  <data name="SmartBpPostGameStagePreparing" xml:space="preserve">
+    <value>Preparing recognition…</value>
+  </data>
+  <data name="SmartBpPostGameStagePrimaryOcr" xml:space="preserve">
+    <value>Recognizing main table…</value>
+  </data>
+  <data name="SmartBpPostGameStageGridOcr" xml:space="preserve">
+    <value>Recognizing numeric grid…</value>
+  </data>
+  <data name="SmartBpPostGameStageSingleCell" xml:space="preserve">
+    <value>Recovering missing cells…</value>
+  </data>
+  <data name="SmartBpPostGameStageApplying" xml:space="preserve">
+    <value>Applying results…</value>
+  </data>
+  <data name="SmartBpPostGameStageCompleted" xml:space="preserve">
+    <value>Recognition complete</value>
+  </data>
 </root>

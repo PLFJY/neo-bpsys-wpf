@@ -60,6 +60,7 @@ public sealed class SmartBpModuleManager
     private static readonly Dictionary<string, IntPtr> PreloadedNativeLibraries = new(StringComparer.OrdinalIgnoreCase);
     private ISmartBpModuleEntryPoint? _entryPoint;
     private IReadOnlyList<SmartBpFeatureCommand> _featureCommands = [];
+    private ISmartBpPostGameRecognitionProgressSource? _postGameRecognitionProgressSource;
     private bool _isModuleVersionOutdated;
     private IFileDownloadOperation? _currentModuleDownload;
 
@@ -612,6 +613,9 @@ public sealed class SmartBpModuleManager
             _logger.LogInformation("Creating SmartBP module content.");
             ModuleContent = _entryPoint.CreateSmartBpContent(_serviceProvider);
             _featureCommands = _entryPoint.GetFeatureCommands();
+            _postGameRecognitionProgressSource = _entryPoint.GetPostGameRecognitionProgressSource();
+            if (_postGameRecognitionProgressSource is not null)
+                _postGameRecognitionProgressSource.ProgressChanged += OnPostGameRecognitionProgressChanged;
             _logger.LogInformation("SmartBP module content created. FeatureCommandCount={FeatureCommandCount}", _featureCommands.Count);
             LastFailureMessage = string.Empty;
             await MigrateLegacyOcrModelsOnceAsync(moduleRoot);
@@ -895,6 +899,20 @@ public sealed class SmartBpModuleManager
         var command = _featureCommands.FirstOrDefault(c => c.CommandId == commandId);
         return command?.ExecuteAsync(cancellationToken) ?? Task.CompletedTask;
     }
+
+    /// <summary>
+    /// 赛后数据识别进度变化时触发。
+    /// </summary>
+    public event EventHandler<SmartBpPostGameRecognitionProgressEventArgs>? PostGameRecognitionProgressChanged;
+
+    /// <summary>
+    /// 获取最近一次赛后数据识别进度快照；模块未加载或未开始识别时为 <see cref="SmartBpPostGameRecognitionProgress.Idle"/>。
+    /// </summary>
+    public SmartBpPostGameRecognitionProgress CurrentPostGameRecognitionProgress
+        => _postGameRecognitionProgressSource?.CurrentProgress ?? SmartBpPostGameRecognitionProgress.Idle;
+
+    private void OnPostGameRecognitionProgressChanged(object? sender, SmartBpPostGameRecognitionProgressEventArgs e)
+        => PostGameRecognitionProgressChanged?.Invoke(sender, e);
 
     /// <summary>
     /// 校验模块目录。

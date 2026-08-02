@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using OpenCvSharp;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows.Threading;
 
@@ -16,7 +17,7 @@ namespace neo_bpsys_wpf.Services;
 /// 智慧 BP 服务实现。
 /// 负责对完整窗口捕获帧进行赛后数据 OCR，并按文本坐标回填当前对局数据。
 /// </summary>
-public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
+public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, IPostGameRecognitionProgressSource
 {
     private readonly ISharedDataService _sharedDataService;
     private readonly IWindowCaptureService _windowCaptureService;
@@ -26,13 +27,19 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
     private readonly ISmartBpDebugLog _debugLog;
     private readonly ILogger<SmartBpService> _logger;
     private readonly DispatcherTimer _timer;
-    private int _ocrWarmupStarted;
+    private readonly PostGameOcrEngine _postGameOcrEngine;
 
     /// <inheritdoc />
     public event EventHandler? SnapshotChanged;
 
     /// <inheritdoc />
     public GameDataRecognitionDebugSnapshot Current { get; private set; } = GameDataRecognitionDebugSnapshot.Empty;
+
+    /// <inheritdoc />
+    public event EventHandler<PostGameRecognitionProgressEventArgs>? ProgressChanged;
+
+    /// <inheritdoc />
+    public PostGameRecognitionProgress CurrentProgress { get; private set; } = PostGameRecognitionProgress.Idle;
 
     /// <summary>
     /// 获取当前 SmartBp 是否处于运行状态。
@@ -67,7 +74,37 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
         _logger = logger;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000) };
         _timer.Tick += Timer_Tick;
+        _postGameOcrEngine = new PostGameOcrEngine(_ocrService, _debugLog, _logger);
+        _postGameOcrEngine.StageProgress = (percent, stage) => RaiseProgress(percent, stage);
     }
+
+    /// <summary>
+    /// 更新当前进度快照并触发 <see cref="ProgressChanged"/> 事件。
+    /// 可能在后台线程被调用；订阅方需自行切换到 UI 线程。
+    /// </summary>
+    /// <param name="percent">非线性进度百分比。</param>
+    /// <param name="stage">当前逻辑阶段。</param>
+    private void RaiseProgress(int percent, PostGameRecognitionStage stage)
+    {
+        CurrentProgress = new PostGameRecognitionProgress(percent, stage, ResolveStageText(stage));
+        ProgressChanged?.Invoke(this, new PostGameRecognitionProgressEventArgs(CurrentProgress));
+    }
+
+    /// <summary>
+    /// 将逻辑阶段映射为面向用户的本地化提示文本。
+    /// </summary>
+    /// <param name="stage">逻辑阶段。</param>
+    /// <returns>本地化提示文本。</returns>
+    private static string ResolveStageText(PostGameRecognitionStage stage) => stage switch
+    {
+        PostGameRecognitionStage.Preparing => I18nHelper.GetLocalizedString("SmartBpPostGameStagePreparing"),
+        PostGameRecognitionStage.PrimaryOcr => I18nHelper.GetLocalizedString("SmartBpPostGameStagePrimaryOcr"),
+        PostGameRecognitionStage.GridOcr => I18nHelper.GetLocalizedString("SmartBpPostGameStageGridOcr"),
+        PostGameRecognitionStage.SingleCell => I18nHelper.GetLocalizedString("SmartBpPostGameStageSingleCell"),
+        PostGameRecognitionStage.Applying => I18nHelper.GetLocalizedString("SmartBpPostGameStageApplying"),
+        PostGameRecognitionStage.Completed => I18nHelper.GetLocalizedString("SmartBpPostGameStageCompleted"),
+        _ => string.Empty
+    };
 
     /// <inheritdoc />
     public void StartSmartBp()
@@ -87,7 +124,7 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
 
         _timer.Start();
         IsSmartBpRunning = true;
-        StartOcrWarmupIfNeeded();
+        _ = _postGameOcrEngine.EnsureWarmupAsync();
     }
 
     /// <inheritdoc />
@@ -125,29 +162,37 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
                 return;
             }
 
+            RaiseProgress(5, PostGameRecognitionStage.Preparing);
+            await _postGameOcrEngine.EnsureWarmupAsync().ConfigureAwait(false);
+
             var recognizedData = await Task.Run(
                 () => CaptureAndRecognizeGameData(cancellationToken),
                 cancellationToken);
             if (recognizedData == null)
             {
                 _debugLog.Write("post-game", "finished: no usable post-game rows were parsed.");
+                RaiseProgress(100, PostGameRecognitionStage.Completed);
                 await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("SmartBpValidationGameDataRecognitionNoResult"));
                 return;
             }
 
+            RaiseProgress(95, PostGameRecognitionStage.Applying);
             ApplyRecognizedData(recognizedData);
             _logger.LogDebug("SmartBp AutoFill succeeded: {SurvivorCount} survivor rows applied.", recognizedData.SurvivorInfos.Count);
             _debugLog.Write("post-game", $"finished: hunter_present={recognizedData.HunterData != null}; survivor_rows={recognizedData.SurvivorInfos.Count}.");
+            RaiseProgress(100, PostGameRecognitionStage.Completed);
         }
         catch (OperationCanceledException)
         {
             _logger.LogDebug("SmartBp AutoFill canceled.");
             _debugLog.Write("post-game", "canceled.");
+            RaiseProgress(0, PostGameRecognitionStage.Idle);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "SmartBp AutoFill failed with exception. {Message}", ex.Message);
             _debugLog.Write("post-game", $"failed: {ToLogText(ex.ToString())}");
+            RaiseProgress(0, PostGameRecognitionStage.Idle);
             await MessageBoxHelper.ShowErrorAsync(string.Format(
                 I18nHelper.GetLocalizedString("SmartBpOperationFailedFormat"), ex.Message));
         }
@@ -159,52 +204,30 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
             _logger.LogDebug("SmartBp auto BP skipped: capture is not running.");
     }
 
-    private void StartOcrWarmupIfNeeded()
-    {
-        if (Interlocked.Exchange(ref _ocrWarmupStarted, 1) == 1)
-            return;
-
-        _ = Task.Run(() =>
-        {
-            try
-            {
-                using var warmup = new Mat(new Size(512, 96), MatType.CV_8UC1, Scalar.All(255));
-                _ = _ocrService.RecognizeTextLines(warmup);
-            }
-            catch
-            {
-                // 预热失败不影响主流程。
-            }
-        });
-    }
-
     private RecognizedGameData? CaptureAndRecognizeGameData(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var captureSw = Stopwatch.StartNew();
         var frame = _windowCaptureService.GetCurrentFrame();
+        captureSw.Stop();
         if (frame == null)
             return null;
 
+        var bitmapToMatSw = Stopwatch.StartNew();
         using var full = frame.ToBgrMat();
+        bitmapToMatSw.Stop();
+
         _debugLog.Write(
             "post-game",
             $"capture: pixel_size={frame.PixelWidth}x{frame.PixelHeight}; provider={_ocrService.SelectedProvider}; configured_provider_details=[{ToLogText(_ocrService.GetProviderStatus(_ocrService.SelectedProvider).Details)}].");
-        var ocrResult = _ocrService.RecognizeTextLines(full);
-        _debugLog.Write("post-game", $"OCR result: provider={ocrResult.Provider ?? _ocrService.SelectedProvider.ToString()}; line_count={ocrResult.Lines.Count}.");
-        foreach (var (line, index) in ocrResult.Lines.Select((line, index) => (line, index)))
-        {
-            _debugLog.Write(
-                "post-game",
-                $"raw_line[{index}]: provider={line.Provider ?? "unknown"}; text=[{ToLogText(line.Text)}]; bbox={line.BoundingBox}; center={line.CenterX:0.0},{line.CenterY:0.0}; confidence={line.Confidence:0.00}.");
-        }
 
-        var parsed = GameDataTableOcrParser.Parse(ocrResult.Lines);
-        parsed = RecognizeMissingGameDataCells(full, ocrResult.Lines, parsed, cancellationToken);
+        var runResult = _postGameOcrEngine.RunAsync(full, captureSw.ElapsedMilliseconds, bitmapToMatSw.ElapsedMilliseconds, cancellationToken)
+            .GetAwaiter().GetResult();
+        var parsed = runResult.Parsed;
+        var ocrLineCount = runResult.Lines.Count;
+
         foreach (var diagnostic in parsed.Diagnostics)
-        {
             _logger.LogDebug("SmartBp GameData table OCR: {Diagnostic}", diagnostic);
-            _debugLog.Write("post-game", $"parser: {diagnostic}");
-        }
 
         foreach (var row in parsed.Rows)
         {
@@ -213,7 +236,7 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
                 $"row[{row.RowIndex}]: raw_name=[{ToLogText(row.RawNameText)}]; player=[{ToLogText(row.PlayerName)}]; character=[{ToLogText(row.CharacterName)}]; values=[{string.Join(",", row.Values)}]; complete={row.HasAllDataColumns}.");
         }
 
-        PublishGameDataDebugSnapshot(ocrResult.Lines.Count, parsed);
+        PublishGameDataDebugSnapshot(ocrLineCount, parsed);
         if (parsed.Rows.Count == 0)
             return null;
 
@@ -227,252 +250,8 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState
             .ToList();
         _logger.LogInformation(
             "SmartBp GameData table OCR parsed. OcrLineCount={OcrLineCount}, ParsedRowCount={ParsedRowCount}, CompleteRowCount={CompleteRowCount}, HunterFound={HunterFound}, SurvivorRowCount={SurvivorRowCount}",
-            ocrResult.Lines.Count, parsed.Rows.Count, parsed.Rows.Count(row => row.HasAllDataColumns), hunterData != null, survivorInfos.Count);
+            ocrLineCount, parsed.Rows.Count, parsed.Rows.Count(row => row.HasAllDataColumns), hunterData != null, survivorInfos.Count);
         return hunterData == null && survivorInfos.Count == 0 ? null : new RecognizedGameData(hunterData, survivorInfos);
-    }
-
-    /// <summary>
-    /// 对整表 OCR 漏掉的数据格执行局部直接识别，主要补救文本检测阶段漏掉的细窄数字。
-    /// </summary>
-    /// <param name="full">完整捕获画面。</param>
-    /// <param name="initialLines">第一次整表 OCR 的文本行。</param>
-    /// <param name="initialResult">第一次表格解析结果。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>合并局部复识别结果后的表格解析结果。</returns>
-    private GameDataTableParseResult RecognizeMissingGameDataCells(
-        Mat full,
-        IReadOnlyList<OcrTextLine> initialLines,
-        GameDataTableParseResult initialResult,
-        CancellationToken cancellationToken)
-    {
-        if (initialResult.MissingCells.Count == 0)
-            return initialResult;
-
-        const int cropWidth = 76;
-        const int cropHeight = 34;
-        var mergedLines = initialLines.ToList();
-        _debugLog.Write(
-            "post-game",
-            $"numeric fallback: missing_cells={initialResult.MissingCells.Count}; crop={cropWidth}x{cropHeight}; mode=known-region-direct-recognition.");
-
-        foreach (var cell in initialResult.MissingCells)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var cropRect = CreateGameDataCellCrop(full, cell.ExpectedCenterX, cell.ExpectedCenterY, cropWidth, cropHeight);
-            using var cellMat = new Mat(full, cropRect);
-            var variants = CreateGameDataCellRecognitionVariants(cellMat);
-            var candidates = new List<GameDataCellOcrCandidate>();
-            _debugLog.Write(
-                "post-game",
-                $"numeric fallback cell: row={cell.RowIndex}; column={cell.ColumnIndex}; expected_center={cell.ExpectedCenterX:0.#},{cell.ExpectedCenterY:0.#}; crop={cropRect}; variants={variants.Count}.");
-
-            AppendGameDataCellCandidates(cell, variants, candidates, cancellationToken);
-            var selection = GameDataCellOcrCandidateSelector.Select(candidates);
-            var hasDigitOneCandidate = HasDigitOneCandidate(candidates);
-            if (selection == null && hasDigitOneCandidate)
-            {
-                var refinementVariants = CreateDigitOneRefinementVariants(cellMat);
-                _debugLog.Write(
-                    "post-game",
-                    $"numeric fallback one refinement: row={cell.RowIndex}; column={cell.ColumnIndex}; variants={refinementVariants.Count}.");
-                AppendGameDataCellCandidates(cell, refinementVariants, candidates, cancellationToken);
-                selection = GameDataCellOcrCandidateSelector.Select(candidates);
-            }
-
-            if (selection == null && hasDigitOneCandidate)
-            {
-                var hasVisualEvidence = GameDataCellVisualAnalyzer.TryDetectDigitOne(cellMat, out var visualEvidence);
-                _debugLog.Write(
-                    "post-game",
-                    hasVisualEvidence
-                        ? $"numeric fallback one visual evidence: row={cell.RowIndex}; column={cell.ColumnIndex}; detected=True; bbox={visualEvidence!.BoundingBox}; aspect={visualEvidence.AspectRatio:0.00}; fill={visualEvidence.FillRatio:0.00}; threshold={visualEvidence.Threshold:0.0}; confidence={visualEvidence.Confidence:0.000}."
-                        : $"numeric fallback one visual evidence: row={cell.RowIndex}; column={cell.ColumnIndex}; detected=False.");
-                if (visualEvidence != null)
-                {
-                    candidates.Add(new GameDataCellOcrCandidate(
-                        "visual-vertical-stroke",
-                        "1",
-                        visualEvidence.Confidence,
-                        "OpenCV/shape"));
-                    selection = GameDataCellOcrCandidateSelector.Select(candidates);
-                }
-            }
-
-            if (selection == null)
-            {
-                _debugLog.Write(
-                    "post-game",
-                    $"numeric fallback rejected: row={cell.RowIndex}; column={cell.ColumnIndex}; valid_candidate_count={candidates.Count(candidate => GameDataCellOcrCandidateSelector.NormalizeNumericText(candidate.RawText) != null)}.");
-                continue;
-            }
-
-            var syntheticBox = new Rect(
-                Math.Clamp((int)Math.Round(cell.ExpectedCenterX) - 1, 0, Math.Max(0, full.Width - 2)),
-                Math.Clamp((int)Math.Round(cell.ExpectedCenterY) - 1, 0, Math.Max(0, full.Height - 2)),
-                2,
-                2);
-            mergedLines.Add(new OcrTextLine(
-                selection.Value,
-                selection.Confidence,
-                syntheticBox,
-                cell.ExpectedCenterX,
-                cell.ExpectedCenterY,
-                selection.Provider));
-            _debugLog.Write(
-                "post-game",
-                $"numeric fallback accepted: row={cell.RowIndex}; column={cell.ColumnIndex}; value=[{selection.Value}]; confidence={selection.Confidence:0.000}; support={selection.SupportCount}; provider={selection.Provider}.");
-        }
-
-        var mergedResult = GameDataTableOcrParser.Parse(mergedLines);
-        _debugLog.Write(
-            "post-game",
-            $"numeric fallback finished: input_lines={initialLines.Count}; merged_lines={mergedLines.Count}; remaining_missing_cells={mergedResult.MissingCells.Count}.");
-        return mergedResult;
-    }
-
-    private static Rect CreateGameDataCellCrop(Mat full, double centerX, double centerY, int width, int height)
-    {
-        var x = Math.Clamp((int)Math.Round(centerX - width / 2d), 0, Math.Max(0, full.Width - width));
-        var y = Math.Clamp((int)Math.Round(centerY - height / 2d), 0, Math.Max(0, full.Height - height));
-        return new Rect(x, y, Math.Min(width, full.Width - x), Math.Min(height, full.Height - y));
-    }
-
-    /// <summary>
-    /// 运行一组数字单元格图像变体并追加带规范化诊断的 OCR 候选。
-    /// </summary>
-    private void AppendGameDataCellCandidates(
-        GameDataTableMissingCell cell,
-        IReadOnlyList<(string Name, Mat Image)> variants,
-        ICollection<GameDataCellOcrCandidate> candidates,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            foreach (var variant in variants)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var result = _ocrService.RecognizeSingleText(variant.Image, new OcrRecognitionOptions
-                {
-                    RegionHint = $"post-game-row-{cell.RowIndex}-column-{cell.ColumnIndex}",
-                    FieldHint = "numeric-cell",
-                    PreferChinese = false,
-                    PreferEnglish = false,
-                    Psm = 10,
-                    UsePreprocessingVariants = false
-                });
-                var hasNormalizedValue = GameDataCellOcrCandidateSelector.TryNormalizeNumericText(
-                    result?.Text,
-                    out var normalizedValue,
-                    out var isExactValue);
-                _debugLog.Write(
-                    "post-game",
-                    $"numeric fallback candidate: row={cell.RowIndex}; column={cell.ColumnIndex}; variant={variant.Name}; text=[{ToLogText(result?.Text)}]; normalized=[{(hasNormalizedValue ? normalizedValue : string.Empty)}]; normalization={(hasNormalizedValue ? isExactValue ? "exact" : "supporting" : "rejected")}; confidence={result?.Confidence.ToString("0.000") ?? "-"}; provider={result?.Provider ?? _ocrService.SelectedProvider.ToString()}.");
-                if (result != null)
-                    candidates.Add(new GameDataCellOcrCandidate(
-                        variant.Name,
-                        result.Text,
-                        result.Confidence,
-                        result.Provider));
-            }
-        }
-        finally
-        {
-            foreach (var variant in variants)
-                variant.Image.Dispose();
-        }
-    }
-
-    private static bool HasDigitOneCandidate(IEnumerable<GameDataCellOcrCandidate> candidates) =>
-        candidates.Any(candidate =>
-            GameDataCellOcrCandidateSelector.TryNormalizeNumericText(candidate.RawText, out var value, out _) &&
-            string.Equals(value, "1", StringComparison.Ordinal));
-
-    /// <summary>
-    /// 为已知数字单元格生成直接字符识别所需的图像变体。
-    /// </summary>
-    /// <param name="cell">单元格原始裁剪图。</param>
-    /// <returns>由调用方负责释放图像的命名变体。</returns>
-    private static IReadOnlyList<(string Name, Mat Image)> CreateGameDataCellRecognitionVariants(Mat cell)
-    {
-        const double scale = 3d;
-        var variants = new List<(string Name, Mat Image)>();
-
-        var original = new Mat();
-        Cv2.Resize(cell, original, new Size(), scale, scale, InterpolationFlags.Cubic);
-        variants.Add(("original-3x", original));
-
-        using var gray = new Mat();
-        if (cell.Channels() == 1)
-            cell.CopyTo(gray);
-        else
-            Cv2.CvtColor(cell, gray, cell.Channels() == 4 ? ColorConversionCodes.BGRA2GRAY : ColorConversionCodes.BGR2GRAY);
-        using var clahe = Cv2.CreateCLAHE(2.5, new Size(4, 4));
-        using var enhanced = new Mat();
-        clahe.Apply(gray, enhanced);
-
-        using var enhancedBgr = new Mat();
-        Cv2.CvtColor(enhanced, enhancedBgr, ColorConversionCodes.GRAY2BGR);
-        var contrast = new Mat();
-        Cv2.Resize(enhancedBgr, contrast, new Size(), scale, scale, InterpolationFlags.Cubic);
-        variants.Add(("clahe-3x", contrast));
-
-        using var binary = new Mat();
-        Cv2.Threshold(enhanced, binary, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
-        using var kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(2, 2));
-        using var thickened = new Mat();
-        Cv2.Dilate(binary, thickened, kernel);
-        using var inverted = new Mat();
-        Cv2.BitwiseNot(thickened, inverted);
-        using var invertedBgr = new Mat();
-        Cv2.CvtColor(inverted, invertedBgr, ColorConversionCodes.GRAY2BGR);
-        var threshold = new Mat();
-        Cv2.Resize(invertedBgr, threshold, new Size(), scale, scale, InterpolationFlags.Nearest);
-        variants.Add(("otsu-inverted-thick-3x", threshold));
-
-        return variants;
-    }
-
-    /// <summary>
-    /// 为疑似数字 1 生成更窄的中心裁剪，降低复杂背景被字符模型解释为尾随字母的概率。
-    /// </summary>
-    private static IReadOnlyList<(string Name, Mat Image)> CreateDigitOneRefinementVariants(Mat cell)
-    {
-        const double scale = 4d;
-        var width = Math.Min(40, cell.Width);
-        var height = Math.Min(31, cell.Height);
-        var rect = new Rect((cell.Width - width) / 2, 0, width, height);
-        using var center = new Mat(cell, rect);
-        var variants = new List<(string Name, Mat Image)>();
-
-        var original = new Mat();
-        Cv2.Resize(center, original, new Size(), scale, scale, InterpolationFlags.Cubic);
-        variants.Add(("one-center-original-4x", original));
-
-        using var gray = new Mat();
-        if (center.Channels() == 1)
-            center.CopyTo(gray);
-        else
-            Cv2.CvtColor(center, gray, center.Channels() == 4 ? ColorConversionCodes.BGRA2GRAY : ColorConversionCodes.BGR2GRAY);
-        using var clahe = Cv2.CreateCLAHE(3, new Size(3, 3));
-        using var enhanced = new Mat();
-        clahe.Apply(gray, enhanced);
-        using var enhancedBgr = new Mat();
-        Cv2.CvtColor(enhanced, enhancedBgr, ColorConversionCodes.GRAY2BGR);
-        var contrast = new Mat();
-        Cv2.Resize(enhancedBgr, contrast, new Size(), scale, scale, InterpolationFlags.Cubic);
-        variants.Add(("one-center-clahe-4x", contrast));
-
-        using var binary = new Mat();
-        Cv2.Threshold(enhanced, binary, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
-        using var inverted = new Mat();
-        Cv2.BitwiseNot(binary, inverted);
-        using var invertedBgr = new Mat();
-        Cv2.CvtColor(inverted, invertedBgr, ColorConversionCodes.GRAY2BGR);
-        var threshold = new Mat();
-        Cv2.Resize(invertedBgr, threshold, new Size(), scale, scale, InterpolationFlags.Nearest);
-        variants.Add(("one-center-otsu-inverted-4x", threshold));
-
-        return variants;
     }
 
     private void PublishGameDataDebugSnapshot(int ocrLineCount, GameDataTableParseResult parsed)

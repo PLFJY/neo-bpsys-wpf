@@ -335,4 +335,6 @@ public sealed class TestSmartBpModuleEntryPoint : ISmartBpModuleEntryPoint
     }
 
     public IReadOnlyList<SmartBpFeatureCommand> GetFeatureCommands() => [];
+
+    public ISmartBpPostGameRecognitionProgressSource? GetPostGameRecognitionProgressSource() => null;
 }

@@ -33,7 +33,7 @@ internal sealed record GameDataCellOcrSelection(
 /// </summary>
 internal static class GameDataCellOcrCandidateSelector
 {
-    private const double SingleVariantMinimumConfidence = 0.88;
+    private const double SingleVariantMinimumConfidence = PostGameOcrThresholds.SingleVariantMinimumConfidence;
 
     /// <summary>
     /// 选择多变体一致或单次置信度足够高的数字结果。

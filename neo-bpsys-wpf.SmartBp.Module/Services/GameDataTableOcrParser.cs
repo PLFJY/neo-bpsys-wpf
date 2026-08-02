@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using OpenCvSharp;
 using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.Services;
@@ -37,7 +38,7 @@ internal static partial class GameDataTableOcrParser
             .ToArray();
         var evidence = names.Select(_ => new bool[5]).ToArray();
         if (names.Length == 0)
-            return new([], diagnostics, []);
+            return new([], diagnostics, [], null);
 
         // 名称文本右边界定义左侧资料区的终点；等级/天赋数字位于其左侧，不参与统计列聚类。
         var dataStartX = names.Max(name => name.RightX);
@@ -54,7 +55,7 @@ internal static partial class GameDataTableOcrParser
         if (numeric.Length == 0)
         {
             diagnostics.Add("no numeric table candidates to the right of player/character text");
-            return BuildRows(names, values, evidence, diagnostics, []);
+            return BuildRows(names, values, evidence, diagnostics, [], null);
         }
 
         var left = numeric.Min(item => item.Line.CenterX);
@@ -117,7 +118,55 @@ internal static partial class GameDataTableOcrParser
             }
         }
 
-        return BuildRows(names, values, evidence, diagnostics, missingCells);
+        var layout = BuildLayout(expectedCenters, expectedRowCenters, step, diagnostics);
+        return BuildRows(names, values, evidence, diagnostics, missingCells, layout);
+    }
+
+    /// <summary>
+    /// 根据本次 OCR 推断的列中心、行中心、列宽与行高，构建数字网格边界。
+    /// 该方法不复制列中心推断算法，仅消费 <see cref="Parse"/> 已计算出的几何信息。
+    /// </summary>
+    /// <param name="columnCenters">五个数据列中心 X 坐标。</param>
+    /// <param name="rowCenters">数据行中心 Y 坐标。</param>
+    /// <param name="step">列宽估算。</param>
+    /// <param name="diagnostics">诊断信息输出。</param>
+    /// <returns>表格几何布局；行或列信息不足时返回 <see langword="null"/>。</returns>
+    private static GameDataTableLayout? BuildLayout(
+        double[] columnCenters,
+        double[] rowCenters,
+        double step,
+        List<string> diagnostics)
+    {
+        if (columnCenters.Length == 0 || rowCenters.Length == 0)
+            return null;
+
+        var columnWidth = step > 1 ? step : 1d;
+        var rowHeight = rowCenters.Length >= 2
+            ? rowCenters.Zip(rowCenters.Skip(1), (previous, current) => current - previous).Average()
+            : 30d;
+        if (rowHeight <= 0)
+            rowHeight = 30d;
+
+        var gridLeft = columnCenters.Min() - columnWidth * 0.5;
+        var gridRight = columnCenters.Max() + columnWidth * 0.5;
+        var gridTop = rowCenters.Min() - rowHeight * 0.5;
+        var gridBottom = rowCenters.Max() + rowHeight * 0.5;
+
+        var marginX = columnWidth * 0.25;
+        var marginY = rowHeight * 0.25;
+        var left = (int)Math.Floor(gridLeft - marginX);
+        var top = (int)Math.Floor(gridTop - marginY);
+        var width = Math.Max(1, (int)Math.Ceiling(gridRight - gridLeft + 2 * marginX));
+        var height = Math.Max(1, (int)Math.Ceiling(gridBottom - gridTop + 2 * marginY));
+        var bounds = new Rect(left, top, width, height);
+
+        diagnostics.Add($"layout inferred columns=[{string.Join(",", columnCenters.Select(value => value.ToString("0.#")))}]; rows=[{string.Join(",", rowCenters.Select(value => value.ToString("0.#")))}]; row_height={rowHeight:0.#}; column_width={columnWidth:0.#}; grid_bounds={bounds}.");
+        return new GameDataTableLayout(
+            rowCenters,
+            columnCenters,
+            bounds,
+            rowHeight,
+            columnWidth);
     }
 
     private static GameDataTableParseResult BuildRows(
@@ -125,7 +174,8 @@ internal static partial class GameDataTableOcrParser
         IReadOnlyList<string[]> values,
         IReadOnlyList<bool[]> evidence,
         List<string> diagnostics,
-        IReadOnlyList<GameDataTableMissingCell> missingCells)
+        IReadOnlyList<GameDataTableMissingCell> missingCells,
+        GameDataTableLayout? layout)
     {
         var rows = names.Select((name, index) => new GameDataTableRow(
             index,
@@ -137,7 +187,7 @@ internal static partial class GameDataTableOcrParser
             name.RawText)).ToArray();
         diagnostics.AddRange(rows.Select(row =>
             $"parsed row={row.RowIndex} y={row.CenterY:0.#} complete={row.HasAllDataColumns} player=[{row.PlayerName}] character=[{row.CharacterName}] values=[{string.Join(",", row.Values)}]"));
-        return new(rows, diagnostics, missingCells);
+        return new(rows, diagnostics, missingCells, layout);
     }
 
     private static int FindNearestRow(IReadOnlyList<NameCandidate> names, double y) => names
@@ -177,7 +227,12 @@ internal sealed record GameDataTableMissingCell(int RowIndex, int ColumnIndex, d
 /// <summary>
 /// 整表 OCR 解析结果。
 /// </summary>
+/// <param name="Rows">重建后的数据行。</param>
+/// <param name="Diagnostics">诊断信息。</param>
+/// <param name="MissingCells">未被整表 OCR 识别到的数据格。</param>
+/// <param name="Layout">本次 OCR 推断出的表格几何布局；行或列信息不足时为 <see langword="null"/>。</param>
 internal sealed record GameDataTableParseResult(
     IReadOnlyList<GameDataTableRow> Rows,
     IReadOnlyList<string> Diagnostics,
-    IReadOnlyList<GameDataTableMissingCell> MissingCells);
+    IReadOnlyList<GameDataTableMissingCell> MissingCells,
+    GameDataTableLayout? Layout);

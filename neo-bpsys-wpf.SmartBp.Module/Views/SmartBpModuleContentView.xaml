@@ -750,6 +750,37 @@
                     Command="{Binding RecognizePostGameDataCommand}"
                     Content="{lex:Loc SmartBpRecognizePostGameData}"
                     Icon="{ui:SymbolIcon Symbol=Scan24}" />
+                <StackPanel
+                    Margin="0,8,0,0"
+                    Visibility="{Binding IsRecognizingPostGameData, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <DockPanel>
+                        <ui:ProgressRing
+                            Width="16"
+                            Height="16"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Left"
+                            IsIndeterminate="True" />
+                        <TextBlock
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Right"
+                            FontWeight="SemiBold"
+                            Text="{Binding PostGameRecognitionProgressPercent, StringFormat={}{0}%}" />
+                        <ProgressBar
+                            Height="6"
+                            VerticalAlignment="Center"
+                            Maximum="100"
+                            Minimum="0"
+                            Value="{Binding PostGameRecognitionProgressPercent}" />
+                    </DockPanel>
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding PostGameRecognitionStageText}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
                 <ComboBox
                     Margin="0,10,0,0"
                     DisplayMemberPath="Id"

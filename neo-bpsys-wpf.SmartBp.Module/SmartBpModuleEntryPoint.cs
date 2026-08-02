@@ -61,6 +61,16 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         ];
     }
 
+    /// <inheritdoc />
+    public ISmartBpPostGameRecognitionProgressSource? GetPostGameRecognitionProgressSource()
+    {
+        if (_serviceProvider == null)
+            return null;
+
+        var inner = _serviceProvider.GetRequiredService<IPostGameRecognitionProgressSource>();
+        return PostGameRecognitionProgressSourceAdapter.Create(inner);
+    }
+
     /// <summary>
     /// 构建 SmartBP 模块内部 DI 容器，并桥接宿主提供的全局服务。
     /// </summary>
@@ -113,6 +123,7 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
         services.AddSingleton<SmartBpService>();
         services.AddSingleton<ISmartBpService>(provider => provider.GetRequiredService<SmartBpService>());
         services.AddSingleton<IGameDataRecognitionDebugState>(provider => provider.GetRequiredService<SmartBpService>());
+        services.AddSingleton<IPostGameRecognitionProgressSource>(provider => provider.GetRequiredService<SmartBpService>());
         services.AddSingleton<ISmartBpRecognitionSettingsService, SmartBpRecognitionSettingsService>();
         services.AddSingleton<ISmartBpRecognitionRegionProfileService, SmartBpRecognitionRegionProfileService>();
 
