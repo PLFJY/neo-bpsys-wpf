@@ -1335,7 +1335,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private bool ApplyPropertyEditorValue(object sender)
+    private bool ApplyPropertyEditorValue(object sender, bool refreshPropertyGrid = true)
     {
         if (IsPropertyEditorCommitSuppressed()
             || _viewModel is null
@@ -1351,7 +1351,7 @@ public partial class FrontedDesignerWindow : FluentWindow
                 ? item.EditText
                 : item.Value;
 
-        return _viewModel.ApplyPropertyEdit(item, value);
+        return _viewModel.ApplyPropertyEdit(item, value, refreshPropertyGrid);
     }
 
     private async Task<bool> ApplyPropertyEditorValueAsync(object sender)
@@ -1406,7 +1406,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         _pendingAutoCommitEditor = null;
         if (editor is not null && ShouldAutoCommitPropertyEditor(editor))
         {
-            ApplyPropertyEditorValue(editor);
+            // 自动提交时不重建属性网格（refreshPropertyGrid: false），
+            // 避免 PropertyEditorItems 集合重建导致 TextBox 容器被销毁、输入框失焦。
+            // 验证消息的属性行更新延后到手动提交（Enter/Apply）或选择变化时。
+            ApplyPropertyEditorValue(editor, refreshPropertyGrid: false);
         }
     }
 
