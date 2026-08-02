@@ -216,6 +216,12 @@ public sealed class CharacterSelectionServiceTransitionTest
                 Assert.False((bool)request.Payload["Event.HasOldCharacter"]!);
                 Assert.True((bool)request.Payload["HasNewCharacter"]!);
                 Assert.True((bool)request.Payload["Event.HasNewCharacter"]!);
+                Assert.Null(request.Payload["OldCharacterName"]);
+                Assert.Equal("new", request.Payload["NewCharacterName"]);
+                Assert.Equal("new", request.Payload["Event.NewCharacterName"]);
+                Assert.Equal("new", request.Payload["NewCharacterId"]);
+                Assert.Equal("new", request.Payload["Event.NewCharacterId"]);
+                Assert.DoesNotContain(".png", request.Payload.Values.OfType<string>());
                 Assert.Null(game.SurPlayerList[0].Character);
                 await commitAsync();
                 Assert.NotNull(game.SurPlayerList[0].Character);

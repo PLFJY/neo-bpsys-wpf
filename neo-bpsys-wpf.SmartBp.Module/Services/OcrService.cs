@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 using neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 using OpenCvSharp;
 using Sdcb.PaddleInference;
@@ -26,6 +27,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
 {
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<PaddleOcrProvider> _logger;
+    private readonly ISmartBpDebugLog _debugLog;
     private readonly IPaddleRuntimeState _runtimeState;
     private readonly IPaddleRuntimeManifestProvider _runtimeManifestProvider;
     private readonly IGlobalRestartService _globalRestartService;
@@ -90,6 +92,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// </summary>
     /// <param name="settingsHostService">设置服务。</param>
     /// <param name="logger">日志记录器。</param>
+    /// <param name="debugLog">SmartBP 统一识别调试日志。</param>
     /// <param name="modelPathProvider">OCR 模型路径提供器。</param>
     /// <param name="runtimeState">Paddle runtime 运行时状态，用于决定推理后端（CPU/CUDA）。</param>
     /// <param name="runtimeManifestProvider">Paddle runtime manifest 提供者，用于记录当前模块 runtime 版本。</param>
@@ -98,6 +101,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
     public PaddleOcrProvider(
         ISettingsHostService settingsHostService,
         ILogger<PaddleOcrProvider> logger,
+        ISmartBpDebugLog debugLog,
         ISmartBpOcrModelPathProvider modelPathProvider,
         IPaddleRuntimeState runtimeState,
         IPaddleRuntimeManifestProvider runtimeManifestProvider,
@@ -106,6 +110,7 @@ public sealed class PaddleOcrProvider : IOcrProvider
     {
         _settingsHostService = settingsHostService;
         _logger = logger;
+        _debugLog = debugLog;
         _runtimeState = runtimeState;
         _runtimeManifestProvider = runtimeManifestProvider;
         _globalRestartService = globalRestartService;
@@ -464,6 +469,27 @@ public sealed class PaddleOcrProvider : IOcrProvider
         return RecognizeTextLinesCore(img);
     }
 
+    /// <summary>
+    /// 对已知的单一文本区域直接执行 Paddle 字符识别，跳过容易漏掉细窄字符的文本检测阶段。
+    /// </summary>
+    /// <param name="img">紧密裁剪后的单一文本区域。</param>
+    /// <returns>字符识别结果；模型未就绪、输入为空或识别失败时返回 <see langword="null"/>。</returns>
+    public OcrSingleTextResult? RecognizeSingleText(Mat img)
+    {
+        ArgumentNullException.ThrowIfNull(img);
+        if (img.Empty())
+            return null;
+
+        if (img.Channels() == 1)
+        {
+            using var bgr = new Mat();
+            Cv2.CvtColor(img, bgr, ColorConversionCodes.GRAY2BGR);
+            return RecognizeSingleTextCore(bgr);
+        }
+
+        return RecognizeSingleTextCore(img);
+    }
+
     /// <inheritdoc />
     OcrTextBlockResult IOcrProvider.RecognizeTextLines(Mat img, OcrRecognitionOptions? options) =>
         RecognizeTextLines(img);
@@ -502,6 +528,44 @@ public sealed class PaddleOcrProvider : IOcrProvider
 
         ShowMissingModelWarningOnce();
         return new([], string.Empty, "Paddle");
+    }
+
+    /// <summary>
+    /// 在 Paddle OCR 锁内直接运行字符识别器。
+    /// </summary>
+    /// <param name="bgr">BGR 格式的单一文本区域。</param>
+    /// <returns>字符识别结果；模型未就绪或识别失败时返回 <see langword="null"/>。</returns>
+    private OcrSingleTextResult? RecognizeSingleTextCore(Mat bgr)
+    {
+        lock (_ocrLock)
+        {
+            if (_ocr == null)
+            {
+                ShowMissingModelWarningOnce();
+                return null;
+            }
+
+            try
+            {
+                var result = _ocr.Recognizer.Run(bgr);
+                var text = NormalizeOcrText(result.Text);
+                var confidence = Math.Clamp(result.Score, 0, 1);
+                var characters = string.Join(",", result.Chars.Select(character =>
+                    $"{character.Character}:{character.Score:0.000}"));
+                _debugLog.Write(
+                    "ocr-paddle",
+                    $"direct_recognition: input={bgr.Width}x{bgr.Height}; text=[{text}]; score={confidence:0.000}; chars=[{characters}].");
+                return string.IsNullOrWhiteSpace(text)
+                    ? null
+                    : new OcrSingleTextResult(text, confidence, "Paddle/direct");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Paddle direct text recognition failed.");
+                _debugLog.Write("ocr-paddle", $"direct_recognition failed: {ex.Message}");
+                return null;
+            }
+        }
     }
 
     /// <summary>
@@ -666,6 +730,16 @@ public sealed class PaddleOcrProvider : IOcrProvider
     /// <returns>文本块结果。</returns>
     private OcrTextBlockResult ToTextBlockResult(PaddleOcrResult result, int inputWidth, int inputHeight)
     {
+        _debugLog.Write(
+            "ocr-paddle",
+            $"raw_result: input={inputWidth}x{inputHeight}; region_count={result.Regions.Count()}.");
+        foreach (var (region, index) in result.Regions.Select((region, index) => (region, index)))
+        {
+            _debugLog.Write(
+                "ocr-paddle",
+                $"raw_region[{index}]: text=[{region.Text}]; score={region.Score:0.000}; rect=[{region.Rect}].");
+        }
+
         var lines = result.Regions
             .Select(region =>
             {

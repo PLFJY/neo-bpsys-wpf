@@ -66,7 +66,7 @@ SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`�
 %APPDATA%\neo-bpsys-wpf\Log
 ```
 
-日志由自定义 `FileLoggerProvider`（`neo-bpsys-wpf/Logging/FileLoggerProvider.cs`）实现，通过 `Microsoft.Extensions.Logging` 的 `ILogger<T>` 抽象向全应用提供。每次程序启动创建带时间戳的新文件 `log-YYYYMMDD_HHMMSS.txt`，并清理旧文件只保留最近 10 次运行的日志。初始日志级别在 Host 构建前从 `Config.json` 的 `LogLevel` 字段读取，设置加载后通过 `App.ApplyLogLevel(...)` → `FileLoggerProvider.SetLevel(...)` 动态应用。
+日志由自定义 `FileLoggerProvider`（`neo-bpsys-wpf/Logging/FileLoggerProvider.cs`）实现，通过 `Microsoft.Extensions.Logging` 的 `ILogger<T>` 抽象向全应用提供。当前运行的日志始终写入 `latest.txt`，并在文件开头记录本次启动时间；应用正常退出时 `App.OnExit` 调用 `FileLoggerProvider.FinalizeRun()` 将其按启动时间归档为 `log-YYYYMMDD_HHMMSS.txt`。若上次运行因故障未正常退出，`latest.txt` 会被保留，下次启动时读取其头部记录的启动时间完成归档（读取不到时回退到文件最后写入时间），并清理旧文件只保留最近 10 次运行的归档日志。初始日志级别在 Host 构建前从 `Config.json` 的 `LogLevel` 字段读取，设置加载后通过 `App.ApplyLogLevel(...)` → `FileLoggerProvider.SetLevel(...)` 动态应用。
 
 ## 设置、主题与语言
 

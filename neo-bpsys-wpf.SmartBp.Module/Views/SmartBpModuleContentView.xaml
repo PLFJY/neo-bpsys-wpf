@@ -7,7 +7,6 @@
     xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:rec="clr-namespace:neo_bpsys_wpf.SmartBp.Module.Models.Recognition"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     d:DataContext="{d:DesignInstance Type=vm:SmartBpModuleContentViewModel,
@@ -121,36 +120,8 @@
                     IsChecked="{Binding EnableAutoGuidancePageNavigation}" />
                 <ui:ToggleSwitch
                     Margin="0,8,0,0"
-                    Content="{lex:Loc SmartBpProgressAutoCorrection}"
-                    IsChecked="{Binding EnableSmartBpProgressAutoCorrection}"
-                    ToolTip="{lex:Loc SmartBpProgressAutoCorrectionDescription}" />
-                <ui:ToggleSwitch
-                    Margin="0,8,0,0"
                     Content="{lex:Loc SmartBpEnableAutoApply}"
                     IsChecked="{Binding EnableAutoApplyRecognition}" />
-                <ComboBox
-                    Margin="0,8,0,0"
-                    SelectedValue="{Binding RecognitionApplyMode}"
-                    SelectedValuePath="Tag">
-                    <ComboBoxItem Content="{lex:Loc SmartBpGuidedWorkflowRecommended}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.GuidedWorkflow}" />
-                    <ComboBoxItem Content="{lex:Loc SmartBpFreeFullSyncExperimental}" Tag="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}" />
-                </ComboBox>
-                <TextBlock
-                    Margin="0,6,0,0"
-                    Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                    Text="{lex:Loc SmartBpFreeFullSyncWarning}"
-                    TextWrapping="Wrap">
-                    <TextBlock.Style>
-                        <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RecognitionApplyMode}" Value="{x:Static rec:SmartBpRecognitionApplyMode.FreeFullSync}">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
                 <WrapPanel Margin="0,8,0,0">
                     <ui:ToggleSwitch
                         Margin="0,0,12,8"
@@ -649,10 +620,6 @@
                             ToolTip="{lex:Loc SmartBpTooltipRecognitionInterval}" />
                     </StackPanel>
                     <StackPanel Margin="0,6,0,0">
-                        <TextBlock Text="{lex:Loc SmartBpOcrFieldStaleMilliseconds}" />
-                        <TextBox Text="{Binding OcrFieldStaleMilliseconds}" ToolTip="{lex:Loc SmartBpTooltipFieldStale}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,6,0,0">
                         <TextBlock Text="{lex:Loc SmartBpOcrBackfillLookBehindSteps}" />
                         <TextBox Text="{Binding OcrBackfillLookBehindSteps}" ToolTip="{lex:Loc SmartBpTooltipBackfill}" />
                     </StackPanel>
@@ -778,6 +745,42 @@
                     FontFamily="Consolas"
                     Style="{StaticResource SmartBpDebugOutputTextBox}"
                     Text="{Binding GameDataRecognitionDiagnosticsText}" />
+                <ui:Button
+                    Margin="0,8,0,0"
+                    Command="{Binding RecognizePostGameDataCommand}"
+                    Content="{lex:Loc SmartBpRecognizePostGameData}"
+                    Icon="{ui:SymbolIcon Symbol=Scan24}" />
+                <StackPanel
+                    Margin="0,8,0,0"
+                    Visibility="{Binding IsRecognizingPostGameData, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <DockPanel>
+                        <ui:ProgressRing
+                            Width="16"
+                            Height="16"
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Left"
+                            IsIndeterminate="True" />
+                        <TextBlock
+                            Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Right"
+                            FontWeight="SemiBold"
+                            Text="{Binding PostGameRecognitionProgressPercent, StringFormat={}{0}%}" />
+                        <ProgressBar
+                            Height="6"
+                            VerticalAlignment="Center"
+                            Maximum="100"
+                            Minimum="0"
+                            Value="{Binding PostGameRecognitionProgressPercent}" />
+                    </DockPanel>
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding PostGameRecognitionStageText}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
                 <ComboBox
                     Margin="0,10,0,0"
                     DisplayMemberPath="Id"
@@ -834,22 +837,10 @@
                 <TextBlock
                     Margin="0,8,0,0"
                     FontWeight="SemiBold"
-                    Text="{lex:Loc SmartBpDebugTools}" />
-                <WrapPanel Margin="0,8,0,0">
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding ResetRecognitionLedgerCommand}"
-                        Content="{lex:Loc SmartBpResetLedger}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                </WrapPanel>
-                <TextBlock
-                    Margin="0,8,0,0"
-                    FontWeight="SemiBold"
                     Text="{lex:Loc SmartBpDebugFinalBusinessState}" />
                 <TextBlock Text="{Binding DebugFinalBusinessState}" />
                 <ui:Button
                     Margin="0,8,0,0"
-                    HorizontalAlignment="Left"
                     Command="{Binding OpenRecognitionDebugLogWindowCommand}"
                     Content="{lex:Loc SmartBpOpenRecognitionDebugLogWindow}"
                     Icon="{ui:SymbolIcon Symbol=Open24}" />

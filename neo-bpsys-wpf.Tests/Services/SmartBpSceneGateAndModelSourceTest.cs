@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Moq;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Tests.Infrastructure;
@@ -22,23 +23,17 @@ using SmartBpBusinessStateRecognitionResult = smartbp::neo_bpsys_wpf.SmartBp.Mod
 using SmartBpCroppedFrame = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpCroppedFrame;
 using SmartBpOcrRecognitionRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrRecognitionRequest;
 using SmartBpSnapshotDeltaRequest = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaRequest;
-using SmartBpRecognitionLedgerSnapshot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionLedgerSnapshot;
 using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
 using SmartBpLifecycleCategory = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpLifecycleCategory;
 using SmartBpAutoRecognitionCoordinator = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpAutoRecognitionCoordinator;
 using SmartBpCandidateOperationBuilder = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpCandidateOperationBuilder;
 using SmartBpPlayerIdentityMatcher = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpPlayerIdentityMatcher;
+using SmartBpHistoricalFrameReviewService = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpHistoricalFrameReviewService;
 using ISmartBpRegionSnapshotRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRegionSnapshotRecognitionService;
 using ISmartBpSnapshotDeltaRecognitionService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSnapshotDeltaRecognitionService;
 using ISmartBpSnapshotRecognitionPlanner = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSnapshotRecognitionPlanner;
-using ISmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionStateStore;
-using ISmartBpRecognitionLedger = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionLedger;
 using ISmartBpFrameRingBuffer = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpFrameRingBuffer;
 using ISmartBpRecognitionSettingsService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService;
-using ISmartBpGuidanceSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpGuidanceSyncService;
-using ISmartBpProgressSyncService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpProgressSyncService;
-using ISmartBpWorkflowBackfillService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpWorkflowBackfillService;
-using ISmartBpDetectedOperationApplier = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDetectedOperationApplier;
 using ISmartBpCharacterResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpCharacterResolver;
 using ISmartBpSceneGateService = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpSceneGateService;
 using ISmartBpDebugLog = smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpDebugLog;
@@ -50,8 +45,8 @@ public sealed class SmartBpSceneGateAndModelSourceTest
 {
     [Theory]
     [InlineData(SmartBpLifecycleCategory.CharacterBpActive, "banned_sur,banned_hun,picked_sur,picked_hun")]
-    [InlineData(SmartBpLifecycleCategory.SurvivorTalentAdjust, "picked_sur")]
-    [InlineData(SmartBpLifecycleCategory.HunterTalentAdjust, "picked_hun")]
+    [InlineData(SmartBpLifecycleCategory.SurvivorTalentAdjust, "banned_sur,banned_hun,picked_sur,picked_hun")]
+    [InlineData(SmartBpLifecycleCategory.HunterTalentAdjust, "banned_sur,banned_hun,picked_sur,picked_hun")]
     [InlineData(SmartBpLifecycleCategory.TransitionToAreaSelection, "")]
     [InlineData(SmartBpLifecycleCategory.Unknown, "")]
     public void LifecycleFieldFilterAllowsOnlyCategorySafeFields(SmartBpLifecycleCategory category, string expected)
@@ -70,9 +65,9 @@ public sealed class SmartBpSceneGateAndModelSourceTest
     }
 
     [Theory]
-    [InlineData("求生者选择角色中", "picked_sur")]
-    [InlineData("求生者选择天赋中", "picked_sur")]
-    [InlineData("选择监管者", "picked_hun")]
+    [InlineData("求生者选择角色中", "banned_sur,banned_hun,picked_sur,picked_hun")]
+    [InlineData("求生者选择天赋中", "banned_sur,banned_hun,picked_sur,picked_hun")]
+    [InlineData("选择监管者", "banned_sur,banned_hun,picked_sur,picked_hun")]
     public void AutomaticFieldFilterKeepsOnlyFieldsAllowedByAuthoritativePhase(string phase, string expectedField)
     {
         var request = new SmartBpSnapshotDeltaRequest(
@@ -85,7 +80,7 @@ public sealed class SmartBpSceneGateAndModelSourceTest
 
         var filtered = SmartBpAutoRecognitionCoordinator.FilterAutomaticRequestByPhase(request, phase);
 
-        Assert.Equal([expectedField], filtered.RequestedFields);
+        Assert.Equal(expectedField.Split(','), filtered.RequestedFields);
     }
 
     [Theory]
@@ -109,12 +104,8 @@ public sealed class SmartBpSceneGateAndModelSourceTest
         {
             var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             var planner = new Mock<ISmartBpSnapshotRecognitionPlanner>();
-            planner.Setup(service => service.BuildRequest(It.IsAny<GameGuidanceRuntimeSnapshot>(), It.IsAny<SmartBpBusinessStateRecognitionResult>(), It.IsAny<SmartBpRecognitionLedgerSnapshot>()))
+            planner.Setup(service => service.BuildRequest(It.IsAny<GameGuidanceRuntimeSnapshot>()))
                 .Returns(new SmartBpSnapshotDeltaRequest([], []));
-            var state = new Mock<ISmartBpRecognitionStateStore>();
-            state.SetupGet(service => service.Snapshot).Returns(new SmartBpBusinessStateRecognitionResult());
-            var ledger = new Mock<ISmartBpRecognitionLedger>();
-            ledger.Setup(service => service.GetSnapshot()).Returns(new SmartBpRecognitionLedgerSnapshot([]));
             var recognitionSettings = new Mock<ISmartBpRecognitionSettingsService>();
             recognitionSettings.SetupGet(service => service.Settings).Returns(new SmartBpRecognitionSettings
             {
@@ -135,10 +126,13 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                     };
                 });
             var coordinator = new SmartBpAutoRecognitionCoordinator(
-                planner.Object, state.Object, ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object,
-                Mock.Of<ISmartBpGuidanceSyncService>(), Mock.Of<ISmartBpProgressSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
+                planner.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object, guidance.Object,
+                Mock.Of<ICharacterSelectionService>(),
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared.Object, new SmartBpPlayerIdentityMatcher(shared.Object)),
-                Mock.Of<ISmartBpDetectedOperationApplier>(), new SmartBpSceneGateService(), ocr.Object);
+                new SmartBpSceneGateService(), ocr.Object,
+                new SmartBpHistoricalFrameReviewService(Mock.Of<ISmartBpFrameRingBuffer>(), ocr.Object,
+                    Mock.Of<ICharacterSelectionService>(), recognitionSettings.Object),
+                Mock.Of<smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpReconciliationService>());
             await coordinator.StartAsync();
             var frame = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);
             var tick = coordinator.RunOneTickAsync(frame);
@@ -160,14 +154,10 @@ public sealed class SmartBpSceneGateAndModelSourceTest
         {
             var frame = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);
             var planner = new Mock<ISmartBpSnapshotRecognitionPlanner>();
-            planner.Setup(service => service.BuildRequest(It.IsAny<GameGuidanceRuntimeSnapshot>(), It.IsAny<SmartBpBusinessStateRecognitionResult>(), It.IsAny<SmartBpRecognitionLedgerSnapshot>()))
+            planner.Setup(service => service.BuildRequest(It.IsAny<GameGuidanceRuntimeSnapshot>()))
                 .Returns(new SmartBpSnapshotDeltaRequest(
                     [(SmartBpRecognitionRegion.RightTop, "banned_sur")],
                     ["test requested banned_sur"]));
-            var state = new Mock<ISmartBpRecognitionStateStore>();
-            state.SetupGet(service => service.Snapshot).Returns(new SmartBpBusinessStateRecognitionResult { Phase = "求生者选择区域中" });
-            var ledger = new Mock<ISmartBpRecognitionLedger>();
-            ledger.Setup(service => service.GetSnapshot()).Returns(new SmartBpRecognitionLedgerSnapshot([]));
             var recognitionSettings = new Mock<ISmartBpRecognitionSettingsService>();
             recognitionSettings.SetupGet(service => service.Settings).Returns(new SmartBpRecognitionSettings
             {
@@ -193,10 +183,13 @@ public sealed class SmartBpSceneGateAndModelSourceTest
                     Diagnostics = ["local status detected"]
                 });
             var coordinator = new SmartBpAutoRecognitionCoordinator(
-                planner.Object, state.Object, ledger.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object,
-                Mock.Of<ISmartBpGuidanceSyncService>(), Mock.Of<ISmartBpProgressSyncService>(), guidance.Object, Mock.Of<ISmartBpWorkflowBackfillService>(),
+                planner.Object, Mock.Of<ISmartBpFrameRingBuffer>(), recognitionSettings.Object, guidance.Object,
+                Mock.Of<ICharacterSelectionService>(),
                 new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), Mock.Of<ISharedDataService>(), new SmartBpPlayerIdentityMatcher(Mock.Of<ISharedDataService>())),
-                Mock.Of<ISmartBpDetectedOperationApplier>(), new SmartBpSceneGateService(), ocr.Object);
+                new SmartBpSceneGateService(), ocr.Object,
+                new SmartBpHistoricalFrameReviewService(Mock.Of<ISmartBpFrameRingBuffer>(), ocr.Object,
+                    Mock.Of<ICharacterSelectionService>(), recognitionSettings.Object),
+                Mock.Of<smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpReconciliationService>());
             await coordinator.StartAsync();
 
             var result = await coordinator.RunOneTickAsync(frame);
@@ -224,12 +217,68 @@ public sealed class SmartBpSceneGateAndModelSourceTest
         });
     }
 
+    [Fact]
+    public async Task FullSnapshotRequestsAllBusinessRegionsWithPhaseIndependentParseContract()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var frame = new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgra32, null);
+            var settings = new Mock<ISmartBpRecognitionSettingsService>();
+            settings.SetupGet(service => service.Settings).Returns(new SmartBpRecognitionSettings());
+            var guidance = new Mock<IGameGuidanceService>();
+            guidance.Setup(service => service.GetRuntimeSnapshot()).Returns(
+                new GameGuidanceRuntimeSnapshot(true, 0, GameAction.BanSur, [2], null,
+                    [new GameGuidanceStepSnapshot(0, GameAction.BanSur, [2], null)]));
+            SmartBpOcrRecognitionRequest? contentRequest = null;
+            var ocr = new Mock<ISmartBpOcrBpRecognitionService>();
+            ocr.Setup(service => service.RecognizeAsync(
+                    It.IsAny<BitmapSource>(), It.Is<SmartBpOcrRecognitionRequest>(request => request.IncludePhase), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrRecognitionResult
+                {
+                    Phase = new SmartBpPhaseRecognitionResult { Phase = "屏蔽求生者" }
+                });
+            ocr.Setup(service => service.RecognizeAsync(
+                    It.IsAny<BitmapSource>(), It.Is<SmartBpOcrRecognitionRequest>(request => !request.IncludePhase), It.IsAny<CancellationToken>()))
+                .Callback<BitmapSource, SmartBpOcrRecognitionRequest, CancellationToken>((_, request, _) => contentRequest = request)
+                .ReturnsAsync(new smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrRecognitionResult
+                {
+                    Phase = new SmartBpPhaseRecognitionResult { Phase = "未知" },
+                    BusinessState = new smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpBusinessStateRecognitionResult()
+                });
+            var shared = Mock.Of<ISharedDataService>();
+            var coordinator = new SmartBpAutoRecognitionCoordinator(
+                Mock.Of<ISmartBpSnapshotRecognitionPlanner>(), Mock.Of<ISmartBpFrameRingBuffer>(), settings.Object, guidance.Object,
+                Mock.Of<ICharacterSelectionService>(),
+                new SmartBpCandidateOperationBuilder(Mock.Of<ISmartBpCharacterResolver>(), shared, new SmartBpPlayerIdentityMatcher(shared)),
+                new SmartBpSceneGateService(), ocr.Object,
+                new SmartBpHistoricalFrameReviewService(Mock.Of<ISmartBpFrameRingBuffer>(), ocr.Object,
+                    Mock.Of<ICharacterSelectionService>(), settings.Object),
+                Mock.Of<smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpReconciliationService>());
+
+            var result = await coordinator.RecognizeFullBpSnapshotAsync(frame, isDryRun: true);
+
+            Assert.NotNull(result.BusinessState);
+            Assert.NotNull(contentRequest);
+            Assert.Equal(
+                [
+                    SmartBpRecognitionRegion.RightTop,
+                    SmartBpRecognitionRegion.LeftTop,
+                    SmartBpRecognitionRegion.LeftBottom,
+                    SmartBpRecognitionRegion.RightBottom
+                ],
+                contentRequest!.ContentRegions);
+            Assert.True(contentRequest.ParseContext?.IsGlobalSnapshot);
+            Assert.Null(contentRequest.ParseContext?.CurrentGuidanceAction);
+            Assert.False(contentRequest.ParseContext?.SurvivorPickLocked);
+        });
+    }
+
     [Theory]
     [InlineData("规则设置", SmartBpRecognitionScene.RulesDialog, false, false)]
     [InlineData("查看禁选顺序", SmartBpRecognitionScene.BanPickOrderDialog, false, false)]
     [InlineData("屏蔽求生者", SmartBpRecognitionScene.CharacterBp, true, false)]
-    [InlineData("求生者天赋特质调整", SmartBpRecognitionScene.SurvivorTalent, false, false)]
-    [InlineData("监管者天赋特质调整", SmartBpRecognitionScene.HunterTalent, false, false)]
+    [InlineData("求生者天赋特质调整", SmartBpRecognitionScene.SurvivorTalent, true, false)]
+    [InlineData("监管者天赋特质调整", SmartBpRecognitionScene.HunterTalent, true, false)]
     [InlineData("天赋已锁定", SmartBpRecognitionScene.TalentLocked, false, false)]
     [InlineData("即将进入区域选择", SmartBpRecognitionScene.OutOfBp, false, true)]
     [InlineData("区域选择", SmartBpRecognitionScene.OutOfBp, false, true)]

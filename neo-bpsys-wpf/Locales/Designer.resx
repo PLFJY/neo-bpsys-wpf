@@ -10,16 +10,6 @@
   <data name="FailedToApplyPicture">
     <value>应用图片失败</value>
   </data>
-  <data name="ImageFileTooLarge">
-    <value>图片文件过大（{0}），需要压缩到 {1} 以内。</value>
-  </data>
-  <data name="ImageDimensionsTooLarge">
-    <value>图片尺寸过大（{0}×{1}），最长边需要压缩到 {2} 像素以内。</value>
-  </data>
-  <data name="ImageCompressionTitle"><value>压缩图片</value></data>
-  <data name="ImageCompressionMessage"><value>{0} 是否压缩后继续使用？源图片不会被修改。</value></data>
-  <data name="CompressAndApplyImage"><value>压缩并应用</value></data>
-  <data name="ImageCompressed"><value>图片体积或尺寸过大，已压缩后应用。</value></data>
   <data name="BackgroundColor">
     <value>背景颜色</value>
   </data>
@@ -3236,6 +3226,12 @@
   <data name="Designer.Behaviors.Payload.TargetBehaviorGuid">
     <value>目标行为标识</value>
   </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterName">
+    <value>旧角色名称</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterName">
+    <value>新角色名称</value>
+  </data>
   <data name="Designer.Behaviors.Payload.OldCharacterId">
     <value>旧角色标识</value>
   </data>
@@ -3290,11 +3286,17 @@
   <data name="Designer.Behaviors.Payload.TargetBehaviorGuid.Description">
     <value>目标控件的稳定行为标识。</value>
   </data>
+  <data name="Designer.Behaviors.Payload.OldCharacterName.Description">
+    <value>更改前当前语言角色表中的规范名称。</value>
+  </data>
+  <data name="Designer.Behaviors.Payload.NewCharacterName.Description">
+    <value>更改后当前语言角色表中的规范名称。</value>
+  </data>
   <data name="Designer.Behaviors.Payload.OldCharacterId.Description">
-    <value>更改前的角色标识。</value>
+    <value>兼容字段；值为更改前当前语言角色表中的规范名称。</value>
   </data>
   <data name="Designer.Behaviors.Payload.NewCharacterId.Description">
-    <value>更改后的角色标识。</value>
+    <value>兼容字段；值为更改后当前语言角色表中的规范名称。</value>
   </data>
   <data name="Designer.Behaviors.Payload.HasOldCharacter.Description">
     <value>更改前是否存在角色。</value>

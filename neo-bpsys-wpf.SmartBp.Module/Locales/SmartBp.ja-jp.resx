@@ -225,9 +225,6 @@
   <data name="SmartBpEnableAutoApply" xml:space="preserve">
     <value>認識結果を自動適用</value>
   </data>
-  <data name="SmartBpResetLedger" xml:space="preserve">
-    <value>SmartBP 認識履歴をリセット</value>
-  </data>
   <data name="SmartBpEnableDebugLog" xml:space="preserve">
     <value>デバッグログを有効にする</value>
   </data>
@@ -240,17 +237,14 @@
   <data name="SmartBpOcrIntervalMilliseconds" xml:space="preserve">
     <value>OCR 認識間隔ミリ秒</value>
   </data>
-  <data name="SmartBpOcrFieldStaleMilliseconds" xml:space="preserve">
-    <value>OCR フィールド再更新までのミリ秒</value>
-  </data>
   <data name="SmartBpOcrBackfillLookBehindSteps" xml:space="preserve">
-    <value>OCR ワークフロー振り返り手順数</value>
+    <value>履歴確認するワークフローステップ数</value>
   </data>
   <data name="SmartBpTransitionReplayWindow" xml:space="preserve">
-    <value>フェーズ切替リプレイ時間（ミリ秒）</value>
+    <value>履歴確認フレーム期間（ミリ秒）</value>
   </data>
   <data name="SmartBpTransitionReplayMinimumConfidence" xml:space="preserve">
-    <value>フェーズ切替リプレイ訂正の最低信頼度</value>
+    <value>履歴補完の最小信頼度</value>
   </data>
   <data name="SmartBpOcrProviderSection" xml:space="preserve">
     <value>OCR プロバイダー</value>
@@ -369,9 +363,6 @@
   <data name="SmartBpPhaseSceneOnlyTest" xml:space="preserve">
     <value>現在のフェーズを認識</value>
   </data>
-  <data name="SmartBpDebugTools" xml:space="preserve">
-    <value>デバッグツール</value>
-  </data>
   <data name="SmartBpRecognizeSelectedPhase" xml:space="preserve">
     <value>選択したテスト画像のフェーズを認識</value>
   </data>
@@ -394,16 +385,10 @@
     <value>選択した言語データを削除</value>
   </data>
   <data name="SmartBpEnableAutoGuidanceSync" xml:space="preserve">
-    <value>GameGuidance 自動同期を有効化</value>
+    <value>対局ガイダンスの自動同期を有効化</value>
   </data>
   <data name="SmartBpEnableAutoGuidancePageNavigation" xml:space="preserve">
     <value>同期でステップ移動時にページナビゲーションに追従</value>
-  </data>
-  <data name="SmartBpProgressAutoCorrection" xml:space="preserve">
-    <value>進行状況を診断して自動同期</value>
-  </data>
-  <data name="SmartBpProgressAutoCorrectionDescription" xml:space="preserve">
-    <value>自動認識で GameGuidance と画面状態の明確なずれを検出した場合、全量 OCR で確認してから前方へ同期します。</value>
   </data>
   <data name="SmartBpForceSyncGameState" xml:space="preserve">
     <value>対局状態を強制同期</value>
@@ -420,9 +405,6 @@
   <data name="SmartBpAlreadyRunning" xml:space="preserve">
     <value>SmartBP はすでに実行中です。重複して起動しないでください。</value>
   </data>
-  <data name="SmartBpFreeFullSyncWarning" xml:space="preserve">
-    <value>自由フル同期は実験的機能であり、ワークフローコンテキストなしで認識スロットに書き込む可能性があります。ガイドワークフローの使用を推奨します。</value>
-  </data>
   <data name="SmartBpCaptureStopDisabledWhileRecognizing" xml:space="preserve">
     <value>自動認識中はウィンドウキャプチャを維持します。キャプチャを停止する前に自動認識を停止してください。</value>
   </data>
@@ -438,11 +420,8 @@
   <data name="SmartBpTooltipRecognitionInterval" xml:space="preserve">
     <value>OCR 自動認識の 2 回のスクリーンショット間の間隔を制御します。実際の処理時間より短い間隔は結果遅延と UI カクつきの原因になります。先に「認識速度テスト」を実行してください。最小値は実測最大時間 + 250ms に設定されます。</value>
   </data>
-  <data name="SmartBpTooltipFieldStale" xml:space="preserve">
-    <value>フィールドがこの時間以上更新されない場合に再 OCR します。短すぎると重複認識で CPU 負荷が増え、長すぎると古い結果が残る可能性があります。1000〜3000ms を推奨。単回 OCR 時間より長くしてください。</value>
-  </data>
   <data name="SmartBpTooltipBackfill" xml:space="preserve">
-    <value>振り返り補記できるワークフローステップ数。値を大きくすると早いペースの見落としを補いやすくなりますが、古い画像をより早いステップに誤割り当てするリスクも増えます。通常は 1〜3 を推奨。安定している場合は 2 を維持してください。</value>
+    <value>画面の Action/スロットが対局ガイダンスと異なる場合、または対象より前に Pending スロットの欠落がある場合だけ、直前のステップをこの数だけ確認します。既定値は 2 で、各ステップにつき Action が一致する代表フレームを最大 1 枚認識します。</value>
   </data>
   <data name="SmartBpTooltipDebugOverlay" xml:space="preserve">
     <value>OCR 領域、テキスト枠、マッチングデバッグ情報を出力し、認識問題の特定に役立てます。ディスク書き込みとわずかな処理オーバーヘッドが増えます。日常使用ではオフを推奨し、トラブルシューティング時に一時的にオンにしてください。</value>
@@ -458,12 +437,6 @@
   </data>
   <data name="SmartBpTestRecognitionSpeed" xml:space="preserve">
     <value>認識速度テスト</value>
-  </data>
-  <data name="SmartBpGuidedWorkflowRecommended" xml:space="preserve">
-    <value>ガイドワークフロー（推奨）</value>
-  </data>
-  <data name="SmartBpFreeFullSyncExperimental" xml:space="preserve">
-    <value>自由フル同期（実験的）</value>
   </data>
   <data name="SmartBpAutomaticRecognitionInterval" xml:space="preserve">
     <value>自動認識間隔</value>
@@ -530,6 +503,9 @@
   </data>
   <data name="SmartBpOpenRecognitionDebugLogWindow" xml:space="preserve">
     <value>認識ログウィンドウを開く</value>
+  </data>
+  <data name="SmartBpRecognizePostGameData" xml:space="preserve">
+    <value>試合後データを認識</value>
   </data>
   <data name="SmartBpRecognitionDebugLogWindowTitle" xml:space="preserve">
     <value>SmartBP 認識デバッグログ</value>
@@ -1061,5 +1037,23 @@
   </data>
   <data name="ResumeDownload" xml:space="preserve">
     <value>ダウンロードを再開</value>
+  </data>
+  <data name="SmartBpPostGameStagePreparing" xml:space="preserve">
+    <value>認識を準備中…</value>
+  </data>
+  <data name="SmartBpPostGameStagePrimaryOcr" xml:space="preserve">
+    <value>メインテーブルを認識中…</value>
+  </data>
+  <data name="SmartBpPostGameStageGridOcr" xml:space="preserve">
+    <value>数値グリッドを認識中…</value>
+  </data>
+  <data name="SmartBpPostGameStageSingleCell" xml:space="preserve">
+    <value>欠落セルを補完中…</value>
+  </data>
+  <data name="SmartBpPostGameStageApplying" xml:space="preserve">
+    <value>認識結果を適用中…</value>
+  </data>
+  <data name="SmartBpPostGameStageCompleted" xml:space="preserve">
+    <value>認識完了</value>
   </data>
 </root>

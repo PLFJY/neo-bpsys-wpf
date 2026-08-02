@@ -134,12 +134,21 @@ public interface ISmartBpRecognitionFrameCropper
 /// <summary>保留最近画面帧，用于转场最终确认。</summary>
 public interface ISmartBpFrameRingBuffer
 {
+    /// <summary>获取当前保留帧数。</summary>
+    int Count { get; }
+    /// <summary>获取根据 OCR 周期、处理时间估计和转场窗口计算出的有界容量。</summary>
+    int Capacity { get; }
     /// <summary>添加一帧捕获画面。</summary>
     void AddFrame(long sequence, BitmapSource frame, DateTimeOffset timestamp);
     /// <summary>获取指定时间窗口内的最近画面帧。</summary>
     IReadOnlyList<SmartBpBufferedFrame> GetRecentFrames(TimeSpan window);
     /// <summary>获取指定区域最合适的最近画面帧。</summary>
     SmartBpBufferedFrame? GetBestFrameForRegion(SmartBpRecognitionRegion region, TimeSpan lookBehind);
+    /// <summary>清除全部缓冲帧，例如捕获源切换时隔离旧画面。</summary>
+    void Reset();
+    /// <summary>报告一次串行 OCR 的实际耗时，用于动态计算缓冲窗口下限。</summary>
+    /// <param name="duration">本次处理耗时。</param>
+    void ReportOcrProcessingDuration(TimeSpan duration);
 }
 /// <summary>检测裁剪识别区域是否变化到需要刷新。</summary>
 public interface ISmartBpCropChangeDetector
@@ -206,44 +215,13 @@ public interface ISmartBpSnapshotDeltaRecognitionService
         long frameSequence,
         CancellationToken cancellationToken = default);
 }
-/// <summary>存储本地合并后的 SmartBP 增量识别状态。</summary>
-public interface ISmartBpRecognitionStateStore
-{
-    /// <summary>获取完整业务状态快照。</summary>
-    SmartBpBusinessStateRecognitionResult Snapshot { get; }
-    /// <summary>将一个模型增量应用到本地状态。</summary>
-    IReadOnlyList<string> ApplyDelta(SmartBpSnapshotDeltaResult delta, long frameSequence, DateTimeOffset timestamp);
-    /// <summary>使用逐槽位合并规则将一个字段快照应用到本地状态。</summary>
-    /// <param name="field">业务字段标识。</param>
-    /// <param name="snapshot">携带 slot_state 证据的字段快照更新。</param>
-    /// <param name="frameSequence">画面帧序号。</param>
-    /// <param name="timestamp">应用时间戳。</param>
-    /// <returns>逐槽位合并诊断信息。</returns>
-    IReadOnlyList<string> ApplyFieldSnapshot(string field, SmartBpSnapshotFieldUpdate snapshot, long frameSequence, DateTimeOffset timestamp);
-    /// <summary>
-    /// 在求生者选择锁定后，将 picked_sur 视觉槽位证据替换为分配证据，而不按视觉槽位索引合并到 <c>PickedSur</c>。
-    /// </summary>
-    /// <param name="update">携带 picked_sur 视觉槽位的字段快照更新。</param>
-    /// <param name="frameSequence">画面帧序号。</param>
-    /// <param name="timestamp">应用时间戳。</param>
-    /// <returns>分配证据更新诊断信息。</returns>
-    IReadOnlyList<string> ApplyDistributionEvidence(SmartBpSnapshotFieldUpdate update, long frameSequence, DateTimeOffset timestamp);
-    /// <summary>仅更新本地合并后的阶段。</summary>
-    /// <param name="phase">识别到的阶段。</param>
-    /// <param name="frameSequence">画面帧序号。</param>
-    void ApplyPhase(string phase, long frameSequence);
-    /// <summary>返回字段陈旧状态诊断。</summary>
-    IReadOnlyList<string> GetStaleFieldDiagnostics(DateTimeOffset timestamp, int staleMilliseconds);
-    /// <summary>重置所有本地合并状态。</summary>
-    void Reset();
-}
-/// <summary>规划下一次增量请求应刷新哪些裁剪区域。</summary>
+/// <summary>规划当前帧需要识别的裁剪区域。</summary>
 public interface ISmartBpSnapshotRecognitionPlanner
 {
-    /// <summary>构建下一次识别请求包。</summary>
-    SmartBpSnapshotDeltaRequest BuildRequest(Core.Models.GameGuidanceRuntimeSnapshot guidanceSnapshot,
-        SmartBpBusinessStateRecognitionResult currentLocalSnapshot,
-        SmartBpRecognitionLedgerSnapshot ledgerSnapshot);
+    /// <summary>基于主程序引导快照构建当前帧识别请求包。</summary>
+    /// <param name="guidanceSnapshot">主程序对局引导快照。</param>
+    /// <returns>当前帧区域请求。</returns>
+    SmartBpSnapshotDeltaRequest BuildRequest(Core.Models.GameGuidanceRuntimeSnapshot guidanceSnapshot);
 }
 /// <summary>将独立内容区域输出合并为简化 BP 业务状态。</summary>
 public interface ISmartBpBusinessStateMerger
@@ -290,51 +268,6 @@ public interface ISmartBpDebugLog
     bool IsEnabled { get; set; }
 }
 
-/// <summary>将模型阶段输出与权威 GameGuidance 工作流进行对齐。</summary>
-public interface ISmartBpGuidanceSyncService
-{
-    /// <summary>同步到当前步骤或最近的兼容未来步骤。</summary>
-    Task<SmartBpGuidanceSyncResult> SyncAsync(SmartBpBusinessStateRecognitionResult businessState, CancellationToken cancellationToken = default);
-}
-
-/// <summary>根据完整 SmartBP 业务快照推断最符合的 GameGuidance 工作流步骤。</summary>
-public interface ISmartBpProgressInferenceService
-{
-    /// <summary>推断当前画面最符合的 GameGuidance 工作流步骤。</summary>
-    /// <param name="observed">观察到的完整 SmartBP 业务状态。</param>
-    /// <param name="guidanceSnapshot">当前 GameGuidance 运行时快照。</param>
-    /// <param name="options">可选推断阈值和范围。</param>
-    /// <returns>进度推断结果。</returns>
-    SmartBpProgressInferenceResult Infer(
-        SmartBpBusinessStateRecognitionResult observed,
-        GameGuidanceRuntimeSnapshot guidanceSnapshot,
-        SmartBpProgressInferenceOptions? options = null);
-}
-
-/// <summary>执行 SmartBP 精确进度对齐检查和强制同步。</summary>
-public interface ISmartBpProgressSyncService
-{
-    /// <summary>检查观察到的 SmartBP 业务状态与 GameGuidance 当前步骤是否一致。</summary>
-    /// <param name="observed">观察到的完整 SmartBP 业务状态。</param>
-    /// <param name="guidanceSnapshot">当前 GameGuidance 运行时快照。</param>
-    /// <param name="options">可选推断阈值和范围。</param>
-    /// <returns>对齐检查结果。</returns>
-    SmartBpProgressAlignmentResult CheckAlignment(
-        SmartBpBusinessStateRecognitionResult observed,
-        GameGuidanceRuntimeSnapshot guidanceSnapshot,
-        SmartBpProgressInferenceOptions? options = null);
-
-    /// <summary>将 GameGuidance 强制同步到根据观察状态推断出的精确步骤。</summary>
-    /// <param name="observed">观察到的完整 SmartBP 业务状态。</param>
-    /// <param name="mode">同步模式。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>同步结果。</returns>
-    Task<SmartBpProgressSyncResult> ForceSyncAsync(
-        SmartBpBusinessStateRecognitionResult observed,
-        SmartBpProgressSyncMode mode,
-        CancellationToken cancellationToken = default);
-}
-
 /// <summary>执行手动 SmartBP 对局状态同步。</summary>
 public interface ISmartBpGameStateSyncService
 {
@@ -347,6 +280,24 @@ public interface ISmartBpGameStateSyncService
         CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// 以主程序 BP 槽位提交状态为唯一业务状态源，统一执行角色、空操作和 Guidance 对账。
+/// </summary>
+public interface ISmartBpReconciliationService
+{
+    /// <summary>
+    /// 将当前帧 Observation 投影与主程序权威状态对账。
+    /// </summary>
+    /// <param name="observed">当前帧或一次独立强制 OCR 的视觉证据。</param>
+    /// <param name="mode">自动或手动强制同步模式。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>角色、明确空操作和 Guidance 相互独立的结构化结果。</returns>
+    Task<SmartBpReconciliationResult> ReconcileAsync(
+        SmartBpBusinessStateRecognitionResult observed,
+        SmartBpReconciliationMode mode,
+        CancellationToken cancellationToken = default);
+}
+
 /// <summary>通过角色选择服务应用本地校验后的候选操作。</summary>
 public interface ISmartBpDetectedOperationApplier
 {
@@ -354,46 +305,16 @@ public interface ISmartBpDetectedOperationApplier
     Task<SmartBpOperationApplyResult> ApplyAsync(IReadOnlyList<SmartBpDetectedOperation> operations, CancellationToken cancellationToken = default);
 }
 
-/// <summary>在阶段切换时从帧缓冲构建上一角色步骤的高置信回看纠正计划。</summary>
-public interface ISmartBpTransitionReplayService
-{
-    /// <summary>构建一次不修改状态的回看计划。</summary>
-    /// <param name="sourceGuidance">切换前的引导快照。</param>
-    /// <param name="targetAction">当前识别到的目标动作。</param>
-    /// <param name="currentFrameSequence">当前帧序号；该帧不会被作为历史帧回看。</param>
-    /// <param name="cancellationToken">取消令牌。</param>
-    /// <returns>有序候选与诊断。</returns>
-    Task<SmartBpTransitionReplayResult?> BuildAsync(GameGuidanceRuntimeSnapshot sourceGuidance,
-        Core.Enums.GameAction targetAction, long currentFrameSequence, CancellationToken cancellationToken = default);
-}
-
-/// <summary>根据完整合并后的 BP 快照构建有序工作流回填候选。</summary>
-public interface ISmartBpWorkflowBackfillService
-{
-    /// <summary>在不修改引导状态的情况下，根据当前工作流构建计划。</summary>
-    SmartBpWorkflowBackfillPlan BuildPlan(SmartBpBusinessStateRecognitionResult snapshot, Core.Models.GameGuidanceRuntimeSnapshot guidanceSnapshot);
-}
-
-/// <summary>跟踪当前对局进度中已成功完成的工作流操作。</summary>
-public interface ISmartBpRecognitionLedger
-{
-    /// <summary>返回操作是否已经完成。</summary>
-    bool IsStepOperationCompleted(SmartBpWorkflowOperationKey key);
-    /// <summary>在应用成功或确认无需操作后，将操作标记为完成。</summary>
-    void MarkCompleted(SmartBpWorkflowOperationKey key);
-    /// <summary>记录非终止性跳过原因，但不将操作标记为完成。</summary>
-    void MarkSkipped(SmartBpWorkflowOperationKey key, string reason);
-    /// <summary>清除当前对局的所有识别状态。</summary>
-    void ResetForCurrentGame();
-    /// <summary>返回用于规划的只读快照。</summary>
-    SmartBpRecognitionLedgerSnapshot GetSnapshot();
-}
-
 /// <summary>协调阶段检测、引导对齐和聚焦提取。</summary>
 public interface ISmartBpAutoRecognitionCoordinator
 {
     /// <summary>获取自动模式是否正在运行。</summary>
     bool IsRunning { get; }
+    /// <summary>在不启动 OCR 的情况下将一帧加入高频有界缓冲。</summary>
+    /// <param name="frame">已冻结或可跨线程读取的捕获帧。</param>
+    void SampleFrame(BitmapSource frame);
+    /// <summary>捕获源变化时取消旧 OCR，并清除旧画面 Observation 与帧缓冲。</summary>
+    void ResetCaptureContext();
     /// <summary>启动自动模式。</summary>
     Task StartAsync(CancellationToken cancellationToken = default);
     /// <summary>停止自动模式。</summary>
@@ -411,12 +332,12 @@ public interface ISmartBpAutoRecognitionCoordinator
     Task<SmartBpAutoRecognitionTickResult> RunFullRecognitionDebugAsync(BitmapSource frame, CancellationToken cancellationToken = default);
     /// <summary>识别当前帧的完整 BP 业务快照，可选合并到自动识别状态仓库。</summary>
     /// <param name="frame">要识别的画面帧。</param>
-    /// <param name="mergeIntoStateStore">是否将识别结果合并到状态仓库。</param>
+    /// <param name="isDryRun">是否只返回当前帧识别结果而禁止应用和引导变化。</param>
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>完整 BP 快照识别结果。</returns>
     Task<SmartBpAutoRecognitionTickResult> RecognizeFullBpSnapshotAsync(
         BitmapSource frame,
-        bool mergeIntoStateStore,
+        bool isDryRun,
         CancellationToken cancellationToken = default);
     /// <summary>使用自动规划器请求形态运行已选策略，但不应用操作或引导变化。</summary>
     /// <param name="frame">要识别的画面帧。</param>
@@ -437,11 +358,4 @@ public interface ISmartBpLifecycleStatusDetector
     /// <param name="lines">来自 <see cref="Models.Recognition.SmartBpRecognitionRegion.TopCenterStatus"/> 的 OCR 行。</param>
     /// <returns>确定性的生命周期分类和诊断信息。</returns>
     SmartBpLifecycleStatusResult Detect(IReadOnlyList<Core.Abstractions.Services.OcrTextLine> lines);
-}
-
-/// <summary>拥有一次自动步骤提交事务。</summary>
-public interface ISmartBpStepCommitScheduler
-{
-    /// <summary>通过识别、应用和可选引导同步处理一帧画面。</summary>
-    Task<SmartBpStepCommitResult> ProcessTickAsync(BitmapSource frame, CancellationToken cancellationToken = default);
 }

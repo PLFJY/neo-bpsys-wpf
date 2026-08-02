@@ -38,7 +38,6 @@ using SmartBpOcrRegionParser = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Re
 using SmartBpOcrTextResolver = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpOcrTextResolver;
 using SmartBpOcrFieldParseContext = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpOcrFieldParseContext;
 using SmartBpPickedSurOcrParseMode = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpPickedSurOcrParseMode;
-using SmartBpRecognitionStateStore = smartbp::neo_bpsys_wpf.SmartBp.Module.Services.Recognition.SmartBpRecognitionStateStore;
 using SmartBpSnapshotFieldUpdate = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotFieldUpdate;
 using SmartBpSnapshotDeltaSlot = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpSnapshotDeltaSlot;
 using TesseractCoordinateMapper = smartbp::neo_bpsys_wpf.Services.TesseractCoordinateMapper;
@@ -50,6 +49,7 @@ using SmartBpOcrProviderKind = smartbp::neo_bpsys_wpf.Core.Abstractions.Services
 using IOcrProvider = smartbp::neo_bpsys_wpf.Core.Abstractions.Services.IOcrProvider;
 using OcrRecognitionOptions = smartbp::neo_bpsys_wpf.Core.Abstractions.Services.OcrRecognitionOptions;
 using SmartBpRecognitionRegion = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognitionRegion;
+using SmartBpRecognizedSlotState = smartbp::neo_bpsys_wpf.SmartBp.Module.Models.Recognition.SmartBpRecognizedSlotState;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
@@ -175,7 +175,8 @@ public sealed class SmartBpOcrRecognitionContractTest
         var result = parser.Parse(
             SmartBpRecognitionRegion.RightTop,
             [Line("小说家", 20, 40), Line("昆虫学者", 80, 40)],
-            []);
+            [],
+            regionWidth: 200);
 
         Assert.Equal("banned_sur", result.TargetField);
         Assert.Equal("小说家", result.Slots[0].CharacterName);
@@ -371,7 +372,7 @@ public sealed class SmartBpOcrRecognitionContractTest
 
         var result = resolver.ResolveCharacterFromLine(text, Camp.Sur, 0);
 
-        Assert.Equal("心理学家", result.ResolvedCharacterKey);
+        Assert.Equal("心理学家", result.ResolvedCharacterName);
     }
 
     [Fact]
@@ -427,8 +428,8 @@ public sealed class SmartBpOcrRecognitionContractTest
         var alias = resolver.ResolveCharacterFromLine("广长", Camp.Hun, 0, "Tesseract");
         var quoted = resolver.ResolveCharacterFromLine("“厂长”", Camp.Hun, 0, "Paddle");
 
-        Assert.Equal("厂长", alias.ResolvedCharacterKey);
-        Assert.Equal("厂长", quoted.ResolvedCharacterKey);
+        Assert.Equal("厂长", alias.ResolvedCharacterName);
+        Assert.Equal("厂长", quoted.ResolvedCharacterName);
         Assert.Contains(alias.Warnings, item => item.Contains("matchMode=short-name-correction", StringComparison.Ordinal));
     }
 
@@ -439,7 +440,7 @@ public sealed class SmartBpOcrRecognitionContractTest
 
         var result = resolver.ResolveCharacterFromLine("广长", Camp.Sur, 0, "Tesseract");
 
-        Assert.Null(result.ResolvedCharacterKey);
+        Assert.Null(result.ResolvedCharacterName);
         Assert.False(result.IsAutoApplySafe);
     }
 
@@ -450,7 +451,7 @@ public sealed class SmartBpOcrRecognitionContractTest
 
         var result = resolver.ResolveCharacterFromLine("屏蔽求生者", Camp.Sur, 0, "Paddle");
 
-        Assert.Null(result.ResolvedCharacterKey);
+        Assert.Null(result.ResolvedCharacterName);
         Assert.Equal("filtered-status", result.MatchMode);
     }
 
@@ -484,7 +485,8 @@ public sealed class SmartBpOcrRecognitionContractTest
                 Line("入验师", 336, 40, .98),
                 Line("祭司", 445, 40, .90)
             ],
-            diagnostics);
+            diagnostics,
+            regionWidth: 563);
 
         Assert.Equal(["小说家", "昆虫学者", "入殓师", "祭司"], result.Slots.Select(slot => slot.CharacterName));
         Assert.Contains(diagnostics, item =>
@@ -772,47 +774,154 @@ public sealed class SmartBpOcrRecognitionContractTest
     }
 
     [Fact]
-    public void MergePlayerSlotsPreservesPlayerIdForEmptySlots()
+    public void GlobalSnapshotParsesPickedSurvivorsWhileCurrentPhaseIsBanSur()
     {
-        var store = new SmartBpRecognitionStateStore();
-        // First, set a player_id via a selected slot.
-        store.ApplyFieldSnapshot("picked_sur", new SmartBpSnapshotFieldUpdate
+        var parser = Parser(
+            new Character("幻灯师", Camp.Sur, "illusionist.png"),
+            new Character("守墓人", Camp.Sur, "gravekeeper.png"),
+            new Character("冒险家", Camp.Sur, "explorer.png"));
+        var context = new SmartBpOcrFieldParseContext
         {
-            Field = "picked_sur",
-            Slots =
+            AuthoritativePhase = "屏蔽求生者",
+            CurrentGuidanceAction = GameAction.BanSur,
+            SurvivorPickLocked = false,
+            IsGlobalSnapshot = true
+        };
+        var diagnostics = new List<string>();
+
+        var result = parser.Parse(
+            SmartBpRecognitionRegion.LeftBottom,
             [
-                new() { Index = 0, SlotState = "selected", CharacterName = "先知", PlayerId = "PlayerA" }
-            ]
-        }, frameSequence: 1, DateTimeOffset.Now);
-        // Then, send an empty slot update with null player_id.
-        store.ApplyFieldSnapshot("picked_sur", new SmartBpSnapshotFieldUpdate
-        {
-            Field = "picked_sur",
-            Slots =
-            [
-                new() { Index = 0, SlotState = "empty", CharacterName = "未选择", PlayerId = null }
-            ]
-        }, frameSequence: 2, DateTimeOffset.Now);
-        var snapshot = store.Snapshot;
-        Assert.Equal("未选择", snapshot.PickedSur[0].CharacterName);
-        Assert.Equal("PlayerA", snapshot.PickedSur[0].PlayerId);
+                Line("P", 89, 65, .30),
+                Line("幻灯师", 89, 180), Line("守墓人", 216, 180),
+                Line("未选择", 344, 180), Line("未选择", 472, 180),
+                Line("PlayerA", 89, 203), Line("PlayerB", 216, 203),
+                Line("PlayerC", 344, 203), Line("PlayerD", 472, 203),
+                Line("冒险家", 89, 230)
+            ],
+            diagnostics,
+            context);
+
+        Assert.Equal(SmartBpPickedSurOcrParseMode.GlobalSnapshot, context.ResolvePickedSurParseMode());
+        Assert.Equal("幻灯师", result.Slots[0].CharacterName);
+        Assert.Equal("守墓人", result.Slots[1].CharacterName);
+        Assert.Equal("PlayerA", result.Slots[0].PlayerId);
+        Assert.Equal("PlayerB", result.Slots[1].PlayerId);
+        Assert.Contains(diagnostics, item => item.Contains("parse mode=GlobalSnapshot", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, item => item.Contains("ignored talent/extra", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void MergePlayerSlotsEmptySlotWithPlayerIdPreservesPlayerId()
+    public void EmptyFirstBanPreservesLaterVisualSlotIndexes()
     {
-        var store = new SmartBpRecognitionStateStore();
-        store.ApplyFieldSnapshot("picked_sur", new SmartBpSnapshotFieldUpdate
-        {
-            Field = "picked_sur",
-            Slots =
+        var parser = Parser(
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("昆虫学者", Camp.Sur, "entomologist"));
+
+        var result = parser.ParseDetailed(
+            SmartBpRecognitionRegion.RightTop,
+            [Line("小说家", 150, 30), Line("昆虫学者", 250, 30)],
+            regionWidth: 400).Result;
+
+        Assert.Equal(SmartBpRecognizedSlotState.Unknown, result.Slots[0].SlotState);
+        Assert.Equal("小说家", result.Slots[1].CharacterName);
+        Assert.Equal("昆虫学者", result.Slots[2].CharacterName);
+    }
+
+    [Fact]
+    public void EmptyMiddleBanPreservesHole()
+    {
+        var parser = Parser(
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("昆虫学者", Camp.Sur, "entomologist"),
+            new Character("先知", Camp.Sur, "seer"));
+
+        var result = parser.ParseDetailed(
+            SmartBpRecognitionRegion.RightTop,
+            [Line("小说家", 50, 30), Line("昆虫学者", 250, 30), Line("先知", 350, 30)],
+            regionWidth: 400).Result;
+
+        Assert.Equal("小说家", result.Slots[0].CharacterName);
+        Assert.Equal(SmartBpRecognizedSlotState.Unknown, result.Slots[1].SlotState);
+        Assert.Equal("昆虫学者", result.Slots[2].CharacterName);
+        Assert.Equal("先知", result.Slots[3].CharacterName);
+    }
+
+    [Fact]
+    public void TwoCandidatesInSameBanSlotAreNotShifted()
+    {
+        var parser = Parser(
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("昆虫学者", Camp.Sur, "entomologist"));
+
+        var result = parser.ParseDetailed(
+            SmartBpRecognitionRegion.RightTop,
+            [Line("小说家", 45, 30), Line("昆虫学者", 55, 30)],
+            regionWidth: 400).Result;
+
+        Assert.Equal(SmartBpRecognizedSlotState.Unknown, result.Slots[0].SlotState);
+        Assert.All(result.Slots.Skip(1), slot => Assert.Equal(SmartBpRecognizedSlotState.Unknown, slot.SlotState));
+    }
+
+    [Fact]
+    public void BanParserUsesFixedGeometryForSurvivorAndHunterSlots()
+    {
+        var parser = Parser(
+            new Character("小说家", Camp.Sur, "novelist"),
+            new Character("先知", Camp.Sur, "seer"),
+            new Character("厂长", Camp.Hun, "hell-ember"));
+
+        var survivor = parser.ParseDetailed(
+            SmartBpRecognitionRegion.RightTop,
+            [Line("小说家", 50, 30), Line("先知", 350, 30)],
+            regionWidth: 400).Result;
+        var hunter = parser.ParseDetailed(
+            SmartBpRecognitionRegion.LeftTop,
+            [Line("厂长", 150, 30)],
+            regionWidth: 200).Result;
+
+        Assert.Equal("小说家", survivor.Slots[0].CharacterName);
+        Assert.Equal("先知", survivor.Slots[3].CharacterName);
+        Assert.Equal(SmartBpRecognizedSlotState.Unknown, hunter.Slots[0].SlotState);
+        Assert.Equal("厂长", hunter.Slots[1].CharacterName);
+    }
+
+    [Fact]
+    public void CompactSurvivorBanRowMapsAllFourFixedVisualSlots()
+    {
+        var parser = Parser(
+            new Character("医生", Camp.Sur, "doctor.png"),
+            new Character("弓箭手", Camp.Sur, "archer.png"),
+            new Character("木偶师", Camp.Sur, "puppeteer.png"),
+            new Character("幸运儿", Camp.Sur, "lucky-guy.png"));
+
+        var result = parser.ParseDetailed(
+            SmartBpRecognitionRegion.RightTop,
             [
-                new() { Index = 0, SlotState = "empty", CharacterName = "未选择", PlayerId = "IHiganbanal" }
-            ]
-        }, frameSequence: 1, DateTimeOffset.Now);
-        var snapshot = store.Snapshot;
-        Assert.Equal("未选择", snapshot.PickedSur[0].CharacterName);
-        Assert.Equal("IHiganbanal", snapshot.PickedSur[0].PlayerId);
+                Line("T", 393, 68, .05),
+                Line("医生", 107.5, 102.5),
+                Line("弓箭手", 204.5, 102.5),
+                Line("木偶师", 300.5, 103),
+                Line("幸运儿", 397.5, 103)
+            ],
+            regionWidth: 540).Result;
+
+        Assert.Equal(["医生", "弓箭手", "木偶师", "幸运儿"], result.Slots.Select(slot => slot.CharacterName));
+        Assert.All(result.Slots, slot => Assert.Equal(SmartBpRecognizedSlotState.Selected, slot.SlotState));
+    }
+
+    [Fact]
+    public void MissingOcrTextProducesUnknownNotEmpty()
+    {
+        var result = Parser().ParseDetailed(
+            SmartBpRecognitionRegion.RightTop,
+            [],
+            regionWidth: 400).Result;
+
+        Assert.All(result.Slots, slot =>
+        {
+            Assert.Equal(SmartBpRecognizedSlotState.Unknown, slot.SlotState);
+        });
     }
 
     private static SmartBpOcrRegionParser Parser(params Character[] characters) =>

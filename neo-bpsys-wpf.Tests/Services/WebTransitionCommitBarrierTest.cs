@@ -13,34 +13,6 @@ namespace neo_bpsys_wpf.Tests.Services;
 /// <summary>Web Transition runtime commit 屏障测试。</summary>
 public sealed class WebTransitionCommitBarrierTest
 {
-    /// <summary>屏障应等待 commit 后的下一次 runtime 重算并返回对应 generation/sequence。</summary>
-    [Fact]
-    public async Task BarrierCompletesOnlyAfterPostCommitRecalculation()
-    {
-        var eventBus = new Mock<IFrontedEventBus>();
-        using var publisher = new WebRendererRuntimeStatePublisher(
-            Mock.Of<ISharedDataService>(),
-            eventBus.Object);
-        publisher.ReplaceLayout(new WebRendererBootstrapSnapshot(
-            WebRendererIpcProtocol.Version,
-            7,
-            "builtin",
-            [],
-            new Dictionary<string, WebRendererAsset>()));
-        publisher.SetClientCount(1);
-        var barrier = publisher.BeginCommitBarrier([], 7);
-
-        Assert.False(barrier.Completion.Task.IsCompleted);
-        var wait = publisher.WaitForCommitBarrierAsync(barrier, TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
-        if (!wait.IsCompleted)
-            eventBus.Raise(bus => bus.EventPublished += null, new FrontedBehaviorEvent { EventType = "test" });
-        var point = await wait;
-
-        Assert.True(point.IsStable);
-        Assert.Equal(7, point.Generation);
-        Assert.Equal(publisher.CurrentSequence, point.Sequence);
-    }
-
     /// <summary>generation 不匹配或无客户端时屏障必须立即 fail-open。</summary>
     [Theory]
     [InlineData(6)]

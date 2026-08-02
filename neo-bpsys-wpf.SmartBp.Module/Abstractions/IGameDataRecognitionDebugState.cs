@@ -1,3 +1,5 @@
+using neo_bpsys_wpf.Services;
+
 namespace neo_bpsys_wpf.SmartBp.Module.Abstractions;
 
 /// <summary>
@@ -14,6 +16,22 @@ public interface IGameDataRecognitionDebugState
     /// 获取最近一次赛后数据 OCR 快照。
     /// </summary>
     GameDataRecognitionDebugSnapshot Current { get; }
+}
+
+/// <summary>
+/// 向赛后数据页面提供赛后数据识别的实时进度。
+/// </summary>
+public interface IPostGameRecognitionProgressSource
+{
+    /// <summary>
+    /// 赛后数据识别进度变化时触发。
+    /// </summary>
+    event EventHandler<PostGameRecognitionProgressEventArgs>? ProgressChanged;
+
+    /// <summary>
+    /// 获取最近一次进度快照；未开始识别时为 <see cref="PostGameRecognitionProgress.Idle"/>。
+    /// </summary>
+    PostGameRecognitionProgress CurrentProgress { get; }
 }
 
 /// <summary>

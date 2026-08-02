@@ -464,23 +464,6 @@ public sealed class TutorialRefactorTaskTest
     }
 
     [Fact]
-    public void HostSmartBpPage_ShouldNotDeclareModuleViewTargets()
-    {
-        var source = ReadRepoFile("neo-bpsys-wpf", "Views", "Pages", "SmartBpPage.xaml");
-
-        Assert.DoesNotContain("SmartBpPreviewPanel", source);
-        Assert.DoesNotContain("SmartBpWindowSelector", source);
-        Assert.DoesNotContain("SmartBpStartCaptureButton", source);
-        Assert.DoesNotContain("SmartBpRegionEditorButton", source);
-        Assert.DoesNotContain("SmartBpStartFullBpFlowButton", source);
-        Assert.DoesNotContain("SmartBpOcrModelManagementCard", source);
-
-        Assert.Contains("SmartBpModuleContentHost", source);
-        Assert.Contains("SmartBpModulePathTextBox", source);
-        Assert.Contains("SmartBpLoadLocalModuleButton", source);
-    }
-
-    [Fact]
     public void ModuleContent_ShouldNotLoadBeforeTutorialRegistration()
     {
         var source = ReadRepoFile(

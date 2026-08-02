@@ -14,6 +14,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
+using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Windows;
 using Wpf.Ui.Controls;
 
@@ -22,12 +23,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SmartBpModuleContentViewModel
 {
     private readonly DispatcherTimer _previewTimer = new();
+    private readonly DispatcherTimer _frameSamplingTimer = new();
     private int _recognitionBusy;
     private bool _isAutomaticRecognitionStopPendingAfterQueueDrain;
     private int _automaticRecognitionUnavailableFrameCount;
-    /// <summary>获取可用的识别应用模式。</summary>
-    public IReadOnlyList<SmartBpRecognitionApplyMode> RecognitionApplyModes { get; } = Enum.GetValues<SmartBpRecognitionApplyMode>();
-
     /// <summary>获取可用的内置测试帧。</summary>
     public IReadOnlyList<SmartBpTestFrame> TestFrames { get; } =
     [
@@ -80,16 +79,7 @@ public partial class SmartBpModuleContentViewModel
     public partial bool EnableAutoGuidancePageNavigation { get; set; }
 
     [ObservableProperty]
-    public partial bool EnableSmartBpProgressAutoCorrection { get; set; } = true;
-
-    [ObservableProperty]
     public partial string LastSmartBpProgressDiagnosis { get; set; } = "-";
-
-    [ObservableProperty]
-    public partial SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; }
-
-    [ObservableProperty]
-    public partial bool PlayBackfillAnimations { get; set; }
 
     [ObservableProperty]
     public partial bool UseMultiImageSnapshotRequest { get; set; }
@@ -116,16 +106,13 @@ public partial class SmartBpModuleContentViewModel
     public partial int OcrRecognitionIntervalMs { get; set; }
 
     [ObservableProperty]
-    public partial int OcrFieldStaleMilliseconds { get; set; }
+    public partial int OcrBackfillLookBehindSteps { get; set; } = 2;
 
     [ObservableProperty]
-    public partial int OcrBackfillLookBehindSteps { get; set; }
+    public partial int RecognitionTransitionLookBehindMilliseconds { get; set; } = 800;
 
     [ObservableProperty]
-    public partial int RecognitionTransitionLookBehindMilliseconds { get; set; }
-
-    [ObservableProperty]
-    public partial double RecognitionTransitionReplayMinimumConfidence { get; set; }
+    public partial double RecognitionTransitionReplayMinimumConfidence { get; set; } = .95;
 
     [ObservableProperty]
     public partial bool UseOcrContactSheet { get; set; } = true;
@@ -279,18 +266,6 @@ public partial class SmartBpModuleContentViewModel
     public partial int SnapshotDeltaMaxTokens { get; set; }
 
     [ObservableProperty]
-    public partial int PhaseTransitionCommitHoldMilliseconds { get; set; }
-
-    [ObservableProperty]
-    public partial int PhaseTransitionCommitHoldMaxMilliseconds { get; set; }
-
-    [ObservableProperty]
-    public partial int RecognitionBackfillLookBehindSteps { get; set; }
-
-    [ObservableProperty]
-    public partial int RecognitionFieldStaleMilliseconds { get; set; }
-
-    [ObservableProperty]
     public partial int RecognitionVisualBufferMilliseconds { get; set; }
 
     [ObservableProperty]
@@ -401,14 +376,10 @@ public partial class SmartBpModuleContentViewModel
         EnableAutoGuidanceSync = _recognitionSettingsService.Settings.EnableAutoGuidanceSync;
         EnableAutoApplyRecognition = _recognitionSettingsService.Settings.EnableAutoApplyRecognition;
         EnableAutoGuidancePageNavigation = _recognitionSettingsService.Settings.EnableAutoGuidancePageNavigation;
-        EnableSmartBpProgressAutoCorrection = _recognitionSettingsService.Settings.EnableSmartBpProgressAutoCorrection;
-        RecognitionApplyMode = _recognitionSettingsService.Settings.RecognitionApplyMode;
-        PlayBackfillAnimations = _recognitionSettingsService.Settings.PlayBackfillAnimations;
         UseMultiImageSnapshotRequest = _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest;
         EnableOcrBpRecognition = _recognitionSettingsService.Settings.EnableOcrBpRecognition;
         RecognitionIntervalMs = _recognitionSettingsService.Settings.RecognitionIntervalMs;
         OcrRecognitionIntervalMs = _recognitionSettingsService.Settings.OcrRecognitionIntervalMs;
-        OcrFieldStaleMilliseconds = _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds;
         OcrBackfillLookBehindSteps = _recognitionSettingsService.Settings.OcrBackfillLookBehindSteps;
         RecognitionTransitionLookBehindMilliseconds = _recognitionSettingsService.Settings.RecognitionTransitionLookBehindMilliseconds;
         RecognitionTransitionReplayMinimumConfidence = _recognitionSettingsService.Settings.RecognitionTransitionReplayMinimumConfidence;
@@ -439,15 +410,21 @@ public partial class SmartBpModuleContentViewModel
         ContentCropMaxImageWidth = _recognitionSettingsService.Settings.ContentCropMaxImageWidth;
         PhaseMaxTokens = _recognitionSettingsService.Settings.PhaseMaxTokens;
         SnapshotDeltaMaxTokens = _recognitionSettingsService.Settings.SnapshotDeltaMaxTokens;
-        PhaseTransitionCommitHoldMilliseconds = _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMilliseconds;
-        PhaseTransitionCommitHoldMaxMilliseconds = _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMaxMilliseconds;
-        RecognitionBackfillLookBehindSteps = _recognitionSettingsService.Settings.RecognitionBackfillLookBehindSteps;
-        RecognitionFieldStaleMilliseconds = _recognitionSettingsService.Settings.RecognitionFieldStaleMilliseconds;
         RecognitionVisualBufferMilliseconds = _recognitionSettingsService.Settings.RecognitionVisualBufferMilliseconds;
         RefreshRecognitionTimerInterval();
         RefreshRecognitionSpeedTestValidity();
         // 自动循环 Tick 只负责调度当前帧识别，具体阶段门禁和写回保护在 coordinator 内完成。
         _previewTimer.Tick += async (_, _) => await RunAutomaticCurrentFrameCoreAsync();
+        _frameSamplingTimer.Interval = TimeSpan.FromMilliseconds(
+            Math.Clamp(_recognitionSettingsService.Settings.RecognitionSamplingIntervalMilliseconds, 50, 1000));
+        _frameSamplingTimer.Tick += (_, _) =>
+        {
+            if (!IsPreviewLoopRunning || !_windowCaptureService.IsCapturing)
+                return;
+            var sampledFrame = _windowCaptureService.GetCurrentFrame();
+            if (sampledFrame is not null)
+                _autoRecognitionCoordinator.SampleFrame(sampledFrame);
+        };
         _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
         {
             IsRapidOcrDownloading = state.IsDownloading;
@@ -706,6 +683,43 @@ public partial class SmartBpModuleContentViewModel
         DebugLogText = "";
     }
 
+    /// <summary>
+    /// 从 DEBUG 区触发赛后数据识别，并将识别结果写入共享对局数据。
+    /// </summary>
+    [RelayCommand(AllowConcurrentExecutions = false)]
+    private async Task RecognizePostGameDataAsync()
+    {
+        IsRecognizingPostGameData = true;
+        try
+        {
+            await _smartBpService.AutoFillGameDataAsync();
+        }
+        finally
+        {
+            IsRecognizingPostGameData = false;
+        }
+    }
+
+    [ObservableProperty]
+    public partial bool IsRecognizingPostGameData { get; set; }
+
+    [ObservableProperty]
+    public partial int PostGameRecognitionProgressPercent { get; set; }
+
+    [ObservableProperty]
+    public partial string PostGameRecognitionStageText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 将赛后数据识别进度快照应用到可观察属性，驱动进度条与阶段文本。
+    /// 必须在 UI 线程调用。
+    /// </summary>
+    /// <param name="progress">进度快照。</param>
+    private void ApplyPostGameRecognitionProgress(PostGameRecognitionProgress progress)
+    {
+        PostGameRecognitionProgressPercent = progress.Percent;
+        PostGameRecognitionStageText = progress.StageText;
+    }
+
     /// <summary>将缓冲的日志消息写入 <see cref="DebugLogText"/> 并清空缓冲区。</summary>
     private void FlushDebugLogBuffer()
     {
@@ -819,7 +833,8 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             IsRecognizing = true;
-            var snapshot = await _autoRecognitionCoordinator.RecognizeFullBpSnapshotAsync(frame, mergeIntoStateStore: true);
+            // 强制同步使用一次独立 OCR 结果直接与宿主状态对账，不写入自动识别 Observation Buffer。
+            var snapshot = await _autoRecognitionCoordinator.RecognizeFullBpSnapshotAsync(frame, isDryRun: true);
             if (snapshot.BusinessState == null)
             {
                 var error = LocalizeProgressSyncMessage(snapshot.Error) ?? ResolveLocalizedOrRaw("SmartBpProgressForceSyncNoSnapshot");
@@ -900,12 +915,15 @@ public partial class SmartBpModuleContentViewModel
             _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
             _automaticRecognitionUnavailableFrameCount = 0;
             IsPreviewLoopRunning = true;
+            _autoRecognitionCoordinator.SampleFrame(frame);
+            _frameSamplingTimer.Start();
             _previewTimer.Start();
             _autoRecognitionGlobalControl.Update(true, _ => StopPreviewLoopAsync());
         }
         catch (Exception ex)
         {
             _previewTimer.Stop();
+            _frameSamplingTimer.Stop();
             IsPreviewLoopRunning = false;
             _autoRecognitionGlobalControl.Update(false);
             LastError = ex.ToString();
@@ -926,6 +944,7 @@ public partial class SmartBpModuleContentViewModel
         _isAutomaticRecognitionStopPendingAfterQueueDrain = false;
         _automaticRecognitionUnavailableFrameCount = 0;
         _previewTimer.Stop();
+        _frameSamplingTimer.Stop();
         await _autoRecognitionCoordinator.StopAsync();
         IsPreviewLoopRunning = false;
         _autoRecognitionGlobalControl.Update(false);
@@ -1253,6 +1272,7 @@ public partial class SmartBpModuleContentViewModel
     {
         var message = ResolveLocalizedOrRaw(messageKey);
         _previewTimer.Stop();
+        _frameSamplingTimer.Stop();
         await _autoRecognitionCoordinator.StopAsync();
         IsPreviewLoopRunning = false;
         IsRecognizing = false;
@@ -1274,6 +1294,7 @@ public partial class SmartBpModuleContentViewModel
 
         _isAutomaticRecognitionStopPendingAfterQueueDrain = true;
         _previewTimer.Stop();
+        _frameSamplingTimer.Stop();
         var phase = result.PhaseResult?.Phase ?? result.BusinessState?.Phase ?? "未知";
         var scene = result.SceneGate?.Scene.ToString() ?? "Unknown";
         var pendingMessage =
@@ -1388,6 +1409,7 @@ public partial class SmartBpModuleContentViewModel
 
     private void ApplyRegionGatedResult(SmartBpAutoRecognitionTickResult result)
     {
+        WriteStandardBpRecognitionDebugLog(result);
         RefreshStrategyDebugSections(result);
         RawResponse = result.RawJson;
         StageDetectionResult = result.BusinessState == null ? "-" : FormatBusinessState(result.BusinessState);
@@ -1404,6 +1426,47 @@ public partial class SmartBpModuleContentViewModel
         RequestMetrics = FormatRecognitionTiming();
         LastError = result.Error ?? "";
         RefreshRecognitionDebugLogText();
+    }
+
+    /// <summary>
+    /// 将标准 BP 对局流本次识别的原始响应、诊断和候选结果写入统一调试日志窗口。
+    /// </summary>
+    /// <param name="result">本次自动或手动识别结果。</param>
+    private void WriteStandardBpRecognitionDebugLog(SmartBpAutoRecognitionTickResult result)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine(
+            $"tick result: phase=[{result.PhaseResult?.Phase ?? "unknown"}]; " +
+            $"scene=[{result.SceneGate?.Scene.ToString() ?? "unknown"}]; " +
+            $"operations={result.Operations.Count}; " +
+            $"applied={result.ApplyResult?.AppliedCount.ToString() ?? "-"}; " +
+            $"skipped={result.ApplyResult?.SkippedCount.ToString() ?? "-"}; " +
+            $"error=[{result.Error ?? string.Empty}].");
+
+        if (result.CandidateMessages.Count > 0)
+        {
+            builder.AppendLine("candidate_messages:");
+            foreach (var message in result.CandidateMessages)
+                builder.AppendLine($"  {message}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.RawJson))
+        {
+            builder.AppendLine("raw_response:");
+            builder.AppendLine(result.RawJson);
+        }
+
+        if (result.RegionSnapshot?.RawResponses is { Count: > 0 } rawResponses)
+        {
+            builder.AppendLine("region_raw_responses:");
+            foreach (var response in rawResponses)
+            {
+                builder.AppendLine($"  [{response.Key}]");
+                builder.AppendLine(response.Value);
+            }
+        }
+
+        _debugLog.Write("standard-bp", builder.ToString().TrimEnd());
     }
 
     private string FormatProgressSyncResult(SmartBpProgressSyncResult result)
@@ -1453,17 +1516,8 @@ public partial class SmartBpModuleContentViewModel
                 result.ProgressSync.TargetStepIndex,
                 result.ProgressSync.TargetAction,
                 string.Join(",", result.ProgressSync.TargetIndexes));
-        if (result.ProgressAlignment?.IsAligned == true) return ResolveLocalizedOrRaw("SmartBpProgressDiagnosisAligned");
-        if (result.ProgressAlignment?.IsMisaligned == true)
-            return string.Format(
-                ResolveLocalizedOrRaw("SmartBpProgressDiagnosisMisalignedFormat"),
-                result.GuidanceSnapshot.CurrentStepIndex,
-                result.GuidanceSnapshot.CurrentAction,
-                string.Join(",", result.GuidanceSnapshot.CurrentIndexes),
-                result.ProgressAlignment.Inference.TargetStepIndex,
-                result.ProgressAlignment.Inference.TargetAction,
-                string.Join(",", result.ProgressAlignment.Inference.TargetIndexes));
-        if (result.ProgressAlignment?.IsAmbiguous == true) return ResolveLocalizedOrRaw("SmartBpProgressDiagnosisInsufficient");
+        if (result.ProgressSync?.Succeeded == true)
+            return ResolveLocalizedOrRaw("SmartBpProgressDiagnosisAligned");
         return "-";
     }
 
@@ -1688,17 +1742,6 @@ public partial class SmartBpModuleContentViewModel
     private static string FormatAutomaticOperations(SmartBpAutoRecognitionTickResult result)
     {
         var builder = new System.Text.StringBuilder();
-        if (result.BackfillPlan != null)
-        {
-            builder.AppendLine("Workflow backfill plan:");
-            foreach (var step in result.BackfillPlan.StepCandidates)
-            {
-                builder.AppendLine($"Step {step.StepIndex} {step.Action} [{string.Join(", ", step.Indexes)}] - {step.Reason}");
-                if (step.Operations.Count == 0) builder.AppendLine("  no character operation");
-                foreach (var operation in step.Operations) builder.AppendLine("  " + FormatOperation(operation));
-            }
-            builder.AppendLine();
-        }
         builder.AppendLine("Candidate operations:");
         if (result.Operations.Count == 0)
             builder.AppendLine("-");
@@ -1767,18 +1810,6 @@ public partial class SmartBpModuleContentViewModel
         _ = _recognitionSettingsService.SaveAsync();
     }
 
-    partial void OnEnableSmartBpProgressAutoCorrectionChanged(bool value)
-    {
-        _recognitionSettingsService.Settings.EnableSmartBpProgressAutoCorrection = value;
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnRecognitionApplyModeChanged(SmartBpRecognitionApplyMode value)
-    {
-        _recognitionSettingsService.Settings.RecognitionApplyMode = value;
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
     partial void OnIsRecognizingChanged(bool value)
     {
         StopCaptureCommand.NotifyCanExecuteChanged();
@@ -1789,28 +1820,10 @@ public partial class SmartBpModuleContentViewModel
         StopCaptureCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnPlayBackfillAnimationsChanged(bool value)
-    {
-        _recognitionSettingsService.Settings.PlayBackfillAnimations = value;
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
     partial void OnUseMultiImageSnapshotRequestChanged(bool value)
     {
         _recognitionSettingsService.Settings.UseMultiImageSnapshotRequest = value;
         RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnRecognitionBackfillLookBehindStepsChanged(int value)
-    {
-        _recognitionSettingsService.Settings.RecognitionBackfillLookBehindSteps = value;
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnRecognitionFieldStaleMillisecondsChanged(int value)
-    {
-        _recognitionSettingsService.Settings.RecognitionFieldStaleMilliseconds = value;
         _ = _recognitionSettingsService.SaveAsync();
     }
 
@@ -1819,15 +1832,6 @@ public partial class SmartBpModuleContentViewModel
         _recognitionSettingsService.Settings.RecognitionVisualBufferMilliseconds = value;
         RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    [RelayCommand]
-    private void ResetRecognitionLedger()
-    {
-        _recognitionLedger.ResetForCurrentGame();
-        _recognitionStateStore.Reset();
-        CandidateOperations = ResolveLocalizedOrRaw("SmartBpLedgerResetCompleted");
-        _debugLog.Write("Recognition", "Recognition ledger and local snapshot state reset for the current game.");
     }
 
     partial void OnEnableOcrBpRecognitionChanged(bool value)
@@ -1842,21 +1846,6 @@ public partial class SmartBpModuleContentViewModel
         _recognitionSettingsService.Settings.OcrRecognitionIntervalMs = Math.Clamp(value, minimum, 300000);
         RefreshRecognitionTimerInterval();
         RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnRecognitionIntervalMsChanged(int value)
-    {
-        var minimum = Math.Max(100, _recognitionSettingsService.Settings.MinimumRecognitionIntervalMs);
-        _recognitionSettingsService.Settings.RecognitionIntervalMs = Math.Clamp(value, minimum, 300000);
-        RefreshRecognitionTimerInterval();
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnOcrFieldStaleMillisecondsChanged(int value)
-    {
-        _recognitionSettingsService.Settings.OcrFieldStaleMilliseconds = Math.Clamp(value, 250, 30000);
         _ = _recognitionSettingsService.SaveAsync();
     }
 
@@ -1875,6 +1864,15 @@ public partial class SmartBpModuleContentViewModel
     partial void OnRecognitionTransitionReplayMinimumConfidenceChanged(double value)
     {
         _recognitionSettingsService.Settings.RecognitionTransitionReplayMinimumConfidence = Math.Clamp(value, 0, 1);
+        _ = _recognitionSettingsService.SaveAsync();
+    }
+
+    partial void OnRecognitionIntervalMsChanged(int value)
+    {
+        var minimum = Math.Max(100, _recognitionSettingsService.Settings.MinimumRecognitionIntervalMs);
+        _recognitionSettingsService.Settings.RecognitionIntervalMs = Math.Clamp(value, minimum, 300000);
+        RefreshRecognitionTimerInterval();
+        RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }
 
@@ -2078,20 +2076,6 @@ public partial class SmartBpModuleContentViewModel
     partial void OnSnapshotDeltaMaxTokensChanged(int value)
     {
         _recognitionSettingsService.Settings.SnapshotDeltaMaxTokens = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnPhaseTransitionCommitHoldMillisecondsChanged(int value)
-    {
-        _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMilliseconds = value;
-        RefreshRecognitionSpeedTestValidity();
-        _ = _recognitionSettingsService.SaveAsync();
-    }
-
-    partial void OnPhaseTransitionCommitHoldMaxMillisecondsChanged(int value)
-    {
-        _recognitionSettingsService.Settings.PhaseTransitionCommitHoldMaxMilliseconds = value;
         RefreshRecognitionSpeedTestValidity();
         _ = _recognitionSettingsService.SaveAsync();
     }

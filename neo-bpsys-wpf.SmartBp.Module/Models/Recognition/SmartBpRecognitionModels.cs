@@ -81,15 +81,6 @@ public sealed class SmartBpScenePhaseDecision
     public string Reason { get; init; } = "";
 }
 
-/// <summary>控制识别到的操作如何与当前对局对齐。</summary>
-public enum SmartBpRecognitionApplyMode
-{
-    /// <summary>根据活动 GameGuidance 工作流对齐识别结果。</summary>
-    GuidedWorkflow,
-    /// <summary>不依赖工作流上下文，同步识别到的角色槽位。</summary>
-    FreeFullSync
-}
-
 /// <summary>SmartBP 粗粒度识别裁剪区域。</summary>
 public enum SmartBpRecognitionRegion
 {
@@ -322,24 +313,8 @@ public sealed class SmartBpRecognitionSettings
     public bool EnableAutoGuidancePageNavigation { get; set; }
     /// <summary>获取或设置是否可以应用已接受操作。</summary>
     public bool EnableAutoApplyRecognition { get; set; } = true;
-    /// <summary>获取或设置识别结果应用策略。</summary>
-    public SmartBpRecognitionApplyMode RecognitionApplyMode { get; set; } = SmartBpRecognitionApplyMode.GuidedWorkflow;
     /// <summary>获取或设置最小阶段置信度。</summary>
     public double StageConfidenceThreshold { get; set; } = 0.80;
-    /// <summary>获取或设置引导对齐向前查找步数。</summary>
-    public int GuidanceSyncLookAheadSteps { get; set; } = 4;
-    /// <summary>获取或设置是否启用 SmartBP 进度智能诊断后的自动向前同步。</summary>
-    public bool EnableSmartBpProgressAutoCorrection { get; set; } = true;
-    /// <summary>获取或设置自动进度同步前需要连续确认同一目标的次数。</summary>
-    public int SmartBpProgressMismatchConfirmationCount { get; set; } = 2;
-    /// <summary>获取或设置自动进度同步后的冷却时间（毫秒）。</summary>
-    public int SmartBpProgressAutoCorrectionCooldownMs { get; set; } = 10000;
-    /// <summary>获取或设置自动进度推断的最低置信分数。</summary>
-    public double SmartBpProgressInferenceMinimumScore { get; set; } = 0.82;
-    /// <summary>获取或设置自动进度推断最佳候选与次佳候选之间的最低分差。</summary>
-    public double SmartBpProgressInferenceMinimumScoreMargin { get; set; } = 0.15;
-    /// <summary>获取或设置延迟工作流回填是否应重放前端动画。</summary>
-    public bool PlayBackfillAnimations { get; set; }
     /// <summary>获取或设置自动应用前所需的匹配快照数量。</summary>
     public int RequiredStableSnapshots { get; set; } = 1;
     /// <summary>获取或设置自动识别是否使用单次多图快照增量请求。</summary>
@@ -360,9 +335,7 @@ public sealed class SmartBpRecognitionSettings
     public string LastRecognitionSpeedTestEngine { get; set; } = "";
     /// <summary>获取或设置影响性能的配置指纹。</summary>
     public string LastRecognitionSpeedTestConfigurationHash { get; set; } = "";
-    /// <summary>获取或设置 OCR 合并字段可保持新鲜的时长。</summary>
-    public int OcrFieldStaleMilliseconds { get; set; } = 1500;
-    /// <summary>获取或设置 OCR 回填规划考虑多少个前置工作流步骤。</summary>
+    /// <summary>获取或设置自动落后追赶最多回看的前置工作流步骤数。</summary>
     public int OcrBackfillLookBehindSteps { get; set; } = 2;
     /// <summary>获取或设置 OCR 是否将裁剪图合成为一张拼接图。</summary>
     public bool UseOcrContactSheet { get; set; } = true;
@@ -398,10 +371,6 @@ public sealed class SmartBpRecognitionSettings
     public bool EnableTesseractOcr { get; set; } = true;
     /// <summary>获取或设置 Tesseract 预处理变体最大数量。</summary>
     public int TesseractMaxPreprocessVariants { get; set; } = 3;
-    /// <summary>获取或设置规划内容区域刷新时考虑多少个前置工作流步骤。</summary>
-    public int RecognitionBackfillLookBehindSteps { get; set; } = 2;
-    /// <summary>获取或设置本地合并识别字段可保持新鲜的时长。</summary>
-    public int RecognitionFieldStaleMilliseconds { get; set; } = 2500;
     /// <summary>获取或设置应用当前步骤动画操作前的可选延迟。</summary>
     public int RecognitionVisualBufferMilliseconds { get; set; }
     /// <summary>获取或设置多图识别失败时是否允许使用逐区域顺序请求。</summary>
@@ -416,18 +385,14 @@ public sealed class SmartBpRecognitionSettings
     public int PhaseMaxTokens { get; set; } = 48;
     /// <summary>获取或设置增量快照增量 token 预算。</summary>
     public int SnapshotDeltaMaxTokens { get; set; } = 768;
-    /// <summary>获取或设置将引导移动到新检测阶段前的短提交等待时间。</summary>
-    public int PhaseTransitionCommitHoldMilliseconds { get; set; } = 350;
-    /// <summary>获取或设置允许延迟回填前的最大提交等待时间。</summary>
-    public int PhaseTransitionCommitHoldMaxMilliseconds { get; set; } = 800;
-    /// <summary>获取或设置阶段移动后是否仍允许无动画延迟回填。</summary>
-    public bool AllowLateBackfillAfterPhaseMoved { get; set; } = true;
     /// <summary>获取或设置滚动识别帧缓冲长度。</summary>
     public int RecognitionFrameBufferMilliseconds { get; set; } = 1500;
-    /// <summary>获取或设置转场最终确认可向前回看画面帧的时长。</summary>
+    /// <summary>获取或设置自动落后追赶可读取历史代表帧的时间窗口。</summary>
     public int RecognitionTransitionLookBehindMilliseconds { get; set; } = 800;
-    /// <summary>获取或设置阶段切换回看纠正所需的最低角色识别置信度。</summary>
+    /// <summary>获取或设置历史帧补充角色证据所需的最低置信度。</summary>
     public double RecognitionTransitionReplayMinimumConfidence { get; set; } = .95;
+    /// <summary>获取或设置轻量画面采样间隔；该间隔独立于 OCR 周期。</summary>
+    public int RecognitionSamplingIntervalMilliseconds { get; set; } = 150;
     /// <summary>获取或设置裁剪图变化阈值。</summary>
     public double RecognitionCropChangeThreshold { get; set; } = 0.035;
     /// <summary>获取或设置优先要求的稳定裁剪观测帧数。</summary>
@@ -461,12 +426,16 @@ public class SmartBpRecognizedCharacterSlot
     [JsonPropertyName("index")] public int Index { get; set; }
     /// <summary>获取或设置模型原始角色名称或“未选择”。</summary>
     [JsonPropertyName("character_name")] public string CharacterName { get; set; } = "未选择";
+    /// <summary>获取或设置当前帧对该视觉槽位的证据状态。</summary>
+    [JsonIgnore] public SmartBpRecognizedSlotState SlotState { get; set; } = SmartBpRecognizedSlotState.Unknown;
     /// <summary>获取或设置本地 OCR 匹配置信度；模型 JSON 不序列化该元数据。</summary>
-    [JsonIgnore] public double RecognitionConfidence { get; set; } = 1;
+    [JsonIgnore] public double RecognitionConfidence { get; set; }
     /// <summary>获取或设置本地 OCR 匹配是否可安全自动应用。</summary>
-    [JsonIgnore] public bool IsAutoApplySafe { get; set; } = true;
+    [JsonIgnore] public bool IsAutoApplySafe { get; set; }
     /// <summary>获取或设置 OCR 匹配诊断原因。</summary>
     [JsonIgnore] public string? RecognitionReason { get; set; }
+    /// <summary>获取或设置 OCR 文本框在裁剪区域局部坐标中的位置。</summary>
+    [JsonIgnore] public Rect? BoundingBox { get; set; }
 }
 
 /// <summary>一个绑定玩家的已识别角色槽位。</summary>
@@ -555,6 +524,18 @@ public sealed class SmartBpSnapshotDeltaSlot
     /// <summary>获取或设置槽位属于已选角色时的可见玩家 ID。</summary>
     [JsonPropertyName("player_id")]
     public string? PlayerId { get; set; }
+
+    /// <summary>获取或设置原始识别置信度；仅在本地流水线中传播。</summary>
+    [JsonIgnore] public double RecognitionConfidence { get; set; }
+
+    /// <summary>获取或设置该证据是否允许自动应用；仅在本地流水线中传播。</summary>
+    [JsonIgnore] public bool IsAutoApplySafe { get; set; }
+
+    /// <summary>获取或设置识别或拒绝原因；仅在本地流水线中传播。</summary>
+    [JsonIgnore] public string? RecognitionReason { get; set; }
+
+    /// <summary>获取或设置 OCR 文本框在裁剪区域局部坐标中的位置。</summary>
+    [JsonIgnore] public Rect? BoundingBox { get; set; }
 }
 
 /// <summary>包含阶段和请求字段更新的增量模型输出。</summary>
@@ -576,44 +557,6 @@ public sealed class SmartBpSnapshotFieldUpdate
     /// <summary>字段为 picked_hun 时，获取或设置监管者选择槽位。</summary>
     [JsonPropertyName("picked_hun")] public SmartBpSnapshotDeltaSlot? PickedHun { get; set; }
 }
-
-/// <summary>内存中的 SmartBP 本地合并识别状态。</summary>
-public sealed class SmartBpRecognitionState
-{
-    /// <summary>获取或设置最新阶段。</summary>
-    public string Phase { get; set; } = "未知";
-    /// <summary>获取或设置已知求生者禁用。</summary>
-    public List<SmartBpRecognizedCharacterSlot> BannedSur { get; set; } = DefaultBannedSur();
-    /// <summary>获取或设置已知监管者禁用。</summary>
-    public List<SmartBpRecognizedCharacterSlot> BannedHun { get; set; } = DefaultBannedHun();
-    /// <summary>获取或设置已知求生者选择或分配。</summary>
-    public List<SmartBpRecognizedPlayerCharacterSlot> PickedSur { get; set; } = DefaultPickedSur();
-    /// <summary>获取或设置已知监管者选择。</summary>
-    public SmartBpRecognizedPlayerCharacterSlot PickedHun { get; set; } = DefaultPickedHun();
-    /// <summary>
-    /// 获取或设置求生者分配阶段识别到的视觉槽位证据。
-    /// 锁定后 picked_sur 不再按视觉槽位索引合并到 <see cref="PickedSur"/>，而是记录在此处供 player_id 分配使用。
-    /// </summary>
-    public List<SmartBpRecognizedPlayerCharacterSlot> DistributionEvidence { get; set; } = [];
-    /// <summary>获取或设置每个字段的最近更新时间戳。</summary>
-    public Dictionary<string, DateTimeOffset> FieldUpdatedAt { get; set; } = [];
-    /// <summary>获取或设置最新已接受画面帧序号。</summary>
-    public long LastFrameSequence { get; set; }
-    /// <summary>获取或设置每个字段最新已接受画面帧序号。</summary>
-    public Dictionary<string, long> FieldFrameSequences { get; set; } = [];
-
-    /// <summary>创建默认求生者禁用槽位。</summary>
-    public static List<SmartBpRecognizedCharacterSlot> DefaultBannedSur() => Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
-    /// <summary>创建默认监管者禁用槽位。</summary>
-    public static List<SmartBpRecognizedCharacterSlot> DefaultBannedHun() => Enumerable.Range(0, 2).Select(i => new SmartBpRecognizedCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
-    /// <summary>创建默认求生者选择槽位。</summary>
-    public static List<SmartBpRecognizedPlayerCharacterSlot> DefaultPickedSur() => Enumerable.Range(0, 4).Select(i => new SmartBpRecognizedPlayerCharacterSlot { Index = i, CharacterName = "未选择" }).ToList();
-    /// <summary>创建默认监管者选择槽位。</summary>
-    public static SmartBpRecognizedPlayerCharacterSlot DefaultPickedHun() => new() { Index = 0, CharacterName = "未选择" };
-}
-
-/// <summary>只读识别台账快照。</summary>
-public sealed record SmartBpRecognitionLedgerSnapshot(IReadOnlyCollection<SmartBpWorkflowOperationKey> CompletedKeys);
 
 /// <summary>面向模型的旧版 BP 阶段检测结果。</summary>
 public sealed class SmartBpStageDetectionResult
@@ -662,132 +605,80 @@ public sealed class SmartBpFocusedExtractionResult
 }
 
 /// <summary>本地控制的已检测操作类型。</summary>
-public enum SmartBpDetectedOperationKind { BanCharacter, PickSurvivor, PickHunter, SwapSurvivors }
+public enum SmartBpDetectedOperationKind
+{
+    /// <summary>提交 Ban 角色。</summary>
+    BanCharacter,
+    /// <summary>提交求生者角色。</summary>
+    PickSurvivor,
+    /// <summary>提交监管者角色。</summary>
+    PickHunter,
+    /// <summary>交换已经提交的求生者角色。</summary>
+    SwapSurvivors,
+    /// <summary>提交明确为空的 Ban 槽位。</summary>
+    CommitEmptyBan,
+    /// <summary>提交明确为空的求生者 Pick 槽位。</summary>
+    CommitEmptySurvivorPick,
+    /// <summary>提交明确为空的监管者 Pick 槽位。</summary>
+    CommitEmptyHunterPick
+}
 
 /// <summary>控制单个已检测操作的工作流校验和动画行为。</summary>
 public enum SmartBpDetectedOperationApplyMode
 {
-    /// <summary>应用与当前引导步骤关联的操作。</summary>
+    /// <summary>按当前对局引导步骤应用操作，并播放正常角色过渡动画。</summary>
     CurrentStep,
-    /// <summary>应用与较早工作流步骤关联的延迟操作。</summary>
-    Backfill,
-    /// <summary>应用不带动画且不进行工作流校验的操作。</summary>
+    /// <summary>以自动识别的强槽位证据补充先前提交为空的槽位，播放动画但不改变当前引导步骤。</summary>
+    AutomaticSupplement,
+    /// <summary>强制同步当前画面，不播放角色动画且不校验当前工作流步骤。</summary>
     FreeSync
 }
 
 /// <summary>根据聚焦视觉提取派生出的预览候选操作。</summary>
 public sealed record SmartBpDetectedOperation(SmartBpDetectedOperationKind Kind, GameAction SourceGuidanceAction,
     IReadOnlyList<int> SourceGuidanceIndexes, Camp Camp, int SlotIndex, string? RawCharacterName,
-    string? ResolvedCharacterKey, string? ResolvedCharacterName, string? PlayerId, double Confidence, string Reason,
+    string? ResolvedCharacterName, string? PlayerId, double Confidence, string Reason,
     int? SourceWorkflowStepIndex = null,
     SmartBpDetectedOperationApplyMode ApplyMode = SmartBpDetectedOperationApplyMode.CurrentStep,
     string? DependencyGroup = null,
     bool RequireEmptySurvivorSlot = false);
 
-/// <summary>阶段切换回看所使用的历史帧诊断。</summary>
-/// <param name="FrameSequence">历史帧序号。</param>
-/// <param name="Timestamp">历史帧时间。</param>
-/// <param name="Field">回看的业务字段。</param>
-/// <param name="CandidateCount">该帧保留的高置信候选数量。</param>
-/// <param name="Diagnostics">候选或跳过原因。</param>
-public sealed record SmartBpTransitionReplayFrameResult(long FrameSequence, DateTimeOffset Timestamp,
-    string Field, int CandidateCount, IReadOnlyList<string> Diagnostics);
-
-/// <summary>一次阶段切换回看的有序操作计划。</summary>
-/// <param name="SourceStepIndex">刚结束的来源步骤。</param>
-/// <param name="SourceAction">刚结束的来源动作。</param>
-/// <param name="TargetAction">当前识别到的目标动作。</param>
-/// <param name="Frames">逐帧诊断。</param>
-/// <param name="Operations">先于当前步骤应用的回看操作。</param>
-/// <param name="Diagnostics">计划汇总诊断。</param>
-public sealed record SmartBpTransitionReplayResult(int SourceStepIndex, GameAction SourceAction,
-    GameAction TargetAction, IReadOnlyList<SmartBpTransitionReplayFrameResult> Frames,
-    IReadOnlyList<SmartBpDetectedOperation> Operations, IReadOnlyList<string> Diagnostics);
-
-/// <summary>一个工作流派生角色操作的稳定台账身份。</summary>
-public sealed record SmartBpWorkflowOperationKey(GameProgress GameProgress, int StepIndex, GameAction Action,
-    int SlotIndex, Camp Camp, string? ResolvedCharacterKey);
-
-/// <summary>与一个不可变 GameGuidance 工作流步骤关联的候选操作集合。</summary>
-public sealed record SmartBpWorkflowStepCandidateSet(int StepIndex, GameAction Action, IReadOnlyList<int> Indexes,
-    IReadOnlyList<SmartBpDetectedOperation> Operations, string Reason);
-
-/// <summary>根据合并区域快照构建的有序角色回填计划。</summary>
-public sealed record SmartBpWorkflowBackfillPlan(IReadOnlyList<SmartBpWorkflowStepCandidateSet> StepCandidates,
-    IReadOnlyList<string> Diagnostics);
+/// <summary>
+/// 一条不可变、短生命周期且绑定对局上下文的视觉识别证据。
+/// </summary>
+/// <param name="GameGuid">识别时的对局标识。</param>
+/// <param name="GameProgress">识别时的对局进度。</param>
+/// <param name="FrameSequence">捕获帧序号。</param>
+/// <param name="Timestamp">捕获或识别时间。</param>
+/// <param name="Phase">当前帧识别阶段。</param>
+/// <param name="Field">业务字段。</param>
+/// <param name="VisualSlotIndex">固定视觉槽位索引。</param>
+/// <param name="SlotState">槽位证据状态。</param>
+/// <param name="CharacterCandidate">角色候选名称。</param>
+/// <param name="PlayerId">可见玩家标识。</param>
+/// <param name="Confidence">原始识别置信度。</param>
+/// <param name="IsAutoApplySafe">是否允许自动应用。</param>
+/// <param name="Reason">识别或拒绝原因。</param>
+/// <param name="BoundingBox">OCR 文本框局部坐标。</param>
+public sealed record SmartBpObservation(
+    Guid GameGuid,
+    GameProgress GameProgress,
+    long FrameSequence,
+    DateTimeOffset Timestamp,
+    string Phase,
+    string Field,
+    int VisualSlotIndex,
+    SmartBpRecognizedSlotState SlotState,
+    string? CharacterCandidate,
+    string? PlayerId,
+    double Confidence,
+    bool IsAutoApplySafe,
+    string Reason,
+    Rect? BoundingBox);
 
 /// <summary>将已检测阶段与 GameGuidance 对齐后的结果。</summary>
 public sealed record SmartBpGuidanceSyncResult(bool Changed, bool IsAccepted, string Reason, GameAction? TargetAction,
     IReadOnlyList<int> TargetIndexes, int? TargetStepIndex);
-
-/// <summary>SmartBP 精确进度同步模式。</summary>
-public enum SmartBpProgressSyncMode
-{
-    /// <summary>用户手动触发，允许向前或向后同步。</summary>
-    Manual,
-    /// <summary>自动识别诊断触发，只允许保守地向前同步。</summary>
-    AutomaticDiagnostic
-}
-
-/// <summary>控制 SmartBP 精确进度推断的阈值和搜索范围。</summary>
-/// <param name="AllowBackwardSync">是否允许选择当前步骤之前的候选。</param>
-/// <param name="MaxForwardDistance">允许选择的最大前进步数；<see langword="null"/> 表示不限制。</param>
-/// <param name="MinimumScore">接受候选的最低分数。</param>
-/// <param name="MinimumScoreMargin">最佳候选和次佳候选之间的最低分差。</param>
-public sealed record SmartBpProgressInferenceOptions(
-    bool AllowBackwardSync,
-    int? MaxForwardDistance,
-    double MinimumScore,
-    double MinimumScoreMargin);
-
-/// <summary>单个 GameGuidance 工作流候选步骤的 SmartBP 进度推断分数。</summary>
-/// <param name="StepIndex">候选步骤索引。</param>
-/// <param name="Action">候选步骤动作。</param>
-/// <param name="Indexes">候选步骤索引集合。</param>
-/// <param name="Score">候选总分。</param>
-/// <param name="Reason">候选评分说明。</param>
-public sealed record SmartBpProgressCandidateScore(
-    int StepIndex,
-    GameAction Action,
-    IReadOnlyList<int> Indexes,
-    double Score,
-    string Reason);
-
-/// <summary>SmartBP 精确进度推断结果。</summary>
-/// <param name="IsConfident">推断是否满足置信阈值。</param>
-/// <param name="TargetStepIndex">推荐目标步骤索引。</param>
-/// <param name="TargetAction">推荐目标动作。</param>
-/// <param name="TargetIndexes">推荐目标步骤索引集合。</param>
-/// <param name="Score">最佳候选分数。</param>
-/// <param name="SecondBestScore">次佳候选分数。</param>
-/// <param name="Reason">推断结果说明。</param>
-/// <param name="Candidates">所有候选分数。</param>
-/// <param name="Diagnostics">详细诊断信息。</param>
-public sealed record SmartBpProgressInferenceResult(
-    bool IsConfident,
-    int? TargetStepIndex,
-    GameAction? TargetAction,
-    IReadOnlyList<int> TargetIndexes,
-    double Score,
-    double SecondBestScore,
-    string Reason,
-    IReadOnlyList<SmartBpProgressCandidateScore> Candidates,
-    IReadOnlyList<string> Diagnostics);
-
-/// <summary>SmartBP 识别状态与 GameGuidance 当前步骤的对齐检查结果。</summary>
-/// <param name="IsAligned">当前引导步骤是否与推断步骤一致。</param>
-/// <param name="IsAmbiguous">推断证据是否不足。</param>
-/// <param name="IsMisaligned">当前引导步骤是否与可信推断不一致。</param>
-/// <param name="Inference">底层推断结果。</param>
-/// <param name="Reason">对齐检查说明。</param>
-/// <param name="Diagnostics">详细诊断信息。</param>
-public sealed record SmartBpProgressAlignmentResult(
-    bool IsAligned,
-    bool IsAmbiguous,
-    bool IsMisaligned,
-    SmartBpProgressInferenceResult Inference,
-    string Reason,
-    IReadOnlyList<string> Diagnostics);
 
 /// <summary>SmartBP 精确进度同步结果。</summary>
 /// <param name="Succeeded">同步流程是否成功完成。</param>
@@ -815,6 +706,29 @@ public sealed record SmartBpProgressSyncResult(
 public sealed record SmartBpGameStateSyncResult(
     SmartBpProgressSyncResult ProgressSync,
     SmartBpOperationApplyResult? ApplyResult,
+    IReadOnlyList<string> Diagnostics,
+    SmartBpOperationApplyResult? EmptyApplyResult = null);
+
+/// <summary>统一对账的触发模式。</summary>
+public enum SmartBpReconciliationMode
+{
+    /// <summary>自动识别对账，只允许安全向前移动 Guidance。</summary>
+    Automatic,
+    /// <summary>用户强制同步，角色与 Guidance 结果分别返回。</summary>
+    ManualForceSync
+}
+
+/// <summary>
+/// SmartBp Observation 与主程序权威状态的一次统一对账结果。
+/// </summary>
+/// <param name="CharacterApplyResult">角色提交结果。</param>
+/// <param name="EmptyApplyResult">明确空操作提交结果。</param>
+/// <param name="GuidanceResult">Guidance 对齐结果。</param>
+/// <param name="Diagnostics">完整诊断。</param>
+public sealed record SmartBpReconciliationResult(
+    SmartBpOperationApplyResult CharacterApplyResult,
+    SmartBpOperationApplyResult EmptyApplyResult,
+    SmartBpProgressSyncResult GuidanceResult,
     IReadOnlyList<string> Diagnostics);
 
 /// <summary>构建预览候选操作的结果。</summary>
@@ -854,21 +768,22 @@ public sealed record SmartBpAutoRecognitionTickResult(SmartBpBusinessStateRecogn
     IReadOnlyList<SmartBpDetectedOperation> Operations, IReadOnlyList<string> CandidateMessages,
     SmartBpOperationApplyResult? ApplyResult, string RawJson, string? Error,
     SmartBpRegionSnapshot? RegionSnapshot = null,
-    SmartBpWorkflowBackfillPlan? BackfillPlan = null,
     IReadOnlyList<SmartBpCroppedFrame>? ContentCrops = null,
     SmartBpSceneGateResult? SceneGate = null,
-    SmartBpProgressAlignmentResult? ProgressAlignment = null,
     SmartBpProgressSyncResult? ProgressSync = null);
 
-/// <summary>步骤提交调度器返回的结果。</summary>
-public sealed record SmartBpStepCommitResult(SmartBpBusinessStateRecognitionResult Snapshot,
-    SmartBpWorkflowBackfillPlan Plan,
-    SmartBpOperationApplyResult? ApplyResult,
-    SmartBpGuidanceSyncResult? GuidanceSync,
-    IReadOnlyList<string> Diagnostics);
-
 /// <summary>SmartBP 滚动识别帧缓冲中保留的一帧画面。</summary>
-public sealed record SmartBpBufferedFrame(long Sequence, BitmapSource Frame, DateTimeOffset Timestamp);
+/// <param name="Sequence">帧序号。</param>
+/// <param name="Frame">捕获画面。</param>
+/// <param name="Timestamp">捕获时间。</param>
+/// <param name="GameGuid">捕获时的对局标识。</param>
+/// <param name="GameProgress">捕获时的对局进度。</param>
+public sealed record SmartBpBufferedFrame(
+    long Sequence,
+    BitmapSource Frame,
+    DateTimeOffset Timestamp,
+    Guid GameGuid,
+    GameProgress GameProgress);
 
 /// <summary>轻量裁剪图变化分析结果。</summary>
 public sealed record SmartBpCropChangeResult(SmartBpRecognitionRegion Region, long Sequence, double Difference, bool IsChanged, bool IsStable);
@@ -924,6 +839,8 @@ public sealed record SmartBpOcrRecognitionRequest(
 /// <summary>picked_sur OCR 解析模式，决定行语义分类策略。</summary>
 public enum SmartBpPickedSurOcrParseMode
 {
+    /// <summary>全局业务快照：不依赖当前阶段或 Guidance 动作，从完整画面中解析角色、选手 ID，并忽略天赋等附加行。</summary>
+    GlobalSnapshot,
     /// <summary>求生者选择角色阶段：character row + player-id row，无 talent 行。</summary>
     PickSur,
     /// <summary>角色分配阶段：character row + player-id row，后续行为 talent。</summary>
@@ -949,10 +866,15 @@ public sealed class SmartBpOcrFieldParseContext
     /// <summary>获取或设置是否为自动识别模式。</summary>
     public bool IsAutomaticMode { get; init; }
 
+    /// <summary>获取或设置是否按全局业务快照解析全部字段；该模式不使用当前阶段或 Guidance 动作裁剪字段语义。</summary>
+    public bool IsGlobalSnapshot { get; init; }
+
     /// <summary>从上下文解析 picked_sur 解析模式。</summary>
     /// <returns>解析模式。</returns>
     public SmartBpPickedSurOcrParseMode ResolvePickedSurParseMode()
     {
+        if (IsGlobalSnapshot)
+            return SmartBpPickedSurOcrParseMode.GlobalSnapshot;
         if (CurrentGuidanceAction == GameAction.PickSur && !SurvivorPickLocked)
             return SmartBpPickedSurOcrParseMode.PickSur;
         if (CurrentGuidanceAction == GameAction.DistributeChara || SurvivorPickLocked)
@@ -1130,8 +1052,8 @@ public sealed class SmartBpVisionPlayerId
 }
 
 /// <summary>一个归一化角色出现项。</summary>
-public sealed record SmartBpNormalizedCharacter(string? RawCharacterName, string? ResolvedCharacterKey,
-    string? ResolvedCharacterName, Camp Camp, int SlotIndex, double Confidence, IReadOnlyList<string> Warnings,
+public sealed record SmartBpNormalizedCharacter(string? RawCharacterName, string? ResolvedCharacterName,
+    Camp Camp, int SlotIndex, double Confidence, IReadOnlyList<string> Warnings,
     string MatchMode = "none", bool IsAutoApplySafe = false, string? RecognitionReason = null);
 
 /// <summary>返回给 UI 的识别预览。</summary>

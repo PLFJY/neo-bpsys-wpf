@@ -456,8 +456,11 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public event EventHandler<CharacterSelectedEventArgs>? CharacterSelected;
         public event EventHandler<CharacterBannedEventArgs>? CharacterBanned;
 
+        public BpSlotCommitStateSnapshot GetCurrentBpSlotCommitState() =>
+            BpSlotCommitStateSet.CreatePending(Guid.Empty, GameProgress.Free).CreateSnapshot();
+
         public CharacterResolveResult ResolveCharacterDetailed(string text, Camp camp) =>
-            new(text, camp, null, null, null, 0, "unresolved", false, "mock");
+            new(text, camp, null, null, 0, "unresolved", false, "mock");
         public string? ResolveCharacterName(string text, Camp camp) => null;
         public Character? ResolveCharacter(string text, Camp camp) => null;
         public Task<CharacterResolveApplyResult> SelectSurvivorFromTextAsync(int playerIndex, string text, bool playAnimation = true, bool isRecordGlobalBan = true) =>
@@ -469,6 +472,9 @@ public class FrontedSharedDataBehaviorEventBridgeTest
         public Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
         public Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true) => Task.CompletedTask;
         public Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true) => Task.CompletedTask;
+        public Task CommitEmptyBanAsync(Camp camp, int index, bool playAnimation = true) => Task.CompletedTask;
+        public Task CommitEmptySurvivorPickAsync(int playerIndex, bool playAnimation = true) => Task.CompletedTask;
+        public Task CommitEmptyHunterPickAsync(bool playAnimation = true) => Task.CompletedTask;
         public Task SwapSurvivorsAsync(int sourceIndex, int targetIndex, bool playAnimation = true) => Task.CompletedTask;
         public void FireCharacterSelected(CharacterSelectedEventArgs args) => CharacterSelected?.Invoke(this, args);
     }

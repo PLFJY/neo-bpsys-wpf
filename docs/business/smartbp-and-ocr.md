@@ -64,7 +64,7 @@ public interface ISmartBpService
 - `CreateSmartBpContent(hostServices)`：构建独立的 `ServiceProvider`，注入所有模块级服务（OCR Provider、识别管线、debug log 等），创建 `SmartBpModuleContentView` 并绑定 `SmartBpModuleContentViewModel`
 - `GetFeatureCommands()`：返回宿主可调用的功能命令，目前只有 `AutoFillGameData`（赛后数据回填）
 
-模块 DI 容器注册了 OCR Provider（Paddle、Tesseract、RapidOCR）、BP 识别管线、场景门禁、状态管理、补录与应用等服务。
+模块 DI 容器注册了 OCR Provider（Paddle、Tesseract、RapidOCR）、BP 识别管线、场景门禁、候选操作和唯一的 Reconciliation 服务。SmartBP 不注册 Ban/Pick StateStore、进度评分器、回填服务或操作 ledger。
 
 ## 当前边界
 
@@ -75,9 +75,9 @@ public interface ISmartBpService
 | Tesseract BP 状态识别 | 可选 OCR Provider；可在 SmartBP 页面勾选下载 `chi_sim`/`eng`/`jpn` 到 SmartBP 模块目录，不会自动回退到 Paddle |
 | RapidOCR BP 状态识别 | 可选本地 OCR Provider；使用 SmartBP 托管的中文 det/cls/rec/dict 资产，不会自动回退到其他 Provider |
 | 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 模块移除；BP 状态识别仅支持 OCR Provider |
-| GameGuidance 自动对齐 | 可选，默认关闭；只向前匹配当前或最近步骤 |
-| 识别结果自动应用 | 可选，默认关闭；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的角色操作 |
-| 自由全同步（FreeFullSync） | 实验能力；不依赖 GameGuidance，识别四类角色槽位并通过 `ICharacterSelectionService` 无动画同步 |
+| GameGuidance 自动追赶 | 可选；按工作流槽位逐步前进，不跨过未完成的 Ban/Pick 步骤 |
+| 识别结果自动应用 | 可选；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的当前帧角色证据，或在引导落后时由同局短时帧安全补充的遗漏证据 |
+| 手动强制同步 | 对当前帧执行独立全量 OCR；角色无动画写入主程序，再直接定位到当前画面对应步骤 |
 | 全流程自动 BP 画面切换 | TODO。当前识别结果只进入现有候选操作/应用管线，不实现自动切屏 |
 | MapBP 识别 | 不识别 |
 | 天赋角色操作识别 | 不识别 |
@@ -139,7 +139,7 @@ SmartBP 页面先显示宿主侧页面壳。模块未加载时，内容区域显
 
 宿主使用独立 `AssemblyLoadContext` 加载模块。托管依赖优先复用宿主程序集，再从模块根目录解析；OpenCvSharp、PaddleInference 等原生依赖则从模块的 `runtimes/{Rid}/native/` 目录解析，并兼容位于模块根目录的原生 DLL。模块发布和迁移时必须保留 `runtimes` 目录结构，否则托管包装程序集存在也无法初始化对应 native runtime。
 
-Release 构建不会查询 GitHub latest release，而是通过 `gh-releases.plfjy.top` 转发 API 获取 release 列表，按当前应用版本 tag 精确匹配同一 release 下的 `SmartBpModuleManifest.json`。manifest 文件固定通过 `https://gh.plfjy.top/` 下载；官方模块 asset 是 `SmartBpModule.7z`，实际下载地址会套用设置中的 GitHub 下载镜像。该镜像由软件更新、插件市场设置和 SmartBP 模块下载高级选项共用 `GhProxyMirror` 持久化字段，SmartBP 页面可直接测试候选镜像延迟。
+Release 构建只检查当前应用版本对应的 tag，不会获取最新 release。优先直接访问 GitHub Releases 下载当前 tag 对应的 `SmartBpModuleManifest.json`（`https://github.com/PLFJY/neo-bpsys-wpf/releases/download/{tag}/SmartBpModuleManifest.json`），失败时回退到 `https://smartbp-module-manifest.plfjy.top/?tag={tag}` 获取。官方模块 asset 是 `SmartBpModule.7z`，实际下载地址会套用设置中的 GitHub 下载镜像。该镜像由软件更新、插件市场设置和 SmartBP 模块下载高级选项共用 `GhProxyMirror` 持久化字段，SmartBP 页面可直接测试候选镜像延迟。
 
 远程版本检查只作为更新提示，不阻塞本地模块加载：ABI 兼容性由 `component.json` 的 `RuntimeAbiVersion` 硬性校验保证，本地模块只要通过目录、RID、ABI 和入口程序集校验就立即加载显示。加载成功后异步拉取远端 manifest，仅在本地版本低于要求版本时通过 `ModuleVersionOutdated` 事件触发 `IInfoBarService` 警告提示用户更新；拉取失败或网络不可达时静默跳过，不影响已加载模块使用。Preview 构建不进行在线检查，主要支持选择本地模块目录或导入 `SmartBpModule.7z` / 旧 `SmartBpModule.zip`。
 
@@ -154,15 +154,16 @@ SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档
 3. 通过窗口捕获服务读取当前帧。
 4. 对完整捕获帧只执行一次带边界框的 OCR。
 5. 从“玩家 ID（角色名）”文本按 Y 坐标建立五个有效行；取角色文本右侧的数字和空值标记，按 X 坐标推断五个统计列，再按最近 Y 坐标归属。
-6. 名称左侧的等级、天赋数字、徽章和其他残留文字不会参与名称、角色或数据列解析。
-7. 将监管者字段直接写回 `CurrentGame.HunPlayer.Data`。
-8. 将求生者数据按角色名匹配后写回 `CurrentGame.SurPlayerList`。
+6. 对整表 OCR 漏掉的数据格，按推断出的行列中心紧密裁剪小区域，并生成原图放大、CLAHE 对比度增强、Otsu 二值反色加粗三种变体。Paddle 模式下直接调用字符识别器而跳过文本位置检测，避免细窄数字 `1` 因没有检测框而消失；结果只有在多个变体一致，或单一变体置信度足够高时才并回整表重新解析。低置信度的干净 `1` 以及类似 `1r`、`1A` 的“数字加一个尾随噪声字符”都会触发排除底部表格线的窄中心裁剪识别，并检查中心高窄亮色笔画；它们和图像形态证据都不能各自单独回填，必须形成至少两份相互确认的证据。
+7. 名称左侧的等级、天赋数字、徽章和其他残留文字不会参与名称、角色或数据列解析。
+8. 将监管者字段直接写回 `CurrentGame.HunPlayer.Data`。
+9. 将求生者数据按角色名匹配后写回 `CurrentGame.SurPlayerList`。
 
 求生者匹配先做规范化精确匹配，再用 Jaro-Winkler 模糊匹配兜底，阈值当前为 `0.50`。
 
 ## BP 状态 OCR 识别流程
 
-BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写 `CurrentGame`，而是先生成 `SmartBpBusinessStateRecognitionResult` / `SmartBpSnapshotDeltaResult`，再进入已有状态合并、工作流补录、ledger 和 `SmartBpDetectedOperationApplier`。
+BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别先生成仅代表当前帧的 `SmartBpBusinessStateRecognitionResult`，再由统一 Reconciliation 读取主程序槽位状态并通过 `ICharacterSelectionService` 提交；SmartBP 不合并或持久化第二份 Ban/Pick 业务状态。
 
 默认引擎是 PaddleOCR：
 
@@ -174,7 +175,7 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别不直接写
 6. 本地解析四个粗区域：`right_top -> banned_sur`、`left_top -> banned_hun`、`left_bottom -> picked_sur`、`right_bottom -> picked_hun`。
 7. 角色名只从 `ISharedDataService.SurCharaDict` / `HunCharaDict` 匹配；无法明确解析的 OCR 文本只进入诊断，不会应用为角色。
 
-`UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短，字段 stale 和回看步数使用 OCR 专用设置。
+`UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短；短时回看窗口由帧缓冲长度、OCR 周期、最低 OCR 周期和 `RecognitionTransitionLookBehindMilliseconds` 共同限定。
 
 自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入。区域选择、等待开始、加载和对局内会阻断当前帧的内容识别与新操作生成，并停止调度后续 tick；已经排队或正在应用的角色 BP 操作会继续完成，队列排空后才以 `SmartBpCharacterBpEnded` 正常完成 GameGuidance 和自动识别，不触发取消事件。区域选择不属于 MapBP 或角色 BP 识别范围。用户手动停止仍会立即取消当前识别。
 
@@ -184,38 +185,29 @@ PaddleOCR 模型、RapidOCR 模型和 Tesseract 语言文件统一经 `SmartBpPa
 
 ### 自动识别循环全流程
 
-BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协调，每个 tick 执行以下流程：
+BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协调。业务状态只存在于主程序；一次 tick 的 OCR 结果只代表当前帧：
 
 ```text
 捕获帧
-  │
-  ├─ 1. SmartBpFrameRingBuffer        ← 保存最近帧到滚动缓冲区
-  ├─ 2. OCR TopCenterStatus / TopLeftStatus
-  │     ├─ TopCenterStatus ← 阵营选择、天赋调整、即将进入区域选择等生命周期 gate
-  │     └─ TopLeftStatus   ← 区域选择/等待开始 post-BP hard latch
-  ├─ 3. SmartBpSnapshotRecognitionPlanner ← 根据工作流未完成步骤、字段新鲜度、最近阶段，规划需要刷新的内容区域
-  ├─ 4. SmartBpOcrSnapshotDeltaRecognitionService
-  │     ├─ SmartBpOcrContactSheetBuilder  ← 拼接 contact sheet
-  │     ├─ IOcrService.RecognizeTextLines ← 一次所选 OCR Provider 推理
-  │     ├─ SmartBpOcrContactSheetMapper   ← 文本行映射回区域
-  │     ├─ SmartBpOcrPhaseClassifier      ← 本地规则判阶段
-  │     └─ SmartBpOcrRegionParser         ← 本地解析 Ban/Pick 槽位与 player_id
-  │
-  ├─ 5. SmartBpRecognitionStateStore ← 使用 automatic guards 应用增量 delta
-  ├─ 6. SmartBpSceneGateService      ← 场景门禁分类
-  │     ├── CharacterBp → 允许生成角色操作
-  │     ├── SurvivorTalent / HunterTalent → 仅允许同步引导
-  │     ├── TalentLocked → 仅允许同步引导
-  │     ├── 其他 → 阻断写入，可能暂停循环
-  │
-  ├─ 7. SmartBpTransitionReplayService   ← 仅在阶段切换时回看最近历史帧，补识别刚结束的 Ban/Pick
-  ├─ 8. SmartBpCandidateOperationBuilder ← 从识别状态构建候选操作
-  ├─ 9. SmartBpWorkflowBackfillService   ← 按工作流顺序补录未完成步骤
-  ├─ 10. SmartBpDetectedOperationApplier ← 先应用回看补救，再应用当前步骤的高置信度操作（需用户启用）
-  │     └── ICharacterSelectionService   ← 实际执行角色选择
-  │
-  └─ 11. SmartBpGuidanceSyncService      ← 同步 GameGuidance 步骤（需用户启用）
-        └── SmartBpRecognitionLedger     ← 记录已完成操作，防止重复应用
+  ├─ 高频轻量采样 → SmartBpFrameRingBuffer（有界、绑定 Game Guid + GameProgress）
+  ├─ OCR TopCenterStatus / TopLeftStatus → 生命周期和结束门禁
+  ├─ OCR PhaseTop → 得到本帧权威 phase
+  ├─ 当前 phase 确认后识别四类角色槽位
+  │    └─ SmartBpOcrRegionParser → 固定几何槽位、名称解析、置信度和安全元数据
+  ├─ SmartBpSceneGateService → 决定本帧能否处理角色
+  ├─ SmartBpCatchUpTriggerEvaluator
+  │    ├─ 值比较 Action + 规范化 Indexes
+  │    └─ 仅在位置不一致、前置 Pending 槽位洞或 Pending 目标槽已有新角色证据时触发
+  ├─ 触发落后追赶时 SmartBpHistoricalFrameReviewService
+  │    ├─ 默认只看目标之前 2 个工作流步骤，每步最多 1 张代表帧
+  │    ├─ Phase/Action 必须和所补步骤严格对齐
+  │    └─ 只补 Pending 且当前帧未明确选择的历史角色证据
+  └─ SmartBpReconciliationService
+       ├─ IGameGuidanceService.GetRuntimeSnapshot() → 工作流 Action/Indexes
+       ├─ ICharacterSelectionService.GetCurrentBpSlotCommitState() → 主程序槽位真值
+       ├─ SmartBpCandidateOperationBuilder → 当前帧安全候选
+       ├─ ICharacterSelectionService → 角色或明确空操作提交
+       └─ IGameGuidanceService → 自动逐步追赶或手动直接定位
 ```
 
 ### 场景门禁详解
@@ -225,8 +217,8 @@ BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协�
 | 场景 | 枚举值 | 角色操作 | 引导同步 | 暂停循环 | 触发条件 |
 | --- | --- | --- | --- | --- | --- |
 | 角色 BP | `CharacterBp` | 允许 | 允许 | 否 | 检测到屏蔽/选择/角色选择中等文本 |
-| 求生者天赋 | `SurvivorTalent` | 禁止 | 允许 | 否 | 检测到"求生者天赋特质调整" |
-| 监管者天赋 | `HunterTalent` | 禁止 | 允许 | 否 | 检测到"监管者天赋特质调整"/"监管者选择天赋中" |
+| 求生者天赋 | `SurvivorTalent` | 允许补齐仍可见槽位 | 允许 | 否 | 检测到"求生者天赋特质调整" |
+| 监管者天赋 | `HunterTalent` | 允许补齐仍可见槽位 | 允许 | 否 | 检测到"监管者天赋特质调整"/"监管者选择天赋中" |
 | 天赋已锁定 | `TalentLocked` | 禁止 | 允许 | 是 | 检测到"天赋已锁定" |
 | 区域选择-求生者 | `AreaSelectionSurvivor` | 禁止 | 禁止 | 是 | 检测到"求生者选择区域中" |
 | 区域选择-监管者 | `AreaSelectionHunter` | 禁止 | 禁止 | 是 | 检测到"监管者选择区域中" |
@@ -238,22 +230,48 @@ BP 状态自动识别的完整循环由 `SmartBpAutoRecognitionCoordinator` 协�
 | 禁选顺序 | `BanPickOrderDialog` | 禁止 | 禁止 | 否 | 检测到"查看禁选顺序"/"选择禁用数量" |
 | 转场 | `Transition` | 禁止 | 禁止 | 否 | 检测到"开始案件还原"/"阵容选择中"等 |
 
-### 工作流补录与操作应用
+### 自动逐步追赶与手动强制同步
 
-识别结果不是直接写入 `CurrentGame`，而是经过以下管线：
+两种行为共享 `SmartBpReconciliationService` 和主程序槽位真值，但执行语义不同，禁止混用。
 
-1. **`SmartBpCandidateOperationBuilder`**：从合并后的业务状态中构建候选操作（Ban 角色 / Pick 求生者 / Pick 监管者 / Swap 求生者），并关联到当前的 GameGuidance 工作流步骤
-2. **`SmartBpWorkflowBackfillService`**：按工作流顺序，从尚未完成的角色步骤回填到当前步骤，生成 `SmartBpWorkflowBackfillPlan`
-3. **`SmartBpDetectedOperationApplier`**：通过 `ICharacterSelectionService` 应用已解析的高置信度操作。应用模式包括：
-   - `CurrentStep`：当前步骤操作（可播放动画）
-   - `Backfill`：补录操作（默认不播放动画，可由用户开启）
-   - `FreeSync`：无动画同步（不依赖 GameGuidance）
-4. **`SmartBpRecognitionLedger`**：内存 ledger 记录已完成的操作 key，与当前状态 no-op 检查共同防止重复应用
-5. **`SmartBpGuidanceSyncService`**：当识别到的阶段与当前 GameGuidance 步骤不一致时，尝试同步引导步骤。阶段快速进入天赋选择后，仍可利用画面中保留的角色结果补录上一选择步骤（通过短暂阶段切换提交屏障）
+#### 自动逐步追赶
 
-阶段切换时，`SmartBpTransitionReplayService` 会仅一次性读取帧缓冲中最近 `RecognitionTransitionLookBehindMilliseconds`（默认 800ms）的历史帧，并只 OCR 刚结束步骤所对应的 Ban/Pick 区域。它不改变正常 tick 的当前阶段字段过滤，也不会在非切换时扫描历史帧。只有角色解析成功、槽位合法、与当前本地状态不同且置信度不低于 `RecognitionTransitionReplayMinimumConfidence`（默认 0.95）的候选才会作为 `Backfill` 操作进入同一串行应用队列，且始终排在当前步骤操作之前。
+自动追赶用当前帧 phase 确定 Action 类别，用 `IGameGuidanceService.GetRuntimeSnapshot()` 中每个步骤的 `Indexes` 区分同一 Action 的多次出现，并将当前帧已识别槽位与主程序已提交槽位合并判断。`SmartBpWorkflowPosition` 对 `Action + 排序去重后的 Indexes` 实现值相等；相同 Action 但槽位集合不同仍然是不相等的位置。仅识别到前一组槽位刚刚选满时不会擅自跳到同 Action 的下一组；必须识别到下一组的槽位证据，或由两次同 Action 之间的其他业务步骤已经完成来证明阶段确实越过。例如画面为第二次 `PickSur` 且已经识别到求生者槽位 2，而引导尚未开始时，目标是 `PickSur[2]`，追赶顺序必须是：
 
-在角色分配画面中，视觉槽位永远不直接覆盖 `SurPlayerList`。普通分配只交换已选择角色；若四个分配槽均提供高置信、唯一且可安全匹配的玩家 ID 与角色，系统才会把遗漏的角色依画面顺序填入当前空位，再按玩家 ID 逐项交换角色到固定内部玩家位。该恢复组任一前置操作失败即停止后续依赖操作，玩家对象、成员和内部玩家位不移动。
+```text
+BanSur[0,1] → PickSur[0,1] → BanSur[2] → PickSur[2]
+```
+
+具体约束如下：
+
+1. 先执行廉价触发判定。只有以下任一条件成立才安排 Reconciliation：Guidance 尚未启动但允许自动同步；当前 `Action + Indexes` 与槽位推导目标不同；目标之前仍有 `Pending` 业务步骤；`Pending` 或 `CommittedEmpty` 槽位已有新的安全 `Selected` 证据；或 `DistributeChara` 有安全的分配证据需要恢复/交换。全部不成立时本 Tick 不调用 Reconciliation，也不调度历史 OCR。宿主槽位已经写入只表示该业务操作已提交，不能单独证明画面已进入同 Action 的下一组槽位。
+2. 引导未启动或没有有效当前步骤时，调用 `StartGuidance()` 进入工作流首步。
+3. 只有引导未超过槽位推导目标，且位置不一致或目标之前存在 Pending 槽位洞时才回看。`OcrBackfillLookBehindSteps` 默认 2，表示只考虑目标之前两个工作流步骤；每个待补步骤最多选择一张当前对局上下文中的历史代表帧，并只请求 Phase 加该 Action 对应的一个角色区域，避免旧实现每 Tick 最多 16 次四区域完整 OCR。引导已经在目标之后时，本轮优先依据当前帧决定等待或纠偏，不额外用历史 OCR 放大回跳判断。
+4. 历史帧识别出的 Phase 必须映射为被补步骤的同一 Action，否则整帧拒绝。回看结果采用“补充合并”：宿主必须仍为 `Pending` 或 `CommittedEmpty`，当前帧已有明确角色时禁止覆盖，历史 Empty 不补入，也不把某槽候选顺延到相邻槽位。当前帧已经给出安全角色时直接进入 Reconciliation，不再额外调度历史 OCR。
+5. 每次只处理当前 Guidance 步骤的 `Indexes`，且只写主程序中的可补槽位。安全角色允许把同槽 `Pending` 或 `CommittedEmpty` 升级为 `CommittedCharacter`，但绝不覆盖已有 `CommittedCharacter`。若 Guidance 已经越过该槽，安全角色以 `AutomaticSupplement` 模式补入同一固定槽位，仍播放正常角色动画，但补入本身不移动 Guidance。回看角色和当前帧角色进入同一候选校验与正常业务服务，不存在直接改集合的强行填入。
+6. 普通 Ban/Pick 严格按视觉槽位 Index 写入。一个多槽 Ban 步骤中，若较早槽位具有明确、安全的 Empty 证据，且同一步骤更后槽位已经明确选择角色，则该空洞可提交为 `CommittedEmpty`；没有后续选择证明的当前/未来“未选择”仍保持 `Pending`。`CommittedEmpty` 会保留为空，除非同一固定槽位后来出现安全、明确的角色证据；这种证据只升级该空槽，不会移动角色或覆盖其他槽位。
+7. 角色写入使用 `CurrentStep` 模式，向 `ICharacterSelectionService` 传 `playAnimation=true`；这就是识别选角应出现入场动画的路径。
+8. 写入后重新读取 `BpSlotCommitState`。当前业务步骤仍未完成时立即停止，不能跨越。
+9. 当前步骤完成且尚未到目标时，只调用一次 `NextStepAsync()`；循环逐步执行，自动路径禁止 `MoveToStepAsync()` 跳步。目标定位遵循“当前槽位证据 → 已完成的跨 Action 前置步骤 → 原地等待”的优先级：例如 `PickSur[0,1]` 已出现但 `BanSur[2]` 仍为 `Pending` 时，不能仅因 `PickSur[2]` 为空而前进；只有画面真正识别到槽位 2，才能据此证明中间 Ban 可能为空，并按 `BanSur[2] → PickSur[2]` 逐步追上。若中间 Ban 已由宿主确认完成，则停在 `PickSur[2]` 等待其角色出现，不回退。
+10. 原地等待的优先级高于自动回退。同一 Action 的相邻出现即使 Indexes 不同，也不会自动回跳；较早 `CommittedEmpty` 槽位出现角色时只做同槽补充。只有 Guidance 至少领先槽位目标两个工作流步骤、当前 Action 已与目标 Action 不同，且目标槽位存在安全 `Selected` 强证据时，才认为引导明显超前。此时逐次调用 `PrevStepAsync()` 回到最早未满足的前置步骤，再按正常 `NextStepAsync()` 走到画面目标；仍禁止直接定位。
+
+回看只服务真正触发的自动落后追赶。`OcrBackfillLookBehindSteps`、`RecognitionTransitionLookBehindMilliseconds`、`RecognitionTransitionReplayMinimumConfidence` 保留在高级参数中，默认分别为 2、800ms、0.95。切换捕获源会清空缓冲，对局 Guid 或进度不匹配的帧不会被读取。手动强制同步始终只使用用户触发时的当前帧，不读取回看结果。
+
+#### 手动强制同步
+
+强制同步由用户显式触发，对当前捕获帧执行一次独立、完整的四区域 OCR，不读写 SmartBP 累计业务状态：
+
+1. 将本帧明确识别到的四类角色槽位直接通过 `ICharacterSelectionService` 写入主程序。
+2. 所有角色选择、交换操作都传 `playAnimation=false`；强制同步不播放入场动画。
+3. 当前或未来的“未选择”保持 `Pending`；仅目标步骤之前的明确 Empty 可提交为空，避免把尚未选择的后续槽位误判为空操作。
+4. 角色写入后重新读取主程序槽位状态，在当前 phase 对应的同 Action 步骤中寻找最早未完成步骤。例如已选 2 名求生者、已 Ban 3 名求生者、已 Ban 2 名监管者，phase 为 `BanSur`，目标就是 `BanSur[3]`。
+5. Guidance 对齐可直接调用 `MoveToStepAsync()`，不播放逐步追赶过程。角色同步和 Guidance 对齐分别返回结果；phase 无法解析时，明确角色仍保留在主程序中，Guidance 原位保持。
+
+这里的“完整四区域 OCR”同时约束请求层与解析层。强制同步固定请求 `banned_sur`、`banned_hun`、`picked_sur`、`picked_hun`，并使用 `GlobalSnapshot` 字段解析上下文；当前 phase 和当前 Guidance Action 只参与最后的步骤定位，不得把非当前 Action 的区域过滤掉，也不得改变这些区域的行语义。例如当前画面为 `BanSur` 时，左下角已经可见的求生者选择仍按角色行/选手 ID 行解析，天赋或附加行只作为噪声忽略，然后与另外三个区域一起对账。只有本帧确实为 `Unknown` 的槽位才保持主程序原值。
+
+旧的 `SmartBpRecognitionStateStore`、启发式进度评分、`WorkflowBackfill`、`TransitionReplay`、操作 ledger 和 `FreeFullSync` 自动模式均已移除，不存在隐藏 fallback。
+
+在角色分配画面中，视觉槽位永远不直接当作内部 Pick 槽位覆盖 `SurPlayerList`。进入 `DistributeChara` 后采用唯一的“空位补充”例外：任一当前帧高置信、安全、名称唯一的角色证据，只要主程序尚未持有该角色且仍有空求生者槽，就依画面顺序填入第一个空槽，不要求四个分配槽全部齐全；之后只有具备安全玩家 ID 匹配的证据才按玩家身份交换到固定内部玩家位。普通 Ban/Pick 不使用这个策略，仍严格按原视觉槽位 Index。重复角色、低置信角色、无空位或玩家 ID 冲突都保持原状态。
 
 ### OCR Provider
 
@@ -271,7 +289,7 @@ RapidOCR manifest 预置中、日、英三个官方组合。检测、分类、�
 
 每次安装会在 profile 目录写入 `.smartbp-install.json`，记录 profile、上游版本和内置 manifest 指纹。普通状态刷新比较安装记录与当前内置 manifest；版本或任一资产 URL、文件名、SHA-256、转换声明变化时提示更新。“检查模型更新”还会通过统一下载器临时读取 RapidOCR 官方 `default_models.yaml`，按当前识别模型的官方 ONNX URL 比较上游版本。若官方版本已领先内置 manifest，UI 会要求先更新 SmartBP 模块，不会把旧模型误标为可安装更新。旧版安装没有记录时标为“未知（旧版安装）”并提示更新，但现有完整模型仍可继续使用。
 
-RapidOCR 与其他 OCR Provider 没有依赖关系。SmartBP 自动识别只使用所选 OCR Provider 读取文字与坐标；本地解释器、`CharacterSelectionService`、StateStore、门禁和应用管线继续承担业务语义与安全合并。
+RapidOCR 与其他 OCR Provider 没有依赖关系。SmartBP 自动识别只使用所选 OCR Provider 读取文字与坐标；本地解释器负责当前帧证据，`CharacterSelectionService` 和主程序槽位提交状态负责业务语义，场景门禁与 Reconciliation 负责安全应用。
 
 ### 旧 AI 字段兼容
 
@@ -283,18 +301,16 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 
 | 配置组 | 关键字段 | 默认值 |
 | --- | --- | --- |
-| OCR BP | `EnableOcrBpRecognition`, `UseOcrContactSheet`, `OcrRecognitionIntervalMs` | true / true / 300ms |
+| OCR BP | `EnableOcrBpRecognition`, `UseOcrContactSheet`, `OcrRecognitionIntervalMs` | true / true / 3000ms |
 | OCR Provider | `SelectedOcrProviderMode`, `OcrProviderMode` | `Paddle` |
 | Tesseract | `EnableTesseractOcr`, `TesseractLanguages`, `TesseractDefaultPsm` | true / "chi_sim+eng" / 6 |
 | RapidOCR 模型 | `SelectedRapidOcrModelId` | "ppocr-v5-zh-mobile" |
 | RapidOCR 推理 | `RapidOcrPadding`, `RapidOcrMaxSideLen`, `RapidOcrBoxScoreThreshold`, `RapidOcrBoxThreshold`, `RapidOcrUnclipRatio`, `RapidOcrUseAngleClassifier`, `RapidOcrUsePreprocessingVariants` | 0 / 1024 / 0.5 / 0.3 / 1.6 / true / false |
-| 循环控制 | `RecognitionIntervalMs`, `OcrRecognitionIntervalMs` | 1200ms / 300ms |
+| 循环控制 | `RecognitionIntervalMs`, `OcrRecognitionIntervalMs` | 1200ms / 3000ms |
 | 自动应用 | `EnableAutoApplyRecognition`, `EnableAutoGuidanceSync` | false / false |
-| 应用模式 | `RecognitionApplyMode` | `GuidedWorkflow` |
-| 补录 | `PlayBackfillAnimations`, `AllowLateBackfillAfterPhaseMoved` | false / true |
-| 状态管理 | `OcrFieldStaleMilliseconds`, `OcrBackfillLookBehindSteps`, `RequiredStableSnapshots` | 1500ms / 2 / 1 |
+| 稳定确认 | `RequiredStableSnapshots` | 1 |
 | 图像编码 | `PhaseCropMaxImageWidth`, `ContentCropMaxImageWidth` | 640 / 768 |
-| 帧缓冲与切换回看 | `RecognitionFrameBufferMilliseconds`, `RecognitionTransitionLookBehindMilliseconds`, `RecognitionTransitionReplayMinimumConfidence`, `RecognitionCropChangeThreshold` | 1500ms / 800ms / 0.95 / 0.035 |
+| 有界采样与回看 | `RecognitionFrameBufferMilliseconds`, `RecognitionSamplingIntervalMilliseconds`, `OcrBackfillLookBehindSteps`, `RecognitionTransitionLookBehindMilliseconds`, `RecognitionTransitionReplayMinimumConfidence` | 1500ms / 150ms / 2 步 / 800ms / 0.95 |
 
 ## 区域配置
 
@@ -321,9 +337,9 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 
 ## 图像预处理
 
-赛后数据回填对完整捕获帧只执行一次可返回文本边界框的 OCR，不裁切玩家行、名称列或数字单元格。解析器以 `玩家名（角色名）` 文本建立有效行，按 Y 坐标排序；再取角色文本右侧的数字/空值标记，按 X 坐标推断五个统计列、按最近 Y 坐标归属行。名称左侧的等级、天赋数字不会进入数据列，也不会参与玩家或角色解析。
+赛后数据回填先对完整捕获帧执行一次可返回文本边界框的 OCR。解析器以 `玩家名（角色名）` 文本建立有效行，按 Y 坐标排序；再取角色文本右侧的数字/空值标记，按 X 坐标推断五个统计列、按最近 Y 坐标归属行。名称左侧的等级、天赋数字不会进入数据列，也不会参与玩家或角色解析。
 
-现有 OCR Provider 的图像预处理能力仍可用于其自身的识别实现，但赛后表格不会使用旧的数字拼条或逐单元格 OCR 路径。
+只有整表解析确认缺失的数据格会进入局部识别。局部图像固定来自当前显式选择的 OCR Provider，不会静默切换引擎；Paddle 使用不经过检测器的单区域字符识别，其他 Provider 使用各自的单文本区域模式。每个变体的原始文本、规范化数字、置信度、投票数和最终接受/拒绝结果都会写入统一识别日志窗口。
 
 ## 调试点
 
@@ -331,17 +347,17 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 
 1. OCR 不工作先看是否已下载并切换模型。
 2. 捕获不到数据先看窗口捕获服务是否处于 capturing。
-3. 查看全流程 BP 调试选项中的赛后调试表格：其中列出 OCR 原始文本、边界框、行聚类、列归属、被排除的名称列文本和最终行映射。
+3. 查看全流程 BP 调试选项中的赛后调试表格和统一识别日志窗口：其中列出 OCR 原始文本、边界框、行聚类、列归属、被排除的名称列文本，以及 `numeric fallback candidate/accepted/rejected` 局部识别结果。
 4. 角色匹配失败时看日志中的 `SmartBp Match failed` 和 OCR 原始名称。
 
 ### BP 状态识别
 
-1. 自动识别不工作先检查 `SmartBpRecognitionSettings` 中 `RecognitionStrategy` 是否符合预期；纯 OCR 时还要检查 `EnableOcrBpRecognition` 是否为 `true`
+1. 自动识别不工作先检查 `EnableOcrBpRecognition`、捕获状态以及自动应用/Guidance 同步开关
 2. 场景门禁阻断写入时查看 `SmartBpSceneGateResult` 的 `Reason` 字段
 3. OCR contact sheet 映射异常时，可设置 `UseOcrContactSheet = false` 逐区域识别排查
 4. 角色解析失败时查看日志中的 `ocr-match` 诊断行，包含 `raw`、`result`、`matchMode`、`score` 等信息
-5. 可开启 `ISmartBpDebugLog.IsEnabled`，在 SmartBP 页面 UI 中查看 OCR 识别与状态合并诊断日志
-6. 识别状态可通过 `SmartBpRecognitionStateStore.GetStaleFieldDiagnostics()` 查看各字段新鲜度
+5. 可开启 `ISmartBpDebugLog.IsEnabled`，在 SmartBP 页面 UI 中查看当前帧 OCR、历史回看、槽位对账、逐步追赶和强制同步诊断
+6. 追赶问题重点查看 `Historical review supplemented`、`merge_mode=supplement-only`、`Guided catch-up target`、逐步 `advanced one step` 和 `earliest incomplete step`；强制同步问题查看 `playAnimation=false` 与最终目标 Action/Indexes
 
 ### 通用
 
@@ -380,24 +396,22 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 | `SmartBpOcrRecognitionResult` | OCR BP 识别完整结果（阶段 + 业务状态 + 区域文本 + 诊断） |
 | `SmartBpAutoRecognitionTickResult` | 一次自动识别 tick 的完整结果 |
 
-### 识别状态模型
+### 槽位证据与宿主状态模型
 
 | 模型 | 用途 |
 | --- | --- |
-| `SmartBpRecognitionState` | 内存中本地合并的识别状态（含字段新鲜度时间戳） |
 | `SmartBpRecognizedCharacterSlot` | 单个角色槽位（含识别置信度、自动应用安全标记） |
 | `SmartBpRecognizedPlayerCharacterSlot` | 绑定玩家 ID 的角色槽位（继承 `SmartBpRecognizedCharacterSlot`） |
 | `SmartBpNormalizedCharacter` | 规范化角色解析结果（原始名 → 标准名 → 匹配模式） |
+| `BpSlotCommitStateSnapshot` | 主程序权威槽位状态，区分 Pending / CommittedEmpty / CommittedCharacter |
 
-### 操作/补录模型
+### 操作与对账模型
 
 | 模型 | 用途 |
 | --- | --- |
 | `SmartBpDetectedOperation` | 检测到的候选操作（Ban/Pick/Swap + 关联的 GameGuidance 步骤） |
-| `SmartBpWorkflowStepCandidateSet` | 一个工作流步骤的一组候选操作 |
-| `SmartBpWorkflowBackfillPlan` | 按工作流顺序排列的补录计划 |
-| `SmartBpWorkflowOperationKey` | 操作 ledger 的唯一标识（GameProgress + StepIndex + Action + SlotIndex + Camp + CharacterKey） |
 | `SmartBpGuidanceSyncResult` | 引导同步结果（是否变更、是否接受、目标步骤） |
+| `SmartBpReconciliationResult` | 角色、明确空操作与 Guidance 三部分独立结果 |
 
 ## 文件路径速查
 

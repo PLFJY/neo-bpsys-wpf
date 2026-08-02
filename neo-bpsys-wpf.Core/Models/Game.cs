@@ -92,6 +92,18 @@ public partial class Game : ObservableObjectBase
     [property: FrontedBindingCollection(FixedCount = AppConstants.CurrentBanHunCount)]
     private ObservableCollection<Character?> _currentHunBannedList = [];
 
+    private BpSlotCommitStateSet _bpSlotCommitState = null!;
+
+    /// <summary>
+    /// 获取当前对局与进度上下文中的权威 BP 槽位提交状态。
+    /// </summary>
+    [FrontedBindingIgnore]
+    public BpSlotCommitStateSet BpSlotCommitState
+    {
+        get => _bpSlotCommitState;
+        private set => SetProperty(ref _bpSlotCommitState, value);
+    }
+
     #endregion
 
     /// <summary>
@@ -110,6 +122,7 @@ public partial class Game : ObservableObjectBase
     /// <param name="currentSurBannedList">求生者禁用列表(用于恢复记录)</param>
     /// <param name="currentHunBannedList">监管者禁用列表(用于恢复记录)</param>
     /// <param name="matchScore">Score System v2 比分状态(用于恢复记录)</param>
+    /// <param name="bpSlotCommitState">当前上下文的 BP 槽位提交状态；旧存档缺失时全部为 Pending。</param>
     [JsonConstructor]
     public Game(Team surTeam, Team hunTeam,
         GameProgress gameProgress, Map? pickedMap = null, Map? bannedMap = null,
@@ -119,7 +132,8 @@ public partial class Game : ObservableObjectBase
         Player? hunPlayerData = null,
         ObservableCollection<Character?>? currentSurBannedList = null,
         ObservableCollection<Character?>? currentHunBannedList = null,
-        MatchScoreState? matchScore = null)
+        MatchScoreState? matchScore = null,
+        BpSlotCommitStateSet? bpSlotCommitState = null)
     {
         //基本信息初始化
         Guid = guid == Guid.Empty ? Guid.NewGuid() : guid;
@@ -133,6 +147,11 @@ public partial class Game : ObservableObjectBase
         MatchScore.Recalculate(isBo3Mode: false);
         //初始化对局进度
         GameProgress = gameProgress;
+        BpSlotCommitState = bpSlotCommitState is not null &&
+                            bpSlotCommitState.GameGuid == Guid &&
+                            bpSlotCommitState.GameProgress == gameProgress
+            ? bpSlotCommitState
+            : BpSlotCommitStateSet.CreatePending(Guid, gameProgress);
 
         //创建Player
         SurPlayersData =
@@ -197,6 +216,9 @@ public partial class Game : ObservableObjectBase
     {
         // GameProgress.Game3Overtime* 与 Game4* 在 enum 中共享数值。
         // 仅凭 Game 无法知道当前是 BO3 加赛还是 BO5 第四局，当前显示刷新由 MatchScoreService 结合共享状态处理。
+        // BP 提交状态严格绑定 GameGuid + GameProgress；进度变化时进入全新的 Pending 上下文。
+        if (_bpSlotCommitState is not null && _bpSlotCommitState.GameProgress != value)
+            BpSlotCommitState = BpSlotCommitStateSet.CreatePending(Guid, value);
     }
 
     #region 上场选手

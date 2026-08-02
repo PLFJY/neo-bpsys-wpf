@@ -75,6 +75,8 @@ public sealed class FrontedBehaviorEventCatalog
                 Payload("Event.Camp", "Designer.Behaviors.Payload.Camp", "Camp", typeof(Core.Enums.Camp)),
                 Payload("Event.PlayerIndex", "Designer.Behaviors.Payload.PlayerIndex", "int"),
                 Payload("Event.TargetBehaviorGuid", "Designer.Behaviors.Payload.TargetBehaviorGuid", "Guid"),
+                Payload("Event.OldCharacterName", "Designer.Behaviors.Payload.OldCharacterName", "string"),
+                Payload("Event.NewCharacterName", "Designer.Behaviors.Payload.NewCharacterName", "string"),
                 Payload("Event.OldCharacterId", "Designer.Behaviors.Payload.OldCharacterId", "string"),
                 Payload("Event.NewCharacterId", "Designer.Behaviors.Payload.NewCharacterId", "string"),
                 Payload("Event.HasOldCharacter", "Designer.Behaviors.Payload.HasOldCharacter", "bool"),

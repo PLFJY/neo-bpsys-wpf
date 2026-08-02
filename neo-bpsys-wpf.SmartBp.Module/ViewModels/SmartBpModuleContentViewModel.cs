@@ -40,8 +40,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly IGameGuidanceService _gameGuidanceService = null!;
     private readonly ISmartBpCharacterResolver _smartBpCharacterResolver = null!;
     private readonly ISmartBpRecognitionRegionProfileService _aiRegionProfileService = null!;
-    private readonly ISmartBpRecognitionLedger _recognitionLedger = null!;
-    private readonly ISmartBpRecognitionStateStore _recognitionStateStore = null!;
     private readonly ISmartBpGameStateSyncService _gameStateSyncService = null!;
     private readonly IInfoBarService _infoBarService = null!;
     private readonly ITesseractDataAssetManager _tesseractDataAssetManager = null!;
@@ -50,6 +48,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private readonly ISmartBpOcrBpRecognitionService _ocrBpRecognitionService = null!;
     private readonly ISmartBpModuleStorageProvider _smartBpModuleStorage = null!;
     private readonly IGameDataRecognitionDebugState _gameDataRecognitionDebugState = null!;
+    private readonly ISmartBpService _smartBpService = null!;
+    private readonly IPostGameRecognitionProgressSource _postGameRecognitionProgressSource = null!;
     // CUDA / Paddle runtime 设置卡片依赖的服务，由 SmartBpModuleContentViewModel.Cuda.cs 使用。
     private readonly ICudaDeviceDetector _cudaDeviceDetector = null!;
     private readonly IPaddleRuntimeComponentService _paddleRuntimeComponentService = null!;
@@ -94,8 +94,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         IGameGuidanceService gameGuidanceService,
         ISmartBpCharacterResolver smartBpCharacterResolver,
         ISmartBpRecognitionRegionProfileService aiRegionProfileService,
-        ISmartBpRecognitionLedger aiRecognitionLedger,
-        ISmartBpRecognitionStateStore aiRecognitionStateStore,
         ISmartBpGameStateSyncService gameStateSyncService,
         IInfoBarService infoBarService,
         ITesseractDataAssetManager tesseractDataAssetManager,
@@ -104,6 +102,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         ISmartBpOcrBpRecognitionService ocrBpRecognitionService,
         ISmartBpModuleStorageProvider smartBpModuleStorage,
         IGameDataRecognitionDebugState gameDataRecognitionDebugState,
+        ISmartBpService smartBpService,
+        IPostGameRecognitionProgressSource postGameRecognitionProgressSource,
         ICudaDeviceDetector cudaDeviceDetector,
         IPaddleRuntimeComponentService paddleRuntimeComponentService,
         IPaddleCudaPrerequisiteSetupService paddleCudaPrerequisiteSetupService,
@@ -122,8 +122,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _gameGuidanceService = gameGuidanceService;
         _smartBpCharacterResolver = smartBpCharacterResolver;
         _aiRegionProfileService = aiRegionProfileService;
-        _recognitionLedger = aiRecognitionLedger;
-        _recognitionStateStore = aiRecognitionStateStore;
         _gameStateSyncService = gameStateSyncService;
         _infoBarService = infoBarService;
         _tesseractDataAssetManager = tesseractDataAssetManager;
@@ -132,6 +130,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _ocrBpRecognitionService = ocrBpRecognitionService;
         _smartBpModuleStorage = smartBpModuleStorage;
         _gameDataRecognitionDebugState = gameDataRecognitionDebugState;
+        _smartBpService = smartBpService;
+        _postGameRecognitionProgressSource = postGameRecognitionProgressSource;
         _cudaDeviceDetector = cudaDeviceDetector;
         _paddleRuntimeComponentService = paddleRuntimeComponentService;
         _paddleCudaPrerequisiteSetupService = paddleCudaPrerequisiteSetupService;
@@ -140,7 +140,9 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _settingsHostService = settingsHostService;
         _globalRestartService = globalRestartService;
         _gameDataRecognitionDebugState.SnapshotChanged += (_, _) => BeginOnUiThread(RefreshGameDataRecognitionDebugText);
+        _postGameRecognitionProgressSource.ProgressChanged += (_, e) => BeginOnUiThread(() => ApplyPostGameRecognitionProgress(e.Progress));
         RefreshGameDataRecognitionDebugText();
+        ApplyPostGameRecognitionProgress(_postGameRecognitionProgressSource.CurrentProgress);
         InitializeRecognition();
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         _ocrService.ModelLoadStateChanged += OcrService_ModelLoadStateChanged;
@@ -359,6 +361,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         get => _selectedWindow;
         set => SetPropertyWithAction(ref _selectedWindow, value, _ =>
         {
+            _autoRecognitionCoordinator?.ResetCaptureContext();
             StartCaptureCommand.NotifyCanExecuteChanged();
             if (_windowCaptureService.IsCapturing)
                 StartCapture();
@@ -377,6 +380,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanCaptureStarted))]
     private void StartCapture()
     {
+        _autoRecognitionCoordinator.ResetCaptureContext();
         _ = _windowCaptureService.StartCapture(SelectedWindow, SelectedCaptureMethod);
         // 捕获状态变化会影响多个按钮的可用性。
         RefreshCommandStates();
@@ -413,6 +417,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     {
         if (await _windowCaptureService.StartCaptureWithPickerAsync())
         {
+            _autoRecognitionCoordinator.ResetCaptureContext();
             SelectedCaptureMethod = CaptureMethod.WGC;
         }
 

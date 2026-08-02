@@ -32,9 +32,11 @@ internal sealed class SmartBpSceneGateService : ISmartBpSceneGateService
         if (Contains(evidence, "天赋已锁定"))
             return GuidanceOnly(SmartBpRecognitionScene.TalentLocked, false, "talent is locked; BP cleanup may still be pending");
         if (Contains(evidence, "求生者天赋特质调整", "求生者选择天赋中"))
-            return GuidanceOnly(SmartBpRecognitionScene.SurvivorTalent, false, "survivor talent adjustment allows guidance sync only");
+            return VisibleCharacterRecovery(SmartBpRecognitionScene.SurvivorTalent,
+                "survivor talent adjustment keeps survivor Ban/Pick evidence visible for current-frame recovery");
         if (Contains(evidence, "监管者天赋特质调整", "监管者选择天赋中"))
-            return GuidanceOnly(SmartBpRecognitionScene.HunterTalent, false, "hunter talent adjustment allows guidance sync only");
+            return VisibleCharacterRecovery(SmartBpRecognitionScene.HunterTalent,
+                "hunter talent adjustment keeps hunter Ban/Pick evidence visible for current-frame recovery");
         if (Contains(evidence, "查看禁选顺序", "选择禁用数量"))
             return Block(SmartBpRecognitionScene.BanPickOrderDialog, false, "pre-BP ban/pick order dialog");
         if (Contains(evidence, "规则设置"))
@@ -59,6 +61,9 @@ internal sealed class SmartBpSceneGateService : ISmartBpSceneGateService
 
     private static SmartBpSceneGateResult GuidanceOnly(SmartBpRecognitionScene scene, bool pause, string reason) =>
         new(scene, true, false, pause, reason);
+
+    private static SmartBpSceneGateResult VisibleCharacterRecovery(SmartBpRecognitionScene scene, string reason) =>
+        new(scene, true, true, false, reason);
 
     private static SmartBpSceneGateResult PostBp(SmartBpRecognitionScene scene) =>
         new(scene, false, false, true,

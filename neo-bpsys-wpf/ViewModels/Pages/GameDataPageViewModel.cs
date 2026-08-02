@@ -1,6 +1,8 @@
-﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.SmartBpModule;
 using Player = neo_bpsys_wpf.Core.Models.Player;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -10,12 +12,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 /// </summary>
 public partial class GameDataPageViewModel : ViewModelBase
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     /// <summary>
     /// 用于设计时预览的无参构造函数。
     /// </summary>
     public GameDataPageViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
     {
         // Decorative constructor for design-time only.
     }
@@ -37,11 +39,14 @@ public partial class GameDataPageViewModel : ViewModelBase
             OnPropertyChanged(nameof(IsSmartBpAutoFillVisible));
             AutoFillGameDataCommand.NotifyCanExecuteChanged();
         };
+        _smartBpFeatureService.PostGameRecognitionProgressChanged += (_, e) =>
+            System.Windows.Application.Current?.Dispatcher.Invoke(() => ApplyProgress(e.Progress));
         sharedDataService.CurrentGameChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(SurPlayerList));
             OnPropertyChanged(nameof(HunPlayer));
         };
+        ApplyProgress(_smartBpFeatureService.CurrentPostGameRecognitionProgress);
     }
 
     /// <summary>
@@ -59,11 +64,48 @@ public partial class GameDataPageViewModel : ViewModelBase
     /// </summary>
     public bool IsSmartBpAutoFillVisible => _smartBpFeatureService.IsModuleLoaded;
 
+    /// <summary>
+    /// 获取赛后数据识别是否正在进行。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsRecognizingPostGameData { get; set; }
+
+    /// <summary>
+    /// 获取赛后数据识别的非线性进度百分比（0~100）。
+    /// </summary>
+    [ObservableProperty]
+    public partial int PostGameRecognitionProgressPercent { get; set; }
+
+    /// <summary>
+    /// 获取赛后数据识别的当前阶段提示文本。
+    /// </summary>
+    [ObservableProperty]
+    public partial string PostGameRecognitionStageText { get; set; } = string.Empty;
+
     [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(CanAutoFillGameData))]
     private async Task AutoFillGameDataAsync()
     {
-        await _smartBpFeatureService.AutoFillGameDataAsync();
+        IsRecognizingPostGameData = true;
+        try
+        {
+            await _smartBpFeatureService.AutoFillGameDataAsync();
+        }
+        finally
+        {
+            IsRecognizingPostGameData = false;
+        }
     }
 
     private bool CanAutoFillGameData() => IsSmartBpAutoFillVisible;
+
+    /// <summary>
+    /// 将赛后数据识别进度快照应用到可观察属性，驱动进度条与阶段文本。
+    /// 必须在 UI 线程调用。
+    /// </summary>
+    /// <param name="progress">进度快照。</param>
+    private void ApplyProgress(SmartBpPostGameRecognitionProgress progress)
+    {
+        PostGameRecognitionProgressPercent = progress.Percent;
+        PostGameRecognitionStageText = progress.StageText;
+    }
 }

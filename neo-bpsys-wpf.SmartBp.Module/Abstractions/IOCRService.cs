@@ -33,6 +33,14 @@ public sealed record OcrTextBlockResult(IReadOnlyList<OcrTextLine> Lines, string
     public static OcrTextBlockResult Empty { get; } = new([], string.Empty);
 }
 
+/// <summary>
+/// 已知单一文本区域的 OCR 识别结果。
+/// </summary>
+/// <param name="Text">识别文本。</param>
+/// <param name="Confidence">识别置信度。</param>
+/// <param name="Provider">实际使用的 OCR Provider 名称。</param>
+public sealed record OcrSingleTextResult(string Text, double Confidence, string Provider);
+
 /// <summary>标识一个 OCR Provider实现。</summary>
 public enum SmartBpOcrProviderKind
 {
@@ -228,4 +236,12 @@ public interface IOcrService
     /// <param name="img">待识别图像。</param>
     /// <returns>文本行识别结果；无文本或失败时返回空结果。</returns>
     OcrTextBlockResult RecognizeTextLines(Mat img);
+
+    /// <summary>
+    /// 识别已经确定为单一文本区域的图像。支持时应跳过文本位置检测，直接执行字符识别。
+    /// </summary>
+    /// <param name="img">紧密裁剪后的单一文本区域。</param>
+    /// <param name="options">可选识别提示。</param>
+    /// <returns>识别结果；没有得到文本或 Provider 未就绪时返回 <see langword="null"/>。</returns>
+    OcrSingleTextResult? RecognizeSingleText(Mat img, OcrRecognitionOptions? options = null);
 }

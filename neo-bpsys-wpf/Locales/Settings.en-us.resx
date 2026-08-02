@@ -235,6 +235,12 @@
   <data name="SmartBpModuleArchiveFiles">
     <value>SmartBP module archives</value>
   </data>
+  <data name="SmartBpModuleSetDebugPath">
+    <value>Set to debug path</value>
+  </data>
+  <data name="SmartBpModuleDebugPathNotFound">
+    <value>Could not find the SmartBP module debug output directory. Build the SmartBP module project first.</value>
+  </data>
   <data name="AppUpdateHashFileMissing">
     <value>The update package is missing its SHA-256 file. Download was stopped.</value>
   </data>

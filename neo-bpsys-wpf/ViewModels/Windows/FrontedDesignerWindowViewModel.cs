@@ -1270,10 +1270,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             var compress = await MessageBoxHelper.ShowConfirmAsync(
                 string.Format(
-                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressionMessage"),
+                    I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionMessage"),
                     BuildImageValidationFailureMessage(validation)),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressionTitle"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CompressAndApplyImage"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionTitle"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "CompressAndApplyImage"),
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
             if (!compress)
             {
@@ -1307,7 +1307,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageFileTooLarge"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageFileTooLarge"),
                 FormatFileSize(validation.FileBytes),
                 FormatFileSize(FrontedLayoutLimits.MaxBackgroundImageBytes));
         }
@@ -1316,7 +1316,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageDimensionsTooLarge"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageDimensionsTooLarge"),
                 validation.PixelWidth,
                 validation.PixelHeight,
                 FrontedLayoutLimits.MaxBackgroundImageLongSide);
@@ -1409,7 +1409,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RecordPendingImportedResource(result, "AnimationPart ImagePath", wasApplied: true);
         if (result.WasCompressed)
         {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressed");
         }
 
         return true;
@@ -3013,7 +3013,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RecordPendingImportedResource(result, "Canvas BackgroundImage", applied);
         if (result.WasCompressed)
         {
-            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressed");
         }
 
         return applied;
@@ -3124,7 +3124,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RecordPendingImportedResource(result, item.PropertyName, applied);
         if (result.WasCompressed)
         {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ImageCompressed");
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressed");
         }
 
         return applied;
@@ -4387,7 +4387,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestPreviewRenderCurrentDocument();
     }
 
-    public bool ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
+    public bool ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue, bool refreshPropertyGrid = true)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
@@ -4424,7 +4424,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (_schemaPropertiesByPath.TryGetValue(item.PropertyName, out var schemaProperty)
             && _selectedTarget is not null)
         {
-            return ApplySchemaPropertyEdit(item, schemaProperty, newValue);
+            return ApplySchemaPropertyEdit(item, schemaProperty, newValue, refreshPropertyGrid);
         }
 
         if (item.PropertyName == nameof(FrontedControlDesignItem.Name))
@@ -4489,7 +4489,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
         }
 
-        FinishPropertyEdit(item.PropertyName);
+        FinishPropertyEdit(item.PropertyName, refreshPropertyGrid);
         if (wasClamped)
         {
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
@@ -4503,8 +4503,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// </summary>
     /// <param name="item">要编辑的属性行。</param>
     /// <param name="newValue">待应用的属性值。</param>
+    /// <param name="refreshPropertyGrid">是否在提交后重建属性网格；自动提交场景应传 <see langword="false"/> 以避免输入框失焦。</param>
     /// <returns>属性已更新时返回 <see langword="true"/>。</returns>
-    public async Task<bool> ApplyPropertyEditAsync(FrontedPropertyEditorItem item, object? newValue)
+    public async Task<bool> ApplyPropertyEditAsync(FrontedPropertyEditorItem item, object? newValue, bool refreshPropertyGrid = true)
     {
         if (item.CanBrowseResource
             && newValue is string text
@@ -4513,7 +4514,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return await ApplyPropertyResourceSelectionAsync(item, text);
         }
 
-        return ApplyPropertyEdit(item, newValue);
+        return ApplyPropertyEdit(item, newValue, refreshPropertyGrid);
     }
 
     private IReadOnlyList<FrontedControlDesignItem> GetPropertyEditTargets(string propertyName)
@@ -4548,7 +4549,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool ApplySchemaPropertyEdit(
         FrontedPropertyEditorItem item,
         FrontedV3PropertyDefinition schemaProperty,
-        object? newValue)
+        object? newValue,
+        bool refreshPropertyGrid = true)
     {
         if (_selectedTarget is null || _selectedTarget.DesignItem is not { } designItem)
         {
@@ -4626,8 +4628,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
         }
 
-        FinishPropertyEdit(item.PropertyName);
-        OnDesignItemGeometryChanged(renderPreview: true);
+        FinishPropertyEdit(item.PropertyName, refreshPropertyGrid);
+        OnDesignItemGeometryChanged(renderPreview: true, refreshPropertyGrid: refreshPropertyGrid);
         return true;
     }
 
@@ -4905,14 +4907,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return ++_reloadLayoutVersion;
     }
 
-    private void ValidateCurrentDocument()
+    private void ValidateCurrentDocument(bool refreshPropertyGrid = true)
     {
         if (CurrentDocument is null || _validator is null)
         {
             return;
         }
 
-        ApplyValidationMessages(_validator.Validate(CurrentDocument));
+        ApplyValidationMessages(_validator.Validate(CurrentDocument), refreshPropertyGrid);
     }
 
     private void ScheduleValidationAndPreviewRender(string reason)
@@ -5520,12 +5522,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyEditBuffers.Remove(propertyName);
     }
 
-    private void FinishPropertyEdit(string propertyName)
+    private void FinishPropertyEdit(string propertyName, bool refreshPropertyGrid = true)
     {
         ClearPropertyEditError(propertyName);
         RefreshDirtyState();
         RebuildFilteredDesignItems();
-        ValidateCurrentDocument();
+        ValidateCurrentDocument(refreshPropertyGrid);
         RequestPreviewRenderCurrentDocument();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
     }
@@ -6046,14 +6048,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    private void OnDesignItemGeometryChanged(bool renderPreview)
+    private void OnDesignItemGeometryChanged(bool renderPreview, bool refreshPropertyGrid = true)
     {
         RefreshDirtyState();
         RefreshSelectedControlDisplay();
 
         if (renderPreview)
         {
-            ValidateCurrentDocument();
+            ValidateCurrentDocument(refreshPropertyGrid);
             RequestPreviewRenderCurrentDocument();
         }
     }

@@ -42,21 +42,14 @@ internal sealed class SmartBpRecognitionSettingsService : ISmartBpRecognitionSet
         }
 
         Settings.OcrRecognitionIntervalMs = Math.Clamp(Settings.OcrRecognitionIntervalMs, 100, 5000);
-        Settings.OcrFieldStaleMilliseconds = Math.Clamp(Settings.OcrFieldStaleMilliseconds, 250, 30000);
         Settings.OcrBackfillLookBehindSteps = Math.Clamp(Settings.OcrBackfillLookBehindSteps, 0, 20);
-        Settings.RecognitionBackfillLookBehindSteps = Math.Clamp(Settings.RecognitionBackfillLookBehindSteps, 0, 20);
-        Settings.RecognitionFieldStaleMilliseconds = Math.Clamp(Settings.RecognitionFieldStaleMilliseconds, 250, 30000);
         Settings.RecognitionFrameBufferMilliseconds = Math.Clamp(Settings.RecognitionFrameBufferMilliseconds, 250, 5000);
         Settings.RecognitionTransitionLookBehindMilliseconds = Math.Clamp(Settings.RecognitionTransitionLookBehindMilliseconds, 100, 5000);
         Settings.RecognitionTransitionReplayMinimumConfidence = Math.Clamp(Settings.RecognitionTransitionReplayMinimumConfidence, 0, 1);
+        Settings.RecognitionSamplingIntervalMilliseconds = Math.Clamp(Settings.RecognitionSamplingIntervalMilliseconds, 50, 1000);
         Settings.RecognitionCropChangeThreshold = Math.Clamp(Settings.RecognitionCropChangeThreshold, .001, 1);
         Settings.RecognitionCropStableFrames = Math.Clamp(Settings.RecognitionCropStableFrames, 1, 10);
         Settings.RequiredStableSnapshots = Math.Clamp(Settings.RequiredStableSnapshots, 1, 5);
-        Settings.GuidanceSyncLookAheadSteps = Math.Clamp(Settings.GuidanceSyncLookAheadSteps, 1, 20);
-        Settings.SmartBpProgressMismatchConfirmationCount = Math.Clamp(Settings.SmartBpProgressMismatchConfirmationCount, 1, 10);
-        Settings.SmartBpProgressAutoCorrectionCooldownMs = Math.Clamp(Settings.SmartBpProgressAutoCorrectionCooldownMs, 1000, 60000);
-        Settings.SmartBpProgressInferenceMinimumScore = Math.Clamp(Settings.SmartBpProgressInferenceMinimumScore, 0, 1);
-        Settings.SmartBpProgressInferenceMinimumScoreMargin = Math.Clamp(Settings.SmartBpProgressInferenceMinimumScoreMargin, 0, 1);
         Settings.TesseractDefaultPsm = Math.Clamp(Settings.TesseractDefaultPsm, 0, 13);
         Settings.TesseractMaxPreprocessVariants = Math.Clamp(Settings.TesseractMaxPreprocessVariants, 1, 3);
         Settings.TesseractLanguages = string.IsNullOrWhiteSpace(Settings.TesseractLanguages) ? "chi_sim+eng" : Settings.TesseractLanguages.Trim();

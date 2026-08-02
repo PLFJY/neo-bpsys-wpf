@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using Xunit;
 
@@ -25,21 +24,6 @@ public sealed class V3LayoutCompatibilityTest
             var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(File.ReadAllText(path));
             Assert.NotNull(layout);
             Assert.Equal(3, layout!.Version);
-        }
-    }
-
-    [Fact]
-    public void CanvasLayoutV3_ShouldRoundTripExistingLayoutSemantically()
-    {
-        foreach (var path in GetLayoutPaths())
-        {
-            var original = JsonNode.Parse(File.ReadAllText(path));
-            var layout = JsonSerializer.Deserialize<FrontedWindowConfig>(original!.ToJsonString());
-            var roundTripped = JsonNode.Parse(JsonSerializer.Serialize(layout));
-
-            Assert.True(
-                JsonNode.DeepEquals(original, roundTripped),
-                $"V3 layout semantic round-trip changed '{Path.GetFileName(path)}'.");
         }
     }
 

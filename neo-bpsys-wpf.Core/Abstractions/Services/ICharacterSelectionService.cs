@@ -13,7 +13,6 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <param name="Camp">限定匹配的角色阵营。</param>
 /// <param name="Character">解析到的角色；未解析或歧义时为 <see langword="null"/>。</param>
 /// <param name="CanonicalName">角色规范名称。</param>
-/// <param name="CharacterKey">角色稳定标识，优先使用图片文件名。</param>
 /// <param name="Score">匹配分数。</param>
 /// <param name="MatchMode">匹配模式。</param>
 /// <param name="IsAutoApplySafe">是否足够安全，可由上层自动应用。</param>
@@ -23,7 +22,6 @@ public sealed record CharacterResolveResult(
     Camp Camp,
     Character? Character,
     string? CanonicalName,
-    string? CharacterKey,
     double Score,
     string MatchMode,
     bool IsAutoApplySafe,
@@ -46,6 +44,12 @@ public sealed record CharacterResolveApplyResult(
 /// </summary>
 public interface ICharacterSelectionService
 {
+    /// <summary>
+    /// 获取主程序当前持有的权威 BP 槽位提交状态。
+    /// </summary>
+    /// <returns>绑定当前 Game Guid 与 GameProgress 的不可变快照。</returns>
+    BpSlotCommitStateSnapshot GetCurrentBpSlotCommitState();
+
     /// <summary>
     /// 根据识别文本和阵营返回详细角色匹配信息。
     /// </summary>
@@ -135,6 +139,30 @@ public interface ICharacterSelectionService
     /// <param name="character">被禁用的角色</param>
     /// <param name="playAnimation">是否播放动画</param>
     Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true);
+
+    /// <summary>
+    /// 原子提交一个明确为空的 Ban 操作。
+    /// </summary>
+    /// <param name="camp">目标阵营。</param>
+    /// <param name="index">Ban 槽位索引。</param>
+    /// <param name="playAnimation">是否播放动画；当前 Ban 实现不使用该参数。</param>
+    /// <returns>提交完成任务。</returns>
+    Task CommitEmptyBanAsync(Camp camp, int index, bool playAnimation = true);
+
+    /// <summary>
+    /// 原子提交一个明确为空的求生者 Pick 操作。
+    /// </summary>
+    /// <param name="playerIndex">求生者槽位索引。</param>
+    /// <param name="playAnimation">是否播放动画。</param>
+    /// <returns>提交完成任务。</returns>
+    Task CommitEmptySurvivorPickAsync(int playerIndex, bool playAnimation = true);
+
+    /// <summary>
+    /// 原子提交一个明确为空的监管者 Pick 操作。
+    /// </summary>
+    /// <param name="playAnimation">是否播放动画。</param>
+    /// <returns>提交完成任务。</returns>
+    Task CommitEmptyHunterPickAsync(bool playAnimation = true);
 
     /// <summary>
     /// 互换求生者角色
