@@ -22,9 +22,9 @@ namespace neo_bpsys_wpf.Services.SmartBpModule;
 /// </summary>
 public sealed class SmartBpModuleManager
 {
-    private const string ReleaseApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
-    private const string ModuleManifestDownloadMirror = "https://gh.plfjy.top/";
+    private const string GitHubReleaseDownloadBaseUrl = "https://github.com/PLFJY/neo-bpsys-wpf/releases/download";
     private const string ModuleManifestAssetName = "SmartBpModuleManifest.json";
+    private const string ModuleManifestFallbackBaseUrl = "https://smartbp-module-manifest.plfjy.top/";
     private const string ModuleRegistrySubKey = @"Software\neo-bpsys-wpf\SmartBpModule";
     private const string ModuleRegistryRootValueName = "ModuleRoot";
     private const string PendingArchiveImportDirectoryName = "SmartBpModulePending";
@@ -1711,47 +1711,58 @@ public sealed class SmartBpModuleManager
 
     /// <summary>
     /// 获取与当前应用版本匹配的发布标签中附带的 SmartBP 模块 manifest。
+    /// 优先直接访问 GitHub Releases 下载当前 tag 对应的 <c>SmartBpModuleManifest.json</c>，
+    /// 失败时回退到 <c>https://smartbp-module-manifest.plfjy.top/?tag={tag}</c> 获取。
+    /// 只检查当前应用版本对应的 tag，不会获取最新 release。
     /// </summary>
     /// <returns>要求的模块 manifest；无法获取发布元数据时返回 <see langword="null"/>。</returns>
     private async Task<SmartBpModuleManifest?> TryFetchCurrentTagManifestAsync()
+    {
+        var tag = AppConstants.AppVersion;
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            _logger.LogWarning("Skipped SmartBP module manifest fetch because current app version is empty.");
+            return null;
+        }
+
+        var encodedTag = Uri.EscapeDataString(tag);
+
+        // 优先直接访问 GitHub Releases 获取当前 tag 的 SmartBpModuleManifest.json
+        var githubUrl = $"{GitHubReleaseDownloadBaseUrl}/{encodedTag}/{ModuleManifestAssetName}";
+        var manifest = await TryDownloadModuleManifestAsync(githubUrl, "GitHub Releases");
+        if (manifest != null)
+            return manifest;
+
+        // Fallback 到 smartbp-module-manifest.plfjy.top
+        var fallbackUrl = $"{ModuleManifestFallbackBaseUrl}?tag={encodedTag}";
+        return await TryDownloadModuleManifestAsync(fallbackUrl, "fallback manifest proxy");
+    }
+
+    /// <summary>
+    /// 从指定 URL 下载并反序列化 SmartBP 模块 manifest。
+    /// </summary>
+    /// <param name="url">manifest JSON 下载地址。</param>
+    /// <param name="sourceLabel">用于日志的来源标签。</param>
+    /// <returns>成功下载并反序列化时返回 manifest；失败时返回 <see langword="null"/>。</returns>
+    private async Task<SmartBpModuleManifest?> TryDownloadModuleManifestAsync(string url, string sourceLabel)
     {
         try
         {
             using var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(AppConstants.AppName);
-            var releaseResponse = await httpClient.GetAsync(ReleaseApiUrl);
-            releaseResponse.EnsureSuccessStatusCode();
-            var releaseJson = await releaseResponse.Content.ReadAsStringAsync();
-            var releases = JsonSerializer.Deserialize<ReleaseInfo[]>(releaseJson, JsonOptions) ?? [];
-            _logger.LogInformation("Fetched SmartBP release metadata from forwarded API. ReleaseCount={ReleaseCount}", releases.Length);
-            var currentRelease = releases.FirstOrDefault(release =>
-                string.Equals(release.TagName, AppConstants.AppVersion, StringComparison.OrdinalIgnoreCase));
-            if (currentRelease == null)
-            {
-                _logger.LogWarning(
-                    "SmartBP module release tag was not found from forwarded release API. Tag={Tag}",
-                    AppConstants.AppVersion);
-                return null;
-            }
-
-            var manifestAsset = currentRelease.Assets.FirstOrDefault(asset =>
-                string.Equals(asset.Name, ModuleManifestAssetName, StringComparison.OrdinalIgnoreCase));
-            if (manifestAsset == null || string.IsNullOrWhiteSpace(manifestAsset.BrowserDownloadUrl))
-            {
-                _logger.LogWarning(
-                    "SmartBP module manifest asset was not found from forwarded release API. Tag={Tag}",
-                    AppConstants.AppVersion);
-                return null;
-            }
-
-            var url = ModuleManifestDownloadMirror + manifestAsset.BrowserDownloadUrl;
-            _logger.LogInformation("Downloading SmartBP module manifest. Url={Url}", url);
+            _logger.LogInformation("Downloading SmartBP module manifest from {Source}. Url={Url}", sourceLabel, url);
             var json = await httpClient.GetStringAsync(url);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                _logger.LogWarning("SmartBP module manifest content was empty from {Source}. Url={Url}", sourceLabel, url);
+                return null;
+            }
+
             return JsonSerializer.Deserialize<SmartBpModuleManifest>(json, JsonOptions);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to fetch SmartBP module manifest for current app tag. Local module use is not blocked.");
+            _logger.LogWarning(ex, "Failed to fetch SmartBP module manifest from {Source}. Url={Url}", sourceLabel, url);
             return null;
         }
     }
