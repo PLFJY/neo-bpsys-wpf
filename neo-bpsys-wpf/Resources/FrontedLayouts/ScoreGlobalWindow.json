@@ -17,7 +17,7 @@
     "EnableBoModeStates": true,
     "BoModeStates": {
       "Bo3": {
-        "BackgroundImage": "Resources/scoreGlobal_bo3.png",
+        "BackgroundImage": "Resources/scoreGlobal_Bo3.png",
         "RequiredPlugins": [],
         "Controls": {
           "HomeTeamName": {
@@ -118,7 +118,7 @@
             "GlowRadius": 20,
             "GlowOpacity": 1
           },
-          "SurTeamLogo": {
+          "HomeTeamLogo": {
             "SizingMode": "FillContainer",
             "ImagePath": null,
             "Stretch": "Fill",
@@ -150,7 +150,7 @@
             "Height": 40,
             "ZIndex": 2,
             "Visibility": "Visible",
-            "BindingPath": "MainTeam.Logo",
+            "BindingPath": "HomeTeam.Logo",
             "IsGaussianBlurEnabled": false,
             "GaussianBlurRadius": 0,
             "IsShadowEnabled": false,
@@ -213,7 +213,7 @@
             "GlowRadius": 20,
             "GlowOpacity": 1
           },
-          "AwayTeamLogo": {
+          "HunTeamLogo": {
             "SizingMode": "FillContainer",
             "ImagePath": null,
             "Stretch": "Fill",
@@ -289,7 +289,7 @@
             "FontSize": 40,
             "ControlType": "Text",
             "Left": 939,
-            "Top": 144,
+            "Top": 148,
             "Width": 87,
             "Height": null,
             "ZIndex": 2,
@@ -583,7 +583,7 @@
             "RadiusX": 0,
             "RadiusY": 0,
             "TintColor": "#FFFFFFFF",
-            "TintBindingPath": "CurrentGame.SurTeam.ColorHex",
+            "TintBindingPath": "HomeTeam.ColorHex",
             "TintMode": 2,
             "TintStrength": 1,
             "TextureStrength": 0.45,
@@ -614,7 +614,7 @@
             "RadiusX": 0,
             "RadiusY": 0,
             "TintColor": "#FFFFFFFF",
-            "TintBindingPath": "CurrentGame.HunTeam.ColorHex",
+            "TintBindingPath": "AwayTeam.ColorHex",
             "TintMode": 2,
             "TintStrength": 1,
             "TextureStrength": 0.45,
@@ -894,7 +894,7 @@
             "BehaviorGuid": "019efc5e-63f1-760f-9c79-f8a8d94045a5",
             "ControlType": "GlobalScoreRow",
             "Left": 166.5,
-            "Top": 147,
+            "Top": 147.5,
             "Width": 1156.5,
             "Height": 36,
             "ZIndex": 3,
