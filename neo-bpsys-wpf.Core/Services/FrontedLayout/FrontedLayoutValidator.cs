@@ -202,6 +202,7 @@ public class FrontedLayoutValidator
         {
             ValidateCommonControlFields(item, messages);
             ValidateKnownControlConfig(item, messages);
+            ValidateDynamicBindingPaths(item, messages);
             if (item.Config is BackgroundTintFrontedControlConfigBase
                 && string.IsNullOrWhiteSpace(document.CanvasConfig.BackgroundImage))
             {
@@ -211,6 +212,35 @@ public class FrontedLayoutValidator
                     item.Name,
                     nameof(FrontedCanvasConfig.BackgroundImage)));
             }
+        }
+    }
+
+    private static void ValidateDynamicBindingPaths(
+        FrontedControlDesignItem item,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        var paths = item.Config.GetType().GetProperties()
+            .Where(property => property.PropertyType == typeof(string)
+                               && (property.Name == nameof(FrontedControlConfigBase.BindingPath)
+                                   || property.Name.EndsWith("BindingPath", StringComparison.Ordinal)))
+            .Select(property => (PropertyName: property.Name, Path: property.GetValue(item.Config) as string))
+            .Concat(item.Config is TextFrontedControlConfig { TextBinding: { } expression }
+                ? expression.Sources.Select(source => (PropertyName: nameof(TextFrontedControlConfig.TextBinding), Path: (string?)source.Path))
+                : []);
+
+        foreach (var (propertyName, path) in paths)
+        {
+            if (string.IsNullOrWhiteSpace(path)
+                || FrontedBindingPathValidator.TryValidateDynamicPath(path, out var error))
+            {
+                continue;
+            }
+
+            messages.Add(Error(
+                "DynamicBindingPathInvalid",
+                $"Control '{item.Name}' BindingPath '{path}' is invalid: {error}",
+                item.Name,
+                propertyName));
         }
     }
 

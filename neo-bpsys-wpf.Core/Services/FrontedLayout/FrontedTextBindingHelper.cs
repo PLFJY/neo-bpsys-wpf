@@ -27,11 +27,7 @@ public static class FrontedTextBindingHelper
 
         foreach (var source in expression.GetActiveSources())
         {
-            multiBinding.Bindings.Add(new System.Windows.Data.Binding(source.Path)
-            {
-                Source = sharedDataService,
-                Mode = BindingMode.OneWay
-            });
+            multiBinding.Bindings.Add(FrontedBindingFactory.Create(source.Path, sharedDataService));
         }
 
         return multiBinding;

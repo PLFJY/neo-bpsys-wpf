@@ -48,10 +48,10 @@ internal static class ImageFrontedControlLayoutHelper
     {
         if (!string.IsNullOrWhiteSpace(config.BindingPath))
         {
-            BindingOperations.SetBinding(image, Image.SourceProperty, new Binding(config.BindingPath)
-            {
-                Source = context.SharedDataService
-            });
+            BindingOperations.SetBinding(
+                image,
+                Image.SourceProperty,
+                FrontedBindingFactory.Create(config.BindingPath, context.SharedDataService));
             return;
         }
 
@@ -183,11 +183,9 @@ internal static class ImageFrontedControlLayoutHelper
         RegisterGeneratedChildName(root, overlayName, overlay);
         if (!string.IsNullOrWhiteSpace(config.LockVisibilityBindingPath))
         {
-            BindingOperations.SetBinding(overlay, UIElement.VisibilityProperty, new Binding(config.LockVisibilityBindingPath)
-            {
-                Source = context.SharedDataService,
-                Converter = new OverlayVisibilityConverter(config.LockVisibleWhen)
-            });
+            var binding = FrontedBindingFactory.Create(config.LockVisibilityBindingPath, context.SharedDataService);
+            binding.Converter = new OverlayVisibilityConverter(config.LockVisibleWhen);
+            BindingOperations.SetBinding(overlay, UIElement.VisibilityProperty, binding);
         }
         else
         {

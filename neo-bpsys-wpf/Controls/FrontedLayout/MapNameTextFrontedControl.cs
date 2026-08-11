@@ -4,8 +4,8 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -85,10 +85,10 @@ public class MapNameTextFrontedControl : FrontedV3ControlBase
                 logger);
 
             Child = _textBlock;
-            BindingOperations.SetBinding(this, MapValueProperty, new Binding(GetBindingPath(config))
-            {
-                Source = sharedDataService
-            });
+            BindingOperations.SetBinding(
+                this,
+                MapValueProperty,
+                FrontedBindingFactory.Create(GetBindingPath(config), sharedDataService));
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }

@@ -57,15 +57,12 @@ public static class FrontedTextForegroundBindingHelper
         if (!string.IsNullOrWhiteSpace(colorBindingPath))
         {
             var fallback = CreateBrush(staticColor, Colors.White, logger, propertyName);
-            BindingOperations.SetBinding(textBlock, TextBlock.ForegroundProperty, new Binding(colorBindingPath)
-            {
-                Source = sharedDataService,
-                Mode = BindingMode.OneWay,
-                Converter = new HexToBrushConverter(logger),
-                ConverterParameter = fallback,
-                FallbackValue = fallback,
-                TargetNullValue = fallback
-            });
+            var binding = FrontedBindingFactory.Create(colorBindingPath, sharedDataService);
+            binding.Converter = new HexToBrushConverter(logger);
+            binding.ConverterParameter = fallback;
+            binding.FallbackValue = fallback;
+            binding.TargetNullValue = fallback;
+            BindingOperations.SetBinding(textBlock, TextBlock.ForegroundProperty, binding);
             return;
         }
 

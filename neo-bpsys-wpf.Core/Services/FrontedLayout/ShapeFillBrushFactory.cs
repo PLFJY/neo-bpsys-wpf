@@ -104,15 +104,14 @@ internal static class ShapeFillBrushFactory
         string path,
         FrontedControlBuildContext context,
         IValueConverter converter,
-        object fallbackValue) =>
-        new(path)
-        {
-            Source = context.SharedDataService,
-            Mode = BindingMode.OneWay,
-            Converter = converter,
-            FallbackValue = fallbackValue,
-            TargetNullValue = fallbackValue
-        };
+        object fallbackValue)
+    {
+        var binding = FrontedBindingFactory.Create(path, context.SharedDataService);
+        binding.Converter = converter;
+        binding.FallbackValue = fallbackValue;
+        binding.TargetNullValue = fallbackValue;
+        return binding;
+    }
 
     private static SolidColorBrush CreateBrush(
         string? value,

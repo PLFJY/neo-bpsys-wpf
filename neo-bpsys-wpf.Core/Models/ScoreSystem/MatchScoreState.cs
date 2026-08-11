@@ -43,6 +43,7 @@ public partial class MatchScoreState : ObservableObjectBase
     private TeamType _currentDisplayHunTeamType = TeamType.AwayTeam;
     private bool _currentDisplayIsBo3Mode;
     private bool _lastRecalculateIsBo3Mode;
+    private readonly MatchScoreHalfByProgressView _halfByProgress;
 
     /// <summary>
     /// 创建比分状态。未提供 <paramref name="games"/> 时会创建 BO3/BO5 支持的默认比分单元。
@@ -52,9 +53,23 @@ public partial class MatchScoreState : ObservableObjectBase
     public MatchScoreState(ObservableCollection<ScoreGame>? games = null)
     {
         _games = games ?? CreateDefaultGames();
+        _halfByProgress = new MatchScoreHalfByProgressView(this);
         SubscribeGames(_games);
         Recalculate(isBo3Mode: false);
     }
+
+    /// <summary>
+    /// 按 <see cref="GameProgress"/> 和当前 BO 上下文取得单半场比分的只读索引入口。
+    /// </summary>
+    /// <remarks>
+    /// 在 v3 BindingPath 中使用
+    /// <c>CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].SurMinorScore</c>。
+    /// </remarks>
+    [JsonIgnore]
+    [FrontedBindable(IncludeChildren = false)]
+    public MatchScoreHalfByProgressView HalfByProgress => _halfByProgress;
+
+    internal bool LastRecalculateIsBo3Mode => _lastRecalculateIsBo3Mode;
 
     /// <summary>
     /// 可序列化的比分单元集合，包括普通局和加赛局。
@@ -330,6 +345,7 @@ public partial class MatchScoreState : ObservableObjectBase
     public void Recalculate(bool isBo3Mode)
     {
         _lastRecalculateIsBo3Mode = isBo3Mode;
+        OnPropertyChanged(nameof(HalfByProgress));
 
         var homeMajorWin = 0;
         var homeMajorTie = 0;

@@ -17,13 +17,13 @@ public class ScoreWindowLayoutBindingTest
             "CurrentGame.MatchScore.CurrentSurTeamMajorText",
             GetBindingPath(surLayout, "SurTeamMajorPoint"));
         Assert.Equal(
-            "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText",
+            "CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].SurMinorScore",
             GetBindingPath(surLayout, "GameScoresSur"));
         Assert.Equal(
             "CurrentGame.MatchScore.CurrentHunTeamMajorText",
             GetBindingPath(hunLayout, "HunTeamMajorPoint"));
         Assert.Equal(
-            "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText",
+            "CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].HunMinorScore",
             GetBindingPath(hunLayout, "GameScoresHun"));
     }
 
