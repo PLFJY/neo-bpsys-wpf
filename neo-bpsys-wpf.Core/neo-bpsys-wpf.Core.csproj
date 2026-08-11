@@ -9,7 +9,7 @@
         <CETCompat>false</CETCompat>
         <Configurations>Debug;Release;Beta;Preview</Configurations>
 		<AssemblyVersion>3.0.0.0</AssemblyVersion>
-		<Version>3.0.5</Version>
+		<Version>3.0.6</Version>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
