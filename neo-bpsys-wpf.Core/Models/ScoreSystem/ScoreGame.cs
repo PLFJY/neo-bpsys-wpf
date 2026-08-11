@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
@@ -11,6 +12,7 @@ namespace neo_bpsys_wpf.Core.Models.ScoreSystem;
 /// 一个 <see cref="ScoreGame"/> 由上下两个 <see cref="ScoreHalf"/> 组成。只有两半都有结果且主客队小比分都能派生时，
 /// 此 Game 才参与大比分胜负计算。
 /// </remarks>
+[FrontedBindingObject]
 public partial class ScoreGame : ObservableObjectBase
 {
     private ScoreGameKey _key;

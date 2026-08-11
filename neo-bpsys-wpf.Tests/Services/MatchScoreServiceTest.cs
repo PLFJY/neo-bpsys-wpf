@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xunit;
@@ -257,6 +258,73 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
+    public void CurrentHalfAndGameScoreExposeDistinctTeamMappedLevels()
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape4);
+
+        currentGame.Swap();
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+        service.SetCurrentHalfResult(GameResult.Out3);
+
+        var scoreGame = currentGame.MatchScore.GetGame(GameProgress.Game1SecondHalf)!;
+        var scoreHalf = scoreGame.SecondHalf;
+
+        Assert.Same(scoreGame, currentGame.MatchScore.CurrentGameScore);
+        Assert.Same(scoreHalf, currentGame.MatchScore.CurrentHalf);
+        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamMinorHalfScoreText);
+        Assert.Equal("3", currentGame.MatchScore.CurrentHunTeamMinorHalfScoreText);
+        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamMinorGameScoreText);
+        Assert.Equal("8", currentGame.MatchScore.CurrentHunTeamMinorGameScoreText);
+        Assert.Equal(currentGame.MatchScore.CurrentSurTeamMinorGameScoreText,
+            currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal(currentGame.MatchScore.CurrentHunTeamMinorGameScoreText,
+            currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+    }
+
+    [Fact]
+    public void UnrecordedCurrentHalfShowsDashWithoutChangingGameScore()
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape4);
+
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+
+        Assert.Same(currentGame.MatchScore.Games.Single(game =>
+                game.Key == new ScoreGameKey(1, ScoreGameKind.Normal)).SecondHalf,
+            currentGame.MatchScore.CurrentHalf);
+        Assert.Equal("-", currentGame.MatchScore.CurrentSurTeamMinorHalfScoreText);
+        Assert.Equal("-", currentGame.MatchScore.CurrentHunTeamMinorHalfScoreText);
+        Assert.Equal("5", currentGame.MatchScore.CurrentSurTeamMinorGameScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorGameScoreText);
+    }
+
+    [Fact]
+    public void CurrentScoreObjectsNotifyWhenProgressAndHalfChange()
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.RefreshCurrentProgress();
+        var changedProperties = new HashSet<string>();
+        currentGame.MatchScore.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName is not null)
+                changedProperties.Add(args.PropertyName);
+        };
+
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+        service.SetCurrentHalfResult(GameResult.Tie);
+
+        Assert.Contains(nameof(MatchScoreState.CurrentGameScore), changedProperties);
+        Assert.Contains(nameof(MatchScoreState.CurrentHalf), changedProperties);
+        Assert.Contains(nameof(MatchScoreState.CurrentSurTeamMinorHalfScoreText), changedProperties);
+        Assert.Contains(nameof(MatchScoreState.CurrentHunTeamMinorHalfScoreText), changedProperties);
+        Assert.Contains(nameof(MatchScoreState.CurrentSurTeamMinorGameScoreText), changedProperties);
+        Assert.Contains(nameof(MatchScoreState.CurrentHunTeamMinorGameScoreText), changedProperties);
+        Assert.Contains(nameof(MatchScoreState.CurrentSurTeamMinorScoreText), changedProperties);
+        Assert.Contains(nameof(MatchScoreState.CurrentHunTeamMinorScoreText), changedProperties);
+    }
+
+    [Fact]
     public void CurrentCampMajorTextUpdatesAfterBothHalvesAreRecorded()
     {
         var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
@@ -292,17 +360,24 @@ public class MatchScoreServiceTest
     [Fact]
     public void CurrentHalfResolutionStillUsesBoMode()
     {
-        var (_, _, bo3Service) =
+        var (bo3Game, _, bo3Service) =
             CreateScorePageTestServices(GameProgress.Game3OvertimeFirstHalf, isBo3Mode: true);
-        var (_, _, bo5Service) =
+        var (bo5Game, _, bo5Service) =
             CreateScorePageTestServices(GameProgress.Game4FirstHalf, isBo3Mode: false);
+
+        bo3Service.RefreshCurrentProgress();
+        bo5Service.RefreshCurrentProgress();
 
         Assert.Equal(
             new ScoreGameKey(3, ScoreGameKind.Overtime),
             bo3Service.CurrentGameScore?.Key);
+        Assert.Equal(bo3Service.CurrentGameScore, bo3Game.MatchScore.CurrentGameScore);
+        Assert.Same(bo3Game.MatchScore.CurrentGameScore?.FirstHalf, bo3Game.MatchScore.CurrentHalf);
         Assert.Equal(
             new ScoreGameKey(4, ScoreGameKind.Normal),
             bo5Service.CurrentGameScore?.Key);
+        Assert.Equal(bo5Service.CurrentGameScore, bo5Game.MatchScore.CurrentGameScore);
+        Assert.Same(bo5Game.MatchScore.CurrentGameScore?.FirstHalf, bo5Game.MatchScore.CurrentHalf);
     }
 
     [Fact]

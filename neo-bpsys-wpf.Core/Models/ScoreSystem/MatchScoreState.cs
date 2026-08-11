@@ -30,8 +30,10 @@ public partial class MatchScoreState : ObservableObjectBase
     private int _awayTotalMinorScore;
     private int _currentSurTeamTotalMinorScore;
     private int _currentHunTeamTotalMinorScore;
-    private string _currentSurTeamMinorScoreText = "0";
-    private string _currentHunTeamMinorScoreText = "0";
+    private string _currentSurTeamMinorGameScoreText = "0";
+    private string _currentHunTeamMinorGameScoreText = "0";
+    private string _currentSurTeamMinorHalfScoreText = "-";
+    private string _currentHunTeamMinorHalfScoreText = "-";
     private string _currentSurTeamMajorText = "W0  D0";
     private string _currentHunTeamMajorText = "W0  D0";
     private int _currentSurTeamMajorWin;
@@ -191,24 +193,78 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
-    /// 当前求生者队伍在局内比分窗口应显示的当前半场累计小比分（同 Game 内从第一半到当前半场已记录小比分之和）。
+    /// 当前 Game，从第一半累计到当前半场的求生者队伍小比分文本。
     /// </summary>
     [JsonIgnore]
-    public string CurrentSurTeamMinorScoreText
+    public string CurrentSurTeamMinorGameScoreText
     {
-        get => _currentSurTeamMinorScoreText;
-        private set => SetProperty(ref _currentSurTeamMinorScoreText, value);
+        get => _currentSurTeamMinorGameScoreText;
+        private set
+        {
+            if (SetProperty(ref _currentSurTeamMinorGameScoreText, value))
+                OnPropertyChanged(nameof(CurrentSurTeamMinorScoreText));
+        }
     }
 
     /// <summary>
-    /// 当前监管者队伍在局内比分窗口应显示的当前半场累计小比分（同 Game 内从第一半到当前半场已记录小比分之和）。
+    /// 兼容字段：当前 Game，从第一半累计到当前半场的求生者队伍小比分文本。
     /// </summary>
     [JsonIgnore]
-    public string CurrentHunTeamMinorScoreText
+    public string CurrentSurTeamMinorScoreText => CurrentSurTeamMinorGameScoreText;
+
+    /// <summary>
+    /// 当前 Game，从第一半累计到当前半场的监管者队伍小比分文本。
+    /// </summary>
+    [JsonIgnore]
+    public string CurrentHunTeamMinorGameScoreText
     {
-        get => _currentHunTeamMinorScoreText;
-        private set => SetProperty(ref _currentHunTeamMinorScoreText, value);
+        get => _currentHunTeamMinorGameScoreText;
+        private set
+        {
+            if (SetProperty(ref _currentHunTeamMinorGameScoreText, value))
+                OnPropertyChanged(nameof(CurrentHunTeamMinorScoreText));
+        }
     }
+
+    /// <summary>
+    /// 兼容字段：当前 Game，从第一半累计到当前半场的监管者队伍小比分文本。
+    /// </summary>
+    [JsonIgnore]
+    public string CurrentHunTeamMinorScoreText => CurrentHunTeamMinorGameScoreText;
+
+    /// <summary>
+    /// 当前单独半场的求生者队伍小比分文本；半场未记录时为 <c>-</c>。
+    /// </summary>
+    [JsonIgnore]
+    public string CurrentSurTeamMinorHalfScoreText
+    {
+        get => _currentSurTeamMinorHalfScoreText;
+        private set => SetProperty(ref _currentSurTeamMinorHalfScoreText, value);
+    }
+
+    /// <summary>
+    /// 当前单独半场的监管者队伍小比分文本；半场未记录时为 <c>-</c>。
+    /// </summary>
+    [JsonIgnore]
+    public string CurrentHunTeamMinorHalfScoreText
+    {
+        get => _currentHunTeamMinorHalfScoreText;
+        private set => SetProperty(ref _currentHunTeamMinorHalfScoreText, value);
+    }
+
+    /// <summary>
+    /// 当前对局进度对应的 ScoreGame。
+    /// </summary>
+    [JsonIgnore]
+    [FrontedBindable]
+    public ScoreGame? CurrentGameScore => GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode);
+
+    /// <summary>
+    /// 当前对局进度对应的 ScoreHalf。
+    /// </summary>
+    [JsonIgnore]
+    [FrontedBindable]
+    public ScoreHalf? CurrentHalf => GetHalf(_currentDisplayProgress, _currentDisplayIsBo3Mode);
 
     /// <summary>
     /// 当前求生者队伍对应的大比分文本。
@@ -427,25 +483,39 @@ public partial class MatchScoreState : ObservableObjectBase
         CurrentHunTeamMajorWin = hunWin;
         CurrentHunTeamMajorTie = hunTie;
 
-        var currentGame = GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode);
-        var currentHalfKind = ResolveHalfKind(_currentDisplayProgress);
-        if (currentGame == null || currentHalfKind == null)
+        var currentGame = CurrentGameScore;
+        var currentHalf = CurrentHalf;
+        if (currentGame == null || currentHalf == null)
         {
-            CurrentSurTeamMinorScoreText = "0";
-            CurrentHunTeamMinorScoreText = "0";
+            CurrentSurTeamMinorGameScoreText = "0";
+            CurrentHunTeamMinorGameScoreText = "0";
+            CurrentSurTeamMinorHalfScoreText = "-";
+            CurrentHunTeamMinorHalfScoreText = "-";
+            NotifyCurrentScoreObjectsChanged();
             return;
         }
 
         // 累计当前 Game 内从第一半到当前半场（含）的所有已记录半场小比分，按当前阵营映射。
         // 例：第一半 5:0、第二半录入平局 2:2 → 第二半显示 7:2；第二半未录入则显示 5:0。
-        var halvesToAccumulate = currentHalfKind == ScoreHalfKind.SecondHalf
+        var halvesToAccumulate = currentHalf.HalfKind == ScoreHalfKind.SecondHalf
             ? currentGame.Halves
             : currentGame.Halves.Take(1);
 
-        CurrentSurTeamMinorScoreText =
+        CurrentSurTeamMinorGameScoreText =
             FormatMinorScore(SumTeamMinorScore(halvesToAccumulate, _currentDisplaySurTeamType));
-        CurrentHunTeamMinorScoreText =
+        CurrentHunTeamMinorGameScoreText =
             FormatMinorScore(SumTeamMinorScore(halvesToAccumulate, _currentDisplayHunTeamType));
+        CurrentSurTeamMinorHalfScoreText =
+            FormatMinorScore(GetTeamMinorScore(currentHalf, _currentDisplaySurTeamType, fallbackToZero: false));
+        CurrentHunTeamMinorHalfScoreText =
+            FormatMinorScore(GetTeamMinorScore(currentHalf, _currentDisplayHunTeamType, fallbackToZero: false));
+        NotifyCurrentScoreObjectsChanged();
+    }
+
+    private void NotifyCurrentScoreObjectsChanged()
+    {
+        OnPropertyChanged(nameof(CurrentGameScore));
+        OnPropertyChanged(nameof(CurrentHalf));
     }
 
     private static int SumTeamMinorScore(IEnumerable<ScoreHalf> halves, TeamType teamType)

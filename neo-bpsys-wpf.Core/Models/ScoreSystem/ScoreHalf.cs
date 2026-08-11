@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Globalization;
 using System.Text.Json.Serialization;
 
@@ -12,6 +13,7 @@ namespace neo_bpsys_wpf.Core.Models.ScoreSystem;
 /// 半场会保存记录结果时的求生者 / 监管者对应主客队关系。这样导入对局、换边或后续改变当前阵营后，
 /// 历史比分仍能归属到当时正确的主队或客队。
 /// </remarks>
+[FrontedBindingObject]
 public partial class ScoreHalf : ObservableObjectBase
 {
     private GameProgress _progress;
