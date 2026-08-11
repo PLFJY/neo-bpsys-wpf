@@ -500,6 +500,12 @@ internal sealed class BindingPathObserver(ISharedDataService root, string path, 
     private void Rebuild()
     {
         foreach (var subscription in _subscriptions) subscription.Dispose(); _subscriptions.Clear();
+        if (FrontedBindingPathParser.ContainsDynamicIndexer(path)
+            && FrontedBindingPathParser.TryParse(path, out var dynamicPath, out _))
+        {
+            WebRendererBindingPathResolver.VisitDynamicPath(root, dynamicPath, Subscribe);
+            return;
+        }
         object? current = root;
         foreach (var part in WebRendererBindingPathResolver.Parts(path))
         {
@@ -522,6 +528,19 @@ public static class WebRendererBindingPathResolver
     /// <summary>解析由设计器生成的属性/索引路径。</summary>
     public static (object? Value, string? Diagnostic, string? SourceType) Resolve(ISharedDataService root, string path)
     {
+        if (FrontedBindingPathParser.ContainsDynamicIndexer(path))
+        {
+            if (!FrontedBindingPathParser.TryParse(path, out var dynamicPath, out _))
+            {
+                return (null, "InvalidBindingPath", null);
+            }
+
+            var value = ReadDynamicPath(root, root, dynamicPath, visit: null, out var diagnostic);
+            return diagnostic is null
+                ? (value, null, value?.GetType().FullName)
+                : (null, diagnostic, null);
+        }
+
         if (!IsValid(path)) return (null, "InvalidBindingPath", null);
         object? current = root;
         foreach (var part in Parts(path)) { current = ReadPart(current, part, out var diagnostic); if (diagnostic is not null) return (null, diagnostic, current?.GetType().FullName); }
@@ -537,5 +556,60 @@ public static class WebRendererBindingPathResolver
         while (remaining.StartsWith('[')) { var end = remaining.IndexOf(']'); if (end <= 1) { diagnostic = "InvalidBindingIndex"; return null; } var key = remaining[1..end].Trim('\'', '"'); if (current is IList list && int.TryParse(key, out var index) && index >= 0 && index < list.Count) current = list[index]; else if (current is IDictionary dictionary && dictionary.Contains(key)) current = dictionary[key]; else { diagnostic = "BindingIndexUnavailable"; return null; } remaining = remaining[(end + 1)..]; }
         return current;
     }
+
+    internal static void VisitDynamicPath(
+        ISharedDataService root,
+        FrontedBindingPath path,
+        Action<object?> visit) =>
+        _ = ReadDynamicPath(root, root, path, visit, out _);
+
+    private static object? ReadDynamicPath(
+        object root,
+        object? current,
+        FrontedBindingPath path,
+        Action<object?>? visit,
+        out string? diagnostic)
+    {
+        diagnostic = null;
+        foreach (var segment in path.Segments)
+        {
+            if (current is null)
+            {
+                diagnostic = "BindingReadUnavailable";
+                return null;
+            }
+
+            visit?.Invoke(current);
+            switch (segment)
+            {
+                case FrontedPropertyPathSegment propertySegment:
+                    if (!FrontedBindingPathValueAccessor.TryReadProperty(current, propertySegment.Name, out current))
+                    {
+                        diagnostic = "UnknownBindingMember";
+                        return null;
+                    }
+                    break;
+
+                case FrontedLiteralIndexerPathSegment literalSegment:
+                    if (!FrontedBindingPathValueAccessor.TryReadIndexer(current, literalSegment.Value, out current))
+                    {
+                        diagnostic = "BindingIndexUnavailable";
+                        return null;
+                    }
+                    break;
+
+                case FrontedDynamicIndexerPathSegment dynamicSegment:
+                    var indexValue = ReadDynamicPath(root, root, dynamicSegment.Path, visit, out var indexDiagnostic);
+                    if (indexDiagnostic is not null || !FrontedBindingPathValueAccessor.TryReadIndexer(current, indexValue, out current))
+                    {
+                        diagnostic = indexDiagnostic ?? "BindingIndexUnavailable";
+                        return null;
+                    }
+                    break;
+            }
+        }
+        return current;
+    }
+
     private static bool IsValid(string path) => !string.IsNullOrWhiteSpace(path) && !path.Contains('(') && !path.Contains("..", StringComparison.Ordinal);
 }

@@ -482,6 +482,40 @@ CurrentGame.SurTeam.Name
 CurrentGame.SurPlayerList[0].PictureShown
 ```
 
+### Dynamic Index Binding
+
+`BindingPath` 不是 Binding Browser 的白名单。除浏览器生成的普通路径外，也可以直接输入动态索引：
+
+```text
+Players[0].Name
+Players[CurrentGame.SelectedPlayerIndex].Name
+```
+
+方括号中的完整动态 path 始终从 `ISharedDataService` root 重新解析，不相对于前面的 `Players` 或其他中间对象解析。一个路径可包含多个动态索引，例如：
+
+```text
+Foo[Bar.Index].Items[Baz.SelectedIndex].Name
+```
+
+普通 property path 和静态索引（如 `[0]`、`['key']`）继续使用原生 WPF Binding。只有含动态索引的路径才会启用 v3 的动态订阅运行时；它会随索引值、路径中间属性、目标 item 属性以及 `INotifyCollectionChanged` 集合变更重新解析。
+
+第一阶段不是表达式语言。`[]` 内仅支持 literal index/key 或完整 Binding Path，不支持：
+
+```text
+[Index + 1]
+[Condition ? 0 : 1]
+[Method()]
+```
+
+Score System 的单半场小比分可使用：
+
+```text
+CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].SurMinorScore
+CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].HunMinorScore
+```
+
+`HalfByProgress` 复用比分状态的 BO3/BO5 进度解析，因此 numeric value 为 `6`/`7` 时会随当前 BO mode 正确区分 BO5 第四局与 BO3 第三局加赛；不要把 `GameProgress` numeric value 当作半场数组下标。
+
 ## 9. 旧 .bpui 兼容策略
 
 旧 `.bpui` 必须在导入前转换，不要在新的运行时渲染代码里长期保留 legacy 分支。`IFrontedLayoutPackageLegacyConverter` 负责处理旧包结构。新 `.bpui v3` 包格式、资源隔离和包管理规格见 [bpui-package-v3.md](bpui-package-v3.md)。

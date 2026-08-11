@@ -168,7 +168,7 @@
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText",
+              "Path": "CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].SurMinorScore",
               "DisplayName": null,
               "Format": null
             }

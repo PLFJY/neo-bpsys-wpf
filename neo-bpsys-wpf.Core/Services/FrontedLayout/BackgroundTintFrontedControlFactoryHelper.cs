@@ -69,16 +69,10 @@ internal static class BackgroundTintFrontedControlFactoryHelper
 
         if (!string.IsNullOrWhiteSpace(config.TintBindingPath))
         {
-            BindingOperations.SetBinding(
-                root,
-                BackgroundTintControlHost.TintColorValueProperty,
-                new Binding(config.TintBindingPath)
-                {
-                    Source = context.SharedDataService,
-                    Mode = BindingMode.OneWay,
-                    FallbackValue = ColorHelper.DefaultColorHex,
-                    TargetNullValue = ColorHelper.DefaultColorHex
-                });
+            var binding = FrontedBindingFactory.Create(config.TintBindingPath, context.SharedDataService);
+            binding.FallbackValue = ColorHelper.DefaultColorHex;
+            binding.TargetNullValue = ColorHelper.DefaultColorHex;
+            BindingOperations.SetBinding(root, BackgroundTintControlHost.TintColorValueProperty, binding);
         }
         else
         {

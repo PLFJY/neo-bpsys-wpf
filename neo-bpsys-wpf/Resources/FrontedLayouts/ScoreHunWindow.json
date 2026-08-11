@@ -199,7 +199,7 @@
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.CurrentHunTeamMinorScoreText",
+              "Path": "CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].HunMinorScore",
               "DisplayName": null,
               "Format": null
             }
