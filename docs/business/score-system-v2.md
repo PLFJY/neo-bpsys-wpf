@@ -73,6 +73,8 @@ ISharedDataService
 ```text
 MatchScoreState
   ├─ Games: collection<ScoreGame>
+  ├─ CurrentGameScore: ScoreGame?              [JsonIgnore]
+  ├─ CurrentHalf: ScoreHalf?                   [JsonIgnore]
   ├─ HomeMajorWin
   ├─ HomeMajorTie
   ├─ AwayMajorWin
@@ -83,13 +85,41 @@ MatchScoreState
   ├─ AwayTotalMinorScore
   ├─ CurrentSurTeamTotalMinorScore
   ├─ CurrentHunTeamTotalMinorScore
-  ├─ CurrentSurTeamMinorScoreText
-  ├─ CurrentHunTeamMinorScoreText
+  ├─ CurrentSurTeamMinorHalfScoreText
+  ├─ CurrentHunTeamMinorHalfScoreText
+  ├─ CurrentSurTeamMinorGameScoreText
+  ├─ CurrentHunTeamMinorGameScoreText
+  ├─ CurrentSurTeamMinorScoreText              (兼容 alias)
+  ├─ CurrentHunTeamMinorScoreText              (兼容 alias)
   ├─ CurrentSurTeamMajorText
   └─ CurrentHunTeamMajorText
 ```
 
 派生字段使用重算后写入的 observable 属性，并以 `[JsonIgnore]` 排除在持久化之外。`Games` 内的半场结果、记录时主客队映射和 `ScoreGameKey` 是持久化数据。
+
+前台小比分严格分为三层：
+
+| 层级 | 字段 | 语义 |
+| --- | --- | --- |
+| Half-level | `CurrentSurTeamMinorHalfScoreText` / `CurrentHunTeamMinorHalfScoreText` | 当前 `GameProgress` 对应的单独 `ScoreHalf`，按当前 Sur/Hun 队伍的 Home/Away 身份读取。 |
+| Game-level | `CurrentSurTeamMinorGameScoreText` / `CurrentHunTeamMinorGameScoreText` | 当前 `ScoreGame` 从 FirstHalf 累计到当前 Half 的已记录小比分。 |
+| Match-level | `CurrentSurTeamTotalMinorScore` / `CurrentHunTeamTotalMinorScore` | 整场比赛所有已记录半场的小比分累计，按当前 Sur/Hun 队伍身份读取。 |
+
+`CurrentSurTeamMinorScoreText` 和 `CurrentHunTeamMinorScoreText` 保留为兼容旧 v3 package 与旧布局的 alias，语义仍是 Game-level running score。两套字段只有一份权威计算结果。`CurrentGameScore` 与 `CurrentHalf` 不是持久化状态，而是直接使用 `GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode)` 和 `GetHalf(_currentDisplayProgress, _currentDisplayIsBo3Mode)` 解析，避免复制 `GameProgress` 映射。
+
+例如：
+
+```text
+FirstHalf  = 5:0
+SecondHalf = 2:2
+
+当前 SecondHalf 时：
+HalfScore  = 2:2
+GameScore  = 7:2
+MatchTotal = 整场所有已记录 Half 的累计
+```
+
+这里的 `CurrentSurTeam...` / `CurrentHunTeam...` 始终是 Team 视角，不是固定的 Sur/Hun camp 字段直取。Half-level 和 Game-level 都通过 `HomeMinorScore` / `AwayMinorScore` 及当前队伍 `TeamType` 映射读取，因此换边后历史比分仍归属正确队伍。
 
 ### 3.2 ScoreGame
 
@@ -277,8 +307,9 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 | `HomeMajorText` / `AwayMajorText` | 前台大比分文本，建议保持当前 `W{Win}  D{Tie}` 风格。 |
 | `HomeTotalMinorScore` / `AwayTotalMinorScore` | 所有已记录半场的主客小比分合计。 |
 | `CurrentSurTeamTotalMinorScore` / `CurrentHunTeamTotalMinorScore` | 将全场主客总小比分按当前求生者/监管者阵营映射后的合计；换边时随当前队伍映射刷新。 |
-| `CurrentSurTeamMinorScoreText` | 当前求生者队伍在当前半场窗口中应显示的累计小比分文本（同 Game 内从第一半到当前半场已记录小比分之和）。 |
-| `CurrentHunTeamMinorScoreText` | 当前监管者队伍在当前半场窗口中应显示的累计小比分文本（同 Game 内从第一半到当前半场已记录小比分之和）。 |
+| `CurrentSurTeamMinorHalfScoreText` / `CurrentHunTeamMinorHalfScoreText` | 当前单独 Half 的小比分文本；当前 Half 未录入时显示 `-`，合法的 0 分显示 `0`。 |
+| `CurrentSurTeamMinorGameScoreText` / `CurrentHunTeamMinorGameScoreText` | 当前 ScoreGame 从 FirstHalf 累计到当前 Half 的小比分文本。当前 SecondHalf 未录入时，仍可显示已录入的 FirstHalf 累计。 |
+| `CurrentSurTeamMinorScoreText` / `CurrentHunTeamMinorScoreText` | 兼容 alias，等于对应的 Game-level 字段。 |
 | `CurrentSurTeamMajorText` | 当前求生者队伍对应的大比分文本。 |
 | `CurrentHunTeamMajorText` | 当前监管者队伍对应的大比分文本。 |
 
@@ -291,7 +322,7 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 | `ScoreSurWindow` | `CurrentGame.SurTeam.Score.MajorPointsOnFront`、`CurrentGame.SurTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentSurTeamMajorText`、`CurrentGame.MatchScore.CurrentSurTeamMinorScoreText` |
 | `ScoreHunWindow` | `CurrentGame.HunTeam.Score.MajorPointsOnFront`、`CurrentGame.HunTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentHunTeamMajorText`、`CurrentGame.MatchScore.CurrentHunTeamMinorScoreText` |
 
-局内比分窗口显示规则：
+局内比分窗口显示规则（旧布局继续使用兼容的 Game-level 字段；新布局可分别选择 Half-level 和 Game-level 字段）：
 
 | 当前半场 | 显示小比分 |
 | --- | --- |
@@ -302,6 +333,8 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 累计小比分按当前阵营映射。每个 `ScoreHalf` 的 `HomeMinorScore` / `AwayMinorScore` 由记录时阵营派生，多半场累加以 Home/Away 为稳定身份，再按当前阵营映射到求生者/监管者窗口；记录后发生换边时，历史得分归属仍正确（与全局比分格的阵营映射方式一致）。
 
 例：第一半录入 `Escape4`（5:0），切到第二半未录入时显示 `5:0`；第二半录入 `Tie`（2:2）后显示 `7:2`。
+
+在相同数据下，Half-level 始终只显示当前半场：第二半未录入显示 `-:-`，录入 `Tie` 后显示 `2:2`。这与 Game-level 在未录入第二半时仍显示第一半累计 `5:0` 的行为不同，二者差异是预期契约。
 
 ## 7. 后台 ScorePage 行为
 
