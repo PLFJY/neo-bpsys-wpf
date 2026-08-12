@@ -2853,8 +2853,10 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore", paths);
-        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMinorGameScoreText", paths);
-        Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamMinorGameScoreText", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMinorScoreText", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamMinorScoreText", paths);
+        Assert.DoesNotContain("CurrentGame.MatchScore.CurrentSurTeamMinorGameScoreText", paths);
+        Assert.DoesNotContain("CurrentGame.MatchScore.CurrentHunTeamMinorGameScoreText", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMinorHalfScoreText", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentHunTeamMinorHalfScoreText", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentGameScore.HomeMinorScore", paths);

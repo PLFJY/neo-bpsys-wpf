@@ -926,10 +926,10 @@
     <value>Team Name</value>
   </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
-    <value>Survivor Team Total Minor Score</value>
+    <value>Survivor Total Minor Score</value>
   </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore">
-    <value>Hunter Team Total Minor Score</value>
+    <value>Hunter Total Minor Score</value>
   </data>
   <data name="Designer.Binding.Name">
     <value>Name</value>
@@ -1078,11 +1078,74 @@
   <data name="Designer.Binding.AwayTotalMinorScore">
     <value>Away Total Minor Score</value>
   </data>
+  <data name="Designer.Binding.CurrentGameScore">
+    <value>Current Game Score</value>
+  </data>
+  <data name="Designer.Binding.CurrentHalf">
+    <value>Current Half</value>
+  </data>
+  <data name="Designer.Binding.Key">
+    <value>Score Game Key</value>
+  </data>
+  <data name="Designer.Binding.FirstHalf">
+    <value>First Half</value>
+  </data>
+  <data name="Designer.Binding.SecondHalf">
+    <value>Second Half</value>
+  </data>
+  <data name="Designer.Binding.IsComplete">
+    <value>Is Complete</value>
+  </data>
+  <data name="Designer.Binding.MajorResult">
+    <value>Major Result</value>
+  </data>
+  <data name="Designer.Binding.Progress">
+    <value>Game Progress</value>
+  </data>
+  <data name="Designer.Binding.HalfKind">
+    <value>Half Kind</value>
+  </data>
+  <data name="Designer.Binding.Result">
+    <value>Half Result</value>
+  </data>
+  <data name="Designer.Binding.SurTeamTypeWhenRecorded">
+    <value>Survivor Team Type When Recorded</value>
+  </data>
+  <data name="Designer.Binding.HunTeamTypeWhenRecorded">
+    <value>Hunter Team Type When Recorded</value>
+  </data>
+  <data name="Designer.Binding.HasResult">
+    <value>Has Result</value>
+  </data>
+  <data name="Designer.Binding.SurMinorScore">
+    <value>Survivor Minor Score</value>
+  </data>
+  <data name="Designer.Binding.HunMinorScore">
+    <value>Hunter Minor Score</value>
+  </data>
+  <data name="Designer.Binding.HomeMinorScore">
+    <value>Home Minor Score</value>
+  </data>
+  <data name="Designer.Binding.AwayMinorScore">
+    <value>Away Minor Score</value>
+  </data>
+  <data name="Designer.Binding.HomeDisplayText">
+    <value>Home Display Text</value>
+  </data>
+  <data name="Designer.Binding.AwayDisplayText">
+    <value>Away Display Text</value>
+  </data>
   <data name="Designer.Binding.CurrentSurTeamMinorScoreText">
-    <value>Current Survivor Minor Score Text</value>
+    <value>Survivor Current Game Minor Score Sum</value>
   </data>
   <data name="Designer.Binding.CurrentHunTeamMinorScoreText">
-    <value>Current Hunter Minor Score Text</value>
+    <value>Hunter Current Game Minor Score Sum</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMinorHalfScoreText">
+    <value>Survivor Current Half Minor Score</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMinorHalfScoreText">
+    <value>Hunter Current Half Minor Score</value>
   </data>
   <data name="Designer.Binding.CurrentSurTeamMajorText">
     <value>Survivor Major Score Text</value>

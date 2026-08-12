@@ -926,10 +926,10 @@
     <value>队伍名称</value>
   </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
-    <value>求生者队伍总小比分</value>
+    <value>求生者方小比分总和</value>
   </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore">
-    <value>监管者队伍总小比分</value>
+    <value>监管者方小比分总和</value>
   </data>
   <data name="Designer.Binding.Name">
     <value>名称</value>
@@ -1078,10 +1078,73 @@
   <data name="Designer.Binding.AwayTotalMinorScore">
     <value>客队小比分总和</value>
   </data>
+  <data name="Designer.Binding.CurrentGameScore">
+    <value>当前回合比分</value>
+  </data>
+  <data name="Designer.Binding.CurrentHalf">
+    <value>当前半场比分</value>
+  </data>
+  <data name="Designer.Binding.Key">
+    <value>比分单元键</value>
+  </data>
+  <data name="Designer.Binding.FirstHalf">
+    <value>第一半</value>
+  </data>
+  <data name="Designer.Binding.SecondHalf">
+    <value>第二半</value>
+  </data>
+  <data name="Designer.Binding.IsComplete">
+    <value>是否完整</value>
+  </data>
+  <data name="Designer.Binding.MajorResult">
+    <value>大比分结果</value>
+  </data>
+  <data name="Designer.Binding.Progress">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.Binding.HalfKind">
+    <value>半场类型</value>
+  </data>
+  <data name="Designer.Binding.Result">
+    <value>半场结果</value>
+  </data>
+  <data name="Designer.Binding.SurTeamTypeWhenRecorded">
+    <value>记录时求生者队伍类型</value>
+  </data>
+  <data name="Designer.Binding.HunTeamTypeWhenRecorded">
+    <value>记录时监管者队伍类型</value>
+  </data>
+  <data name="Designer.Binding.HasResult">
+    <value>是否有结果</value>
+  </data>
+  <data name="Designer.Binding.SurMinorScore">
+    <value>求生者小比分</value>
+  </data>
+  <data name="Designer.Binding.HunMinorScore">
+    <value>监管者小比分</value>
+  </data>
+  <data name="Designer.Binding.HomeMinorScore">
+    <value>主队小比分</value>
+  </data>
+  <data name="Designer.Binding.AwayMinorScore">
+    <value>客队小比分</value>
+  </data>
+  <data name="Designer.Binding.HomeDisplayText">
+    <value>主队显示文本</value>
+  </data>
+  <data name="Designer.Binding.AwayDisplayText">
+    <value>客队显示文本</value>
+  </data>
   <data name="Designer.Binding.CurrentSurTeamMinorScoreText">
-    <value>求生者方当前半场小比分</value>
+    <value>求生者方当前回合小比分总和</value>
   </data>
   <data name="Designer.Binding.CurrentHunTeamMinorScoreText">
+    <value>监管者方当前回合小比分总和</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMinorHalfScoreText">
+    <value>求生者方当前半场小比分</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMinorHalfScoreText">
     <value>监管者方当前半场小比分</value>
   </data>
   <data name="Designer.Binding.CurrentSurTeamMajorText">

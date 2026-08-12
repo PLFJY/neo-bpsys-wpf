@@ -45,7 +45,7 @@
         "BanLockAvailable": false,
         "BanLockImagePath": null,
         "ControlType": "Image",
-        "Left": 22,
+        "Left": 26.5,
         "Top": 18,
         "Width": 115,
         "Height": 114,
@@ -168,7 +168,7 @@
         "TextBinding": {
           "Sources": [
             {
-              "Path": "CurrentGame.MatchScore.HalfByProgress[CurrentGame.GameProgress].SurMinorScore",
+              "Path": "CurrentGame.MatchScore.CurrentSurTeamMinorScoreText",
               "DisplayName": null,
               "Format": null
             }
