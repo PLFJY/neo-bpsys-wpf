@@ -87,10 +87,10 @@ MatchScoreState
   ├─ CurrentHunTeamTotalMinorScore
   ├─ CurrentSurTeamMinorHalfScoreText
   ├─ CurrentHunTeamMinorHalfScoreText
-  ├─ CurrentSurTeamMinorGameScoreText
-  ├─ CurrentHunTeamMinorGameScoreText
-  ├─ CurrentSurTeamMinorScoreText              (兼容 alias)
-  ├─ CurrentHunTeamMinorScoreText              (兼容 alias)
+  ├─ CurrentSurTeamMinorScoreText              (Game-level 权威)
+  ├─ CurrentHunTeamMinorScoreText              (Game-level 权威)
+  ├─ CurrentSurTeamMinorGameScoreText          (已弃用别名，已从设计器隐藏)
+  ├─ CurrentHunTeamMinorGameScoreText          (已弃用别名，已从设计器隐藏)
   ├─ CurrentSurTeamMajorText
   └─ CurrentHunTeamMajorText
 ```
@@ -102,10 +102,10 @@ MatchScoreState
 | 层级 | 字段 | 语义 |
 | --- | --- | --- |
 | Half-level | `CurrentSurTeamMinorHalfScoreText` / `CurrentHunTeamMinorHalfScoreText` | 当前 `GameProgress` 对应的单独 `ScoreHalf`，按当前 Sur/Hun 队伍的 Home/Away 身份读取。 |
-| Game-level | `CurrentSurTeamMinorGameScoreText` / `CurrentHunTeamMinorGameScoreText` | 当前 `ScoreGame` 从 FirstHalf 累计到当前 Half 的已记录小比分。 |
+| Game-level | `CurrentSurTeamMinorScoreText` / `CurrentHunTeamMinorScoreText` | 当前 `ScoreGame` 从 FirstHalf 累计到当前 Half 的已记录小比分。 |
 | Match-level | `CurrentSurTeamTotalMinorScore` / `CurrentHunTeamTotalMinorScore` | 整场比赛所有已记录半场的小比分累计，按当前 Sur/Hun 队伍身份读取。 |
 
-`CurrentSurTeamMinorScoreText` 和 `CurrentHunTeamMinorScoreText` 保留为兼容旧 v3 package 与旧布局的 alias，语义仍是 Game-level running score。两套字段只有一份权威计算结果。`CurrentGameScore` 与 `CurrentHalf` 不是持久化状态，而是直接使用 `GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode)` 和 `GetHalf(_currentDisplayProgress, _currentDisplayIsBo3Mode)` 解析，避免复制 `GameProgress` 映射。
+`CurrentSurTeamMinorGameScoreText` 和 `CurrentHunTeamMinorGameScoreText` 已弃用（`[Obsolete]` + `[FrontedBindingIgnore]`），仅作为兼容旧绑定路径的别名保留，等价于 `CurrentSurTeamMinorScoreText` / `CurrentHunTeamMinorScoreText`；已从设计器绑定浏览器隐藏，运行时仍可解析旧路径。`CurrentSurTeamMinorScoreText` / `CurrentHunTeamMinorScoreText` 为 Game-level 权威字段，旧 v3 package 与旧布局的绑定路径即使用此名称。两套字段只有一份权威计算结果。`CurrentGameScore` 与 `CurrentHalf` 不是持久化状态，而是直接使用 `GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode)` 和 `GetHalf(_currentDisplayProgress, _currentDisplayIsBo3Mode)` 解析，避免复制 `GameProgress` 映射。
 
 例如：
 
@@ -308,8 +308,8 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 | `HomeTotalMinorScore` / `AwayTotalMinorScore` | 所有已记录半场的主客小比分合计。 |
 | `CurrentSurTeamTotalMinorScore` / `CurrentHunTeamTotalMinorScore` | 将全场主客总小比分按当前求生者/监管者阵营映射后的合计；换边时随当前队伍映射刷新。 |
 | `CurrentSurTeamMinorHalfScoreText` / `CurrentHunTeamMinorHalfScoreText` | 当前单独 Half 的小比分文本；当前 Half 未录入时显示 `-`，合法的 0 分显示 `0`。 |
-| `CurrentSurTeamMinorGameScoreText` / `CurrentHunTeamMinorGameScoreText` | 当前 ScoreGame 从 FirstHalf 累计到当前 Half 的小比分文本。当前 SecondHalf 未录入时，仍可显示已录入的 FirstHalf 累计。 |
-| `CurrentSurTeamMinorScoreText` / `CurrentHunTeamMinorScoreText` | 兼容 alias，等于对应的 Game-level 字段。 |
+| `CurrentSurTeamMinorScoreText` / `CurrentHunTeamMinorScoreText` | 当前 ScoreGame 从 FirstHalf 累计到当前 Half 的小比分文本。当前 SecondHalf 未录入时，仍可显示已录入的 FirstHalf 累计。 |
+| `CurrentSurTeamMinorGameScoreText` / `CurrentHunTeamMinorGameScoreText` | 已弃用别名（`[Obsolete]` + `[FrontedBindingIgnore]`），等价于对应的 `*MinorScoreText`；已从设计器隐藏，运行时仍可解析旧绑定路径，将在后续版本移除。 |
 | `CurrentSurTeamMajorText` | 当前求生者队伍对应的大比分文本。 |
 | `CurrentHunTeamMajorText` | 当前监管者队伍对应的大比分文本。 |
 

@@ -274,12 +274,15 @@ public class MatchScoreServiceTest
         Assert.Same(scoreHalf, currentGame.MatchScore.CurrentHalf);
         Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamMinorHalfScoreText);
         Assert.Equal("3", currentGame.MatchScore.CurrentHunTeamMinorHalfScoreText);
-        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamMinorGameScoreText);
-        Assert.Equal("8", currentGame.MatchScore.CurrentHunTeamMinorGameScoreText);
-        Assert.Equal(currentGame.MatchScore.CurrentSurTeamMinorGameScoreText,
-            currentGame.MatchScore.CurrentSurTeamMinorScoreText);
-        Assert.Equal(currentGame.MatchScore.CurrentHunTeamMinorGameScoreText,
-            currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("8", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+#pragma warning disable CS0618
+        // 验证已弃用别名仍镜像权威字段，确保旧 v3 package 绑定路径运行时可用。
+        Assert.Equal(currentGame.MatchScore.CurrentSurTeamMinorScoreText,
+            currentGame.MatchScore.CurrentSurTeamMinorGameScoreText);
+        Assert.Equal(currentGame.MatchScore.CurrentHunTeamMinorScoreText,
+            currentGame.MatchScore.CurrentHunTeamMinorGameScoreText);
+#pragma warning restore CS0618
     }
 
     [Fact]
@@ -295,8 +298,8 @@ public class MatchScoreServiceTest
             currentGame.MatchScore.CurrentHalf);
         Assert.Equal("-", currentGame.MatchScore.CurrentSurTeamMinorHalfScoreText);
         Assert.Equal("-", currentGame.MatchScore.CurrentHunTeamMinorHalfScoreText);
-        Assert.Equal("5", currentGame.MatchScore.CurrentSurTeamMinorGameScoreText);
-        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorGameScoreText);
+        Assert.Equal("5", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
     }
 
     [Fact]

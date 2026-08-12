@@ -30,8 +30,8 @@ public partial class MatchScoreState : ObservableObjectBase
     private int _awayTotalMinorScore;
     private int _currentSurTeamTotalMinorScore;
     private int _currentHunTeamTotalMinorScore;
-    private string _currentSurTeamMinorGameScoreText = "0";
-    private string _currentHunTeamMinorGameScoreText = "0";
+    private string _currentSurTeamMinorScoreText = "0";
+    private string _currentHunTeamMinorScoreText = "0";
     private string _currentSurTeamMinorHalfScoreText = "-";
     private string _currentHunTeamMinorHalfScoreText = "-";
     private string _currentSurTeamMajorText = "W0  D0";
@@ -193,47 +193,59 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
-    /// 当前 Game，从第一半累计到当前半场的求生者队伍小比分文本。
+    /// 当前回合（当前 Game）下，从第一半累计到当前半场的求生者队伍小比分总和文本。
     /// </summary>
     [JsonIgnore]
-    public string CurrentSurTeamMinorGameScoreText
+    public string CurrentSurTeamMinorScoreText
     {
-        get => _currentSurTeamMinorGameScoreText;
+        get => _currentSurTeamMinorScoreText;
         private set
         {
-            if (SetProperty(ref _currentSurTeamMinorGameScoreText, value))
-                OnPropertyChanged(nameof(CurrentSurTeamMinorScoreText));
+            if (SetProperty(ref _currentSurTeamMinorScoreText, value))
+                OnPropertyChanged(nameof(CurrentSurTeamMinorGameScoreText));
         }
     }
 
     /// <summary>
-    /// 兼容字段：当前 Game，从第一半累计到当前半场的求生者队伍小比分文本。
+    /// 已弃用：当前回合（当前 Game）下，从第一半累计到当前半场的求生者队伍小比分总和文本。
     /// </summary>
+    /// <remarks>
+    /// 此属性已弃用，仅为兼容旧 v3 package 与旧布局的绑定路径保留，等价于 <see cref="CurrentSurTeamMinorScoreText"/>。
+    /// 已从设计器绑定浏览器隐藏（<c>[FrontedBindingIgnore]</c>），运行时仍可解析旧绑定路径。将在后续版本移除。
+    /// </remarks>
+    [Obsolete("使用 CurrentSurTeamMinorScoreText 代替。此别名仅为兼容旧 v3 package 保留，将在后续版本移除。")]
     [JsonIgnore]
-    public string CurrentSurTeamMinorScoreText => CurrentSurTeamMinorGameScoreText;
+    [FrontedBindingIgnore]
+    public string CurrentSurTeamMinorGameScoreText => CurrentSurTeamMinorScoreText;
 
     /// <summary>
-    /// 当前 Game，从第一半累计到当前半场的监管者队伍小比分文本。
+    /// 当前回合（当前 Game）下，从第一半累计到当前半场的监管者队伍小比分总和文本。
     /// </summary>
     [JsonIgnore]
-    public string CurrentHunTeamMinorGameScoreText
+    public string CurrentHunTeamMinorScoreText
     {
-        get => _currentHunTeamMinorGameScoreText;
+        get => _currentHunTeamMinorScoreText;
         private set
         {
-            if (SetProperty(ref _currentHunTeamMinorGameScoreText, value))
-                OnPropertyChanged(nameof(CurrentHunTeamMinorScoreText));
+            if (SetProperty(ref _currentHunTeamMinorScoreText, value))
+                OnPropertyChanged(nameof(CurrentHunTeamMinorGameScoreText));
         }
     }
 
     /// <summary>
-    /// 兼容字段：当前 Game，从第一半累计到当前半场的监管者队伍小比分文本。
+    /// 已弃用：当前回合（当前 Game）下，从第一半累计到当前半场的监管者队伍小比分总和文本。
     /// </summary>
+    /// <remarks>
+    /// 此属性已弃用，仅为兼容旧 v3 package 与旧布局的绑定路径保留，等价于 <see cref="CurrentHunTeamMinorScoreText"/>。
+    /// 已从设计器绑定浏览器隐藏（<c>[FrontedBindingIgnore]</c>），运行时仍可解析旧绑定路径。将在后续版本移除。
+    /// </remarks>
+    [Obsolete("使用 CurrentHunTeamMinorScoreText 代替。此别名仅为兼容旧 v3 package 保留，将在后续版本移除。")]
     [JsonIgnore]
-    public string CurrentHunTeamMinorScoreText => CurrentHunTeamMinorGameScoreText;
+    [FrontedBindingIgnore]
+    public string CurrentHunTeamMinorGameScoreText => CurrentHunTeamMinorScoreText;
 
     /// <summary>
-    /// 当前单独半场的求生者队伍小比分文本；半场未记录时为 <c>-</c>。
+    /// 当前半场的求生者队伍小比分文本；半场未记录时为 <c>-</c>。
     /// </summary>
     [JsonIgnore]
     public string CurrentSurTeamMinorHalfScoreText
@@ -243,7 +255,7 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
-    /// 当前单独半场的监管者队伍小比分文本；半场未记录时为 <c>-</c>。
+    /// 当前半场的监管者队伍小比分文本；半场未记录时为 <c>-</c>。
     /// </summary>
     [JsonIgnore]
     public string CurrentHunTeamMinorHalfScoreText
@@ -487,8 +499,8 @@ public partial class MatchScoreState : ObservableObjectBase
         var currentHalf = CurrentHalf;
         if (currentGame == null || currentHalf == null)
         {
-            CurrentSurTeamMinorGameScoreText = "0";
-            CurrentHunTeamMinorGameScoreText = "0";
+            CurrentSurTeamMinorScoreText = "0";
+            CurrentHunTeamMinorScoreText = "0";
             CurrentSurTeamMinorHalfScoreText = "-";
             CurrentHunTeamMinorHalfScoreText = "-";
             NotifyCurrentScoreObjectsChanged();
@@ -501,9 +513,9 @@ public partial class MatchScoreState : ObservableObjectBase
             ? currentGame.Halves
             : currentGame.Halves.Take(1);
 
-        CurrentSurTeamMinorGameScoreText =
+        CurrentSurTeamMinorScoreText =
             FormatMinorScore(SumTeamMinorScore(halvesToAccumulate, _currentDisplaySurTeamType));
-        CurrentHunTeamMinorGameScoreText =
+        CurrentHunTeamMinorScoreText =
             FormatMinorScore(SumTeamMinorScore(halvesToAccumulate, _currentDisplayHunTeamType));
         CurrentSurTeamMinorHalfScoreText =
             FormatMinorScore(GetTeamMinorScore(currentHalf, _currentDisplaySurTeamType, fallbackToZero: false));

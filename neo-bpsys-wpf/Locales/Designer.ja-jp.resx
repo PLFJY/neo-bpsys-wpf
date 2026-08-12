@@ -926,10 +926,10 @@
     <value>チーム名</value>
   </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentSurTeamTotalMinorScore">
-    <value>サバイバーチーム合計小得点</value>
+    <value>サバイバー小計スコア合計</value>
   </data>
   <data name="Designer.Binding.CurrentGame.MatchScore.CurrentHunTeamTotalMinorScore">
-    <value>ハンターチーム合計小得点</value>
+    <value>ハンター小計スコア合計</value>
   </data>
   <data name="Designer.Binding.Name">
     <value>名前</value>
@@ -1078,11 +1078,74 @@
   <data name="Designer.Binding.AwayTotalMinorScore">
     <value>アウェイ小計スコア合計</value>
   </data>
+  <data name="Designer.Binding.CurrentGameScore">
+    <value>現在のゲームスコア</value>
+  </data>
+  <data name="Designer.Binding.CurrentHalf">
+    <value>現在のハーフ</value>
+  </data>
+  <data name="Designer.Binding.Key">
+    <value>スコアゲームキー</value>
+  </data>
+  <data name="Designer.Binding.FirstHalf">
+    <value>前半</value>
+  </data>
+  <data name="Designer.Binding.SecondHalf">
+    <value>後半</value>
+  </data>
+  <data name="Designer.Binding.IsComplete">
+    <value>完了状態</value>
+  </data>
+  <data name="Designer.Binding.MajorResult">
+    <value>大スコア結果</value>
+  </data>
+  <data name="Designer.Binding.Progress">
+    <value>対局進行</value>
+  </data>
+  <data name="Designer.Binding.HalfKind">
+    <value>ハーフ種別</value>
+  </data>
+  <data name="Designer.Binding.Result">
+    <value>ハーフ結果</value>
+  </data>
+  <data name="Designer.Binding.SurTeamTypeWhenRecorded">
+    <value>記録時サバイバーチーム種別</value>
+  </data>
+  <data name="Designer.Binding.HunTeamTypeWhenRecorded">
+    <value>記録時ハンターチーム種別</value>
+  </data>
+  <data name="Designer.Binding.HasResult">
+    <value>結果あり</value>
+  </data>
+  <data name="Designer.Binding.SurMinorScore">
+    <value>サバイバー小計スコア</value>
+  </data>
+  <data name="Designer.Binding.HunMinorScore">
+    <value>ハンター小計スコア</value>
+  </data>
+  <data name="Designer.Binding.HomeMinorScore">
+    <value>ホーム小計スコア</value>
+  </data>
+  <data name="Designer.Binding.AwayMinorScore">
+    <value>アウェイ小計スコア</value>
+  </data>
+  <data name="Designer.Binding.HomeDisplayText">
+    <value>ホーム表示テキスト</value>
+  </data>
+  <data name="Designer.Binding.AwayDisplayText">
+    <value>アウェイ表示テキスト</value>
+  </data>
   <data name="Designer.Binding.CurrentSurTeamMinorScoreText">
-    <value>現在のサバイバー小計スコアテキスト</value>
+    <value>サバイバー現在のゲーム小計スコア合計</value>
   </data>
   <data name="Designer.Binding.CurrentHunTeamMinorScoreText">
-    <value>現在のハンター小計スコアテキスト</value>
+    <value>ハンター現在のゲーム小計スコア合計</value>
+  </data>
+  <data name="Designer.Binding.CurrentSurTeamMinorHalfScoreText">
+    <value>サバイバー現在のハーフ小計スコア</value>
+  </data>
+  <data name="Designer.Binding.CurrentHunTeamMinorHalfScoreText">
+    <value>ハンター現在のハーフ小計スコア</value>
   </data>
   <data name="Designer.Binding.CurrentSurTeamMajorText">
     <value>サバイバー大スコアテキスト</value>
