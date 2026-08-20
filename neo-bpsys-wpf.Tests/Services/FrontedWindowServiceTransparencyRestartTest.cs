@@ -15,12 +15,37 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
 public class FrontedWindowServiceTransparencyRestartTest
 {
+    [Fact]
+    public void FrontedWindowBase_DefaultsToTransparentBackgroundBeforeLayoutSettingsAreLoaded()
+    {
+        WpfTestThread.Run(() =>
+        {
+            var window = new FrontedWindowBase();
+
+            Assert.Same(Brushes.Transparent, window.Background);
+            Assert.Equal(
+                BaseValueSource.Local,
+                DependencyPropertyHelper.GetValueSource(window, Window.BackgroundProperty).BaseValueSource);
+
+            window.Style = new Style(typeof(Window))
+            {
+                Setters =
+                {
+                    new Setter(Window.BackgroundProperty, Brushes.White)
+                }
+            };
+
+            Assert.Same(Brushes.Transparent, window.Background);
+        });
+    }
+
     [Fact]
     public async Task RestartWindowForTransparencyChangeAsync_NeverCreatedWindow_ReturnsFalseWithoutCreatingWindow()
     {

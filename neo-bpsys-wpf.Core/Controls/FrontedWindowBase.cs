@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using Wpf.Ui.Appearance;
 
 namespace neo_bpsys_wpf.Core.Controls;
 
@@ -29,6 +30,7 @@ public class FrontedWindowBase : Window
     private Canvas? _baseCanvas;
     private bool _isV3LayoutHost;
     private bool _isBoModeSubscribed;
+    private bool _isApplicationThemeSubscribed;
     private bool _hasInitialWindowSettingsApplied;
     private bool _allowServiceClose;
     private FrontedWindowConfig? _lastRenderedConfig;
@@ -61,6 +63,11 @@ public class FrontedWindowBase : Window
         SizeToContent = SizeToContent.Manual;
         WindowStyle = WindowStyle.None;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
+        // 前台窗口的背景由布局 WindowSettings.BackgroundColor 决定，不能让 WPF
+        // Window 的默认主题背景参与渲染。布局设置是异步加载的，先固定透明背景，
+        // 避免深浅主题切换时默认主题资源把透明前台窗口变成不透明底色。
+        SetValue(BackgroundProperty, Brushes.Transparent);
     }
 
     /// <inheritdoc/>
@@ -443,7 +450,9 @@ public class FrontedWindowBase : Window
                 settings.BackgroundColor);
         }
 
-        SetCurrentValue(BackgroundProperty, brush);
+        // 背景是布局窗口设置的所有权值，必须写入本地值，不能保留主题样式的
+        // Background 来源，否则主题字典切换时样式会重新覆盖透明背景。
+        SetValue(BackgroundProperty, brush);
 
         if (Content is Viewbox viewbox)
         {
@@ -475,6 +484,13 @@ public class FrontedWindowBase : Window
 
     private void OnV3HostLoaded(object sender, RoutedEventArgs e)
     {
+        ApplyCurrentApplicationTheme();
+        if (!_isApplicationThemeSubscribed && Application.Current is not null)
+        {
+            ApplicationThemeManager.Changed += OnApplicationThemeChanged;
+            _isApplicationThemeSubscribed = true;
+        }
+
         SubscribeBoModeChanged();
     }
 
@@ -487,6 +503,12 @@ public class FrontedWindowBase : Window
     private void OnV3HostClosed(object? sender, EventArgs e)
     {
         UnsubscribeBoModeChanged();
+        if (_isApplicationThemeSubscribed)
+        {
+            ApplicationThemeManager.Changed -= OnApplicationThemeChanged;
+            _isApplicationThemeSubscribed = false;
+        }
+
         if (_settingsHostService is not null)
         {
             _settingsHostService.LanguageSettingChanged -= OnLanguageSettingChanged;
@@ -494,6 +516,27 @@ public class FrontedWindowBase : Window
 
         DetachBehaviorRuntime(FrontedBehaviorStopReason.WindowHidden);
         IsVisibleChanged -= OnV3HostIsVisibleChanged;
+    }
+
+    private void OnApplicationThemeChanged(ApplicationTheme currentApplicationTheme, Color systemAccent)
+    {
+        ApplyCurrentApplicationTheme();
+    }
+
+    private void ApplyCurrentApplicationTheme()
+    {
+        if (Application.Current is null)
+        {
+            return;
+        }
+
+        if (Dispatcher.CheckAccess())
+        {
+            ApplicationThemeManager.Apply(this);
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(new Action(ApplyCurrentApplicationTheme));
     }
 
     private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)
