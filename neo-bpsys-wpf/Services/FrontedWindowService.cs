@@ -519,7 +519,7 @@ public class FrontedWindowService : IFrontedWindowService
             return;
         }
 
-        window.SetCurrentValue(Window.BackgroundProperty, brush);
+        window.SetValue(Window.BackgroundProperty, brush);
     }
 
     /// <summary>
@@ -544,7 +544,7 @@ public class FrontedWindowService : IFrontedWindowService
             brush = Brushes.Transparent;
         }
 
-        void Apply() => window.SetCurrentValue(Window.BackgroundProperty, brush);
+        void Apply() => window.SetValue(Window.BackgroundProperty, brush);
 
         if (window.Dispatcher.CheckAccess())
         {
