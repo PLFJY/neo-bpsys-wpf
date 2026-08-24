@@ -192,7 +192,7 @@ public partial class MainWindowViewModel :
     [RelayCommand(CanExecute = nameof(CanStopSmartBpAutoRecognition))]
     private Task StopSmartBpAutoRecognitionAsync() => _smartBpAutoRecognitionGlobalControl.StopAsync();
 
-    [RelayCommand(CanExecute = nameof(CanStopSmartBpAutoRecognition))]
+    [RelayCommand]
     private Task ForceSmartBpSyncGameStateAsync() => _smartBpAutoRecognitionGlobalControl.ForceSyncGameStateAsync();
 
     private void BuildNavigationMenuItems()
