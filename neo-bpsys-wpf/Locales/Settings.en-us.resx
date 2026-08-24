@@ -1,379 +1,495 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype">text/microsoft-resx</resheader>
-  <resheader name="version">2.0</resheader>
-  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="ProjectRepository">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ProjectRepository" xml:space="preserve">
     <value>Project repository: </value>
   </data>
-  <data name="SoftwareUpdates">
+  <data name="SoftwareUpdates" xml:space="preserve">
     <value>Software updates</value>
   </data>
-  <data name="DownloadSource">
+  <data name="DownloadSource" xml:space="preserve">
     <value>Download source</value>
   </data>
-  <data name="DownloadPreviewVersion">
+  <data name="DownloadPreviewVersion" xml:space="preserve">
     <value>Download preview version?</value>
   </data>
-  <data name="TestMirrorLatency">
+  <data name="TestMirrorLatency" xml:space="preserve">
     <value>Test Latency</value>
   </data>
-  <data name="About">
+  <data name="About" xml:space="preserve">
     <value>About</value>
   </data>
-  <data name="CheckForUpdates">
+  <data name="CheckForUpdates" xml:space="preserve">
     <value>Check for updates</value>
   </data>
-  <data name="Install">
+  <data name="Install" xml:space="preserve">
     <value>Install</value>
   </data>
-  <data name="LanguageSetting">
+  <data name="LanguageSetting" xml:space="preserve">
     <value>Language setting</value>
   </data>
-  <data name="SourceOfImageResources">
+  <data name="SourceOfImageResources" xml:space="preserve">
     <value>Source of image resources: </value>
   </data>
-  <data name="OpenSourceRepositoryUsed">
+  <data name="OpenSourceRepositoryUsed" xml:space="preserve">
     <value>Open source repositories used by our project: </value>
   </data>
-  <data name="QuickAccess">
+  <data name="QuickAccess" xml:space="preserve">
     <value>Quick access</value>
   </data>
-  <data name="OpenFrontendDirectory">
+  <data name="OpenFrontendDirectory" xml:space="preserve">
     <value>Open the frontend config file directory</value>
   </data>
-  <data name="OpenGameFileDirectory">
+  <data name="OpenGameFileDirectory" xml:space="preserve">
     <value>Open the game file output directory</value>
   </data>
-  <data name="AuthorDetails">
+  <data name="AuthorDetails" xml:space="preserve">
     <value>Made by Zero PLFJY | Email：zero@plfjy.top | Join Discord: discord.gg/xd2BdYGSYV</value>
   </data>
-  <data name="ContributorList">
+  <data name="ContributorList" xml:space="preserve">
     <value>Contributor list</value>
   </data>
-  <data name="Sponsor">
+  <data name="Sponsor" xml:space="preserve">
     <value>Sponsor</value>
   </data>
-  <data name="DebugOptions">
+  <data name="DebugOptions" xml:space="preserve">
     <value>Debug options</value>
   </data>
-  <data name="LogLevel">
+  <data name="LogLevel" xml:space="preserve">
     <value>Log level</value>
   </data>
-  <data name="TriggerGCCollectionManually">
+  <data name="TriggerGCCollectionManually" xml:space="preserve">
     <value>Trigger GC collection manually</value>
   </data>
-  <data name="OpenLogDirectory">
+  <data name="OpenLogDirectory" xml:space="preserve">
     <value>Open log directory</value>
   </data>
-<data name="ErrorWhenCleanUpResidualUpdateFiles">
+  <data name="ErrorWhenCleanUpResidualUpdateFiles" xml:space="preserve">
     <value>Error when clean up residual update files</value>
   </data>
-  <data name="DownloadFails">
+  <data name="DownloadFails" xml:space="preserve">
     <value>Download fails</value>
   </data>
-  <data name="CheckForUpdatesFailed">
+  <data name="CheckForUpdatesFailed" xml:space="preserve">
     <value>Check for updates failed</value>
   </data>
-  <data name="NewUpdateFound">
+  <data name="NewUpdateFound" xml:space="preserve">
     <value>New update found</value>
   </data>
-  <data name="NoUpdatesAvailable">
+  <data name="NoUpdatesAvailable" xml:space="preserve">
     <value>No updates available</value>
   </data>
-  <data name="DownloadTip">
+  <data name="DownloadTip" xml:space="preserve">
     <value>Download tip</value>
   </data>
-  <data name="DownloadFinished">
+  <data name="DownloadFinished" xml:space="preserve">
     <value>Download finished</value>
   </data>
-  <data name="Update">
+  <data name="Update" xml:space="preserve">
     <value>Update</value>
   </data>
-<data name="SmartBpModuleSettingsTitle">
+  <data name="SmartBpModuleSettingsTitle" xml:space="preserve">
     <value>SmartBP Module Settings</value>
   </data>
-  <data name="SmartBpModulePath">
+  <data name="SmartBpModulePath" xml:space="preserve">
     <value>Module load/install path</value>
   </data>
-  <data name="SmartBpModulePathDescription">
+  <data name="SmartBpModulePathDescription" xml:space="preserve">
     <value>Used to install, import, and load the standalone SmartBP module. Changes are synced to the SmartBP page and used by the next install or local load.</value>
   </data>
-  <data name="SmartBpModuleBrowseFolder">
+  <data name="SmartBpModuleBrowseFolder" xml:space="preserve">
     <value>Browse folder</value>
   </data>
-  <data name="SmartBpModulePathSaved">
+  <data name="SmartBpModulePathSaved" xml:space="preserve">
     <value>SmartBP module path saved.</value>
   </data>
-  <data name="SmartBpModuleDevelopmentPathSaving">
+  <data name="SmartBpModuleDevelopmentPathSaving" xml:space="preserve">
     <value>Saving SmartBP development module path...</value>
   </data>
-  <data name="SmartBpModuleDevelopmentPathSaved">
+  <data name="SmartBpModuleDevelopmentPathSaved" xml:space="preserve">
     <value>SmartBP development module path saved. Module files were not copied.</value>
   </data>
-  <data name="SmartBpModulePathMigrating">
+  <data name="SmartBpModulePathMigrating" xml:space="preserve">
     <value>Migrating SmartBP module directory...</value>
   </data>
-  <data name="SmartBpModulePathMigrationPrepared">
+  <data name="SmartBpModulePathMigrationPrepared" xml:space="preserve">
     <value>SmartBP module copied to the new directory. The old directory will be cleaned up after the next successful load from the new directory.</value>
   </data>
-  <data name="SmartBpModulePathMigrationFailed">
+  <data name="SmartBpModulePathMigrationFailed" xml:space="preserve">
     <value>Failed to migrate SmartBP module directory: </value>
   </data>
-  <data name="SmartBpModulePathInvalid">
+  <data name="SmartBpModulePathInvalid" xml:space="preserve">
     <value>This path cannot be used for the SmartBP module. Choose a writable user directory.</value>
   </data>
-  <data name="SmartBpModulePathMigrationChoiceTitle">
+  <data name="SmartBpModulePathMigrationChoiceTitle" xml:space="preserve">
     <value>Migrate SmartBP module files?</value>
   </data>
-  <data name="SmartBpModulePathMigrationChoiceMessage">
+  <data name="SmartBpModulePathMigrationChoiceMessage" xml:space="preserve">
     <value>Existing SmartBP module files were detected. Do you want to migrate the current module files to the new module path?</value>
   </data>
-  <data name="SmartBpModulePathMigrateFiles">
+  <data name="SmartBpModulePathMigrateFiles" xml:space="preserve">
     <value>Migrate existing files</value>
   </data>
-  <data name="SmartBpModulePathSaveOnly">
+  <data name="SmartBpModulePathSaveOnly" xml:space="preserve">
     <value>Save path only</value>
   </data>
-  <data name="SmartBpModulePathSavedWithoutMigration">
+  <data name="SmartBpModulePathSavedWithoutMigration" xml:space="preserve">
     <value>SmartBP module path saved. Existing files were not migrated.</value>
   </data>
-  <data name="SmartBpModulePathSaveCanceled">
+  <data name="SmartBpModulePathSaveCanceled" xml:space="preserve">
     <value>SmartBP module path save was canceled.</value>
   </data>
-  <data name="SmartBpModuleImportArchive">
+  <data name="SmartBpModuleImportArchive" xml:space="preserve">
     <value>Import module package</value>
   </data>
-  <data name="SmartBpModuleArchiveImporting">
+  <data name="SmartBpModuleArchiveImporting" xml:space="preserve">
     <value>Importing SmartBP module package...</value>
   </data>
-  <data name="SmartBpModuleArchiveExtractingFormat">
+  <data name="SmartBpModuleArchiveExtractingFormat" xml:space="preserve">
     <value>Extracting: {0}%</value>
   </data>
-  <data name="SmartBpModuleDownloadingBytesFormat">
+  <data name="SmartBpModuleDownloadingBytesFormat" xml:space="preserve">
     <value>Downloading: {0} received</value>
   </data>
-  <data name="SmartBpModuleDownloadingProgressFormat">
+  <data name="SmartBpModuleDownloadingProgressFormat" xml:space="preserve">
     <value>Downloading: {0} / {1}</value>
   </data>
-  <data name="SmartBpModuleArchiveImportSucceeded">
+  <data name="SmartBpModuleArchiveImportSucceeded" xml:space="preserve">
     <value>SmartBP module package imported and loaded.</value>
   </data>
-  <data name="SmartBpModuleArchiveImportRestartPrepared">
+  <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
     <value>SmartBP module package is ready. The update will finish after the application restarts.</value>
   </data>
-  <data name="SmartBpModuleArchiveImportRestartPrompt">
+  <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
     <value>SmartBP module package is ready. Because the current module may be loaded, the update needs an application restart to finish. Restart now?</value>
   </data>
-  <data name="SmartBpModuleArchiveImportFailed">
+  <data name="SmartBpModuleArchiveImportFailed" xml:space="preserve">
     <value>Failed to import SmartBP module package: </value>
   </data>
-  <data name="SmartBpModuleVersionFormat">
+  <data name="SmartBpModuleVersionFormat" xml:space="preserve">
     <value>SmartBP module version: {0}</value>
   </data>
-  <data name="SmartBpModuleRequired">
+  <data name="SmartBpModuleRequired" xml:space="preserve">
     <value>SmartBP requires the standalone module to be installed.</value>
   </data>
-  <data name="SmartBpModuleNotInstalledDescription">
+  <data name="SmartBpModuleNotInstalledDescription" xml:space="preserve">
     <value>SmartBP is a standalone module that needs to be downloaded and installed separately.</value>
   </data>
-  <data name="SmartBpModuleAdvancedOptions">
+  <data name="SmartBpModuleAdvancedOptions" xml:space="preserve">
     <value>Advanced options</value>
   </data>
-  <data name="SmartBpModuleDownloadAndInstall">
+  <data name="SmartBpModuleDownloadAndInstall" xml:space="preserve">
     <value>Download and install</value>
   </data>
-  <data name="SmartBpModuleReinstall">
+  <data name="SmartBpModuleReinstall" xml:space="preserve">
     <value>Reinstall</value>
   </data>
-  <data name="SmartBpModuleUpdateAndInstall">
+  <data name="SmartBpModuleUpdateAndInstall" xml:space="preserve">
     <value>Update and install</value>
   </data>
-  <data name="SmartBpModuleLoadLocal">
+  <data name="SmartBpModuleLoadLocal" xml:space="preserve">
     <value>Load local module</value>
   </data>
-  <data name="SmartBpModuleSelectInstalledPath">
+  <data name="SmartBpModuleSelectInstalledPath" xml:space="preserve">
     <value>Select installed module path</value>
   </data>
-  <data name="SmartBpModuleSelectArchive">
+  <data name="SmartBpModuleSelectArchive" xml:space="preserve">
     <value>Select SmartBpModule.7z / .zip</value>
   </data>
-  <data name="SmartBpModulePreviewLoadOrImportArchive">
+  <data name="SmartBpModulePreviewLoadOrImportArchive" xml:space="preserve">
     <value>Preview builds should load a local module directory or import SmartBpModule.7z / .zip.</value>
   </data>
-  <data name="SmartBpModuleDebugLoadDirectory">
+  <data name="SmartBpModuleDebugLoadDirectory" xml:space="preserve">
     <value>Debug builds should load the SmartBP module Debug output directory.</value>
   </data>
-  <data name="SmartBpModuleDebugLocalLoadFailed">
+  <data name="SmartBpModuleDebugLocalLoadFailed" xml:space="preserve">
     <value>Debug builds only load a local SmartBP module directory. The current directory failed to load. Check that the module Debug output directory exists and the entry assembly can be loaded.</value>
   </data>
-  <data name="SmartBpModuleDownloadInstallFailed">
+  <data name="SmartBpModuleDownloadInstallFailed" xml:space="preserve">
     <value>Could not download or install the SmartBP module. Check the network and try again, or manually select an installed module path.</value>
   </data>
-  <data name="SmartBpModuleDebugFolderLoadFailed">
+  <data name="SmartBpModuleDebugFolderLoadFailed" xml:space="preserve">
     <value>Failed to load the local module directory in Debug build. Check that the entry assembly exists and can be loaded by the current app.</value>
   </data>
-  <data name="SmartBpModuleSelectedDirectoryInvalid">
+  <data name="SmartBpModuleSelectedDirectoryInvalid" xml:space="preserve">
     <value>The selected SmartBP module directory is unavailable. Check component.json, RID, ABI, and the entry assembly.</value>
   </data>
-  <data name="SmartBpModulePathUnsafe">
+  <data name="SmartBpModulePathUnsafe" xml:space="preserve">
     <value>The current path is not suitable for installing the SmartBP module. Choose a writable user directory.</value>
   </data>
-  <data name="SmartBpModuleOutdatedFormat">
+  <data name="SmartBpModuleOutdatedFormat" xml:space="preserve">
     <value>The current SmartBP module is outdated and must be updated to {0}.</value>
   </data>
-  <data name="SmartBpModuleCompatibleFound">
+  <data name="SmartBpModuleCompatibleFound" xml:space="preserve">
     <value>A compatible SmartBP module was detected and can be loaded directly.</value>
   </data>
-  <data name="SmartBpModulePathModuleInvalidFormat">
+  <data name="SmartBpModulePathModuleInvalidFormat" xml:space="preserve">
     <value>The module at the current path is unavailable: {0}</value>
   </data>
-  <data name="SmartBpModuleLocalFailureErrorFormat">
+  <data name="SmartBpModuleLocalFailureErrorFormat" xml:space="preserve">
     <value>{0} Error: {1}</value>
   </data>
-  <data name="SmartBpModuleArchiveFiles">
+  <data name="SmartBpModuleArchiveFiles" xml:space="preserve">
     <value>SmartBP module archives</value>
   </data>
-  <data name="SmartBpModuleSetDebugPath">
+  <data name="SmartBpModuleSetDebugPath" xml:space="preserve">
     <value>Set to debug path</value>
   </data>
-  <data name="SmartBpModuleDebugPathNotFound">
+  <data name="SmartBpModuleDebugPathNotFound" xml:space="preserve">
     <value>Could not find the SmartBP module debug output directory. Build the SmartBP module project first.</value>
   </data>
-  <data name="AppUpdateHashFileMissing">
+  <data name="AppUpdateHashFileMissing" xml:space="preserve">
     <value>The update package is missing its SHA-256 file. Download was stopped.</value>
   </data>
-  <data name="AppUpdateInvalidHashFile">
+  <data name="AppUpdateInvalidHashFile" xml:space="preserve">
     <value>The SHA-256 file for this update is invalid. Installation was stopped.</value>
   </data>
-  <data name="AppUpdateSha256Mismatch">
+  <data name="AppUpdateSha256Mismatch" xml:space="preserve">
     <value>Integrity check failed for the update installer. Installation was blocked for your safety.</value>
   </data>
-  <data name="AppUpdateVerifyingHash">
+  <data name="AppUpdateVerifyingHash" xml:space="preserve">
     <value>Verifying update installer integrity…</value>
   </data>
-  <data name="RestartNow">
+  <data name="RestartNow" xml:space="preserve">
     <value>Restart Now</value>
   </data>
-  <data name="ClassicMode">
+  <data name="ClassicMode" xml:space="preserve">
     <value>Classic Mode</value>
   </data>
-  <data name="ClassicModeDescription">
+  <data name="ClassicModeDescription" xml:space="preserve">
     <value>Restart the app for backend shell mode changes to take effect.</value>
   </data>
-  <data name="BpuiFileAssociation">
+  <data name="BpuiFileAssociation" xml:space="preserve">
     <value>Associate .bpui files</value>
   </data>
-  <data name="BpuiFileAssociationDescription">
+  <data name="BpuiFileAssociationDescription" xml:space="preserve">
     <value>When enabled, double-clicking a .bpui layout package opens this tool and installs it as the active layout scheme.</value>
   </data>
-  <data name="PageTransitionAnimation">
+  <data name="PageTransitionAnimation" xml:space="preserve">
     <value>Page transition animation</value>
   </data>
-  <data name="PageTransitionAnimationDescription">
+  <data name="PageTransitionAnimationDescription" xml:space="preserve">
     <value>When disabled, switching between backend pages skips the transition animation and switches instantly. Restart the app for changes to take effect.</value>
   </data>
-  <data name="PageTransitionAnimationRestart">
+  <data name="PageTransitionAnimationRestart" xml:space="preserve">
     <value>Restart to apply</value>
   </data>
-  <data name="ClassicModeRestartRequired">
+  <data name="ClassicModeRestartRequired" xml:space="preserve">
     <value>Restart the app for backend shell mode changes to take effect. Restart now?</value>
   </data>
-  <data name="OpenBehaviorEventDebugger">
+  <data name="OpenBehaviorEventDebugger" xml:space="preserve">
     <value>Open Behavior Event Debugger</value>
   </data>
-  <data name="ProductTourDebugger">
+  <data name="ProductTourDebugger" xml:space="preserve">
     <value>Product Tour Debugger</value>
   </data>
-  <data name="SmartBpStopAutomaticRecognition">
+  <data name="SmartBpStopAutomaticRecognition" xml:space="preserve">
     <value>Stop SmartBP recognition</value>
   </data>
-  <data name="LogLevelVerbose">
+  <data name="LogLevelVerbose" xml:space="preserve">
     <value>Verbose</value>
   </data>
-  <data name="LogLevelDebug">
+  <data name="LogLevelDebug" xml:space="preserve">
     <value>Debug</value>
   </data>
-  <data name="LogLevelInformation">
+  <data name="LogLevelInformation" xml:space="preserve">
     <value>Information</value>
   </data>
-  <data name="LogLevelWarning">
+  <data name="LogLevelWarning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="LogLevelError">
+  <data name="LogLevelError" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="LogLevelFatal">
+  <data name="LogLevelFatal" xml:space="preserve">
     <value>Fatal</value>
   </data>
-  <data name="ConfigurationFileEmpty">
+  <data name="ConfigurationFileEmpty" xml:space="preserve">
     <value>Configuration file is empty</value>
   </data>
-  <data name="ConfigurationFileSaveError">
+  <data name="ConfigurationFileSaveError" xml:space="preserve">
     <value>ConfigurationFileSaveError</value>
   </data>
-  <data name="FailedToReadConfigurationFile">
+  <data name="FailedToReadConfigurationFile" xml:space="preserve">
     <value>Failed to read configuration file</value>
   </data>
-  <data name="ResetConfigurationFileError">
+  <data name="ResetConfigurationFileError" xml:space="preserve">
     <value>Reset configuration file error</value>
   </data>
-  <data name="ResetConfigurationFileToSolveTheProblem">
+  <data name="ResetConfigurationFileToSolveTheProblem" xml:space="preserve">
     <value>Reset configuration file to solve the problem</value>
   </data>
-  <data name="PleaseStartWindowCaptureFirst">
+  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
     <value>Please start window capture first.</value>
   </data>
-  <data name="WindowCaptureCaptureNotStarted">
+  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
     <value>Capture has not started.</value>
   </data>
-  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt">
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
     <value>Failed to capture the first frame with Bitblt.</value>
   </data>
-  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat">
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
     <value>Failed to capture selected window: {0}</value>
   </data>
-  <data name="WindowCaptureFailedToStartBitbltCaptureFormat">
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
     <value>Failed to start Bitblt capture: {0}</value>
   </data>
-  <data name="WindowCaptureFailedToStartCaptureFormat">
+  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
     <value>Failed to start capture: {0}</value>
   </data>
-  <data name="WindowCaptureFailedToStartPickerCaptureFormat">
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
     <value>Failed to start picker capture: {0}</value>
   </data>
-  <data name="WindowCaptureGraphicsCaptureItemUnavailable">
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
     <value>Failed to capture selected window: GraphicsCaptureItem is unavailable.</value>
   </data>
-  <data name="WindowCapturePleaseSelectWindowFirst">
+  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
     <value>Please select a window first.</value>
   </data>
-  <data name="WindowCapturePreviewWindowTitle">
+  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
     <value>Preview Window</value>
   </data>
-  <data name="WindowCaptureSelectedWindowInvalidForCapture">
+  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
     <value>The selected window is not valid for capture.</value>
   </data>
-  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem">
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
     <value>Windows Graphics Capture is not supported on this system.</value>
   </data>
-  <data name="WindowCaptureWgcRequires1803OrLater">
+  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
     <value>Windows Graphics Capture requires Windows 10 1803 or later.</value>
   </data>
-  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809">
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
     <value>Capturing by selected window requires Windows 10 1903 or later. On 1803/1809, use picker capture.</value>
   </data>
-  <data name="GameStateSaveSettingsTitle">
+  <data name="GameStateSaveSettingsTitle" xml:space="preserve">
     <value>Game state saving</value>
   </data>
-  <data name="GameStateSaveDirectory">
+  <data name="GameStateSaveDirectory" xml:space="preserve">
     <value>Save location</value>
   </data>
-  <data name="GameStateSaveDirectoryDescription">
+  <data name="GameStateSaveDirectoryDescription" xml:space="preserve">
     <value>Folder used when saving the current game state.</value>
   </data>
-  <data name="BrowseGameStateSaveDirectory">
+  <data name="BrowseGameStateSaveDirectory" xml:space="preserve">
     <value>Choose folder</value>
+  </data>
+  <data name="ForceSmartBpSyncGameState" xml:space="preserve">
+    <value>Force Smart BP sync game state</value>
   </data>
 </root>
