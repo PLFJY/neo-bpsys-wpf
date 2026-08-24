@@ -24,10 +24,10 @@
     <value>スコアページに進み、現在の半のスコア結果を選択します。</value>
   </data>
   <data name="Step.MainNavigationSmartBp.0.Title">
-    <value>スマート BP へ進む</value>
+    <value>スマートBP へ進む</value>
   </data>
   <data name="Step.MainNavigationSmartBp.0.Description">
-    <value>スマート BP は独立したモジュールで、初めて進むと専用のチュートリアルがあります。</value>
+    <value>スマートBP は独立したモジュールで、初めて進むと専用のチュートリアルがあります。</value>
   </data>
   <data name="Step.MainNavigationDesignerV3.0.Title">
     <value>フロントエンド画面編集</value>
@@ -276,7 +276,7 @@
     <value>認識モデル管理</value>
   </data>
   <data name="Step.SmartBpOcrModelDownloadBasic.0.Description">
-    <value>スマート BP の OCR 認識にはローカルモデルが必要です。ここで認識エンジンを選択し、スマート BP が使用する OCR モデルの確認、ダウンロード、更新、切り替えを行います。</value>
+    <value>スマートBP の OCR 認識にはローカルモデルが必要です。ここで認識エンジンを選択し、スマートBP が使用する OCR モデルの確認、ダウンロード、更新、切り替えを行います。</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.0.Title">
     <value>ゲームウィンドウを選択</value>
@@ -288,7 +288,7 @@
     <value>キャプチャを開始</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.1.Description">
-    <value>ウィンドウ選択後、SmartBP がゲーム画面をキャプチャできます。本チュートリアルではキャプチャの開始を強制せず、キャプチャ成功を待機しません。</value>
+    <value>ウィンドウ選択後、スマートBP がゲーム画面をキャプチャできます。本チュートリアルではキャプチャの開始を強制せず、キャプチャ成功を待機しません。</value>
   </data>
   <data name="Step.SmartBpCaptureBasic.2.Title">
     <value>キャプチャをプレビュー</value>
@@ -312,13 +312,13 @@
     <value>フルフロー BP</value>
   </data>
   <data name="Step.SmartBpFullBpFlowBasic.0.Description">
-    <value>フルフロー BP は現在の試合ステージに基づいて自動的に認識します。起動前にウィンドウキャプチャと認識領域が正しいか確認してください。本番の試合では、まずプレビューで確認してから起動することをお勧めします。クリック後、スマート BP の自動 BP フローが開始されます。</value>
+    <value>フルフロー BP は現在の試合ステージに基づいて自動的に認識します。起動前にウィンドウキャプチャと認識領域が正しいか確認してください。本番の試合では、まずプレビューで確認してから起動することをお勧めします。クリック後、スマートBP の自動 BP フローが開始されます。</value>
   </data>
   <data name="Dialogue.SmartBpOcrModelDownloadBasic.Lines">
-    <value>スマート BP はゲーム画面を認識し、BP と戦績データの入力を補助します。&#10;使用順序は：OCR モデルをダウンロード -&gt; ウィンドウをキャプチャ -&gt; 認識領域を設定 -&gt; 関連機能の使用を開始</value>
+    <value>スマートBP はゲーム画面を認識し、BP と戦績データの入力を補助します。&#10;使用順序は：OCR モデルをダウンロード -&gt; ウィンドウをキャプチャ -&gt; 認識領域を設定 -&gt; 関連機能の使用を開始</value>
   </data>
   <data name="Dialogue.SmartBpPostGameAutoFill.Lines">
-    <value>試合終了後、スマート BP は戦績データを認識して入力を補助します。戦績データページには「戦績データを自動認識して入力」ボタンがあります&#10;認識された戦績データは自動的にキャラクターとマッチングします</value>
+    <value>試合終了後、スマートBP は戦績データを認識して入力を補助します。戦績データページには「戦績データを自動認識して入力」ボタンがあります&#10;認識された戦績データは自動的にキャラクターとマッチングします</value>
   </data>
   <!-- RegionEditorWindow.Tutorials.cs -->
   <data name="Step.SmartBpRegionEditorBasic.0.Title">
@@ -574,7 +574,7 @@
     <value>neo-bpsys-wpf へようこそ。&#10;これから簡単な導播チュートリアルを行います。</value>
   </data>
   <data name="Dialogue.FirstRun.Ending">
-    <value>フロントエンド画面編集は初めて v3 エディターを開いた時に別途チュートリアルを行います。&#10;スマート BP は初めてスマート BP ページに進んだ時に別途チュートリアルを行います。&#10;導播の旅を始めましょう。</value>
+    <value>フロントエンド画面編集は初めて v3 エディターを開いた時に別途チュートリアルを行います。&#10;スマートBP は初めてスマートBP ページに進んだ時に別途チュートリアルを行います。&#10;導播の旅を始めましょう。</value>
   </data>
   <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
   <data name="Dialogue.Probe.Navigation.Opening.Lines">

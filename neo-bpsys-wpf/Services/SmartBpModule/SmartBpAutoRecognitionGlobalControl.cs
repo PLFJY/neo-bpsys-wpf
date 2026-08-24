@@ -32,11 +32,17 @@ public sealed class SmartBpAutoRecognitionGlobalControl : ISmartBpAutoRecognitio
         return stop?.Invoke(cancellationToken) ?? Task.CompletedTask;
     }
 
+    /// <summary>更新模块拥有的停止回调和运行状态（兼容旧版模块的二进制契约）。</summary>
+    /// <param name="isRunning">识别是否正在运行。</param>
+    /// <param name="stop">用于停止识别的回调。</param>
+    public void Update(bool isRunning, Func<CancellationToken, Task>? stop = null)
+        => Update(isRunning, stop, null);
+
     /// <summary>更新模块拥有的回调和运行状态。</summary>
     /// <param name="isRunning">识别是否正在运行。</param>
     /// <param name="stop">用于停止识别的回调。</param>
     /// <param name="forceSyncGameState">用于强制同步对局状态的回调。</param>
-    public void Update(bool isRunning, Func<CancellationToken, Task>? stop = null, Func<CancellationToken, Task>? forceSyncGameState = null)
+    public void Update(bool isRunning, Func<CancellationToken, Task>? stop, Func<CancellationToken, Task>? forceSyncGameState)
     {
         var changed = false;
         lock (_sync)

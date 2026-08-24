@@ -24,9 +24,14 @@ public interface ISmartBpAutoRecognitionGlobalControl
 /// <summary>允许 SmartBP 模块向宿主桥接发布自动识别状态。</summary>
 public interface ISmartBpAutoRecognitionGlobalControlSink
 {
-    /// <summary>更新运行状态和回调。</summary>
+    /// <summary>更新运行状态和停止回调。</summary>
+    /// <param name="isRunning">识别是否正在运行。</param>
+    /// <param name="stop">由模块拥有的停止回调。</param>
+    void Update(bool isRunning, Func<CancellationToken, Task>? stop = null);
+
+    /// <summary>更新运行状态、停止回调和强制同步对局状态回调。</summary>
     /// <param name="isRunning">识别是否正在运行。</param>
     /// <param name="stop">由模块拥有的停止回调。</param>
     /// <param name="forceSyncGameState">由模块拥有的强制同步对局状态回调。</param>
-    void Update(bool isRunning, Func<CancellationToken, Task>? stop = null, Func<CancellationToken, Task>? forceSyncGameState = null);
+    void Update(bool isRunning, Func<CancellationToken, Task>? stop, Func<CancellationToken, Task>? forceSyncGameState);
 }

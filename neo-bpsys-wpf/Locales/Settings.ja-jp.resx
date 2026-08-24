@@ -205,43 +205,43 @@
     <value>更新</value>
   </data>
   <data name="SmartBpModuleSettingsTitle" xml:space="preserve">
-    <value>SmartBP モジュール設定</value>
+    <value>スマートBP モジュール設定</value>
   </data>
   <data name="SmartBpModulePath" xml:space="preserve">
     <value>モジュールの読み込み/インストール先</value>
   </data>
   <data name="SmartBpModulePathDescription" xml:space="preserve">
-    <value>SmartBP 独立モジュールのインストール、インポート、読み込みに使用します。変更は SmartBP ページへ同期され、次回のインストールまたはローカル読み込みで使用されます。</value>
+    <value>スマートBP 独立モジュールのインストール、インポート、読み込みに使用します。変更は スマートBP ページへ同期され、次回のインストールまたはローカル読み込みで使用されます。</value>
   </data>
   <data name="SmartBpModuleBrowseFolder" xml:space="preserve">
     <value>フォルダーを参照</value>
   </data>
   <data name="SmartBpModulePathSaved" xml:space="preserve">
-    <value>SmartBP モジュールのパスを保存しました。</value>
+    <value>スマートBP モジュールのパスを保存しました。</value>
   </data>
   <data name="SmartBpModuleDevelopmentPathSaving" xml:space="preserve">
-    <value>SmartBP 開発モジュールのパスを保存しています...</value>
+    <value>スマートBP 開発モジュールのパスを保存しています...</value>
   </data>
   <data name="SmartBpModuleDevelopmentPathSaved" xml:space="preserve">
-    <value>SmartBP 開発モジュールのパスを保存しました。モジュールファイルはコピーしていません。</value>
+    <value>スマートBP 開発モジュールのパスを保存しました。モジュールファイルはコピーしていません。</value>
   </data>
   <data name="SmartBpModulePathMigrating" xml:space="preserve">
-    <value>SmartBP モジュールディレクトリを移行しています...</value>
+    <value>スマートBP モジュールディレクトリを移行しています...</value>
   </data>
   <data name="SmartBpModulePathMigrationPrepared" xml:space="preserve">
-    <value>SmartBP モジュールを新しいディレクトリへコピーしました。次回新しいディレクトリから正常に読み込まれた後、古いディレクトリを削除します。</value>
+    <value>スマートBP モジュールを新しいディレクトリへコピーしました。次回新しいディレクトリから正常に読み込まれた後、古いディレクトリを削除します。</value>
   </data>
   <data name="SmartBpModulePathMigrationFailed" xml:space="preserve">
-    <value>SmartBP モジュールディレクトリの移行に失敗しました: </value>
+    <value>スマートBP モジュールディレクトリの移行に失敗しました: </value>
   </data>
   <data name="SmartBpModulePathInvalid" xml:space="preserve">
-    <value>このパスは SmartBP モジュールに使用できません。書き込み可能なユーザーディレクトリを選択してください。</value>
+    <value>このパスは スマートBP モジュールに使用できません。書き込み可能なユーザーディレクトリを選択してください。</value>
   </data>
   <data name="SmartBpModulePathMigrationChoiceTitle" xml:space="preserve">
-    <value>SmartBP モジュールファイルを移行しますか？</value>
+    <value>スマートBP モジュールファイルを移行しますか？</value>
   </data>
   <data name="SmartBpModulePathMigrationChoiceMessage" xml:space="preserve">
-    <value>既存の SmartBP モジュールファイルが検出されました。現在のモジュールファイルを新しいモジュールパスへ移行しますか？</value>
+    <value>既存の スマートBP モジュールファイルが検出されました。現在のモジュールファイルを新しいモジュールパスへ移行しますか？</value>
   </data>
   <data name="SmartBpModulePathMigrateFiles" xml:space="preserve">
     <value>既存ファイルを移行</value>
@@ -250,16 +250,16 @@
     <value>パスのみ保存</value>
   </data>
   <data name="SmartBpModulePathSavedWithoutMigration" xml:space="preserve">
-    <value>SmartBP モジュールのパスを保存しました。既存ファイルは移行していません。</value>
+    <value>スマートBP モジュールのパスを保存しました。既存ファイルは移行していません。</value>
   </data>
   <data name="SmartBpModulePathSaveCanceled" xml:space="preserve">
-    <value>SmartBP モジュールのパス保存をキャンセルしました。</value>
+    <value>スマートBP モジュールのパス保存をキャンセルしました。</value>
   </data>
   <data name="SmartBpModuleImportArchive" xml:space="preserve">
     <value>モジュールパッケージをインポート</value>
   </data>
   <data name="SmartBpModuleArchiveImporting" xml:space="preserve">
-    <value>SmartBP モジュールパッケージをインポートしています...</value>
+    <value>スマートBP モジュールパッケージをインポートしています...</value>
   </data>
   <data name="SmartBpModuleArchiveExtractingFormat" xml:space="preserve">
     <value>展開中: {0}%</value>
@@ -271,25 +271,25 @@
     <value>ダウンロード中：{0} / {1}</value>
   </data>
   <data name="SmartBpModuleArchiveImportSucceeded" xml:space="preserve">
-    <value>SmartBP モジュールパッケージをインポートして読み込みました。</value>
+    <value>スマートBP モジュールパッケージをインポートして読み込みました。</value>
   </data>
   <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
-    <value>SmartBP モジュールパッケージの準備ができました。アプリの再起動後に更新が完了します。</value>
+    <value>スマートBP モジュールパッケージの準備ができました。アプリの再起動後に更新が完了します。</value>
   </data>
   <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
-    <value>SmartBP モジュールパッケージの準備ができました。現在のモジュールが読み込まれている可能性があるため、更新を完了するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
+    <value>スマートBP モジュールパッケージの準備ができました。現在のモジュールが読み込まれている可能性があるため、更新を完了するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
   </data>
   <data name="SmartBpModuleArchiveImportFailed" xml:space="preserve">
-    <value>SmartBP モジュールパッケージのインポートに失敗しました: </value>
+    <value>スマートBP モジュールパッケージのインポートに失敗しました: </value>
   </data>
   <data name="SmartBpModuleVersionFormat" xml:space="preserve">
-    <value>SmartBP モジュールバージョン: {0}</value>
+    <value>スマートBP モジュールバージョン: {0}</value>
   </data>
   <data name="SmartBpModuleRequired" xml:space="preserve">
-    <value>SmartBP を使用するには、独立モジュールをインストールする必要があります。</value>
+    <value>スマートBP を使用するには、独立モジュールをインストールする必要があります。</value>
   </data>
   <data name="SmartBpModuleNotInstalledDescription" xml:space="preserve">
-    <value>SmartBP は独立したモジュールであり、別途ダウンロードしてインストールする必要があります。</value>
+    <value>スマートBP は独立したモジュールであり、別途ダウンロードしてインストールする必要があります。</value>
   </data>
   <data name="SmartBpModuleAdvancedOptions" xml:space="preserve">
     <value>詳細オプション</value>
@@ -316,28 +316,28 @@
     <value>Preview 版ではローカルモジュールディレクトリを読み込むか、SmartBpModule.7z / .zip をインポートしてください。</value>
   </data>
   <data name="SmartBpModuleDebugLoadDirectory" xml:space="preserve">
-    <value>Debug 版では SmartBP モジュールの Debug 出力ディレクトリを読み込んでください。</value>
+    <value>Debug 版では スマートBP モジュールの Debug 出力ディレクトリを読み込んでください。</value>
   </data>
   <data name="SmartBpModuleDebugLocalLoadFailed" xml:space="preserve">
-    <value>Debug 版ではローカルの SmartBP モジュールディレクトリのみ読み込みます。現在のディレクトリを読み込めませんでした。モジュールの Debug 出力ディレクトリが存在し、エントリアセンブリを読み込めることを確認してください。</value>
+    <value>Debug 版ではローカルの スマートBP モジュールディレクトリのみ読み込みます。現在のディレクトリを読み込めませんでした。モジュールの Debug 出力ディレクトリが存在し、エントリアセンブリを読み込めることを確認してください。</value>
   </data>
   <data name="SmartBpModuleDownloadInstallFailed" xml:space="preserve">
-    <value>SmartBP モジュールをダウンロードまたはインストールできませんでした。ネットワークを確認して再試行するか、インストール済みモジュールのパスを手動で選択してください。</value>
+    <value>スマートBP モジュールをダウンロードまたはインストールできませんでした。ネットワークを確認して再試行するか、インストール済みモジュールのパスを手動で選択してください。</value>
   </data>
   <data name="SmartBpModuleDebugFolderLoadFailed" xml:space="preserve">
     <value>Debug 版でローカルモジュールディレクトリの読み込みに失敗しました。エントリアセンブリが存在し、現在のアプリで読み込めることを確認してください。</value>
   </data>
   <data name="SmartBpModuleSelectedDirectoryInvalid" xml:space="preserve">
-    <value>選択した SmartBP モジュールディレクトリは使用できません。component.json、RID、ABI、エントリアセンブリを確認してください。</value>
+    <value>選択した スマートBP モジュールディレクトリは使用できません。component.json、RID、ABI、エントリアセンブリを確認してください。</value>
   </data>
   <data name="SmartBpModulePathUnsafe" xml:space="preserve">
-    <value>現在のパスは SmartBP モジュールのインストールに適していません。書き込み可能なユーザーディレクトリを選択してください。</value>
+    <value>現在のパスは スマートBP モジュールのインストールに適していません。書き込み可能なユーザーディレクトリを選択してください。</value>
   </data>
   <data name="SmartBpModuleOutdatedFormat" xml:space="preserve">
-    <value>現在の SmartBP モジュールは古いため、{0} へ更新する必要があります。</value>
+    <value>現在の スマートBP モジュールは古いため、{0} へ更新する必要があります。</value>
   </data>
   <data name="SmartBpModuleCompatibleFound" xml:space="preserve">
-    <value>互換性のある SmartBP モジュールを検出しました。直接読み込めます。</value>
+    <value>互換性のある スマートBP モジュールを検出しました。直接読み込めます。</value>
   </data>
   <data name="SmartBpModulePathModuleInvalidFormat" xml:space="preserve">
     <value>現在のパスのモジュールは使用できません: {0}</value>
@@ -346,13 +346,13 @@
     <value>{0} エラー: {1}</value>
   </data>
   <data name="SmartBpModuleArchiveFiles" xml:space="preserve">
-    <value>SmartBP モジュールアーカイブ</value>
+    <value>スマートBP モジュールアーカイブ</value>
   </data>
   <data name="SmartBpModuleSetDebugPath" xml:space="preserve">
     <value>Debug パスに設定</value>
   </data>
   <data name="SmartBpModuleDebugPathNotFound" xml:space="preserve">
-    <value>SmartBP モジュールの Debug 出力ディレクトリが見つかりませんでした。先に SmartBP モジュールプロジェクトをビルドしてください。</value>
+    <value>スマートBP モジュールの Debug 出力ディレクトリが見つかりませんでした。先に スマートBP モジュールプロジェクトをビルドしてください。</value>
   </data>
   <data name="AppUpdateHashFileMissing" xml:space="preserve">
     <value>更新パッケージに SHA-256 ファイルが含まれていないため、ダウンロードを停止しました。</value>
@@ -400,7 +400,7 @@
     <value>プロダクトツアーデバッガー</value>
   </data>
   <data name="SmartBpStopAutomaticRecognition" xml:space="preserve">
-    <value>SmartBP の認識を停止</value>
+    <value>スマートBP の認識を停止</value>
   </data>
   <data name="LogLevelVerbose" xml:space="preserve">
     <value>Verbose</value>
@@ -490,6 +490,6 @@
     <value>フォルダーを選択</value>
   </data>
   <data name="ForceSmartBpSyncGameState" xml:space="preserve">
-    <value>スマート BP 対局状態を強制同期</value>
+    <value>スマートBP 対局状態を強制同期</value>
   </data>
 </root>
