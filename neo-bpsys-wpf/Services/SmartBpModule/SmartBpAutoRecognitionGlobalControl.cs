@@ -7,6 +7,7 @@ public sealed class SmartBpAutoRecognitionGlobalControl : ISmartBpAutoRecognitio
 {
     private readonly Lock _sync = new();
     private Func<CancellationToken, Task>? _stop;
+    private Func<CancellationToken, Task>? _forceSyncGameState;
     private bool _isRunning;
 
     /// <inheritdoc />
@@ -16,6 +17,14 @@ public sealed class SmartBpAutoRecognitionGlobalControl : ISmartBpAutoRecognitio
     public event EventHandler? StateChanged;
 
     /// <inheritdoc />
+    public Task ForceSyncGameStateAsync(CancellationToken cancellationToken = default)
+    {
+        Func<CancellationToken, Task>? forceSyncGameState;
+        lock (_sync) forceSyncGameState = _forceSyncGameState;
+        return forceSyncGameState?.Invoke(cancellationToken) ?? Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
     public Task StopAsync(CancellationToken cancellationToken = default)
     {
         Func<CancellationToken, Task>? stop;
@@ -23,15 +32,17 @@ public sealed class SmartBpAutoRecognitionGlobalControl : ISmartBpAutoRecognitio
         return stop?.Invoke(cancellationToken) ?? Task.CompletedTask;
     }
 
-    /// <summary>更新模块拥有的停止回调和运行状态。</summary>
+    /// <summary>更新模块拥有的回调和运行状态。</summary>
     /// <param name="isRunning">识别是否正在运行。</param>
     /// <param name="stop">用于停止识别的回调。</param>
-    public void Update(bool isRunning, Func<CancellationToken, Task>? stop = null)
+    /// <param name="forceSyncGameState">用于强制同步对局状态的回调。</param>
+    public void Update(bool isRunning, Func<CancellationToken, Task>? stop = null, Func<CancellationToken, Task>? forceSyncGameState = null)
     {
         var changed = false;
         lock (_sync)
         {
             if (stop is not null) _stop = stop;
+            if (forceSyncGameState is not null) _forceSyncGameState = forceSyncGameState;
             changed = _isRunning != isRunning;
             _isRunning = isRunning;
         }

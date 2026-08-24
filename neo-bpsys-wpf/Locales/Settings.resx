@@ -1,379 +1,495 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype">text/microsoft-resx</resheader>
-  <resheader name="version">2.0</resheader>
-  <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</resheader>
-  <data name="ProjectRepository">
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ProjectRepository" xml:space="preserve">
     <value>项目仓库：</value>
   </data>
-  <data name="SoftwareUpdates">
+  <data name="SoftwareUpdates" xml:space="preserve">
     <value>应用更新</value>
   </data>
-  <data name="DownloadSource">
+  <data name="DownloadSource" xml:space="preserve">
     <value>下载源：</value>
   </data>
-  <data name="DownloadPreviewVersion">
+  <data name="DownloadPreviewVersion" xml:space="preserve">
     <value>下载预览版？</value>
   </data>
-  <data name="TestMirrorLatency">
+  <data name="TestMirrorLatency" xml:space="preserve">
     <value>测试延迟</value>
   </data>
-  <data name="About">
+  <data name="About" xml:space="preserve">
     <value>关于</value>
   </data>
-  <data name="CheckForUpdates">
+  <data name="CheckForUpdates" xml:space="preserve">
     <value>检查更新</value>
   </data>
-  <data name="Install">
+  <data name="Install" xml:space="preserve">
     <value>安装</value>
   </data>
-  <data name="LanguageSetting">
+  <data name="LanguageSetting" xml:space="preserve">
     <value>语言设置</value>
   </data>
-  <data name="SourceOfImageResources">
+  <data name="SourceOfImageResources" xml:space="preserve">
     <value>贴图素材来自：</value>
   </data>
-  <data name="OpenSourceRepositoryUsed">
+  <data name="OpenSourceRepositoryUsed" xml:space="preserve">
     <value>以下是本软件使用的开源代码库：</value>
   </data>
-  <data name="QuickAccess">
+  <data name="QuickAccess" xml:space="preserve">
     <value>快捷入口</value>
   </data>
-  <data name="OpenFrontendDirectory">
+  <data name="OpenFrontendDirectory" xml:space="preserve">
     <value>打开前台配置文件目录</value>
   </data>
-  <data name="OpenGameFileDirectory">
+  <data name="OpenGameFileDirectory" xml:space="preserve">
     <value>打开对局文件输出目录</value>
   </data>
-  <data name="AuthorDetails">
+  <data name="AuthorDetails" xml:space="preserve">
     <value>软件作者：零风PLFJY | 作者QQ：3424127335 | 软件反馈群: 175741665</value>
   </data>
-  <data name="ContributorList">
+  <data name="ContributorList" xml:space="preserve">
     <value>贡献者名单</value>
   </data>
-  <data name="Sponsor">
+  <data name="Sponsor" xml:space="preserve">
     <value>赞助渠道</value>
   </data>
-  <data name="DebugOptions">
+  <data name="DebugOptions" xml:space="preserve">
     <value>调试选项</value>
   </data>
-  <data name="LogLevel">
+  <data name="LogLevel" xml:space="preserve">
     <value>日志等级</value>
   </data>
-  <data name="TriggerGCCollectionManually">
+  <data name="TriggerGCCollectionManually" xml:space="preserve">
     <value>手动触发GC回收</value>
   </data>
-  <data name="OpenLogDirectory">
+  <data name="OpenLogDirectory" xml:space="preserve">
     <value>打开日志目录</value>
   </data>
-<data name="ErrorWhenCleanUpResidualUpdateFiles">
+  <data name="ErrorWhenCleanUpResidualUpdateFiles" xml:space="preserve">
     <value>清理更新残留异常</value>
   </data>
-  <data name="DownloadFails">
+  <data name="DownloadFails" xml:space="preserve">
     <value>下载失败</value>
   </data>
-  <data name="CheckForUpdatesFailed">
+  <data name="CheckForUpdatesFailed" xml:space="preserve">
     <value>检查更新失败</value>
   </data>
-  <data name="NewUpdateFound">
+  <data name="NewUpdateFound" xml:space="preserve">
     <value>检测到新版本</value>
   </data>
-  <data name="NoUpdatesAvailable">
+  <data name="NoUpdatesAvailable" xml:space="preserve">
     <value>无更新可用</value>
   </data>
-  <data name="DownloadTip">
+  <data name="DownloadTip" xml:space="preserve">
     <value>下载提示</value>
   </data>
-  <data name="DownloadFinished">
+  <data name="DownloadFinished" xml:space="preserve">
     <value>下载完成</value>
   </data>
-  <data name="Update">
+  <data name="Update" xml:space="preserve">
     <value>更新</value>
   </data>
-<data name="SmartBpModuleSettingsTitle">
+  <data name="SmartBpModuleSettingsTitle" xml:space="preserve">
     <value>智慧 BP 模块设置</value>
   </data>
-  <data name="SmartBpModulePath">
+  <data name="SmartBpModulePath" xml:space="preserve">
     <value>模块加载/安装路径</value>
   </data>
-  <data name="SmartBpModulePathDescription">
+  <data name="SmartBpModulePathDescription" xml:space="preserve">
     <value>用于安装、导入和加载智慧 BP 独立模块。修改后会同步到智慧 BP 页面，下次安装或本地加载会使用该目录。</value>
   </data>
-  <data name="SmartBpModuleBrowseFolder">
+  <data name="SmartBpModuleBrowseFolder" xml:space="preserve">
     <value>浏览文件夹</value>
   </data>
-  <data name="SmartBpModulePathSaved">
+  <data name="SmartBpModulePathSaved" xml:space="preserve">
     <value>智慧 BP 模块路径已保存。</value>
   </data>
-  <data name="SmartBpModuleDevelopmentPathSaving">
+  <data name="SmartBpModuleDevelopmentPathSaving" xml:space="preserve">
     <value>正在保存智慧 BP 开发模块路径...</value>
   </data>
-  <data name="SmartBpModuleDevelopmentPathSaved">
+  <data name="SmartBpModuleDevelopmentPathSaved" xml:space="preserve">
     <value>智慧 BP 开发模块路径已保存，未复制模块文件。</value>
   </data>
-  <data name="SmartBpModulePathMigrating">
+  <data name="SmartBpModulePathMigrating" xml:space="preserve">
     <value>正在迁移智慧 BP 模块目录...</value>
   </data>
-  <data name="SmartBpModulePathMigrationPrepared">
+  <data name="SmartBpModulePathMigrationPrepared" xml:space="preserve">
     <value>智慧 BP 模块已复制到新目录。下次从新目录成功加载后会清理旧目录。</value>
   </data>
-  <data name="SmartBpModulePathMigrationFailed">
+  <data name="SmartBpModulePathMigrationFailed" xml:space="preserve">
     <value>智慧 BP 模块目录迁移失败：</value>
   </data>
-  <data name="SmartBpModulePathInvalid">
+  <data name="SmartBpModulePathInvalid" xml:space="preserve">
     <value>该路径不可用于安装智慧 BP 模块，请选择可写的用户目录。</value>
   </data>
-  <data name="SmartBpModulePathMigrationChoiceTitle">
+  <data name="SmartBpModulePathMigrationChoiceTitle" xml:space="preserve">
     <value>迁移 SmartBP 模块文件？</value>
   </data>
-  <data name="SmartBpModulePathMigrationChoiceMessage">
+  <data name="SmartBpModulePathMigrationChoiceMessage" xml:space="preserve">
     <value>检测到当前已有 SmartBP 模块文件。是否将现有模块文件迁移到新的模块路径？</value>
   </data>
-  <data name="SmartBpModulePathMigrateFiles">
+  <data name="SmartBpModulePathMigrateFiles" xml:space="preserve">
     <value>迁移现有文件</value>
   </data>
-  <data name="SmartBpModulePathSaveOnly">
+  <data name="SmartBpModulePathSaveOnly" xml:space="preserve">
     <value>仅保存路径</value>
   </data>
-  <data name="SmartBpModulePathSavedWithoutMigration">
+  <data name="SmartBpModulePathSavedWithoutMigration" xml:space="preserve">
     <value>智慧 BP 模块路径已保存，未迁移现有文件。</value>
   </data>
-  <data name="SmartBpModulePathSaveCanceled">
+  <data name="SmartBpModulePathSaveCanceled" xml:space="preserve">
     <value>已取消保存智慧 BP 模块路径。</value>
   </data>
-  <data name="SmartBpModuleImportArchive">
+  <data name="SmartBpModuleImportArchive" xml:space="preserve">
     <value>导入模块包</value>
   </data>
-  <data name="SmartBpModuleArchiveImporting">
+  <data name="SmartBpModuleArchiveImporting" xml:space="preserve">
     <value>正在导入 SmartBP 模块包...</value>
   </data>
-  <data name="SmartBpModuleArchiveExtractingFormat">
+  <data name="SmartBpModuleArchiveExtractingFormat" xml:space="preserve">
     <value>正在解压：{0}%</value>
   </data>
-  <data name="SmartBpModuleDownloadingBytesFormat">
+  <data name="SmartBpModuleDownloadingBytesFormat" xml:space="preserve">
     <value>正在下载：已接收 {0}</value>
   </data>
-  <data name="SmartBpModuleDownloadingProgressFormat">
+  <data name="SmartBpModuleDownloadingProgressFormat" xml:space="preserve">
     <value>正在下载：{0} / {1}</value>
   </data>
-  <data name="SmartBpModuleArchiveImportSucceeded">
+  <data name="SmartBpModuleArchiveImportSucceeded" xml:space="preserve">
     <value>SmartBP 模块包已导入并加载。</value>
   </data>
-  <data name="SmartBpModuleArchiveImportRestartPrepared">
+  <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
     <value>SmartBP 模块包已准备好，重启应用后将完成更新。</value>
   </data>
-  <data name="SmartBpModuleArchiveImportRestartPrompt">
+  <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
     <value>SmartBP 模块包已准备好。由于当前模块可能正在被加载，需要重启应用后完成更新。是否立即重启？</value>
   </data>
-  <data name="SmartBpModuleArchiveImportFailed">
+  <data name="SmartBpModuleArchiveImportFailed" xml:space="preserve">
     <value>SmartBP 模块包导入失败：</value>
   </data>
-  <data name="SmartBpModuleVersionFormat">
+  <data name="SmartBpModuleVersionFormat" xml:space="preserve">
     <value>SmartBP 模块版本：{0}</value>
   </data>
-  <data name="SmartBpModuleRequired">
+  <data name="SmartBpModuleRequired" xml:space="preserve">
     <value>SmartBP 需要安装独立模块后使用。</value>
   </data>
-  <data name="SmartBpModuleNotInstalledDescription">
+  <data name="SmartBpModuleNotInstalledDescription" xml:space="preserve">
     <value>SmartBP 是独立的模块，需要独立下载并安装后使用。</value>
   </data>
-  <data name="SmartBpModuleAdvancedOptions">
+  <data name="SmartBpModuleAdvancedOptions" xml:space="preserve">
     <value>高级选项</value>
   </data>
-  <data name="SmartBpModuleDownloadAndInstall">
+  <data name="SmartBpModuleDownloadAndInstall" xml:space="preserve">
     <value>下载并安装</value>
   </data>
-  <data name="SmartBpModuleReinstall">
+  <data name="SmartBpModuleReinstall" xml:space="preserve">
     <value>重新安装</value>
   </data>
-  <data name="SmartBpModuleUpdateAndInstall">
+  <data name="SmartBpModuleUpdateAndInstall" xml:space="preserve">
     <value>更新并安装</value>
   </data>
-  <data name="SmartBpModuleLoadLocal">
+  <data name="SmartBpModuleLoadLocal" xml:space="preserve">
     <value>加载本地模块</value>
   </data>
-  <data name="SmartBpModuleSelectInstalledPath">
+  <data name="SmartBpModuleSelectInstalledPath" xml:space="preserve">
     <value>选择已安装的模块路径</value>
   </data>
-  <data name="SmartBpModuleSelectArchive">
+  <data name="SmartBpModuleSelectArchive" xml:space="preserve">
     <value>选择 SmartBpModule.7z / .zip</value>
   </data>
-  <data name="SmartBpModulePreviewLoadOrImportArchive">
+  <data name="SmartBpModulePreviewLoadOrImportArchive" xml:space="preserve">
     <value>Preview 版本请加载本地模块目录或导入 SmartBpModule.7z / .zip。</value>
   </data>
-  <data name="SmartBpModuleDebugLoadDirectory">
+  <data name="SmartBpModuleDebugLoadDirectory" xml:space="preserve">
     <value>Debug 版本请加载 SmartBP 模块 Debug 输出目录。</value>
   </data>
-  <data name="SmartBpModuleDebugLocalLoadFailed">
+  <data name="SmartBpModuleDebugLocalLoadFailed" xml:space="preserve">
     <value>Debug 版本仅加载本地 SmartBP 模块目录。当前目录加载失败，请确认模块 Debug 输出目录存在且入口程序集可加载。</value>
   </data>
-  <data name="SmartBpModuleDownloadInstallFailed">
+  <data name="SmartBpModuleDownloadInstallFailed" xml:space="preserve">
     <value>无法下载或安装 SmartBP 模块。请检查网络后重试，或手动选择已安装模块路径。</value>
   </data>
-  <data name="SmartBpModuleDebugFolderLoadFailed">
+  <data name="SmartBpModuleDebugFolderLoadFailed" xml:space="preserve">
     <value>Debug 版本加载本地模块目录失败，请确认入口程序集存在且可以被当前主程序加载。</value>
   </data>
-  <data name="SmartBpModuleSelectedDirectoryInvalid">
+  <data name="SmartBpModuleSelectedDirectoryInvalid" xml:space="preserve">
     <value>选择的 SmartBP 模块目录不可用，请检查 component.json、RID、ABI 和入口程序集。</value>
   </data>
-  <data name="SmartBpModulePathUnsafe">
+  <data name="SmartBpModulePathUnsafe" xml:space="preserve">
     <value>当前路径不适合安装 SmartBP 模块，请选择可写的用户目录。</value>
   </data>
-  <data name="SmartBpModuleOutdatedFormat">
+  <data name="SmartBpModuleOutdatedFormat" xml:space="preserve">
     <value>当前 SmartBP 模块版本过旧，需要更新到 {0}。</value>
   </data>
-  <data name="SmartBpModuleCompatibleFound">
+  <data name="SmartBpModuleCompatibleFound" xml:space="preserve">
     <value>检测到兼容的 SmartBP 模块，可以直接加载。</value>
   </data>
-  <data name="SmartBpModulePathModuleInvalidFormat">
+  <data name="SmartBpModulePathModuleInvalidFormat" xml:space="preserve">
     <value>当前路径模块不可用：{0}</value>
   </data>
-  <data name="SmartBpModuleLocalFailureErrorFormat">
+  <data name="SmartBpModuleLocalFailureErrorFormat" xml:space="preserve">
     <value>{0}错误：{1}</value>
   </data>
-  <data name="SmartBpModuleArchiveFiles">
+  <data name="SmartBpModuleArchiveFiles" xml:space="preserve">
     <value>SmartBP 模块归档</value>
   </data>
-  <data name="SmartBpModuleSetDebugPath">
+  <data name="SmartBpModuleSetDebugPath" xml:space="preserve">
     <value>设置为 Debug 路径</value>
   </data>
-  <data name="SmartBpModuleDebugPathNotFound">
+  <data name="SmartBpModuleDebugPathNotFound" xml:space="preserve">
     <value>未找到 SmartBP 模块 Debug 输出目录，请先构建 SmartBP 模块项目。</value>
   </data>
-  <data name="AppUpdateHashFileMissing">
+  <data name="AppUpdateHashFileMissing" xml:space="preserve">
     <value>更新包缺少 SHA-256 校验文件，已停止下载。</value>
   </data>
-  <data name="AppUpdateInvalidHashFile">
+  <data name="AppUpdateInvalidHashFile" xml:space="preserve">
     <value>更新包的 SHA-256 校验文件格式无效，已停止安装。</value>
   </data>
-  <data name="AppUpdateSha256Mismatch">
+  <data name="AppUpdateSha256Mismatch" xml:space="preserve">
     <value>更新安装包完整性校验失败，为确保安全已拒绝安装。</value>
   </data>
-  <data name="AppUpdateVerifyingHash">
+  <data name="AppUpdateVerifyingHash" xml:space="preserve">
     <value>正在校验更新安装包完整性…</value>
   </data>
-  <data name="RestartNow">
+  <data name="RestartNow" xml:space="preserve">
     <value>立即重启</value>
   </data>
-  <data name="ClassicMode">
+  <data name="ClassicMode" xml:space="preserve">
     <value>经典模式</value>
   </data>
-  <data name="ClassicModeDescription">
+  <data name="ClassicModeDescription" xml:space="preserve">
     <value>切换后台界面模式后需要重启应用生效。</value>
   </data>
-  <data name="BpuiFileAssociation">
+  <data name="BpuiFileAssociation" xml:space="preserve">
     <value>关联 .bpui 文件</value>
   </data>
-  <data name="BpuiFileAssociationDescription">
+  <data name="BpuiFileAssociationDescription" xml:space="preserve">
     <value>启用后，双击 .bpui 布局包会打开本工具并安装为当前激活布局方案。</value>
   </data>
-  <data name="PageTransitionAnimation">
+  <data name="PageTransitionAnimation" xml:space="preserve">
     <value>页面切换动画</value>
   </data>
-  <data name="PageTransitionAnimationDescription">
+  <data name="PageTransitionAnimationDescription" xml:space="preserve">
     <value>关闭后，后台页面之间的切换将不再播放过渡动画，改为立即切换。修改后需要重启应用生效。</value>
   </data>
-  <data name="PageTransitionAnimationRestart">
+  <data name="PageTransitionAnimationRestart" xml:space="preserve">
     <value>重启生效</value>
   </data>
-  <data name="ClassicModeRestartRequired">
+  <data name="ClassicModeRestartRequired" xml:space="preserve">
     <value>切换后台界面模式后需要重启应用生效。是否立即重启？</value>
   </data>
-  <data name="OpenBehaviorEventDebugger">
+  <data name="OpenBehaviorEventDebugger" xml:space="preserve">
     <value>打开行为事件调试器</value>
   </data>
-  <data name="ProductTourDebugger">
+  <data name="ProductTourDebugger" xml:space="preserve">
     <value>产品导览调试器</value>
   </data>
-  <data name="SmartBpStopAutomaticRecognition">
+  <data name="SmartBpStopAutomaticRecognition" xml:space="preserve">
     <value>停止 SmartBP 识别</value>
   </data>
-  <data name="LogLevelVerbose">
+  <data name="LogLevelVerbose" xml:space="preserve">
     <value>Verbose</value>
   </data>
-  <data name="LogLevelDebug">
+  <data name="LogLevelDebug" xml:space="preserve">
     <value>Debug</value>
   </data>
-  <data name="LogLevelInformation">
+  <data name="LogLevelInformation" xml:space="preserve">
     <value>Information</value>
   </data>
-  <data name="LogLevelWarning">
+  <data name="LogLevelWarning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="LogLevelError">
+  <data name="LogLevelError" xml:space="preserve">
     <value>Error</value>
   </data>
-  <data name="LogLevelFatal">
+  <data name="LogLevelFatal" xml:space="preserve">
     <value>Fatal</value>
   </data>
-  <data name="ConfigurationFileEmpty">
+  <data name="ConfigurationFileEmpty" xml:space="preserve">
     <value>配置文件为空</value>
   </data>
-  <data name="ConfigurationFileSaveError">
+  <data name="ConfigurationFileSaveError" xml:space="preserve">
     <value>配置文件保存错误</value>
   </data>
-  <data name="FailedToReadConfigurationFile">
+  <data name="FailedToReadConfigurationFile" xml:space="preserve">
     <value>配置文件读取失败</value>
   </data>
-  <data name="ResetConfigurationFileError">
+  <data name="ResetConfigurationFileError" xml:space="preserve">
     <value>重置配置文件错误</value>
   </data>
-  <data name="ResetConfigurationFileToSolveTheProblem">
+  <data name="ResetConfigurationFileToSolveTheProblem" xml:space="preserve">
     <value>重置配置文件以解决问题</value>
   </data>
-  <data name="PleaseStartWindowCaptureFirst">
+  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
     <value>请先启动窗口捕获</value>
   </data>
-  <data name="WindowCaptureCaptureNotStarted">
+  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
     <value>尚未开始捕获。</value>
   </data>
-  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt">
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
     <value>使用 Bitblt 捕获首帧失败。</value>
   </data>
-  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat">
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
     <value>捕获所选窗口失败：{0}</value>
   </data>
-  <data name="WindowCaptureFailedToStartBitbltCaptureFormat">
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
     <value>启动 Bitblt 捕获失败：{0}</value>
   </data>
-  <data name="WindowCaptureFailedToStartCaptureFormat">
+  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
     <value>启动捕获失败：{0}</value>
   </data>
-  <data name="WindowCaptureFailedToStartPickerCaptureFormat">
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
     <value>通过窗口选择器启动捕获失败：{0}</value>
   </data>
-  <data name="WindowCaptureGraphicsCaptureItemUnavailable">
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
     <value>捕获所选窗口失败：无法创建 GraphicsCaptureItem。</value>
   </data>
-  <data name="WindowCapturePleaseSelectWindowFirst">
+  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
     <value>请先选择窗口。</value>
   </data>
-  <data name="WindowCapturePreviewWindowTitle">
+  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
     <value>预览窗口</value>
   </data>
-  <data name="WindowCaptureSelectedWindowInvalidForCapture">
+  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
     <value>所选窗口无法用于捕获。</value>
   </data>
-  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem">
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
     <value>当前系统不支持 Windows Graphics Capture。</value>
   </data>
-  <data name="WindowCaptureWgcRequires1803OrLater">
+  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
     <value>Windows Graphics Capture 需要 Windows 10 1803 或更高版本。</value>
   </data>
-  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809">
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
     <value>按窗口句柄捕获需要 Windows 10 1903 或更高版本。在 1803/1809 上请使用窗口选择器捕获。</value>
   </data>
-  <data name="GameStateSaveSettingsTitle">
+  <data name="GameStateSaveSettingsTitle" xml:space="preserve">
     <value>对局状态保存</value>
   </data>
-  <data name="GameStateSaveDirectory">
+  <data name="GameStateSaveDirectory" xml:space="preserve">
     <value>保存目录</value>
   </data>
-  <data name="GameStateSaveDirectoryDescription">
+  <data name="GameStateSaveDirectoryDescription" xml:space="preserve">
     <value>保存当前对局状态时使用的文件夹。</value>
   </data>
-  <data name="BrowseGameStateSaveDirectory">
+  <data name="BrowseGameStateSaveDirectory" xml:space="preserve">
     <value>选择文件夹</value>
+  </data>
+  <data name="ForceSmartBpSyncGameState" xml:space="preserve">
+    <value>智慧 BP 强制同步对局状态</value>
   </data>
 </root>

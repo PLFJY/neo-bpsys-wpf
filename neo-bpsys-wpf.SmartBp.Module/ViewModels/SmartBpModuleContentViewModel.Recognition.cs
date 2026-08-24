@@ -918,7 +918,7 @@ public partial class SmartBpModuleContentViewModel
             _autoRecognitionCoordinator.SampleFrame(frame);
             _frameSamplingTimer.Start();
             _previewTimer.Start();
-            _autoRecognitionGlobalControl.Update(true, _ => StopPreviewLoopAsync());
+            _autoRecognitionGlobalControl.Update(true, _ => StopPreviewLoopAsync(), _ => ForceSyncGameStateAsync());
         }
         catch (Exception ex)
         {

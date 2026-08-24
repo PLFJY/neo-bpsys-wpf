@@ -264,6 +264,14 @@
                     Icon="{ui:SymbolIcon Symbol=Stop24}"
                     Visibility="{Binding IsSmartBpAutoRecognitionRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <ui:Button
+                    x:Name="ForceSmartBpSyncGameStateButton"
+                    Margin="0,0,10,10"
+                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings"
+                    Command="{Binding ForceSmartBpSyncGameStateCommand}"
+                    Content="{lex:Loc ForceSmartBpSyncGameState}"
+                    Icon="{ui:SymbolIcon Symbol=ArrowSync24}"
+                    Visibility="{Binding IsSmartBpAutoRecognitionRunning, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ui:Button
                     x:Name="StartGameGuidanceButton"
                     Margin="0,0,10,10"
                     Command="{Binding StartNavigationCommand}"
