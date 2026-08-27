@@ -145,7 +145,8 @@
                         VerticalAlignment="Center"
                         lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Bp"
                         Content="{lex:Loc AutoRecord}"
-                        IsChecked="{Binding IsGlobalBanAutoRecord}" />
+                        IsChecked="{Binding IsGlobalBanAutoRecord}"
+                        IsTabStop="False" />
                 </StackPanel>
                 <Grid
                     x:Name="HomeGlobalBanRecordPanel"
