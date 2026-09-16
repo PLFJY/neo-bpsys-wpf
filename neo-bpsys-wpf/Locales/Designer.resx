@@ -245,7 +245,7 @@
     <value>重置</value>
   </data>
   <data name="CanvasProperties">
-    <value>Canvas 属性</value>
+    <value>画布设置</value>
   </data>
   <data name="WindowOptions">
     <value>窗口选项</value>
@@ -269,19 +269,19 @@
     <value>背景图片</value>
   </data>
   <data name="CanvasWidth">
-    <value>Canvas 宽度</value>
+    <value>画布宽度</value>
   </data>
   <data name="CanvasHeight">
-    <value>Canvas 高度</value>
+    <value>画布高度</value>
   </data>
   <data name="CanvasSizeMustBePositive">
-    <value>Canvas 宽度和高度必须大于 0</value>
+    <value>画布宽度和高度必须大于 0</value>
   </data>
   <data name="WindowSizeMustBePositive">
     <value>窗口宽度和高度必须大于 0</value>
   </data>
   <data name="CanvasPropertiesApplied">
-    <value>Canvas 属性已应用</value>
+    <value>画布设置已应用</value>
   </data>
   <data name="WindowOptionsApplied">
     <value>窗口选项已应用</value>
@@ -1456,6 +1456,9 @@
   <data name="Designer.Help.BasicWorkflow.Title">
     <value>基本操作流程</value>
   </data>
+  <data name="Designer.Help.Concepts.Title">
+    <value>控件、画布和窗口的区别</value>
+  </data>
   <data name="Designer.Help.CanvasNavigation.Title">
     <value>画布导航</value>
   </data>
@@ -1490,7 +1493,7 @@
     <value>添加 / 删除 / 复制 / 粘贴</value>
   </data>
   <data name="Designer.Help.CanvasWindowSettings.Title">
-    <value>画布 / 窗口设置</value>
+    <value>画布设置 / 窗口设置</value>
   </data>
   <data name="Designer.Help.Validation.Title">
     <value>验证</value>
@@ -1536,6 +1539,9 @@
   </data>
   <data name="Designer.Help.BasicWorkflow.Content">
     <value>从顶部选择器选择窗口和画布；\n从"添加控件"按钮添加内置或插件控件；\n从画布或图层面板选择控件；\n从属性面板编辑属性；\n保存布局；\n验证布局；\n重置/重新加载布局。</value>
+  </data>
+  <data name="Designer.Help.Concepts.Content">
+    <value>窗口是前台输出的最外层容器，对应一个可供 OBS 捕获的窗口；窗口设置管理窗口尺寸、透明等窗口级行为，不直接决定控件在画布上的位置。\n画布是窗口内部的设计区域和坐标系；画布设置管理设计宽高、背景图片以及可选的 BO3/BO5 状态，画布本身不会单独生成一个前台窗口。\n控件是画布中的具体元素，例如文字、图片、地图和比分；控件属性管理自身的内容、数据绑定、位置、尺寸、层级和可见性，不会改变窗口或画布整体。\n它们的关系可以理解为：一个窗口包含一个画布，一个画布包含多个控件。外层设置会影响内部内容，但控件只负责自己的显示。\n遇到问题时，想改变输出容器请选择“窗口设置”；想改变设计区域、背景或坐标范围请选择“画布设置”；想改变某个文字、图片或其他元素请选择对应控件。</value>
   </data>
   <data name="Designer.Help.CanvasNavigation.Content">
     <value>鼠标滚轮或滚动条导航画布；\n鼠标右键拖拽平移画布；\n按住 Space + 鼠标左键拖拽平移画布；\nCtrl + 鼠标滚轮缩放；\n底部缩放组合框支持输入 100、100%、1x、1.25x；\n滑块调整缩放比例；\n"适应"按钮将画布适配到当前视口。</value>

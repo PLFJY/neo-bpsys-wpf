@@ -46,6 +46,7 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
     private void LoadHelpContent()
     {
         AddSection("Designer.Help.BasicWorkflow.Title", "Designer.Help.BasicWorkflow.Content");
+        AddSection("Designer.Help.Concepts.Title", "Designer.Help.Concepts.Content");
         AddSection("Designer.Help.CanvasNavigation.Title", "Designer.Help.CanvasNavigation.Content");
         AddSection("Designer.Help.Selection.Title", "Designer.Help.Selection.Content");
         AddSection("Designer.Help.Snapping.Title", "Designer.Help.Snapping.Content");

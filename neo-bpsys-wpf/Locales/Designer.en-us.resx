@@ -245,7 +245,7 @@
     <value>Reset</value>
   </data>
   <data name="CanvasProperties">
-    <value>Canvas Properties</value>
+    <value>Canvas Settings</value>
   </data>
   <data name="WindowOptions">
     <value>Window Options</value>
@@ -281,7 +281,7 @@
     <value>Window width and height must be greater than 0</value>
   </data>
   <data name="CanvasPropertiesApplied">
-    <value>Canvas properties applied</value>
+    <value>Canvas settings applied</value>
   </data>
   <data name="WindowOptionsApplied">
     <value>Window options applied</value>
@@ -1456,6 +1456,9 @@
   <data name="Designer.Help.BasicWorkflow.Title">
     <value>Basic Workflow</value>
   </data>
+  <data name="Designer.Help.Concepts.Title">
+    <value>Windows, Canvases, and Controls</value>
+  </data>
   <data name="Designer.Help.CanvasNavigation.Title">
     <value>Canvas Navigation</value>
   </data>
@@ -1490,7 +1493,7 @@
     <value>Add / Delete / Copy / Paste</value>
   </data>
   <data name="Designer.Help.CanvasWindowSettings.Title">
-    <value>Canvas / Window Settings</value>
+    <value>Canvas Settings / Window Settings</value>
   </data>
   <data name="Designer.Help.Validation.Title">
     <value>Validation</value>
@@ -1536,6 +1539,9 @@
   </data>
   <data name="Designer.Help.BasicWorkflow.Content">
     <value>Choose window and canvas from top selectors;\nAdd built-in or plugin controls from Add Control;\nSelect controls from canvas or layer panel;\nEdit properties from PropertyGrid;\nSave layout;\nValidate layout;\nReset/reload layout.</value>
+  </data>
+  <data name="Designer.Help.Concepts.Content">
+    <value>A window is the outermost frontend output container and corresponds to a window that OBS can capture; Window Settings manage window-level behavior such as size and transparency, not the position of controls on the canvas.\nA canvas is the design area and coordinate system inside a window; Canvas Settings manage the design size, background image, and optional BO3/BO5 states. The canvas does not create a separate frontend window.\nA control is a concrete element on the canvas, such as text, an image, a map, or a score; control properties manage its own content, data binding, position, size, layer, and visibility. A control does not change the window or the canvas as a whole.\nTheir relationship is: one window contains one canvas, and one canvas contains multiple controls. Outer settings affect the content inside, while a control is responsible only for its own display.\nAs a rule of thumb: use Window Settings to change the output container; use Canvas Settings to change the design area, background, or coordinate range; select a control to change a specific text, image, or other element.</value>
   </data>
   <data name="Designer.Help.CanvasNavigation.Content">
     <value>Mouse wheel / scrollbars to navigate;\nRight mouse drag pans the canvas;\nHold Space + left mouse drag pans the canvas;\nCtrl + mouse wheel zooms;\nBottom Zoom ComboBox accepts 100, 100%, 1x, 1.25x;\nSlider changes zoom;\nFit button fits canvas to current viewport.</value>

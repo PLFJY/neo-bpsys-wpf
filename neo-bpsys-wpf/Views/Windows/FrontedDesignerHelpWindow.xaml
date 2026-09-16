@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="{lex:Loc Designer.Help.Title}"
     Width="760"
@@ -43,6 +44,7 @@
         <ScrollViewer
             Grid.Row="1"
             Margin="12,8,12,0"
+            scrolling:SmoothScrollBehavior.IsEnabled="True"
             VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <ItemsControl ItemsSource="{Binding Sections, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}">

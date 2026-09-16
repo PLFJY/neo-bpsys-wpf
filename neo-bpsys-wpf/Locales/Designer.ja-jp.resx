@@ -245,7 +245,7 @@
     <value>リセット</value>
   </data>
   <data name="CanvasProperties">
-    <value>Canvas プロパティ</value>
+    <value>キャンバス設定</value>
   </data>
   <data name="WindowOptions">
     <value>ウィンドウオプション</value>
@@ -269,19 +269,19 @@
     <value>背景画像</value>
   </data>
   <data name="CanvasWidth">
-    <value>Canvas 幅</value>
+    <value>キャンバス幅</value>
   </data>
   <data name="CanvasHeight">
-    <value>Canvas 高さ</value>
+    <value>キャンバス高さ</value>
   </data>
   <data name="CanvasSizeMustBePositive">
-    <value>Canvas の幅と高さは 0 より大きい必要があります</value>
+    <value>キャンバスの幅と高さは 0 より大きい必要があります</value>
   </data>
   <data name="WindowSizeMustBePositive">
     <value>ウィンドウの幅と高さは 0 より大きい必要があります</value>
   </data>
   <data name="CanvasPropertiesApplied">
-    <value>Canvas プロパティを適用しました</value>
+    <value>キャンバス設定を適用しました</value>
   </data>
   <data name="WindowOptionsApplied">
     <value>ウィンドウオプションを適用しました</value>
@@ -1456,6 +1456,9 @@
   <data name="Designer.Help.BasicWorkflow.Title">
     <value>基本操作</value>
   </data>
+  <data name="Designer.Help.Concepts.Title">
+    <value>コントロール、キャンバス、ウィンドウの違い</value>
+  </data>
   <data name="Designer.Help.CanvasNavigation.Title">
     <value>キャンバス操作</value>
   </data>
@@ -1490,7 +1493,7 @@
     <value>追加 / 削除 / コピー / ペースト</value>
   </data>
   <data name="Designer.Help.CanvasWindowSettings.Title">
-    <value>キャンバス / ウィンドウ設定</value>
+    <value>キャンバス設定 / ウィンドウ設定</value>
   </data>
   <data name="Designer.Help.Validation.Title">
     <value>検証</value>
@@ -1536,6 +1539,9 @@
   </data>
   <data name="Designer.Help.BasicWorkflow.Content">
     <value>上部のセレクターからウィンドウとキャンバスを選択；\n「コントロールを追加」ボタンから組み込みまたはプラグインコントロールを追加；\nキャンバスまたはレイヤーパネルからコントロールを選択；\nプロパティグリッドからプロパティを編集；\nレイアウトを保存；\nレイアウトを検証；\nレイアウトをリセット/再読み込み。</value>
+  </data>
+  <data name="Designer.Help.Concepts.Content">
+    <value>ウィンドウはフロント出力の最外層コンテナで、OBS でキャプチャできる一つのウィンドウに対応します。ウィンドウ設定はサイズや透明度などのウィンドウレベルの動作を管理し、キャンバス上のコントロール位置を直接決めるものではありません。\nキャンバスはウィンドウ内部のデザイン領域と座標系です。キャンバス設定はデザインサイズ、背景画像、オプションの BO3/BO5 状態を管理します。キャンバス自体が別のフロントウィンドウを作ることはありません。\nコントロールはキャンバス上の具体的な要素で、テキスト、画像、マップ、スコアなどが該当します。コントロールのプロパティは自身の内容、データバインド、位置、サイズ、レイヤー、表示状態を管理し、ウィンドウやキャンバス全体を変更するものではありません。\n関係は「一つのウィンドウに一つのキャンバス、一つのキャンバスに複数のコントロール」と考えると分かりやすくなります。外側の設定は内部の内容に影響しますが、コントロールは自分自身の表示だけを担当します。\n迷ったときは、出力コンテナを変えるなら「ウィンドウ設定」、デザイン領域・背景・座標範囲を変えるなら「キャンバス設定」、特定の文字・画像などを変えるなら該当するコントロールを選択してください。</value>
   </data>
   <data name="Designer.Help.CanvasNavigation.Content">
     <value>マウスホイールまたはスクロールバーでキャンバスを操作；\n右ドラッグでキャンバスをパン；\nSpace + 左ドラッグでキャンバスをパン；\nCtrl + マウスホイールでズーム；\n下部のズームコンボボックスは 100、100%、1x、1.25x などの入力に対応；\nスライダーでズーム倍率を調整；\n「合わせる」ボタンでキャンバスを現在のビューポートにフィット。</value>
