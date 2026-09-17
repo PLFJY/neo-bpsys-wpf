@@ -12,13 +12,6 @@
 		<CETCompat>false</CETCompat>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-		<AssemblyVersion>3.0.0.0</AssemblyVersion>
-        <VersionPrefix>3.0.7</VersionPrefix>
-        <VersionSuffix></VersionSuffix>
-        <Version>$(VersionPrefix)$(VersionSuffix)</Version>
-        <FileVersion>$(VersionPrefix).0</FileVersion>
-        <BuildMeta>local</BuildMeta>
-        <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
         <Configurations>Debug;Release;Beta;Preview</Configurations>
         <Platforms>AnyCPU;x64</Platforms>
         <!--
@@ -35,9 +28,6 @@
         <DebugType>portable</DebugType>
         <DebugSymbols>true</DebugSymbols>
         <DefineConstants>$(DefineConstants);BETA</DefineConstants>
-        <VersionSuffix>-beta</VersionSuffix>
-        <Version>$(VersionPrefix)$(VersionSuffix)</Version>
-        <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
     </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Preview'">
@@ -45,9 +35,6 @@
 		<DebugType>portable</DebugType>
 		<DebugSymbols>true</DebugSymbols>
 		<DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
-		<VersionSuffix>-preview</VersionSuffix>
-		<Version>$(VersionPrefix)$(VersionSuffix)</Version>
-		<InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|AnyCPU'">

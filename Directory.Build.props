@@ -1,0 +1,17 @@
+<Project>
+  <!--
+    全仓库构建版本只需修改 VersionPrefix。
+    AssemblyVersion 保持 API/二进制兼容版本，BuildMeta 可由发布脚本通过 /p:BuildMeta 覆盖。
+  -->
+  <PropertyGroup>
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">3.1.0</VersionPrefix>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">3.0.0.0</AssemblyVersion>
+    <FileVersion Condition="'$(FileVersion)' == ''">$(VersionPrefix).0</FileVersion>
+    <BuildMeta Condition="'$(BuildMeta)' == ''">local</BuildMeta>
+
+    <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(Configuration)' == 'Beta'">-beta</VersionSuffix>
+    <VersionSuffix Condition="'$(VersionSuffix)' == '' and '$(Configuration)' == 'Preview'">-preview</VersionSuffix>
+    <Version Condition="'$(Version)' == ''">$(VersionPrefix)$(VersionSuffix)</Version>
+    <InformationalVersion Condition="'$(InformationalVersion)' == ''">v$(Version)+$(BuildMeta)</InformationalVersion>
+  </PropertyGroup>
+</Project>
