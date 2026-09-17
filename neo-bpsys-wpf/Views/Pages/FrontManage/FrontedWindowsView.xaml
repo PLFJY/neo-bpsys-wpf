@@ -100,40 +100,78 @@
                                     <DataTemplate>
                                         <Border
                                             x:Name="FirstManageableWindowCard"
+                                            MinHeight="110"
                                             Margin="0,0,10,10"
                                             Style="{StaticResource Card}">
                                             <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-                                                <TextBlock
-                                                    Grid.Row="0"
-                                                    FontSize="18"
-                                                    FontWeight="DemiBold"
-                                                    Text="{Binding DisplayName}" />
-                                                <TextBlock
-                                                    Grid.Row="1"
-                                                    Margin="0,6,0,0"
-                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                    Text="{Binding KindDisplay}" />
-                                                <StackPanel
-                                                    Grid.Row="2"
-                                                    Margin="0,10,0,0"
-                                                    Orientation="Horizontal">
+                                                <Grid>
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCreatePlaceholder}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
                                                     <ui:Button
-                                                        Command="{Binding DataContext.ShowWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding WindowId}"
-                                                        Content="{lex:Loc Open}"
-                                                        Tag="{Binding WindowId}" />
-                                                    <ui:Button
-                                                        Margin="10,0,0,0"
-                                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
-                                                        Command="{Binding DataContext.HideWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding WindowId}"
-                                                        Content="{lex:Loc Close}" />
-                                                </StackPanel>
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Command="{Binding DataContext.CreateCustomWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        Content="{lex:Loc CreateCustomWindow}"
+                                                        Icon="{ui:SymbolIcon Symbol=Add24}" />
+                                                </Grid>
+                                                <Grid>
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCreatePlaceholder}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock
+                                                        Grid.Row="0"
+                                                        FontSize="18"
+                                                        FontWeight="DemiBold"
+                                                        Text="{Binding DisplayName}" />
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Margin="0,6,0,0"
+                                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                        Text="{Binding KindDisplay}" />
+                                                    <StackPanel
+                                                        Grid.Row="2"
+                                                        Margin="0,10,0,0"
+                                                        Orientation="Horizontal">
+                                                        <ui:Button
+                                                            Command="{Binding DataContext.ShowWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding WindowId}"
+                                                            Content="{lex:Loc Open}"
+                                                            Tag="{Binding WindowId}" />
+                                                        <ui:Button
+                                                            Margin="10,0,0,0"
+                                                            lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                                            Command="{Binding DataContext.HideWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding WindowId}"
+                                                            Content="{lex:Loc Close}" />
+                                                        <ui:Button
+                                                            Margin="10,0,0,0"
+                                                            Command="{Binding DataContext.DeleteCustomWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding WindowId}"
+                                                            Content="{lex:Loc DeleteCustomWindow}"
+                                                            Icon="{ui:SymbolIcon Symbol=Delete24}"
+                                                            Visibility="{Binding IsCustom, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    </StackPanel>
+                                                </Grid>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

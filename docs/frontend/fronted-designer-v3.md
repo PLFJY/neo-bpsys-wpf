@@ -452,6 +452,10 @@ Designer v3 的选中模型由 `FrontedV3DesignSelection` 统一管理，不再�
 
 `FrontedDesignerWindow` 是后台侧独立编辑器窗口，入口在 `FrontManagePage`。它通过 `FrontedDesignerLayoutCatalog` 暴露可编辑窗口；该 catalog 只从 `IFrontedWindowRegistry.GetV3LayoutWindows()` 获取 v3 registrations，不存在硬编码 fallback 或内置窗口清单。Designer 按窗口选择读取 v3 layout JSON，使用 `FrontedLayoutDesignConverter` 和 `FrontedLayoutValidator` 显示设计文档与校验结果，并调用现有 `IFrontedRenderer` 把真实 v3 布局渲染到自己的 `PreviewCanvas`。
 
+当前活动布局包还可以声明用户自定义 v3 窗口。其 Canonical ID 为 `custom:{PackageId}/{WindowId}`，文件位于 `FrontedLayouts/custom/{PackageId}/{WindowId}.json`，注册表在活动包切换、导入和创建后动态刷新。自定义窗口与内置/插件 v3 窗口共用 `FrontedWindowBase` 和 `BaseCanvas` 渲染流程，但只属于活动布局包作用域；切换包会关闭并移除旧包的自定义窗口。
+
+窗口 JSON 根级 `DisplayNames` 保存 `zh_Hans`、`en_US`、`ja_JP` 译名。解析顺序是当前语言、简体中文、英语（美国）、日语，最后回退到 Window ID；历史 JSON 缺少该字段时继续使用旧资源回退。前台管理页可创建空白自定义窗口并直接进入 Designer，也可删除其布局和行为文件。
+
 | 区域/能力 | 设计要求 |
 | --- | --- |
 | 独立性 | 编辑窗口独立于真实前台输出窗口。不要在 OBS 捕获的真实窗口上直接编辑。 |

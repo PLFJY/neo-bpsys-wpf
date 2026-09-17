@@ -117,7 +117,7 @@ var registration = new FrontedV3LayoutWindowRegistration
 services.AddSingleton<FrontedWindowRegistration>(registration);
 ```
 
-来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导；顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序；内置窗口的本地化显示名由 UI 层通过现有 resx（`Designer.Window.{LocalId}`）解析。基类不再有 `GroupKey` / `DisplayOrder` / `I18nDisplayNames` 字段。
+来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导；顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序。v3 布局的窗口显示名优先从布局 JSON 根级 `DisplayNames` 解析，只有历史内置 JSON 缺少该字段时才回退到现有 resx（`Designer.Window.{LocalId}`）。基类不再有 `GroupKey` / `DisplayOrder` / `I18nDisplayNames` 字段。
 
 **Canonical ID 生成规则**（见 [FrontedWindowIdentity.cs](../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedWindowIdentity.cs)）：
 

@@ -11,6 +11,25 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 public static class FrontedWindowIdentity
 {
     /// <summary>
+    /// 构造布局包作用域内用户自定义窗口的 Canonical ID。
+    /// </summary>
+    /// <param name="packageId">布局包 ID。</param>
+    /// <param name="localWindowId">窗口局部 ID。</param>
+    /// <returns><c>custom:{PackageId}/{WindowId}</c> 形式的标识。</returns>
+    public static string BuildCustomCanonicalId(string packageId, string localWindowId)
+    {
+        if (!FrontedV3LayoutWindowPathHelper.IsSafePathSegment(packageId))
+        {
+            throw new ArgumentException("Package ID must be a safe path segment.", nameof(packageId));
+        }
+        if (!FrontedV3LayoutWindowPathHelper.IsSafePathSegment(localWindowId))
+        {
+            throw new ArgumentException("Window ID must be a safe path segment.", nameof(localWindowId));
+        }
+        return $"{FrontedV3LayoutWindowPathHelper.CustomPrefix}{packageId}/{localWindowId}";
+    }
+
+    /// <summary>
     /// 根据局部窗口标识、插件包 ID 与是否内置，构造 Canonical ID。
     /// </summary>
     /// <param name="localWindowId">提供方内部的局部窗口标识。</param>

@@ -3,7 +3,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -296,6 +298,194 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<FrontedCustomV3LayoutWindowRegistration>> GetActiveCustomWindowsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var activeState = await GetActivePackageStateAsync(cancellationToken);
+        if (string.Equals(activeState.PackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            return Array.Empty<FrontedCustomV3LayoutWindowRegistration>();
+        }
+
+        EnsureSafePackageId(activeState.PackageId);
+        var packagePath = GetInstalledPackagePath(activeState.PackageId);
+        var manifest = await ReadManifestAsync(packagePath, cancellationToken);
+        var registrations = new List<FrontedCustomV3LayoutWindowRegistration>();
+        foreach (var entry in manifest.Content.CustomWindows)
+        {
+            if (!FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                    entry.Window, out var packageId, out var localWindowId)
+                || !string.Equals(packageId, activeState.PackageId, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(
+                    entry.Path.Replace('\\', '/'),
+                    Path.Combine("FrontedLayouts", FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(entry.Window))
+                        .Replace('\\', '/'),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("Ignoring invalid custom window entry {Window} in package {PackageId}.", entry.Window, activeState.PackageId);
+                continue;
+            }
+
+            var configPath = GetPackageLayoutPath(activeState.PackageId, entry.Window);
+            if (!File.Exists(configPath))
+            {
+                _logger.LogWarning("Ignoring missing custom window layout {Path}.", configPath);
+                continue;
+            }
+
+            try
+            {
+                var json = await File.ReadAllTextAsync(configPath, cancellationToken);
+                var config = JsonSerializer.Deserialize<FrontedWindowConfig>(json, _jsonSerializerOptions);
+                if (config is null || config.Version != 3)
+                {
+                    continue;
+                }
+
+                registrations.Add(new FrontedCustomV3LayoutWindowRegistration
+                {
+                    Id = entry.Window,
+                    LocalId = localWindowId,
+                    PackageId = null,
+                    PackageScopeId = activeState.PackageId,
+                    IsBuiltIn = false,
+                    DisplayName = ResolveCustomDisplayName(config.DisplayNames, localWindowId),
+                    DisplayNames = new Dictionary<string, string>(config.DisplayNames, StringComparer.Ordinal)
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to read custom window layout {Path}.", configPath);
+            }
+        }
+
+        return registrations;
+    }
+
+    /// <inheritdoc />
+    public async Task<FrontedCustomV3LayoutWindowRegistration> CreateCustomWindowAsync(
+        FrontedCustomWindowCreateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var package = await EnsureWritableActivePackageAsync(cancellationToken);
+        EnsureSafePackageId(package.PackageId);
+
+        var windowId = string.IsNullOrWhiteSpace(request.WindowId)
+            ? $"window-{Guid.NewGuid():N}"
+            : request.WindowId.Trim();
+        FrontedWindowIdentity.EnsureValidWindowLocalId(windowId);
+        if (!FrontedV3LayoutWindowPathHelper.IsSafePathSegment(windowId))
+        {
+            throw new ArgumentException("Window ID contains unsupported characters.", nameof(request));
+        }
+
+        var displayNames = request.DisplayNames
+            .Where(pair => pair.Key is "zh_Hans" or "en_US" or "ja_JP")
+            .Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value?.Trim() ?? string.Empty))
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Value))
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        if (displayNames.Count == 0)
+        {
+            throw new ArgumentException("At least one display name is required.", nameof(request));
+        }
+
+        if (displayNames.Values.Any(value => value.Length > FrontedLayoutLimits.MaxWindowDisplayNameLength))
+        {
+            throw new ArgumentException("A display name is too long.", nameof(request));
+        }
+
+        var canonicalWindowId = FrontedWindowIdentity.BuildCustomCanonicalId(package.PackageId, windowId);
+        var manifest = await ReadManifestAsync(package.InstallPath, cancellationToken);
+        if (manifest.Content.CustomWindows.Any(entry =>
+                string.Equals(entry.Window, canonicalWindowId, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException("A custom window with this ID already exists.");
+        }
+
+        var config = new FrontedWindowConfig { Version = 3, DisplayNames = displayNames };
+        var layoutPath = GetPackageLayoutPath(package.PackageId, canonicalWindowId);
+        if (File.Exists(layoutPath))
+        {
+            throw new InvalidOperationException("The custom window layout file already exists.");
+        }
+
+        await WriteConfigAsync(layoutPath, config, cancellationToken);
+        try
+        {
+            manifest.CreatedVersion = string.IsNullOrWhiteSpace(manifest.CreatedVersion)
+                ? AppConstants.AppVersion
+                : manifest.CreatedVersion;
+            manifest.Content.CustomWindows.Add(new FrontedLayoutPackageLayoutEntry
+            {
+                Window = canonicalWindowId,
+                Path = Path.Combine("FrontedLayouts", FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(canonicalWindowId))
+                    .Replace('\\', '/')
+            });
+            await WriteManifestAsync(package.InstallPath, manifest, cancellationToken);
+        }
+        catch
+        {
+            File.Delete(layoutPath);
+            throw;
+        }
+
+        return new FrontedCustomV3LayoutWindowRegistration
+        {
+            Id = canonicalWindowId,
+            LocalId = windowId,
+            PackageId = null,
+            PackageScopeId = package.PackageId,
+            IsBuiltIn = false,
+            DisplayName = ResolveCustomDisplayName(displayNames, windowId),
+            DisplayNames = new Dictionary<string, string>(displayNames, StringComparer.Ordinal)
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteCustomWindowAsync(
+        string canonicalWindowId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                canonicalWindowId, out var packageId, out _))
+        {
+            throw new ArgumentException("The window ID is not a valid custom Canonical ID.", nameof(canonicalWindowId));
+        }
+
+        var activeState = await GetActivePackageStateAsync(cancellationToken);
+        if (!string.Equals(activeState.PackageId, packageId, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(activeState.PackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Only a custom window in the active user package can be deleted.");
+        }
+
+        var packagePath = GetInstalledPackagePath(packageId);
+        var manifest = await ReadManifestAsync(packagePath, cancellationToken);
+        var entry = manifest.Content.CustomWindows.FirstOrDefault(item =>
+            string.Equals(item.Window, canonicalWindowId, StringComparison.OrdinalIgnoreCase));
+        if (entry is null)
+        {
+            return;
+        }
+
+        manifest.Content.CustomWindows.Remove(entry);
+        await WriteManifestAsync(packagePath, manifest, cancellationToken);
+
+        var layoutPath = CombineInsideRoot(packagePath, entry.Path);
+        if (File.Exists(layoutPath))
+        {
+            File.Delete(layoutPath);
+        }
+
+        var behaviorPath = GetBehaviorPath(packagePath, canonicalWindowId);
+        if (File.Exists(behaviorPath))
+        {
+            File.Delete(behaviorPath);
+        }
+    }
+
     /// <summary>
     /// 复制指定包为新的布局方案。内置包会从内置资源复制，已安装包从源目录复制。
     /// 复制完成后自动激活新包。
@@ -573,7 +763,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         return info;
     }
 
-    private static void ApplyManifest(FrontedLayoutPackageInfo info, JsonElement root)
+    private void ApplyManifest(FrontedLayoutPackageInfo info, JsonElement root)
     {
         var manifestPackageId = GetString(root, "PackageId");
         if (string.IsNullOrWhiteSpace(manifestPackageId))
@@ -601,6 +791,29 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         info.Description = GetString(root, "Description") ?? string.Empty;
         info.Author = GetString(root, "Author") ?? string.Empty;
         info.MinVersion = GetString(root, "MinVersion") ?? string.Empty;
+        info.CreatedVersion = GetString(root, "CreatedVersion") ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(info.CreatedVersion))
+        {
+            if (!FrontedPackageVersionComparer.TryParseNumeric(info.CreatedVersion, out var createdVersion))
+            {
+                info.HasCreatedVersionWarning = true;
+                AppendWarning(
+                    info,
+                    LocalizedOrFallback(
+                        "PackageCreatedVersionInvalid",
+                        "The package creation version cannot be parsed."));
+            }
+            else if (FrontedPackageVersionComparer.TryParseNumeric(AppConstants.AppVersion, out var currentVersion)
+                     && currentVersion < createdVersion)
+            {
+                info.HasCreatedVersionWarning = true;
+                AppendWarning(
+                    info,
+                    LocalizedOrFallback(
+                        "PackageCreatedByNewerVersion",
+                        "This package was created by a newer version of the application."));
+            }
+        }
 
         var createdAt = GetString(root, "CreatedAt");
         if (DateTimeOffset.TryParse(createdAt, out var parsedCreatedAt))
@@ -613,6 +826,12 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             if (content.TryGetProperty("Layouts", out var layouts) && layouts.ValueKind == JsonValueKind.Array)
             {
                 info.LayoutCount = layouts.GetArrayLength();
+            }
+
+            if (content.TryGetProperty("CustomWindows", out var customWindows)
+                && customWindows.ValueKind == JsonValueKind.Array)
+            {
+                info.LayoutCount += customWindows.GetArrayLength();
             }
 
             if (content.TryGetProperty("Resources", out var resources) && resources.ValueKind == JsonValueKind.Array)
@@ -696,13 +915,192 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         manifest.Name = displayName;
         manifest.Description = LocalizedOrFallback("UserLayoutSchemeDescription", "User editable layout scheme.");
         manifest.CreatedAt = DateTimeOffset.UtcNow;
+        manifest.CreatedVersion = AppConstants.AppVersion;
         manifest.Format = "neo-bpsys-bpui";
         manifest.FormatVersion = 3;
         manifest.LayoutSchemaVersion = 3;
         manifest.Content ??= new FrontedLayoutPackageManifestContent();
-        manifest.Content.Layouts = EnumerateLayoutEntries(packagePath).ToList();
-        manifest.Content.Resources = EnumerateResourceEntries(packagePath).ToList();
+        if (!string.Equals(sourcePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            await RemapDuplicatedCustomWindowsAsync(
+                packagePath,
+                sourcePackageId,
+                packageId,
+                cancellationToken);
+            await RewriteDuplicatedPackageResourceUrisAsync(
+                packagePath,
+                sourcePackageId,
+                packageId,
+                cancellationToken);
+        }
+
+        manifest.Content.Layouts = EnumerateLayoutEntries(packagePath)
+            .Where(entry => !FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                entry.Window, out _, out _))
+            .ToList();
+        manifest.Content.CustomWindows = EnumerateLayoutEntries(packagePath)
+            .Where(entry => FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                entry.Window, out _, out _))
+            .ToList();
+        if (manifest.Content.Resources.Count == 0)
+        {
+            manifest.Content.Resources = EnumerateResourceEntries(packagePath).ToList();
+        }
+        else
+        {
+            foreach (var resource in manifest.Content.Resources)
+            {
+                resource.Id = RewritePackageResourceUri(resource.Id, sourcePackageId, packageId);
+                resource.Uri = RewritePackageResourceUri(resource.Uri, sourcePackageId, packageId);
+            }
+        }
         return manifest;
+    }
+
+    private async Task RemapDuplicatedCustomWindowsAsync(
+        string packagePath,
+        string sourcePackageId,
+        string targetPackageId,
+        CancellationToken cancellationToken)
+    {
+        var customEntries = EnumerateLayoutEntries(packagePath)
+            .Where(entry => FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                entry.Window, out var packageId, out _)
+                && string.Equals(packageId, sourcePackageId, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        foreach (var entry in customEntries)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                    entry.Window, out _, out var localWindowId))
+            {
+                continue;
+            }
+
+            var targetWindowId = $"{FrontedV3LayoutWindowPathHelper.CustomPrefix}{targetPackageId}/{localWindowId}";
+            var sourceLayoutPath = CombineInsideRoot(packagePath, entry.Path);
+            var targetLayoutPath = CombineInsideRoot(
+                packagePath,
+                Path.Combine("FrontedLayouts", FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(targetWindowId)));
+            if (!string.Equals(sourceLayoutPath, targetLayoutPath, StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(targetLayoutPath)!);
+                File.Move(sourceLayoutPath, targetLayoutPath, overwrite: true);
+            }
+
+            var sourceBehaviorPath = GetBehaviorPath(packagePath, entry.Window);
+            var targetBehaviorPath = GetBehaviorPath(packagePath, targetWindowId);
+            if (File.Exists(sourceBehaviorPath)
+                && !string.Equals(sourceBehaviorPath, targetBehaviorPath, StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(targetBehaviorPath)!);
+                File.Move(sourceBehaviorPath, targetBehaviorPath, overwrite: true);
+            }
+
+            if (File.Exists(targetBehaviorPath))
+            {
+                var behaviorNode = JsonNode.Parse(await File.ReadAllTextAsync(targetBehaviorPath, cancellationToken));
+                if (behaviorNode is JsonObject behaviorObject)
+                {
+                    behaviorObject["WindowType"] = targetWindowId;
+                    await File.WriteAllTextAsync(
+                        targetBehaviorPath,
+                        behaviorNode.ToJsonString(_jsonSerializerOptions),
+                        cancellationToken);
+                }
+            }
+        }
+    }
+
+    private async Task RewriteDuplicatedPackageResourceUrisAsync(
+        string packagePath,
+        string sourcePackageId,
+        string targetPackageId,
+        CancellationToken cancellationToken)
+    {
+        foreach (var folderName in new[] { "FrontedLayouts", "FrontedBehaviors" })
+        {
+            var root = Path.Combine(packagePath, folderName);
+            if (!Directory.Exists(root))
+            {
+                continue;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(root, "*.json", SearchOption.AllDirectories))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var node = JsonNode.Parse(await File.ReadAllTextAsync(file, cancellationToken));
+                if (node is null || !RewritePackageResourceUris(node, sourcePackageId, targetPackageId))
+                {
+                    continue;
+                }
+
+                await File.WriteAllTextAsync(
+                    file,
+                    node.ToJsonString(_jsonSerializerOptions),
+                    cancellationToken);
+            }
+        }
+    }
+
+    private static bool RewritePackageResourceUris(
+        JsonNode node,
+        string sourcePackageId,
+        string targetPackageId)
+    {
+        var changed = false;
+        if (node is JsonObject obj)
+        {
+            foreach (var property in obj.ToArray())
+            {
+                if (property.Value is JsonValue value && value.TryGetValue<string>(out var text))
+                {
+                    var rewritten = RewritePackageResourceUri(text, sourcePackageId, targetPackageId);
+                    if (!string.Equals(rewritten, text, StringComparison.Ordinal))
+                    {
+                        obj[property.Key] = rewritten;
+                        changed = true;
+                    }
+                }
+                else if (property.Value is not null)
+                {
+                    changed |= RewritePackageResourceUris(property.Value, sourcePackageId, targetPackageId);
+                }
+            }
+        }
+        else if (node is JsonArray array)
+        {
+            for (var index = 0; index < array.Count; index++)
+            {
+                if (array[index] is JsonValue value && value.TryGetValue<string>(out var text))
+                {
+                    var rewritten = RewritePackageResourceUri(text, sourcePackageId, targetPackageId);
+                    if (!string.Equals(rewritten, text, StringComparison.Ordinal))
+                    {
+                        array[index] = rewritten;
+                        changed = true;
+                    }
+                }
+                else if (array[index] is { } child)
+                {
+                    changed |= RewritePackageResourceUris(child, sourcePackageId, targetPackageId);
+                }
+            }
+        }
+
+        return changed;
+    }
+
+    private static string RewritePackageResourceUri(
+        string value,
+        string sourcePackageId,
+        string targetPackageId)
+    {
+        var sourcePrefix = $"bpui://{sourcePackageId}/";
+        return value.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase)
+            ? $"bpui://{targetPackageId}/{value[sourcePrefix.Length..]}"
+            : value;
     }
 
     private async Task WriteManifestAsync(
@@ -802,8 +1200,21 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(fullTargetPath)!);
-            File.Copy(file, fullTargetPath, overwrite: true);
-            await Task.CompletedTask;
+            await using var sourceStream = new FileStream(
+                file,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 81920,
+                useAsync: true);
+            await using var targetStream = new FileStream(
+                fullTargetPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 81920,
+                useAsync: true);
+            await sourceStream.CopyToAsync(targetStream, cancellationToken);
         }
     }
 
@@ -832,6 +1243,80 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             .All(segment => segment is not ("." or "..") && !string.IsNullOrWhiteSpace(segment));
     }
 
+    private async Task<FrontedLayoutPackageManifest> ReadManifestAsync(
+        string packagePath,
+        CancellationToken cancellationToken)
+    {
+        var manifestPath = Path.Combine(packagePath, ManifestFileName);
+        if (!File.Exists(manifestPath))
+        {
+            throw new FileNotFoundException("Package manifest is missing.", manifestPath);
+        }
+
+        if (new FileInfo(manifestPath).Length > FrontedLayoutLimits.MaxManifestBytes)
+        {
+            throw new InvalidDataException("Package manifest is too large.");
+        }
+
+        var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
+        var manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(json, _jsonSerializerOptions)
+            ?? throw new InvalidDataException("Package manifest must be a JSON object.");
+        manifest.Content ??= new FrontedLayoutPackageManifestContent();
+        manifest.Content.Layouts ??= [];
+        manifest.Content.CustomWindows ??= [];
+        manifest.Content.Resources ??= [];
+        return manifest;
+    }
+
+    private async Task WriteConfigAsync(
+        string path,
+        FrontedWindowConfig config,
+        CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        config.Version = 3;
+        var json = JsonSerializer.Serialize(config, _jsonSerializerOptions);
+        await File.WriteAllTextAsync(path, json, cancellationToken);
+    }
+
+    private static string GetBehaviorPath(string packagePath, string canonicalWindowId)
+    {
+        var relativeLayoutPath = FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(canonicalWindowId);
+        var folder = Path.GetDirectoryName(relativeLayoutPath);
+        var fileName = $"{Path.GetFileNameWithoutExtension(relativeLayoutPath)}.behaviors.json";
+        var relativePath = string.IsNullOrWhiteSpace(folder)
+            ? Path.Combine("FrontedBehaviors", fileName)
+            : Path.Combine("FrontedBehaviors", folder, fileName);
+        return CombineInsideRoot(packagePath, relativePath);
+    }
+
+    private static string CombineInsideRoot(string root, string relativePath)
+    {
+        var fullRoot = EnsureTrailingSeparator(Path.GetFullPath(root));
+        var candidate = Path.GetFullPath(Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar)));
+        if (!candidate.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Package path escaped its root.");
+        }
+
+        return candidate;
+    }
+
+    private static string ResolveCustomDisplayName(
+        IReadOnlyDictionary<string, string> displayNames,
+        string windowId)
+    {
+        foreach (var language in new[] { "zh_Hans", "en_US", "ja_JP" })
+        {
+            if (displayNames.TryGetValue(language, out var value) && !string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return windowId;
+    }
+
     private static bool IsReservedPackageEntry(string name)
     {
         return string.Equals(name, BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
@@ -858,7 +1343,8 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         return !string.IsNullOrWhiteSpace(packageId)
                && SafePackageIdRegex.IsMatch(packageId)
                && !packageId.Contains("..", StringComparison.Ordinal)
-               && !packageId.Contains('%', StringComparison.Ordinal);
+               && !packageId.Contains('%', StringComparison.Ordinal)
+               && FrontedV3LayoutWindowPathHelper.IsSafePathSegment(packageId);
     }
 
     private static void EnsureSafePackageId(string packageId)
@@ -881,6 +1367,14 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         return root.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String
             ? value.GetString()
             : null;
+    }
+
+    private static void AppendWarning(FrontedLayoutPackageInfo info, string warning)
+    {
+        info.ValidationStatus = FrontedLayoutPackageValidationStatus.Warning;
+        info.ValidationMessage = string.IsNullOrWhiteSpace(info.ValidationMessage)
+            ? warning
+            : $"{info.ValidationMessage} {warning}";
     }
 
     private static string EnsureTrailingSeparator(string path)

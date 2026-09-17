@@ -108,6 +108,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _displayNamesByWindowId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, FrontedV3PropertyDefinition> _schemaPropertiesByPath = new(StringComparer.Ordinal);
     private readonly Stack<string> _undoStack = new();
     private readonly Stack<string> _redoStack = new();
@@ -321,6 +322,59 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         CurrentWindowCanvasDisplay = ResolveEntryDisplayName(_selectedCatalogEntry);
         LoadWindowOptions(_selectedCatalogEntry.CanonicalWindowId);
+    }
+
+    /// <summary>
+    /// 异步读取当前设计器目录中的布局译名，并刷新窗口选择器。
+    /// </summary>
+    /// <returns>译名加载和界面刷新完成后结束的任务。</returns>
+    public async Task RefreshWindowDisplayNamesAsync()
+    {
+        foreach (var entry in _layoutCatalog.GetEntries())
+        {
+            try
+            {
+                var config = await _layoutService.LoadWindowConfigAsync(entry.CanonicalWindowId);
+                if (config.DisplayNames.Count > 0)
+                {
+                    _displayNamesByWindowId[entry.CanonicalWindowId] =
+                        new Dictionary<string, string>(config.DisplayNames, StringComparer.Ordinal);
+                }
+                else
+                {
+                    _displayNamesByWindowId.Remove(entry.CanonicalWindowId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(
+                    ex,
+                    "Failed to preload display names for designer window {WindowTypeName}.",
+                    entry.CanonicalWindowId);
+                _displayNamesByWindowId.Remove(entry.CanonicalWindowId);
+            }
+        }
+
+        RefreshWindowDisplayNames();
+    }
+
+    /// <summary>
+    /// 选中指定的窗口并加载其设计文档。
+    /// </summary>
+    /// <param name="canonicalWindowId">窗口 Canonical ID。</param>
+    public void SelectWindow(string canonicalWindowId)
+    {
+        if (string.IsNullOrWhiteSpace(canonicalWindowId))
+        {
+            return;
+        }
+
+        var option = WindowOptions.FirstOrDefault(item =>
+            string.Equals(item.WindowTypeName, canonicalWindowId, StringComparison.OrdinalIgnoreCase));
+        if (option is not null)
+        {
+            SelectedWindow = option;
+        }
     }
 
     /// <summary>
@@ -7647,12 +7701,30 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var language = settings?.Language ?? LanguageKey.System;
         var cultureInfo = settings?.CultureInfo;
 
-        // entry 不再携带 I18nDisplayNames；按本地化服务回退解析显示名。
-        var concreteLanguage = FrontedWindowDisplayNameResolver.ResolveConcreteLanguage(language, cultureInfo);
-        if (concreteLanguage.HasValue)
+        if (_displayNamesByWindowId.TryGetValue(entry.CanonicalWindowId, out var displayNames)
+            && displayNames.Count > 0)
+        {
+            return FrontedWindowDisplayNameResolver.ResolveDisplayName(
+                displayNames,
+                language,
+                cultureInfo,
+                entry.DisplayName);
+        }
+
+        // 自定义窗口的注册名来自布局 JSON；初始化阶段不能同步等待异步文件读取。
+        if (entry.CanonicalWindowId.StartsWith(
+                FrontedV3LayoutWindowPathHelper.CustomPrefix,
+                StringComparison.Ordinal))
+        {
+            return entry.DisplayName;
+        }
+
+        // 历史 JSON 不含 DisplayNames 时，按旧资源回退解析显示名。
+        if (entry.IsBuiltIn)
         {
             var localized = _localizationService.GetWindowDisplayName(entry.CanonicalWindowId);
-            if (!string.IsNullOrWhiteSpace(localized))
+            if (!string.IsNullOrWhiteSpace(localized)
+                && !string.Equals(localized, entry.CanonicalWindowId, StringComparison.Ordinal))
             {
                 return localized;
             }

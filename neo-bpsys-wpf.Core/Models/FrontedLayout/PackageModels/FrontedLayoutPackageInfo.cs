@@ -31,6 +31,11 @@ public sealed class FrontedLayoutPackageInfo
     public DateTimeOffset? CreatedAt { get; set; }
 
     /// <summary>
+    /// 创建此包时使用的完整应用版本。
+    /// </summary>
+    public string CreatedVersion { get; set; } = string.Empty;
+
+    /// <summary>
     /// 最低支持版本。
     /// </summary>
     public string MinVersion { get; set; } = string.Empty;
@@ -79,4 +84,9 @@ public sealed class FrontedLayoutPackageInfo
     /// 验证消息。
     /// </summary>
     public string ValidationMessage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 指示当前应用版本低于包创建版本的非阻断警告。
+    /// </summary>
+    public bool HasCreatedVersionWarning { get; set; }
 }

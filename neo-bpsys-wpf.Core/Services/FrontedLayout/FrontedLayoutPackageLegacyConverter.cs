@@ -1845,6 +1845,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             MinVersion = string.IsNullOrWhiteSpace(request.MinVersion)
                 ? GetDefaultMinVersion()
                 : request.MinVersion!.Trim(),
+            CreatedVersion = AppConstants.AppVersion,
             CreatedAt = DateTimeOffset.UtcNow,
             ImportPolicy = new FrontedLayoutPackageImportPolicy
             {

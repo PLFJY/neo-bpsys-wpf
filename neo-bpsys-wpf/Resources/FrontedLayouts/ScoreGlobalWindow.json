@@ -1,5 +1,6 @@
 {
   "Version": 3,
+  "DisplayNames": { "zh_Hans": "全局比分窗口", "en_US": "Global Score Window", "ja_JP": "全体スコアウィンドウ" },
   "WindowSettings": {
     "WindowWidth": 1440,
     "WindowHeight": 195,

@@ -22,6 +22,20 @@
   <data name="OpenFrontedDesigner">
     <value>Open v3 Frontend Designer</value>
   </data>
+  <data name="CreateCustomWindow"><value>New v3 Window</value></data>
+  <data name="CustomWindows"><value>Custom Windows</value></data>
+  <data name="DeleteCustomWindow"><value>Delete Custom Window</value></data>
+  <data name="CustomWindowAdvancedMode"><value>Advanced mode (custom ID and multilingual names)</value></data>
+  <data name="CustomWindowId"><value>Window ID</value></data>
+  <data name="CustomWindowChineseName"><value>Simplified Chinese name</value></data>
+  <data name="CustomWindowEnglishName"><value>English (United States) name</value></data>
+  <data name="CustomWindowJapaneseName"><value>Japanese name</value></data>
+  <data name="CustomWindowName"><value>Window Name</value></data>
+  <data name="CustomWindowNameChinese"><value>Window Name-Simplified Chinese</value></data>
+  <data name="CustomWindowNameEnglish"><value>Window Name-English (United States)</value></data>
+  <data name="CustomWindowNameJapanese"><value>Window Name-Japanese</value></data>
+  <data name="ConfirmDeleteCustomWindow"><value>Delete this custom window, its layout, and its behaviors?</value></data>
+  <data name="CustomWindowDeleted"><value>Custom window deleted</value></data>
   <data name="UserLayout">
     <value>User Layout</value>
   </data>
@@ -396,5 +410,11 @@
   </data>
   <data name="NoActiveLoopAnimations">
     <value>No loop animations are currently playing.</value>
+  </data>
+  <data name="PackageCreatedVersionInvalid">
+    <value>The layout package creation version is invalid.</value>
+  </data>
+  <data name="PackageCreatedByNewerVersion">
+    <value>This layout package was created by a newer app version; some content may not work as expected.</value>
   </data>
 </root>

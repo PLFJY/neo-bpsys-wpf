@@ -15,6 +15,11 @@ public sealed class FrontedWindowConfig
     public int Version { get; set; } = 3;
 
     /// <summary>
+    /// 窗口显示名称字典，键为受支持的语言代码（例如 <c>zh_Hans</c>）。
+    /// </summary>
+    public Dictionary<string, string> DisplayNames { get; set; } = new(StringComparer.Ordinal);
+
+    /// <summary>
     /// 应用于 WPF 输出窗口的设置。
     /// </summary>
     public FrontedWindowSettings WindowSettings { get; set; } = new();

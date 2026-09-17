@@ -1,5 +1,6 @@
 {
   "Version": 3,
+  "DisplayNames": { "zh_Hans": "过场窗口", "en_US": "Cut Scene Window", "ja_JP": "カットシーンウィンドウ" },
   "WindowSettings": {
     "WindowWidth": 1440,
     "WindowHeight": 810,

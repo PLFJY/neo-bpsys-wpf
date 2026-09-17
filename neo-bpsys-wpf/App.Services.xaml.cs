@@ -139,6 +139,7 @@ public partial class App
             key => Helpers.I18nHelper.GetLocalizedString(Helpers.AppI18nDictionaries.FrontManage, key)));
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
+        services.AddSingleton<FrontedCustomWindowRegistrySynchronizer>();
         services.AddSingleton<IFrontedLayoutPackageLegacyConverter>(sp =>
             sp.GetRequiredService<FrontedLayoutPackageLegacyConverter>());
         LegacyConvertMessageHelper.LocalizeTemplate = key => Helpers.I18nHelper.GetLocalizedString(Helpers.AppI18nDictionaries.FrontManage, key);

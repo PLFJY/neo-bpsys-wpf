@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using System.IO;
 using System.IO.Compression;
@@ -286,11 +287,14 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             Success = true,
             PackageId = packageId,
             InstalledPath = installPath,
-            LayoutCount = manifest.Content.Layouts.Count,
+            LayoutCount = manifest.Content.Layouts.Count + manifest.Content.CustomWindows.Count,
             ResourceCount = manifest.Content.Resources.Count,
             MissingPluginControls = missingPluginControls,
             UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies,
-            CompressedImages = validation.CompressedImages
+            CompressedImages = validation.CompressedImages,
+            HasCreatedVersionWarning = validation.HasCreatedVersionWarning,
+            CreatedVersion = validation.CreatedVersion,
+            WarningMessage = validation.WarningMessage
         };
     }
 
@@ -300,7 +304,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         CancellationToken cancellationToken)
     {
         var layouts = new List<PackageLayoutState>();
-        foreach (var layout in manifest.Content.Layouts)
+        foreach (var layout in manifest.Content.Layouts.Concat(manifest.Content.CustomWindows))
         {
             var path = CombineInsideRoot(stagingRoot, layout.Path);
             var config = JsonSerializer.Deserialize<FrontedWindowConfig>(
@@ -383,12 +387,20 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return Fail("v3 packages must not contain legacy Config.json, CustomUi, or FrontElementsConfig content.");
         }
 
-        if (manifest.Content.Layouts.Count == 0)
+        manifest.Content ??= new FrontedLayoutPackageManifestContent();
+        manifest.Content.Layouts ??= [];
+        manifest.Content.CustomWindows ??= [];
+        manifest.Content.Resources ??= [];
+        var allLayouts = manifest.Content.Layouts
+            .Select(layout => (Layout: layout, IsCustom: false))
+            .Concat(manifest.Content.CustomWindows.Select(layout => (Layout: layout, IsCustom: true)))
+            .ToArray();
+        if (allLayouts.Length == 0)
         {
             return Fail("Package contains no layouts.");
         }
 
-        if (manifest.Content.Layouts.Count > FrontedLayoutLimits.MaxLayoutsPerPackage)
+        if (allLayouts.Length > FrontedLayoutLimits.MaxLayoutsPerPackage)
         {
             return Fail("TooManyLayouts");
         }
@@ -398,21 +410,38 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return Fail("TooManyResources");
         }
 
-        foreach (var layout in manifest.Content.Layouts)
+        var windows = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var layoutPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var layoutState in allLayouts)
+        {
+            var layout = layoutState.Layout;
+            if (!windows.Add(layout.Window) || !layoutPaths.Add(layout.Path))
             {
-                if (!IsSafeRelativePath(layout.Path)
+                return Fail("Package contains duplicate layout identities or paths.");
+            }
+
+            if (!IsSafeRelativePath(layout.Path)
                 || !FrontedV3LayoutWindowPathHelper.IsSafeCanonicalWindowId(layout.Window))
             {
                 return Fail("Layout path is not safe.");
             }
 
-                if (!TryGetExpectedWindowFromPath(layout.Path, out var expectedWindow)
-                    || !string.Equals(expectedWindow, layout.Window, StringComparison.OrdinalIgnoreCase))
-                {
-                    return Fail($"Layout Window '{layout.Window}' does not match path '{layout.Path}'.");
-                }
+            var isCustomWindow = FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                layout.Window, out var customPackageId, out _);
+            if (isCustomWindow != layoutState.IsCustom
+                || (isCustomWindow
+                    && !string.Equals(customPackageId, manifest.PackageId, StringComparison.OrdinalIgnoreCase)))
+            {
+                return Fail("Custom window package identity is invalid.");
+            }
 
-                var layoutPath = CombineInsideRoot(stagingRoot, layout.Path);
+            if (!TryGetExpectedWindowFromPath(layout.Path, out var expectedWindow)
+                || !string.Equals(expectedWindow, layout.Window, StringComparison.OrdinalIgnoreCase))
+            {
+                return Fail($"Layout Window '{layout.Window}' does not match path '{layout.Path}'.");
+            }
+
+            var layoutPath = CombineInsideRoot(stagingRoot, layout.Path);
             if (!File.Exists(layoutPath))
             {
                 return Fail($"Layout file is missing: {layout.Path}");
@@ -460,6 +489,22 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                     return Fail($"Layout JSON is invalid: {layout.Path}");
                 }
 
+                if (config.DisplayNames.Any(pair =>
+                        pair.Key is not ("zh_Hans" or "en_US" or "ja_JP")
+                        || (!string.IsNullOrWhiteSpace(pair.Value)
+                            && pair.Value.Length > FrontedLayoutLimits.MaxWindowDisplayNameLength)))
+                {
+                    return Fail("InputTooLong: DisplayNames");
+                }
+
+                if (layoutState.IsCustom
+                    && !config.DisplayNames.Any(pair =>
+                        pair.Key is "zh_Hans" or "en_US" or "ja_JP"
+                        && !string.IsNullOrWhiteSpace(pair.Value)))
+                {
+                    return Fail("Custom window must define at least one display name.");
+                }
+
                 var validationMessages = _validator.Validate(
                     layout.Window,
                     FrontedLayoutConstants.BaseCanvasName,
@@ -469,6 +514,18 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 if (error is not null)
                 {
                     return Fail($"Layout validation failed: {layout.Path}; {error.Message}");
+                }
+
+                if (layoutState.IsCustom)
+                {
+                    var behaviorError = await ValidateCustomBehaviorAsync(
+                        stagingRoot,
+                        layout.Window,
+                        cancellationToken);
+                    if (!string.IsNullOrWhiteSpace(behaviorError))
+                    {
+                        return Fail(behaviorError);
+                    }
                 }
             }
             catch (Exception ex)
@@ -525,7 +582,14 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
         if (oversizedImages.Count == 0)
         {
-            return new FrontedLayoutPackageImportResult { Success = true };
+            var warning = GetCreatedVersionWarning(manifest.CreatedVersion);
+            return new FrontedLayoutPackageImportResult
+            {
+                Success = true,
+                CreatedVersion = manifest.CreatedVersion,
+                HasCreatedVersionWarning = warning is not null,
+                WarningMessage = warning
+            };
         }
 
         if (!compressOversizedImages)
@@ -575,11 +639,79 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             JsonSerializer.Serialize(manifest, _jsonSerializerOptions),
             cancellationToken);
 
+        var createdVersionWarning = GetCreatedVersionWarning(manifest.CreatedVersion);
         return new FrontedLayoutPackageImportResult
         {
             Success = true,
-            CompressedImages = compressedImages
+            CompressedImages = compressedImages,
+            CreatedVersion = manifest.CreatedVersion,
+            HasCreatedVersionWarning = createdVersionWarning is not null,
+            WarningMessage = createdVersionWarning
         };
+    }
+
+    private static string? GetCreatedVersionWarning(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (!FrontedPackageVersionComparer.TryParseNumeric(value, out var createdVersion)
+            || !FrontedPackageVersionComparer.TryParseNumeric(AppConstants.AppVersion, out var currentVersion))
+        {
+            return "PackageCreatedVersionInvalid";
+        }
+
+        return currentVersion < createdVersion
+            ? "PackageCreatedByNewerVersion"
+            : null;
+    }
+
+    private async Task<string?> ValidateCustomBehaviorAsync(
+        string stagingRoot,
+        string canonicalWindowId,
+        CancellationToken cancellationToken)
+    {
+        var layoutRelativePath = FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(canonicalWindowId);
+        var layoutFolder = Path.GetDirectoryName(layoutRelativePath);
+        var behaviorFileName = $"{Path.GetFileNameWithoutExtension(layoutRelativePath)}.behaviors.json";
+        var behaviorRelativePath = string.IsNullOrWhiteSpace(layoutFolder)
+            ? Path.Combine("FrontedBehaviors", behaviorFileName)
+            : Path.Combine("FrontedBehaviors", layoutFolder, behaviorFileName);
+        var behaviorPath = CombineInsideRoot(stagingRoot, behaviorRelativePath);
+        if (!File.Exists(behaviorPath))
+        {
+            return null;
+        }
+
+        if (new FileInfo(behaviorPath).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
+        {
+            return "BehaviorJsonTooLarge";
+        }
+
+        try
+        {
+            var document = JsonSerializer.Deserialize<FrontedBehaviorDocument>(
+                await File.ReadAllTextAsync(behaviorPath, cancellationToken),
+                _jsonSerializerOptions);
+            if (document is null
+                || document.Version != 1
+                || !string.Equals(document.WindowType, canonicalWindowId, StringComparison.Ordinal)
+                || !string.Equals(
+                    document.CanvasName,
+                    FrontedLayoutConstants.BaseCanvasName,
+                    StringComparison.Ordinal))
+            {
+                return $"Custom behavior identity is invalid: {behaviorRelativePath.Replace('\\', '/')}";
+            }
+        }
+        catch (Exception ex)
+        {
+            return $"Behavior JSON is invalid: {behaviorRelativePath.Replace('\\', '/')}; {ex.Message}";
+        }
+
+        return null;
     }
 
     private List<FrontedLayoutPackageImageCompression>? CompressOversizedImages(
@@ -641,6 +773,13 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         if (FrontedTextLimitHelper.IsTooLong(manifest.MinVersion, FrontedLayoutLimits.MaxPackageMinVersionLength))
         {
             return "InputTooLong: MinVersion";
+        }
+
+        if (FrontedTextLimitHelper.IsTooLong(
+                manifest.CreatedVersion,
+                FrontedLayoutLimits.MaxPackageCreatedVersionLength))
+        {
+            return "InputTooLong: CreatedVersion";
         }
 
         return FrontedTextLimitHelper.IsTooLong(manifest.Description, FrontedLayoutLimits.MaxPackageDescriptionLength)
@@ -983,25 +1122,13 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private static bool RequiresNewerApp(string minVersion)
     {
         if (string.IsNullOrWhiteSpace(minVersion)
-            || !Version.TryParse(NormalizeVersion(minVersion), out var required)
-            || !Version.TryParse(NormalizeVersion(AppConstants.AppVersion), out var current))
+            || !FrontedPackageVersionComparer.TryParseNumeric(minVersion, out var required)
+            || !FrontedPackageVersionComparer.TryParseNumeric(AppConstants.AppVersion, out var current))
         {
             return false;
         }
 
         return required > current;
-    }
-
-    private static string NormalizeVersion(string version)
-    {
-        var normalized = version.Trim();
-        if (normalized.StartsWith('v') || normalized.StartsWith('V'))
-        {
-            normalized = normalized[1..];
-        }
-
-        var metadataIndex = normalized.IndexOfAny(['+', '-']);
-        return metadataIndex > 0 ? normalized[..metadataIndex] : normalized;
     }
 
     private string GetInstalledPackagePath(string packageId)

@@ -1,5 +1,6 @@
 {
   "Version": 3,
+  "DisplayNames": { "zh_Hans": "地图 BP v2 窗口", "en_US": "Map BP v2 Window", "ja_JP": "マップ BP v2 ウィンドウ" },
   "WindowSettings": {
     "WindowWidth": 1270,
     "WindowHeight": 170,

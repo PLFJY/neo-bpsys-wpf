@@ -36,4 +36,10 @@ public interface IFrontedWindowRegistry
     /// <param name="registration">匹配的注册（若找到）。</param>
     /// <returns>是否找到匹配的注册。</returns>
     bool TryGet(string canonicalId, out FrontedWindowRegistration registration);
+
+    /// <summary>
+    /// 替换当前活动布局包作用域内的用户自定义窗口注册。
+    /// </summary>
+    /// <param name="registrations">新的自定义窗口注册集合。</param>
+    void ReplaceCustomWindows(IEnumerable<FrontedCustomV3LayoutWindowRegistration> registrations);
 }

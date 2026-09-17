@@ -1,5 +1,6 @@
 {
   "Version": 3,
+  "DisplayNames": { "zh_Hans": "求生者游戏内比分窗口", "en_US": "Survivor Score in Game Window", "ja_JP": "サバイバー小スコアウィンドウ" },
   "WindowSettings": {
     "WindowWidth": 480,
     "WindowHeight": 152,

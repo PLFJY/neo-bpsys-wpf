@@ -135,6 +135,9 @@ public partial class App : AppBase
 
         //启动host
         await IAppHost.Host.StartAsync();
+        await IAppHost.Host.Services
+            .GetRequiredService<FrontedCustomWindowRegistrySynchronizer>()
+            .RefreshAsync();
         var bpuiFileActivationService = IAppHost.Host.Services.GetRequiredService<IBpuiFileActivationService>();
         bpuiFileActivationService.StartListening();
         var initialPackagePath = FindStartupBpuiPackagePath(e.Args);

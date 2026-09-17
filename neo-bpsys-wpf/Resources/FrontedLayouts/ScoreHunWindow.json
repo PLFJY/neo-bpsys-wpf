@@ -1,5 +1,6 @@
 {
   "Version": 3,
+  "DisplayNames": { "zh_Hans": "监管者游戏内比分窗口", "en_US": "Hunter Score in Game Window", "ja_JP": "ハンター小スコアウィンドウ" },
   "WindowSettings": {
     "WindowWidth": 480,
     "WindowHeight": 152,
