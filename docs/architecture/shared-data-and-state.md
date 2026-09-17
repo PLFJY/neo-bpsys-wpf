@@ -168,7 +168,7 @@ SharedDataService.HomeTeam/AwayTeam.GlobalBannedSur(Hun)List 变化
 
 `GlobalScoreTotalMargin` 仍在共享服务中暴露并保留设置项，但 v3 `ScoreGlobalWindow` 不依赖它；BO5/BO3 总分位置分别来自 root state 和 `BoModeStates["Bo3"]`。
 
-Score System v2 的设计方向见 [score-system-v2.md](../business/score-system-v2.md)。后，权威比分状态由现有 `Core.Models.Game.MatchScore` 持有，类型为 `MatchScoreState`；`IMatchScoreService` 只操作 `ISharedDataService.CurrentGame.MatchScore`，页面 ViewModel、前台窗口 ViewModel、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。后台 `ScorePageViewModel` 的比分按钮已改为写入 `IMatchScoreService.CurrentHalf`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”按钮；清除按钮位于旧“小比分清零”位置，会把当前半场结果设为 `null`。后台 `ScorePage` 的导播比分预览表只读显示 `CurrentGame.MatchScore.Games` 派生行，跟随全局 `CurrentGame.GameProgress` 和 BO3/BO5 状态，不提供手动场次选择；`ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow` 默认 v3 布局均读取 `CurrentGame.MatchScore`。绑定浏览器除主客队总小比分外，还暴露 `CurrentSurTeamTotalMinorScore` / `CurrentHunTeamTotalMinorScore`，按当前阵营映射提供全场总小比分并随换边刷新。运行时不再把 `MatchScoreState` 派生值同步回 `Team.Score`；`Team.Score` 仅作为旧 JSON/旧 DTO 的反序列化兼容数据存在，不能作为权威写入点。
+Score System v2 的设计见 [score-system-v2.md](../business/score-system-v2.md)。权威比分状态由现有 `Core.Models.Game.MatchScore` 持有，类型为 `MatchScoreState`。其中 `Games` 是普通进度的 V2 半场记录，`FreeScore` 是 `GameProgress.Free` 专用的独立持久化状态；二者只共享既有前台派生绑定，不互相写入或换算。`IMatchScoreService` 根据当前进度分流操作，页面 ViewModel、前台窗口、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。自由模式的两个手动编辑器使用活动 v3 布局直接修改 `FreeScore`，替换当前 Game 或离开自由模式时立即关闭。运行时不把任何 `MatchScoreState` 派生值同步回 `Team.Score`；`Team.Score` 仅用于旧 JSON/旧 DTO 的反序列化兼容。
 
 ## SmartBP 的权威状态与视觉证据
 
@@ -180,7 +180,7 @@ OCR 输出首先形成当前帧证据：阶段、字段、固定视觉槽位、U
 
 角色业务身份统一使用当前语言角色表中的规范 `Character.Name`。`Character.ImageFileName` 只用于 `ImageHelper` 加载头像和立绘，不得进入文本解析结果、SmartBP 操作、角色选择日志或前台行为筛选 payload；旧行为 payload 的 `OldCharacterId` / `NewCharacterId` 仅作为兼容字段保留，其值同样是规范名称，新配置应使用 `OldCharacterName` / `NewCharacterName`。
 
-`SharedDataService.NewGame()` 创建新 `Game` 时会 clone 当前 `CurrentGame.MatchScore`，避免新旧对局共享同一个可变比分实例。导入旧 JSON 时如果没有 `MatchScore` 字段，`Game` 会创建默认 `MatchScoreState`，以兼容旧保存记录；如果旧记录只有 `Team.Score` 值，当前实现不会尝试反推出完整 per-Game/per-Half 历史，只保留反序列化得到的旧字段并记录 warning。导入新格式时，任何有效 `MatchScore` 都不会被旧字段覆盖。
+`SharedDataService.NewGame()` 创建新 `Game` 时会 clone 当前 `CurrentGame.MatchScore`，包括 V2 与自由比分，避免新旧对局共享可变实例。导入旧 JSON 时如果没有 `MatchScore` 字段，`Game` 会创建默认状态；已有 `MatchScore` 但缺少 `FreeScore` 时只创建空自由状态，不从 V2 或 `Team.Score` 猜测。旧记录只有 `Team.Score` 时不会反推出 per-Game/per-Half 历史。导入新格式时，有效 `MatchScore` 不会被旧字段覆盖。
 
 ## 事件模式
 

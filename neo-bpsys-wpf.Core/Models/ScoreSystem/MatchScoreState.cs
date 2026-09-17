@@ -40,25 +40,37 @@ public partial class MatchScoreState : ObservableObjectBase
     private int _currentSurTeamMajorTie;
     private int _currentHunTeamMajorWin;
     private int _currentHunTeamMajorTie;
-    private GameProgress _currentDisplayProgress = GameProgress.Free;
+    private GameProgress _currentDisplayProgress = GameProgress.Game1FirstHalf;
     private TeamType _currentDisplaySurTeamType = TeamType.HomeTeam;
     private TeamType _currentDisplayHunTeamType = TeamType.AwayTeam;
     private bool _currentDisplayIsBo3Mode;
     private bool _lastRecalculateIsBo3Mode;
     private readonly MatchScoreHalfByProgressView _halfByProgress;
+    private readonly FreeMatchScoreState _freeScore;
 
     /// <summary>
     /// 创建比分状态。未提供 <paramref name="games"/> 时会创建 BO3/BO5 支持的默认比分单元。
     /// </summary>
-    /// <param name="games">可序列化的比分单元集合。</param>
+    /// <param name="games">可序列化的 Score System V2 比分单元集合。</param>
+    /// <param name="freeScore">与 V2 隔离的自由对局比分；旧记录缺失时创建空状态。</param>
     [JsonConstructor]
-    public MatchScoreState(ObservableCollection<ScoreGame>? games = null)
+    public MatchScoreState(
+        ObservableCollection<ScoreGame>? games = null,
+        FreeMatchScoreState? freeScore = null)
     {
         _games = games ?? CreateDefaultGames();
+        _freeScore = freeScore ?? new FreeMatchScoreState();
         _halfByProgress = new MatchScoreHalfByProgressView(this);
         SubscribeGames(_games);
+        _freeScore.PropertyChanged += OnFreeScorePropertyChanged;
         Recalculate(isBo3Mode: false);
     }
+
+    /// <summary>
+    /// 获取与 Score System V2 完全隔离的自由对局比分。
+    /// </summary>
+    [FrontedBindingIgnore]
+    public FreeMatchScoreState FreeScore => _freeScore;
 
     /// <summary>
     /// 按 <see cref="GameProgress"/> 和当前 BO 上下文取得单半场比分的只读索引入口。
@@ -233,6 +245,24 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
+    /// 主队当前大场内的小比分文本。
+    /// </summary>
+    [JsonIgnore]
+    public string HomeCurrentMinorScoreText =>
+        _currentDisplaySurTeamType == TeamType.HomeTeam
+            ? CurrentSurTeamMinorScoreText
+            : CurrentHunTeamMinorScoreText;
+
+    /// <summary>
+    /// 客队当前大场内的小比分文本。
+    /// </summary>
+    [JsonIgnore]
+    public string AwayCurrentMinorScoreText =>
+        _currentDisplaySurTeamType == TeamType.AwayTeam
+            ? CurrentSurTeamMinorScoreText
+            : CurrentHunTeamMinorScoreText;
+
+    /// <summary>
     /// 已弃用：当前回合（当前 Game）下，从第一半累计到当前半场的监管者队伍小比分总和文本。
     /// </summary>
     /// <remarks>
@@ -354,7 +384,7 @@ public partial class MatchScoreState : ObservableObjectBase
                 CloneHalf(game.FirstHalf),
                 CloneHalf(game.SecondHalf))));
 
-        var clone = new MatchScoreState(games);
+        var clone = new MatchScoreState(games, FreeScore.Clone());
         clone._currentDisplayProgress = _currentDisplayProgress;
         clone._currentDisplaySurTeamType = _currentDisplaySurTeamType;
         clone._currentDisplayHunTeamType = _currentDisplayHunTeamType;
@@ -482,6 +512,12 @@ public partial class MatchScoreState : ObservableObjectBase
 
     private void UpdateCurrentDisplay()
     {
+        if (_currentDisplayProgress == GameProgress.Free)
+        {
+            UpdateFreeDisplay();
+            return;
+        }
+
         CurrentSurTeamMajorText = GetMajorText(_currentDisplaySurTeamType);
         CurrentHunTeamMajorText = GetMajorText(_currentDisplayHunTeamType);
         CurrentSurTeamTotalMinorScore = GetTotalMinorScore(_currentDisplaySurTeamType);
@@ -524,10 +560,43 @@ public partial class MatchScoreState : ObservableObjectBase
         NotifyCurrentScoreObjectsChanged();
     }
 
+    private void UpdateFreeDisplay()
+    {
+        HomeMajorWin = FreeScore.Home.MajorWin;
+        HomeMajorTie = FreeScore.Home.MajorTie;
+        AwayMajorWin = FreeScore.Away.MajorWin;
+        AwayMajorTie = FreeScore.Away.MajorTie;
+        HomeMajorText = FormatMajorText(HomeMajorWin, HomeMajorTie);
+        AwayMajorText = FormatMajorText(AwayMajorWin, AwayMajorTie);
+        HomeTotalMinorScore = FreeScore.Home.TotalMinorScore;
+        AwayTotalMinorScore = FreeScore.Away.TotalMinorScore;
+
+        var surScore = GetFreeTeamScore(_currentDisplaySurTeamType);
+        var hunScore = GetFreeTeamScore(_currentDisplayHunTeamType);
+        CurrentSurTeamMajorText = FormatMajorText(surScore.MajorWin, surScore.MajorTie);
+        CurrentHunTeamMajorText = FormatMajorText(hunScore.MajorWin, hunScore.MajorTie);
+        CurrentSurTeamMajorWin = surScore.MajorWin;
+        CurrentSurTeamMajorTie = surScore.MajorTie;
+        CurrentHunTeamMajorWin = hunScore.MajorWin;
+        CurrentHunTeamMajorTie = hunScore.MajorTie;
+        CurrentSurTeamTotalMinorScore = surScore.TotalMinorScore;
+        CurrentHunTeamTotalMinorScore = hunScore.TotalMinorScore;
+        CurrentSurTeamMinorScoreText = FormatMinorScore(surScore.CurrentMinorScore);
+        CurrentHunTeamMinorScoreText = FormatMinorScore(hunScore.CurrentMinorScore);
+        CurrentSurTeamMinorHalfScoreText = "-";
+        CurrentHunTeamMinorHalfScoreText = "-";
+        NotifyCurrentScoreObjectsChanged();
+    }
+
+    private FreeTeamScoreState GetFreeTeamScore(TeamType teamType) =>
+        teamType == TeamType.HomeTeam ? FreeScore.Home : FreeScore.Away;
+
     private void NotifyCurrentScoreObjectsChanged()
     {
         OnPropertyChanged(nameof(CurrentGameScore));
         OnPropertyChanged(nameof(CurrentHalf));
+        OnPropertyChanged(nameof(HomeCurrentMinorScoreText));
+        OnPropertyChanged(nameof(AwayCurrentMinorScoreText));
     }
 
     private static int SumTeamMinorScore(IEnumerable<ScoreHalf> halves, TeamType teamType)
@@ -666,4 +735,11 @@ public partial class MatchScoreState : ObservableObjectBase
 
     private void OnScoreGamePropertyChanged(object? sender, PropertyChangedEventArgs args) =>
         Recalculate(_lastRecalculateIsBo3Mode);
+
+    private void OnFreeScorePropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        OnPropertyChanged(nameof(FreeScore));
+        if (_currentDisplayProgress == GameProgress.Free)
+            UpdateCurrentDisplay();
+    }
 }

@@ -1,9 +1,9 @@
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -63,6 +63,7 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
 
             _isSubscribed = true;
             _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
+            _sharedDataService.GameProgressChanged += OnGameProgressChanged;
             SubscribeMatchScore(_sharedDataService.CurrentGame.MatchScore);
             RenderCells();
         }
@@ -76,6 +77,7 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
 
             _isSubscribed = false;
             _sharedDataService.CurrentGameChanged -= OnCurrentGameChanged;
+            _sharedDataService.GameProgressChanged -= OnGameProgressChanged;
             SubscribeMatchScore(null);
         }
 
@@ -84,6 +86,8 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
             SubscribeMatchScore(_sharedDataService.CurrentGame.MatchScore);
             RenderCells();
         }
+
+        private void OnGameProgressChanged(object? sender, EventArgs args) => RenderCells();
 
         private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args) => RenderCells();
 
@@ -123,7 +127,10 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
 
             foreach (var cell in cells)
             {
-                var display = GlobalScoreRowDisplay.Create(
+                var display = CreateDisplay(
+                    _sharedDataService.CurrentGame.GameProgress == GameProgress.Free
+                        ? _sharedDataService.CurrentGame.MatchScore.FreeScore
+                        : null,
                     _sharedDataService.CurrentGame.MatchScore,
                     _config.TeamType,
                     cell,
@@ -154,6 +161,9 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
                 IsCampVisible = display.IsCampVisible,
                 IsHunIcon = display.IsHunIcon,
                 CampIconColor = cell.CampIconColor ?? _config.CampIconColor,
+                ScoreGameKey = display.GameKey,
+                ScoreHalfKind = display.HalfKind,
+                TeamType = _config.TeamType,
                 Visibility = MapVisibility(cell.Visibility)
             };
 
@@ -162,6 +172,16 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
             ApplyTextStyle(presenter, cell);
             return presenter;
         }
+
+        private static GlobalScoreRowCellDisplay CreateDisplay(
+            FreeMatchScoreState? freeScore,
+            MatchScoreState matchScore,
+            TeamType teamType,
+            GlobalScoreCellConfig cell,
+            bool showCampIcon) =>
+            freeScore is null
+                ? GlobalScoreRowDisplay.Create(matchScore, teamType, cell, showCampIcon)
+                : GlobalScoreRowDisplay.Create(freeScore, teamType, cell, showCampIcon);
 
         private void ApplyTextStyle(GlobalScorePresenter presenter, GlobalScoreCellConfig cell)
         {

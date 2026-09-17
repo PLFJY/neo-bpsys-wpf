@@ -20,6 +20,16 @@ public interface IMatchScoreService
     MatchScoreState Current { get; }
 
     /// <summary>
+    /// 获取当前 Game 内与 V2 隔离的自由对局比分。
+    /// </summary>
+    FreeMatchScoreState FreeScore { get; }
+
+    /// <summary>
+    /// 获取当前是否处于自由对局模式。
+    /// </summary>
+    bool IsFreeMode { get; }
+
+    /// <summary>
     /// 当前进度对应的半场比分；当进度不属于可记录比分的半场时为 <see langword="null"/>。
     /// </summary>
     ScoreHalf? CurrentHalf { get; }
@@ -53,6 +63,27 @@ public interface IMatchScoreService
     /// 清除当前半场赛果和写入时的阵营记录。
     /// </summary>
     void ClearCurrentHalfResult();
+
+    /// <summary>
+    /// 在自由模式下按标准赛果同时累加当前小分和总小分。
+    /// </summary>
+    /// <param name="result">标准赛果预设。</param>
+    void ApplyFreeResultPreset(GameResult result);
+
+    /// <summary>
+    /// 在自由模式下按当前小分结算大场胜/平，并清零双方当前小分。
+    /// </summary>
+    void SettleFreeMajorScore();
+
+    /// <summary>
+    /// 清零自由模式双方当前小分，保留总小分和大场比分。
+    /// </summary>
+    void ClearFreeCurrentMinorScore();
+
+    /// <summary>
+    /// 重置当前 Game 的全部自由比分和自由 ScoreGlobal 记录，不修改 V2。
+    /// </summary>
+    void ResetFreeScores();
 
     /// <summary>
     /// 根据所有已记录半场赛果重新计算小分、大分和当前显示文本。

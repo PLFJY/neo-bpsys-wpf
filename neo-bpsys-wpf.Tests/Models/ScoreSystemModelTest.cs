@@ -108,6 +108,9 @@ public class ScoreSystemModelTest
                 new ScoreGameKey(5, ScoreGameKind.Overtime)
             ],
             state.Games.Select(game => game.Key).ToArray());
+        Assert.Equal(
+            state.Games.Select(game => game.Key),
+            state.FreeScore.GlobalGames.Select(game => game.Key));
     }
 
     [Fact]
@@ -293,6 +296,25 @@ public class ScoreSystemModelTest
     }
 
     [Fact]
+    public void FreeGameInitializesAndTracksFreeDerivedDisplayWithoutService()
+    {
+        var game = new Game(
+            new Team(Camp.Sur, TeamType.HomeTeam),
+            new Team(Camp.Hun, TeamType.AwayTeam),
+            GameProgress.Free);
+
+        game.MatchScore.FreeScore.Home.CurrentMinorScore = -2;
+        game.MatchScore.FreeScore.Home.TotalMinorScore = 7;
+        game.MatchScore.FreeScore.Home.MajorWin = 3;
+
+        Assert.Equal("-2", game.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal(7, game.MatchScore.CurrentSurTeamTotalMinorScore);
+        Assert.Equal("W3  D0", game.MatchScore.CurrentSurTeamMajorText);
+        Assert.Null(game.MatchScore.CurrentGameScore);
+        Assert.Null(game.MatchScore.CurrentHalf);
+    }
+
+    [Fact]
     public void GameDeserializesFromJsonWithoutMatchScore()
     {
         var options = CreateJsonOptions();
@@ -337,6 +359,59 @@ public class ScoreSystemModelTest
     }
 
     [Fact]
+    public void MatchScoreStateDeserializesOldJsonWithoutFreeScoreAsEmptyState()
+    {
+        var options = CreateJsonOptions();
+        var state = MatchScoreState.CreateDefault();
+        FillGame(state, new ScoreGameKey(1, ScoreGameKind.Normal), GameResult.Escape3);
+        var node = JsonNode.Parse(JsonSerializer.Serialize(state, options))!.AsObject();
+        Assert.True(node.Remove(nameof(MatchScoreState.FreeScore)));
+
+        var deserialized = JsonSerializer.Deserialize<MatchScoreState>(node.ToJsonString(), options)!;
+
+        Assert.Equal(0, deserialized.FreeScore.Home.CurrentMinorScore);
+        Assert.Equal(0, deserialized.FreeScore.Away.TotalMinorScore);
+        Assert.All(deserialized.FreeScore.GlobalGames.SelectMany(game => new[] { game.FirstHalf, game.SecondHalf }),
+            half => Assert.False(half.IsCompleted));
+        Assert.Equal(GameResult.Escape3, deserialized.GetHalf(GameProgress.Game1FirstHalf)!.Result);
+    }
+
+    [Fact]
+    public void FreeScoreRoundTripsWithNegativeAndIndependentGlobalValues()
+    {
+        var options = CreateJsonOptions();
+        var state = MatchScoreState.CreateDefault();
+        state.FreeScore.Home.CurrentMinorScore = -5;
+        state.FreeScore.Home.TotalMinorScore = 17;
+        state.FreeScore.Away.MajorTie = 3;
+        var half = state.FreeScore.GetGlobalHalf(
+            new ScoreGameKey(5, ScoreGameKind.Overtime),
+            ScoreHalfKind.SecondHalf)!;
+        half.IsCompleted = true;
+        half.IsInitialized = true;
+        half.HomeMinorScore = -9;
+        half.AwayMinorScore = 12;
+        half.HomeCamp = Camp.Hun;
+        half.AwayCamp = Camp.Hun;
+
+        var json = JsonSerializer.Serialize(state, options);
+        var deserialized = JsonSerializer.Deserialize<MatchScoreState>(json, options)!;
+        var deserializedHalf = deserialized.FreeScore.GetGlobalHalf(
+            new ScoreGameKey(5, ScoreGameKind.Overtime),
+            ScoreHalfKind.SecondHalf)!;
+
+        Assert.Equal(-5, deserialized.FreeScore.Home.CurrentMinorScore);
+        Assert.Equal(17, deserialized.FreeScore.Home.TotalMinorScore);
+        Assert.Equal(3, deserialized.FreeScore.Away.MajorTie);
+        Assert.True(deserializedHalf.IsCompleted);
+        Assert.True(deserializedHalf.IsInitialized);
+        Assert.Equal(-9, deserializedHalf.HomeMinorScore);
+        Assert.Equal(12, deserializedHalf.AwayMinorScore);
+        Assert.Equal(Camp.Hun, deserializedHalf.HomeCamp);
+        Assert.Equal(Camp.Hun, deserializedHalf.AwayCamp);
+    }
+
+    [Fact]
     public void MatchScoreStateCloneCreatesIndependentMutableCopy()
     {
         var state = MatchScoreState.CreateDefault();
@@ -344,12 +419,26 @@ public class ScoreSystemModelTest
         originalHalf.Result = GameResult.Escape4;
         originalHalf.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
         originalHalf.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
+        state.FreeScore.Home.CurrentMinorScore = -4;
+        var originalFreeHalf = state.FreeScore.GetGlobalHalf(
+            new ScoreGameKey(4, ScoreGameKind.Normal),
+            ScoreHalfKind.FirstHalf)!;
+        originalFreeHalf.IsCompleted = true;
+        originalFreeHalf.HomeMinorScore = 8;
 
         var clone = state.Clone();
         clone.GetHalf(GameProgress.Game1FirstHalf)!.Result = GameResult.Out4;
+        clone.FreeScore.Home.CurrentMinorScore = 99;
+        clone.FreeScore.GetGlobalHalf(
+            new ScoreGameKey(4, ScoreGameKind.Normal),
+            ScoreHalfKind.FirstHalf)!.HomeMinorScore = -10;
 
         Assert.Equal(GameResult.Escape4, state.GetHalf(GameProgress.Game1FirstHalf)!.Result);
         Assert.Equal(GameResult.Out4, clone.GetHalf(GameProgress.Game1FirstHalf)!.Result);
+        Assert.NotSame(state.FreeScore, clone.FreeScore);
+        Assert.Equal(-4, state.FreeScore.Home.CurrentMinorScore);
+        Assert.Equal(99, clone.FreeScore.Home.CurrentMinorScore);
+        Assert.Equal(8, originalFreeHalf.HomeMinorScore);
     }
 
     private static JsonSerializerOptions CreateJsonOptions() =>

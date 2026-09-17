@@ -26,7 +26,7 @@
     <value>スコア制御</value>
   </data>
   <data name="ScorePreview">
-    <value>{0}  勝:{1} 分:{2}  得点: {3}</value>
+    <value>{0}  勝:{1} 分:{2}  小スコア: {3}  総小スコア: {4}</value>
   </data>
   <data name="ScorePreviewTable">
     <value>スコアプレビュー</value>
@@ -63,6 +63,12 @@
   </data>
   <data name="ScorePreviewAwayMinorScore">
     <value>アウェイ小スコア</value>
+  </data>
+  <data name="ScorePreviewHomeTotalMinorScore">
+    <value>ホーム総小スコア</value>
+  </data>
+  <data name="ScorePreviewAwayTotalMinorScore">
+    <value>アウェイ総小スコア</value>
   </data>
   <data name="ScorePreviewFirstHalf">
     <value>前半</value>
@@ -127,4 +133,27 @@
   <data name="Tie">
     <value>引き分け</value>
   </data>
+  <data name="FreeModeNotice"><value>自由対戦モード：スコアは対戦進行から自動計算されず、そのまま加算されます</value></data>
+  <data name="ClearFreeCurrentMinorScore"><value>現在の小スコアを消去</value></data>
+  <data name="EditInGameScores"><value>ゲーム内スコアを手動編集</value></data>
+  <data name="EditGlobalScores"><value>全体スコアを手動編集</value></data>
+  <data name="SelectEditableScore"><value>プレビュー内のスコアをクリックして編集します</value></data>
+  <data name="ClickToEditScore"><value>クリックして編集</value></data>
+  <data name="EditingSurvivorScore"><value>サバイバー側スコアを編集中</value></data>
+  <data name="EditingHunterScore"><value>ハンター側スコアを編集中</value></data>
+  <data name="CurrentMinorScore"><value>現在の小スコア</value></data>
+  <data name="TotalMinorScore"><value>合計小スコア</value></data>
+  <data name="MajorWin"><value>対戦勝利</value></data>
+  <data name="MajorTie"><value>対戦引分</value></data>
+  <data name="SelectGlobalHalf"><value>全体スコアのハーフをクリックして編集します</value></data>
+  <data name="IsGameCompleted"><value>対戦完了</value></data>
+  <data name="PresetCamp"><value>陣営プリセット</value></data>
+  <data name="HomeIsSurvivor"><value>ホームがサバイバー</value></data>
+  <data name="AwayIsSurvivor"><value>アウェイがサバイバー</value></data>
+  <data name="ResultPreset"><value>結果プリセット</value></data>
+  <data name="HomeTeamScore"><value>ホームスコア</value></data>
+  <data name="AwayTeamScore"><value>アウェイスコア</value></data>
+  <data name="ScorePreviewManual"><value>手動</value></data>
+  <data name="PresetSectionTitle"><value>プリセット</value></data>
+  <data name="ManualEditSectionTitle"><value>手動編集</value></data>
 </root>

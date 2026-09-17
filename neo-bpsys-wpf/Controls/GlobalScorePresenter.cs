@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,6 +19,15 @@ public class GlobalScorePresenter : Control
     {
         Loaded += (_, _) => UpdateTintedCampIcons();
     }
+
+    /// <summary>获取或设置该比分格对应的稳定 Game 键。</summary>
+    public ScoreGameKey ScoreGameKey { get; set; }
+
+    /// <summary>获取或设置该比分格对应的半场位置。</summary>
+    public ScoreHalfKind ScoreHalfKind { get; set; }
+
+    /// <summary>获取或设置该比分格代表的主队或客队。</summary>
+    public TeamType TeamType { get; set; }
 
     /// <summary>
     /// 获取或设置显示的比分文本。

@@ -244,6 +244,8 @@ public partial class App
         services.AddTransient<FrontedLayoutPackageExportWindow>();
         services.AddTransient<FrontedBehaviorEventDebuggerViewModel>();
         services.AddTransient<FrontedBehaviorEventDebuggerWindow>();
+        services.AddTransient<FreeInGameScoreEditorWindow>();
+        services.AddTransient<FreeGlobalScoreEditorWindow>();
 
         //Pages
         //Internal

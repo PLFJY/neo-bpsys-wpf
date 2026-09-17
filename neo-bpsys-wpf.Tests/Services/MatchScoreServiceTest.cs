@@ -86,7 +86,7 @@ public class MatchScoreServiceTest
 
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
 
-        Assert.True(viewModel.IsScoreControlEnabled);
+        Assert.False(viewModel.IsFreeMode);
         Assert.Null(viewModel.SelectedCurrentHalfResult);
 
         viewModel.SelectedCurrentHalfResult = GameResult.Out4;
@@ -98,7 +98,7 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
-    public void ScorePageSelectedResultDoesNotWriteWhenProgressIsFree()
+    public void ScorePageSelectedResultDoesNotUseV2WhenProgressIsFree()
     {
         var (currentGame, sharedDataService, service) =
             CreateScorePageTestServices(GameProgress.Free);
@@ -106,7 +106,7 @@ public class MatchScoreServiceTest
 
         viewModel.SelectedCurrentHalfResult = GameResult.Out4;
 
-        Assert.False(viewModel.IsScoreControlEnabled);
+        Assert.True(viewModel.IsFreeMode);
         Assert.Null(viewModel.SelectedCurrentHalfResult);
         Assert.All(currentGame.MatchScore.Games.SelectMany(game => new[] { game.FirstHalf, game.SecondHalf }),
             half => Assert.Null(half.Result));
@@ -141,7 +141,7 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
-    public void FreeGameProgressScorePageCommandDoesNotCrashOrWriteScore()
+    public void FreeGameProgressScorePageCommandAccumulatesFreeScoreOnly()
     {
         var (currentGame, sharedDataService, service) =
             CreateScorePageTestServices(GameProgress.Free);
@@ -151,8 +151,207 @@ public class MatchScoreServiceTest
 
         Assert.All(currentGame.MatchScore.Games.SelectMany(game => new[] { game.FirstHalf, game.SecondHalf }),
             half => Assert.Null(half.Result));
+        Assert.Equal(0, currentGame.MatchScore.FreeScore.Home.TotalMinorScore);
+        Assert.Equal(5, currentGame.MatchScore.FreeScore.Away.TotalMinorScore);
         Assert.Equal(0, currentGame.MatchScore.HomeTotalMinorScore);
-        Assert.Equal(0, currentGame.MatchScore.AwayTotalMinorScore);
+        Assert.Equal(5, currentGame.MatchScore.AwayTotalMinorScore);
+        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("5", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+    }
+
+    [Theory]
+    [InlineData(GameResult.Escape4, 5, 0, false)]
+    [InlineData(GameResult.Escape3, 3, 1, false)]
+    [InlineData(GameResult.Tie, 2, 2, false)]
+    [InlineData(GameResult.Out3, 1, 3, false)]
+    [InlineData(GameResult.Out4, 0, 5, false)]
+    [InlineData(GameResult.Escape4, 0, 5, true)]
+    [InlineData(GameResult.Escape3, 1, 3, true)]
+    [InlineData(GameResult.Tie, 2, 2, true)]
+    [InlineData(GameResult.Out3, 3, 1, true)]
+    [InlineData(GameResult.Out4, 5, 0, true)]
+    public void FreeResultPresetAccumulatesCurrentAndTotalScores(
+        GameResult result,
+        int expectedHome,
+        int expectedAway,
+        bool swapBeforeApplying)
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Free);
+        if (swapBeforeApplying)
+            currentGame.Swap();
+
+        service.ApplyFreeResultPreset(result);
+        service.ApplyFreeResultPreset(result);
+
+        Assert.Equal(expectedHome * 2, currentGame.MatchScore.FreeScore.Home.CurrentMinorScore);
+        Assert.Equal(expectedAway * 2, currentGame.MatchScore.FreeScore.Away.CurrentMinorScore);
+        Assert.Equal(expectedHome * 2, currentGame.MatchScore.FreeScore.Home.TotalMinorScore);
+        Assert.Equal(expectedAway * 2, currentGame.MatchScore.FreeScore.Away.TotalMinorScore);
+        Assert.All(currentGame.MatchScore.Games.SelectMany(game => game.Halves), half => Assert.Null(half.Result));
+    }
+
+    [Fact]
+    public void FreeResultPresetUsesCurrentCampMappingAfterSwap()
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Free);
+        currentGame.Swap();
+
+        service.ApplyFreeResultPreset(GameResult.Escape3);
+
+        Assert.Equal(1, service.FreeScore.Home.CurrentMinorScore);
+        Assert.Equal(3, service.FreeScore.Away.CurrentMinorScore);
+        Assert.Equal("3", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal("1", currentGame.MatchScore.CurrentHunTeamMinorScoreText);
+    }
+
+    [Theory]
+    [InlineData(4, 1, 1, 0, 0, 0)]
+    [InlineData(1, 4, 0, 1, 0, 0)]
+    [InlineData(-2, -2, 0, 0, 1, 1)]
+    public void FreeSettlementUpdatesMajorScoreAndClearsOnlyCurrentScore(
+        int homeCurrent,
+        int awayCurrent,
+        int expectedHomeWin,
+        int expectedAwayWin,
+        int expectedHomeTie,
+        int expectedAwayTie)
+    {
+        var (_, _, service) = CreateScorePageTestServices(GameProgress.Free);
+        service.FreeScore.Home.CurrentMinorScore = homeCurrent;
+        service.FreeScore.Away.CurrentMinorScore = awayCurrent;
+        service.FreeScore.Home.TotalMinorScore = -7;
+        service.FreeScore.Away.TotalMinorScore = 9;
+
+        service.SettleFreeMajorScore();
+
+        Assert.Equal(0, service.FreeScore.Home.CurrentMinorScore);
+        Assert.Equal(0, service.FreeScore.Away.CurrentMinorScore);
+        Assert.Equal(-7, service.FreeScore.Home.TotalMinorScore);
+        Assert.Equal(9, service.FreeScore.Away.TotalMinorScore);
+        Assert.Equal(expectedHomeWin, service.FreeScore.Home.MajorWin);
+        Assert.Equal(expectedAwayWin, service.FreeScore.Away.MajorWin);
+        Assert.Equal(expectedHomeTie, service.FreeScore.Home.MajorTie);
+        Assert.Equal(expectedAwayTie, service.FreeScore.Away.MajorTie);
+    }
+
+    [Fact]
+    public void SwitchingProgressRestoresIndependentFreeAndV2Displays()
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape4);
+        currentGame.GameProgress = GameProgress.Free;
+        service.FreeScore.Home.CurrentMinorScore = -3;
+        service.FreeScore.Home.TotalMinorScore = -8;
+        service.FreeScore.Away.CurrentMinorScore = 7;
+        service.FreeScore.Away.TotalMinorScore = 12;
+
+        service.RefreshCurrentProgress();
+        Assert.Equal(-8, currentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal("-3", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+
+        currentGame.GameProgress = GameProgress.Game1FirstHalf;
+        Assert.Equal(5, currentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal("5", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+
+        currentGame.GameProgress = GameProgress.Free;
+        Assert.Equal(-8, currentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal("-3", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+    }
+
+    [Fact]
+    public void ResetFreeScoresClearsFreeGlobalDataWithoutChangingV2()
+    {
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape3);
+        currentGame.GameProgress = GameProgress.Free;
+        service.ApplyFreeResultPreset(GameResult.Out4);
+        service.FreeScore.Home.MajorWin = 2;
+        var freeHalf = service.FreeScore.GetGlobalHalf(
+            new ScoreGameKey(3, ScoreGameKind.Overtime),
+            ScoreHalfKind.SecondHalf)!;
+        freeHalf.IsCompleted = true;
+        freeHalf.IsInitialized = true;
+        freeHalf.HomeMinorScore = -4;
+        freeHalf.AwayCamp = Camp.Sur;
+
+        service.ResetFreeScores();
+
+        Assert.Equal(0, service.FreeScore.Home.MajorWin);
+        Assert.Equal(0, service.FreeScore.Away.TotalMinorScore);
+        Assert.False(freeHalf.IsCompleted);
+        Assert.False(freeHalf.IsInitialized);
+        Assert.Equal(0, freeHalf.HomeMinorScore);
+        Assert.Equal(Camp.Hun, freeHalf.AwayCamp);
+        Assert.Equal(GameResult.Escape3, currentGame.MatchScore.GetHalf(GameProgress.Game1FirstHalf)!.Result);
+    }
+
+    [Fact]
+    public void FreeScorePreviewReadsManualGlobalRows()
+    {
+        var (_, sharedDataService, service) = CreateScorePageTestServices(GameProgress.Free);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
+        var half = service.FreeScore.GetGlobalHalf(
+            new ScoreGameKey(1, ScoreGameKind.Normal),
+            ScoreHalfKind.FirstHalf)!;
+
+        half.IsCompleted = true;
+        half.HomeMinorScore = -6;
+        half.AwayMinorScore = 11;
+        half.HomeCamp = Camp.Hun;
+        half.AwayCamp = Camp.Sur;
+        service.FreeScore.Home.TotalMinorScore = 24;
+        service.FreeScore.Away.TotalMinorScore = -8;
+
+        var row = Assert.Single(viewModel.ScorePreviewRows.Where(item =>
+            item.GameLabel.Contains("1", StringComparison.Ordinal) &&
+            item.HalfLabel == viewModel.ScorePreviewRows[0].HalfLabel));
+        Assert.True(row.HasResult);
+        Assert.Equal("-6", row.HomeMinorScoreText);
+        Assert.Equal("11", row.AwayMinorScoreText);
+        Assert.Equal("24", row.HomeTotalMinorScoreText);
+        Assert.Equal("-8", row.AwayTotalMinorScoreText);
+        Assert.NotEqual("-", row.HomeCampText);
+        Assert.NotEqual("-", row.AwayCampText);
+    }
+
+    [Fact]
+    public void V2ScorePreviewSeparatesHalfMinorScoreFromMatchTotalMinorScore()
+    {
+        var (currentGame, sharedDataService, service) =
+            CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
+        service.SetCurrentHalfResult(GameResult.Escape4);
+        currentGame.GameProgress = GameProgress.Game2FirstHalf;
+        service.SetCurrentHalfResult(GameResult.Escape3);
+
+        var firstHalfRow = viewModel.ScorePreviewRows.Single(row =>
+            row.Progress == GameProgress.Game1FirstHalf);
+
+        Assert.Equal("5", firstHalfRow.HomeMinorScoreText);
+        Assert.Equal("0", firstHalfRow.AwayMinorScoreText);
+        Assert.Equal("8", firstHalfRow.HomeTotalMinorScoreText);
+        Assert.Equal("1", firstHalfRow.AwayTotalMinorScoreText);
+    }
+
+    [Fact]
+    public void ManualFreeScoreChangesNotifyScorePageCurrentGameBindings()
+    {
+        var (currentGame, sharedDataService, service) = CreateScorePageTestServices(GameProgress.Free);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
+        var changedProperties = new HashSet<string>();
+        viewModel.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName is not null)
+                changedProperties.Add(args.PropertyName);
+        };
+
+        service.FreeScore.Home.CurrentMinorScore = -4;
+        service.FreeScore.Home.TotalMinorScore = 13;
+
+        Assert.Equal("-4", currentGame.MatchScore.CurrentSurTeamMinorScoreText);
+        Assert.Equal(13, currentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal("-4", currentGame.MatchScore.HomeCurrentMinorScoreText);
+        Assert.Contains(nameof(ScorePageViewModel.CurrentGame), changedProperties);
     }
 
     [Fact]
@@ -401,6 +600,8 @@ public class MatchScoreServiceTest
             Assert.Equal("-", row.ResultText);
             Assert.Equal("-", row.HomeMinorScoreText);
             Assert.Equal("-", row.AwayMinorScoreText);
+            Assert.Equal("0", row.HomeTotalMinorScoreText);
+            Assert.Equal("0", row.AwayTotalMinorScoreText);
         });
     }
 

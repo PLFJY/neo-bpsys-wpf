@@ -147,6 +147,11 @@ public partial class Game : ObservableObjectBase
         MatchScore.Recalculate(isBo3Mode: false);
         //初始化对局进度
         GameProgress = gameProgress;
+        MatchScore.RefreshCurrentDisplay(
+            gameProgress,
+            SurTeam.TeamType,
+            HunTeam.TeamType,
+            isBo3Mode: false);
         BpSlotCommitState = bpSlotCommitState is not null &&
                             bpSlotCommitState.GameGuid == Guid &&
                             bpSlotCommitState.GameProgress == gameProgress

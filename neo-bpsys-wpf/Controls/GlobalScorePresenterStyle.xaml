@@ -9,7 +9,10 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type cc:GlobalScorePresenter}">
-                    <Border Width="75">
+                    <Border
+                        Width="75"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
                         <StackPanel
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"

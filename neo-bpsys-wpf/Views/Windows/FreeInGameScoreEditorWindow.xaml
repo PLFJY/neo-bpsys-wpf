@@ -1,0 +1,84 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.FreeInGameScoreEditorWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc EditInGameScores}"
+    Width="1120"
+    Height="540"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    ResizeMode="CanResize"
+    WindowStartupLocation="CenterOwner"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <controls:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="True"
+            IsMinimizeVisible="False"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+        <Grid Grid.Row="1" Margin="16,8,16,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Border Margin="0,0,8,0" Style="{StaticResource Card}">
+                <Viewbox Stretch="Uniform">
+                    <Grid>
+                        <Canvas x:Name="SurPreviewCanvas" />
+                        <Canvas x:Name="SurHitCanvas" Background="Transparent" />
+                    </Grid>
+                </Viewbox>
+            </Border>
+            <Border Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource Card}">
+                <Viewbox Stretch="Uniform">
+                    <Grid>
+                        <Canvas x:Name="HunPreviewCanvas" />
+                        <Canvas x:Name="HunHitCanvas" Background="Transparent" />
+                    </Grid>
+                </Viewbox>
+            </Border>
+        </Grid>
+        <Border Grid.Row="2" Margin="16" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock x:Name="SelectionText" Style="{StaticResource Title}" Text="{lex:Loc SelectEditableScore}" />
+                <StackPanel x:Name="EditorPanel" Margin="0,10,0,0" IsEnabled="False" Orientation="Horizontal" Visibility="Collapsed">
+                    <TextBlock x:Name="PrimaryLabel" Width="120" VerticalAlignment="Center" />
+                    <ui:NumberBox
+                        x:Name="PrimaryValueBox"
+                        Width="180"
+                        AcceptsExpression="False"
+                        MaxDecimalPlaces="0"
+                        SmallChange="1"
+                        SpinButtonPlacementMode="Compact" />
+                    <TextBlock x:Name="SecondaryLabel" Width="100" Margin="24,0,0,0" VerticalAlignment="Center" />
+                    <ui:NumberBox
+                        x:Name="SecondaryValueBox"
+                        Width="180"
+                        AcceptsExpression="False"
+                        MaxDecimalPlaces="0"
+                        SmallChange="1"
+                        SpinButtonPlacementMode="Compact" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</ui:FluentWindow>
