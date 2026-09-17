@@ -281,7 +281,18 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
+    [NotifyPropertyChangedFor(nameof(DeleteSelectedOcrModelConfirmationText))]
     public partial OcrModelSelection? SelectedOcrModel { get; set; }
+
+    /// <summary>
+    /// 获取当前 OCR 模型的删除确认提示文本。
+    /// </summary>
+    public string DeleteSelectedOcrModelConfirmationText =>
+        SelectedOcrModel is null
+            ? string.Empty
+            : string.Format(
+                I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelConfirmFormat"),
+                ResolveLocalizedOrRaw(SelectedOcrModel.DisplayName));
 
     /// <summary>
     /// 是否正在下载 OCR 模型。
@@ -493,15 +504,6 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     private async Task DeleteSelectedOcrModelAsync()
     {
         if (SelectedOcrModel == null)
-            return;
-
-        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-            string.Format(I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelConfirmFormat"),
-                ResolveLocalizedOrRaw(SelectedOcrModel.DisplayName)),
-            I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelTitle"),
-            I18nHelper.GetLocalizedString("Delete"),
-            I18nHelper.GetLocalizedString("Cancel"));
-        if (!confirmed)
             return;
 
         if (!_ocrService.TryDeleteModel(SelectedOcrModel.Key, out var errorMessage))

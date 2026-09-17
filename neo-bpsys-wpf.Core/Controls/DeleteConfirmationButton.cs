@@ -64,7 +64,7 @@ public class DeleteConfirmationButton : Control
         nameof(Command),
         typeof(ICommand),
         typeof(DeleteConfirmationButton),
-        new PropertyMetadata(null));
+        new PropertyMetadata(null, OnCommandChanged));
 
     /// <summary>
     /// 获取或设置用户确认删除后执行的命令。
@@ -82,7 +82,7 @@ public class DeleteConfirmationButton : Control
         nameof(CommandParameter),
         typeof(object),
         typeof(DeleteConfirmationButton),
-        new PropertyMetadata(null));
+        new PropertyMetadata(null, OnCommandParameterChanged));
 
     /// <summary>
     /// 获取或设置传递给 <see cref="Command"/> 的参数。
@@ -92,6 +92,22 @@ public class DeleteConfirmationButton : Control
         get => GetValue(CommandParameterProperty);
         set => SetValue(CommandParameterProperty, value);
     }
+
+    private static readonly DependencyPropertyKey CanConfirmPropertyKey = DependencyProperty.RegisterReadOnly(
+        nameof(CanConfirm),
+        typeof(bool),
+        typeof(DeleteConfirmationButton),
+        new PropertyMetadata(false));
+
+    /// <summary>
+    /// <see cref="CanConfirm"/> 依赖属性的标识符。
+    /// </summary>
+    public static readonly DependencyProperty CanConfirmProperty = CanConfirmPropertyKey.DependencyProperty;
+
+    /// <summary>
+    /// 获取一个值，指示当前命令是否可以执行确认删除。
+    /// </summary>
+    public bool CanConfirm => (bool)GetValue(CanConfirmProperty);
 
     /// <summary>
     /// <see cref="IsConfirmationOpen"/> 依赖属性的标识符。
@@ -160,7 +176,10 @@ public class DeleteConfirmationButton : Control
 
     private void OnTriggerButtonClick(object sender, RoutedEventArgs e)
     {
-        IsConfirmationOpen = true;
+        if (CanConfirm)
+        {
+            IsConfirmationOpen = true;
+        }
     }
 
     private void OnCancelButtonClick(object sender, RoutedEventArgs e)
@@ -171,5 +190,45 @@ public class DeleteConfirmationButton : Control
     private void OnConfirmButtonClick(object sender, RoutedEventArgs e)
     {
         IsConfirmationOpen = false;
+    }
+
+    private static void OnCommandChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var button = (DeleteConfirmationButton)d;
+        button.UpdateCommandSubscription(e.OldValue as ICommand, e.NewValue as ICommand);
+        button.UpdateCanConfirm();
+    }
+
+    private static void OnCommandParameterChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((DeleteConfirmationButton)d).UpdateCanConfirm();
+    }
+
+    private void UpdateCommandSubscription(ICommand? oldCommand, ICommand? newCommand)
+    {
+        if (oldCommand is not null)
+        {
+            oldCommand.CanExecuteChanged -= OnCommandCanExecuteChanged;
+        }
+
+        if (newCommand is not null)
+        {
+            newCommand.CanExecuteChanged += OnCommandCanExecuteChanged;
+        }
+    }
+
+    private void OnCommandCanExecuteChanged(object? sender, EventArgs e)
+    {
+        UpdateCanConfirm();
+    }
+
+    private void UpdateCanConfirm()
+    {
+        var canConfirm = Command?.CanExecute(CommandParameter) == true;
+        SetValue(CanConfirmPropertyKey, canConfirm);
+        if (!canConfirm)
+        {
+            IsConfirmationOpen = false;
+        }
     }
 }

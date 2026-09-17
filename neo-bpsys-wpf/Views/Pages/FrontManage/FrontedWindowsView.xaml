@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -173,10 +173,10 @@
                                                         Margin="0,10,0,0"
                                                         Visibility="{Binding IsCustom, Converter={StaticResource BooleanToVisibilityConverter}}">
                                                         <controls:DeleteConfirmationButton
-                                                            ButtonText="{lex:Loc DeleteCustomWindow}"
+                                                            ButtonText="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.FrontManage:DeleteCustomWindow}"
                                                             Command="{Binding DataContext.ConfirmDeleteCustomWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"
-                                                            ConfirmationText="{lex:Loc ConfirmDeleteCustomWindow}" />
+                                                            ConfirmationText="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.FrontManage:ConfirmDeleteCustomWindow}" />
                                                     </Grid>
                                                 </Grid>
                                             </Grid>

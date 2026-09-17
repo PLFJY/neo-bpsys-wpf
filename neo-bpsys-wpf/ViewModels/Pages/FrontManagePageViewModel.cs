@@ -205,6 +205,18 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     [ObservableProperty]
     public partial FrontedLayoutPackageInfo? SelectedPackage { get; set; }
 
+    /// <summary>
+    /// 获取当前选中布局包的删除确认提示文本。
+    /// </summary>
+    public string DeletePackageConfirmationText => SelectedPackage?.IsActivePackage == true
+        ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeleteActivePackage")
+        : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeletePackage");
+
+    partial void OnSelectedPackageChanged(FrontedLayoutPackageInfo? value)
+    {
+        OnPropertyChanged(nameof(DeletePackageConfirmationText));
+    }
+
     [ObservableProperty]
     public partial string ActivePackageDisplay { get; set; } = "builtin";
 
@@ -1398,7 +1410,18 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     }
 
     [RelayCommand]
-    private async Task DeletePackageAsync()
+    private Task DeletePackageAsync()
+    {
+        return DeletePackageCoreAsync(requireConfirmation: false);
+    }
+
+    [RelayCommand]
+    private Task ConfirmDeletePackageAsync()
+    {
+        return DeletePackageCoreAsync(requireConfirmation: true);
+    }
+
+    private async Task DeletePackageCoreAsync(bool requireConfirmation)
     {
         if (_packageManager is null || SelectedPackage is null)
         {
@@ -1420,11 +1443,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         var packageId = SelectedPackage.PackageId;
         try
         {
-            var confirmMessage = SelectedPackage.IsActivePackage
-                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeleteActivePackage")
-                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeletePackage");
-            if (!await MessageBoxHelper.ShowConfirmAsync(
-                    confirmMessage,
+            if (requireConfirmation && !await MessageBoxHelper.ShowConfirmAsync(
+                    DeletePackageConfirmationText,
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
