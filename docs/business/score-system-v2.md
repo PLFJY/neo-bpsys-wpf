@@ -2,7 +2,7 @@
 
 本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。
 
-当前实现状态：旧比分写入路径清理已完成。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或"同步至前台"按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。后台 `ScorePage` 现在提供导播用只读比分预览表，表格行由 `CurrentGame.MatchScore.Games` 派生，按 BO3/BO5 显示对应 ScoreGame 和半场，并用状态列标记当前半场、已录入和未录入。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` / `BpOverviewWindow` / `BpWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score`、`ScoreWindowViewModel` 总分字段或 `FrontedWindowService` 动态控件读取比分。`GameGlobalInfoRecord`、`ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` 和 `FrontedWindowService.SetGlobalScore*` / `ResetGlobalScore` 已移除。`.bpui` 已迁移到 Window-centric v3 package。
+当前实现状态：旧比分写入路径清理已完成。现有 `Core.Models.Game` 已持有 `MatchScoreState`；普通对局进度继续由 `Games` 保存 Score System v2 半场结果，自由对局则由同一状态内独立的 `FreeScore` 保存完全手动的比分，两套数据互不写入。后台 `ScorePageViewModel` 根据 `CurrentGame.GameProgress` 分流命令：普通进度写入当前 V2 半场，自由进度重复累加预设或打开真实 v3 布局手动编辑器。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` 继续使用既有 `CurrentGame.MatchScore` 绑定路径，派生属性会按当前模式选择 V2 或自由状态。`Team.Score`、`ScoreWindowViewModel` 总分字段和 `FrontedWindowService` 动态比分控件都不是权威来源。
 
 Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models.Game`，让比分可以随对局导入、导出、回溯，并能在 `SharedDataService.NewGame()` 创建新对局时像 `MapV2Dictionary` 一样从上一局 `CurrentGame` 延续必要状态。
 
@@ -196,7 +196,7 @@ ScorePageViewModel
 
 ## 4. GameProgress 映射
 
-`GameProgress.Free` 不对应任何确定半场，Score System v2 暂不解析它；这是已知设计缺口。
+`GameProgress.Free` 不对应任何 V2 半场，因此 `GetGame()` / `GetHalf()` 仍返回 `null`。自由模式通过 `MatchScoreState.FreeScore` 进入独立手动计分流程，不伪造 V2 的当前 Game 或 Half。
 
 | `GameProgress` | Score System v2 mapping |
 | --- | --- |
@@ -207,7 +207,7 @@ ScorePageViewModel
 | `Game4FirstHalf` / `Game4SecondHalf` | ScoreGame 4 Normal |
 | `Game5FirstHalf` / `Game5SecondHalf` | ScoreGame 5 Normal |
 | `Game5OvertimeFirstHalf` / `Game5OvertimeSecondHalf` | ScoreGame 5 Overtime |
-| `Free` | Unresolved / not designed yet |
+| `Free` | 不映射 V2 半场；使用独立 `FreeScore`。 |
 
 映射必须显式维护。当前 `GameProgress` enum 中 `Game4FirstHalf` 与 `Game3OvertimeFirstHalf` 共用数值 `6`，`Game4SecondHalf` 与 `Game3OvertimeSecondHalf` 共用数值 `7`。实现中 `MatchScoreState.GetGame(progress)` 在缺少上下文时保守按 BO5 第四局解析，`MatchScoreService` 会结合 `ISharedDataService.IsBo3Mode` 调用带上下文的解析来区分“Game 3 Overtime”和“Game 4 Normal”。
 
@@ -328,7 +328,8 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 | --- | --- |
 | 当前半场为第一半 | 显示第一半已记录的 MinorScore（按当前阵营映射）；未记录显示 `0`。 |
 | 当前半场为第二半 | 显示同 Game 内第一半 + 第二半已记录 MinorScore 之和（按当前阵营映射）；第二半未记录时只累计第一半。 |
-| `Free` 进度 / 无对应 Game | 显示 `0`。 |
+| `Free` 进度 | 显示自由状态中按当前阵营映射的可手动编辑当前小分。 |
+| 其他无对应 Game 的进度 | 显示 `0`。 |
 
 累计小比分按当前阵营映射。每个 `ScoreHalf` 的 `HomeMinorScore` / `AwayMinorScore` 由记录时阵营派生，多半场累加以 Home/Away 为稳定身份，再按当前阵营映射到求生者/监管者窗口；记录后发生换边时，历史得分归属仍正确（与全局比分格的阵营映射方式一致）。
 
@@ -353,7 +354,13 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 
 当前后台实现不再暴露普通 UI 的 `IsGameFinished`、手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”流程。清除当前半场比分按钮位于旧“小比分清零”按钮位置，会把全局 `CurrentGame.GameProgress` 对应半场的 `ScoreHalf.Result` 设为 `null`；后台预览表和 `ScoreGlobalWindow` 都由 `CurrentGame.MatchScore` 绑定自动刷新。
 
-后台 `ScorePage` 的预览表是导播检查用只读 UI。其 `ScorePreviewRow` 集合从 `CurrentGame.MatchScore.Games` 重建，BO3 显示 Game 1、Game 2、Game 3 和 Game 3 Overtime，BO5 显示 Game 1 到 Game 5 以及 Game 5 Overtime。表格使用 `ScoreGameKey` / 现有显式可见性规则区分 Game 3 Overtime 与 Game 4，不把 `GameProgress` 原始数值作为唯一判断依据。行内结果、阵营和主客小比分均来自对应 `ScoreHalf` 的已记录结果及记录时主客队映射；空结果显示 `-`。它不提供行点击切换、手动 Game/half 选择或编辑能力，也不替代 Score System v2 的权威状态。
+后台 `ScorePage` 的预览表是导播检查用只读 UI。普通进度从 `CurrentGame.MatchScore.Games` 重建；自由进度则从 `FreeScore.GlobalGames` 重建。每行同时显示该半场的小比分，以及主客队当前的总小比分：普通进度读取 `MatchScoreState.HomeTotalMinorScore` / `AwayTotalMinorScore`，自由进度读取 `FreeScore.Home.TotalMinorScore` / `Away.TotalMinorScore`。两者都使用 `ScoreGameKey` 区分 Game 3 Overtime 与 Game 4，不把 `GameProgress` 原始数值作为唯一判断依据。自由全局比分通过独立编辑器修改，预览表本身不承担编辑职责。
+
+### 7.1 自由模式控制
+
+自由模式标题旁显示警示说明，V2 ToggleStyled 结果组折叠，五个结果按钮改为可重复点击的累加预设。每次预设按照当前求生者/监管者与主客队映射，同时增加对应队伍的当前小分和总小分。大比分结算比较主客当前小分：胜者增加一个胜场，同分时双方各增加一个平场，随后只清零当前小分。自由总重置会清除当前小分、总小分、胜/平以及全部自由 ScoreGlobal 单格，不修改 `Games`。
+
+局内比分与 ScoreGlobal 的手动编辑入口只在自由模式显示。编辑器使用活动布局包和真实 v3 renderer；写入立即反映到前台绑定，关闭不回滚。切出自由模式或替换当前 `Game` 时，已打开的编辑器立即关闭并解除订阅。
 
 ## 8. ScoreGlobalWindow 行为
 
@@ -378,18 +385,20 @@ ScorePage button
 
 全局比分格表示 `ScoreGame` 内部的 `ScoreHalf` 结果，由内置 v3 控件 `GlobalScoreRow` 的 `Cells` 显式配置。总分显示从 `MatchScoreState` 派生，不再从 `ScoreWindowViewModel` 独有字段或 `FrontedWindowService` UI mutation 派生。每个 cell 用 `ScoreGameKey` 和 `ScoreHalfKind` 定位比分，避免依赖 `GameProgress` 原始数值。阵营图标颜色由 `CampIconColor` 控制，支持黑/白两种填充色；运行时基于原始阵营图标资源的 alpha 直接填充颜色，不需要维护额外黑色图标资源。`ScoreGlobalWindow/BaseCanvas` 使用 Designer v3 通用 Canvas BO states：BO5 是 root/default state，BO3 是 `BoModeStates["Bo3"]`，背景、总分位置、父行框和 cell 列表都由对应 state 决定；窗口订阅 `IsBo3ModeChanged` 后会重新应用 v3 布局，让 BO3/BO5 state 即时刷新。
 
+自由模式下，`GlobalScoreRow` 改读 `FreeScore.GlobalGames`。每个半场独立保存完成状态、主客整数比分与双方阵营图标；未完成时显示 `-` 并隐藏图标，取消完成不会删除隐藏值，重新完成后恢复。首次完成初始化为 `0:0` 和当前主客阵营；预设阵营与赛果只做一次性填充，之后数字和双方图标可形成非标准组合。自由总小分不由这些单格求和。
+
 ## 9. 导入、导出与新建对局
 
 `MatchScoreState` 是现有 `Core.Models.Game` 的一部分，因此：
 
 | 场景 | 行为 |
 | --- | --- |
-| 导出对局 | 序列化 `Game.MatchScore`。 |
-| 导入对局 | 从 JSON 恢复 `Game.MatchScore`，并在队伍信息导入后保持历史半场的阵营映射；有效 `MatchScore` 不会被旧 `Team.Score` 字段覆盖。 |
-| 新建对局 | 从旧 `CurrentGame.MatchScore` clone/carry 到新 `Game`。 |
+| 导出对局 | 序列化 `Game.MatchScore`，包括 `Games` 与 `FreeScore`。 |
+| 导入对局 | 从 JSON 恢复 V2 与自由状态；旧 JSON 缺少 `FreeScore` 时创建空自由状态，不从 `Team.Score` 或 V2 推断。 |
+| 新建对局 | 从旧 `CurrentGame.MatchScore` clone/carry 到新 `Game`；V2 与自由状态均深复制。 |
 | 回溯对局 | 不依赖页面 ViewModel 是否还存在，不依赖前台窗口是否打开。 |
 
-新建对局的 carry 行为应和当前地图状态类似：`SharedDataService.NewGame()` 先读取旧 `CurrentGame` 的可延续状态，再构造新的 `Core.Models.Game`。实现时需要明确哪些比分字段可延续；建议延续整场 `MatchScoreState`，并由当前 `GameProgress` 决定后续编辑位置。
+新建对局的 carry 行为和当前地图状态类似：`SharedDataService.NewGame()` 先 clone 整个 `CurrentGame.MatchScore`，再构造新的 `Core.Models.Game`。新旧对局的 V2 与自由状态内容相同但可变实例彼此独立。
 
 ## 10. 兼容策略
 
@@ -407,9 +416,9 @@ Score System v2 的所有环节（Score 当前实现）已全部完成。核心�
 
 | 层次 | 实现内容 |
 | --- | --- |
-| 基础模型 | `MatchScoreState`、`ScoreGame`、`ScoreHalf`、`ScoreGameKey` 已实现，权威比分状态由 `Core.Models.Game` 持有。 |
-| 服务层 | `IMatchScoreService` / `MatchScoreService` 提供结果写入、清除、BO 模式重算和队伍映射。 |
-| 后台 UI | `ScorePageViewModel` 结果按钮直接操作 service；移除手动 Game/half 选择、手动累加和同步按钮；只读预览表由 `MatchScoreState.Games` 派生。 |
+| 基础模型 | `MatchScoreState` 同时持有 V2 `Games` 与隔离的 `FreeMatchScoreState`，并按进度选择前台派生值。 |
+| 服务层 | `IMatchScoreService` / `MatchScoreService` 提供 V2 结果写入，以及自由预设累加、结算、当前清零和全重置。 |
+| 后台 UI | `ScorePageViewModel` 按进度分流 V2 与自由命令；自由模式提供两个真实布局手动编辑入口。 |
 | 前台绑定 | `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow` 的 v3 layout 绑定 `MatchScoreState` 派生字段。 |
 | 全局比分 | 内置 `GlobalScoreRow` 控件，由 `Cells` 显式配置比分格，运行时从 `MatchScoreState` 解析；BO3/BO5 由通用 Canvas states 控制。 |
 | 清理 | `GameGlobalInfoRecord`、`ScoreWindowViewModel` 总分字段、`FrontedWindowService.SetGlobalScore*` 调用链已完全移除。 |
@@ -420,14 +429,14 @@ Score System v2 的所有环节（Score 当前实现）已全部完成。核心�
 2. 不要继续让 `ScorePageViewModel` 作为比分数据库。
 3. 不要把新的 v3 前台控件绑定到 `ScoreWindowViewModel` 独有字段。
 4. 不要把 `MatchScoreState` 派生值同步回 `Team.Score`；旧字段只用于旧数据兼容。
-5. `GameProgress.Free` 不能写入当前半场结果，但总分重算仍必须按 BO 模式执行。
+5. `GameProgress.Free` 不能写入 V2 当前半场；只能写入独立 `FreeScore`，切换模式时不得互相同步或推断。
 6. `Game3Overtime*` 与 `Game4*` 当前 enum 数值重叠，映射实现必须显式处理上下文。
 
-## 13. 待确认问题
+## 13. 已确定边界与待清理项
 
 | 问题 | 当前建议 |
 | --- | --- |
-| `Free` 模式是否允许手动写比分 | 暂不支持，记录为设计缺口。暂时在Free下禁用相关按钮，且对外显示全部为 0 |
+| `Free` 模式比分语义 | 使用独立持久化自由状态，允许预设累加、任意整数和真实布局手动编辑，不写入 V2 `Games`。 |
 | BO3 中第三场加赛与 BO5 第四场的持久化 key | 使用 `ScoreGameKey`，避免只靠 `GameProgress` 数值。 |
 | 旧 `Team.Score` 字段何时删除 | 等旧 DTO 和 legacy 导入路径完全收口后再删除。旧记录中的 `Team.Score` 无法安全还原完整 per-Game/per-Half 历史；导入器不会伪造半场结果。 |
 | 全局比分 v3 控件类型 | 已新增内置 `GlobalScoreRow`，通过统一 V3 Control API（`FrontedV3ControlBase` + `[FrontedV3Control]` + `AddFrontedV3Control<TControl>()`）注册并由 JSON `ControlType = "GlobalScoreRow"` 使用。 |

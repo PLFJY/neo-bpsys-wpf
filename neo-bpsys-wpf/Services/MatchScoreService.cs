@@ -34,6 +34,12 @@ public class MatchScoreService : IMatchScoreService
     public MatchScoreState Current => _sharedDataService.CurrentGame.MatchScore;
 
     /// <inheritdoc />
+    public FreeMatchScoreState FreeScore => Current.FreeScore;
+
+    /// <inheritdoc />
+    public bool IsFreeMode => _sharedDataService.CurrentGame.GameProgress == GameProgress.Free;
+
+    /// <inheritdoc />
     public ScoreHalf? CurrentHalf => GetHalf(_sharedDataService.CurrentGame.GameProgress);
 
     /// <inheritdoc />
@@ -77,6 +83,67 @@ public class MatchScoreService : IMatchScoreService
     public void ClearCurrentHalfResult() => SetCurrentHalfResult(null);
 
     /// <inheritdoc />
+    public void ApplyFreeResultPreset(GameResult result)
+    {
+        if (!IsFreeMode)
+            return;
+
+        var (surScore, hunScore) = result switch
+        {
+            GameResult.Escape4 => (5, 0),
+            GameResult.Escape3 => (3, 1),
+            GameResult.Tie => (2, 2),
+            GameResult.Out3 => (1, 3),
+            GameResult.Out4 => (0, 5),
+            _ => throw new InvalidEnumArgumentException(nameof(result), (int)result, typeof(GameResult))
+        };
+
+        AddFreeScore(_sharedDataService.CurrentGame.SurTeam.TeamType, surScore);
+        AddFreeScore(_sharedDataService.CurrentGame.HunTeam.TeamType, hunScore);
+        RefreshCurrentProgress();
+    }
+
+    /// <inheritdoc />
+    public void SettleFreeMajorScore()
+    {
+        if (!IsFreeMode)
+            return;
+
+        if (FreeScore.Home.CurrentMinorScore > FreeScore.Away.CurrentMinorScore)
+            FreeScore.Home.MajorWin++;
+        else if (FreeScore.Away.CurrentMinorScore > FreeScore.Home.CurrentMinorScore)
+            FreeScore.Away.MajorWin++;
+        else
+        {
+            FreeScore.Home.MajorTie++;
+            FreeScore.Away.MajorTie++;
+        }
+
+        ClearFreeCurrentMinorScore();
+    }
+
+    /// <inheritdoc />
+    public void ClearFreeCurrentMinorScore()
+    {
+        if (!IsFreeMode)
+            return;
+
+        FreeScore.Home.CurrentMinorScore = 0;
+        FreeScore.Away.CurrentMinorScore = 0;
+        RefreshCurrentProgress();
+    }
+
+    /// <inheritdoc />
+    public void ResetFreeScores()
+    {
+        if (!IsFreeMode)
+            return;
+
+        FreeScore.Reset();
+        RefreshCurrentProgress();
+    }
+
+    /// <inheritdoc />
     public void Recalculate() => Current.Recalculate(_sharedDataService.IsBo3Mode);
 
     /// <inheritdoc />
@@ -92,6 +159,7 @@ public class MatchScoreService : IMatchScoreService
     private void OnCurrentGameChanged(object? sender, EventArgs args)
     {
         SubscribeGame(_sharedDataService.CurrentGame);
+        RefreshCurrentProgress();
         Recalculate();
         RefreshCurrentProgress();
     }
@@ -114,6 +182,7 @@ public class MatchScoreService : IMatchScoreService
         if (args.PropertyName != nameof(Game.GameProgress))
             return;
 
+        RefreshCurrentProgress();
         Recalculate();
         RefreshCurrentProgress();
     }
@@ -128,5 +197,12 @@ public class MatchScoreService : IMatchScoreService
     {
         Recalculate();
         RefreshCurrentProgress();
+    }
+
+    private void AddFreeScore(TeamType teamType, int score)
+    {
+        var target = teamType == TeamType.HomeTeam ? FreeScore.Home : FreeScore.Away;
+        target.CurrentMinorScore += score;
+        target.TotalMinorScore += score;
     }
 }

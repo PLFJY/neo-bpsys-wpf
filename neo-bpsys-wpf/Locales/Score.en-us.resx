@@ -26,7 +26,7 @@
     <value>Score Control</value>
   </data>
   <data name="ScorePreview">
-    <value>{0}  W:{1} D:{2}  Game score: {3}</value>
+    <value>{0}  W:{1} D:{2}  Game score: {3}  Total minor score: {4}</value>
   </data>
   <data name="ScorePreviewTable">
     <value>Score Preview</value>
@@ -63,6 +63,12 @@
   </data>
   <data name="ScorePreviewAwayMinorScore">
     <value>Away Minor Score</value>
+  </data>
+  <data name="ScorePreviewHomeTotalMinorScore">
+    <value>Home Total Minor Score</value>
+  </data>
+  <data name="ScorePreviewAwayTotalMinorScore">
+    <value>Away Total Minor Score</value>
   </data>
   <data name="ScorePreviewFirstHalf">
     <value>First Half</value>
@@ -127,4 +133,27 @@
   <data name="Tie">
     <value>Tie</value>
   </data>
+  <data name="FreeModeNotice"><value>Free match mode: scores accumulate naturally and are not calculated from game progress</value></data>
+  <data name="ClearFreeCurrentMinorScore"><value>Clear current minor score</value></data>
+  <data name="EditInGameScores"><value>Edit in-game scores</value></data>
+  <data name="EditGlobalScores"><value>Edit global scores</value></data>
+  <data name="SelectEditableScore"><value>Click a score number in the preview to edit it</value></data>
+  <data name="ClickToEditScore"><value>Click to edit this score</value></data>
+  <data name="EditingSurvivorScore"><value>Editing survivor-side score</value></data>
+  <data name="EditingHunterScore"><value>Editing hunter-side score</value></data>
+  <data name="CurrentMinorScore"><value>Current minor score</value></data>
+  <data name="TotalMinorScore"><value>Total minor score</value></data>
+  <data name="MajorWin"><value>Match wins</value></data>
+  <data name="MajorTie"><value>Match draws</value></data>
+  <data name="SelectGlobalHalf"><value>Click a half in the global score preview to edit it</value></data>
+  <data name="IsGameCompleted"><value>Game completed</value></data>
+  <data name="PresetCamp"><value>Camp preset</value></data>
+  <data name="HomeIsSurvivor"><value>Home is survivor</value></data>
+  <data name="AwayIsSurvivor"><value>Away is survivor</value></data>
+  <data name="ResultPreset"><value>Result preset</value></data>
+  <data name="HomeTeamScore"><value>Home score</value></data>
+  <data name="AwayTeamScore"><value>Away score</value></data>
+  <data name="ScorePreviewManual"><value>Manual</value></data>
+  <data name="PresetSectionTitle"><value>Presets</value></data>
+  <data name="ManualEditSectionTitle"><value>Manual editing</value></data>
 </root>

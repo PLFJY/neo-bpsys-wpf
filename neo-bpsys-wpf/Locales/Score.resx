@@ -26,7 +26,7 @@
     <value>比分控制</value>
   </data>
   <data name="ScorePreview">
-    <value>{0}  W:{1} D:{2}  小比分: {3}</value>
+    <value>{0}  W:{1} D:{2}  小比分: {3}  总小比分: {4}</value>
   </data>
   <data name="ScorePreviewTable">
     <value>比分预览</value>
@@ -63,6 +63,12 @@
   </data>
   <data name="ScorePreviewAwayMinorScore">
     <value>客队小比分</value>
+  </data>
+  <data name="ScorePreviewHomeTotalMinorScore">
+    <value>主队总小比分</value>
+  </data>
+  <data name="ScorePreviewAwayTotalMinorScore">
+    <value>客队总小比分</value>
   </data>
   <data name="ScorePreviewFirstHalf">
     <value>上半</value>
@@ -127,4 +133,27 @@
   <data name="Tie">
     <value>平局</value>
   </data>
+  <data name="FreeModeNotice"><value>当前为自由对局模式，比分自然叠加，不按照对局进度自动计算</value></data>
+  <data name="ClearFreeCurrentMinorScore"><value>清除当前小比分</value></data>
+  <data name="EditInGameScores"><value>手动编辑游戏内比分</value></data>
+  <data name="EditGlobalScores"><value>手动编辑全局比分</value></data>
+  <data name="SelectEditableScore"><value>点击预览中的比分数字进行编辑</value></data>
+  <data name="ClickToEditScore"><value>点击编辑此比分</value></data>
+  <data name="EditingSurvivorScore"><value>正在编辑求生者侧比分</value></data>
+  <data name="EditingHunterScore"><value>正在编辑监管者侧比分</value></data>
+  <data name="CurrentMinorScore"><value>当前小比分</value></data>
+  <data name="TotalMinorScore"><value>总小比分</value></data>
+  <data name="MajorWin"><value>大场胜</value></data>
+  <data name="MajorTie"><value>大场平</value></data>
+  <data name="SelectGlobalHalf"><value>点击全局比分中的半场单元进行编辑</value></data>
+  <data name="IsGameCompleted"><value>对局已完成</value></data>
+  <data name="PresetCamp"><value>阵营预设</value></data>
+  <data name="HomeIsSurvivor"><value>主队为求生者</value></data>
+  <data name="AwayIsSurvivor"><value>客队为求生者</value></data>
+  <data name="ResultPreset"><value>赛果预设</value></data>
+  <data name="HomeTeamScore"><value>主队比分</value></data>
+  <data name="AwayTeamScore"><value>客队比分</value></data>
+  <data name="ScorePreviewManual"><value>手动</value></data>
+  <data name="PresetSectionTitle"><value>预设</value></data>
+  <data name="ManualEditSectionTitle"><value>手动编辑</value></data>
 </root>

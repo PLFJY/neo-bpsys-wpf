@@ -51,6 +51,40 @@ public class GlobalScoreRowDisplayTest
     }
 
     [Fact]
+    public void FreeHalfDisplaysIndependentManualScoresAndCampIcons()
+    {
+        var freeScore = new FreeMatchScoreState();
+        var half = freeScore.GetGlobalHalf(
+            new ScoreGameKey(3, ScoreGameKind.Overtime),
+            ScoreHalfKind.SecondHalf)!;
+        var cell = Cell(3, ScoreGameKind.Overtime, ScoreHalfKind.SecondHalf);
+
+        var incomplete = GlobalScoreRowDisplay.Create(freeScore, TeamType.HomeTeam, cell, showCampIcon: true);
+        Assert.Equal("-", incomplete.Text);
+        Assert.False(incomplete.IsCampVisible);
+
+        half.IsCompleted = true;
+        half.HomeMinorScore = -3;
+        half.AwayMinorScore = 8;
+        half.HomeCamp = Camp.Hun;
+        half.AwayCamp = Camp.Sur;
+
+        var home = GlobalScoreRowDisplay.Create(freeScore, TeamType.HomeTeam, cell, showCampIcon: true);
+        var away = GlobalScoreRowDisplay.Create(freeScore, TeamType.AwayTeam, cell, showCampIcon: true);
+        Assert.Equal("-3", home.Text);
+        Assert.True(home.IsCampVisible);
+        Assert.True(home.IsHunIcon);
+        Assert.Equal("8", away.Text);
+        Assert.True(away.IsCampVisible);
+        Assert.False(away.IsHunIcon);
+
+        half.IsCompleted = false;
+        Assert.Equal("-", GlobalScoreRowDisplay.Create(freeScore, TeamType.HomeTeam, cell, true).Text);
+        half.IsCompleted = true;
+        Assert.Equal("-3", GlobalScoreRowDisplay.Create(freeScore, TeamType.HomeTeam, cell, true).Text);
+    }
+
+    [Fact]
     public void ExplicitCellResolvesSecondHalfOvertimeMissingAndNullResult()
     {
         var matchScore = MatchScoreState.CreateDefault();

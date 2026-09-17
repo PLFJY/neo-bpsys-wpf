@@ -23,6 +23,8 @@
     mc:Ignorable="d">
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border Margin="0,0,10,10" Style="{StaticResource Card}">
@@ -32,15 +34,21 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc ScoreControl}" />
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreControl}" />
+                    <TextBlock
+                        Margin="14,0,0,0"
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                        Text="{lex:Loc FreeModeNotice}"
+                        Visibility="{Binding IsFreeMode, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
                 <Grid
                     x:Name="ScoreSelectorPanel"
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    IsEnabled="{Binding IsScoreControlEnabled}">
+                    Visibility="{Binding IsFreeMode, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
@@ -96,29 +104,84 @@
                         <Button Command="{Binding ClearCurrentHalfScoreCommand}" Content="{lex:Loc ClearCurrentHalfScore}" />
                     </StackPanel>
                 </Grid>
+                <Grid
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Visibility="{Binding IsFreeMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.Resources>
+                        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+                            <Setter Property="MinWidth" Value="100" />
+                            <Setter Property="Height" Value="40" />
+                            <Setter Property="Margin" Value="10" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+                    </Grid.Resources>
+                    <StackPanel Grid.Column="0">
+                        <Button Command="{Binding Escape4Command}" Content="{lex:Loc FourEscape}" />
+                        <Button Command="{Binding Escape3Command}" Content="{lex:Loc ThreeEscape}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,30,0,0">
+                        <Button
+                            MinWidth="140"
+                            Command="{Binding TieCommand}"
+                            Content="{lex:Loc Tie}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <Button Command="{Binding Out4Command}" Content="{lex:Loc FourEliminate}" />
+                        <Button Command="{Binding Out3Command}" Content="{lex:Loc ThreeEliminate}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3">
+                        <Button
+                            Width="150"
+                            Command="{Binding SettleFreeMajorScoreCommand}"
+                            Content="{lex:Loc ScoreSettlement}" />
+                        <Button
+                            Width="150"
+                            Command="{Binding ClearCurrentHalfScoreCommand}"
+                            Content="{lex:Loc ClearFreeCurrentMinorScore}" />
+                        <Button
+                            Width="150"
+                            Command="{Binding ResetCommand}"
+                            Content="{lex:Loc ResetAllScores}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="4">
+                        <Button Command="{Binding OpenFreeInGameScoreEditorCommand}" Content="{lex:Loc EditInGameScores}" />
+                        <Button Command="{Binding OpenFreeGlobalScoreEditorCommand}" Content="{lex:Loc EditGlobalScores}" />
+                    </StackPanel>
+                </Grid>
                 <StackPanel
                     Grid.Row="2"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
-                    <TextBlock Margin="0,0,20,10" d:Text="主队名称  W:0 D:0  小比分: 0">
+                    <TextBlock Margin="0,0,20,10" d:Text="主队名称  W:0 D:0  小比分: 0  总小比分: 0">
                         <TextBlock.Text>
                             <MultiBinding Converter="{lex:StringFormatConverter}">
                                 <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
                                 <Binding Path="HomeTeam.Name" />
                                 <Binding Path="CurrentGame.MatchScore.HomeMajorWin" />
                                 <Binding Path="CurrentGame.MatchScore.HomeMajorTie" />
+                                <Binding Path="CurrentGame.MatchScore.HomeCurrentMinorScoreText" />
                                 <Binding Path="CurrentGame.MatchScore.HomeTotalMinorScore" />
                             </MultiBinding>
                         </TextBlock.Text>
                     </TextBlock>
-                    <TextBlock d:Text="客队名称  W:0 D:0  小比分: 0">
+                    <TextBlock d:Text="客队名称  W:0 D:0  小比分: 0  总小比分: 0">
                         <TextBlock.Text>
                             <MultiBinding Converter="{lex:StringFormatConverter}">
                                 <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreview" />
                                 <Binding Path="AwayTeam.Name" />
                                 <Binding Path="CurrentGame.MatchScore.AwayMajorWin" />
                                 <Binding Path="CurrentGame.MatchScore.AwayMajorTie" />
+                                <Binding Path="CurrentGame.MatchScore.AwayCurrentMinorScoreText" />
                                 <Binding Path="CurrentGame.MatchScore.AwayTotalMinorScore" />
                             </MultiBinding>
                         </TextBlock.Text>
@@ -206,6 +269,14 @@
                             Width="120"
                             Binding="{Binding AwayMinorScoreText}"
                             Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayMinorScore}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding HomeTotalMinorScoreText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewHomeTotalMinorScore}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding AwayTotalMinorScoreText}"
+                            Header="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Score:ScorePreviewAwayTotalMinorScore}" />
                     </ui:DataGrid.Columns>
                 </ui:DataGrid>
             </Grid>

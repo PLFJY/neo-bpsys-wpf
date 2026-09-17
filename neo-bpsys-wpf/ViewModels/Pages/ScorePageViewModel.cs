@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -10,6 +12,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 using WPFLocalizeExtension.Engine;
+using neo_bpsys_wpf.Views.Windows;
+using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -31,6 +35,8 @@ public sealed class ScorePreviewRow
         string awayCampText,
         string homeMinorScoreText,
         string awayMinorScoreText,
+        string homeTotalMinorScoreText,
+        string awayTotalMinorScoreText,
         bool hasResult,
         bool isCurrentProgress,
         string rowStatusText,
@@ -46,6 +52,8 @@ public sealed class ScorePreviewRow
         AwayCampText = awayCampText;
         HomeMinorScoreText = homeMinorScoreText;
         AwayMinorScoreText = awayMinorScoreText;
+        HomeTotalMinorScoreText = homeTotalMinorScoreText;
+        AwayTotalMinorScoreText = awayTotalMinorScoreText;
         HasResult = hasResult;
         IsCurrentProgress = isCurrentProgress;
         RowStatusText = rowStatusText;
@@ -79,6 +87,12 @@ public sealed class ScorePreviewRow
 
     /// <summary>客队小分文本。</summary>
     public string AwayMinorScoreText { get; }
+
+    /// <summary>主队总小分文本。</summary>
+    public string HomeTotalMinorScoreText { get; }
+
+    /// <summary>客队总小分文本。</summary>
+    public string AwayTotalMinorScoreText { get; }
 
     /// <summary>是否有结果。</summary>
     public bool HasResult { get; }
@@ -143,8 +157,8 @@ public partial class ScorePageViewModel : ViewModelBase
     /// <summary>获取客队数据。</summary>
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
-    /// <summary>获取比分控件是否可用。</summary>
-    public bool IsScoreControlEnabled => _sharedDataService.CurrentGame.GameProgress > GameProgress.Free;
+    /// <summary>获取当前是否处于自由对局模式。</summary>
+    public bool IsFreeMode => _matchScoreService.IsFreeMode;
 
     /// <summary>
     /// 获取或设置当前半场的比赛结果。
@@ -154,7 +168,7 @@ public partial class ScorePageViewModel : ViewModelBase
         get => _matchScoreService.CurrentHalf?.Result;
         set
         {
-            if (!IsScoreControlEnabled || _matchScoreService.CurrentHalf?.Result == value)
+            if (IsFreeMode || _matchScoreService.CurrentHalf?.Result == value)
                 return;
 
             _matchScoreService.SetCurrentHalfResult(value);
@@ -201,8 +215,12 @@ public partial class ScorePageViewModel : ViewModelBase
     [RelayCommand]
     private void ClearCurrentHalfScore()
     {
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free)
+        if (IsFreeMode)
+        {
+            _matchScoreService.ClearFreeCurrentMinorScore();
+            RefreshScorePageState();
             return;
+        }
 
         _matchScoreService.ClearCurrentHalfResult();
         RefreshScorePageState();
@@ -211,6 +229,13 @@ public partial class ScorePageViewModel : ViewModelBase
     [RelayCommand]
     private void Reset()
     {
+        if (IsFreeMode)
+        {
+            _matchScoreService.ResetFreeScores();
+            RefreshScorePageState();
+            return;
+        }
+
         foreach (var scoreGame in _matchScoreService.Current.Games)
         {
             ClearHalf(scoreGame.FirstHalf);
@@ -228,12 +253,50 @@ public partial class ScorePageViewModel : ViewModelBase
 
     private void SetCurrentHalfResult(GameResult result)
     {
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free)
+        if (IsFreeMode)
+        {
+            _matchScoreService.ApplyFreeResultPreset(result);
+            RefreshScorePageState();
+            PublishScoreChanged(result);
             return;
+        }
 
         _matchScoreService.SetCurrentHalfResult(result);
         RefreshScorePageState();
         PublishScoreChanged(result);
+    }
+
+    [RelayCommand]
+    private void SettleFreeMajorScore()
+    {
+        _matchScoreService.SettleFreeMajorScore();
+        RefreshScorePageState();
+    }
+
+    [RelayCommand]
+    private void OpenFreeInGameScoreEditor()
+    {
+        if (!IsFreeMode)
+            return;
+
+        if (IAppHost.Host?.Services.GetService<FreeInGameScoreEditorWindow>() is { } window)
+        {
+            window.Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(candidate => candidate.IsActive);
+            window.ShowDialog();
+        }
+    }
+
+    [RelayCommand]
+    private void OpenFreeGlobalScoreEditor()
+    {
+        if (!IsFreeMode)
+            return;
+
+        if (IAppHost.Host?.Services.GetService<FreeGlobalScoreEditorWindow>() is { } window)
+        {
+            window.Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(candidate => candidate.IsActive);
+            window.ShowDialog();
+        }
     }
 
     private static void PublishScoreChanged(GameResult? result)
@@ -255,6 +318,18 @@ public partial class ScorePageViewModel : ViewModelBase
     private void RefreshScorePreviewRows()
     {
         ScorePreviewRows.Clear();
+
+        if (IsFreeMode)
+        {
+            foreach (var scoreGame in CurrentGame.MatchScore.FreeScore.GlobalGames
+                         .Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode)))
+            {
+                AddFreePreviewRow(scoreGame, scoreGame.FirstHalf);
+                AddFreePreviewRow(scoreGame, scoreGame.SecondHalf);
+            }
+
+            return;
+        }
 
         foreach (var scoreGame in CurrentGame.MatchScore.Games
                      .Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode)))
@@ -279,6 +354,8 @@ public partial class ScorePageViewModel : ViewModelBase
             FormatRecordedCamp(half, TeamType.AwayTeam),
             half.HomeDisplayText,
             half.AwayDisplayText,
+            CurrentGame.MatchScore.HomeTotalMinorScore.ToString(),
+            CurrentGame.MatchScore.AwayTotalMinorScore.ToString(),
             hasResult,
             isCurrentProgress,
             isCurrentProgress
@@ -286,6 +363,27 @@ public partial class ScorePageViewModel : ViewModelBase
                 : hasResult
                     ? Loc("ScorePreviewRecorded")
                     : Loc("ScorePreviewEmpty"),
+            HomeTeam.Name,
+            AwayTeam.Name));
+    }
+
+    private void AddFreePreviewRow(FreeGlobalScoreGame scoreGame, FreeGlobalScoreHalf half)
+    {
+        ScorePreviewRows.Add(new ScorePreviewRow(
+            FormatGameLabel(scoreGame.Key),
+            FormatHalfLabel(half.HalfKind),
+            GameProgress.Free,
+            FormatProgressLabel(scoreGame.Key, half.HalfKind),
+            half.IsCompleted ? Loc("ScorePreviewManual") : "-",
+            half.IsCompleted ? FormatCamp(half.HomeCamp) : "-",
+            half.IsCompleted ? FormatCamp(half.AwayCamp) : "-",
+            half.IsCompleted ? half.HomeMinorScore.ToString() : "-",
+            half.IsCompleted ? half.AwayMinorScore.ToString() : "-",
+            CurrentGame.MatchScore.FreeScore.Home.TotalMinorScore.ToString(),
+            CurrentGame.MatchScore.FreeScore.Away.TotalMinorScore.ToString(),
+            half.IsCompleted,
+            false,
+            half.IsCompleted ? Loc("ScorePreviewRecorded") : Loc("ScorePreviewEmpty"),
             HomeTeam.Name,
             AwayTeam.Name));
     }
@@ -332,14 +430,20 @@ public partial class ScorePageViewModel : ViewModelBase
     private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
         RefreshScorePreviewRows();
+        OnPropertyChanged(nameof(CurrentGame));
+        OnPropertyChanged(nameof(HomeTeam));
+        OnPropertyChanged(nameof(AwayTeam));
         RefreshCurrentHalfBindings();
     }
 
     private void RefreshCurrentHalfBindings()
     {
-        OnPropertyChanged(nameof(IsScoreControlEnabled));
+        OnPropertyChanged(nameof(IsFreeMode));
         OnPropertyChanged(nameof(SelectedCurrentHalfResult));
     }
+
+    private static string FormatCamp(Camp camp) =>
+        camp == Camp.Sur ? CommonLoc("Survivor") : CommonLoc("Hunter");
 
     private static void ClearHalf(ScoreHalf half)
     {

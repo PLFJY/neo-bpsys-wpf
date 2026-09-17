@@ -109,6 +109,50 @@ public static class GlobalScoreRowDisplay
     }
 
     /// <summary>
+    /// 根据显式 cell 配置解析自由对局的单个比分格显示数据。
+    /// </summary>
+    /// <param name="freeScore">自由对局比分状态。</param>
+    /// <param name="teamType">要显示的主队或客队。</param>
+    /// <param name="cell">比分格布局配置。</param>
+    /// <param name="showCampIcon">是否显示阵营图标。</param>
+    /// <returns>自由对局比分格显示数据。</returns>
+    public static GlobalScoreRowCellDisplay Create(
+        FreeMatchScoreState freeScore,
+        TeamType teamType,
+        GlobalScoreCellConfig cell,
+        bool showCampIcon)
+    {
+        var gameKey = new ScoreGameKey(cell.GameNumber, cell.GameKind);
+        var half = freeScore.GetGlobalHalf(gameKey, cell.HalfKind);
+        if (half is null || !half.IsCompleted)
+        {
+            return new GlobalScoreRowCellDisplay(
+                gameKey,
+                cell.HalfKind,
+                cell.X,
+                cell.Y,
+                cell.Width,
+                cell.Height,
+                "-",
+                false,
+                false);
+        }
+
+        var score = teamType == TeamType.HomeTeam ? half.HomeMinorScore : half.AwayMinorScore;
+        var camp = teamType == TeamType.HomeTeam ? half.HomeCamp : half.AwayCamp;
+        return new GlobalScoreRowCellDisplay(
+            gameKey,
+            cell.HalfKind,
+            cell.X,
+            cell.Y,
+            cell.Width,
+            cell.Height,
+            score.ToString(CultureInfo.InvariantCulture),
+            showCampIcon,
+            camp == Camp.Hun);
+    }
+
+    /// <summary>
     /// 为旧 gap-only 配置生成兼容 cell 列表。
     /// </summary>
     public static List<GlobalScoreCellConfig> CreateDefaultCells(
