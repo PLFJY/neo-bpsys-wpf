@@ -6,5 +6,6 @@
         <ResourceDictionary Source="/Controls/GameDataEditorStyle.xaml" />
         <ResourceDictionary Source="/Controls/TalentPickerStyle.xaml" />
         <ResourceDictionary Source="/Controls/GlobalScorePresenterStyle.xaml" />
+        <ResourceDictionary Source="/Controls/DeleteConfirmationButtonStyle.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

@@ -444,18 +444,19 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     }
 
     [RelayCommand]
-    private async Task DeleteCustomWindowAsync(object? windowInfo)
+    private async Task ConfirmDeleteCustomWindowAsync(FrontedWindowManageItem? item)
     {
-        if (_packageManager is null || _customWindowSynchronizer is null || windowInfo is not string windowId)
+        if (item is not { IsCustom: true, IsCreatePlaceholder: false })
         {
             return;
         }
 
-        if (!await MessageBoxHelper.ShowConfirmAsync(
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeleteCustomWindow"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
+        await DeleteCustomWindowAsync(item.WindowId);
+    }
+
+    private async Task DeleteCustomWindowAsync(string windowId)
+    {
+        if (_packageManager is null || _customWindowSynchronizer is null || string.IsNullOrWhiteSpace(windowId))
         {
             return;
         }
@@ -1683,7 +1684,7 @@ public sealed class FrontedWindowManageGroup
 /// <summary>
 /// 前台管理页显示的前台窗口卡片。
 /// </summary>
-public sealed class FrontedWindowManageItem
+public sealed class FrontedWindowManageItem : ObservableObject
 {
     /// <summary>
     /// 稳定的运行时窗口 Canonical ID。
