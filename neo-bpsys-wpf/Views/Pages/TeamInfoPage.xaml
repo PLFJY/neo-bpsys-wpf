@@ -5,6 +5,7 @@
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:deleteControls="clr-namespace:neo_bpsys_wpf.Controls;assembly=neo-bpsys-wpf.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
@@ -25,6 +26,7 @@
     <Page.Resources>
         <cv:CampToStringConverter x:Key="CampToStringConverter" />
         <cv:DictionaryLocalizationConverter x:Key="CommonDictionaryLocalizationConverter" />
+        <cv:MemberDeleteConfirmationTextConverter x:Key="MemberDeleteConfirmationTextConverter" />
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <DataTemplate x:Key="SurMemberItemTemplate">
@@ -64,7 +66,7 @@
                             </Setter>
                             <Style.Triggers>
                                 <Trigger Property="IsChecked" Value="True">
-                                    <Setter Property="Background" Value="DarkRed" />
+                                    <Setter Property="Background" Value="PaleVioletRed" />
                                     <Setter Property="Content">
                                         <Setter.Value>
                                             <StackPanel Orientation="Horizontal">
@@ -89,15 +91,19 @@
                     CommandParameter="{Binding}"
                     Content="{lex:Loc More}"
                     Icon="{ui:SymbolIcon Symbol=MoreHorizontal24}" />
-                <ui:Button
+                <deleteControls:DeleteConfirmationButton
                     Grid.Column="3"
                     Margin="8,0,0,0"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
-                    Background="PaleVioletRed"
+                    ButtonText="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Delete}"
                     Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
-                    CommandParameter="{Binding}"
-                    Content="{lex:Loc Delete}"
-                    Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    CommandParameter="{Binding}">
+                    <deleteControls:DeleteConfirmationButton.ConfirmationText>
+                        <MultiBinding Converter="{StaticResource MemberDeleteConfirmationTextConverter}">
+                            <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Team:AreYouSureToDelete" />
+                            <Binding Path="Name" />
+                        </MultiBinding>
+                    </deleteControls:DeleteConfirmationButton.ConfirmationText>
+                </deleteControls:DeleteConfirmationButton>
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="HunMemberItemTemplate">
@@ -137,7 +143,7 @@
                             </Setter>
                             <Style.Triggers>
                                 <Trigger Property="IsChecked" Value="True">
-                                    <Setter Property="Background" Value="DarkRed" />
+                                    <Setter Property="Background" Value="PaleVioletRed" />
                                     <Setter Property="Content">
                                         <Setter.Value>
                                             <StackPanel Orientation="Horizontal">
@@ -162,15 +168,19 @@
                     CommandParameter="{Binding}"
                     Content="{lex:Loc More}"
                     Icon="{ui:SymbolIcon Symbol=MoreHorizontal24}" />
-                <ui:Button
+                <deleteControls:DeleteConfirmationButton
                     Grid.Column="3"
                     Margin="8,0,0,0"
-                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
-                    Background="PaleVioletRed"
+                    ButtonText="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Delete}"
                     Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
-                    CommandParameter="{Binding}"
-                    Content="{lex:Loc Delete}"
-                    Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                    CommandParameter="{Binding}">
+                    <deleteControls:DeleteConfirmationButton.ConfirmationText>
+                        <MultiBinding Converter="{StaticResource MemberDeleteConfirmationTextConverter}">
+                            <lex:BLoc Key="neo-bpsys-wpf:neo_bpsys_wpf.Locales.Team:AreYouSureToDelete" />
+                            <Binding Path="Name" />
+                        </MultiBinding>
+                    </deleteControls:DeleteConfirmationButton.ConfirmationText>
+                </deleteControls:DeleteConfirmationButton>
             </Grid>
         </DataTemplate>
     </Page.Resources>

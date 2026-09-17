@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls;assembly=neo-bpsys-wpf.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
@@ -224,11 +225,11 @@
                             Content="{lex:Loc SmartBpCancelDownload}"
                             Icon="{ui:SymbolIcon Symbol=Stop24}"
                             Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <ui:Button
+                        <controls:DeleteConfirmationButton
                             Margin="0,0,8,8"
-                            Command="{Binding DeleteSelectedOcrModelCommand}"
-                            Content="{lex:Loc Delete}"
-                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                            ButtonText="{lex:Loc neo-bpsys-wpf.SmartBp.Module:neo_bpsys_wpf.Locales.SmartBp:Delete}"
+                            ConfirmationText="{Binding DeleteSelectedOcrModelConfirmationText}"
+                            Command="{Binding DeleteSelectedOcrModelCommand}" />
                         <ui:Button
                             Margin="0,0,8,8"
                             Command="{Binding SwitchSelectedOcrModelCommand}"

@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
@@ -18,8 +19,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Data;
 using Wpf.Ui.Controls;
 using Member = neo_bpsys_wpf.Core.Models.Member;
-using MessageBox = Wpf.Ui.Controls.MessageBox;
-using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 using Image = System.Windows.Controls.Image;
 using Orientation = System.Windows.Controls.Orientation;
 using StackPanel = System.Windows.Controls.StackPanel;
@@ -279,9 +278,9 @@ public partial class TeamInfoPageViewModel
         }
 
         [RelayCommand(CanExecute = nameof(CanRemoveSurMember))]
-        private async Task RemoveSurMemberAsync(Member member)
+        private void RemoveSurMember(Member member)
         {
-            await RemoveMemberAsync(member);
+            RemoveMember(member);
         }
 
         private bool CanRemoveSurMember(Member member) => CurrentTeam.SurMemberList.Count > 4;
@@ -294,43 +293,25 @@ public partial class TeamInfoPageViewModel
         }
 
         [RelayCommand(CanExecute = nameof(CanRemoveHunMember))]
-        private async Task RemoveHunMemberAsync(Member member)
+        private void RemoveHunMember(Member member)
         {
-            await RemoveMemberAsync(member);
+            RemoveMember(member);
         }
 
         private bool CanRemoveHunMember() => CurrentTeam.HunMemberList.Count > 1;
 
-        private async Task RemoveMemberAsync(Member member)
+        private void RemoveMember(Member member)
         {
-            var memberName = string.IsNullOrEmpty(member.Name)
-                ? string.Empty
-                : $" \"{member.Name}\" ";
-
-            var messageBox = new MessageBox()
+            CurrentTeam.MemberOffField(member);
+            if (member.Camp == Camp.Sur)
             {
-                Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "DeleteConfirmation"),
-                Content = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "AreYouSureToDelete")} {memberName}？",
-                PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
-                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Delete24 },
-                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-                CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")
-            };
-            var result = await messageBox.ShowDialogAsync();
-
-            if (result == MessageBoxResult.Primary)
-            {
-                CurrentTeam.MemberOffField(member);
-                if (member.Camp == Camp.Sur)
-                {
-                    CurrentTeam.SurMemberList.Remove(member);
-                }
-                else
-                {
-                    CurrentTeam.HunMemberList.Remove(member);
-                }
-                RefreshCanMemberOnFieldState(member.Camp);
+                CurrentTeam.SurMemberList.Remove(member);
             }
+            else
+            {
+                CurrentTeam.HunMemberList.Remove(member);
+            }
+            RefreshCanMemberOnFieldState(member.Camp);
         }
 
 
@@ -402,12 +383,12 @@ public partial class TeamInfoPageViewModel
 
             RefreshPhotoActions();
             photoActions.Children.Add(setPhotoButton);
-            photoActions.Children.Add(new Button
+            photoActions.Children.Add(new DeleteConfirmationButton
             {
                 Command = ClearMemberImageCommand,
                 CommandParameter = member,
-                Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "RemovePhoto"),
-                Icon = new SymbolIcon(SymbolRegular.ImageOff24)
+                ButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "RemovePhoto"),
+                ConfirmationText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "AreYouSureToRemoveTheFileLookPhoto")
             });
             var photoPreviewPanel = new StackPanel
             {
@@ -541,13 +522,10 @@ public partial class TeamInfoPageViewModel
         }
 
         [RelayCommand(CanExecute = nameof(CanClearMemberImage))]
-        private async Task ClearMemberImageAsync(Member member)
+        private void ClearMemberImage(Member member)
         {
-            if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "AreYouSureToRemoveTheFileLookPhoto"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Team, "ClearTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
-            {
-                member.Image = null;
-                ClearMemberImageCommand.NotifyCanExecuteChanged();
-            }
+            member.Image = null;
+            ClearMemberImageCommand.NotifyCanExecuteChanged();
         }
 
         private static bool CanClearMemberImage(Member? member) => member?.IsImageValid == true;
