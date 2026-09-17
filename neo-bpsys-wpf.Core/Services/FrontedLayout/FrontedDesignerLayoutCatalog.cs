@@ -47,7 +47,8 @@ public class FrontedDesignerLayoutCatalog
             CanvasWidth = null,
             CanvasHeight = null,
             IsMigrated = true,
-            IsEditable = true
+            IsEditable = true,
+            IsBuiltIn = registration.IsBuiltIn
         };
     }
 }
@@ -86,4 +87,9 @@ public sealed class FrontedDesignerLayoutCatalogEntry
     /// 设计器是否可以保存此布局的编辑。
     /// </summary>
     public bool IsEditable { get; init; }
+
+    /// <summary>
+    /// 窗口是否由宿主内置，用于历史布局缺少显示名称时启用旧资源回退。
+    /// </summary>
+    public bool IsBuiltIn { get; init; }
 }

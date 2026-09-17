@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -36,6 +37,33 @@ public interface IFrontedLayoutPackageManager
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>可写的布局包信息。</returns>
     Task<FrontedLayoutPackageInfo> EnsureWritableActivePackageAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 读取当前活动包中的用户自定义 v3 窗口注册。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>当前活动包的自定义窗口集合。</returns>
+    Task<IReadOnlyList<FrontedCustomV3LayoutWindowRegistration>> GetActiveCustomWindowsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 在当前活动包中创建用户自定义 v3 窗口。
+    /// </summary>
+    /// <param name="request">创建请求。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>新创建的窗口注册。</returns>
+    Task<FrontedCustomV3LayoutWindowRegistration> CreateCustomWindowAsync(
+        FrontedCustomWindowCreateRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 删除当前活动包中的用户自定义 v3 窗口及其布局、行为文件。
+    /// </summary>
+    /// <param name="canonicalWindowId">要删除的 custom Canonical ID。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    Task DeleteCustomWindowAsync(
+        string canonicalWindowId,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -8,6 +8,8 @@ using System.Windows.Media;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Events;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using Wpf.Ui.Appearance;
@@ -21,6 +23,7 @@ public class FrontedWindowBase : Window
 {
     private string? _v3CanonicalWindowId;
     private string? _v3DisplayName;
+    private Func<string>? _v3DisplayNameFallbackFactory;
     private IFrontedLayoutService? _layoutService;
     private IFrontedRenderer? _renderer;
     private ISharedDataService? _sharedDataService;
@@ -141,6 +144,7 @@ public class FrontedWindowBase : Window
     /// <param name="behaviorRuntime">可选的行为运行时。</param>
     /// <param name="logger">可选的日志记录器。</param>
     /// <param name="settingsHostService">可选的设置宿主服务，用于刷新本地化的窗口标题。</param>
+    /// <param name="displayNameFallbackFactory">布局未声明 <c>DisplayNames</c> 时，按当前语言获取兼容显示名称的工厂。</param>
     /// <exception cref="ArgumentNullException">当 <paramref name="canonicalWindowId"/>、<paramref name="displayName"/>
     /// 或其他必选参数为 null 时抛出。</exception>
     /// <remarks>
@@ -155,7 +159,8 @@ public class FrontedWindowBase : Window
         ISharedDataService sharedDataService,
         IFrontedBehaviorRuntime? behaviorRuntime,
         ILogger? logger,
-        ISettingsHostService? settingsHostService = null)
+        ISettingsHostService? settingsHostService = null,
+        Func<string>? displayNameFallbackFactory = null)
     {
         ArgumentNullException.ThrowIfNull(canonicalWindowId);
         ArgumentNullException.ThrowIfNull(displayName);
@@ -165,6 +170,7 @@ public class FrontedWindowBase : Window
 
         _v3CanonicalWindowId = canonicalWindowId;
         _v3DisplayName = displayName;
+        _v3DisplayNameFallbackFactory = displayNameFallbackFactory;
         _layoutService = layoutService;
         _renderer = renderer;
         _sharedDataService = sharedDataService;
@@ -333,6 +339,13 @@ public class FrontedWindowBase : Window
             await RunOnDispatcherAsync(async () =>
             {
                 ApplyCanvasSettings(config.CanvasSettings);
+                var settings = _settingsHostService?.Settings;
+                _v3DisplayName = FrontedWindowDisplayNameResolver.ResolveDisplayName(
+                    config.DisplayNames,
+                    settings?.Language ?? LanguageKey.System,
+                    settings?.CultureInfo,
+                    GetV3DisplayNameFallback());
+                RefreshV3WindowTitle();
                 await DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason.LayoutReloaded);
                 _renderer.RenderToCanvas(_baseCanvas, config, new FrontedRenderContext
                 {
@@ -541,13 +554,7 @@ public class FrontedWindowBase : Window
 
     private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)
     {
-        if (Dispatcher.CheckAccess())
-        {
-            RefreshV3WindowTitle();
-            return;
-        }
-
-        _ = Dispatcher.BeginInvoke(new Action(RefreshV3WindowTitle));
+        _ = RefreshV3WindowTitleAsync();
     }
 
     private void RefreshV3WindowTitle()
@@ -557,9 +564,43 @@ public class FrontedWindowBase : Window
             return;
         }
 
-        // 渲染层只持有显式传入的显示名，不依赖 Registry/UI 元数据。
-        // 内置窗口的本地化显示名由 UI 层通过 resx 覆盖，Core 渲染层只使用回退显示名。
         Title = _v3DisplayName;
+    }
+
+    private async Task RefreshV3WindowTitleAsync()
+    {
+        if (_v3CanonicalWindowId is null || _layoutService is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var config = await _layoutService.LoadWindowConfigAsync(_v3CanonicalWindowId);
+            var settings = _settingsHostService?.Settings;
+            _v3DisplayName = FrontedWindowDisplayNameResolver.ResolveDisplayName(
+                config.DisplayNames,
+                settings?.Language ?? LanguageKey.System,
+                settings?.CultureInfo,
+                GetV3DisplayNameFallback());
+            await RunOnDispatcherAsync(() =>
+            {
+                RefreshV3WindowTitle();
+                return Task.CompletedTask;
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to refresh v3 window display name for {WindowId}.", _v3CanonicalWindowId);
+        }
+    }
+
+    private string GetV3DisplayNameFallback()
+    {
+        var fallback = _v3DisplayNameFallbackFactory?.Invoke();
+        return string.IsNullOrWhiteSpace(fallback)
+            ? _v3DisplayName ?? _v3CanonicalWindowId ?? string.Empty
+            : fallback;
     }
 
     private void OnV3HostIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)

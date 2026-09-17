@@ -63,8 +63,8 @@ public class FrontManagePageWindowGroupingTest
 
         var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
-        Assert.Single(groups);
-        Assert.Equal("BuiltIn", groups[0].GroupKey);
+        Assert.Equal("BuiltIn", groups.First(group => group.GroupKey == "BuiltIn").GroupKey);
+        Assert.Contains(groups, group => group.GroupKey == "Custom");
     }
 
     [Fact]
@@ -77,8 +77,8 @@ public class FrontManagePageWindowGroupingTest
 
         var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
-        Assert.Single(groups);
-        Assert.Equal("Plugin", groups[0].GroupKey);
+        Assert.Equal("Plugin", groups.First(group => group.GroupKey == "Plugin").GroupKey);
+        Assert.Contains(groups, group => group.GroupKey == "Custom");
     }
 
     [Fact]
@@ -91,12 +91,12 @@ public class FrontManagePageWindowGroupingTest
 
         var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
-        Assert.Single(groups);
-        Assert.Equal("External", groups[0].GroupKey);
+        Assert.Equal("External", groups.First(group => group.GroupKey == "External").GroupKey);
+        Assert.Contains(groups, group => group.GroupKey == "Custom");
     }
 
     [Fact]
-    public void ThreeSourceGroupsAreEmittedInRegistrationOrder()
+    public void CustomGroupIsAlwaysPresentBetweenBuiltInAndPluginGroups()
     {
         FrontedWindowRegistration[] registrations =
         [
@@ -107,7 +107,43 @@ public class FrontManagePageWindowGroupingTest
 
         var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
 
-        Assert.Equal(["BuiltIn", "External", "Plugin"], groups.Select(group => group.GroupKey));
+        Assert.Equal(["BuiltIn", "Custom", "Plugin", "External"], groups.Select(group => group.GroupKey));
+    }
+
+    [Fact]
+    public void EmptyCustomGroupContainsOnlyCreatePlaceholder()
+    {
+        var groups = FrontedWindowManageGroup.FromRegistrations(
+            [CreateV3Registration("BpWindow", isBuiltIn: true, packageId: null)]);
+
+        var customGroup = groups.Single(group => group.GroupKey == "Custom");
+
+        var placeholder = Assert.Single(customGroup.Windows);
+        Assert.True(customGroup.IsCustom);
+        Assert.True(placeholder.IsCreatePlaceholder);
+        Assert.True(placeholder.IsCustom);
+    }
+
+    [Fact]
+    public void CustomRegistrationIsFollowedByCreatePlaceholder()
+    {
+        var custom = new FrontedCustomV3LayoutWindowRegistration
+        {
+            Id = "custom:user-layout/custom-window",
+            LocalId = "custom-window",
+            PackageScopeId = "user-layout",
+            IsBuiltIn = false,
+            DisplayName = "Custom Window"
+        };
+
+        var groups = FrontedWindowManageGroup.FromRegistrations([custom]);
+        var customGroup = groups.Single(group => group.GroupKey == "Custom");
+
+        Assert.Equal(2, customGroup.Windows.Count);
+        Assert.False(customGroup.Windows[0].IsCreatePlaceholder);
+        Assert.True(customGroup.Windows[0].IsCustom);
+        Assert.True(customGroup.Windows[1].IsCreatePlaceholder);
+        Assert.True(customGroup.Windows[1].IsCustom);
     }
 
     [Fact]

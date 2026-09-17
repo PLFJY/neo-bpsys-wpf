@@ -49,6 +49,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private readonly IFrontedWindowRegistry? _frontedWindowRegistry;
     private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
     private readonly ISettingsHostService? _settingsHostService;
+    private readonly FrontedCustomWindowRegistrySynchronizer? _customWindowSynchronizer;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
@@ -80,6 +81,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         _behaviorRuntime = behaviorRuntime;
         _serviceProvider = serviceProvider;
         _settingsHostService = serviceProvider.GetService<ISettingsHostService>();
+        _customWindowSynchronizer = serviceProvider.GetService<FrontedCustomWindowRegistrySynchronizer>();
         _logger = logger;
         RebuildManageableWindows();
         if (_settingsHostService is not null)
@@ -179,6 +181,27 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         }
     }
 
+    private async Task RefreshCustomWindowViewsAsync(bool reloadDesignerLayout = false)
+    {
+        RebuildManageableWindows();
+        if (_frontedDesignerWindow is { IsLoaded: true })
+        {
+            await _frontedDesignerWindow.RefreshWindowCatalogAsync(reloadDesignerLayout);
+        }
+    }
+
+    private async Task<bool> PrepareDesignerForPackageChangeAsync()
+    {
+        return _frontedDesignerWindow is not { IsLoaded: true }
+               || await _frontedDesignerWindow.PrepareForPackageChangeAsync();
+    }
+
+    private static string LocalizePackageWarning(string warning)
+    {
+        var localized = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, warning);
+        return string.Equals(localized, warning, StringComparison.Ordinal) ? warning : localized;
+    }
+
     [ObservableProperty]
     public partial FrontedLayoutPackageInfo? SelectedPackage { get; set; }
 
@@ -223,7 +246,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     }
 
     [RelayCommand]
-    private async Task OpenFrontedDesignerAsync()
+    private async Task OpenFrontedDesignerAsync(string? selectedWindowId = null)
     {
         if (_serviceProvider is null)
         {
@@ -233,6 +256,12 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         if (_frontedDesignerWindow is { IsLoaded: true })
         {
             _frontedDesignerWindow.Activate();
+            await _frontedDesignerWindow.RefreshWindowCatalogAsync();
+            if (!string.IsNullOrWhiteSpace(selectedWindowId)
+                && _frontedDesignerWindow.DataContext is FrontedDesignerWindowViewModel existingDesignerViewModel)
+            {
+                existingDesignerViewModel.SelectWindow(selectedWindowId);
+            }
             return;
         }
 
@@ -252,6 +281,11 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             {
                 window.Show();
                 window.Activate();
+                if (!string.IsNullOrWhiteSpace(selectedWindowId)
+                    && window.DataContext is FrontedDesignerWindowViewModel designerViewModel)
+                {
+                    designerViewModel.SelectWindow(selectedWindowId);
+                }
                 TutorialSignalPublisher.Publish(TutorialSignalIds.FrontManageOpenDesignerClicked);
             }
             catch
@@ -265,6 +299,185 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             _logger?.LogError(ex, "Failed to open fronted designer window.");
             _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "WindowLaunchError")}\n{ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task CreateCustomWindowAsync()
+    {
+        if (_packageManager is null || _customWindowSynchronizer is null || _serviceProvider is null)
+        {
+            return;
+        }
+
+        var generatedWindowId = $"window-{Guid.NewGuid():N}";
+        var idBox = new System.Windows.Controls.TextBox
+        {
+            MinWidth = 280,
+            Text = generatedWindowId,
+            IsEnabled = false
+        };
+        var zhBox = new System.Windows.Controls.TextBox { MinWidth = 280 };
+        var enBox = new System.Windows.Controls.TextBox { MinWidth = 280, IsEnabled = false };
+        var jaBox = new System.Windows.Controls.TextBox { MinWidth = 280, IsEnabled = false };
+        var advanced = new System.Windows.Controls.CheckBox
+        {
+            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowAdvancedMode")
+        };
+        var settings = _settingsHostService?.Settings;
+        var language = FrontedWindowDisplayNameResolver.ResolveConcreteLanguage(
+            settings?.Language ?? LanguageKey.System,
+            settings?.CultureInfo) ?? LanguageKey.zh_Hans;
+        var content = new System.Windows.Controls.StackPanel { MinWidth = 360 };
+        AddField(content, "CustomWindowId", idBox, out _);
+        var zhField = AddField(content, "CustomWindowName", zhBox, out var zhLabel);
+        var enField = AddField(content, "CustomWindowName", enBox, out var enLabel);
+        var jaField = AddField(content, "CustomWindowName", jaBox, out var jaLabel);
+        content.Children.Add(advanced);
+        ApplyLanguageFields(showAllLanguages: false);
+        advanced.Checked += (_, _) =>
+        {
+            idBox.IsEnabled = true;
+            ApplyLanguageFields(showAllLanguages: true);
+        };
+        advanced.Unchecked += (_, _) =>
+        {
+            idBox.Text = generatedWindowId;
+            idBox.IsEnabled = false;
+            ApplyLanguageFields(showAllLanguages: false);
+        };
+
+        var dialog = new ContentDialog
+        {
+            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CreateCustomWindow"),
+            Content = content,
+            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")
+        };
+        var contentDialogService = _serviceProvider.GetService<IContentDialogService>();
+        if (contentDialogService is null || await contentDialogService.ShowAsync(dialog) is not ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        var displayNames = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["zh_Hans"] = language == LanguageKey.zh_Hans ? zhBox.Text : string.Empty,
+            ["en_US"] = language == LanguageKey.en_US ? enBox.Text : string.Empty,
+            ["ja_JP"] = language == LanguageKey.ja_JP ? jaBox.Text : string.Empty
+        };
+        if (advanced.IsChecked == true)
+        {
+            displayNames["zh_Hans"] = zhBox.Text;
+            displayNames["en_US"] = enBox.Text;
+            displayNames["ja_JP"] = jaBox.Text;
+        }
+
+        try
+        {
+            var registration = await _packageManager.CreateCustomWindowAsync(new FrontedCustomWindowCreateRequest
+            {
+                WindowId = idBox.Text,
+                DisplayNames = displayNames
+            });
+            await _customWindowSynchronizer.RefreshAsync();
+            await RefreshCustomWindowViewsAsync();
+            await _frontedWindowService.ReloadFrontedLayoutsAsync();
+            await RefreshPackagesCoreAsync(registration.PackageScopeId);
+            await OpenFrontedDesignerAsync(registration.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to create custom fronted window.");
+            PackageManagerStatus = ex.Message;
+        }
+
+        static System.Windows.Controls.StackPanel AddField(
+            System.Windows.Controls.Panel panel,
+            string labelKey,
+            System.Windows.Controls.Control control,
+            out System.Windows.Controls.TextBlock label)
+        {
+            var field = new System.Windows.Controls.StackPanel();
+            label = new System.Windows.Controls.TextBlock
+            {
+                Margin = new Thickness(0, 0, 0, 4),
+                Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, labelKey)
+            };
+            field.Children.Add(label);
+            field.Children.Add(control);
+            field.Children.Add(new System.Windows.Controls.Border { Height = 8, Background = null });
+            panel.Children.Add(field);
+            return field;
+        }
+
+        void ApplyLanguageFields(bool showAllLanguages)
+        {
+            var showChinese = showAllLanguages || language == LanguageKey.zh_Hans;
+            var showEnglish = showAllLanguages || language == LanguageKey.en_US;
+            var showJapanese = showAllLanguages || language == LanguageKey.ja_JP;
+
+            zhField.Visibility = showChinese
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            enField.Visibility = showEnglish
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            jaField.Visibility = showJapanese
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+            zhBox.IsEnabled = showChinese;
+            enBox.IsEnabled = showEnglish;
+            jaBox.IsEnabled = showJapanese;
+
+            zhLabel.Text = showAllLanguages
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowNameChinese")
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowName");
+            enLabel.Text = showAllLanguages
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowNameEnglish")
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowName");
+            jaLabel.Text = showAllLanguages
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowNameJapanese")
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowName");
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteCustomWindowAsync(object? windowInfo)
+    {
+        if (_packageManager is null || _customWindowSynchronizer is null || windowInfo is not string windowId)
+        {
+            return;
+        }
+
+        if (!await MessageBoxHelper.ShowConfirmAsync(
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ConfirmDeleteCustomWindow"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Tips"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")))
+        {
+            return;
+        }
+
+        try
+        {
+            if (_frontedDesignerWindow is { IsLoaded: true }
+                && !await _frontedDesignerWindow.PrepareForWindowRemovalAsync(windowId))
+            {
+                return;
+            }
+
+            await _packageManager.DeleteCustomWindowAsync(windowId);
+            await _customWindowSynchronizer.RefreshAsync();
+            await _frontedWindowService.ReloadFrontedLayoutsAsync();
+            await RefreshCustomWindowViewsAsync(reloadDesignerLayout: true);
+            PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowDeleted");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to delete custom fronted window {WindowId}.", windowId);
+            PackageManagerStatus = ex.Message;
         }
     }
 
@@ -465,6 +678,10 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImportSucceeded")}: {result.PackageId} "
                 + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "LayoutCount")}: {result.LayoutCount}, "
                 + $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "ResourceCount")}: {result.ResourceCount}";
+            if (!string.IsNullOrWhiteSpace(result.WarningMessage))
+            {
+                PackageManagerStatus += $" ({LocalizePackageWarning(result.WarningMessage)})";
+            }
             if (result.CompressedImages.Count > 0)
             {
                 await MessageBoxHelper.ShowInfoAsync(
@@ -480,12 +697,22 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"))
                 && !string.IsNullOrWhiteSpace(result.PackageId))
             {
+                if (!await PrepareDesignerForPackageChangeAsync())
+                {
+                    return;
+                }
+
                 if (_behaviorRuntime is not null)
                 {
                     await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.PackageSwitched);
                 }
 
                 await _packageManager.ActivatePackageAsync(result.PackageId);
+                if (_customWindowSynchronizer is not null)
+                {
+                    await _customWindowSynchronizer.RefreshAsync();
+                }
+                await RefreshCustomWindowViewsAsync(reloadDesignerLayout: true);
                 await _frontedWindowService.ReloadFrontedLayoutsAsync();
                 await RefreshPackagesCoreAsync(result.PackageId);
                 SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == result.PackageId) ?? SelectedPackage;
@@ -907,12 +1134,18 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
     public void Receive(FrontedLayoutPackagesChangedMessage message)
     {
+        if (ReferenceEquals(message.Sender, this))
+        {
+            return;
+        }
+
         _ = RefreshPackagesAfterExternalChangeAsync(message.ActivePackageId);
     }
 
     private async Task RefreshPackagesAfterExternalChangeAsync(string? activePackageId)
     {
         await RefreshPackagesCoreAsync(activePackageId);
+        await RefreshCustomWindowViewsAsync(reloadDesignerLayout: true);
         var selected = !string.IsNullOrWhiteSpace(activePackageId)
             ? LayoutPackages.FirstOrDefault(package =>
                 string.Equals(package.PackageId, activePackageId, StringComparison.OrdinalIgnoreCase))
@@ -957,12 +1190,22 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
             var activatedPackageId = SelectedPackage.PackageId;
             var activatedIsBuiltin = SelectedPackage.IsBuiltin;
+            if (!await PrepareDesignerForPackageChangeAsync())
+            {
+                return;
+            }
+
             if (_behaviorRuntime is not null)
             {
                 await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.PackageSwitched);
             }
 
             await _packageManager.ActivatePackageAsync(activatedPackageId);
+            if (_customWindowSynchronizer is not null)
+            {
+                await _customWindowSynchronizer.RefreshAsync();
+            }
+            await RefreshCustomWindowViewsAsync(reloadDesignerLayout: true);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, activatedPackageId));
             await RefreshPackagesCoreAsync(activatedPackageId);
@@ -993,7 +1236,17 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         try
         {
+            if (!await PrepareDesignerForPackageChangeAsync())
+            {
+                return;
+            }
+
             var duplicated = await _packageManager.DuplicatePackageAsync(SelectedPackage.PackageId);
+            if (_customWindowSynchronizer is not null)
+            {
+                await _customWindowSynchronizer.RefreshAsync();
+            }
+            await RefreshCustomWindowViewsAsync(reloadDesignerLayout: true);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             await RefreshPackagesCoreAsync(duplicated.PackageId);
             SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == duplicated.PackageId) ?? SelectedPackage;
@@ -1178,12 +1431,22 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 return;
             }
 
+            if (SelectedPackage.IsActivePackage && !await PrepareDesignerForPackageChangeAsync())
+            {
+                return;
+            }
+
             await _packageManager.DeletePackageAsync(packageId);
             if (_behaviorRuntime is not null)
             {
                 await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.PackageSwitched);
             }
 
+            if (_customWindowSynchronizer is not null)
+            {
+                await _customWindowSynchronizer.RefreshAsync();
+            }
+            await RefreshCustomWindowViewsAsync(reloadDesignerLayout: true);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             PackageManagerStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageDeleted");
             SelectedPackage = null;
@@ -1320,6 +1583,11 @@ public sealed class FrontedWindowManageGroup
     public string DisplayName { get; init; } = string.Empty;
 
     /// <summary>
+    /// 此分组是否为当前活动布局包的用户自定义窗口分组。
+    /// </summary>
+    public bool IsCustom { get; init; }
+
+    /// <summary>
     /// 此分组中的窗口卡片。
     /// </summary>
     public ObservableCollection<FrontedWindowManageItem> Windows { get; } = [];
@@ -1346,7 +1614,8 @@ public sealed class FrontedWindowManageGroup
                 group = new FrontedWindowManageGroup
                 {
                     GroupKey = key,
-                    DisplayName = GetGroupDisplayName(key)
+                    DisplayName = GetGroupDisplayName(key),
+                    IsCustom = key == "Custom"
                 };
 
                 byKey.Add(key, group);
@@ -1356,11 +1625,40 @@ public sealed class FrontedWindowManageGroup
             group.Windows.Add(FrontedWindowManageItem.FromRegistration(registration, settingsHostService));
         }
 
-        return groups;
+        if (!byKey.TryGetValue("Custom", out var customGroup))
+        {
+            customGroup = new FrontedWindowManageGroup
+            {
+                GroupKey = "Custom",
+                DisplayName = GetGroupDisplayName("Custom"),
+                IsCustom = true
+            };
+            byKey.Add("Custom", customGroup);
+            groups.Add(customGroup);
+        }
+
+        // 创建入口始终作为最后一张卡片保留；已有窗口会自然排在它前面。
+        customGroup.Windows.Add(FrontedWindowManageItem.CreateCustomWindowPlaceholder());
+
+        return groups
+            .OrderBy(group => group.GroupKey switch
+            {
+                "BuiltIn" => 0,
+                "Custom" => 1,
+                "Plugin" => 2,
+                "External" => 3,
+                _ => 4
+            })
+            .ToArray();
     }
 
     private static string GetStableGroupKey(FrontedWindowRegistration registration)
     {
+        if (registration is FrontedCustomV3LayoutWindowRegistration)
+        {
+            return "Custom";
+        }
+
         if (registration.IsBuiltIn)
         {
             return "BuiltIn";
@@ -1374,6 +1672,7 @@ public sealed class FrontedWindowManageGroup
         return groupKey switch
         {
             "BuiltIn" => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "SystemBuiltIn"),
+            "Custom" => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindows"),
             "Plugin" => I18nHelper.GetLocalizedString(AppI18nDictionaries.PluginMarket, "Plugins"),
             "External" => I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "External"),
             _ => groupKey
@@ -1407,6 +1706,16 @@ public sealed class FrontedWindowManageItem
     public bool CanCustomize { get; init; }
 
     /// <summary>
+    /// 此窗口是否来自当前布局包的用户自定义窗口清单。
+    /// </summary>
+    public bool IsCustom { get; init; }
+
+    /// <summary>
+    /// 此条目是否为用户自定义窗口分组末尾的创建窗口卡片。
+    /// </summary>
+    public bool IsCreatePlaceholder { get; init; }
+
+    /// <summary>
     /// 根据注册表注册创建卡片条目。
     /// </summary>
     /// <param name="registration">窗口注册。</param>
@@ -1423,7 +1732,21 @@ public sealed class FrontedWindowManageItem
             KindDisplay = registration.Kind == FrontedWindowRegistrationKind.Xaml
                 ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.Xaml")
                 : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "FrontManageWindowCategory.V3Layout"),
-            CanCustomize = registration.Kind == FrontedWindowRegistrationKind.V3Layout
+            CanCustomize = registration.Kind == FrontedWindowRegistrationKind.V3Layout,
+            IsCustom = registration is FrontedCustomV3LayoutWindowRegistration
+        };
+    }
+
+    /// <summary>
+    /// 创建用户自定义窗口分组末尾的新建窗口卡片。
+    /// </summary>
+    /// <returns>只提供新建命令的创建卡片。</returns>
+    public static FrontedWindowManageItem CreateCustomWindowPlaceholder()
+    {
+        return new FrontedWindowManageItem
+        {
+            IsCustom = true,
+            IsCreatePlaceholder = true
         };
     }
 

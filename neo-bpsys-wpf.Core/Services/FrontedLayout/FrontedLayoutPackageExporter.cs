@@ -175,7 +175,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 {
                     Success = true,
                     OutputPath = outputPath,
-                    LayoutCount = manifest.Content.Layouts.Count,
+                    LayoutCount = manifest.Content.Layouts.Count + manifest.Content.CustomWindows.Count,
                     ResourceCount = manifest.Content.Resources.Count
                 };
             }
@@ -221,7 +221,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            EnsureSafeCanonicalWindowId(entry.CanonicalWindowId, nameof(entry.CanonicalWindowId));
+            EnsureSafeCanonicalWindowId(entry.ExportCanonicalWindowId, nameof(entry.ExportCanonicalWindowId));
 
             var originalJson = await File.ReadAllTextAsync(entry.SourcePath, cancellationToken);
             var node = JsonNode.Parse(
@@ -229,7 +229,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 nodeOptions: null,
                 documentOptions: new JsonDocumentOptions { MaxDepth = FrontedLayoutLimits.MaxJsonDepth })
                        ?? throw new InvalidOperationException(
-                           $"Layout {entry.CanonicalWindowId} parsed to empty JSON.");
+                           $"Layout {entry.ExportCanonicalWindowId} parsed to empty JSON.");
 
             if (node is not JsonObject obj
                 || !obj.TryGetPropertyValue("Version", out var versionNode)
@@ -237,7 +237,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 || version != 3)
             {
                 throw new InvalidOperationException(
-                    $"Layout {entry.CanonicalWindowId} has unsupported Version.");
+                    $"Layout {entry.ExportCanonicalWindowId} has unsupported Version.");
             }
 
             // Deserialize the same JSON for dependency scanning only; the original JSON (as JsonNode) is what gets written.
@@ -249,23 +249,23 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             catch (Exception ex)
             {
                 throw new InvalidOperationException(
-                    $"Layout {entry.CanonicalWindowId} could not be deserialized for scanning.", ex);
+                    $"Layout {entry.ExportCanonicalWindowId} could not be deserialized for scanning.", ex);
             }
 
             if (config is null)
             {
                 throw new InvalidOperationException(
-                    $"Layout {entry.CanonicalWindowId} deserialized to null.");
+                    $"Layout {entry.ExportCanonicalWindowId} deserialized to null.");
             }
 
             var canvasConfig = FrontedWindowConfigCanvasAdapter.ToCanvasConfig(config);
             FrontedLayoutPluginDependencyScanner.SyncCanvasRequiredPlugins(
                 canvasConfig,
-                entry.CanonicalWindowId,
+                entry.ExportCanonicalWindowId,
                 FrontedLayoutConstants.BaseCanvasName,
                 _controlRegistry,
                 _pluginMetadataProvider);
-            exportedLayouts.Add((entry.CanonicalWindowId, FrontedLayoutConstants.BaseCanvasName, canvasConfig));
+            exportedLayouts.Add((entry.ExportCanonicalWindowId, FrontedLayoutConstants.BaseCanvasName, canvasConfig));
 
             // Write synced RequiredPlugins back into the JsonNode (host-managed field, safe to replace).
             if (obj["ControlLayout"] is JsonObject controlLayout)
@@ -277,16 +277,26 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
             RewriteResourcePaths(node, null, staging, resourceState);
 
-            var relativePath = ToZipPath("FrontedLayouts", entry.RelativePath.Replace('\\', '/'));
+            var relativePath = ToZipPath(
+                "FrontedLayouts",
+                FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(entry.ExportCanonicalWindowId).Replace('\\', '/'));
             var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             await File.WriteAllTextAsync(targetPath, node.ToJsonString(_jsonSerializerOptions), cancellationToken);
 
-            manifest.Content.Layouts.Add(new FrontedLayoutPackageLayoutEntry
+            var exportedEntry = new FrontedLayoutPackageLayoutEntry
             {
-                Window = entry.CanonicalWindowId,
+                Window = entry.ExportCanonicalWindowId,
                 Path = relativePath
-            });
+            };
+            if (entry.IsCustom)
+            {
+                manifest.Content.CustomWindows.Add(exportedEntry);
+            }
+            else
+            {
+                manifest.Content.Layouts.Add(exportedEntry);
+            }
         }
 
         manifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
@@ -309,7 +319,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var behaviorSourcePath = GetBehaviorSourcePath(packageRoot, entry.CanonicalWindowId);
+            var behaviorSourcePath = GetBehaviorSourcePath(packageRoot, entry.SourceCanonicalWindowId);
             if (!File.Exists(behaviorSourcePath))
             {
                 continue;
@@ -320,18 +330,40 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 var relativePath = ToZipPath(
                     "FrontedBehaviors",
                     Path.ChangeExtension(
-                        FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(entry.CanonicalWindowId),
+                        FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(entry.ExportCanonicalWindowId),
                         ".behaviors.json").Replace('\\', '/'));
                 var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
-                // Copy the behavior file as-is to preserve original format and unknown fields.
-                File.Copy(behaviorSourcePath, targetPath, overwrite: false);
+                if (entry.IsCustom)
+                {
+                    var behaviorNode = JsonNode.Parse(await File.ReadAllTextAsync(behaviorSourcePath, cancellationToken))
+                        ?? throw new InvalidDataException("Behavior document is empty.");
+                    if (behaviorNode is JsonObject behaviorObject)
+                    {
+                        behaviorObject["WindowType"] = entry.ExportCanonicalWindowId;
+                    }
+
+                    await File.WriteAllTextAsync(
+                        targetPath,
+                        behaviorNode.ToJsonString(_jsonSerializerOptions),
+                        cancellationToken);
+                }
+                else
+                {
+                    File.Copy(behaviorSourcePath, targetPath, overwrite: false);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex,
                     "Failed to export behaviors for {Window}.",
-                    entry.CanonicalWindowId);
+                    entry.ExportCanonicalWindowId);
+                if (entry.IsCustom)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to export custom window behaviors for '{entry.ExportCanonicalWindowId}'.",
+                        ex);
+                }
             }
         }
     }
@@ -523,6 +555,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             return Array.Empty<LayoutExportEntry>();
         }
 
+        var declaredCustomWindows = ReadDeclaredCustomWindows(layoutsRoot);
         var entries = new Dictionary<string, LayoutExportEntry>(StringComparer.OrdinalIgnoreCase);
         foreach (var file in Directory.EnumerateFiles(layoutsRoot, "*.json", SearchOption.AllDirectories))
         {
@@ -533,7 +566,22 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 continue;
             }
 
-            entries[canonicalWindowId] = new LayoutExportEntry(canonicalWindowId, file, relativePath);
+            var isCustom = FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                canonicalWindowId, out _, out var localWindowId);
+            if (isCustom && !declaredCustomWindows.Contains(canonicalWindowId))
+            {
+                continue;
+            }
+
+            var exportCanonicalWindowId = isCustom
+                ? $"{FrontedV3LayoutWindowPathHelper.CustomPrefix}{request.PackageId}/{localWindowId}"
+                : canonicalWindowId;
+            entries[canonicalWindowId] = new LayoutExportEntry(
+                canonicalWindowId,
+                exportCanonicalWindowId,
+                file,
+                relativePath,
+                isCustom);
         }
 
         if (request.ExportScope == FrontedLayoutPackageExportScope.CurrentWindow)
@@ -554,6 +602,34 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         return entries.Values.ToArray();
     }
 
+    private HashSet<string> ReadDeclaredCustomWindows(string layoutsRoot)
+    {
+        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var packageRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot));
+        var manifestPath = packageRoot is null ? null : Path.Combine(packageRoot, "manifest.json");
+        if (manifestPath is null || !File.Exists(manifestPath))
+        {
+            return result;
+        }
+
+        try
+        {
+            var manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(
+                File.ReadAllText(manifestPath),
+                _jsonSerializerOptions);
+            foreach (var entry in manifest?.Content?.CustomWindows ?? [])
+            {
+                result.Add(entry.Window);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to read custom window declarations from {ManifestPath}.", manifestPath);
+        }
+
+        return result;
+    }
+
     private static FrontedLayoutPackageManifest CreateManifest(FrontedLayoutPackageExportRequest request)
     {
         return new FrontedLayoutPackageManifest
@@ -563,6 +639,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             Description = request.Description,
             Author = request.Author,
             MinVersion = request.MinVersion,
+            CreatedVersion = AppConstants.AppVersion,
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
@@ -758,9 +835,11 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     }
 
     private sealed record LayoutExportEntry(
-        string CanonicalWindowId,
+        string SourceCanonicalWindowId,
+        string ExportCanonicalWindowId,
         string SourcePath,
-        string RelativePath);
+        string RelativePath,
+        bool IsCustom);
 
     private sealed class ResourceExportState(string packageId)
     {

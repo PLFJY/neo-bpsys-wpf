@@ -296,6 +296,154 @@ public sealed class FrontedLayoutPackageImporterTest
         }
     }
 
+    [Fact]
+    public async Task InvalidCreatedVersionImportsWithNonBlockingWarning()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "invalid-created-version.bpui");
+            using (var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+                {
+                    PackageId = "created-version-package",
+                    Name = "Created Version Package",
+                    CreatedVersion = "not-a-version",
+                    Content = new FrontedLayoutPackageManifestContent
+                    {
+                        Layouts =
+                        [
+                            new FrontedLayoutPackageLayoutEntry
+                            {
+                                Window = "BpWindow",
+                                Path = "FrontedLayouts/BpWindow.json"
+                            }
+                        ]
+                    }
+                }));
+                WriteZipEntry(archive, "FrontedLayouts/BpWindow.json", """
+                    { "Version": 3, "CanvasSettings": {}, "ControlLayout": { "Controls": {} } }
+                    """);
+            }
+
+            var importer = CreateImporter(Path.Combine(root, "packages"), Path.Combine(root, "temp"));
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.True(result.HasCreatedVersionWarning);
+            Assert.Equal("PackageCreatedVersionInvalid", result.WarningMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task CustomWindowWithoutDisplayNameIsRejected()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "missing-custom-name.bpui");
+            using (var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                WriteCustomWindowPackage(archive, includeDisplayName: false, behaviorWindowId: null);
+            }
+
+            var importer = CreateImporter(Path.Combine(root, "packages"), Path.Combine(root, "temp"));
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Contains("at least one display name", result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task CustomBehaviorWithMismatchedWindowIdentityIsRejected()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "mismatched-custom-behavior.bpui");
+            using (var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                WriteCustomWindowPackage(
+                    archive,
+                    includeDisplayName: true,
+                    behaviorWindowId: "custom:custom-package/another-window");
+            }
+
+            var importer = CreateImporter(Path.Combine(root, "packages"), Path.Combine(root, "temp"));
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Contains("behavior identity is invalid", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    private static void WriteCustomWindowPackage(
+        ZipArchive archive,
+        bool includeDisplayName,
+        string? behaviorWindowId)
+    {
+        const string windowId = "custom:custom-package/custom-window";
+        WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+        {
+            PackageId = "custom-package",
+            Name = "Custom Package",
+            Content = new FrontedLayoutPackageManifestContent
+            {
+                CustomWindows =
+                [
+                    new FrontedLayoutPackageLayoutEntry
+                    {
+                        Window = windowId,
+                        Path = "FrontedLayouts/custom/custom-package/custom-window.json"
+                    }
+                ]
+            }
+        }));
+        var displayNames = includeDisplayName
+            ? "\"DisplayNames\": { \"en_US\": \"Custom Window\" },"
+            : string.Empty;
+        WriteZipEntry(
+            archive,
+            "FrontedLayouts/custom/custom-package/custom-window.json",
+            $"{{ \"Version\": 3, {displayNames} \"CanvasSettings\": {{}}, \"ControlLayout\": {{ \"Controls\": {{}} }} }}");
+        if (behaviorWindowId is not null)
+        {
+            WriteZipEntry(
+                archive,
+                "FrontedBehaviors/custom/custom-package/custom-window.behaviors.json",
+                JsonSerializer.Serialize(new
+                {
+                    Version = 1,
+                    WindowType = behaviorWindowId,
+                    CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                    ControlBehaviorSets = Array.Empty<object>()
+                }));
+        }
+    }
+
     private static FrontedLayoutPackageImporter CreateImporter(string packageRoot, string tempRoot)
     {
         return new FrontedLayoutPackageImporter(

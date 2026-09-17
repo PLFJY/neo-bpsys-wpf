@@ -144,6 +144,19 @@ package.bpui
 
 manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` 或 `App.MinVersion`。应用最低版本只使用根级 `MinVersion`。
 
+manifest 可选的 `CreatedVersion` 保存生成包时的完整应用版本（例如 `v3.0.7+git-hash`）。比较时只比较数字版本；当前应用低于该版本时导入仍成功，但提供非阻断警告。缺少该字段的旧包不产生警告，`MinVersion` 仍负责硬拒绝。
+
+`Content.Layouts` 保存内置和插件窗口，用户自定义窗口单独保存于 `Content.CustomWindows`。自定义条目的 `Window` 与 `Path` 必须同时匹配包 ID，例如：
+
+```json
+"CustomWindows": [{
+  "Window": "custom:example-layout/custom-window",
+  "Path": "FrontedLayouts/custom/example-layout/custom-window.json"
+}]
+```
+
+旧软件会忽略未知的 `CustomWindows` 和布局 JSON `DisplayNames` 字段，因此混合包中的内置/插件布局仍按旧契约加载；旧软件不会加载自定义窗口。
+
 示例：
 
 ```json
@@ -212,10 +225,12 @@ manifest 不包含 `App` 对象，不包含 `App.Name`、`App.ExportedVersion` �
 | `Description` | 可选，包用途说明。 |
 | `Author` | 可选，布局作者。 |
 | `CreatedAt` | 推荐，UTC ISO 8601 时间。 |
+| `CreatedVersion` | 可选，生成包时的完整应用版本，仅用于非阻断兼容性警告。 |
 | `MinVersion` | 根级字段，表示能使用该包的最低应用版本。 |
 | `LayoutSchemaVersion` | 必需，当前 `FrontedWindowConfig` layout schema 版本为 `3`。 |
 | `PluginDependencies` | 可选，包级插件依赖摘要，用于导入预检 UI。完整规则见第 8 节。 |
 | `Content.Layouts` | 必需，列出包内布局。至少一项。 |
+| `Content.CustomWindows` | 可选，列出包作用域内的用户自定义 v3 窗口。 |
 | `Content.Resources` | 可选，列出包内资源、类型、URI 和可选 hash。 |
 | `Content.Preview` | 可选，预览图信息。 |
 | `ImportPolicy.OverwriteExistingUserLayouts` | 可选，建议值为 `Ask`，表示激活时是否覆盖同名用户布局需要询问。 |

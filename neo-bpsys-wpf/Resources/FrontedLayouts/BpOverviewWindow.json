@@ -1,5 +1,6 @@
 {
   "Version": 3,
+  "DisplayNames": { "zh_Hans": "BP 总览窗口", "en_US": "BP Overview Window", "ja_JP": "BP 概要ウィンドウ" },
   "WindowSettings": {
     "WindowWidth": 1132,
     "WindowHeight": 182,

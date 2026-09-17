@@ -8,8 +8,9 @@ namespace neo_bpsys_wpf.Core.Helpers;
 /// 解析前台窗口注册的显示名称。
 /// </summary>
 /// <remarks>
-/// Core 层只提供基于 <see cref="FrontedWindowRegistration.DisplayName"/> / <see cref="FrontedWindowRegistration.LocalId"/>
-/// 的回退显示名。内置窗口的本地化显示名由 UI 层通过现有 resx（<c>Designer.Window.{LocalId}</c>）覆盖。
+/// 用户自定义窗口优先使用注册中来自布局 JSON 的多语言字典；其他窗口使用
+/// <see cref="FrontedWindowRegistration.DisplayName"/> / <see cref="FrontedWindowRegistration.LocalId"/> 回退。
+/// 历史内置布局的 resx 兼容名称由 UI 层提供。
 /// </remarks>
 public static class FrontedWindowDisplayNameResolver
 {
@@ -17,8 +18,8 @@ public static class FrontedWindowDisplayNameResolver
     /// 解析前台窗口注册面向用户的显示名称。
     /// </summary>
     /// <param name="registration">窗口注册。</param>
-    /// <param name="language">请求的语言设置（保留用于 UI 层扩展，Core 层回退实现不使用）。</param>
-    /// <param name="cultureInfo">当 <paramref name="language"/> 不是具体语言时使用的有效 UI 区域信息（保留用于 UI 层扩展）。</param>
+    /// <param name="language">请求的语言设置。</param>
+    /// <param name="cultureInfo">当 <paramref name="language"/> 不是具体语言时使用的有效 UI 区域信息。</param>
     /// <returns>注册的回退显示名称。</returns>
     /// <exception cref="ArgumentNullException">当 <paramref name="registration"/> 为 <see langword="null"/> 时抛出。</exception>
     public static string ResolveDisplayName(
@@ -27,6 +28,15 @@ public static class FrontedWindowDisplayNameResolver
         CultureInfo? cultureInfo = null)
     {
         ArgumentNullException.ThrowIfNull(registration);
+        if (registration is FrontedCustomV3LayoutWindowRegistration customRegistration)
+        {
+            return ResolveDisplayName(
+                customRegistration.DisplayNames,
+                language,
+                cultureInfo,
+                GetFallbackDisplayName(registration));
+        }
+
         return GetFallbackDisplayName(registration);
     }
 
@@ -75,4 +85,48 @@ public static class FrontedWindowDisplayNameResolver
             ? registration.LocalId
             : registration.DisplayName;
     }
+
+    /// <summary>
+    /// 按当前语言和固定回退顺序解析布局 JSON 中的显示名称。
+    /// </summary>
+    /// <param name="displayNames">布局 JSON 中的显示名称字典。</param>
+    /// <param name="language">请求的语言设置。</param>
+    /// <param name="cultureInfo">系统或跟随应用语言时使用的区域信息。</param>
+    /// <param name="fallback">所有译名缺失时的回退文本。</param>
+    /// <returns>解析后的显示名称。</returns>
+    public static string ResolveDisplayName(
+        IReadOnlyDictionary<string, string>? displayNames,
+        LanguageKey language,
+        CultureInfo? cultureInfo,
+        string fallback)
+    {
+        var concreteLanguage = ResolveConcreteLanguage(language, cultureInfo);
+        if (concreteLanguage is not null
+            && displayNames is not null
+            && displayNames.TryGetValue(GetLanguageCode(concreteLanguage.Value), out var current)
+            && !string.IsNullOrWhiteSpace(current))
+        {
+            return current;
+        }
+
+        foreach (var code in new[] { "zh_Hans", "en_US", "ja_JP" })
+        {
+            if (displayNames is not null
+                && displayNames.TryGetValue(code, out var value)
+                && !string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return fallback;
+    }
+
+    private static string GetLanguageCode(LanguageKey language) => language switch
+    {
+        LanguageKey.zh_Hans => "zh_Hans",
+        LanguageKey.en_US => "en_US",
+        LanguageKey.ja_JP => "ja_JP",
+        _ => string.Empty
+    };
 }

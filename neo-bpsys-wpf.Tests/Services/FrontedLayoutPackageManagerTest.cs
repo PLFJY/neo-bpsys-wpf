@@ -1402,6 +1402,105 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
+    public async Task DuplicatePackageRemapsCustomWindowBehaviorAndPackageResourceUris()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var sourceFolder = Path.Combine(packageRoot, "package-a");
+            var customWindowId = "custom:package-a/custom-window";
+            WriteManifest(sourceFolder, new FrontedLayoutPackageManifest
+            {
+                PackageId = "package-a",
+                Name = "Package A",
+                Content = new FrontedLayoutPackageManifestContent
+                {
+                    CustomWindows =
+                    [
+                        new FrontedLayoutPackageLayoutEntry
+                        {
+                            Window = customWindowId,
+                            Path = "FrontedLayouts/custom/package-a/custom-window.json"
+                        }
+                    ],
+                    Resources =
+                    [
+                        new FrontedLayoutPackageResourceEntry
+                        {
+                            Id = "cover",
+                            Kind = "image",
+                            Path = "Resources/cover.png",
+                            Uri = "bpui://package-a/Resources/cover.png",
+                            Sha256 = "preserved-hash"
+                        }
+                    ]
+                }
+            });
+            var layoutPath = Path.Combine(sourceFolder, "FrontedLayouts", "custom", "package-a", "custom-window.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+            File.WriteAllText(layoutPath, """
+                {
+                  "Version": 3,
+                  "DisplayNames": { "en_US": "Custom Window" },
+                  "BackgroundImage": "bpui://package-a/Resources/cover.png"
+                }
+                """);
+            var behaviorPath = Path.Combine(sourceFolder, "FrontedBehaviors", "custom", "package-a", "custom-window.behaviors.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(behaviorPath)!);
+            File.WriteAllText(behaviorPath, JsonSerializer.Serialize(new
+            {
+                Version = 1,
+                WindowType = customWindowId,
+                CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                Resource = "bpui://package-a/Resources/cover.png",
+                ControlBehaviorSets = Array.Empty<object>()
+            }));
+            var resourcePath = Path.Combine(sourceFolder, "Resources", "cover.png");
+            Directory.CreateDirectory(Path.GetDirectoryName(resourcePath)!);
+            File.WriteAllBytes(resourcePath, [1, 2, 3]);
+            var manager = new FrontedLayoutPackageManager(
+                packageRoot,
+                Path.Combine(root, "builtIn"),
+                localize: key => key == "UserLayoutSchemeNameFormat" ? "User Layout Scheme {0}" : key);
+
+            var duplicate = await manager.DuplicatePackageAsync(
+                "package-a",
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var targetWindowId = $"custom:{duplicate.PackageId}/custom-window";
+            var targetLayoutPath = Path.Combine(
+                packageRoot,
+                duplicate.PackageId,
+                "FrontedLayouts",
+                "custom",
+                duplicate.PackageId,
+                "custom-window.json");
+            var targetBehaviorPath = Path.Combine(
+                packageRoot,
+                duplicate.PackageId,
+                "FrontedBehaviors",
+                "custom",
+                duplicate.PackageId,
+                "custom-window.behaviors.json");
+            Assert.Contains($"bpui://{duplicate.PackageId}/Resources/cover.png", File.ReadAllText(targetLayoutPath));
+            Assert.Contains(targetWindowId, File.ReadAllText(targetBehaviorPath));
+            Assert.Contains($"bpui://{duplicate.PackageId}/Resources/cover.png", File.ReadAllText(targetBehaviorPath));
+
+            var manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(
+                File.ReadAllText(Path.Combine(packageRoot, duplicate.PackageId, "manifest.json")))!;
+            Assert.Contains(manifest.Content.CustomWindows, entry => entry.Window == targetWindowId);
+            var resource = Assert.Single(manifest.Content.Resources);
+            Assert.Equal($"bpui://{duplicate.PackageId}/Resources/cover.png", resource.Uri);
+            Assert.Equal("preserved-hash", resource.Sha256);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public void FrontManagePageViewModelExposesPackageListAndRefreshCommand()
     {
         var text = File.ReadAllText(GetRepositoryPath(

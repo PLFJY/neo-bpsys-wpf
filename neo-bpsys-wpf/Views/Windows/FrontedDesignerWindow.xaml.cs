@@ -189,6 +189,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             _logger?.LogInformation("Designer loaded.");
             TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
             AttachViewModel();
+            await RefreshWindowCatalogAsync();
             await LoadInitialLayoutAsync();
             _logger?.LogInformation("Initial layout loaded.");
             QueueDesignerTutorial();
@@ -197,6 +198,59 @@ public partial class FrontedDesignerWindow : FluentWindow
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
         }
+    }
+
+    /// <summary>
+    /// 重新读取当前注册表中的窗口目录和布局显示名称，并保持窗口选择器状态一致。
+    /// </summary>
+    /// <param name="reloadSelectedLayout">是否在目录刷新后从当前活动包重新加载所选布局。</param>
+    /// <returns>目录刷新完成后结束的任务。</returns>
+    public async Task RefreshWindowCatalogAsync(bool reloadSelectedLayout = false)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        _suppressSelectorReload = true;
+        try
+        {
+            await _viewModel.RefreshWindowDisplayNamesAsync();
+            _lastAcceptedWindow = _viewModel.SelectedWindow;
+            if (reloadSelectedLayout)
+            {
+                await _viewModel.ReloadLayoutCoreAsync();
+            }
+        }
+        finally
+        {
+            _suppressSelectorReload = false;
+        }
+    }
+
+    /// <summary>
+    /// 在活动布局包即将改变前处理设计器中尚未保存的修改。
+    /// </summary>
+    /// <returns>可以继续切换包时为 <see langword="true"/>；用户取消时为 <see langword="false"/>。</returns>
+    public Task<bool> PrepareForPackageChangeAsync()
+    {
+        return ConfirmDirtyDocumentCanContinueAsync("SaveBeforeSwitch");
+    }
+
+    /// <summary>
+    /// 在窗口布局即将删除前，仅当设计器正在编辑该窗口时处理尚未保存的修改。
+    /// </summary>
+    /// <param name="canonicalWindowId">即将删除的窗口 Canonical ID。</param>
+    /// <returns>可以继续删除时为 <see langword="true"/>；用户取消时为 <see langword="false"/>。</returns>
+    public Task<bool> PrepareForWindowRemovalAsync(string canonicalWindowId)
+    {
+        if (_viewModel?.SelectedWindow?.WindowTypeName is not { } selectedWindowId
+            || !string.Equals(selectedWindowId, canonicalWindowId, StringComparison.OrdinalIgnoreCase))
+        {
+            return Task.FromResult(true);
+        }
+
+        return ConfirmDirtyDocumentCanContinueAsync("SaveBeforeSwitch");
     }
 
     private void OnClosed(object? sender, EventArgs e)

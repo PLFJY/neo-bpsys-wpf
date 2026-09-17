@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 namespace neo_bpsys_wpf.Core.Services.Registry;
 
@@ -14,9 +15,11 @@ namespace neo_bpsys_wpf.Core.Services.Registry;
 /// </remarks>
 public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
 {
-    private readonly IReadOnlyList<FrontedWindowRegistration> _windows;
-    private readonly IReadOnlyList<FrontedV3LayoutWindowRegistration> _v3LayoutWindows;
-    private readonly Dictionary<string, FrontedWindowRegistration> _byCanonicalId;
+    private readonly object _syncRoot = new();
+    private readonly IReadOnlyList<FrontedWindowRegistration> _staticWindows;
+    private IReadOnlyList<FrontedWindowRegistration> _windows;
+    private IReadOnlyList<FrontedV3LayoutWindowRegistration> _v3LayoutWindows;
+    private IReadOnlyDictionary<string, FrontedWindowRegistration> _byCanonicalId;
 
     /// <summary>
     /// 从 DI 接收的 registration 集合初始化注册表。
@@ -33,7 +36,7 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
         var registrationList = registrations as IReadOnlyList<FrontedWindowRegistration>
                                ?? registrations.ToArray();
         // 使用 OrdinalIgnoreCase 与 Windows 路径/符号大小写不敏感语义保持一致。
-        _byCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.OrdinalIgnoreCase);
+        var byCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var registration in registrationList)
         {
@@ -48,7 +51,7 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
                     + $"Canonical ID must not be null, empty, or whitespace.");
             }
 
-            if (_byCanonicalId.TryGetValue(registration.Id, out var existing))
+            if (byCanonicalId.TryGetValue(registration.Id, out var existing))
             {
                 throw new InvalidOperationException(
                     $"Duplicate fronted window Canonical ID '{registration.Id}'. "
@@ -60,23 +63,82 @@ public sealed class FrontedWindowRegistryService : IFrontedWindowRegistry
                     + $"XamlWindowType={(registration is FrontedXamlWindowRegistration dupXaml ? dupXaml.WindowType.FullName ?? "(null)" : "(none)")}.");
             }
 
-            _byCanonicalId[registration.Id] = registration;
+            byCanonicalId[registration.Id] = registration;
         }
 
-        _windows = _byCanonicalId.Values.ToArray();
+        _byCanonicalId = byCanonicalId;
+        _staticWindows = byCanonicalId.Values.ToArray();
+        _windows = _staticWindows;
         _v3LayoutWindows = _windows.OfType<FrontedV3LayoutWindowRegistration>().ToArray();
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<FrontedWindowRegistration> GetWindows() => _windows;
+    public IReadOnlyList<FrontedWindowRegistration> GetWindows()
+    {
+        lock (_syncRoot)
+        {
+            return _windows;
+        }
+    }
 
     /// <inheritdoc />
-    public IReadOnlyList<FrontedV3LayoutWindowRegistration> GetV3LayoutWindows() => _v3LayoutWindows;
+    public IReadOnlyList<FrontedV3LayoutWindowRegistration> GetV3LayoutWindows()
+    {
+        lock (_syncRoot)
+        {
+            return _v3LayoutWindows;
+        }
+    }
 
     /// <inheritdoc />
-    public IReadOnlyList<FrontedWindowRegistration> GetManageableWindows() => _windows;
+    public IReadOnlyList<FrontedWindowRegistration> GetManageableWindows() => GetWindows();
 
     /// <inheritdoc />
-    public bool TryGet(string canonicalId, out FrontedWindowRegistration registration) =>
-        _byCanonicalId.TryGetValue(canonicalId, out registration!);
+    public bool TryGet(string canonicalId, out FrontedWindowRegistration registration)
+    {
+        lock (_syncRoot)
+        {
+            return _byCanonicalId.TryGetValue(canonicalId, out registration!);
+        }
+    }
+
+    /// <inheritdoc />
+    public void ReplaceCustomWindows(IEnumerable<FrontedCustomV3LayoutWindowRegistration> registrations)
+    {
+        ArgumentNullException.ThrowIfNull(registrations);
+        var next = _staticWindows.ToList();
+        foreach (var registration in registrations)
+        {
+            if (string.IsNullOrWhiteSpace(registration.Id)
+                || !FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                    registration.Id, out var packageId, out var localId)
+                || !string.Equals(packageId, registration.PackageScopeId, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(localId, registration.LocalId, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Invalid custom v3 window registration: {registration.Id}");
+            }
+
+            if (next.Any(existing => string.Equals(existing.Id, registration.Id, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException($"Duplicate fronted window Canonical ID '{registration.Id}'.");
+            }
+
+            next.Add(registration);
+        }
+
+        var nextByCanonicalId = new Dictionary<string, FrontedWindowRegistration>(StringComparer.OrdinalIgnoreCase);
+        foreach (var registration in next)
+        {
+            nextByCanonicalId.Add(registration.Id, registration);
+        }
+
+        var nextWindows = next.ToArray();
+        var nextV3LayoutWindows = next.OfType<FrontedV3LayoutWindowRegistration>().ToArray();
+        lock (_syncRoot)
+        {
+            _byCanonicalId = nextByCanonicalId;
+            _windows = nextWindows;
+            _v3LayoutWindows = nextV3LayoutWindows;
+        }
+    }
 }

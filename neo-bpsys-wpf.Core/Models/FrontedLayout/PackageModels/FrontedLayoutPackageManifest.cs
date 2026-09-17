@@ -48,6 +48,11 @@ public sealed class FrontedLayoutPackageManifest
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     /// <summary>
+    /// 生成此包时使用的完整应用版本，可能包含 git 构建元数据。
+    /// </summary>
+    public string CreatedVersion { get; set; } = string.Empty;
+
+    /// <summary>
     /// 最低支持版本。
     /// </summary>
     public string MinVersion { get; set; } = string.Empty;
@@ -82,6 +87,11 @@ public sealed class FrontedLayoutPackageManifestContent
     /// 布局条目列表。
     /// </summary>
     public List<FrontedLayoutPackageLayoutEntry> Layouts { get; set; } = [];
+
+    /// <summary>
+    /// 用户自定义窗口条目列表。旧版本软件会忽略此未知字段。
+    /// </summary>
+    public List<FrontedLayoutPackageLayoutEntry> CustomWindows { get; set; } = [];
 
     /// <summary>
     /// 资源条目列表。

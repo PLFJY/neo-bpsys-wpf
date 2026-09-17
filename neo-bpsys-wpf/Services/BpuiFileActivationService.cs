@@ -29,6 +29,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
     private readonly IFrontedLayoutPackageImporter _packageImporter;
     private readonly IFrontedLayoutPackageLegacyConverter _legacyPackageConverter;
     private readonly IFrontedWindowService _frontedWindowService;
+    private readonly FrontedCustomWindowRegistrySynchronizer _customWindowSynchronizer;
     private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
     private readonly INavigationService _navigationService;
     private readonly IInfoBarService _infoBarService;
@@ -51,6 +52,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         IFrontedLayoutPackageImporter packageImporter,
         IFrontedLayoutPackageLegacyConverter legacyPackageConverter,
         IFrontedWindowService frontedWindowService,
+        FrontedCustomWindowRegistrySynchronizer customWindowSynchronizer,
         IFrontedBehaviorRuntime? behaviorRuntime,
         INavigationService navigationService,
         IInfoBarService infoBarService,
@@ -59,6 +61,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         _packageImporter = packageImporter;
         _legacyPackageConverter = legacyPackageConverter;
         _frontedWindowService = frontedWindowService;
+        _customWindowSynchronizer = customWindowSynchronizer;
         _behaviorRuntime = behaviorRuntime;
         _navigationService = navigationService;
         _infoBarService = infoBarService;
@@ -175,6 +178,14 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
 
             BringBackendWindowToFront();
             NavigateToLayoutPackageManager();
+            var designer = Application.Current.Windows
+                .OfType<FrontedDesignerWindow>()
+                .FirstOrDefault(window => window.IsLoaded);
+            if (designer is not null && !await designer.PrepareForPackageChangeAsync())
+            {
+                return Fail(I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
+            }
+
             var (result, conversionWarning) = await ImportPackageAsync(normalizedPath, cancellationToken);
             if (!result.Success)
             {
@@ -186,6 +197,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
                 await _behaviorRuntime.StopAllLoopBehaviorsAsync(FrontedBehaviorStopReason.PackageSwitched);
             }
 
+            await _customWindowSynchronizer.RefreshAsync(cancellationToken);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
             WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, result.PackageId));
             NavigateToLayoutPackageManager();
@@ -196,7 +208,10 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
                 : string.Format(
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "PackageImagesCompressed"),
                     result.CompressedImages.Count);
-            var warnings = new[] { conversionWarning, imageCompressionWarning }
+            var packageWarning = string.IsNullOrWhiteSpace(result.WarningMessage)
+                ? null
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, result.WarningMessage);
+            var warnings = new[] { conversionWarning, imageCompressionWarning, packageWarning }
                 .Where(warning => !string.IsNullOrWhiteSpace(warning));
             var warningMessage = string.Join(Environment.NewLine, warnings!);
             if (string.IsNullOrWhiteSpace(warningMessage))

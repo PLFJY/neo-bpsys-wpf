@@ -1,5 +1,6 @@
 {
   "Version": 3,
+  "DisplayNames": { "zh_Hans": "赛后数据窗口", "en_US": "Post-match Data Window", "ja_JP": "試合後データウィンドウ" },
   "WindowSettings": {
     "WindowWidth": 1440,
     "WindowHeight": 810,

@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.Diagnostics;
 using System.IO;
@@ -15,7 +16,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using WPFLocalizeExtension.Extensions;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -182,7 +182,10 @@ public class FrontedWindowService : IFrontedWindowService
     {
         return registration switch
         {
-            // 模式 1：v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口）
+            // 模式 1：当前布局包作用域内的用户自定义 v3 窗口。
+            FrontedCustomV3LayoutWindowRegistration custom => CreateV3LayoutHostWindow(custom),
+
+            // 模式 1b：v3 layout host 窗口（含内置 v3 窗口和插件 v3 窗口）
             FrontedV3LayoutWindowRegistration v3 => CreateV3LayoutHostWindow(v3),
 
             // 模式 2：XAML 窗口（含内置与插件）— 通过 DI 解析窗口实例。
@@ -201,9 +204,9 @@ public class FrontedWindowService : IFrontedWindowService
         var window = new FrontedWindowBase();
         // 只向渲染层传递渲染所需的最小信息（Canonical ID 和显示名），
         // 不传递整个 registration，避免 Registry/UI 元数据泄漏到渲染层。
-        // 显示名使用 Core 回退解析（DisplayName 为空时回退到 LocalId），
-        // 内置窗口的本地化显示名由 UI 层通过 resx 覆盖。
-        var displayName = FrontedWindowDisplayNameResolver.GetFallbackDisplayName(registration);
+        // 初始显示名来自注册表，布局 JSON 加载后会按 DisplayNames 刷新。
+        Func<string> displayNameFallbackFactory = () => ResolveRegistrationDisplayName(registration);
+        var displayName = displayNameFallbackFactory();
         window.InitializeV3LayoutHost(
             registration.Id,
             displayName,
@@ -211,25 +214,10 @@ public class FrontedWindowService : IFrontedWindowService
             _services.GetRequiredService<IFrontedRenderer>(),
             _services.GetRequiredService<ISharedDataService>(),
             _services.GetService<IFrontedBehaviorRuntime>(),
-            _services.GetService<ILogger<FrontedWindowBase>>());
-
-        BindBuiltInV3WindowTitle(window, registration);
+            _services.GetService<ILogger<FrontedWindowBase>>(),
+            _services.GetService<ISettingsHostService>(),
+            displayNameFallbackFactory);
         return window;
-    }
-
-    private static void BindBuiltInV3WindowTitle(
-        FrontedWindowBase window,
-        FrontedWindowRegistration registration)
-    {
-        if (!registration.IsBuiltIn)
-        {
-            return;
-        }
-
-        var localizationKey =
-            $"neo-bpsys-wpf:neo_bpsys_wpf.Locales.Designer:Designer.Window.{registration.LocalId}";
-        var titleLocalization = new LocExtension(localizationKey);
-        _ = titleLocalization.SetBinding(window, Window.TitleProperty);
     }
 
     /// <summary>
@@ -271,16 +259,33 @@ public class FrontedWindowService : IFrontedWindowService
     {
         if (_windowRegistry.TryGet(windowId, out var registration))
         {
-            var settings = _services.GetService<ISettingsHostService>()?.Settings;
-            return FrontedWindowDisplayNameResolver.ResolveDisplayName(
-                registration,
-                settings?.Language ?? LanguageKey.System,
-                settings?.CultureInfo);
+            return ResolveRegistrationDisplayName(registration);
         }
 
         // 未注册时回退查缓存：缓存已使用 OrdinalIgnoreCase，可命中大小写不同的变体。
         _frontedWindows.TryGetValue(windowId, out var window);
         return window?.GetType().Name;
+    }
+
+    private string ResolveRegistrationDisplayName(FrontedWindowRegistration registration)
+    {
+        var settings = _services.GetService<ISettingsHostService>()?.Settings;
+        if (registration.IsBuiltIn)
+        {
+            var resourceKey = $"Designer.Window.{registration.LocalId}";
+            var localized = settings?.CultureInfo is { } culture
+                ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, resourceKey, culture)
+                : I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, resourceKey);
+            if (!string.Equals(localized, resourceKey, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+        }
+
+        return FrontedWindowDisplayNameResolver.ResolveDisplayName(
+            registration,
+            settings?.Language ?? LanguageKey.System,
+            settings?.CultureInfo);
     }
 
     /// <summary>
@@ -622,7 +627,7 @@ public class FrontedWindowService : IFrontedWindowService
         // 静默重建只支持宿主创建的 v3 Window。
         // XAML 窗口在 DI 中注册为 singleton，Close() 后 DI 仍返回同一已关闭实例，
         // WPF Window 关闭后无法再次 Show，因此必须直接拒绝，避免破坏窗口状态。
-        if (registration is not FrontedV3LayoutWindowRegistration)
+        if (registration.Kind != FrontedWindowRegistrationKind.V3Layout)
         {
             return false;
         }
@@ -770,6 +775,19 @@ public class FrontedWindowService : IFrontedWindowService
     public async Task ReloadFrontedLayoutsAsync()
     {
         _services.GetService<IFrontedResourceResolver>()?.ClearCache();
+
+        foreach (var pair in _frontedWindows.ToArray())
+        {
+            if (!pair.Key.StartsWith(FrontedV3LayoutWindowPathHelper.CustomPrefix, StringComparison.Ordinal)
+                || _windowRegistry.TryGet(pair.Key, out _))
+            {
+                continue;
+            }
+
+            CloseFrontedWindowInstance(pair.Value);
+            _frontedWindows.Remove(pair.Key);
+            _frontedWindowStates.Remove(pair.Key);
+        }
 
         foreach (var pair in _frontedWindows.ToArray())
         {

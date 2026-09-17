@@ -22,6 +22,20 @@
   <data name="OpenFrontedDesigner">
     <value>打开 v3 前台设计器</value>
   </data>
+  <data name="CreateCustomWindow"><value>新建 v3 窗口</value></data>
+  <data name="CustomWindows"><value>用户自定义窗口</value></data>
+  <data name="DeleteCustomWindow"><value>删除自定义窗口</value></data>
+  <data name="CustomWindowAdvancedMode"><value>高级模式（自定义 ID 和多语言名称）</value></data>
+  <data name="CustomWindowId"><value>窗口 ID</value></data>
+  <data name="CustomWindowChineseName"><value>简体中文名称</value></data>
+  <data name="CustomWindowEnglishName"><value>英语（美国）名称</value></data>
+  <data name="CustomWindowJapaneseName"><value>日语名称</value></data>
+  <data name="CustomWindowName"><value>窗口名称</value></data>
+  <data name="CustomWindowNameChinese"><value>窗口名称-简体中文</value></data>
+  <data name="CustomWindowNameEnglish"><value>窗口名称-英语（美国）</value></data>
+  <data name="CustomWindowNameJapanese"><value>窗口名称-日本语</value></data>
+  <data name="ConfirmDeleteCustomWindow"><value>确定要删除这个自定义窗口及其布局和行为吗？</value></data>
+  <data name="CustomWindowDeleted"><value>自定义窗口已删除</value></data>
   <data name="UserLayout">
     <value>用户布局</value>
   </data>
@@ -396,5 +410,11 @@
   </data>
   <data name="NoActiveLoopAnimations">
     <value>当前没有正在播放的循环动画。</value>
+  </data>
+  <data name="PackageCreatedVersionInvalid">
+    <value>布局包的创建版本格式无效。</value>
+  </data>
+  <data name="PackageCreatedByNewerVersion">
+    <value>此布局包由较新版本的软件创建，部分内容可能无法正常使用。</value>
   </data>
 </root>

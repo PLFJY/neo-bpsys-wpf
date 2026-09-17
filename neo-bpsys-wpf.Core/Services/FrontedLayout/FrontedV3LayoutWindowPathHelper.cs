@@ -19,6 +19,11 @@ public static partial class FrontedV3LayoutWindowPathHelper
     public const string PluginPrefix = "plugin:";
 
     /// <summary>
+    /// 用户自定义窗口布局标识使用的前缀。
+    /// </summary>
+    public const string CustomPrefix = "custom:";
+
+    /// <summary>
     /// 获取 Canonical ID 相对于前台布局根目录的安全文件夹路径。
     /// </summary>
     /// <param name="canonicalWindowId">内置窗口 LocalWindowId 或插件 Canonical ID。</param>
@@ -31,6 +36,13 @@ public static partial class FrontedV3LayoutWindowPathHelper
             EnsureSafePathSegment(packageId, nameof(packageId));
             EnsureSafePathSegment(localWindowId, nameof(localWindowId));
             return Path.Combine("plugin", packageId, localWindowId);
+        }
+
+        if (TryParseCustomCanonicalWindowId(canonicalWindowId, out packageId, out localWindowId))
+        {
+            EnsureSafePathSegment(packageId, nameof(packageId));
+            EnsureSafePathSegment(localWindowId, nameof(localWindowId));
+            return Path.Combine("custom", packageId, localWindowId);
         }
 
         EnsureSafePathSegment(canonicalWindowId, nameof(canonicalWindowId));
@@ -50,6 +62,13 @@ public static partial class FrontedV3LayoutWindowPathHelper
             EnsureSafePathSegment(packageId, nameof(packageId));
             EnsureSafePathSegment(localWindowId, nameof(localWindowId));
             return Path.Combine("plugin", packageId, $"{localWindowId}.json");
+        }
+
+        if (TryParseCustomCanonicalWindowId(canonicalWindowId, out packageId, out localWindowId))
+        {
+            EnsureSafePathSegment(packageId, nameof(packageId));
+            EnsureSafePathSegment(localWindowId, nameof(localWindowId));
+            return Path.Combine("custom", packageId, $"{localWindowId}.json");
         }
 
         EnsureSafePathSegment(canonicalWindowId, nameof(canonicalWindowId));
@@ -85,6 +104,13 @@ public static partial class FrontedV3LayoutWindowPathHelper
             return $"{PluginPrefix}{parts[1]}/{parts[2]}";
         }
 
+        if (parts.Length == 3 && string.Equals(parts[0], "custom", StringComparison.OrdinalIgnoreCase))
+        {
+            EnsureSafePathSegment(parts[1], "packageId");
+            EnsureSafePathSegment(parts[2], "localWindowId");
+            return $"{CustomPrefix}{parts[1]}/{parts[2]}";
+        }
+
         if (parts.Length == 1)
         {
             EnsureSafePathSegment(parts[0], "localWindowId");
@@ -114,6 +140,17 @@ public static partial class FrontedV3LayoutWindowPathHelper
             EnsureSafePathSegment(packageId, nameof(packageId));
             EnsureSafePathSegment(localWindowId, nameof(localWindowId));
             return $"{PluginPrefix}{packageId}/{localWindowId}";
+        }
+
+        if (parts.Length == 3
+            && string.Equals(parts[0], "custom", StringComparison.OrdinalIgnoreCase)
+            && parts[2].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            var packageId = parts[1];
+            var localWindowId = Path.GetFileNameWithoutExtension(parts[2]);
+            EnsureSafePathSegment(packageId, nameof(packageId));
+            EnsureSafePathSegment(localWindowId, nameof(localWindowId));
+            return $"{CustomPrefix}{packageId}/{localWindowId}";
         }
 
         if (parts.Length == 1 && parts[0].EndsWith(".json", StringComparison.OrdinalIgnoreCase))
@@ -200,6 +237,38 @@ public static partial class FrontedV3LayoutWindowPathHelper
     }
 
     /// <summary>
+    /// 解析格式为 <c>custom:{PackageId}/{WindowId}</c> 的用户自定义窗口标识。
+    /// </summary>
+    /// <param name="canonicalWindowId">要解析的 Canonical ID。</param>
+    /// <param name="packageId">解析成功时得到的布局包 ID。</param>
+    /// <param name="localWindowId">解析成功时得到的自定义窗口 ID。</param>
+    /// <returns>当标识格式和路径段均有效时为 <see langword="true"/>。</returns>
+    public static bool TryParseCustomCanonicalWindowId(
+        string canonicalWindowId,
+        out string packageId,
+        out string localWindowId)
+    {
+        packageId = string.Empty;
+        localWindowId = string.Empty;
+        if (string.IsNullOrWhiteSpace(canonicalWindowId)
+            || !canonicalWindowId.StartsWith(CustomPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var rest = canonicalWindowId[CustomPrefix.Length..];
+        var slash = rest.IndexOf('/');
+        if (slash <= 0 || slash == rest.Length - 1 || rest.IndexOf('/', slash + 1) >= 0)
+        {
+            return false;
+        }
+
+        packageId = rest[..slash];
+        localWindowId = rest[(slash + 1)..];
+        return IsSafePathSegment(packageId) && IsSafePathSegment(localWindowId);
+    }
+
+    /// <summary>
     /// 返回值对于一个布局路径段是否安全。
     /// </summary>
     /// <param name="value">要验证的路径段值。</param>
@@ -208,8 +277,19 @@ public static partial class FrontedV3LayoutWindowPathHelper
     {
         return !string.IsNullOrWhiteSpace(value)
                && SafeSegmentRegex().IsMatch(value)
-               && !value.Contains("..", StringComparison.Ordinal);
+               && !value.Contains("..", StringComparison.Ordinal)
+               && !value.EndsWith(".", StringComparison.Ordinal)
+               && !WindowsReservedPathNames.Contains(value);
     }
+
+    private static readonly HashSet<string> WindowsReservedPathNames = new(
+        new[]
+        {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+        },
+        StringComparer.OrdinalIgnoreCase);
 
     private static void EnsureSafePathSegment(string value, string name)
     {

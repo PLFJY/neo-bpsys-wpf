@@ -8,7 +8,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
 /// 插件目录或允许空白默认布局等字段。<see cref="Kind"/> 固定返回
 /// <see cref="FrontedWindowRegistrationKind.V3Layout"/>。
 /// </remarks>
-public sealed class FrontedV3LayoutWindowRegistration : FrontedWindowRegistration
+public class FrontedV3LayoutWindowRegistration : FrontedWindowRegistration
 {
     /// <inheritdoc />
     public override FrontedWindowRegistrationKind Kind => FrontedWindowRegistrationKind.V3Layout;

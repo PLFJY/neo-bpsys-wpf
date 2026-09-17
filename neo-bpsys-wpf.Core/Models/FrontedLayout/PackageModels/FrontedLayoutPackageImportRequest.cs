@@ -81,6 +81,21 @@ public sealed class FrontedLayoutPackageImportResult
     public bool RequiresNewerApp { get; set; }
 
     /// <summary>
+    /// 指示当前应用版本低于包创建版本；该警告不影响导入。
+    /// </summary>
+    public bool HasCreatedVersionWarning { get; set; }
+
+    /// <summary>
+    /// 包声明的创建版本。
+    /// </summary>
+    public string? CreatedVersion { get; set; }
+
+    /// <summary>
+    /// 创建版本警告或数据警告文本。
+    /// </summary>
+    public string? WarningMessage { get; set; }
+
+    /// <summary>
     /// 指示是否已存在具有相同标识的已安装包。
     /// </summary>
     public bool PackageAlreadyExists { get; set; }

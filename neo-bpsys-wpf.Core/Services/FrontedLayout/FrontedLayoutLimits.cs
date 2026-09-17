@@ -22,7 +22,9 @@ public static class FrontedLayoutLimits
     public const int MaxPackageNameLength = 128;
     public const int MaxPackageAuthorLength = 64;
     public const int MaxPackageMinVersionLength = 32;
+    public const int MaxPackageCreatedVersionLength = 128;
     public const int MaxPackageDescriptionLength = 2048;
+    public const int MaxWindowDisplayNameLength = 128;
 
     public const int MaxBindingPathLength = 256;
     public const int MaxResourcePathLength = 1024;
