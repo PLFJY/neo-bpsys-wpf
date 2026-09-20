@@ -173,7 +173,7 @@
     <value>試合選択</value>
   </data>
   <data name="Next">
-    <value>次へ</value>
+    <value>次の試合（リセット）</value>
   </data>
   <data name="IsGameFinished">
     <value>試合終了</value>

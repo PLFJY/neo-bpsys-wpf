@@ -173,7 +173,7 @@
     <value>Game selection</value>
   </data>
   <data name="Next">
-    <value>Next</value>
+    <value>Next game (reset)</value>
   </data>
   <data name="IsGameFinished">
     <value>Is game finished</value>
