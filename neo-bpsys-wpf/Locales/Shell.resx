@@ -173,7 +173,7 @@
     <value>场次选择</value>
   </data>
   <data name="Next">
-    <value>下一局</value>
+    <value>下一局（重置）</value>
   </data>
   <data name="IsGameFinished">
     <value>对局已完成</value>
