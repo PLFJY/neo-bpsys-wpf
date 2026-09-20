@@ -436,5 +436,10 @@
         "Camp": "Hun",
         "ImageFileName": "牙医.png",
         "BookOrderIndex": 350
+    },
+    "心兽": {
+        "Camp": "Hun",
+        "ImageFileName": "心兽.png",
+        "BookOrderIndex": 360
     }
 }
