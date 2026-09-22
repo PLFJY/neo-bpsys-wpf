@@ -24,6 +24,26 @@ public class ExamplePlugin : PluginBase
         services.AddFrontedV3Control<TeamCardControl>();
         services.AddFrontedV3Control<StatusBadgeControl>();
 
+        services.AddFrontedBehaviorEvents<ExamplePlugin>(events =>
+        {
+            events.Add("CounterChanged", definition => definition
+                .WithDisplayName("Counter changed")
+                .WithDescription("Published after the example counter is increased.")
+                .WithCategory("ExamplePlugin behavior events")
+                .AddPayload<int>("CounterValue", "Counter value")
+                .AddPayload<int>("Delta", "Change amount"));
+
+            events.Add("StartPulse", definition => definition
+                .WithDisplayName("Start pulse loop")
+                .WithDescription("Requests a configured Loop behavior to start.")
+                .WithCategory("ExamplePlugin behavior events"));
+
+            events.Add("StopPulse", definition => definition
+                .WithDisplayName("Stop pulse loop")
+                .WithDescription("Requests a configured Loop behavior to stop.")
+                .WithCategory("ExamplePlugin behavior events"));
+        });
+
         services.AddSingleton<IExampleService, ExampleService>();
 
         Settings = ConfigureFileHelper.LoadConfig<PluginSettings>(Path.Combine(PluginConfigFolder, "Settings.json"));

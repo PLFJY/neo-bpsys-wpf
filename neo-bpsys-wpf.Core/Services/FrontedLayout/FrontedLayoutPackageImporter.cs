@@ -30,6 +30,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private readonly FrontedImageCompressionService _imageCompressionService;
     private readonly IFrontedV3ControlRegistry? _controlRegistry;
     private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
+    private readonly FrontedBehaviorEventCatalog? _behaviorEventCatalog;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -43,18 +44,21 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     /// <param name="logger">日志记录器。</param>
     /// <param name="controlRegistry">控件注册表（可选）。</param>
     /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
+    /// <param name="behaviorEventCatalog">当前启动已注册的行为事件目录（可选）。</param>
     public FrontedLayoutPackageImporter(
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutPackageImporter> logger,
         IFrontedV3ControlRegistry? controlRegistry = null,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
+        FrontedBehaviorEventCatalog? behaviorEventCatalog = null)
         : this(
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.AppTempPath, "bpui-import"),
             packageManager,
             logger,
             controlRegistry,
-            pluginMetadataProvider)
+            pluginMetadataProvider,
+            behaviorEventCatalog)
     {
     }
 
@@ -67,13 +71,15 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     /// <param name="logger">日志记录器。</param>
     /// <param name="controlRegistry">控件注册表（可选）。</param>
     /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
+    /// <param name="behaviorEventCatalog">当前启动已注册的行为事件目录（可选）。</param>
     public FrontedLayoutPackageImporter(
         string packageRoot,
         string tempRoot,
         IFrontedLayoutPackageManager? packageManager = null,
         ILogger<FrontedLayoutPackageImporter>? logger = null,
         IFrontedV3ControlRegistry? controlRegistry = null,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
+        FrontedBehaviorEventCatalog? behaviorEventCatalog = null)
     {
         _packageRoot = packageRoot;
         _tempRoot = tempRoot;
@@ -81,6 +87,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         _logger = logger ?? NullLogger<FrontedLayoutPackageImporter>.Instance;
         _controlRegistry = controlRegistry;
         _pluginMetadataProvider = pluginMetadataProvider;
+        _behaviorEventCatalog = behaviorEventCatalog;
         _validator = new FrontedLayoutValidator(controlRegistry);
         _imageSafetyService = new FrontedImageSafetyService();
         _imageCompressionService = new FrontedImageCompressionService();
@@ -241,16 +248,29 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return validation;
         }
 
-        var packageLayouts = await LoadPackageLayoutsAsync(stagingRoot, manifest!, cancellationToken);
+        var validatedManifest = manifest!;
+        var packageLayouts = await LoadPackageLayoutsAsync(stagingRoot, validatedManifest, cancellationToken);
+        var behaviorDocuments = await LoadPackageBehaviorDocumentsAsync(
+            stagingRoot,
+            validatedManifest,
+            cancellationToken);
+        validatedManifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
+            packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
+            validatedManifest.PluginDependencies,
+            _controlRegistry,
+            _pluginMetadataProvider,
+            behaviorDocuments);
         var missingPluginControls = FrontedLayoutPluginDependencyScanner.FindMissingPluginControls(
             packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
             _controlRegistry);
         var unsatisfiedPluginDependencies = FrontedLayoutPluginDependencyScanner.FindUnsatisfiedPluginDependencies(
             packageLayouts.Select(layout => (layout.Window, FrontedLayoutConstants.BaseCanvasName, FrontedWindowConfigCanvasAdapter.ToCanvasConfig(layout.Config))),
-            manifest!.PluginDependencies,
+            validatedManifest.PluginDependencies,
             _controlRegistry,
-            _pluginMetadataProvider);
-        var packageId = manifest.PackageId;
+            _pluginMetadataProvider,
+            behaviorDocuments,
+            _behaviorEventCatalog);
+        var packageId = validatedManifest.PackageId;
         var installPath = GetInstalledPackagePath(packageId);
         if (Directory.Exists(installPath) && !replaceExisting)
         {
@@ -287,8 +307,8 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             Success = true,
             PackageId = packageId,
             InstalledPath = installPath,
-            LayoutCount = manifest.Content.Layouts.Count + manifest.Content.CustomWindows.Count,
-            ResourceCount = manifest.Content.Resources.Count,
+            LayoutCount = validatedManifest.Content.Layouts.Count + validatedManifest.Content.CustomWindows.Count,
+            ResourceCount = validatedManifest.Content.Resources.Count,
             MissingPluginControls = missingPluginControls,
             UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies,
             CompressedImages = validation.CompressedImages,
@@ -322,6 +342,48 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             manifest.PluginDependencies,
             _controlRegistry);
         return layouts;
+    }
+
+    private async Task<List<(string Window, FrontedBehaviorDocument Document)>> LoadPackageBehaviorDocumentsAsync(
+        string stagingRoot,
+        FrontedLayoutPackageManifest manifest,
+        CancellationToken cancellationToken)
+    {
+        var documents = new List<(string Window, FrontedBehaviorDocument Document)>();
+        foreach (var layout in manifest.Content.Layouts.Concat(manifest.Content.CustomWindows))
+        {
+            var layoutRelativePath = FrontedV3LayoutWindowPathHelper.GetLayoutRelativePath(layout.Window);
+            var folder = Path.GetDirectoryName(layoutRelativePath);
+            var fileName = $"{Path.GetFileNameWithoutExtension(layoutRelativePath)}.behaviors.json";
+            var relativePath = string.IsNullOrWhiteSpace(folder)
+                ? Path.Combine("FrontedBehaviors", fileName)
+                : Path.Combine("FrontedBehaviors", folder, fileName);
+            var path = CombineInsideRoot(stagingRoot, relativePath);
+            if (!File.Exists(path))
+            {
+                continue;
+            }
+
+            try
+            {
+                var document = JsonSerializer.Deserialize<FrontedBehaviorDocument>(
+                    await File.ReadAllTextAsync(path, cancellationToken),
+                    _jsonSerializerOptions);
+                if (document is not null)
+                {
+                    documents.Add((layout.Window, document));
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to scan behavior plugin dependencies for {Window}; the behavior file remains preserved.",
+                    layout.Window);
+            }
+        }
+
+        return documents;
     }
 
     private async Task<FrontedLayoutPackageImportResult> ValidatePackageAsync(

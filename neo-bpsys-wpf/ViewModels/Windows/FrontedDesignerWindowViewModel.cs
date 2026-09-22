@@ -91,6 +91,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly IFrontedWindowService? _frontedWindowService;
     private readonly IFrontedBehaviorService _behaviorService;
+    private readonly FrontedBehaviorEventCatalog _behaviorEventCatalog;
     private readonly FrontedDesignerLayoutCatalog _layoutCatalog;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
@@ -163,6 +164,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _packageManager = null;
         _frontedWindowService = null;
         _behaviorService = new NoopFrontedBehaviorService();
+        _behaviorEventCatalog = new FrontedBehaviorEventCatalog();
         _animationRuntime = null;
         _previewAnimationScope = null;
         _behaviorClipboard = new FrontedBehaviorClipboard();
@@ -227,6 +229,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// <param name="packageManager">布局包管理器。</param>
     /// <param name="frontedWindowService">前台窗口服务，用于保存后刷新实时输出。</param>
     /// <param name="behaviorService">行为文档服务。</param>
+    /// <param name="behaviorEventCatalog">包含插件注册的统一行为事件目录。</param>
     /// <param name="behaviorClipboard">共享行为剪贴板。</param>
     /// <param name="behaviorCopyPasteService">行为复制/粘贴服务。</param>
     /// <param name="animationRuntime">预览使用的动画运行时。</param>
@@ -251,6 +254,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         IFrontedLayoutPackageManager packageManager,
         IFrontedWindowService frontedWindowService,
         IFrontedBehaviorService behaviorService,
+        FrontedBehaviorEventCatalog behaviorEventCatalog,
         IFrontedBehaviorClipboard behaviorClipboard,
         FrontedBehaviorCopyPasteService behaviorCopyPasteService,
         IFrontedAnimationRuntime animationRuntime,
@@ -276,6 +280,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _packageManager = packageManager;
         _frontedWindowService = frontedWindowService;
         _behaviorService = behaviorService;
+        _behaviorEventCatalog = behaviorEventCatalog;
         _behaviorClipboard = behaviorClipboard;
         _behaviorCopyPasteService = behaviorCopyPasteService;
         _animationRuntime = animationRuntime;
@@ -6151,7 +6156,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         return new BehaviorPanelViewModel(
             _localizationService,
-            new FrontedBehaviorEventCatalog(),
+            _behaviorEventCatalog,
             MarkLayoutDirtyFromBehaviorPanel,
             MarkBehaviorsDirty,
             animationRuntime: _animationRuntime,

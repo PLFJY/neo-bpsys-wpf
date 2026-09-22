@@ -287,6 +287,130 @@ FrontedLayouts/plugin/plfjy.ExamplePlugin/ExampleLayoutOverlay.json
 
 插件市场安装/更新引导仍可用，但永不静默安装；导入不依赖安装完成。安装或更新插件后通常需要重启。
 
+## Designer v3 自定义动画触发事件
+
+插件可以注册自己的语义事件，让布局作者在 Designer v3 中把它们选作 OneShot 或 Loop 行为的动画触发器。职责边界是：**插件只描述并发布“发生了什么”，Behavior 配置决定“发生以后执行什么动画”**。
+
+事件始终进入宿主现有链路：
+
+```text
+Plugin business logic
+  -> IFrontedBehaviorEventPublisher<TPlugin>
+  -> FrontedBehaviorEvent
+  -> IFrontedEventBus
+     -> WPF V3 Runtime
+     -> WebRenderer
+  -> TriggerEvaluator
+  -> Behavior Graph
+  -> Animation Runtime
+```
+
+插件不得查找某个 Behavior，不得直接调用 `IFrontedAnimationRuntime`，也不要借用 `Guidance.*`、`SharedData.*`、`Selection.*` 等既有业务事件来模拟插件按钮或插件业务动作。这样会污染宿主事件语义，并可能误触发其他监听器。
+
+### 注册事件
+
+在 `PluginBase.Initialize(...)` 中调用 `AddFrontedBehaviorEvents<TPlugin>()`。插件作者只填写 local EventId，不能手写或重复传入自己的 PackageId：
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Extensions.Registry;
+
+public sealed class ExamplePlugin : PluginBase
+{
+    public override void Initialize(
+        HostBuilderContext context,
+        IServiceCollection services)
+    {
+        services.AddFrontedBehaviorEvents<ExamplePlugin>(events =>
+        {
+            events.Add("ShowCard", e => e
+                .WithDisplayName("Show card")
+                .WithDescription("Request the frontend to show a player card")
+                .WithCategory("Example")
+                .AddPayload<int>("PlayerIndex", "Player index")
+                .AddPayload<string>("PlayerName", "Player name")
+                .AddPayload<Camp>("Camp", "Camp"));
+
+            events.Add("HideCard", e => e
+                .WithDisplayName("Hide card")
+                .WithCategory("Example"));
+        });
+    }
+}
+```
+
+宿主在插件初始化作用域中自动取得 `manifest.yml` 的 PackageId，并生成 canonical EventType：
+
+```text
+local EventId: ShowCard
+PackageId:     top.example.overlay
+EventType:     plugin:top.example.overlay/ShowCard
+```
+
+local EventId 必须是非空的安全局部标识，不能包含 `plugin:`、`/`、`\`、`:` 或 `..`。不同插件可以使用同一个 local EventId；同一插件重复注册相同事件会在启动注册阶段明确失败。插件不能把事件声明为 built-in，也不能伪造其他插件的 namespace。
+
+`WithDisplayName`、`WithDescription`、`WithCategory` 的直接文本是可靠 fallback。它们都允许额外提供宿主 localization key；当前版本不会跨程序集自动解析插件自己的 resx，因此插件不应只提供宿主不存在的 key 而省略直接文本。
+
+### 发布事件
+
+业务服务注入与插件入口类型绑定的发布器，并继续使用注册时的 local EventId：
+
+```csharp
+public sealed class ExampleController(
+    IFrontedBehaviorEventPublisher<ExamplePlugin> publisher)
+{
+    public void Execute()
+    {
+        publisher.Publish(
+            "ShowCard",
+            new Dictionary<string, object?>
+            {
+                ["PlayerIndex"] = 2,
+                ["PlayerName"] = "Alice",
+                ["Camp"] = Camp.Sur
+            });
+    }
+}
+```
+
+发布器拒绝未注册的 local EventId、未知或缺失 payload 字段、类型不匹配，以及带 `Event.` 前缀的 payload key。它自动写入 canonical EventType、`Source = "Plugin:<PackageId>"`、UTC 时间戳和可选 `WindowId` / `WindowType`，再发布到唯一的 `IFrontedEventBus`。调用方不需要也不能在每次发布时传 PackageId。
+
+允许的 payload 类型为：
+
+- `string`、`bool`
+- `byte`、`short`、`int`、`long`
+- `float`、`double`、`decimal`
+- `Guid`
+- `enum`
+- `DateTime`、`DateTimeOffset`
+- 上述值类型的 nullable 版本
+
+复杂对象、集合和任意 DTO 不属于插件事件协议。枚举会规范化为稳定 enum name；`Guid` 和日期会规范化为 invariant 字符串，以便 WPF filter、Graph 与 WebRenderer IPC 使用同一语义。注册字段与发布字典中的 key 不带 `Event.` 前缀。
+
+### Designer 使用
+
+注册后，Designer 会显示：
+
+```text
+Trigger:
+    Example / Show card
+
+Filter:
+    Event.PlayerIndex == 2
+    Event.Camp == Sur
+```
+
+普通插件事件不区分“瞬发事件”“循环开始事件”或“循环停止事件”：每个已注册事件都可用于 OneShot `Trigger`、Loop `StartTrigger` 和 `StopTriggers`，由 Behavior 自己决定收到事件后执行哪种动画。Graph 中继续使用 `Event.*`；Loop 的阶段语义仍是 `StartEvent.*` 和 `StopEvent.*`。第一版普通插件事件不用于 Transition，因为 Transition 由 `IFrontedTransitionOrchestrator` 的 `ExitGraph -> commit -> EnterGraph` 独立链路驱动；未来的插件 Transition API 将作为单独能力设计。
+
+### 包依赖与缺失恢复
+
+导出 `.bpui` 时，宿主扫描 behavior 文档中的 `Trigger.EventType`、`StartTrigger.EventType`、`StopTriggers[].EventType` 和 `TransitionTrigger.EventType`。`plugin:<PackageId>/<EventId>` 引用会自动进入 manifest `PluginDependencies`：`Events` 保存 canonical EventType，`RequiredBy` 保存引用窗口，已安装插件版本沿用现有依赖合并规则写入 `MinVersion`。
+
+缺少插件或某个 event registration 不会阻止导入，也不会删除、清空或替换 behavior。Designer 会保留原 EventType、Filters 和 Graph，并显示 Missing plugin event；插件重新安装或恢复注册、重启应用后，同一 canonical EventType 会自动重新被识别，不需要迁移 JSON。插件安装或更新通常需要重启，因为插件能力在 Host build 前注入 DI，不支持运行时 hot reload。
+
+仓库中的 `neo-bpsys-wpf.ExamplePlugin` 提供了可运行演示：`CounterChanged` 发布 `CounterValue` / `Delta`，另有 `StartPulse` 和 `StopPulse` 两个无负载语义事件。三个事件都可自由用于 OneShot 或 Loop 的启动/停止触发器；名称只表达示例业务含义，不限制 Behavior 类型。启动 Debug 构建后，可在示例插件后台页点击三个带图标按钮观察发布状态，并在 Designer 中配置对应动画。
+
 ## 迁移说明
 
 旧的前台窗口 contributor/descriptor 架构（包括 contributor 接口、window descriptor、window kind 枚举和 contributor 注册扩展）已整体移除，不提供 Obsolete shim，也不保留 adapter。旧的前台控件架构（`IFrontedControl`、`IFrontedControlPluginContributor`、`FrontedPluginControlDescriptor`、`AddFrontedPluginControlContributor<T>()` 等）也已整体移除，由统一 V3 Control API 替代。

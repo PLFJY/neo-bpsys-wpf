@@ -2470,6 +2470,9 @@
   <data name="Designer.Behaviors.UnknownParameterFormat">
     <value>Unknown parameter: {0}</value>
   </data>
+  <data name="Designer.Behaviors.MissingPluginEvent">
+    <value>⚠ Missing plugin event</value>
+  </data>
   <data name="Designer.Behaviors.OpenAnimationEditor">
     <value>Open animation editor</value>
   </data>

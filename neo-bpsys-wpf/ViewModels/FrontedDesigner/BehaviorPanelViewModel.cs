@@ -25,6 +25,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     private readonly Action _markBehaviorsDirty;
     private readonly Action _captureUndoSnapshot;
     private readonly FrontedNodeCatalog _nodeCatalog;
+    private readonly FrontedBehaviorEventCatalog _eventCatalog;
     private readonly FrontedNodeGraphValidator _graphValidator;
     private readonly IFrontedNodeGraphRuntime _graphRuntime;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
@@ -85,6 +86,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         Action? captureUndoSnapshot = null)
     {
         _localizationService = localizationService;
+        _eventCatalog = eventCatalog;
         _markLayoutDirty = markLayoutDirty;
         _markBehaviorsDirty = markBehaviorsDirty;
         _captureUndoSnapshot = captureUndoSnapshot ?? (() => { });
@@ -98,6 +100,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         _copyPasteService = copyPasteService
             ?? new FrontedBehaviorCopyPasteService(new FrontedBehaviorControlSemanticResolver(), localizationService);
         EventOptions = [.. eventCatalog.Events.Select(CreateEventOption)];
+        EventBusEventOptions = FilterEventOptions(FrontedBehaviorEventUsage.EventBus);
+        TransitionEventOptions = FilterEventOptions(FrontedBehaviorEventUsage.Transition);
         OperatorOptions = CreateOperatorOptions();
         StopModeOptions = CreateEnumOptions<FrontedLoopStopMode>("Designer.Behaviors.StopMode");
         ReentryPolicyOptions = CreateEnumOptions<FrontedReentryPolicy>("Designer.Behaviors.ReentryPolicy");
@@ -112,6 +116,16 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     /// 获取事件选择器中显示的触发事件选项。
     /// </summary>
     public IReadOnlyList<BehaviorEventOptionViewModel> EventOptions { get; }
+
+    /// <summary>
+    /// 获取统一事件总线触发器可用的事件选项。
+    /// </summary>
+    public IReadOnlyList<BehaviorEventOptionViewModel> EventBusEventOptions { get; }
+
+    /// <summary>
+    /// 获取 Transition 触发器可用的事件选项。
+    /// </summary>
+    public IReadOnlyList<BehaviorEventOptionViewModel> TransitionEventOptions { get; }
 
     /// <summary>
     /// 获取过滤条件行中显示的触发过滤运算符选项。
@@ -284,7 +298,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             Kind = FrontedBehaviorKind.OneShot,
             Name = Localize("Designer.Behaviors.NewOneShot", "New OneShot Behavior"),
             Enabled = true,
-            Trigger = new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty },
+            Trigger = new TriggerDescriptor { EventType = EventBusEventOptions.FirstOrDefault()?.EventType ?? string.Empty },
             Graph = new FrontedNodeGraph()
         };
         set.Behaviors.Add(behavior);
@@ -315,8 +329,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             Kind = FrontedBehaviorKind.Loop,
             Name = Localize("Designer.Behaviors.NewLoop", "New Loop Behavior"),
             Enabled = true,
-            StartTrigger = new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty },
-            StopTriggers = [new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty }],
+            StartTrigger = new TriggerDescriptor { EventType = EventBusEventOptions.FirstOrDefault()?.EventType ?? string.Empty },
+            StopTriggers = [new TriggerDescriptor { EventType = EventBusEventOptions.FirstOrDefault()?.EventType ?? string.Empty }],
             StartGraph = new FrontedNodeGraph(),
             LoopGraph = new FrontedNodeGraph(),
             StopGraph = new FrontedNodeGraph(),
@@ -352,8 +366,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             Enabled = true,
             TransitionTrigger = new TriggerDescriptor
             {
-                EventType = EventOptions.FirstOrDefault(option => option.EventType == "Selection.CharacterPick")?.EventType
-                            ?? EventOptions.FirstOrDefault()?.EventType
+                EventType = TransitionEventOptions.FirstOrDefault(option => option.EventType == "Selection.CharacterPick")?.EventType
+                            ?? TransitionEventOptions.FirstOrDefault()?.EventType
                             ?? string.Empty
             },
             ExitGraph = new FrontedNodeGraph(),
@@ -657,7 +671,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     {
         return new BehaviorEditorViewModel(
             behavior,
-            EventOptions,
+            EventBusEventOptions,
+            TransitionEventOptions,
             OperatorOptions,
             StopModeOptions,
             ReentryPolicyOptions,
@@ -672,7 +687,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             _previewAnimationScope,
             editor => AnimationEditorRequested?.Invoke(editor),
             CreateTargetOptions,
-            saveBehaviorAsync: _saveBehaviorAsync);
+            saveBehaviorAsync: _saveBehaviorAsync,
+            eventCatalog: _eventCatalog);
     }
 
     /// <summary>
@@ -729,19 +745,26 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             descriptor.DisplayNameKey,
             descriptor.CategoryDisplayNameKey,
             descriptor.DescriptionKey,
-            descriptor.EventType,
-            descriptor.Category,
+            string.IsNullOrWhiteSpace(descriptor.DisplayName) ? descriptor.EventType : descriptor.DisplayName,
+            string.IsNullOrWhiteSpace(descriptor.CategoryDisplayName) ? descriptor.Category : descriptor.CategoryDisplayName,
+            string.IsNullOrWhiteSpace(descriptor.Description) ? descriptor.EventType : descriptor.Description,
+            descriptor.SupportedUsages,
             descriptor.PayloadFields.Select(field => new BehaviorPayloadFieldOptionViewModel(
                 field.Path,
                 field.DisplayNameKey,
                 field.DescriptionKey,
                 field.TypeName,
+                string.IsNullOrWhiteSpace(field.DisplayName) ? field.Path : field.DisplayName,
+                string.IsNullOrWhiteSpace(field.Description) ? field.Path : field.Description,
                 field.EnumValues,
                 false,
                 field.IsCommonFilterTarget,
                 Localize)).ToArray(),
             Localize);
     }
+
+    private IReadOnlyList<BehaviorEventOptionViewModel> FilterEventOptions(FrontedBehaviorEventUsage usage) =>
+        EventOptions.Where(option => (option.SupportedUsages & usage) != 0).ToArray();
 
     /// <summary>
     /// 创建本地化触发过滤运算符选项。
@@ -925,6 +948,7 @@ public sealed class BehaviorEventOptionViewModel : ObservableObject
     private readonly string _descriptionKey;
     private readonly string _eventTypeFallback;
     private readonly string _categoryFallback;
+    private readonly string _descriptionFallback;
     private readonly Func<string, string, string> _localize;
     private string _displayName;
     private string _categoryDisplayName;
@@ -937,8 +961,11 @@ public sealed class BehaviorEventOptionViewModel : ObservableObject
         string descriptionKey,
         string eventTypeFallback,
         string categoryFallback,
+        string descriptionFallback,
+        FrontedBehaviorEventUsage supportedUsages,
         IReadOnlyList<BehaviorPayloadFieldOptionViewModel> payloadFields,
-        Func<string, string, string> localize)
+        Func<string, string, string> localize,
+        bool isMissing = false)
     {
         EventType = eventType;
         _displayNameKey = displayNameKey;
@@ -946,16 +973,36 @@ public sealed class BehaviorEventOptionViewModel : ObservableObject
         _descriptionKey = descriptionKey;
         _eventTypeFallback = eventTypeFallback;
         _categoryFallback = categoryFallback;
+        _descriptionFallback = descriptionFallback;
         _localize = localize;
         PayloadFields = payloadFields;
+        SupportedUsages = supportedUsages;
+        IsMissing = isMissing;
 
         var category = localize(categoryDisplayNameKey, categoryFallback);
         _categoryDisplayName = category;
         _displayName = $"{category} / {localize(displayNameKey, eventTypeFallback)}";
-        _description = localize(descriptionKey, eventTypeFallback);
+        _description = localize(descriptionKey, descriptionFallback);
     }
 
+    /// <summary>
+    /// 获取规范事件类型。
+    /// </summary>
     public string EventType { get; }
+
+    /// <summary>
+    /// 获取事件所属的运行时触发链路。
+    /// </summary>
+    public FrontedBehaviorEventUsage SupportedUsages { get; }
+
+    /// <summary>
+    /// 获取该选项是否代表当前未注册的插件事件。
+    /// </summary>
+    public bool IsMissing { get; }
+
+    /// <summary>
+    /// 获取可用于过滤器的负载字段。
+    /// </summary>
     public IReadOnlyList<BehaviorPayloadFieldOptionViewModel> PayloadFields { get; }
 
     public string DisplayName
@@ -983,7 +1030,7 @@ public sealed class BehaviorEventOptionViewModel : ObservableObject
     {
         CategoryDisplayName = _localize(_categoryDisplayNameKey, _categoryFallback);
         DisplayName = $"{CategoryDisplayName} / {_localize(_displayNameKey, _eventTypeFallback)}";
-        Description = _localize(_descriptionKey, _eventTypeFallback);
+        Description = _localize(_descriptionKey, _descriptionFallback);
         foreach (var field in PayloadFields)
         {
             field.Refresh();
@@ -996,6 +1043,8 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
     private readonly string _displayNameKey;
     private readonly string _descriptionKey;
     private readonly string _pathOrTypeFallback;
+    private readonly string _displayNameFallback;
+    private readonly string _descriptionFallback;
     private readonly Func<string, string, string> _localize;
     private string _displayName;
     private string _description;
@@ -1005,6 +1054,8 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
         string displayNameKey,
         string descriptionKey,
         string typeName,
+        string displayNameFallback,
+        string descriptionFallback,
         IReadOnlyList<string>? enumValues,
         bool isUnknown,
         bool isCommonFilterTarget,
@@ -1014,6 +1065,8 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
         _displayNameKey = displayNameKey;
         _descriptionKey = descriptionKey;
         _pathOrTypeFallback = typeName;
+        _displayNameFallback = displayNameFallback;
+        _descriptionFallback = descriptionFallback;
         _localize = localize;
         TypeName = typeName;
         EnumValues = enumValues ?? [];
@@ -1027,9 +1080,9 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
         }
         else
         {
-            _displayName = localize(displayNameKey, path);
+            _displayName = localize(displayNameKey, displayNameFallback);
         }
-        _description = localize(descriptionKey, path);
+        _description = localize(descriptionKey, descriptionFallback);
     }
 
     public string Path { get; }
@@ -1064,8 +1117,8 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
         }
         else
         {
-            DisplayName = _localize(_displayNameKey, Path);
-            Description = _localize(_descriptionKey, Path);
+            DisplayName = _localize(_displayNameKey, _displayNameFallback);
+            Description = _localize(_descriptionKey, _descriptionFallback);
         }
     }
 }
@@ -1076,10 +1129,12 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     private readonly Action _captureUndoSnapshot;
     private readonly Func<string, string, string> _localize;
     private readonly string _graphPlaceholder;
+    private readonly IReadOnlyList<BehaviorEventOptionViewModel> _eventBusEventOptions;
 
     public BehaviorEditorViewModel(
         FrontedBehavior model,
-        IReadOnlyList<BehaviorEventOptionViewModel> eventOptions,
+        IReadOnlyList<BehaviorEventOptionViewModel> eventBusEventOptions,
+        IReadOnlyList<BehaviorEventOptionViewModel> transitionEventOptions,
         IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
         IReadOnlyList<BehaviorOptionViewModel> stopModeOptions,
         IReadOnlyList<BehaviorOptionViewModel> reentryPolicyOptions,
@@ -1094,24 +1149,26 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         FrontedDesignerPreviewAnimationScope? previewAnimationScope,
         Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor,
         Func<IReadOnlyList<FrontedNodeTargetOptionViewModel>>? createTargetOptions = null,
-        Func<Task<bool>>? saveBehaviorAsync = null)
+        Func<Task<bool>>? saveBehaviorAsync = null,
+        FrontedBehaviorEventCatalog? eventCatalog = null)
     {
         Model = model;
         _markDirty = markDirty;
         _captureUndoSnapshot = captureUndoSnapshot;
         _localize = localize;
         _graphPlaceholder = graphPlaceholder;
+        _eventBusEventOptions = eventBusEventOptions;
 
         if (Model.Kind == FrontedBehaviorKind.OneShot)
         {
-            Model.Trigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
+            Model.Trigger ??= new TriggerDescriptor { EventType = eventBusEventOptions.FirstOrDefault()?.EventType ?? string.Empty };
         }
         else if (Model.Kind == FrontedBehaviorKind.Loop)
         {
-            Model.StartTrigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
+            Model.StartTrigger ??= new TriggerDescriptor { EventType = eventBusEventOptions.FirstOrDefault()?.EventType ?? string.Empty };
             if (Model.StopTriggers.Count == 0)
             {
-                Model.StopTriggers.Add(new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty });
+                Model.StopTriggers.Add(new TriggerDescriptor { EventType = eventBusEventOptions.FirstOrDefault()?.EventType ?? string.Empty });
             }
             Model.LoopPolicy ??= new FrontedLoopPolicy();
         }
@@ -1119,20 +1176,20 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         {
             Model.TransitionTrigger ??= new TriggerDescriptor
             {
-                EventType = eventOptions.FirstOrDefault(option => option.EventType == "Selection.CharacterPick")?.EventType
-                            ?? eventOptions.FirstOrDefault()?.EventType
+                EventType = transitionEventOptions.FirstOrDefault(option => option.EventType == "Selection.CharacterPick")?.EventType
+                            ?? transitionEventOptions.FirstOrDefault()?.EventType
                             ?? string.Empty
             };
         }
 
-        Trigger = new TriggerDescriptorEditorViewModel(Model.Trigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
-        StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
+        Trigger = new TriggerDescriptorEditorViewModel(Model.Trigger, eventBusEventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
+        StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventBusEventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
         foreach (var trigger in Model.StopTriggers)
         {
-            StopTriggers.Add(new TriggerDescriptorEditorViewModel(trigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot));
+            StopTriggers.Add(new TriggerDescriptorEditorViewModel(trigger, eventBusEventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot));
         }
 
-        TransitionTrigger = new TriggerDescriptorEditorViewModel(Model.TransitionTrigger, eventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
+        TransitionTrigger = new TriggerDescriptorEditorViewModel(Model.TransitionTrigger, transitionEventOptions, operatorOptions, markDirty, localize, captureUndoSnapshot);
         LoopPolicy = new LoopPolicyEditorViewModel(Model.LoopPolicy, stopModeOptions, reentryPolicyOptions, markDirty, captureUndoSnapshot);
         ReentryPolicyOptions = reentryPolicyOptions;
         OpenAnimationEditorCommand = new RelayCommand(() => openAnimationEditor(
@@ -1147,6 +1204,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
                 markDirty,
                 createTargetOptions?.Invoke(),
                 saveAsync: saveBehaviorAsync,
+                eventCatalog: eventCatalog,
                 captureUndoSnapshot: captureUndoSnapshot)));
     }
 
@@ -1292,11 +1350,11 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     private void AddStopTrigger()
     {
         _captureUndoSnapshot();
-        var trigger = new TriggerDescriptor { EventType = StartTrigger.EventOptions.FirstOrDefault()?.EventType ?? string.Empty };
+        var trigger = new TriggerDescriptor { EventType = _eventBusEventOptions.FirstOrDefault()?.EventType ?? string.Empty };
         Model.StopTriggers.Add(trigger);
         StopTriggers.Add(new TriggerDescriptorEditorViewModel(
             trigger,
-            StartTrigger.EventOptions,
+            _eventBusEventOptions,
             StartTrigger.OperatorOptions,
             _markDirty,
             _localize,
@@ -1358,7 +1416,7 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         Model.StopTriggers.Insert(index + 1, clone);
         StopTriggers.Insert(index + 1, new TriggerDescriptorEditorViewModel(
             clone,
-            StartTrigger.EventOptions,
+            _eventBusEventOptions,
             StartTrigger.OperatorOptions,
             _markDirty,
             _localize,
@@ -1384,7 +1442,14 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
         Action? captureUndoSnapshot = null)
     {
         Model = model ?? new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
-        EventOptions = eventOptions;
+        var resolvedEventOptions = eventOptions.ToList();
+        if (!string.IsNullOrWhiteSpace(Model.EventType)
+            && resolvedEventOptions.All(option => !string.Equals(option.EventType, Model.EventType, StringComparison.Ordinal)))
+        {
+            resolvedEventOptions.Add(CreateMissingEventOption(Model.EventType, localize));
+        }
+
+        EventOptions = resolvedEventOptions;
         OperatorOptions = operatorOptions;
         _markDirty = markDirty;
         _captureUndoSnapshot = captureUndoSnapshot ?? (() => { });
@@ -1394,6 +1459,30 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
             Filters.Add(new TriggerFilterEditorViewModel(filter, operatorOptions, markDirty, localize, captureUndoSnapshot));
         }
         UpdateSelectedEvent(localize);
+    }
+
+    private static BehaviorEventOptionViewModel CreateMissingEventOption(
+        string eventType,
+        Func<string, string, string> localize)
+    {
+        var identity = eventType;
+        if (FrontedBehaviorEventIdValidator.TryParseCanonicalEventType(eventType, out var packageId, out var localEventId))
+        {
+            identity = $"{packageId} / {localEventId}";
+        }
+
+        return new BehaviorEventOptionViewModel(
+            eventType,
+            string.Empty,
+            string.Empty,
+            string.Empty,
+            identity,
+            localize("Designer.Behaviors.MissingPluginEvent", "⚠ Missing plugin event"),
+            eventType,
+            FrontedBehaviorEventUsage.All,
+            [],
+            localize,
+            isMissing: true);
     }
 
     public TriggerDescriptor Model { get; }
@@ -1490,6 +1579,8 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
                     path,
                     "Designer.Behaviors.UnknownParameterFormat",
                     string.Empty,
+                    path,
+                    path,
                     path,
                     [],
                     true,

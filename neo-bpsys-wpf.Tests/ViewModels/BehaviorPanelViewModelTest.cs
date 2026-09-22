@@ -262,6 +262,99 @@ public class BehaviorPanelViewModelTest
     }
 
     [Fact]
+    public void PluginEventIsAvailableForAllEventBusTriggersButNotTransition()
+    {
+        var registration = new FrontedBehaviorEventRegistration
+        {
+            EventType = "plugin:example.overlay/ShowCard",
+            LocalEventId = "ShowCard",
+            PackageId = "example.overlay",
+            DisplayName = "Show card",
+            Category = "Example",
+            CategoryDisplayName = "Example",
+            SupportedUsages = FrontedBehaviorEventUsage.EventBus,
+            PayloadFields =
+            [
+                new FrontedBehaviorEventPayloadField
+                {
+                    Path = "PlayerIndex",
+                    DisplayName = "Player index",
+                    TypeName = "int",
+                    ValueType = typeof(int)
+                }
+            ]
+        };
+        var panel = CreatePanel(eventCatalog: new FrontedBehaviorEventCatalog([registration]));
+
+        Assert.Contains(panel.EventBusEventOptions, item => item.EventType == registration.EventType);
+        Assert.DoesNotContain(panel.TransitionEventOptions, item => item.EventType == registration.EventType);
+        Assert.Contains(
+            panel.EventBusEventOptions.Single(item => item.EventType == registration.EventType).PayloadFields,
+            field => field.Path == "Event.PlayerIndex");
+
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddOneShotBehavior();
+        Assert.Contains(panel.SelectedBehavior!.Trigger.EventOptions, item => item.EventType == registration.EventType);
+
+        panel.AddLoopBehavior();
+        Assert.Contains(panel.SelectedBehavior!.StartTrigger.EventOptions, item => item.EventType == registration.EventType);
+        Assert.All(panel.SelectedBehavior.StopTriggers, trigger =>
+            Assert.Contains(trigger.EventOptions, item => item.EventType == registration.EventType));
+    }
+
+    [Fact]
+    public void MissingPluginEventAndUnknownFilterArePreservedUntilRegistrationReturns()
+    {
+        var trigger = new TriggerDescriptor
+        {
+            EventType = "plugin:missing.overlay/ShowCard",
+            Filters = [new TriggerFilter { Left = "Event.PlayerIndex", Right = "2" }]
+        };
+        var panel = CreatePanel();
+        var editor = new TriggerDescriptorEditorViewModel(
+            trigger,
+            panel.EventBusEventOptions,
+            panel.OperatorOptions,
+            static () => { },
+            static (_, fallback) => fallback);
+
+        Assert.Equal("plugin:missing.overlay/ShowCard", editor.EventType);
+        Assert.True(editor.SelectedEventDescriptor!.IsMissing);
+        Assert.Equal("Event.PlayerIndex", Assert.Single(editor.Filters).Left);
+        Assert.True(Assert.Single(editor.Filters).IsUnknownParameter);
+
+        var registration = new FrontedBehaviorEventRegistration
+        {
+            EventType = trigger.EventType,
+            LocalEventId = "ShowCard",
+            PackageId = "missing.overlay",
+            DisplayName = "Show card",
+            SupportedUsages = FrontedBehaviorEventUsage.EventBus,
+            PayloadFields =
+            [
+                new FrontedBehaviorEventPayloadField
+                {
+                    Path = "PlayerIndex",
+                    DisplayName = "Player index",
+                    TypeName = "int",
+                    ValueType = typeof(int)
+                }
+            ]
+        };
+        var restoredPanel = CreatePanel(eventCatalog: new FrontedBehaviorEventCatalog([registration]));
+        var restored = new TriggerDescriptorEditorViewModel(
+            trigger,
+            restoredPanel.EventBusEventOptions,
+            restoredPanel.OperatorOptions,
+            static () => { },
+            static (_, fallback) => fallback);
+
+        Assert.False(restored.SelectedEventDescriptor!.IsMissing);
+        Assert.False(Assert.Single(restored.Filters).IsUnknownParameter);
+        Assert.Equal("Event.PlayerIndex", Assert.Single(restored.Filters).Left);
+    }
+
+    [Fact]
     public void AddFilter_UsesFirstPayloadField_WhenAvailable()
     {
         var panel = CreatePanel();
@@ -531,11 +624,12 @@ public class BehaviorPanelViewModelTest
         Action? markLayoutDirty = null,
         Action? markBehaviorsDirty = null,
         IFrontedBehaviorClipboard? clipboard = null,
-        Action? captureUndoSnapshot = null)
+        Action? captureUndoSnapshot = null,
+        FrontedBehaviorEventCatalog? eventCatalog = null)
     {
         return new BehaviorPanelViewModel(
             new neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedDesignerLocalizationService(),
-            new neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedBehaviorEventCatalog(),
+            eventCatalog ?? new neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedBehaviorEventCatalog(),
             markLayoutDirty ?? (() => { }),
             markBehaviorsDirty ?? (() => { }),
             behaviorClipboard: clipboard,
