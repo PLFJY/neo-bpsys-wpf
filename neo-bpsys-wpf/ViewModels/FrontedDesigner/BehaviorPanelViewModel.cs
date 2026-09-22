@@ -954,6 +954,40 @@ public sealed class BehaviorEventOptionViewModel : ObservableObject
     private string _categoryDisplayName;
     private string _description;
 
+    /// <summary>
+    /// 使用 3.0/3.1 版本的构造函数签名初始化事件选项。
+    /// </summary>
+    /// <param name="eventType">规范事件类型。</param>
+    /// <param name="displayNameKey">显示名称本地化键。</param>
+    /// <param name="categoryDisplayNameKey">分类显示名称本地化键。</param>
+    /// <param name="descriptionKey">描述本地化键。</param>
+    /// <param name="eventTypeFallback">事件显示名称 fallback。</param>
+    /// <param name="categoryFallback">分类显示名称 fallback。</param>
+    /// <param name="payloadFields">事件负载字段选项。</param>
+    /// <param name="localize">本地化函数。</param>
+    public BehaviorEventOptionViewModel(
+        string eventType,
+        string displayNameKey,
+        string categoryDisplayNameKey,
+        string descriptionKey,
+        string eventTypeFallback,
+        string categoryFallback,
+        IReadOnlyList<BehaviorPayloadFieldOptionViewModel> payloadFields,
+        Func<string, string, string> localize)
+        : this(
+            eventType,
+            displayNameKey,
+            categoryDisplayNameKey,
+            descriptionKey,
+            eventTypeFallback,
+            categoryFallback,
+            eventTypeFallback,
+            FrontedBehaviorEventUsage.All,
+            payloadFields,
+            localize)
+    {
+    }
+
     public BehaviorEventOptionViewModel(
         string eventType,
         string displayNameKey,
@@ -1049,6 +1083,40 @@ public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
     private string _displayName;
     private string _description;
 
+    /// <summary>
+    /// 使用 3.0/3.1 版本的构造函数签名初始化负载字段选项。
+    /// </summary>
+    /// <param name="path">字段路径。</param>
+    /// <param name="displayNameKey">显示名称本地化键。</param>
+    /// <param name="descriptionKey">描述本地化键。</param>
+    /// <param name="typeName">字段类型名称。</param>
+    /// <param name="enumValues">稳定枚举名称。</param>
+    /// <param name="isUnknown">是否为保留的未知字段。</param>
+    /// <param name="isCommonFilterTarget">是否为常用过滤字段。</param>
+    /// <param name="localize">本地化函数。</param>
+    public BehaviorPayloadFieldOptionViewModel(
+        string path,
+        string displayNameKey,
+        string descriptionKey,
+        string typeName,
+        IReadOnlyList<string>? enumValues,
+        bool isUnknown,
+        bool isCommonFilterTarget,
+        Func<string, string, string> localize)
+        : this(
+            path,
+            displayNameKey,
+            descriptionKey,
+            typeName,
+            path,
+            path,
+            enumValues,
+            isUnknown,
+            isCommonFilterTarget,
+            localize)
+    {
+    }
+
     public BehaviorPayloadFieldOptionViewModel(
         string path,
         string displayNameKey,
@@ -1130,6 +1198,67 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     private readonly Func<string, string, string> _localize;
     private readonly string _graphPlaceholder;
     private readonly IReadOnlyList<BehaviorEventOptionViewModel> _eventBusEventOptions;
+
+    /// <summary>
+    /// 使用 3.0/3.1 版本的构造函数签名初始化行为编辑器。
+    /// </summary>
+    /// <param name="model">行为模型。</param>
+    /// <param name="eventOptions">所有触发位置共用的事件选项。</param>
+    /// <param name="operatorOptions">过滤运算符选项。</param>
+    /// <param name="stopModeOptions">循环停止模式选项。</param>
+    /// <param name="reentryPolicyOptions">重入策略选项。</param>
+    /// <param name="graphPlaceholder">节点图占位文本。</param>
+    /// <param name="markDirty">标记行为文档已修改的回调。</param>
+    /// <param name="captureUndoSnapshot">捕获撤销快照的回调。</param>
+    /// <param name="localize">本地化函数。</param>
+    /// <param name="nodeCatalog">节点目录。</param>
+    /// <param name="graphValidator">节点图校验器。</param>
+    /// <param name="graphRuntime">节点图运行时。</param>
+    /// <param name="animationRuntime">动画运行时。</param>
+    /// <param name="previewAnimationScope">预览动画作用域。</param>
+    /// <param name="openAnimationEditor">打开动画编辑器的回调。</param>
+    /// <param name="createTargetOptions">创建动画目标选项的回调。</param>
+    /// <param name="saveBehaviorAsync">保存行为文档的回调。</param>
+    public BehaviorEditorViewModel(
+        FrontedBehavior model,
+        IReadOnlyList<BehaviorEventOptionViewModel> eventOptions,
+        IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
+        IReadOnlyList<BehaviorOptionViewModel> stopModeOptions,
+        IReadOnlyList<BehaviorOptionViewModel> reentryPolicyOptions,
+        string graphPlaceholder,
+        Action markDirty,
+        Action captureUndoSnapshot,
+        Func<string, string, string> localize,
+        FrontedNodeCatalog nodeCatalog,
+        FrontedNodeGraphValidator graphValidator,
+        IFrontedNodeGraphRuntime graphRuntime,
+        IFrontedAnimationRuntime? animationRuntime,
+        FrontedDesignerPreviewAnimationScope? previewAnimationScope,
+        Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor,
+        Func<IReadOnlyList<FrontedNodeTargetOptionViewModel>>? createTargetOptions = null,
+        Func<Task<bool>>? saveBehaviorAsync = null)
+        : this(
+            model,
+            eventOptions,
+            eventOptions,
+            operatorOptions,
+            stopModeOptions,
+            reentryPolicyOptions,
+            graphPlaceholder,
+            markDirty,
+            captureUndoSnapshot,
+            localize,
+            nodeCatalog,
+            graphValidator,
+            graphRuntime,
+            animationRuntime,
+            previewAnimationScope,
+            openAnimationEditor,
+            createTargetOptions,
+            saveBehaviorAsync,
+            eventCatalog: null)
+    {
+    }
 
     public BehaviorEditorViewModel(
         FrontedBehavior model,

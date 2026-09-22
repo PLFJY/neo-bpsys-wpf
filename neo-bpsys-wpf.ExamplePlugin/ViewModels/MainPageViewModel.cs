@@ -7,7 +7,14 @@ namespace neo_bpsys_wpf.ExamplePlugin.ViewModels;
 
 public partial class MainPageViewModel : ViewModelBase
 {
-    private readonly IFrontedBehaviorEventPublisher<ExamplePlugin> _behaviorEventPublisher;
+    private readonly IFrontedBehaviorEventPublisher<ExamplePlugin>? _behaviorEventPublisher;
+
+    /// <summary>
+    /// 使用 3.0/3.1 版本的无参构造函数初始化示例插件后台页面视图模型。
+    /// </summary>
+    public MainPageViewModel()
+    {
+    }
 
     /// <summary>
     /// 初始化示例插件后台页面视图模型。
@@ -46,6 +53,11 @@ public partial class MainPageViewModel : ViewModelBase
     private void Plus1()
     {
         Counter++;
+        if (_behaviorEventPublisher is null)
+        {
+            return;
+        }
+
         _behaviorEventPublisher.Publish(
             "CounterChanged",
             new Dictionary<string, object?>
@@ -59,6 +71,11 @@ public partial class MainPageViewModel : ViewModelBase
     [RelayCommand]
     private void StartPulse()
     {
+        if (_behaviorEventPublisher is null)
+        {
+            return;
+        }
+
         _behaviorEventPublisher.Publish("StartPulse");
         LastPublishedEvent = "Published StartPulse.";
     }
@@ -66,6 +83,11 @@ public partial class MainPageViewModel : ViewModelBase
     [RelayCommand]
     private void StopPulse()
     {
+        if (_behaviorEventPublisher is null)
+        {
+            return;
+        }
+
         _behaviorEventPublisher.Publish("StopPulse");
         LastPublishedEvent = "Published StopPulse.";
     }

@@ -247,6 +247,10 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             var importer = new FrontedLayoutPackageImporter(
                 Path.Combine(root, "packages"),
                 Path.Combine(root, "import-temp"),
+                packageManager: null,
+                logger: null,
+                controlRegistry: null,
+                pluginMetadataProvider: null,
                 behaviorEventCatalog: new FrontedBehaviorEventCatalog());
             var importResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
             {
