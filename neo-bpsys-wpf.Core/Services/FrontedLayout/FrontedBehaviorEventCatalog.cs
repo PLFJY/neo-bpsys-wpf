@@ -13,11 +13,19 @@ public sealed class FrontedBehaviorEventCatalog
     private readonly IReadOnlyList<FrontedBehaviorEventDescriptor> _events;
 
     /// <summary>
+    /// 初始化仅包含宿主内置事件的事件目录。
+    /// </summary>
+    public FrontedBehaviorEventCatalog()
+        : this(null)
+    {
+    }
+
+    /// <summary>
     /// 初始化事件目录。
     /// </summary>
     /// <param name="registrations">插件或宿主显式注册的事件定义。</param>
     /// <exception cref="InvalidOperationException">合并后存在重复 EventType 时抛出。</exception>
-    public FrontedBehaviorEventCatalog(IEnumerable<FrontedBehaviorEventRegistration>? registrations = null)
+    public FrontedBehaviorEventCatalog(IEnumerable<FrontedBehaviorEventRegistration>? registrations)
     {
         _events = BuildEvents(registrations ?? []);
     }

@@ -44,13 +44,34 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     /// <param name="logger">日志记录器。</param>
     /// <param name="controlRegistry">控件注册表（可选）。</param>
     /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
-    /// <param name="behaviorEventCatalog">当前启动已注册的行为事件目录（可选）。</param>
     public FrontedLayoutPackageImporter(
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutPackageImporter> logger,
         IFrontedV3ControlRegistry? controlRegistry = null,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
-        FrontedBehaviorEventCatalog? behaviorEventCatalog = null)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
+        : this(
+            packageManager,
+            logger,
+            controlRegistry,
+            pluginMetadataProvider,
+            behaviorEventCatalog: null)
+    {
+    }
+
+    /// <summary>
+    /// 使用默认路径和行为事件目录初始化导入器。
+    /// </summary>
+    /// <param name="packageManager">包管理器。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="controlRegistry">控件注册表（可选）。</param>
+    /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
+    /// <param name="behaviorEventCatalog">当前启动已注册的行为事件目录。</param>
+    public FrontedLayoutPackageImporter(
+        IFrontedLayoutPackageManager packageManager,
+        ILogger<FrontedLayoutPackageImporter> logger,
+        IFrontedV3ControlRegistry? controlRegistry,
+        IFrontedPluginMetadataProvider? pluginMetadataProvider,
+        FrontedBehaviorEventCatalog? behaviorEventCatalog)
         : this(
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.AppTempPath, "bpui-import"),
@@ -71,15 +92,42 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     /// <param name="logger">日志记录器。</param>
     /// <param name="controlRegistry">控件注册表（可选）。</param>
     /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
-    /// <param name="behaviorEventCatalog">当前启动已注册的行为事件目录（可选）。</param>
     public FrontedLayoutPackageImporter(
         string packageRoot,
         string tempRoot,
         IFrontedLayoutPackageManager? packageManager = null,
         ILogger<FrontedLayoutPackageImporter>? logger = null,
         IFrontedV3ControlRegistry? controlRegistry = null,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
-        FrontedBehaviorEventCatalog? behaviorEventCatalog = null)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
+        : this(
+            packageRoot,
+            tempRoot,
+            packageManager,
+            logger,
+            controlRegistry,
+            pluginMetadataProvider,
+            behaviorEventCatalog: null)
+    {
+    }
+
+    /// <summary>
+    /// 使用自定义根路径和行为事件目录初始化导入器。
+    /// </summary>
+    /// <param name="packageRoot">包存储根目录。</param>
+    /// <param name="tempRoot">临时文件根目录。</param>
+    /// <param name="packageManager">包管理器（可选）。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="controlRegistry">控件注册表（可选）。</param>
+    /// <param name="pluginMetadataProvider">插件元数据提供者（可选）。</param>
+    /// <param name="behaviorEventCatalog">当前启动已注册的行为事件目录。</param>
+    public FrontedLayoutPackageImporter(
+        string packageRoot,
+        string tempRoot,
+        IFrontedLayoutPackageManager? packageManager,
+        ILogger<FrontedLayoutPackageImporter>? logger,
+        IFrontedV3ControlRegistry? controlRegistry,
+        IFrontedPluginMetadataProvider? pluginMetadataProvider,
+        FrontedBehaviorEventCatalog? behaviorEventCatalog)
     {
         _packageRoot = packageRoot;
         _tempRoot = tempRoot;

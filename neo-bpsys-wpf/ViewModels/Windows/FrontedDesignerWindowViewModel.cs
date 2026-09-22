@@ -212,6 +212,87 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 使用 3.0/3.1 版本的生产构造函数签名初始化 Designer v3 编辑器视图模型。
+    /// </summary>
+    /// <param name="layoutCatalog">可编辑的 v3 布局窗口目录。</param>
+    /// <param name="layoutService">布局加载/保存服务。</param>
+    /// <param name="designConverter">运行时布局配置与设计文档之间的转换器。</param>
+    /// <param name="validator">布局校验器。</param>
+    /// <param name="referenceScanner">用于重命名/删除安全检查的引用扫描器。</param>
+    /// <param name="propertyGridBuilder">属性网格行构建器。</param>
+    /// <param name="defaultConfigFactory">“添加控件”使用的默认控件配置工厂。</param>
+    /// <param name="controlNameGenerator">唯一控件名称生成器。</param>
+    /// <param name="localizationService">设计器本地化服务。</param>
+    /// <param name="designerPreviewSharedDataService">仅用于预览的共享数据服务。</param>
+    /// <param name="localResourceStore">本地包资源存储。</param>
+    /// <param name="windowLayoutOptionsService">窗口选项持久化服务。</param>
+    /// <param name="packageManager">布局包管理器。</param>
+    /// <param name="frontedWindowService">前台窗口服务，用于保存后刷新实时输出。</param>
+    /// <param name="behaviorService">行为文档服务。</param>
+    /// <param name="behaviorClipboard">共享行为剪贴板。</param>
+    /// <param name="behaviorCopyPasteService">行为复制/粘贴服务。</param>
+    /// <param name="animationRuntime">预览使用的动画运行时。</param>
+    /// <param name="previewAnimationScope">预览动画目标作用域。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="settingsHostService">可选的设置宿主服务。</param>
+    /// <param name="v3ControlRegistry">可选的 V3 控件注册表。</param>
+    /// <param name="styleTransferService">可选的 v3 控件 StyleTransfer 服务。</param>
+    /// <param name="imageSafetyService">可选的图片安全服务。</param>
+    public FrontedDesignerWindowViewModel(
+        FrontedDesignerLayoutCatalog layoutCatalog,
+        IFrontedLayoutService layoutService,
+        FrontedLayoutDesignConverter designConverter,
+        FrontedLayoutValidator validator,
+        FrontedLayoutReferenceScanner referenceScanner,
+        FrontedPropertyGridBuilder propertyGridBuilder,
+        FrontedControlDefaultConfigFactory defaultConfigFactory,
+        FrontedControlNameGenerator controlNameGenerator,
+        IFrontedDesignerLocalizationService localizationService,
+        DesignerPreviewSharedDataService designerPreviewSharedDataService,
+        IFrontedLocalResourceStore localResourceStore,
+        IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
+        IFrontedLayoutPackageManager packageManager,
+        IFrontedWindowService frontedWindowService,
+        IFrontedBehaviorService behaviorService,
+        IFrontedBehaviorClipboard behaviorClipboard,
+        FrontedBehaviorCopyPasteService behaviorCopyPasteService,
+        IFrontedAnimationRuntime animationRuntime,
+        FrontedDesignerPreviewAnimationScope previewAnimationScope,
+        ILogger<FrontedDesignerWindowViewModel> logger,
+        ISettingsHostService? settingsHostService = null,
+        IFrontedV3ControlRegistry? v3ControlRegistry = null,
+        FrontedV3StyleTransferService? styleTransferService = null,
+        IFrontedImageSafetyService? imageSafetyService = null)
+        : this(
+            layoutCatalog,
+            layoutService,
+            designConverter,
+            validator,
+            referenceScanner,
+            propertyGridBuilder,
+            defaultConfigFactory,
+            controlNameGenerator,
+            localizationService,
+            designerPreviewSharedDataService,
+            localResourceStore,
+            windowLayoutOptionsService,
+            packageManager,
+            frontedWindowService,
+            behaviorService,
+            new FrontedBehaviorEventCatalog(),
+            behaviorClipboard,
+            behaviorCopyPasteService,
+            animationRuntime,
+            previewAnimationScope,
+            logger,
+            settingsHostService,
+            v3ControlRegistry,
+            styleTransferService,
+            imageSafetyService)
+    {
+    }
+
+    /// <summary>
     /// 初始化生产环境 Designer v3 编辑器视图模型。
     /// </summary>
     /// <param name="layoutCatalog">可编辑的 v3 布局窗口目录。</param>
