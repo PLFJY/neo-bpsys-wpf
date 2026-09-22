@@ -33,6 +33,22 @@ Transition payload 会同时提供两种形式。条件无法解析时，图执�
 
 后台引导高亮变化与清除不暴露为前台行为触发器。前台引导动画只使用 `Guidance.StepChanged`。过滤器比较显式 payload 字段，不依赖 UI 文本或临时标签。
 
+### Plugin semantic events
+
+插件语义事件通过 `AddFrontedBehaviorEvents<TPlugin>()` 注册 Designer 元数据，通过 `IFrontedBehaviorEventPublisher<TPlugin>` 发布。PackageId 由 `FrontedPluginRegistrationContext` 在 `PluginBase.Initialize(...)` 期间自动绑定；插件只处理 local EventId。稳定身份为：
+
+```text
+plugin:<PackageId>/<LocalEventId>
+```
+
+`FrontedBehaviorEventCatalog` 是实例级 DI singleton，合并宿主 Attribute events、显式内置 events 与所有 `FrontedBehaviorEventRegistration`。Designer Window、Behavior Panel 和 Graph Animation Editor 使用同一实例，不创建看不到插件 registration 的运行时目录。内置 CLR event 的 `[FrontedBehaviorEvent]` / `[FrontedBehaviorEventPayload]` discovery 继续保留。
+
+插件 publisher 对事件注册和 payload schema 做校验，把枚举规范化为稳定名称，把 Guid/日期规范化为 invariant 字符串，然后构造 `FrontedBehaviorEvent` 并进入已有 `IFrontedEventBus`。WebRenderer 已监听同一总线，因此没有插件专用 IPC 或第二条 runtime event channel。
+
+事件描述符使用 `FrontedBehaviorEventUsage` 区分 EventBus 与 Transition 两条运行时链路，不区分 OneShot、Loop Start 和 Loop Stop。普通插件事件统一属于 `EventBus`，因此同一个事件可用于这三种 EventBus 触发位置。Transition 不从 EventBus 消费普通插件事件，而由 `IFrontedTransitionOrchestrator` 驱动；因此插件事件不出现在 Transition selector 中。
+
+插件缺失时，behavior JSON 中的 canonical EventType、Filters 和 Graph 原样保留。Designer 为未知 canonical EventType 建立只读语义的 Missing plugin event 选项，并继续保留未知 payload filter path。插件 registration 在后续启动恢复后，目录会按同一个 EventType 自动重新识别，无读取期补字段或 migration。
+
 ## Loop lifecycle
 
 ```text
@@ -102,7 +118,9 @@ ExitGraph / EnterGraph 使用 `TransitionTrigger.EventType`，Loop 的 StartGrap
 | 服务 | 职责 |
 | --- | --- |
 | `IFrontedBehaviorService` | 读取和保存 behavior 文档 |
-| `IFrontedEventBus` | 发布显式前台事件 |
+| `IFrontedEventBus` | 发布宿主与插件共用的显式前台事件 |
+| `IFrontedBehaviorEventPublisher<TPlugin>` | 校验并发布当前插件已注册的局部语义事件 |
+| `FrontedBehaviorEventCatalog` | 合并内置与插件事件元数据，并按 SupportedUsages 提供 Designer 选项 |
 | `FrontedBehaviorTriggerEvaluator` | 执行触发过滤 |
 | `IFrontedNodeGraphRuntime` | 执行节点图 |
 | `IFrontedAnimationRuntime` | 应用属性和动画 |

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Registrations;
@@ -36,6 +37,60 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 public sealed class FrontedLayoutPluginDependencyPackageTest
 {
+    [Fact]
+    public void BehaviorEventReferencesProduceVersionedPluginDependenciesAndMissingRegistrationIssue()
+    {
+        var behaviorDocument = new FrontedBehaviorDocument
+        {
+            WindowType = "BpWindow",
+            ControlBehaviorSets =
+            [
+                new ControlBehaviorSet
+                {
+                    BehaviorGuid = Guid.NewGuid(),
+                    Behaviors =
+                    [
+                        new FrontedBehavior
+                        {
+                            Kind = FrontedBehaviorKind.Loop,
+                            StartTrigger = new TriggerDescriptor { EventType = "plugin:foo.overlay/ShowCard" },
+                            StopTriggers = [new TriggerDescriptor { EventType = "plugin:foo.overlay/HideCard" }]
+                        }
+                    ]
+                }
+            ]
+        };
+        var layouts = new[]
+        {
+            (Window: "BpWindow", Canvas: FrontedLayoutConstants.BaseCanvasName, Config: new FrontedCanvasConfig())
+        };
+        var metadata = new FakePluginMetadataProvider(("foo.overlay", "2.3.0", "Foo Overlay"));
+
+        var dependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
+            layouts,
+            manifestDependencies: null,
+            pluginMetadataProvider: metadata,
+            behaviorDocuments: [("BpWindow", behaviorDocument)]);
+
+        var dependency = Assert.Single(dependencies);
+        Assert.Equal("foo.overlay", dependency.PackageId);
+        Assert.Equal("2.3.0", dependency.MinVersion);
+        Assert.Equal(FrontedPluginDependencyReason.BehaviorEvent, dependency.Reason);
+        Assert.Equal(
+            ["plugin:foo.overlay/HideCard", "plugin:foo.overlay/ShowCard"],
+            dependency.Events);
+        Assert.Equal(["BpWindow"], dependency.RequiredBy);
+
+        var issues = FrontedLayoutPluginDependencyScanner.FindUnsatisfiedPluginDependencies(
+            layouts,
+            dependencies,
+            controlRegistry: null,
+            pluginMetadataProvider: metadata,
+            behaviorDocuments: [("BpWindow", behaviorDocument)],
+            eventCatalog: new FrontedBehaviorEventCatalog());
+        Assert.Equal(dependency.Events, Assert.Single(issues).MissingEvents);
+    }
+
     [Fact]
     public void DebugCsprojIncludesExamplePluginOnlyForDebug()
     {
@@ -133,6 +188,79 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 ReadZipEntry(archive, "FrontedLayouts/ScoreSurWindow.json"))!.ToCanvasConfig();
             var canvasDependency = Assert.Single(layout.RequiredPlugins);
             Assert.Equal("plfjy.ExamplePlugin", canvasDependency.PackageId);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ExportScansBehaviorEventsIntoManifestDependency()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var outputPath = Path.Combine(root, "behavior-events.bpui");
+            WriteAllCatalogLayouts(builtInRoot, includePluginOnFirstLayout: false);
+            var behaviorPath = Path.Combine(root, "FrontedBehaviors", "ScoreSurWindow.behaviors.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(behaviorPath)!);
+            var document = new FrontedBehaviorDocument { WindowType = "ScoreSurWindow" };
+            document.GetOrCreateSet(Guid.NewGuid()).Behaviors.Add(new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.OneShot,
+                Trigger = new TriggerDescriptor { EventType = "plugin:foo.overlay/ShowCard" }
+            });
+            File.WriteAllText(behaviorPath, JsonSerializer.Serialize(document));
+
+            var exporter = new FrontedLayoutPackageExporter(
+                new FrontedLayoutPackageManager(
+                    Path.Combine(root, "packages"),
+                    builtInRoot,
+                    logger: NullLogger<FrontedLayoutPackageManager>.Instance),
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "temp"),
+                pluginMetadataProvider: new FakePluginMetadataProvider(("foo.overlay", "2.3.0", "Foo Overlay")));
+
+            var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+            {
+                PackageId = "behavior-events",
+                Name = "Behavior Events",
+                OutputPath = outputPath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(outputPath);
+            var dependency = Assert.Single(ReadManifest(archive).PluginDependencies);
+            Assert.Equal("foo.overlay", dependency.PackageId);
+            Assert.Equal("2.3.0", dependency.MinVersion);
+            Assert.Equal(FrontedPluginDependencyReason.BehaviorEvent, dependency.Reason);
+            Assert.Equal(["plugin:foo.overlay/ShowCard"], dependency.Events);
+            Assert.Equal(["ScoreSurWindow"], dependency.RequiredBy);
+            Assert.Contains(archive.Entries, entry =>
+                string.Equals(entry.FullName, "FrontedBehaviors/ScoreSurWindow.behaviors.json", StringComparison.OrdinalIgnoreCase));
+            var exportedBehaviorJson = ReadZipEntry(archive, "FrontedBehaviors/ScoreSurWindow.behaviors.json");
+            Assert.Equal(File.ReadAllText(behaviorPath), exportedBehaviorJson);
+            archive.Dispose();
+
+            var importer = new FrontedLayoutPackageImporter(
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "import-temp"),
+                behaviorEventCatalog: new FrontedBehaviorEventCatalog());
+            var importResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = outputPath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(importResult.Success, importResult.ErrorMessage);
+            Assert.True(importResult.HasUnsatisfiedPluginDependencies);
+            Assert.Equal(
+                exportedBehaviorJson,
+                File.ReadAllText(Path.Combine(
+                    importResult.InstalledPath!,
+                    "FrontedBehaviors",
+                    "ScoreSurWindow.behaviors.json")));
         }
         finally
         {

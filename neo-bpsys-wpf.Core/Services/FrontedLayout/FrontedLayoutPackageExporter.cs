@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using System.IO;
 using System.IO.Compression;
@@ -156,7 +157,17 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             {
                 var manifest = CreateManifest(request);
                 await ExportLayoutsAsync(staging, entries, manifest, resourceState, cancellationToken);
-                await ExportBehaviorsAsync(staging, entries, sourcePackageId, cancellationToken);
+                var behaviorDocuments = await ExportBehaviorsAsync(
+                    staging,
+                    entries,
+                    sourcePackageId,
+                    cancellationToken);
+                manifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
+                    [],
+                    manifest.PluginDependencies,
+                    _controlRegistry,
+                    _pluginMetadataProvider,
+                    behaviorDocuments);
                 manifest.Content.Resources = resourceState.Resources;
 
                 var manifestJson = JsonSerializer.Serialize(manifest, _jsonSerializerOptions);
@@ -306,12 +317,13 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             _pluginMetadataProvider);
     }
 
-    private async Task ExportBehaviorsAsync(
+    private async Task<List<(string Window, FrontedBehaviorDocument Document)>> ExportBehaviorsAsync(
         string staging,
         IReadOnlyList<LayoutExportEntry> entries,
         string activePackageId,
         CancellationToken cancellationToken)
     {
+        var behaviorDocuments = new List<(string Window, FrontedBehaviorDocument Document)>();
         var layoutsRoot = _packageManager.GetPackageLayoutsRootFolder(activePackageId);
         var packageRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot))
                           ?? throw new InvalidOperationException("Package layouts root has no parent.");
@@ -327,6 +339,13 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
             try
             {
+                var behaviorJson = await File.ReadAllTextAsync(behaviorSourcePath, cancellationToken);
+                var behaviorDocument = JsonSerializer.Deserialize<FrontedBehaviorDocument>(behaviorJson, _readOptions);
+                if (behaviorDocument is not null)
+                {
+                    behaviorDocuments.Add((entry.ExportCanonicalWindowId, behaviorDocument));
+                }
+
                 var relativePath = ToZipPath(
                     "FrontedBehaviors",
                     Path.ChangeExtension(
@@ -336,7 +355,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
                 if (entry.IsCustom)
                 {
-                    var behaviorNode = JsonNode.Parse(await File.ReadAllTextAsync(behaviorSourcePath, cancellationToken))
+                    var behaviorNode = JsonNode.Parse(behaviorJson)
                         ?? throw new InvalidDataException("Behavior document is empty.");
                     if (behaviorNode is JsonObject behaviorObject)
                     {
@@ -366,6 +385,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 }
             }
         }
+
+        return behaviorDocuments;
     }
 
     private static string GetBehaviorSourcePath(string packageRoot, string canonicalWindowId)

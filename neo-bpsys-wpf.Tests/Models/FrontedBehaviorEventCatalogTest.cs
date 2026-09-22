@@ -118,12 +118,12 @@ public class FrontedBehaviorEventCatalogTest
     }
 
     [Fact]
-    public void EventCatalog_IsCachedAndDeterministic()
+    public void EventCatalog_IsInstanceScopedAndDeterministic()
     {
         var first = new FrontedBehaviorEventCatalog().Events;
         var second = new FrontedBehaviorEventCatalog().Events;
 
-        Assert.Same(first, second);
+        Assert.NotSame(first, second);
         Assert.Equal(first.Select(item => item.EventType), second.Select(item => item.EventType));
     }
 }

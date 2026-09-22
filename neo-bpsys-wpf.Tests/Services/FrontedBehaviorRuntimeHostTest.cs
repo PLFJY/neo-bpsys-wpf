@@ -1,9 +1,12 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -241,6 +244,49 @@ public class FrontedBehaviorRuntimeHostTest
         });
     }
 
+    [Fact]
+    public async Task PluginPublisher_TriggersOneShotAndPreservesWindowScopes()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            const string eventType = "plugin:example.overlay/ShowCard";
+            var document = CreateDocumentWithOneShot(Guid.NewGuid(), Guid.NewGuid(), eventType);
+            var behaviorService = new Mock<IFrontedBehaviorService>();
+            behaviorService
+                .Setup(service => service.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(document);
+
+            using var eventBus = new FrontedEventBus();
+            var executeCount = 0;
+            var graphRuntime = new Mock<IFrontedNodeGraphRuntime>();
+            graphRuntime
+                .Setup(runtime => runtime.ExecuteAsync(
+                    It.IsAny<FrontedNodeGraph>(),
+                    It.IsAny<FrontedGraphExecutionContext>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback(() => executeCount++)
+                .ReturnsAsync(new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Success });
+
+            var manager = CreateManager(behaviorService.Object, eventBus, graphRuntime: graphRuntime.Object);
+            await manager.AttachHostAsync(CreateContext(new Canvas()));
+            var services = new ServiceCollection();
+            services.AddSingleton<IFrontedEventBus>(eventBus);
+            using (FrontedPluginRegistrationContext.BeginScope("example.overlay"))
+            {
+                services.AddFrontedBehaviorEvents<PluginRuntimeIdentity>(events => events.Add("ShowCard"));
+            }
+
+            using var provider = services.BuildServiceProvider();
+            var publisher = provider.GetRequiredService<IFrontedBehaviorEventPublisher<PluginRuntimeIdentity>>();
+
+            publisher.Publish("ShowCard", windowId: "OtherWindow", windowType: "BpWindow");
+            publisher.Publish("ShowCard", windowId: "TestWindow", windowType: "OtherWindowType");
+            publisher.Publish("ShowCard", windowId: "TestWindow", windowType: "BpWindow");
+
+            Assert.Equal(1, executeCount);
+        });
+    }
+
     private static FrontedBehaviorRuntimeContext CreateContext(Canvas canvas, FrontedCanvasConfig? config = null) => new()
     {
         WindowId = "TestWindow",
@@ -312,4 +358,6 @@ public class FrontedBehaviorRuntimeHostTest
     {
         await WpfTestThread.RunAsync(action);
     }
+
+    private sealed class PluginRuntimeIdentity;
 }

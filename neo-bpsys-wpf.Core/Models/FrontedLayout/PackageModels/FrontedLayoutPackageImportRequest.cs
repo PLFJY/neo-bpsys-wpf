@@ -272,6 +272,16 @@ public sealed class FrontedLayoutPackagePluginDependencyIssue
     public List<string> Controls { get; set; } = [];
 
     /// <summary>
+    /// 需要此插件的规范行为事件类型列表。
+    /// </summary>
+    public List<string> Events { get; set; } = [];
+
+    /// <summary>
+    /// 插件已安装但当前启动中没有对应 registration 的事件列表。
+    /// </summary>
+    public List<string> MissingEvents { get; set; } = [];
+
+    /// <summary>
     /// 包需要此插件的原因。
     /// </summary>
     public FrontedPluginDependencyReason Reason { get; set; } = FrontedPluginDependencyReason.Unknown;
