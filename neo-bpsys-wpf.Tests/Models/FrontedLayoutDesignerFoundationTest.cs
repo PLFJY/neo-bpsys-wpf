@@ -3679,14 +3679,26 @@ public class FrontedLayoutDesignerFoundationTest
         return text[start..end];
     }
 
-    [Fact]
-    public void FrontedDesignerViewModelDefaultsZoomToFit()
+    private static string ReadDesignerViewModelSource()
     {
-        var text = File.ReadAllText(GetRepositoryPath(
+        var mainFile = GetRepositoryPath(
             "neo-bpsys-wpf",
             "ViewModels",
             "Windows",
-            "FrontedDesignerWindowViewModel.cs"));
+            "FrontedDesignerWindowViewModel.cs");
+        return string.Join(
+            Environment.NewLine,
+            Directory.GetFiles(
+                    Path.GetDirectoryName(mainFile)!,
+                    "FrontedDesignerWindowViewModel*.cs")
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .Select(File.ReadAllText));
+    }
+
+    [Fact]
+    public void FrontedDesignerViewModelDefaultsZoomToFit()
+    {
+        var text = ReadDesignerViewModelSource();
 
         Assert.Contains("FrontedDesignerZoomPreset(\"Fit\"", text);
         Assert.Contains("private bool _isFitMode = true", text);
@@ -3697,11 +3709,7 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void FrontedDesignerLanguageRefreshDoesNotReloadCurrentLayout()
     {
-        var viewModelText = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "ViewModels",
-            "Windows",
-            "FrontedDesignerWindowViewModel.cs"));
+        var viewModelText = ReadDesignerViewModelSource();
         var windowCode = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
             "Views",

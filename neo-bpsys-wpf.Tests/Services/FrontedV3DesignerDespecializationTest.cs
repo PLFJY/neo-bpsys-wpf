@@ -997,16 +997,22 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     /// <summary>
-    /// 读取 <c>FrontedDesignerWindowViewModel.cs</c> 源文件内容，
+    /// 读取 <c>FrontedDesignerWindowViewModel*.cs</c> 分部类源文件内容，
     /// 用于断言 ViewModel 不引用控件专用 Config 类型。
     /// </summary>
-    /// <returns>ViewModel 源文件的完整文本。</returns>
-    /// <exception cref="FileNotFoundException">当 ViewModel 源文件无法定位时抛出。</exception>
+    /// <returns>ViewModel 所有分部类源文件的聚合文本。</returns>
+    /// <exception cref="FileNotFoundException">当 ViewModel 主源文件无法定位时抛出。</exception>
     private static string ReadDesignerViewModelSource()
     {
-        var path = GetRepositoryPath(
+        var mainFile = GetRepositoryPath(
             "neo-bpsys-wpf", "ViewModels", "Windows", "FrontedDesignerWindowViewModel.cs");
-        return File.ReadAllText(path);
+        return string.Join(
+            Environment.NewLine,
+            Directory.GetFiles(
+                    Path.GetDirectoryName(mainFile)!,
+                    "FrontedDesignerWindowViewModel*.cs")
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .Select(File.ReadAllText));
     }
 
     /// <summary>

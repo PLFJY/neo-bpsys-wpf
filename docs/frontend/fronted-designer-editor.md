@@ -751,6 +751,29 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}.json
 - 左侧图层面板：ZIndex 分组、同层排序、跨层移动、顶/底投放区
 - Shape 控件：Rectangle/Polygon 的静态或绑定纯色、双颜色线性渐变和角度编辑；Polygon 选中后支持独立顶点手柄拖动及顶点增删
 
+### 17.1 ViewModel 代码组织
+
+`FrontedDesignerWindowViewModel` 使用分部类按业务职责维护。主文件 `FrontedDesignerWindowViewModel.cs` 只保留共享状态、构造函数、可观察属性和变更回调；新增业务逻辑应放入对应的 `FrontedDesignerWindowViewModel.*.cs`，不应再回填到主文件。
+
+| 分部文件 | 职责 |
+| --- | --- |
+| `AnimationParts` | 动画部件编辑与部件图片导入 |
+| `LayoutLifecycle` | 布局加载、保存、重载和重置 |
+| `ControlsAndTemplates` | 控件增删复制、样式传递和布局模板 |
+| `CanvasAndWindowOptions` | Canvas/BO 状态、背景和窗口选项 |
+| `SelectionAndLayers` | 选中模型、过滤和图层树 |
+| `Geometry` | 移动、缩放、吸附和图层投放 |
+| `PropertyEditing` | 属性网格构建、转换、校验与提交 |
+| `Resources` | 本地资源引用跟踪与清理 |
+| `Behaviors` | 行为文档和预览动画作用域 |
+| `ValidationAndPreview` | 校验消息、调度和预览渲染请求 |
+| `History` | Undo/Redo 快照、恢复和几何快速修补 |
+| `Zoom` | 缩放预设、自适应和手动缩放 |
+| `DocumentState` | 设计文档重建和配置深拷贝 |
+| `Utilities` | 通用值转换、规范化和窗口显示名解析 |
+
+与 ViewModel 配套的窗口选项、缩放预设、剪贴板 payload 和预览事件参数等类型统一放在 `FrontedDesignerModels.cs`。
+
 ## 18. 非目标
 
 当前编辑器仍不做：
