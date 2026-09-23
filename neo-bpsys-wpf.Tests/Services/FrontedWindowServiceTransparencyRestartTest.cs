@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -178,12 +179,16 @@ public class FrontedWindowServiceTransparencyRestartTest
             "Views",
             "Windows",
             "FrontedDesignerWindow.xaml.cs"));
-        var designerViewModel = File.ReadAllText(Path.Combine(
+        var designerViewModelDirectory = Path.Combine(
             root,
             "neo-bpsys-wpf",
             "ViewModels",
-            "Windows",
-            "FrontedDesignerWindowViewModel.cs"));
+            "Windows");
+        var designerViewModel = string.Join(
+            Environment.NewLine,
+            Directory.GetFiles(designerViewModelDirectory, "FrontedDesignerWindowViewModel*.cs")
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .Select(File.ReadAllText));
 
         Assert.DoesNotContain("RestartNowButton_OnClick", designerXaml, StringComparison.Ordinal);
         Assert.DoesNotContain("RestartNowButton_OnClick", designerCode, StringComparison.Ordinal);
