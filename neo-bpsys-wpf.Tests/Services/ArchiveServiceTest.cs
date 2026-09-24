@@ -99,27 +99,7 @@ public sealed class ArchiveServiceTest : IDisposable
         var extractPath = Path.Combine(_root, "extract-progress");
 
         var reports = new System.Collections.Generic.List<ArchiveProgress>();
-        var progress = new Progress<ArchiveProgress>(p => reports.Add(p));
-
-        await _archiveService.ExtractToDirectoryAsync(archivePath, extractPath, progress);
-
-        Assert.NotEmpty(reports);
-        Assert.Equal(100, reports[^1].Percentage);
-    }
-
-    [Fact]
-    public async Task ExtractToDirectory_FinalProgressReaches100()
-    {
-        var archivePath = Path.Combine(_root, "final-progress.7z");
-        CreateSevenZipArchive(
-            archivePath,
-            ("file1.txt", "content1"),
-            ("file2.txt", "content2"),
-            ("file3.txt", "content3"));
-        var extractPath = Path.Combine(_root, "extract-final-progress");
-
-        var reports = new System.Collections.Generic.List<ArchiveProgress>();
-        var progress = new Progress<ArchiveProgress>(p => reports.Add(p));
+        var progress = new ImmediateProgress<ArchiveProgress>(reports.Add);
 
         await _archiveService.ExtractToDirectoryAsync(archivePath, extractPath, progress);
 
@@ -295,5 +275,10 @@ public sealed class ArchiveServiceTest : IDisposable
         {
             if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
         }
+    }
+
+    private sealed class ImmediateProgress<T>(Action<T> report) : IProgress<T>
+    {
+        void IProgress<T>.Report(T value) => report(value);
     }
 }

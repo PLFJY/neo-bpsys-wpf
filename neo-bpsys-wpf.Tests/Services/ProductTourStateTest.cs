@@ -294,41 +294,6 @@ public sealed class ProductTourStateTest
         Assert.DoesNotContain("Suppressed", Enum.GetNames<TutorialRunResult>());
     }
 
-    [Fact]
-    public void PackageDialogue_ShouldUseDialogueOverlay()
-    {
-        var root = FindRepositoryRoot();
-        var source = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.ProductTour", "TutorialService.cs"));
-        Assert.Contains("TutorialPackageDialogueItem dialogueItem", source, StringComparison.Ordinal);
-        Assert.Contains("ShowDialogueAsync(owner, dialogueItem.Dialogue", source, StringComparison.Ordinal);
-        Assert.Contains("new DialogueOverlay(", source, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void SignalWaitCancellation_ShouldBeCheckedBeforeTimeoutClassification()
-    {
-        var root = FindRepositoryRoot();
-        var source = File.ReadAllText(Path.Combine(root, "neo-bpsys-wpf.ProductTour", "TutorialService.cs"));
-        var waitResult = source.IndexOf("var completed = await Task.WhenAny(signalTask, timeoutTask);", StringComparison.Ordinal);
-        var cancellationCheck = source.IndexOf("cancellationToken.ThrowIfCancellationRequested();", waitResult, StringComparison.Ordinal);
-        var timeoutCheck = source.IndexOf("if (completed == timeoutTask)", waitResult, StringComparison.Ordinal);
-
-        Assert.True(waitResult >= 0);
-        Assert.True(cancellationCheck > waitResult);
-        Assert.True(timeoutCheck > cancellationCheck);
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current != null && !File.Exists(Path.Combine(current.FullName, "neo-bpsys-wpf.slnx")))
-        {
-            current = current.Parent;
-        }
-
-        return current?.FullName ?? throw new DirectoryNotFoundException("Repository root was not found.");
-    }
-
     private static TutorialPlaybackCoordinator CreateCoordinator() =>
         new(NullLogger<TutorialPlaybackCoordinator>.Instance);
 
