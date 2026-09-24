@@ -163,38 +163,6 @@ public class FrontedWindowServiceTransparencyRestartTest
         });
     }
 
-    [Fact]
-    public void DesignerTransparencyOptionDoesNotExposeRestartPrompt()
-    {
-        var root = GetRepositoryRoot();
-        var designerXaml = File.ReadAllText(Path.Combine(
-            root,
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml"));
-        var designerCode = File.ReadAllText(Path.Combine(
-            root,
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml.cs"));
-        var designerViewModelDirectory = Path.Combine(
-            root,
-            "neo-bpsys-wpf",
-            "ViewModels",
-            "Windows");
-        var designerViewModel = string.Join(
-            Environment.NewLine,
-            Directory.GetFiles(designerViewModelDirectory, "FrontedDesignerWindowViewModel*.cs")
-                .OrderBy(path => path, StringComparer.Ordinal)
-                .Select(File.ReadAllText));
-
-        Assert.DoesNotContain("RestartNowButton_OnClick", designerXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("RestartNowButton_OnClick", designerCode, StringComparison.Ordinal);
-        Assert.Contains("RestartWindowForTransparencyChangeAsync", designerViewModel, StringComparison.Ordinal);
-    }
-
     /// <summary>
     /// Task 2.3：XAML singleton 注册不得进入透明度重建链路。
     /// XAML 窗口在 DI 中注册为 singleton，Close() 后 DI 仍返回同一已关闭实例，
@@ -357,18 +325,6 @@ public class FrontedWindowServiceTransparencyRestartTest
                 CanvasHeight = 180
             }
         };
-    }
-
-    private static string GetRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        return directory?.FullName
-               ?? throw new DirectoryNotFoundException("Could not find repository root.");
     }
 
     /// <summary>

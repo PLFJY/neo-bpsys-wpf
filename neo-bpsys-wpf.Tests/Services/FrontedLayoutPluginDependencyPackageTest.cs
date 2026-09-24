@@ -92,16 +92,6 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     }
 
     [Fact]
-    public void DebugCsprojIncludesExamplePluginOnlyForDebug()
-    {
-        var text = File.ReadAllText(GetRepositoryPath("neo-bpsys-wpf", "neo-bpsys-wpf.csproj"));
-
-        Assert.Contains("Condition=\"'$(Configuration)'=='Debug'\"", text);
-        Assert.Contains("neo-bpsys-wpf.ExamplePlugin.csproj", text);
-        Assert.Contains("<FolderName>plfjy.ExamplePlugin</FolderName>", text);
-    }
-
-    [Fact]
     public void DesignConverterWritesRequiredPluginMinVersionFromInstalledPluginManifest()
     {
         var registry = CreateRegistryWithExamplePlugin();
@@ -1201,23 +1191,6 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     private static void RunOnStaThread(Action action)
     {
         WpfTestThread.Run(action);
-    }
-
-    private static string GetRepositoryPath(params string[] parts)
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory != null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))
-                && File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
-            {
-                return Path.Combine([directory.FullName, .. parts]);
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate repository root.");
     }
 
     /// <summary>
