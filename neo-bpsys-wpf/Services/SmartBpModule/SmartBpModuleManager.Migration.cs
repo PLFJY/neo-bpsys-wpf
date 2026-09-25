@@ -96,13 +96,18 @@ public sealed partial class SmartBpModuleManager
 
         // 已加载模块可能持有 native DLL 句柄，因此压缩包导入先暂存，
         // 并在下一次进程启动、模块加载前完成替换。
-        CleanupExistingPendingArchiveImport();
+        var existingPending = ReadMovePendingState();
         Directory.CreateDirectory(pendingParent);
         Directory.Move(normalizedCandidateRoot, preparedRoot);
+        AbandonPendingModuleOperation(existingPending, "new archive import staged");
+
+        var sourceRoot = IsModulePhysicallyLoaded
+            ? Path.GetFullPath(ModuleRoot)
+            : normalizedTargetRoot;
 
         WriteMovePendingState(new SmartBpModuleMovePendingState
         {
-            SourceRoot = normalizedTargetRoot,
+            SourceRoot = sourceRoot,
             TargetRoot = normalizedTargetRoot,
             PreparedRoot = preparedRoot,
             InstallKind = installKind,
@@ -121,7 +126,11 @@ public sealed partial class SmartBpModuleManager
             LegacyOcrModelMigration = state?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState()
         });
 
-        ModuleRoot = normalizedTargetRoot;
+        if (!IsModulePhysicallyLoaded)
+        {
+            ModuleRoot = normalizedTargetRoot;
+        }
+
         LastFailureMessage = string.Empty;
         IsRestartRequiredForPendingModuleImport = true;
         _logger.LogInformation(
@@ -133,27 +142,57 @@ public sealed partial class SmartBpModuleManager
     }
 
     /// <summary>
-    /// 当新的压缩包导入取代旧导入时，移除先前暂存的导入目录。
+    /// 放弃旧的待处理模块操作。即使旧暂存目录无法删除，也会移除标记，
+    /// 防止一次失败永久阻塞后续下载或迁移。
     /// </summary>
-    private void CleanupExistingPendingArchiveImport()
+    /// <param name="pending">待放弃的操作。</param>
+    /// <param name="reason">用于日志的放弃原因。</param>
+    private void AbandonPendingModuleOperation(SmartBpModuleMovePendingState? pending, string reason)
     {
-        var pending = ReadMovePendingState();
-        if (string.IsNullOrWhiteSpace(pending?.PreparedRoot))
-        {
-            return;
-        }
-
         try
         {
-            if (Directory.Exists(pending.PreparedRoot))
+            if (!string.IsNullOrWhiteSpace(pending?.PreparedRoot) &&
+                IsManagedPendingArchivePath(pending.PreparedRoot) &&
+                Directory.Exists(pending.PreparedRoot))
             {
                 Directory.Delete(pending.PreparedRoot, recursive: true);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to clean previous pending SmartBP module archive import: {PreparedRoot}", pending.PreparedRoot);
+            _logger.LogWarning(
+                ex,
+                "Failed to clean abandoned pending SmartBP module archive directory. PreparedRoot={PreparedRoot}, Reason={Reason}",
+                pending?.PreparedRoot,
+                reason);
         }
+
+        try
+        {
+            if (File.Exists(MovePendingFilePath))
+            {
+                File.Delete(MovePendingFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to delete abandoned SmartBP module marker. Reason={Reason}", reason);
+        }
+    }
+
+    /// <summary>
+    /// 判断暂存导入目录是否确实位于应用管理的 pending 根目录内。
+    /// </summary>
+    /// <param name="path">候选暂存目录。</param>
+    /// <returns>属于受管理 pending 根目录时返回 <see langword="true"/>。</returns>
+    private static bool IsManagedPendingArchivePath(string path)
+    {
+        var pendingParent = Path.Combine(AppConstants.AppDataPath, PendingArchiveImportDirectoryName);
+        return IsSameOrChildPath(path, pendingParent) &&
+               !string.Equals(
+                   Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                   Path.GetFullPath(pendingParent).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                   StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -175,25 +214,23 @@ public sealed partial class SmartBpModuleManager
             var targetRoot = Path.GetFullPath(pending.TargetRoot);
             if (!Directory.Exists(preparedRoot))
             {
-                pending.LastCleanupError = "Prepared SmartBP module directory is missing.";
-                WriteMovePendingState(pending);
                 _logger.LogWarning(
-                    "Pending SmartBP module archive import cannot continue because prepared directory is missing: {PreparedRoot}",
+                    "Discarding pending SmartBP module archive import because prepared directory is missing: {PreparedRoot}",
                     preparedRoot);
-                return false;
+                AbandonPendingModuleOperation(pending, "prepared directory missing");
+                return true;
             }
 
             if (IsUnsafeInstallPath(targetRoot) ||
                 IsSameOrChildPath(preparedRoot, targetRoot) ||
                 IsSameOrChildPath(targetRoot, preparedRoot))
             {
-                pending.LastCleanupError = "Pending SmartBP module replacement path is unsafe.";
-                WriteMovePendingState(pending);
                 _logger.LogWarning(
-                    "Pending SmartBP module archive import rejected unsafe paths. PreparedRoot={PreparedRoot}, TargetRoot={TargetRoot}",
+                    "Discarding pending SmartBP module archive import with unsafe paths. PreparedRoot={PreparedRoot}, TargetRoot={TargetRoot}",
                     preparedRoot,
                     targetRoot);
-                return false;
+                AbandonPendingModuleOperation(pending, "unsafe pending paths");
+                return true;
             }
 
             if (!ValidateModuleDirectory(
@@ -202,26 +239,39 @@ public sealed partial class SmartBpModuleManager
                     out _,
                     out var validationError))
             {
-                pending.LastCleanupError = validationError;
-                WriteMovePendingState(pending);
                 _logger.LogWarning(
-                    "Pending SmartBP module archive import failed validation. PreparedRoot={PreparedRoot}, Error={Error}",
+                    "Discarding invalid pending SmartBP module archive import. PreparedRoot={PreparedRoot}, Error={Error}",
                     preparedRoot,
                     validationError);
-                return false;
+                AbandonPendingModuleOperation(pending, "prepared module validation failed");
+                return true;
             }
 
             // 运行时托管模型可能体积较大且由用户下载；替换代码/资源时
             // 保留同一模块根目录下的 OCR 或 AI 资产。
             ReplaceModuleRootPreservingManagedAssets(preparedRoot, targetRoot);
-            File.Delete(MovePendingFilePath);
+            if (!string.IsNullOrWhiteSpace(pending.SourceRoot) &&
+                !string.Equals(
+                    Path.GetFullPath(pending.SourceRoot),
+                    targetRoot,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                pending.PreparedRoot = null;
+                pending.LastCleanupError = null;
+                WriteMovePendingState(pending);
+            }
+            else
+            {
+                File.Delete(MovePendingFilePath);
+            }
+
             _logger.LogInformation("Completed pending SmartBP module archive import: {TargetRoot}", targetRoot);
             return true;
         }
         catch (Exception ex)
         {
             pending.LastCleanupError = FormatExceptionForUser(ex);
-            WriteMovePendingState(pending);
+            TryRecordPendingFailure(pending, "archive import completion failed");
             _logger.LogWarning(ex, "Failed to complete pending SmartBP module archive import.");
             return false;
         }
@@ -303,8 +353,51 @@ public sealed partial class SmartBpModuleManager
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to read SmartBP module move marker: {Marker}", MovePendingFilePath);
+            AbandonPendingModuleOperation(null, "marker could not be read");
             return null;
         }
+    }
+
+    /// <summary>
+    /// 为新的路径操作选择仍然存在的原模块目录，优先保留已加载目录和旧 pending 的原始来源。
+    /// </summary>
+    /// <param name="state">当前持久化模块状态。</param>
+    /// <param name="pending">此前未完成的路径操作。</param>
+    /// <returns>可作为迁移或清理来源的完整路径；没有现存来源时返回 <see langword="null"/>。</returns>
+    private string? ResolveExistingModuleRootForPathChange(
+        SmartBpModuleState? state,
+        SmartBpModuleMovePendingState? pending)
+    {
+        var candidates = new[]
+        {
+            IsModulePhysicallyLoaded ? ModuleRoot : null,
+            pending?.SourceRoot,
+            state?.ModuleRoot,
+            pending?.TargetRoot
+        };
+
+        foreach (var candidate in candidates)
+        {
+            if (string.IsNullOrWhiteSpace(candidate))
+            {
+                continue;
+            }
+
+            try
+            {
+                var normalized = Path.GetFullPath(candidate);
+                if (Directory.Exists(normalized))
+                {
+                    return normalized;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Ignoring invalid SmartBP module path-change source: {SourceRoot}", candidate);
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -320,6 +413,27 @@ public sealed partial class SmartBpModuleManager
             state.SourceRoot,
             state.TargetRoot,
             MovePendingFilePath);
+    }
+
+    /// <summary>
+    /// 尽力记录 pending 操作的失败状态；记录本身失败时只写日志，不让清理错误反向破坏模块加载。
+    /// </summary>
+    /// <param name="state">要记录的 pending 状态。</param>
+    /// <param name="operation">失败操作说明。</param>
+    private void TryRecordPendingFailure(SmartBpModuleMovePendingState state, string operation)
+    {
+        try
+        {
+            WriteMovePendingState(state);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to persist SmartBP pending failure state. Operation={Operation}, Marker={Marker}",
+                operation,
+                MovePendingFilePath);
+        }
     }
 
     /// <summary>
@@ -355,9 +469,27 @@ public sealed partial class SmartBpModuleManager
             return;
         }
 
-        var normalizedLoadedRoot = Path.GetFullPath(loadedModuleRoot);
-        var normalizedTargetRoot = Path.GetFullPath(pending.TargetRoot);
-        var normalizedSourceRoot = Path.GetFullPath(pending.SourceRoot);
+        if (string.IsNullOrWhiteSpace(pending.TargetRoot) || string.IsNullOrWhiteSpace(pending.SourceRoot))
+        {
+            AbandonPendingModuleOperation(pending, "path migration marker is incomplete");
+            return;
+        }
+
+        string normalizedLoadedRoot;
+        string normalizedTargetRoot;
+        string normalizedSourceRoot;
+        try
+        {
+            normalizedLoadedRoot = Path.GetFullPath(loadedModuleRoot);
+            normalizedTargetRoot = Path.GetFullPath(pending.TargetRoot);
+            normalizedSourceRoot = Path.GetFullPath(pending.SourceRoot);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Discarding malformed SmartBP module path migration marker.");
+            AbandonPendingModuleOperation(pending, "path migration marker contains invalid paths");
+            return;
+        }
         if (!string.Equals(normalizedLoadedRoot, normalizedTargetRoot, StringComparison.OrdinalIgnoreCase))
         {
             _logger.LogDebug(
@@ -384,7 +516,7 @@ public sealed partial class SmartBpModuleManager
                 "SmartBP module move marker contains unsafe source/target pair. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}",
                 normalizedSourceRoot,
                 normalizedTargetRoot);
-            File.Delete(MovePendingFilePath);
+            AbandonPendingModuleOperation(pending, "path migration source and target overlap");
             return;
         }
 
@@ -392,6 +524,7 @@ public sealed partial class SmartBpModuleManager
         {
             if (Directory.Exists(normalizedSourceRoot))
             {
+                CopyManagedAssetsForPathMigration(normalizedSourceRoot, normalizedTargetRoot);
                 Directory.Delete(normalizedSourceRoot, recursive: true);
                 _logger.LogInformation(
                     "Deleted old SmartBP module directory after successful target load. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}",
@@ -404,12 +537,102 @@ public sealed partial class SmartBpModuleManager
         catch (Exception ex)
         {
             pending.LastCleanupError = FormatExceptionForUser(ex);
-            WriteMovePendingState(pending);
+            TryRecordPendingFailure(pending, "old module cleanup failed");
             _logger.LogWarning(
                 ex,
                 "SmartBP module target loaded, but old directory cleanup is still pending. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}",
                 normalizedSourceRoot,
                 normalizedTargetRoot);
+        }
+    }
+
+    /// <summary>
+    /// 在新模块加载前尽力复制旧目录中的托管模型资产。
+    /// 复制失败不会阻止新模块加载，pending 标记会保留供后续启动重试。
+    /// </summary>
+    /// <param name="pending">待完成的路径迁移状态。</param>
+    private void TryCopyManagedAssetsBeforeTargetLoad(SmartBpModuleMovePendingState pending)
+    {
+        if (!string.IsNullOrWhiteSpace(pending.PreparedRoot) ||
+            string.IsNullOrWhiteSpace(pending.SourceRoot) ||
+            string.IsNullOrWhiteSpace(pending.TargetRoot))
+        {
+            return;
+        }
+
+        try
+        {
+            var sourceRoot = Path.GetFullPath(pending.SourceRoot);
+            var targetRoot = Path.GetFullPath(pending.TargetRoot);
+            if (string.Equals(sourceRoot, targetRoot, StringComparison.OrdinalIgnoreCase) ||
+                IsSameOrChildPath(sourceRoot, targetRoot) ||
+                IsSameOrChildPath(targetRoot, sourceRoot) ||
+                !Directory.Exists(sourceRoot) ||
+                !Directory.Exists(targetRoot))
+            {
+                return;
+            }
+
+            CopyManagedAssetsForPathMigration(sourceRoot, targetRoot);
+            pending.LastCleanupError = null;
+            WriteMovePendingState(pending);
+        }
+        catch (Exception ex)
+        {
+            pending.LastCleanupError = FormatExceptionForUser(ex);
+            TryRecordPendingFailure(pending, "managed asset copy failed");
+            _logger.LogWarning(
+                ex,
+                "Failed to copy SmartBP managed assets before loading migrated target. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}",
+                pending.SourceRoot,
+                pending.TargetRoot);
+        }
+    }
+
+    /// <summary>
+    /// 把旧模块目录中的托管模型资产合并复制到新目录。目标中已有的文件保持不变。
+    /// </summary>
+    /// <param name="sourceRoot">旧模块根目录。</param>
+    /// <param name="targetRoot">新模块根目录。</param>
+    private static void CopyManagedAssetsForPathMigration(string sourceRoot, string targetRoot)
+    {
+        foreach (var assetRootName in ManagedAssetRootNames)
+        {
+            var sourceAssetRoot = Path.Combine(sourceRoot, assetRootName);
+            if (!Directory.Exists(sourceAssetRoot))
+            {
+                continue;
+            }
+
+            var targetAssetRoot = Path.Combine(targetRoot, assetRootName);
+            foreach (var directory in Directory.EnumerateDirectories(sourceAssetRoot, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(Path.Combine(targetAssetRoot, Path.GetRelativePath(sourceAssetRoot, directory)));
+            }
+
+            foreach (var sourceFile in Directory.EnumerateFiles(sourceAssetRoot, "*", SearchOption.AllDirectories))
+            {
+                var targetFile = Path.Combine(targetAssetRoot, Path.GetRelativePath(sourceAssetRoot, sourceFile));
+                if (File.Exists(targetFile))
+                {
+                    continue;
+                }
+
+                Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+                var temporaryFile = targetFile + $".migration-{Guid.NewGuid():N}.tmp";
+                try
+                {
+                    File.Copy(sourceFile, temporaryFile, overwrite: false);
+                    File.Move(temporaryFile, targetFile, overwrite: false);
+                }
+                finally
+                {
+                    if (File.Exists(temporaryFile))
+                    {
+                        File.Delete(temporaryFile);
+                    }
+                }
+            }
         }
     }
 

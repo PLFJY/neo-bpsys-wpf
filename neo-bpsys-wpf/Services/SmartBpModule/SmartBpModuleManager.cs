@@ -275,7 +275,7 @@ public sealed partial class SmartBpModuleManager
         {
             var normalizedRoot = Path.GetFullPath(moduleRoot);
             var state = ReadState() ?? new SmartBpModuleState();
-            var isCurrentLoadedModule = IsModuleLoaded &&
+            var isCurrentLoadedModule = IsModulePhysicallyLoaded &&
                                         string.Equals(
                                             Path.GetFullPath(ModuleRoot),
                                             normalizedRoot,
@@ -284,7 +284,11 @@ public sealed partial class SmartBpModuleManager
             state.ModuleRoot = normalizedRoot;
             if (!isCurrentLoadedModule)
             {
-                ModuleRoot = normalizedRoot;
+                if (!IsModulePhysicallyLoaded)
+                {
+                    ModuleRoot = normalizedRoot;
+                }
+
                 state.ModuleVersion = null;
                 state.RuntimeAbiVersion = null;
                 state.Rid = null;
@@ -300,6 +304,87 @@ public sealed partial class SmartBpModuleManager
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to persist SmartBP module root preference: {ModuleRoot}", moduleRoot);
+        }
+    }
+
+    /// <summary>
+    /// 从 SmartBP 下载页直接保存新的模块目录，不复制当前模块文件，也不显示迁移方式询问。
+    /// 如果旧目录仍存在，则记录一次重启后清理操作；受管理的模型资产会在清理前复制到新目录。
+    /// </summary>
+    /// <param name="targetRoot">新的模块下载和加载目录。</param>
+    /// <returns>路径有效且偏好已保存时返回 <see langword="true"/>。</returns>
+    public bool SetDownloadTargetRootPreference(string targetRoot)
+    {
+        if (string.IsNullOrWhiteSpace(targetRoot))
+        {
+            LastFailureMessage = "Target module path is empty.";
+            return false;
+        }
+
+        try
+        {
+            var normalizedTarget = Path.GetFullPath(targetRoot);
+            if (IsUnsafeInstallPath(normalizedTarget))
+            {
+                LastFailureMessage = "Target module path is unsafe or not writable.";
+                return false;
+            }
+
+            var state = ReadState();
+            var existingPending = ReadMovePendingState();
+            var pendingPreparedRootIsAvailable = string.IsNullOrWhiteSpace(existingPending?.PreparedRoot) ||
+                                                 Directory.Exists(existingPending.PreparedRoot);
+            if (string.Equals(state?.ModuleRoot, normalizedTarget, StringComparison.OrdinalIgnoreCase) &&
+                (existingPending == null ||
+                 (string.Equals(existingPending.TargetRoot, normalizedTarget, StringComparison.OrdinalIgnoreCase) &&
+                  pendingPreparedRootIsAvailable)))
+            {
+                LastFailureMessage = string.Empty;
+                return true;
+            }
+
+            var sourceRoot = ResolveExistingModuleRootForPathChange(state, existingPending);
+            AbandonPendingModuleOperation(existingPending, "download target changed");
+
+            if (!string.IsNullOrWhiteSpace(sourceRoot) &&
+                !string.Equals(sourceRoot, normalizedTarget, StringComparison.OrdinalIgnoreCase))
+            {
+                WriteMovePendingState(new SmartBpModuleMovePendingState
+                {
+                    SourceRoot = sourceRoot,
+                    TargetRoot = normalizedTarget,
+                    InstallKind = "DownloadDirectoryChange",
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+            }
+
+            WriteState(new SmartBpModuleState
+            {
+                ModuleRoot = normalizedTarget,
+                InstallKind = "PreferredDirectory",
+                LastLoadedSuccessfully = false,
+                LegacyOcrModelMigration = state?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState()
+            });
+
+            if (!IsModulePhysicallyLoaded)
+            {
+                ModuleRoot = normalizedTarget;
+            }
+
+            IsRestartRequiredForPendingModuleImport = false;
+            LastFailureMessage = string.Empty;
+            _logger.LogInformation(
+                "Saved SmartBP download target without copying module files. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}",
+                sourceRoot,
+                normalizedTarget);
+            ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LastFailureMessage = FormatExceptionForUser(ex);
+            _logger.LogWarning(ex, "Failed to save SmartBP download target: {TargetRoot}", targetRoot);
+            return false;
         }
     }
 
@@ -325,12 +410,14 @@ public sealed partial class SmartBpModuleManager
         }
 
         var state = ReadState();
-        var sourceRoot = state?.ModuleRoot;
+        var existingPending = ReadMovePendingState();
+        var sourceRoot = ResolveExistingModuleRootForPathChange(state, existingPending);
         if (string.IsNullOrWhiteSpace(sourceRoot) || !Directory.Exists(sourceRoot))
         {
             _logger.LogInformation(
                 "No existing SmartBP module directory found. Persisting target path without copy. TargetRoot={TargetRoot}",
                 normalizedTarget);
+            AbandonPendingModuleOperation(existingPending, "migration source no longer exists");
             PersistModuleRootPreference(normalizedTarget);
             return true;
         }
@@ -339,6 +426,7 @@ public sealed partial class SmartBpModuleManager
         if (string.Equals(normalizedSource, normalizedTarget, StringComparison.OrdinalIgnoreCase))
         {
             _logger.LogDebug("SmartBP module migration target is same as source: {ModuleRoot}", normalizedTarget);
+            AbandonPendingModuleOperation(existingPending, "migration returned to source directory");
             PersistModuleRootPreference(normalizedTarget);
             return true;
         }
@@ -370,6 +458,7 @@ public sealed partial class SmartBpModuleManager
 
         try
         {
+            AbandonPendingModuleOperation(existingPending, "new path migration requested");
             await CopyModuleRootForMigrationAsync(normalizedSource, normalizedTarget);
             WriteMovePendingState(new SmartBpModuleMovePendingState
             {

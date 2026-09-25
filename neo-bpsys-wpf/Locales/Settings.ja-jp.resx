@@ -276,6 +276,12 @@
   <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
     <value>スマートBP モジュールパッケージの準備ができました。アプリの再起動後に更新が完了します。</value>
   </data>
+  <data name="SmartBpModuleDownloadExtractedRestartRequired" xml:space="preserve">
+    <value>ダウンロードと展開が完了しました。再起動が必要です。</value>
+  </data>
+  <data name="SmartBpModuleRestartNow" xml:space="preserve">
+    <value>アプリを再起動</value>
+  </data>
   <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
     <value>スマートBP モジュールパッケージの準備ができました。現在のモジュールが読み込まれている可能性があるため、更新を完了するにはアプリの再起動が必要です。今すぐ再起動しますか？</value>
   </data>
