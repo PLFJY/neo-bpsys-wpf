@@ -96,8 +96,7 @@ public sealed partial class SmartBpModuleManager
                 return false;
             }
 
-            if (IsModulePhysicallyLoaded &&
-                string.Equals(Path.GetFullPath(ModuleRoot), normalizedTargetRoot, StringComparison.OrdinalIgnoreCase))
+            if (IsModulePhysicallyLoaded)
             {
                 PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest);
                 return true;

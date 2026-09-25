@@ -75,8 +75,22 @@
                         HorizontalAlignment="Center"
                         Appearance="Primary"
                         Command="{Binding PrimaryActionCommand}"
-                        Content="{Binding PrimaryActionText}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                        Content="{Binding PrimaryActionText}">
+                        <ui:Button.Icon>
+                            <ui:SymbolIcon>
+                                <ui:SymbolIcon.Style>
+                                    <Style TargetType="ui:SymbolIcon">
+                                        <Setter Property="Symbol" Value="ArrowDownload24" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRestartAction}" Value="true">
+                                                <Setter Property="Symbol" Value="ArrowSync24" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ui:SymbolIcon.Style>
+                            </ui:SymbolIcon>
+                        </ui:Button.Icon>
+                    </ui:Button>
                     <ProgressBar
                         Width="280"
                         Height="8"

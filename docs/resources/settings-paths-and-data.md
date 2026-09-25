@@ -88,6 +88,8 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 
 SmartBP 模块加载/安装目录可在设置页修改。若当前已有可用模块目录，保存时会先复制旧目录到新目录的 staging，验证复制结果后移动到目标目录，再写入 `SmartBpModuleMovePending.json` 标记和 `SmartBpModuleState.json` 的目标 `ModuleRoot`，同时把目标路径写入 `HKCU\Software\neo-bpsys-wpf\SmartBpModule\ModuleRoot` 供卸载器清理。下一次从目标目录成功加载模块并写回状态后，会尝试删除旧目录；如果删除失败，迁移标记保留并记录 cleanup 错误，后续成功加载目标目录时继续清理。路径校验沿用模块安装安全规则，拒绝系统目录、驱动器根目录、不可写目录、源目录父子路径，以及包含非 SmartBP 内容的目标目录。
 
+SmartBP 下载页“高级选项”的路径输入不走设置页的迁移询问，也不会立即复制模块程序文件；它会直接保存新的 `ModuleRoot`，并用 `SmartBpModuleMovePending.json` 记录旧目录与新目录。应用重启后先把旧目录中的 `OCRModels/`、`AI/` 合并复制到新目录（新目录已有文件优先），确认新模块加载成功后再删除整个旧目录。损坏、缺失或已被新操作取代的 pending 暂存不会阻止后续下载/迁移：管理器会放弃失效标记，并在安全范围内尽力清理旧暂存目录。
+
 `TutorialState.json` 由 `neo-bpsys-wpf.ProductTour` 的状态存储读写，记录 `CompletedFlows` 和 `CompletedPackages`。首次总导览完成时，flow 的 `IncludedPackageIds` 会以 `CoveredByFlow` 写入 package 状态；用户跳过 flow 时只记录 flow 的 `Skipped`，不覆盖 package。设置页的“重新启动首次导览”和“重置全部教程状态”会修改该文件对应状态，危险操作必须二次确认。
 
 Debug 构建下修改 SmartBP 模块目录不复制模块文件，也不写迁移标记；目标目录只要通过开发模块目录校验，就直接以 `InstallKind = DevelopmentDirectory` 写入状态和注册表，并清理旧的迁移标记。

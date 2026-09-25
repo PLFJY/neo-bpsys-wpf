@@ -37,6 +37,11 @@ public sealed partial class SmartBpModuleManager
             pending = ReadMovePendingState();
         }
 
+        if (pending != null)
+        {
+            TryCopyManagedAssetsBeforeTargetLoad(pending);
+        }
+
         var moduleRoot = !string.IsNullOrWhiteSpace(pending?.TargetRoot)
             ? pending.TargetRoot
             : state?.ModuleRoot;

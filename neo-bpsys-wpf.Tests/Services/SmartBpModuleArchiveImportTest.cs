@@ -106,6 +106,34 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
     }
 
     [Fact]
+    public async Task ImportArchiveAsync_WhenLoadedModuleMovesToDownloadTarget_StagesRestartAndTracksOldRoot()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var sourceRoot = Path.Combine(_root, "loaded-source");
+            var targetRoot = Path.Combine(_root, "new-download-target");
+            var initialArchivePath = Path.Combine(_root, "SmartBpModule-initial-move.zip");
+            var updateArchivePath = Path.Combine(_root, "SmartBpModule-update-move.7z");
+            CreateModuleArchive(initialArchivePath, ArchiveFormat.Zip, "1.0.0");
+            CreateModuleArchive(updateArchivePath, ArchiveFormat.SevenZip, "2.0.0");
+            var manager = CreateManager();
+            Assert.True(await manager.ImportArchiveAsync(initialArchivePath, sourceRoot));
+            Assert.True(manager.SetDownloadTargetRootPreference(targetRoot));
+
+            Assert.True(await manager.ImportArchiveAsync(updateArchivePath, targetRoot, "LiteDownload"));
+
+            Assert.True(manager.IsRestartRequiredForPendingModuleImport);
+            var pending = JsonSerializer.Deserialize<SmartBpModuleMovePendingState>(
+                File.ReadAllText(SmartBpModuleManager.MovePendingFilePath));
+            Assert.Equal(Path.GetFullPath(sourceRoot), Path.GetFullPath(pending!.SourceRoot));
+            Assert.Equal(Path.GetFullPath(targetRoot), Path.GetFullPath(pending.TargetRoot));
+            Assert.True(Directory.Exists(pending.PreparedRoot));
+            Assert.False(Directory.Exists(targetRoot));
+            Assert.Equal(Path.GetFullPath(sourceRoot), Path.GetFullPath(manager.ModuleRoot));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
     public async Task ImportArchiveAsync_PreservesDownloadedModelDirectories_WhenReplacingExistingTarget()
     {
         await WpfTestThread.RunAsync(async () =>
@@ -162,6 +190,101 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             Assert.Equal("downloaded-tesseract", await File.ReadAllTextAsync(tesseractData));
             Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
         }, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task PendingPathChange_MigratesManagedModelsAndDeletesOldModuleAfterTargetLoads()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var sourceRoot = CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false);
+            var targetRoot = CreateTestModuleDirectory("2.0.0", includePackagedAssetDirectories: false);
+            var sourceModel = Path.Combine(sourceRoot, "OCRModels", "RapidOCR", "Models", "profile", "model.onnx");
+            Directory.CreateDirectory(Path.GetDirectoryName(sourceModel)!);
+            await File.WriteAllTextAsync(sourceModel, "downloaded-model");
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+            await File.WriteAllTextAsync(
+                SmartBpModuleManager.StateFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleState { ModuleRoot = targetRoot }));
+            await File.WriteAllTextAsync(
+                SmartBpModuleManager.MovePendingFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleMovePendingState
+                {
+                    SourceRoot = sourceRoot,
+                    TargetRoot = targetRoot,
+                    InstallKind = "DownloadDirectoryChange"
+                }));
+
+            Assert.True(await CreateManager().TryLoadPersistedModuleAsync());
+
+            Assert.Equal(
+                "downloaded-model",
+                await File.ReadAllTextAsync(Path.Combine(targetRoot, "OCRModels", "RapidOCR", "Models", "profile", "model.onnx")));
+            Assert.False(Directory.Exists(sourceRoot));
+            Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public async Task MissingPreparedDirectory_DoesNotBlockLoadingExistingTarget()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var targetRoot = CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false);
+            var missingPreparedRoot = Path.Combine(
+                AppConstants.AppDataPath,
+                "SmartBpModulePending",
+                Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+            await File.WriteAllTextAsync(
+                SmartBpModuleManager.StateFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleState { ModuleRoot = targetRoot }));
+            await File.WriteAllTextAsync(
+                SmartBpModuleManager.MovePendingFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleMovePendingState
+                {
+                    SourceRoot = targetRoot,
+                    TargetRoot = targetRoot,
+                    PreparedRoot = missingPreparedRoot,
+                    InstallKind = "LiteDownload"
+                }));
+
+            Assert.True(await CreateManager().TryLoadPersistedModuleAsync());
+
+            Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
+    public void DownloadTargetChange_ReplacesStalePendingMigrationAndKeepsOriginalSource()
+    {
+        var sourceRoot = CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false);
+        var staleTarget = Path.Combine(_root, "stale-target");
+        var nextTarget = Path.Combine(_root, "next-target");
+        Directory.CreateDirectory(AppConstants.AppDataPath);
+        File.WriteAllText(
+            SmartBpModuleManager.StateFilePath,
+            JsonSerializer.Serialize(new SmartBpModuleState { ModuleRoot = staleTarget }));
+        File.WriteAllText(
+            SmartBpModuleManager.MovePendingFilePath,
+            JsonSerializer.Serialize(new SmartBpModuleMovePendingState
+            {
+                SourceRoot = sourceRoot,
+                TargetRoot = staleTarget,
+                LastCleanupError = "previous migration failed"
+            }));
+
+        Assert.True(CreateManager().SetDownloadTargetRootPreference(nextTarget));
+
+        var state = JsonSerializer.Deserialize<SmartBpModuleState>(
+            File.ReadAllText(SmartBpModuleManager.StateFilePath));
+        var pending = JsonSerializer.Deserialize<SmartBpModuleMovePendingState>(
+            File.ReadAllText(SmartBpModuleManager.MovePendingFilePath));
+        Assert.Equal(Path.GetFullPath(nextTarget), Path.GetFullPath(state!.ModuleRoot));
+        Assert.Equal(Path.GetFullPath(sourceRoot), Path.GetFullPath(pending!.SourceRoot));
+        Assert.Equal(Path.GetFullPath(nextTarget), Path.GetFullPath(pending.TargetRoot));
+        Assert.Null(pending.PreparedRoot);
+        Assert.Null(pending.LastCleanupError);
     }
 
     public void Dispose()
