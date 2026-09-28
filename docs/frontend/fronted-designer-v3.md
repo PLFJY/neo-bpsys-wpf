@@ -155,6 +155,8 @@ v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，�
 
 窗口宽高由 `WindowSettings.WindowWidth` / `WindowHeight` 独立保存，Canvas 设计尺寸由 `CanvasSettings.CanvasWidth` / `CanvasHeight` 保存。Designer 的 Window Settings 区域直接写入 `FrontedLayouts/{WindowTypeName}.json -> WindowSettings`；普通读取、保存、包导入和包导出不得用 Canvas 尺寸覆盖窗口尺寸。`ViewBox` 负责把固定设计坐标缩放到窗口内容区域，控件坐标不会随窗口 resize 被重写。
 
+编辑器切换窗口时，选择器会先变化，再提示保存尚未保存的旧文档。提示期间 `WindowSettings` 仍归属旧文档，直到新布局加载成功；保存旧文档不得用新窗口或空模板的默认窗口尺寸覆盖它。窗口设置的异步保存应固定开始时的窗口 ID，避免切换过程中写入别的窗口。
+
 Canvas 可启用通用 BO3/BO5 状态：`CanvasSettings` root 表示默认/BO5 state，`EnableBoModeStates = true` 且 `BoModeStates["Bo3"]` 存在时，运行时会在 `ISharedDataService.IsBo3Mode == true` 时渲染 BO3 state。BO3 state 拥有独立 `BackgroundImage`、`RequiredPlugins` 和 `Controls`，因此控件位置、大小、ZIndex、绑定、静态文本和 `Visibility` 都可以与 BO5 不同。`BackgroundImageVariants` 已移除，不保留迁移兼容分支。
 
 layout validator 会校验 Window-centric 字段：`Version` 必须为 3，`WindowSettings.WindowWidth` / `WindowHeight`、`CanvasSettings.CanvasWidth` / `CanvasHeight` 必须大于 0，`CanvasSettings.BackgroundImage` 非空且 resolver 可用时应能解析到文件。控件 JSON key 的重复检测必须发生在 raw JSON / converter 环节；如果先反序列化成 `Dictionary<string, FrontedControlConfigBase>`，重复 key 可能已经丢失。

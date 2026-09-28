@@ -656,11 +656,13 @@ public partial class FrontedDesignerWindowViewModel
         bool applyBackgroundImmediately,
         bool applyWindowSizeImmediately = false)
     {
-        if (SelectedWindow is null)
+        if (SelectedWindow is not { } selectedWindow
+            || CurrentDocument?.WindowTypeName != selectedWindow.WindowTypeName)
         {
             return;
         }
 
+        var windowTypeName = selectedWindow.WindowTypeName;
         try
         {
             var windowWidth = TryParseOptionalPositiveDouble(WindowWidthEditText);
@@ -673,22 +675,25 @@ public partial class FrontedDesignerWindowViewModel
                 ? WindowBackgroundColorEditText
                 : null;
 
-            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName);
+            var config = await _layoutService.LoadWindowConfigAsync(windowTypeName);
             config.WindowSettings = CloneWindowSettings(settings);
 
             await _layoutService.SaveWindowConfigAsync(
-                SelectedWindow.WindowTypeName,
+                windowTypeName,
                 config);
-            _currentWindowSettings = CloneWindowSettings(settings);
+            if (CurrentDocument?.WindowTypeName == windowTypeName)
+            {
+                _currentWindowSettings = CloneWindowSettings(settings);
+            }
 
             if (applyBackgroundImmediately)
             {
-                await (_frontedWindowService?.ApplyWindowBackgroundColorAsync(SelectedWindow.WindowTypeName) ?? Task.FromResult(false));
+                await (_frontedWindowService?.ApplyWindowBackgroundColorAsync(windowTypeName) ?? Task.FromResult(false));
             }
 
             if (applyWindowSizeImmediately)
             {
-                await (_frontedWindowService?.ApplyWindowSizeAsync(SelectedWindow.WindowTypeName) ?? Task.FromResult(false));
+                await (_frontedWindowService?.ApplyWindowSizeAsync(windowTypeName) ?? Task.FromResult(false));
             }
 
             if (applyWindowSizeImmediately)
@@ -698,7 +703,7 @@ public partial class FrontedDesignerWindowViewModel
 
             if (restartWindowForTransparencyChange)
             {
-                await (_frontedWindowService?.RestartWindowForTransparencyChangeAsync(SelectedWindow.WindowTypeName)
+                await (_frontedWindowService?.RestartWindowForTransparencyChangeAsync(windowTypeName)
                        ?? Task.FromResult(false));
             }
 
@@ -713,26 +718,32 @@ public partial class FrontedDesignerWindowViewModel
 
     private async Task ResetWindowOptionsAsync()
     {
-        if (SelectedWindow is null)
+        if (SelectedWindow is not { } selectedWindow
+            || CurrentDocument?.WindowTypeName != selectedWindow.WindowTypeName)
         {
             return;
         }
 
+        var windowTypeName = selectedWindow.WindowTypeName;
         try
         {
             FrontedWindowConfig? builtInConfig = null;
-            var builtInPath = GetBuiltInPackageLayoutPath(SelectedWindow.WindowTypeName);
+            var builtInPath = GetBuiltInPackageLayoutPath(windowTypeName);
             if (File.Exists(builtInPath))
             {
                 builtInConfig = JsonSerializer.Deserialize<FrontedWindowConfig>(
                     await File.ReadAllTextAsync(builtInPath));
             }
-            _currentWindowSettings = CloneWindowSettings(builtInConfig?.WindowSettings ?? new FrontedWindowSettings());
-            var config = await _layoutService.LoadWindowConfigAsync(SelectedWindow.WindowTypeName);
-            config.WindowSettings = CloneWindowSettings(_currentWindowSettings);
-            await _layoutService.SaveWindowConfigAsync(SelectedWindow.WindowTypeName, config);
-            LoadWindowOptions(SelectedWindow.WindowTypeName);
-            await (_frontedWindowService?.RestartWindowForTransparencyChangeAsync(SelectedWindow.WindowTypeName)
+            var settings = CloneWindowSettings(builtInConfig?.WindowSettings ?? new FrontedWindowSettings());
+            var config = await _layoutService.LoadWindowConfigAsync(windowTypeName);
+            config.WindowSettings = CloneWindowSettings(settings);
+            await _layoutService.SaveWindowConfigAsync(windowTypeName, config);
+            if (CurrentDocument?.WindowTypeName == windowTypeName)
+            {
+                _currentWindowSettings = settings;
+                LoadWindowOptions(windowTypeName);
+            }
+            await (_frontedWindowService?.RestartWindowForTransparencyChangeAsync(windowTypeName)
                    ?? Task.FromResult(false));
             WindowOptionsStatus = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "WindowOptionsApplied");
         }

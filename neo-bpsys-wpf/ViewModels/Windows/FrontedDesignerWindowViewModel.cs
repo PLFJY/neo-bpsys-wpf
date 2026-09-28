@@ -1001,14 +1001,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (value is null)
         {
             _selectedCatalogEntry = null;
-            _currentWindowSettings = new FrontedWindowSettings();
             return;
         }
 
         _selectedCatalogEntry = _layoutCatalog?.GetEntries()
             .FirstOrDefault(e => e.CanonicalWindowId == value.WindowTypeName);
-        _currentWindowSettings = new FrontedWindowSettings();
-        LoadWindowOptions(value.WindowTypeName);
+        // 选择器会先切换，再询问是否保存当前文档。窗口设置必须一直归属
+        // CurrentDocument，直到 ReloadLayoutCoreAsync 真正加载新窗口。
     }
 
     partial void OnCurrentDocumentChanged(FrontedCanvasDesignDocument? value)
