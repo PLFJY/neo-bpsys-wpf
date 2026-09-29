@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -91,7 +92,8 @@ internal static class FrontedLayoutPluginDependencyScanner
         IEnumerable<(string Window, string Canvas, FrontedCanvasConfig Config)> layouts,
         IEnumerable<FrontedPluginDependency>? manifestDependencies,
         IFrontedV3ControlRegistry? controlRegistry = null,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
+        IEnumerable<(string Window, FrontedBehaviorDocument Document)>? behaviorDocuments = null)
     {
         var packageSummaries = new Dictionary<string, FrontedPluginDependency>(StringComparer.OrdinalIgnoreCase);
         foreach (var dependency in manifestDependencies ?? [])
@@ -129,12 +131,42 @@ internal static class FrontedLayoutPluginDependencyScanner
                     : summary.MarketplaceId;
                 summary.Reason = MergeReason(summary.Reason, dependency.Reason);
                 AddDistinct(summary.Controls, dependency.Controls);
+                AddDistinct(summary.Events, dependency.Events);
                 AddDistinct(summary.RequiredBy, dependency.RequiredBy);
             }
         }
 
+        foreach (var group in EnumeratePluginBehaviorEventReferences(behaviorDocuments ?? [])
+                     .GroupBy(item => item.PackageId, StringComparer.OrdinalIgnoreCase))
+        {
+            if (!packageSummaries.TryGetValue(group.Key, out var summary))
+            {
+                summary = new FrontedPluginDependency
+                {
+                    PackageId = group.Key,
+                    MarketplaceId = group.Key,
+                    DisplayName = pluginMetadataProvider?.TryGetPluginDisplayName(group.Key, out var displayName) == true
+                        ? displayName
+                        : group.Key,
+                    Reason = FrontedPluginDependencyReason.BehaviorEvent
+                };
+                packageSummaries.Add(group.Key, summary);
+            }
+
+            summary.MinVersion = ResolveSummaryMinVersion(
+                summary.PackageId,
+                summary.MinVersion,
+                incoming: null,
+                pluginMetadataProvider);
+            summary.Reason = MergeReason(summary.Reason, FrontedPluginDependencyReason.BehaviorEvent);
+            AddDistinct(summary.Events, group.Select(item => item.EventType));
+            AddDistinct(summary.RequiredBy, group.Select(item => item.Window));
+        }
+
         return packageSummaries.Values
-            .Where(dependency => dependency.Controls.Count > 0 || dependency.RequiredBy.Count > 0)
+            .Where(dependency => dependency.Controls.Count > 0
+                                 || dependency.Events.Count > 0
+                                 || dependency.RequiredBy.Count > 0)
             .OrderBy(dependency => dependency.PackageId, StringComparer.OrdinalIgnoreCase)
             .Select(NormalizeDependency)
             .ToList();
@@ -184,10 +216,17 @@ internal static class FrontedLayoutPluginDependencyScanner
         IEnumerable<(string Window, string Canvas, FrontedCanvasConfig Config)> layouts,
         IEnumerable<FrontedPluginDependency>? manifestDependencies,
         IFrontedV3ControlRegistry? controlRegistry,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider,
+        IEnumerable<(string Window, FrontedBehaviorDocument Document)>? behaviorDocuments = null,
+        FrontedBehaviorEventCatalog? eventCatalog = null)
     {
         var layoutList = layouts.ToList();
-        var dependencies = MergePackageDependencies(layoutList, manifestDependencies, controlRegistry, pluginMetadataProvider);
+        var dependencies = MergePackageDependencies(
+            layoutList,
+            manifestDependencies,
+            controlRegistry,
+            pluginMetadataProvider,
+            behaviorDocuments);
         var missingControls = FindMissingPluginControls(layoutList, controlRegistry);
         var issues = new List<FrontedLayoutPackagePluginDependencyIssue>();
 
@@ -199,7 +238,13 @@ internal static class FrontedLayoutPluginDependencyScanner
             var affectedControls = missingControls
                 .Where(control => string.Equals(control.PackageId, dependency.PackageId, StringComparison.OrdinalIgnoreCase))
                 .ToList();
+            var missingEvents = eventCatalog is null
+                ? []
+                : dependency.Events
+                    .Where(eventType => eventCatalog.Find(eventType) is null)
+                    .ToList();
             if (dependency.Controls.Count == 0
+                && dependency.Events.Count == 0
                 && affectedControls.Count == 0
                 && dependency.Reason != FrontedPluginDependencyReason.FrontedWindow)
             {
@@ -207,7 +252,7 @@ internal static class FrontedLayoutPluginDependencyScanner
             }
 
             var versionSatisfied = IsVersionSatisfied(installedVersion, dependency.MinVersion);
-            if (isInstalled && versionSatisfied && affectedControls.Count == 0)
+            if (isInstalled && versionSatisfied && affectedControls.Count == 0 && missingEvents.Count == 0)
             {
                 continue;
             }
@@ -222,6 +267,8 @@ internal static class FrontedLayoutPluginDependencyScanner
                 IsInstalled = isInstalled,
                 IsVersionSatisfied = versionSatisfied,
                 Controls = [.. dependency.Controls],
+                Events = [.. dependency.Events],
+                MissingEvents = missingEvents,
                 Reason = dependency.Reason,
                 RequiredBy = [.. dependency.RequiredBy],
                 AffectedControls = affectedControls
@@ -348,6 +395,7 @@ internal static class FrontedLayoutPluginDependencyScanner
             MarketplaceId = dependency.MarketplaceId,
             Reason = dependency.Reason,
             Controls = [.. dependency.Controls],
+            Events = [.. dependency.Events],
             RequiredBy = [.. dependency.RequiredBy]
         });
     }
@@ -362,12 +410,21 @@ internal static class FrontedLayoutPluginDependencyScanner
             : dependency.DisplayName;
         if (dependency.Reason == FrontedPluginDependencyReason.Unknown)
         {
-            dependency.Reason = dependency.Controls.Count > 0
-                ? FrontedPluginDependencyReason.FrontedControl
-                : FrontedPluginDependencyReason.Unknown;
+            dependency.Reason = dependency.Controls.Count > 0 && dependency.Events.Count > 0
+                ? FrontedPluginDependencyReason.Multiple
+                : dependency.Controls.Count > 0
+                    ? FrontedPluginDependencyReason.FrontedControl
+                    : dependency.Events.Count > 0
+                        ? FrontedPluginDependencyReason.BehaviorEvent
+                        : FrontedPluginDependencyReason.Unknown;
         }
 
         dependency.Controls = dependency.Controls
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(value => value, StringComparer.Ordinal)
+            .ToList();
+        dependency.Events = dependency.Events
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Distinct(StringComparer.Ordinal)
             .OrderBy(value => value, StringComparer.Ordinal)
@@ -399,7 +456,35 @@ internal static class FrontedLayoutPluginDependencyScanner
             return left;
         }
 
-        return FrontedPluginDependencyReason.Both;
+        if ((left == FrontedPluginDependencyReason.FrontedControl && right == FrontedPluginDependencyReason.FrontedWindow)
+            || (left == FrontedPluginDependencyReason.FrontedWindow && right == FrontedPluginDependencyReason.FrontedControl))
+        {
+            return FrontedPluginDependencyReason.Both;
+        }
+
+        return FrontedPluginDependencyReason.Multiple;
+    }
+
+    private static IEnumerable<(string Window, string PackageId, string EventType)> EnumeratePluginBehaviorEventReferences(
+        IEnumerable<(string Window, FrontedBehaviorDocument Document)> behaviorDocuments)
+    {
+        foreach (var (window, document) in behaviorDocuments)
+        {
+            foreach (var behavior in document.ControlBehaviorSets.SelectMany(set => set.Behaviors))
+            {
+                var triggers = new[] { behavior.Trigger, behavior.StartTrigger, behavior.TransitionTrigger }
+                    .Concat(behavior.StopTriggers)
+                    .Where(trigger => trigger is not null);
+                foreach (var trigger in triggers)
+                {
+                    if (FrontedBehaviorEventIdValidator.TryParseCanonicalEventType(
+                            trigger!.EventType, out var packageId, out _))
+                    {
+                        yield return (window, packageId, trigger.EventType);
+                    }
+                }
+            }
+        }
     }
 
     private static void AddDistinct(List<string> target, IEnumerable<string> values)

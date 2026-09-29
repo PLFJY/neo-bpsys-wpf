@@ -26,5 +26,15 @@ public enum FrontedPluginDependencyReason
     /// <summary>
     /// 包同时因插件控件和插件窗口布局而需要该插件。
     /// </summary>
-    Both
+    Both,
+
+    /// <summary>
+    /// 行为文档引用了该插件注册的语义事件。
+    /// </summary>
+    BehaviorEvent,
+
+    /// <summary>
+    /// 依赖来自三个来源中的至少两个，或包含无法再用 <see cref="Both"/> 精确表达的组合。
+    /// </summary>
+    Multiple
 }

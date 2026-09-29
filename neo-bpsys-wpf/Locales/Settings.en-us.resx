@@ -276,6 +276,12 @@
   <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
     <value>SmartBP module package is ready. The update will finish after the application restarts.</value>
   </data>
+  <data name="SmartBpModuleDownloadExtractedRestartRequired" xml:space="preserve">
+    <value>Download and extraction completed. Restart is required.</value>
+  </data>
+  <data name="SmartBpModuleRestartNow" xml:space="preserve">
+    <value>Restart application</value>
+  </data>
   <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
     <value>SmartBP module package is ready. Because the current module may be loaded, the update needs an application restart to finish. Restart now?</value>
   </data>

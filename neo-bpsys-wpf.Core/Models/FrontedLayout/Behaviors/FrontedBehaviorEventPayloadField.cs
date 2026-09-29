@@ -11,6 +11,11 @@ public sealed class FrontedBehaviorEventPayloadField
     public string Path { get; set; } = string.Empty;
 
     /// <summary>
+    /// 直接显示名称；本地化键无法解析时使用。
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
     /// 显示名称的本地化键。
     /// </summary>
     public string DisplayNameKey { get; set; } = string.Empty;
@@ -21,9 +26,19 @@ public sealed class FrontedBehaviorEventPayloadField
     public string DescriptionKey { get; set; } = string.Empty;
 
     /// <summary>
+    /// 直接描述文本；本地化键无法解析时使用。
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
     /// 字段类型名称。
     /// </summary>
     public string TypeName { get; set; } = "string";
+
+    /// <summary>
+    /// 获取或设置注册时声明的 CLR 类型。该值只用于运行时 schema 校验，不进入行为 JSON。
+    /// </summary>
+    public Type? ValueType { get; set; }
 
     /// <summary>
     /// 负载数据来源。

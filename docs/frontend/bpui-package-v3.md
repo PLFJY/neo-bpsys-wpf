@@ -473,9 +473,12 @@ Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口�
 | `MinVersion` | 可选但推荐，最低插件版本。 |
 | `DisplayName` | 可选，面向用户显示的插件名称。 |
 | `MarketplaceId` | 可选，用于在插件市场中定位插件；缺省等于 `PackageId`。 |
+| `Controls` | 可选，包中引用的 canonical 插件控件类型。 |
+| `Events` | 可选，behavior 文档引用的 canonical 插件事件类型，例如 `plugin:foo.overlay/ShowCard`。 |
+| `Reason` | 可选，`FrontedControl`、`FrontedWindow`、`BehaviorEvent`、`Both` 或 `Multiple`；旧 `Both` 值继续兼容。 |
 | `RequiredBy` | 推荐，依赖来源列表，格式为 `WindowTypeName`。 |
 
-导入器不应盲目信任 manifest 或 layout 元数据。正确流程是合并 `PluginDependencies`、每个窗口 `ControlLayout.RequiredPlugins`，并扫描实际插件 `ControlType`，再得到最终依赖列表。
+导入器不应盲目信任 manifest 或 layout 元数据。正确流程是合并 `PluginDependencies`、每个窗口 `ControlLayout.RequiredPlugins`，扫描实际插件 `ControlType`，并扫描 behavior 的 `Trigger`、`StartTrigger`、`StopTriggers[]`、`TransitionTrigger` 中的 canonical plugin EventType，再得到最终依赖列表。Behavior event 使用与控件/窗口相同的插件版本策略；已安装插件版本写入合并后的 `MinVersion`。
 
 ### 8.4 缺失插件导入策略
 
@@ -484,9 +487,10 @@ Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口�
 1. 读取 manifest `PluginDependencies`。
 2. 读取每个窗口 `ControlLayout.RequiredPlugins`。
 3. 扫描实际控件中 `ControlType` 以 `plugin:` 开头的项。
-4. 合并依赖列表。
-5. 检查已安装插件及版本。
-6. 分类为：已满足、缺失插件、已安装但版本过低、市场可安装 / 可更新、市场未找到、市场不可用。
+4. 扫描行为文件中所有触发器的 `plugin:<PackageId>/<EventId>` 引用。
+5. 合并依赖列表。
+6. 检查已安装插件、版本以及当前启动是否存在对应 event registration。
+7. 分类为：已满足、缺失插件、已安装但版本过低、已安装但事件 registration 缺失、市场可安装 / 可更新、市场未找到、市场不可用。
 
 用户选择：
 
@@ -506,9 +510,10 @@ Window layout JSON 可以在 `ControlLayout.RequiredPlugins` 中声明本窗口�
 
 1. 保留所有依赖缺失插件或版本暂不满足的插件控件配置。
 2. 保留插件窗口 layout、资源和 `RequiredPlugins` / `PluginDependencies` 元数据。
-3. Designer preview 显示 MissingPlugin 占位符，允许用户定位、移动、缩放或删除底层配置。
-4. 直播前台 runtime 跳过缺失插件控件并记录 warning，不渲染占位符。
-5. 安装插件并重启后，保留的原始 `plugin:*` 配置可重新 materialize 为插件 typed config。
+3. 保留 behavior 的 EventType、Filters 和 Graph，不在读取期重写 JSON。
+4. Designer preview 对控件显示 MissingPlugin 占位符；未知事件显示 Missing plugin event 并保留 filter path。
+5. 直播前台 runtime 跳过缺失插件控件；未发布的缺失插件事件自然不会触发行为。
+6. 安装插件并重启后，保留的原始 `plugin:*` 控件和事件身份会自动重新 materialize / 识别。
 
 ### 8.5 运行时和编辑器缺失插件行为
 

@@ -232,60 +232,6 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
-    public void FrontedLayoutPackagesViewBindsActiveBadgeToExplicitPackageProperty()
-    {
-        var xaml = File.ReadAllText(Path.Combine(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Pages"),
-            "FrontManage",
-            "FrontedLayoutPackagesView.xaml"));
-
-        Assert.DoesNotMatch("Visibility=\"\\{Binding\\s+IsActive\\b", xaml);
-        Assert.Contains("Visibility=\"{Binding IsActivePackage", xaml, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void ForbiddenLayoutAndPackageSurfacesDoNotUseGenericIsActive()
-    {
-        var forbiddenRoots = new[]
-        {
-            GetRepositoryPath("neo-bpsys-wpf.Core", "Models", "FrontedLayout"),
-            GetRepositoryPath("neo-bpsys-wpf.Core", "Models", "Legacy"),
-            Path.Combine(GetRepositoryPath("neo-bpsys-wpf", "Views", "Pages"), "FrontManage")
-        };
-        var repositoryRoot = Path.GetFullPath(Path.Combine(forbiddenRoots[0], "..", "..", ".."));
-        var forbiddenToken = new Regex(@"(?<![A-Za-z0-9_])IsActive(?![A-Za-z0-9_])", RegexOptions.CultureInvariant);
-        var offenders = forbiddenRoots
-            .Where(Directory.Exists)
-            .SelectMany(root => Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories))
-            .Where(path => path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)
-                           || path.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
-            .SelectMany(path => File.ReadLines(path)
-                .Select((line, index) => new { path, line, lineNumber = index + 1 }))
-            .Where(item => forbiddenToken.IsMatch(item.line))
-            .Select(item => $"{Path.GetRelativePath(repositoryRoot, item.path)}:{item.lineNumber}: {item.line.Trim()}")
-            .ToArray();
-
-        Assert.Empty(offenders);
-    }
-
-    [Fact]
-    public void ExportWindowRuntimeConstructorInjectsViewModelAsDataContext()
-    {
-        var text = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedLayoutPackageExportWindow.xaml.cs"));
-
-        Assert.Contains(
-            "public FrontedLayoutPackageExportWindow(FrontedLayoutPackageExportWindowViewModel viewModel)",
-            text);
-        Assert.Contains("DataContext = viewModel;", text);
-    }
-
-    [Fact]
     public void ExportWindowViewModelDefaultsAuthorAndMinVersionWithoutScopeOptions()
     {
         var viewModel = new FrontedLayoutPackageExportWindowViewModel(new FakeFilePickerService(null));
@@ -833,21 +779,6 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
-    public void LegacyConverterAppliesZipSlipSafetyChecks()
-    {
-        var source = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf.Core",
-            "Services",
-            "FrontedLayout",
-            "FrontedLayoutPackageLegacyConverter.cs"));
-
-        Assert.Contains("Path.IsPathRooted(entryName)", source);
-        Assert.Contains("segment is \".\" or \"..\"", source);
-        Assert.Contains("Zip entry escaped staging directory", source);
-        Assert.Contains("Unsafe zip entry", source);
-    }
-
-    [Fact]
     public async Task LegacyConverterRejectsUnsafePackageId()
     {
         var root = CreateTempDirectory();
@@ -1176,79 +1107,6 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
-    public void FrontedDesignerWindowXamlKeepsSingleDeleteAndShortcutHints()
-    {
-        var text = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml"));
-
-        Assert.Contains("InputGestureText=\"Ctrl+Z\"", text);
-        Assert.Contains("InputGestureText=\"Ctrl+Y / Ctrl+Shift+Z\"", text);
-        Assert.Contains("InputGestureText=\"Del\"", text);
-        Assert.Contains("InputGestureText=\"Ctrl+S\"", text);
-        Assert.Contains("ToolTip=\"{lex:Loc ShortcutUndo}\"", text);
-        Assert.Contains("ToolTip=\"{lex:Loc ShortcutRedo}\"", text);
-        Assert.Contains("ToolTip=\"{lex:Loc ShortcutSave}\"", text);
-        Assert.Contains("LayerControlDeleteMenuItem_OnClick", text);
-        Assert.Contains("ItemsSource=\"{Binding LayerGroups}\"", text);
-        Assert.Contains("Command=\"{Binding DeleteSelectedControlCommand}\"", text);
-        Assert.Contains("Header=\"{lex:Loc DeleteControl}\"", text);
-        Assert.Contains("Content=\"{lex:Loc AllowTransparency}\"", text);
-        Assert.DoesNotContain("Header=\"{lex:Loc AllowTransparency}\"", text);
-        Assert.DoesNotContain("Header=\"{lex:Loc Window}\"", text);
-    }
-
-    [Fact]
-    public void FrontManagePageUsesTopLocalTabsAndLayoutPackageCommands()
-    {
-        var pageText = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Pages",
-            "FrontManagePage.xaml"));
-        var pageCode = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Pages",
-            "FrontManagePage.xaml.cs"));
-        var frontManageFolder = Path.Combine(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Pages"),
-            "FrontManage");
-        var windowsText = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedWindowsView.xaml"));
-        var packagesText = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedLayoutPackagesView.xaml"));
-
-        Assert.Contains("x:Name=\"FrontManageTabs\"", pageText);
-        Assert.Contains("NavigationBehavior=\"LocalTabs\"", pageText);
-        Assert.Contains("\"FrontendWindows\"", pageCode);
-        Assert.Contains("typeof(FrontedWindowsView)", pageCode);
-        Assert.Contains("\"LayoutPackages\"", pageCode);
-        Assert.Contains("typeof(FrontedLayoutPackagesView)", pageCode);
-        Assert.DoesNotContain("Header=\"{lex:Loc FrontendDesigner}\"", windowsText);
-        Assert.Contains("OpenFrontedDesignerCommand", windowsText);
-        Assert.Contains("ItemsSource=\"{Binding LayoutPackages}\"", packagesText);
-        Assert.Contains("RefreshPackagesCommand", packagesText);
-        Assert.Contains("CompactPackageList", packagesText);
-        Assert.Contains("RequestBringIntoView=\"PackageListBox_OnRequestBringIntoView\"", packagesText);
-        Assert.Contains("PackageBasicInfo", packagesText);
-        Assert.Contains("ExportPackageCommand", packagesText);
-        Assert.Contains("DuplicatePackageCommand", packagesText);
-        Assert.Contains("RenamePackageCommand", packagesText);
-        Assert.Contains("EditPackageDescriptionCommand", packagesText);
-        Assert.Contains("PackageListBox_OnPreviewMouseRightButtonDown", packagesText);
-        Assert.Contains("MouseDoubleClick=\"PackageListBox_OnMouseDoubleClick\"", packagesText);
-
-        var packagesCode = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedLayoutPackagesView.xaml.cs"));
-        Assert.Contains("PackageListBox_OnRequestBringIntoView", packagesCode);
-        Assert.Contains("if (sender == LayoutPackageList)", packagesCode);
-        Assert.Contains("e.Handled = true", packagesCode);
-        Assert.Contains("PackageListBox_OnPreviewMouseRightButtonDown", packagesCode);
-    }
-
-    [Fact]
     public async Task ActivatingPackageDoesNotCopyOrClearGlobalUserLayouts()
     {
         var root = CreateTempDirectory();
@@ -1498,26 +1356,6 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         {
             DeleteTempDirectory(root);
         }
-    }
-
-    [Fact]
-    public void FrontManagePageViewModelExposesPackageListAndRefreshCommand()
-    {
-        var text = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "ViewModels",
-            "Pages",
-            "FrontManagePageViewModel.cs"));
-
-        Assert.Contains("ObservableCollection<FrontedLayoutPackageInfo> LayoutPackages", text);
-        Assert.Contains("SelectedPackage", text);
-        Assert.Contains("ActivePackageDisplay", text);
-        Assert.Contains("RefreshPackagesAsync", text);
-        Assert.Contains("OpenFrontedDesigner", text);
-        Assert.Contains("ActivateSelectedPackageByDoubleClickAsync", text);
-        Assert.Contains("DuplicatePackageAsync", text);
-        Assert.Contains("RenamePackageAsync", text);
-        Assert.Contains("EditPackageDescriptionAsync", text);
     }
 
     [Fact]

@@ -36,18 +36,47 @@
                 <TextBlock Margin="0,8,0,0" TextWrapping="Wrap">
                     This example plugin demonstrates all current plugin capabilities:
                     backend page, Plugin XAML window,
-                    Plugin v3 Layout window, and Designer v3 plugin control (TeamCard).
+                    Plugin v3 Layout window, Designer v3 plugin controls, and custom Behavior events.
+                </TextBlock>
+                <TextBlock
+                    Margin="0,12,0,0"
+                    FontWeight="SemiBold"
+                    Text="Designer v3 Behavior event demo" />
+                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap">
+                    Configure a OneShot trigger with
+                    ExamplePlugin behavior events / Counter changed.
+                    You can filter it with Event.CounterValue == 2.
+                    All three events are available to OneShot and Loop triggers;
+                    for example, use Start pulse loop as StartTrigger and Stop pulse loop as StopTrigger.
                 </TextBlock>
                 <TextBlock Margin="0,8,0,0" TextWrapping="Wrap">
                     <Run Text="Current count: " /><Run Text="{Binding Counter}" />
                 </TextBlock>
-                <ui:Button
-                    Height="30"
-                    Margin="0,8,0,0"
-                    d:Content="0"
-                    Command="{Binding Plus1Command}"
-                    Content="Click Me"
-                    Icon="{ui:SymbolIcon Symbol=Add24}" />
+                <WrapPanel Margin="0,8,0,0">
+                    <ui:Button
+                        Height="30"
+                        Margin="0,0,8,8"
+                        Command="{Binding Plus1Command}"
+                        Content="Increment and publish"
+                        Icon="{ui:SymbolIcon Symbol=Add24}" />
+                    <ui:Button
+                        Height="30"
+                        Margin="0,0,8,8"
+                        Command="{Binding StartPulseCommand}"
+                        Content="Publish loop start"
+                        Icon="{ui:SymbolIcon Symbol=Play24}" />
+                    <ui:Button
+                        Height="30"
+                        Margin="0,0,0,8"
+                        Command="{Binding StopPulseCommand}"
+                        Content="Publish loop stop"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                </WrapPanel>
+                <TextBlock
+                    Margin="0,4,0,0"
+                    FontFamily="Consolas"
+                    Text="{Binding LastPublishedEvent}"
+                    TextWrapping="Wrap" />
             </StackPanel>
         </Border>
     </StackPanel>

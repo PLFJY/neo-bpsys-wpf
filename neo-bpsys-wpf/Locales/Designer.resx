@@ -2470,6 +2470,9 @@
   <data name="Designer.Behaviors.UnknownParameterFormat">
     <value>未知参数：{0}</value>
   </data>
+  <data name="Designer.Behaviors.MissingPluginEvent">
+    <value>⚠ 缺失插件事件</value>
+  </data>
   <data name="Designer.Behaviors.OpenAnimationEditor">
     <value>打开动画编辑器</value>
   </data>

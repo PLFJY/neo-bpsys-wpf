@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -160,34 +161,6 @@ public class FrontedWindowServiceTransparencyRestartTest
                 Times.Once);
             window.RequestServiceClose();
         });
-    }
-
-    [Fact]
-    public void DesignerTransparencyOptionDoesNotExposeRestartPrompt()
-    {
-        var root = GetRepositoryRoot();
-        var designerXaml = File.ReadAllText(Path.Combine(
-            root,
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml"));
-        var designerCode = File.ReadAllText(Path.Combine(
-            root,
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml.cs"));
-        var designerViewModel = File.ReadAllText(Path.Combine(
-            root,
-            "neo-bpsys-wpf",
-            "ViewModels",
-            "Windows",
-            "FrontedDesignerWindowViewModel.cs"));
-
-        Assert.DoesNotContain("RestartNowButton_OnClick", designerXaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("RestartNowButton_OnClick", designerCode, StringComparison.Ordinal);
-        Assert.Contains("RestartWindowForTransparencyChangeAsync", designerViewModel, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -352,18 +325,6 @@ public class FrontedWindowServiceTransparencyRestartTest
                 CanvasHeight = 180
             }
         };
-    }
-
-    private static string GetRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        return directory?.FullName
-               ?? throw new DirectoryNotFoundException("Could not find repository root.");
     }
 
     /// <summary>

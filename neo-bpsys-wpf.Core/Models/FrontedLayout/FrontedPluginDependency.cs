@@ -26,7 +26,7 @@ public class FrontedPluginDependency
     public string? MarketplaceId { get; set; }
 
     /// <summary>
-    /// 此依赖存在的原因，例如插件控件、插件窗口或两者兼有。
+    /// 此依赖存在的原因，例如插件控件、插件窗口、行为事件或多个来源。
     /// </summary>
     public FrontedPluginDependencyReason Reason { get; set; } = FrontedPluginDependencyReason.Unknown;
 
@@ -34,6 +34,11 @@ public class FrontedPluginDependency
     /// 依赖此插件的完整插件控件类型列表。
     /// </summary>
     public List<string> Controls { get; set; } = [];
+
+    /// <summary>
+    /// 依赖此插件的规范行为事件类型列表。
+    /// </summary>
+    public List<string> Events { get; set; } = [];
 
     /// <summary>
     /// 依赖此插件的布局窗口列表，格式为 <c>{FullWindowType}</c>。

@@ -132,6 +132,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
     public partial string PrimaryActionText { get; set; } = L("SmartBpModuleDownloadAndInstall");
 
     /// <summary>
+    /// 获取或设置主按钮当前是否执行应用重启。
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsRestartAction { get; set; }
+
+    /// <summary>
     /// 获取或设置已安装模块文件夹选择按钮是否可见。
     /// </summary>
     [ObservableProperty]
@@ -451,6 +457,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task PrimaryActionAsync()
     {
+        if (IsRestartAction)
+        {
+            App.Current.Restart();
+            return;
+        }
+
         IsProgressVisible = true;
         IsProgressIndeterminate = false;
         ProgressValue = 0;
@@ -509,8 +521,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
             {
                 if (_moduleManager.IsRestartRequiredForPendingModuleImport)
                 {
-                    _globalRestartService.IsRestartRequired = true;
-                    OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
+                    EnterRestartRequiredState(L("SmartBpModuleDownloadExtractedRestartRequired"));
                 }
 
                 return;
@@ -613,8 +624,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
         {
             if (_moduleManager.IsRestartRequiredForPendingModuleImport)
             {
-                _globalRestartService.IsRestartRequired = true;
-                OverlayMessage = L("SmartBpModuleArchiveImportRestartPrepared");
+                EnterRestartRequiredState(L("SmartBpModuleArchiveImportRestartPrepared"));
                 ProgressValue = 100;
                 IsProgressVisible = false;
                 return;
@@ -647,6 +657,14 @@ public partial class SmartBpPageViewModel : ViewModelBase
     {
         if (_moduleManager == null)
             return;
+
+        if (_moduleManager.IsRestartRequiredForPendingModuleImport)
+        {
+            EnterRestartRequiredState(OverlayMessage);
+            return;
+        }
+
+        IsRestartAction = false;
 
         if (SmartBpModuleManager.IsUnsafeInstallPath(SelectedModulePath))
         {
@@ -712,6 +730,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
         IsModuleLoaded = _moduleManager.IsModuleLoaded;
         ModuleContent = _moduleManager.IsModuleVersionOutdated ? null : _moduleManager.ModuleContent;
         SyncModuleVersionText();
+
+        if (_moduleManager.IsRestartRequiredForPendingModuleImport)
+        {
+            EnterRestartRequiredState(OverlayMessage);
+            return;
+        }
 
         if (_moduleManager.IsModuleVersionOutdated)
         {
@@ -808,6 +832,19 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private static string L(string key) => I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, key);
 
     /// <summary>
+    /// 将下载遮罩切换到等待重启状态，并同步点亮全局重启入口。
+    /// </summary>
+    /// <param name="message">遮罩中显示的完成提示。</param>
+    private void EnterRestartRequiredState(string message)
+    {
+        IsRestartAction = true;
+        PrimaryActionText = L("SmartBpModuleRestartNow");
+        OverlayMessage = message;
+        IsSelectInstalledModuleButtonVisible = false;
+        _globalRestartService.IsRestartRequired = true;
+    }
+
+    /// <summary>
     /// 持久化完整且安全的 SmartBP 模块路径，同时忽略未输入完成的用户文本。
     /// </summary>
     /// <param name="value">用户当前输入或选择的路径。</param>
@@ -821,7 +858,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
             if (!Path.IsPathFullyQualified(value) || SmartBpModuleManager.IsUnsafeInstallPath(value))
                 return;
 
-            _moduleManager.PersistModuleRootPreference(value);
+            _moduleManager.SetDownloadTargetRootPreference(value);
         }
         catch
         {

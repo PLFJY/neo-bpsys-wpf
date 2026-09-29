@@ -2470,6 +2470,9 @@
   <data name="Designer.Behaviors.UnknownParameterFormat">
     <value>不明なパラメーター: {0}</value>
   </data>
+  <data name="Designer.Behaviors.MissingPluginEvent">
+    <value>⚠ 不足しているプラグインイベント</value>
+  </data>
   <data name="Designer.Behaviors.OpenAnimationEditor">
     <value>アニメーションエディターを開く</value>
   </data>

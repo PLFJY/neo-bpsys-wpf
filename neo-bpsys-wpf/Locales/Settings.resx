@@ -276,6 +276,12 @@
   <data name="SmartBpModuleArchiveImportRestartPrepared" xml:space="preserve">
     <value>SmartBP 模块包已准备好，重启应用后将完成更新。</value>
   </data>
+  <data name="SmartBpModuleDownloadExtractedRestartRequired" xml:space="preserve">
+    <value>已经解压下载完成，需要重启</value>
+  </data>
+  <data name="SmartBpModuleRestartNow" xml:space="preserve">
+    <value>重启应用</value>
+  </data>
   <data name="SmartBpModuleArchiveImportRestartPrompt" xml:space="preserve">
     <value>SmartBP 模块包已准备好。由于当前模块可能正在被加载，需要重启应用后完成更新。是否立即重启？</value>
   </data>
