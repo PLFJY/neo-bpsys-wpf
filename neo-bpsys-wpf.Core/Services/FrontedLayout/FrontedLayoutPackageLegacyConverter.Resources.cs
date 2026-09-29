@@ -61,10 +61,17 @@ public sealed partial class FrontedLayoutPackageLegacyConverter
             File.Copy(fullFile, workingPath, overwrite: false);
 
             FrontedImageCompressionResult? compression = null;
-            if (kind == "Image"
-                && imagePurposes.TryGetValue(Path.GetFileName(fullFile), out var purpose))
+            var isConfiguredImage = imagePurposes.TryGetValue(Path.GetFileName(fullFile), out var purpose);
+            if (kind == "Image" && (isConfiguredImage
+                                    || new FileInfo(workingPath).Length > FrontedLayoutLimits.MaxPackageSingleEntryBytes))
             {
-                compression = _imageCompressionService.CompressIfNeeded(workingPath, purpose);
+                compression = _imageCompressionService.CompressIfNeeded(
+                    workingPath,
+                    isConfiguredImage ? purpose : FrontedImagePurpose.PackageResource);
+                if (new FileInfo(workingPath).Length > FrontedLayoutLimits.MaxPackageSingleEntryBytes)
+                {
+                    throw new InvalidDataException($"Legacy image could not be compressed for import: {Path.GetFileName(fullFile)} ({compression.ErrorCode}).");
+                }
             }
 
             var sha256 = ComputeSha256(workingPath);

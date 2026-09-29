@@ -69,7 +69,8 @@
                     x:Name="ImportLayoutPackageButton"
                     Margin="0,0,8,8"
                     Command="{Binding ImportPackageCommand}"
-                    Content="{lex:Loc ImportPackage}" />
+                    Content="{lex:Loc ImportPackage}"
+                    Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
                 <ui:Button
                     Margin="0,0,0,8"
                     Command="{Binding RefreshPackagesCommand}"
@@ -408,5 +409,29 @@
                 </ui:DynamicScrollViewer>
             </Grid>
         </Border>
+
+        <Grid
+            Grid.RowSpan="2"
+            Grid.ColumnSpan="2"
+            Panel.ZIndex="10"
+            Visibility="{Binding PackageImportState.IsImporting, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border
+                Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                Opacity="0.82" />
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+                <ui:ProgressRing
+                    Width="48"
+                    Height="48"
+                    HorizontalAlignment="Center"
+                    IsIndeterminate="True" />
+                <TextBlock
+                    Margin="0,14,0,0"
+                    FontSize="15"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc ImportingPackage}" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

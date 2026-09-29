@@ -96,6 +96,7 @@ public sealed partial class FrontManagePageViewModel
             return;
         }
 
+        using var importScope = PackageImportState.BeginImport();
         try
         {
             var importedFromLegacy = false;
@@ -291,11 +292,11 @@ public sealed partial class FrontManagePageViewModel
             };
         }
 
-        var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        var result = await Task.Run(() => _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
         {
             PackagePath = packagePath,
             ReplaceExisting = replaceExisting
-        });
+        }));
         if (!result.HasOversizedImages)
         {
             return await HandleMissingPluginImportAsync(packagePath, result, replaceExisting);
@@ -313,12 +314,12 @@ public sealed partial class FrontManagePageViewModel
             return result;
         }
 
-        result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        result = await Task.Run(() => _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
         {
             PackagePath = packagePath,
             ReplaceExisting = replaceExisting,
             CompressOversizedImages = true
-        });
+        }));
         return await HandleMissingPluginImportAsync(packagePath, result, replaceExisting);
     }
 

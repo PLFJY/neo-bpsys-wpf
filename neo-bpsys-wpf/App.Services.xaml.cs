@@ -219,6 +219,7 @@ public partial class App
         services.AddSingleton<IPluginMarketService, PluginMarketService>();
         services.AddSingleton<IPluginInstallService, PluginInstallService>();
         services.AddSingleton<IBpuiFileAssociationService, BpuiFileAssociationService>();
+        services.AddSingleton<BpuiPackageImportState>();
         services.AddSingleton<IBpuiFileActivationService, BpuiFileActivationService>();
 
         services.AddSingleton(sp =>

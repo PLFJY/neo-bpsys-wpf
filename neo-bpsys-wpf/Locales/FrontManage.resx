@@ -96,6 +96,9 @@
   <data name="ImportPackage">
     <value>导入包</value>
   </data>
+  <data name="ImportingPackage">
+    <value>正在导入布局包…</value>
+  </data>
   <data name="ExportPackage">
     <value>导出包</value>
   </data>
