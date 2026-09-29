@@ -95,17 +95,6 @@ jobs:
         $version = (Get-Item $file).VersionInfo.ProductVersion.Trim()
         echo "VERSION=$version" >> $env:GITHUB_ENV
 
-    - name: Read artifact SHA256
-      shell: pwsh
-      run: |
-        $file = "${{ env.INSTALLER_OUTPUT }}"
-        $hash = (Get-Content "${{ env.INSTALLER_SHA256_OUTPUT }}").Split()[0]
-        $fullHash = (Get-Content "${{ env.FULL_INSTALLER_SHA256_OUTPUT }}").Split()[0]
-        $moduleManifest = Get-Content "${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}" -Raw | ConvertFrom-Json
-        echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_ENV
-        echo "FULL_INSTALLER_SHA256=$fullHash" >> $env:GITHUB_ENV
-        echo "SMARTBP_MODULE_SHA256=$($moduleManifest.Asset.Sha256)" >> $env:GITHUB_ENV
-
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -122,6 +111,16 @@ jobs:
       shell: pwsh
       run: |
         $out = "release_body.md"
+        $installerHash = [System.IO.File]::ReadAllText("${{ env.INSTALLER_SHA256_OUTPUT }}").Trim()
+        $fullInstallerHash = [System.IO.File]::ReadAllText("${{ env.FULL_INSTALLER_SHA256_OUTPUT }}").Trim()
+        $moduleManifest = [System.IO.File]::ReadAllText("${{ env.SMARTBP_MODULE_MANIFEST_OUTPUT }}") | ConvertFrom-Json
+        $moduleHash = $moduleManifest.Asset.Sha256
+
+        foreach ($artifactHash in @($installerHash, $fullInstallerHash, $moduleHash)) {
+          if ($artifactHash -notmatch '^[0-9a-fA-F]{64}$') {
+            throw "Invalid SHA-256 value in release artifacts: '$artifactHash'"
+          }
+        }
 
         $lines = @(
           "## ✨ New Feature",
@@ -136,11 +135,11 @@ jobs:
           "",
           "| Artifact | SHA-256 |",
           "|----------|---------|",
-          "| neo-bpsys-wpf_Installer.exe | `${{ env.INSTALLER_SHA256 }}` |",
-          "| neo-bpsys-wpf_Installer_full.exe | `${{ env.FULL_INSTALLER_SHA256 }}` |",
-          "| SmartBpModule.7z | `${{ env.SMARTBP_MODULE_SHA256 }}` |"
+          "| neo-bpsys-wpf_Installer.exe | ``$installerHash`` |",
+          "| neo-bpsys-wpf_Installer_full.exe | ``$fullInstallerHash`` |",
+          "| SmartBpModule.7z | ``$moduleHash`` |"
         )
-        $lines | Out-File -FilePath $out -Encoding utf8 -Force
+        [System.IO.File]::WriteAllLines($out, [string[]]$lines, [System.Text.UTF8Encoding]::new($false))
 
     - name: Draft Release
       uses: softprops/action-gh-release@v2
