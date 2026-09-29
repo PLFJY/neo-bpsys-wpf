@@ -17,6 +17,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Services.Abstractions;
+using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
@@ -34,6 +35,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     public FrontManagePageViewModel()
 #pragma warning restore CS8618
     {
+        PackageImportState = new BpuiPackageImportState();
     }
 
     private readonly IFrontedWindowService _frontedWindowService;
@@ -53,6 +55,23 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
+    /// <summary>
+    /// 初始化前台管理页视图模型。
+    /// </summary>
+    /// <param name="frontedWindowService">前台窗口服务。</param>
+    /// <param name="sharedDataService">共享数据服务。</param>
+    /// <param name="filePickerService">文件选择服务。</param>
+    /// <param name="packageManager">布局包管理器。</param>
+    /// <param name="packageExporter">布局包导出器。</param>
+    /// <param name="packageImporter">布局包导入器。</param>
+    /// <param name="legacyPackageConverter">旧版包转换器。</param>
+    /// <param name="pluginMarketService">插件市场服务。</param>
+    /// <param name="pluginInstallService">插件安装服务。</param>
+    /// <param name="frontedWindowRegistry">前台窗口注册表。</param>
+    /// <param name="behaviorRuntime">行为运行时。</param>
+    /// <param name="serviceProvider">应用程序服务提供程序。</param>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="packageImportState">共享的布局包导入状态。</param>
     public FrontManagePageViewModel(
         IFrontedWindowService frontedWindowService,
         ISharedDataService sharedDataService,
@@ -66,7 +85,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         IFrontedWindowRegistry frontedWindowRegistry,
         IFrontedBehaviorRuntime behaviorRuntime,
         IServiceProvider serviceProvider,
-        ILogger<FrontManagePageViewModel> logger)
+        ILogger<FrontManagePageViewModel> logger,
+        BpuiPackageImportState packageImportState)
     {
         _frontedWindowService = frontedWindowService;
         _sharedDataService = sharedDataService;
@@ -80,6 +100,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         _frontedWindowRegistry = frontedWindowRegistry;
         _behaviorRuntime = behaviorRuntime;
         _serviceProvider = serviceProvider;
+        PackageImportState = packageImportState;
         _settingsHostService = serviceProvider.GetService<ISettingsHostService>();
         _customWindowSynchronizer = serviceProvider.GetService<FrontedCustomWindowRegistrySynchronizer>();
         _logger = logger;
@@ -133,7 +154,8 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             frontedWindowRegistry,
             behaviorRuntime: null!,
             serviceProvider,
-            logger)
+            logger,
+            new BpuiPackageImportState())
     {
     }
 
@@ -147,6 +169,11 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     public ObservableCollection<FrontedWindowManageGroup> ManageableWindowGroups { get; } = [];
 
     public ObservableCollection<FrontedLayoutPackageInfo> LayoutPackages { get; } = [];
+
+    /// <summary>
+    /// 获取布局包导入状态，用于在布局包 tab 中显示进度遮罩。
+    /// </summary>
+    public BpuiPackageImportState PackageImportState { get; }
 
     private void OnLanguageSettingChanged(object? sender, Core.Events.LanguageChangedEventArgs e)
     {

@@ -121,7 +121,7 @@ public sealed partial class FrontedLayoutPackageImporter
         {
             Success = false,
             IsLegacyPackage = true,
-            ErrorMessage = "Legacy .bpui conversion is not implemented yet."
+            ErrorMessage = "Legacy .bpui package requires conversion."
         };
     }
 

@@ -924,8 +924,8 @@ public class FrontedLayoutPackageManagerTest : IDisposable
         try
         {
             var legacyArchive = Path.Combine(root, "legacy-large-image.bpui");
-            var sourceImage = CreateNoisePng(1200, 1200);
-            Assert.True(sourceImage.LongLength > FrontedLayoutLimits.MaxBackgroundImageBytes);
+            var sourceImage = CreateNoisePng(1800, 1800);
+            Assert.True(sourceImage.LongLength > FrontedLayoutLimits.MaxPackageSingleEntryBytes);
             CreateLegacyBpuiArchive(
                 legacyArchive,
                 includeConfig: true,
@@ -935,6 +935,14 @@ public class FrontedLayoutPackageManagerTest : IDisposable
             var converter = new FrontedLayoutPackageLegacyConverter(
                 Path.Combine(root, "builtIn"),
                 Path.Combine(root, "convertTemp"));
+            var importer = new FrontedLayoutPackageImporter(
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "importTemp"));
+            var importResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = legacyArchive
+            }, TestContext.Current.CancellationToken);
+            Assert.True(importResult.IsLegacyPackage, importResult.ErrorMessage);
 
             var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
             {

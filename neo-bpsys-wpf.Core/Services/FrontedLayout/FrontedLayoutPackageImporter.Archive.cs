@@ -19,6 +19,24 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public sealed partial class FrontedLayoutPackageImporter
 {
+    private static bool IsLegacyArchive(string zipPath)
+    {
+        using var archive = ZipFile.OpenRead(zipPath);
+        if (archive.Entries.Any(entry =>
+                string.Equals(entry.FullName.Replace('\\', '/'), ManifestFileName, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        return archive.Entries.Any(entry =>
+        {
+            var name = entry.FullName.Replace('\\', '/');
+            return string.Equals(name, "Config.json", StringComparison.OrdinalIgnoreCase)
+                   || name.StartsWith("CustomUi/", StringComparison.OrdinalIgnoreCase)
+                   || name.StartsWith("FrontElementsConfig/", StringComparison.OrdinalIgnoreCase);
+        });
+    }
+
     private static void ExtractZipSafely(string zipPath, string stagingRoot, bool allowImageCompression)
     {
         if (new FileInfo(zipPath).Length > FrontedLayoutLimits.MaxPackageArchiveBytes)

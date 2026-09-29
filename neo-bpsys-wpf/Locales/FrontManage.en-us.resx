@@ -96,6 +96,9 @@
   <data name="ImportPackage">
     <value>Import Package</value>
   </data>
+  <data name="ImportingPackage">
+    <value>Importing layout package…</value>
+  </data>
   <data name="ExportPackage">
     <value>Export Package</value>
   </data>

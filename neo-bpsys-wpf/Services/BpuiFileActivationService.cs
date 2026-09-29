@@ -34,6 +34,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
     private readonly INavigationService _navigationService;
     private readonly IInfoBarService _infoBarService;
     private readonly ILogger<BpuiFileActivationService> _logger;
+    private readonly BpuiPackageImportState _packageImportState;
     private readonly SemaphoreSlim _importLock = new(1, 1);
     private CancellationTokenSource? _listenCancellation;
     private Task? _listenTask;
@@ -48,6 +49,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
     /// <param name="navigationService">导航服务。</param>
     /// <param name="infoBarService">信息栏服务。</param>
     /// <param name="logger">日志记录器。</param>
+    /// <param name="packageImportState">布局包导入状态。</param>
     public BpuiFileActivationService(
         IFrontedLayoutPackageImporter packageImporter,
         IFrontedLayoutPackageLegacyConverter legacyPackageConverter,
@@ -56,7 +58,8 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         IFrontedBehaviorRuntime? behaviorRuntime,
         INavigationService navigationService,
         IInfoBarService infoBarService,
-        ILogger<BpuiFileActivationService> logger)
+        ILogger<BpuiFileActivationService> logger,
+        BpuiPackageImportState packageImportState)
     {
         _packageImporter = packageImporter;
         _legacyPackageConverter = legacyPackageConverter;
@@ -66,6 +69,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         _navigationService = navigationService;
         _infoBarService = infoBarService;
         _logger = logger;
+        _packageImportState = packageImportState;
     }
 
     /// <inheritdoc/>
@@ -186,6 +190,7 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
                 return Fail(I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
             }
 
+            using var importScope = _packageImportState.BeginImport();
             var (result, conversionWarning) = await ImportPackageAsync(normalizedPath, cancellationToken);
             if (!result.Success)
             {
@@ -285,13 +290,13 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
         string packagePath,
         CancellationToken cancellationToken)
     {
-        var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        var result = await Task.Run(() => _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
         {
             PackagePath = packagePath,
             ReplaceExisting = true,
             ActivateAfterImport = true,
             PreserveMissingPlugins = true
-        }, cancellationToken);
+        }, cancellationToken), cancellationToken);
         if (!result.HasOversizedImages)
         {
             return result;
@@ -309,14 +314,14 @@ public sealed class BpuiFileActivationService : IBpuiFileActivationService
             return result;
         }
 
-        return await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        return await Task.Run(() => _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
         {
             PackagePath = packagePath,
             ReplaceExisting = true,
             ActivateAfterImport = true,
             PreserveMissingPlugins = true,
             CompressOversizedImages = true
-        }, cancellationToken);
+        }, cancellationToken), cancellationToken);
     }
 
     private void LogLegacyConversion(FrontedLayoutPackageLegacyConvertResult convertResult, string packageId)

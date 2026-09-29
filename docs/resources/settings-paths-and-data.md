@@ -116,6 +116,6 @@ Designer v3 字体属性支持把 `.ttf`、`.otf`、`.ttc` 导入当前活动布
 
 legacy `.bpui` 导入不会再调用 SettingPage 的旧导入覆盖流程。`Config.json` 只作为转换输入读取明确前台图片字段，不会复制到 AppData，不会覆盖当前设置，也不会要求为了 layout-only 转换重启。转换输出的 v3 包仍安装到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}`，激活后按包内 `FrontedLayouts/` 作为读写方案，不再复制到全局 `FrontedLayouts`。
 
-用户布局、窗口选项和布局包读取会在反序列化前检查文件大小，并使用 JSON 最大深度 32：layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，manifest 最大 256 KiB，legacy `Config.json` 读取路径最大 2 MiB。布局包 zip 还限制压缩包 50 MiB、解压总量 100 MiB、单 entry 10 MiB、最多 1000 entries，并继续保留 zip-slip 检查。超过限制的外部文件会拒绝读取或导入，不会截断。
+用户布局、窗口选项和布局包读取会在反序列化前检查文件大小，并使用 JSON 最大深度 32：layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，manifest 最大 256 KiB，legacy `Config.json` 读取路径最大 2 MiB。v3 布局包 zip 限制压缩包 50 MiB、解压总量 100 MiB、普通单 entry 10 MiB、最多 1000 entries。旧包源归档可在 200 MiB、解压总量 300 MiB 和单张可压缩图片 100 MiB 的预算内先进入临时转换区，压缩后的 v3 包仍须满足 v3 导入限制；zip-slip 检查继续生效，其他超限外部文件会拒绝读取或导入，不会截断。
 
 卸载脚本总是尝试删除 SmartBP 模块目录，路径来源依次为注册表 `ModuleRoot`、`SmartBpModuleState.json` 和默认模块目录；随后再询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。卸载器会拒绝删除磁盘根、系统目录、安装目录和整个 AppData 配置目录。

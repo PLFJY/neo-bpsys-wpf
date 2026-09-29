@@ -97,6 +97,8 @@ legacy 包通过缺少有效 manifest 且存在历史结构识别：
 
 双击打开是面向操作系统激活的快捷路径，不经过包管理页的逐步确认流程；应用会导航到前台管理页并切换到布局包页面，导入结果通过顶部 InfoBar 显示，无法导入或转换时记录日志。
 
+布局包 tab 在软件内导入和文件关联双击导入期间显示半透明遮罩与不定进度环。两种入口共享导入状态；解压和校验在后台线程执行，结束或失败后清除遮罩，避免大包处理时界面看起来卡住。
+
 ## 4. 新包结构
 
 标准结构：
@@ -944,7 +946,7 @@ Window-centric root-level 保留字段包括 `Version`、`WindowSettings`、`Can
 
 Shape 控件使用 `ControlType: "Rectangle"` 或 `"Polygon"`。共享字段包括 `FillMode`、静态/绑定纯色配置、可分别绑定的渐变起始色与结束色、`GradientAngle`、`StrokeColor` 和 `StrokeThickness`。Polygon 的 `Points` 是 `{ "X": 0..1, "Y": 0..1 }` 数组，至少包含三个有效顶点；运行时将归一化坐标乘以控件宽高。
 
-导入器执行硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning。导入器还会在解压入口拒绝插件目录、插件二进制和可执行脚本，例如 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 和 `.jar`。布局包可以携带图片、字体、JSON、Markdown 等布局资源，但不能携带插件可执行内容。
+v3 导入器执行硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，普通单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning。导入器还会在解压入口拒绝插件目录、插件二进制和可执行脚本，例如 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 和 `.jar`。布局包可以携带图片、字体、JSON、Markdown 等布局资源，但不能携带插件可执行内容。
 
 图片资源在复制或导入前会校验扩展名、文件大小和像素尺寸。Canvas 背景图限制为 1 MiB、长边 4096、像素 4096×4096；普通 UI 图片限制为 512 KiB、长边 2048、像素 2048×2048；包内未知用途图片按包资源入口限制处理并仍需能安全解码。超限图片会整体拒绝，不会复制进包或生成 `bpui://` URI。
 

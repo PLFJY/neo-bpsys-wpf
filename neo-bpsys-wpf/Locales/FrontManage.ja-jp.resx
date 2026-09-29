@@ -93,6 +93,9 @@
   <data name="ImportPackage">
     <value>パッケージをインポート</value>
   </data>
+  <data name="ImportingPackage">
+    <value>レイアウトパッケージをインポート中…</value>
+  </data>
   <data name="ExportPackage">
     <value>パッケージをエクスポート</value>
   </data>

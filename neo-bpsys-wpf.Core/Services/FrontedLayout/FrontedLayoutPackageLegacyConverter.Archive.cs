@@ -72,7 +72,7 @@ public sealed partial class FrontedLayoutPackageLegacyConverter
 
     private static void ExtractZipSafely(string zipPath, string stagingRoot)
     {
-        if (new FileInfo(zipPath).Length > FrontedLayoutLimits.MaxPackageArchiveBytes)
+        if (new FileInfo(zipPath).Length > FrontedLayoutLimits.MaxLegacySourceArchiveBytes)
         {
             throw new InvalidDataException("PackageTooLarge");
         }
@@ -87,18 +87,24 @@ public sealed partial class FrontedLayoutPackageLegacyConverter
         long totalUncompressedBytes = 0;
         foreach (var entry in archive.Entries)
         {
-            if (entry.Length > FrontedLayoutLimits.MaxPackageSingleEntryBytes)
+            var entryName = entry.FullName.Replace('\\', '/');
+            var isCompressibleImage = entryName.StartsWith("CustomUi/", StringComparison.OrdinalIgnoreCase)
+                                      && new[] { ".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".ico" }
+                                          .Contains(Path.GetExtension(entryName), StringComparer.OrdinalIgnoreCase);
+            var maxEntryBytes = isCompressibleImage
+                ? FrontedLayoutLimits.MaxLegacyCompressibleImageSourceBytes
+                : FrontedLayoutLimits.MaxPackageSingleEntryBytes;
+            if (entry.Length > maxEntryBytes)
             {
                 throw new InvalidDataException("PackageEntryTooLarge");
             }
 
             totalUncompressedBytes += entry.Length;
-            if (totalUncompressedBytes > FrontedLayoutLimits.MaxPackageExtractedBytes)
+            if (totalUncompressedBytes > FrontedLayoutLimits.MaxLegacySourceExtractedBytes)
             {
                 throw new InvalidDataException("PackageExtractedTooLarge");
             }
 
-            var entryName = entry.FullName.Replace('\\', '/');
             if (string.IsNullOrWhiteSpace(entryName)
                 || Path.IsPathRooted(entryName)
                 || entryName.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(segment => segment is "." or ".."))

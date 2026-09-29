@@ -37,7 +37,18 @@ public sealed partial class FrontedLayoutPackageImporter
                 return Fail("Package archive was not found.");
             }
 
-            if (new FileInfo(request.PackagePath).Length > FrontedLayoutLimits.MaxPackageArchiveBytes)
+            var archiveBytes = new FileInfo(request.PackagePath).Length;
+            if (archiveBytes > FrontedLayoutLimits.MaxLegacySourceArchiveBytes)
+            {
+                return Fail("PackageTooLarge");
+            }
+
+            if (IsLegacyArchive(request.PackagePath))
+            {
+                return Legacy();
+            }
+
+            if (archiveBytes > FrontedLayoutLimits.MaxPackageArchiveBytes)
             {
                 return Fail("PackageTooLarge");
             }
