@@ -193,6 +193,52 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
     }
 
     [Fact]
+    public async Task PendingArchiveImport_ReplacesPartialTarget_WhenUnrelatedOldFileCannotBeDeleted()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var targetRoot = Path.Combine(_root, "partial-target");
+            var preparedRoot = Path.Combine(_root, "prepared-complete-module");
+            CopyTestDirectory(CreateTestModuleDirectory("2.0.0", includePackagedAssetDirectories: false), preparedRoot);
+            Directory.CreateDirectory(targetRoot);
+            await File.WriteAllTextAsync(Path.Combine(targetRoot, "component.json"), "old partial install");
+            await File.WriteAllTextAsync(Path.Combine(targetRoot, "Clipper2Lib.dll"), "old partial install");
+            var protectedFile = Path.Combine(targetRoot, "AweSun.exe");
+            await File.WriteAllTextAsync(protectedFile, "unrelated file");
+            File.SetAttributes(protectedFile, FileAttributes.ReadOnly);
+
+            try
+            {
+                Directory.CreateDirectory(AppConstants.AppDataPath);
+                await File.WriteAllTextAsync(
+                    SmartBpModuleManager.MovePendingFilePath,
+                    JsonSerializer.Serialize(new SmartBpModuleMovePendingState
+                    {
+                        SourceRoot = targetRoot,
+                        TargetRoot = targetRoot,
+                        PreparedRoot = preparedRoot,
+                        InstallKind = "LiteDownload"
+                    }));
+
+                await CreateManager().TryLoadPersistedModuleAsync();
+                Assert.True(File.Exists(Path.Combine(targetRoot, SmartBpModuleConstants.EntryAssemblyName)));
+                Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
+                Assert.True(File.Exists(Path.Combine(targetRoot, "AweSun.exe")) ||
+                            Directory.EnumerateDirectories(_root, ".partial-target.backup-*", SearchOption.TopDirectoryOnly)
+                                .Any(path => File.Exists(Path.Combine(path, "AweSun.exe"))));
+                Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+            }
+            finally
+            {
+                foreach (var file in Directory.EnumerateFiles(_root, "AweSun.exe", SearchOption.AllDirectories))
+                {
+                    File.SetAttributes(file, FileAttributes.Normal);
+                }
+            }
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    [Fact]
     public async Task PendingPathChange_MigratesManagedModelsAndDeletesOldModuleAfterTargetLoads()
     {
         await WpfTestThread.RunAsync(async () =>

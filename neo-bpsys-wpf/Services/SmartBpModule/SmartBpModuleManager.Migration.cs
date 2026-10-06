@@ -250,6 +250,17 @@ public sealed partial class SmartBpModuleManager
             // 运行时托管模型可能体积较大且由用户下载；替换代码/资源时
             // 保留同一模块根目录下的 OCR 或 AI 资产。
             ReplaceModuleRootPreservingManagedAssets(preparedRoot, targetRoot);
+            if (IsManagedPendingArchivePath(preparedRoot))
+            {
+                try
+                {
+                    Directory.Delete(preparedRoot, recursive: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to clean completed SmartBP module archive staging directory: {PreparedRoot}", preparedRoot);
+                }
+            }
             if (!string.IsNullOrWhiteSpace(pending.SourceRoot) &&
                 !string.Equals(
                     Path.GetFullPath(pending.SourceRoot),
@@ -746,65 +757,113 @@ public sealed partial class SmartBpModuleManager
     {
         var normalizedSourceRoot = Path.GetFullPath(sourceRoot);
         var normalizedTargetRoot = Path.GetFullPath(targetRoot);
-        Directory.CreateDirectory(Path.GetDirectoryName(normalizedTargetRoot)!);
-
-        if (!Directory.Exists(normalizedTargetRoot))
-        {
-            Directory.Move(normalizedSourceRoot, normalizedTargetRoot);
-            return;
-        }
+        var targetParent = Path.GetDirectoryName(normalizedTargetRoot)!;
+        var targetName = Path.GetFileName(normalizedTargetRoot);
+        Directory.CreateDirectory(targetParent);
+        var replacementRoot = Path.Combine(targetParent, $".{targetName}.install-{Guid.NewGuid():N}");
+        var backupRoot = Path.Combine(targetParent, $".{targetName}.backup-{Guid.NewGuid():N}");
 
         _logger.LogInformation(
             "Replacing SmartBP module target root while preserving managed model assets. TargetRoot={TargetRoot}",
             normalizedTargetRoot);
 
-        foreach (var entry in Directory.EnumerateFileSystemEntries(normalizedTargetRoot).ToArray())
+        try
         {
-            if (IsManagedAssetRoot(entry))
+            // Build the complete replacement on the destination volume before touching the
+            // existing installation. The archive staging directory may be on another drive.
+            Directory.CreateDirectory(replacementRoot);
+            CopyDirectory(normalizedSourceRoot, replacementRoot);
+            if (Directory.Exists(normalizedTargetRoot))
             {
-                _logger.LogDebug("Preserving SmartBP managed asset directory during module replacement: {Path}", entry);
-                continue;
+                foreach (var assetRootName in ManagedAssetRootNames)
+                {
+                    var existingAssetRoot = Path.Combine(normalizedTargetRoot, assetRootName);
+                    if (!Directory.Exists(existingAssetRoot))
+                    {
+                        continue;
+                    }
+
+                    var replacementAssetRoot = Path.Combine(replacementRoot, assetRootName);
+                    DeleteFileSystemEntry(replacementAssetRoot);
+                    Directory.CreateDirectory(replacementAssetRoot);
+                    CopyDirectory(existingAssetRoot, replacementAssetRoot);
+                }
             }
 
-            DeleteFileSystemEntry(entry);
-        }
+            if (!ValidateModuleDirectory(replacementRoot, allowDevelopmentDirectory: false, out _, out var validationError))
+            {
+                throw new InvalidOperationException($"Prepared SmartBP module replacement failed validation: {validationError}");
+            }
 
-        foreach (var entry in Directory.EnumerateFileSystemEntries(normalizedSourceRoot).ToArray())
+            var targetMoved = false;
+            try
+            {
+                if (Directory.Exists(normalizedTargetRoot))
+                {
+                    try
+                    {
+                        Directory.Move(normalizedTargetRoot, backupRoot);
+                        targetMoved = true;
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        // An incomplete installation is already unusable. A locked unrelated
+                        // file can prevent renaming its parent directory, so restore the
+                        // validated module files in place and leave that file untouched.
+                        if (ValidateModuleDirectory(normalizedTargetRoot, allowDevelopmentDirectory: false, out _, out _))
+                        {
+                            throw;
+                        }
+
+                        _logger.LogWarning(ex, "SmartBP module target is incomplete and cannot be renamed. Restoring module files in place. TargetRoot={TargetRoot}", normalizedTargetRoot);
+                        CopyDirectory(replacementRoot, normalizedTargetRoot);
+                        if (!ValidateModuleDirectory(normalizedTargetRoot, allowDevelopmentDirectory: false, out _, out var restoredError))
+                        {
+                            throw new InvalidOperationException($"Restored SmartBP module failed validation: {restoredError}");
+                        }
+
+                        return;
+                    }
+                }
+
+                Directory.Move(replacementRoot, normalizedTargetRoot);
+            }
+            catch
+            {
+                if (targetMoved && !Directory.Exists(normalizedTargetRoot))
+                {
+                    Directory.Move(backupRoot, normalizedTargetRoot);
+                }
+
+                throw;
+            }
+
+            if (targetMoved)
+            {
+                try
+                {
+                    Directory.Delete(backupRoot, recursive: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "SmartBP module replacement succeeded, but old directory cleanup failed. BackupRoot={BackupRoot}", backupRoot);
+                }
+            }
+        }
+        finally
         {
-            var name = Path.GetFileName(entry);
-            var destination = Path.Combine(normalizedTargetRoot, name);
-            if (ManagedAssetRootNames.Contains(name) && Directory.Exists(destination))
+            if (Directory.Exists(replacementRoot))
             {
-                _logger.LogInformation(
-                    "Skipping packaged SmartBP managed asset directory because an existing downloaded asset directory is present. Path={Path}",
-                    destination);
-                continue;
-            }
-
-            if (Directory.Exists(destination) || File.Exists(destination))
-            {
-                DeleteFileSystemEntry(destination);
-            }
-
-            if (Directory.Exists(entry))
-            {
-                Directory.Move(entry, destination);
-            }
-            else
-            {
-                File.Move(entry, destination, overwrite: true);
+                try
+                {
+                    Directory.Delete(replacementRoot, recursive: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to clean incomplete SmartBP module replacement directory: {ReplacementRoot}", replacementRoot);
+                }
             }
         }
-    }
-
-    /// <summary>
-    /// 判断路径是否属于 SmartBP 运行时托管资产根目录之一。
-    /// </summary>
-    /// <param name="path">要检查的路径。</param>
-    /// <returns>当路径是已知的托管资产目录时返回 <see langword="true"/>。</returns>
-    private static bool IsManagedAssetRoot(string path)
-    {
-        return Directory.Exists(path) && ManagedAssetRootNames.Contains(Path.GetFileName(path));
     }
 
     /// <summary>
