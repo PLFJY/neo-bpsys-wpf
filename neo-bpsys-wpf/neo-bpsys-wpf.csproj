@@ -224,10 +224,10 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.12" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.12" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
         <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
         <PackageReference Include="WPF-UI.DependencyInjection" Version="4.3.0" />

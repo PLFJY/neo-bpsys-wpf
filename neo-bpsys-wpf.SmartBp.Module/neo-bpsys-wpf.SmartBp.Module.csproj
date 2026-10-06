@@ -20,20 +20,20 @@
   <ItemGroup>
     <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260627" />
     <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260627" />
-    <PackageReference Include="RapidOcrNet" Version="3.0.0" />
+    <PackageReference Include="RapidOcrNet" Version="4.2.0" />
     <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="$(PaddleInferenceRuntimeVersion)" ExcludeAssets="native" GeneratePathProperty="true" />
     <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />
     <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.3.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" ExcludeAssets="runtime" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
     <PackageReference Include="WPF-UI" Version="4.3.0" ExcludeAssets="runtime" />
     <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" ExcludeAssets="runtime" />
     <!-- SharpCompress 是 Sdcb.PaddleOCR.Models.Online 的传递依赖,本模块不使用其 API:
          模型下载用宿主统一下载服务,解压用 System.IO.Compression.TarFile(.NET 内置)。
          显式排除以避免 SharpCompress.dll 被打包进 SmartBpModule.7z。 -->
-    <PackageReference Include="SharpCompress" Version="0.50.1" ExcludeAssets="all" />
+    <PackageReference Include="SharpCompress" Version="0.50.4" ExcludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,9 +54,6 @@
   <!-- CPU Paddle runtime is owned by SmartBP, so it travels inside the module archive
        rather than the main application's installation directory. -->
   <ItemGroup>
-    <Content Include="$(PkgSdcb_PaddleInference_runtime_win64_mkl)\runtimes\win-x64\native\**\*.*"
-             Link="Runtime\Paddle\cpu\$(PaddleInferenceRuntimeVersion)\native\%(RecursiveDir)%(Filename)%(Extension)"
-             CopyToOutputDirectory="PreserveNewest"
-             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(PkgSdcb_PaddleInference_runtime_win64_mkl)\runtimes\win-x64\native\**\*.*" Link="Runtime\Paddle\cpu\$(PaddleInferenceRuntimeVersion)\native\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
