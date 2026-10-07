@@ -254,10 +254,15 @@
         "ImageFileName": "斗牛士.png",
         "BookOrderIndex": 500
     },
-    "Prodigy": {
+    "Mime Artist": {
         "Camp": "Sur",
         "ImageFileName": "默剧艺人.png",
         "BookOrderIndex": 510
+    },
+    "Prodigy": {
+        "Camp": "Sur",
+        "ImageFileName": "神童.png",
+        "BookOrderIndex": 520
     },
     "Guard 26": {
         "Camp": "Hun",
