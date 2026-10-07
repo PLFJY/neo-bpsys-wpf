@@ -1038,4 +1038,11 @@
   <data name="CompressAndApplyImage"><value>圧縮して適用</value></data>
   <data name="ImageCompressed"><value>大きすぎる画像を圧縮して適用しました。</value></data>
   <data name="ImageCompressionFailed"><value>画像の圧縮に失敗したため、適用できませんでした。</value></data>
+  <data name="Announcements"><value>お知らせ</value></data>
+  <data name="MarkAnnouncementsRead"><value>既読にする</value></data>
+  <data name="ReadAnnouncementsLater"><value>あとで読む</value></data>
+  <data name="NoAnnouncements"><value>お知らせはありません</value></data>
+  <data name="AnnouncementLevelInfo"><value>情報</value></data>
+  <data name="AnnouncementLevelWarning"><value>警告</value></data>
+  <data name="AnnouncementLevelCritical"><value>重要</value></data>
 </root>

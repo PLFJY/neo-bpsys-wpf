@@ -97,5 +97,26 @@
                 Markdown="{Binding ReleaseNotes}"
                 PreviewMouseWheel="ReleaseNotesMarkdownViewer_OnPreviewMouseWheel" />
         </ui:CardExpander>
+        <Grid
+            Grid.Row="1"
+            Margin="0,0,26,22"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Panel.ZIndex="1">
+            <ui:Button Command="{Binding AnnouncementCenter.OpenCommand}"
+                       Content="{lex:Loc Announcements}"
+                       Icon="{ui:SymbolIcon Symbol=Alert24}" />
+            <Border MinWidth="20" Height="20" Padding="4,1"
+                    Margin="0,-9,-9,0"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Panel.ZIndex="2" IsHitTestVisible="False"
+                    Background="{DynamicResource AccentFillColorDefaultBrush}"
+                    CornerRadius="10"
+                    Visibility="{Binding AnnouncementCenter.HasUnseenAnnouncements, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="White" FontSize="11" FontWeight="SemiBold"
+                           Text="{Binding AnnouncementCenter.UnseenCount}" />
+            </Border>
+        </Grid>
     </Grid>
 </Page>

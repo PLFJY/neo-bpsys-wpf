@@ -1039,4 +1039,11 @@
   <data name="CompressAndApplyImage"><value>压缩并应用</value></data>
   <data name="ImageCompressed"><value>图片体积或尺寸过大，已压缩后应用。</value></data>
   <data name="ImageCompressionFailed"><value>图片压缩失败，无法应用该图片。</value></data>
+  <data name="Announcements"><value>公告</value></data>
+  <data name="MarkAnnouncementsRead"><value>已读</value></data>
+  <data name="ReadAnnouncementsLater"><value>稍后阅读</value></data>
+  <data name="NoAnnouncements"><value>暂无公告</value></data>
+  <data name="AnnouncementLevelInfo"><value>信息</value></data>
+  <data name="AnnouncementLevelWarning"><value>警告</value></data>
+  <data name="AnnouncementLevelCritical"><value>重要</value></data>
 </root>

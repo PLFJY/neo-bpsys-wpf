@@ -16,6 +16,7 @@ using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.ViewModels.Windows;
 using IContentDialogService = neo_bpsys_wpf.Core.Abstractions.Services.IContentDialogService;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
@@ -87,7 +88,12 @@ public partial class MainWindow : FluentWindow, INavigationWindow
             };
         if (Resources["StartupLoading"] is Storyboard startupLoading)
         {
-            startupLoading.Completed += async (_, _) => await TryShowFirstRunWelcomeAsync();
+            startupLoading.Completed += async (_, _) =>
+            {
+                await TryShowFirstRunWelcomeAsync();
+                if (DataContext is MainWindowViewModel viewModel)
+                    viewModel.AnnouncementCenter.NotifyShellReady();
+            };
         }
     }
 

@@ -148,6 +148,9 @@ public partial class App : AppBase
 
         MainWindow = (FluentWindow)IAppHost.Host.Services.GetRequiredService<INavigationWindow>();
 
+        _ = RunRemoteAnnouncementStartupAsync(
+            IAppHost.Host.Services.GetRequiredService<IRemoteAnnouncementService>(), logger);
+
         AppStarted?.Invoke(this, EventArgs.Empty);
 
         CurrentLifetime = ApplicationLifetime.Running;
@@ -156,6 +159,20 @@ public partial class App : AppBase
         logger.LogInformation("Update checking on start up");
         await IAppHost.Host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
 #endif
+    }
+
+    private static async Task RunRemoteAnnouncementStartupAsync(
+        IRemoteAnnouncementService service, ILogger<App> logger)
+    {
+        try
+        {
+            await service.InitializeFromCacheAsync();
+            await service.RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Remote announcements could not be initialized; application startup continues.");
+        }
     }
 
 

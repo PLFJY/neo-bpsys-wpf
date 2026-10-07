@@ -17,6 +17,7 @@ using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.Services.SmartBpModule;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
+using neo_bpsys_wpf.ViewModels;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
@@ -52,6 +53,15 @@ public partial class App
         services.AddSingleton<ITaskBarService, TaskBarService>();
 
         services.AddHttpClient("FileDownloads", client => client.Timeout = Timeout.InfiniteTimeSpan);
+        services.AddHttpClient("RemoteAnnouncements", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(6);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
+        })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+        services.AddSingleton<IRemoteAnnouncementService, RemoteAnnouncementService>();
+        services.AddSingleton<AnnouncementCenterViewModel>();
         services.AddSingleton<IFileDownloadService>(serviceProvider =>
         {
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();

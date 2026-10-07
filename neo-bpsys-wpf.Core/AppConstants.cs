@@ -21,6 +21,10 @@ public static class AppConstants
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
         .InformationalVersion ?? "unknown";
 
+    /// <summary>GitCode 公开 Raw 公告文件的基础地址。</summary>
+    public const string GitCodeAnnouncementRawBaseUrl =
+        "https://raw.gitcode.com/PLFJY/neo-bpsys-announce-source/raw/main/";
+
     #region Paths
 
     /// <summary>
@@ -39,6 +43,18 @@ public static class AppConstants
     /// 配置文件路径
     /// </summary>
     public static readonly string ConfigFilePath = Path.Combine(AppDataPath, "Config.json");
+
+    /// <summary>远程公告运行数据目录。</summary>
+    public static readonly string RemoteAnnouncementsPath = Path.Combine(AppDataPath, "RemoteAnnouncements");
+
+    /// <summary>最近一次成功同步的公告清单路径。</summary>
+    public static readonly string RemoteAnnouncementsManifestPath = Path.Combine(RemoteAnnouncementsPath, "manifest.json");
+
+    /// <summary>公告已读状态路径。</summary>
+    public static readonly string RemoteAnnouncementsStatePath = Path.Combine(RemoteAnnouncementsPath, "state.json");
+
+    /// <summary>公告正文缓存目录。</summary>
+    public static readonly string RemoteAnnouncementsCachePath = Path.Combine(RemoteAnnouncementsPath, "cache");
 
     /// <summary>
     /// 应用程序临时数据路径

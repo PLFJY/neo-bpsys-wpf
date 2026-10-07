@@ -5,10 +5,13 @@ using Moq;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Models.RemoteAnnouncements;
 using neo_bpsys_wpf.ProductTour;
+using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.ViewModels.Windows;
+using neo_bpsys_wpf.ViewModels;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +85,18 @@ public sealed class MainWindowViewModelGameProgressSyncTest
             tutorialSignalService,
             CreateSmartBpAutoRecognitionGlobalControl().Object,
             new Mock<IGlobalRestartService>().Object,
+            CreateAnnouncementCenter(),
             NullLogger<MainWindowViewModel>.Instance);
+
+    private static AnnouncementCenterViewModel CreateAnnouncementCenter()
+    {
+        var service = new Mock<IRemoteAnnouncementService>();
+        service.SetupGet(value => value.Announcements).Returns(Array.Empty<RemoteAnnouncement>());
+        var settings = new Mock<ISettingsHostService>();
+        settings.SetupGet(value => value.Settings).Returns(new Settings());
+        return new AnnouncementCenterViewModel(service.Object, settings.Object,
+            NullLogger<AnnouncementCenterViewModel>.Instance);
+    }
 
     private static Mock<ISharedDataService> CreateSharedDataService(Game game)
     {
