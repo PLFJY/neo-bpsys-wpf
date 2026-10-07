@@ -261,6 +261,11 @@
         "ImageFileName": "默剧艺人.png",
         "BookOrderIndex": 510
     },
+    "神童": {
+        "Camp": "Sur",
+        "ImageFileName": "神童.png",
+        "BookOrderIndex": 520
+    },
     "26号守卫": {
         "Camp": "Hun",
         "ImageFileName": "26号守卫.png",

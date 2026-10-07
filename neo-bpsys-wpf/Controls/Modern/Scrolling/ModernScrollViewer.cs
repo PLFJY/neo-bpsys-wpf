@@ -53,10 +53,20 @@ public class ModernScrollViewer : ScrollViewer
             new PropertyMetadata(null));
 
     /// <summary>
-    /// 初始化 <see cref="ModernScrollViewer"/> 的新实例。
+    /// 配置可由 XAML 覆盖的原生纵向触摸默认值。
+    /// </summary>
+    static ModernScrollViewer()
+    {
+        PanningModeProperty.OverrideMetadata(typeof(ModernScrollViewer),
+            new FrameworkPropertyMetadata(PanningMode.VerticalOnly));
+    }
+
+    /// <summary>
+    /// 初始化支持原生纵向触摸平移与有界滚轮动画的滚动宿主。
     /// </summary>
     public ModernScrollViewer()
     {
+        WheelScrollInput.Initialize(this);
         PreviewMouseWheel += OnPreviewMouseWheel;
         Unloaded += OnUnloaded;
     }
@@ -186,8 +196,13 @@ public class ModernScrollViewer : ScrollViewer
         DependencyObject? explicitSource,
         bool respectExplicitSelfOwnership)
     {
-        if (WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, e, explicitSource, respectExplicitSelfOwnership)
-            || !isSmoothScrollingEnabled)
+        if (!isSmoothScrollingEnabled)
+        {
+            WheelScrollInput.Reset(scrollViewer);
+            return false;
+        }
+
+        if (WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, e, explicitSource, respectExplicitSelfOwnership))
         {
             return false;
         }
@@ -209,25 +224,37 @@ public class ModernScrollViewer : ScrollViewer
         bool useSmoothScrolling,
         IEasingFunction? easingFunction)
     {
-        if (e.Handled
-            || scrollViewer.ScrollableHeight <= 0
-            || !CanScrollVerticallyInWheelDirection(scrollViewer, e.Delta)
-            || e.Delta % Mouse.MouseWheelDeltaForOneLine != 0)
+        if (e.Handled)
         {
             return false;
         }
 
-        var notches = e.Delta / (double)Mouse.MouseWheelDeltaForOneLine;
-        var wheelLines = Math.Max(1, SystemParameters.WheelScrollLines);
-        var wheelChange = notches * wheelLines * 16 * Math.Max(0.1, wheelScrollMultiplier);
-        var currentTarget = ScrollAnimationHelper.GetCurrentVerticalAnimationTarget(scrollViewer) ?? scrollViewer.VerticalOffset;
-        var targetOffset = currentTarget - wheelChange;
+        if (e.Delta == 0)
+        {
+            e.Handled = true; // 原生 WPF 将 zero delta 当作 WheelUp，不能交回原生路径。
+            return true;
+        }
+
+        if (!CanScrollVerticallyInWheelDirection(scrollViewer, e.Delta))
+        {
+            WheelScrollInput.Reset(scrollViewer);
+            return false;
+        }
+
+        var continuous = WheelScrollInput.Observe(scrollViewer, e);
+        var targetOffset = WheelScrollPolicy.CalculateTarget(scrollViewer.VerticalOffset,
+            ScrollAnimationHelper.GetCurrentVerticalAnimationTarget(scrollViewer), e.Delta,
+            scrollViewer.ScrollableHeight, scrollViewer.ViewportHeight,
+            SystemParameters.WheelScrollLines, wheelScrollMultiplier, continuous);
+        var effectiveDuration = continuous
+            ? Math.Min(scrollAnimationDuration, WheelScrollPolicy.ContinuousDurationMilliseconds)
+            : scrollAnimationDuration;
 
         ScrollAnimationHelper.SmoothScrollToVerticalOffset(
             scrollViewer,
             targetOffset,
-            TimeSpan.FromMilliseconds(Math.Max(0, scrollAnimationDuration)),
-            animated: useSmoothScrolling && scrollAnimationDuration > 0,
+            TimeSpan.FromMilliseconds(Math.Max(0, effectiveDuration)),
+            animated: useSmoothScrolling && effectiveDuration > 0,
             easingFunction);
 
         e.Handled = true;
@@ -238,7 +265,7 @@ public class ModernScrollViewer : ScrollViewer
     {
         ArgumentNullException.ThrowIfNull(scrollViewer);
 
-        var currentOffset = ScrollAnimationHelper.GetCurrentVerticalAnimationTarget(scrollViewer) ?? scrollViewer.VerticalOffset;
+        var currentOffset = scrollViewer.VerticalOffset;
         return wheelDelta switch
         {
             < 0 => currentOffset < scrollViewer.ScrollableHeight,

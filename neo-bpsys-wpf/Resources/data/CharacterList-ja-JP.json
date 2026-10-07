@@ -363,6 +363,13 @@
         "Abbrev": "mimaatst",
         "FullSpell": "maimuaatisuto"
     },
+    "「神童」": {
+        "Camp": "Sur",
+        "ImageFileName": "神童.png",
+        "BookOrderIndex": 520,
+        "Abbrev": "snd",
+        "FullSpell": "shindou"
+    },
     "復讐者": {
         "Camp": "Hun",
         "ImageFileName": "厂长.png",

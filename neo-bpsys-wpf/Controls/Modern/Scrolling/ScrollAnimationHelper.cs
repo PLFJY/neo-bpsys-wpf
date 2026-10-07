@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +19,7 @@ public static class ScrollAnimationHelper
     public static readonly TimeSpan DefaultDuration = TimeSpan.FromMilliseconds(220);
 
     private static readonly ConditionalWeakTable<ScrollViewer, VerticalScrollAnimation> VerticalAnimations = new();
+    private static readonly IEasingFunction DefaultEasing = CreateDefaultEasingFunction();
 
     /// <summary>
     /// 将垂直偏移量限制在 <see cref="ScrollViewer"/> 的有效范围内。
@@ -120,7 +122,11 @@ public static class ScrollAnimationHelper
 
         if (VerticalAnimations.TryGetValue(scrollViewer, out var existingAnimation))
         {
-            existingAnimation.Retarget(clampedTarget, effectiveDuration, easingFunction ?? CreateDefaultEasingFunction());
+            var easing = easingFunction ?? DefaultEasing;
+            if (!existingAnimation.Matches(clampedTarget, effectiveDuration, easing))
+            {
+                existingAnimation.Retarget(clampedTarget, effectiveDuration, easing);
+            }
             return;
         }
 
@@ -128,7 +134,7 @@ public static class ScrollAnimationHelper
             scrollViewer,
             clampedTarget,
             effectiveDuration,
-            easingFunction ?? CreateDefaultEasingFunction(),
+            easingFunction ?? DefaultEasing,
             RemoveAnimation);
 
         VerticalAnimations.Add(scrollViewer, animation);
@@ -138,8 +144,12 @@ public static class ScrollAnimationHelper
     private static bool AreAnimationsEnabled() =>
         SystemParameters.ClientAreaAnimation && RenderCapability.Tier > 0;
 
-    private static IEasingFunction CreateDefaultEasingFunction() =>
-        new CubicEase { EasingMode = EasingMode.EaseOut };
+    private static IEasingFunction CreateDefaultEasingFunction()
+    {
+        var easing = new CubicEase { EasingMode = EasingMode.EaseOut };
+        easing.Freeze();
+        return easing;
+    }
 
     private static void RemoveAnimation(ScrollViewer scrollViewer)
     {
@@ -152,7 +162,7 @@ public static class ScrollAnimationHelper
         private readonly Action<ScrollViewer> _remove;
         private TimeSpan _duration;
         private IEasingFunction _easingFunction;
-        private DateTime _startedAt;
+        private long _startedAt;
         private double _startOffset;
         private bool _isRenderingAttached;
 
@@ -174,6 +184,9 @@ public static class ScrollAnimationHelper
 
         public double TargetOffset { get; private set; }
 
+        internal bool Matches(double offset, TimeSpan duration, IEasingFunction easing) =>
+            TargetOffset == offset && _duration == duration && ReferenceEquals(_easingFunction, easing);
+
         public void Start()
         {
             if (!_scrollViewerReference.TryGetTarget(out var scrollViewer))
@@ -181,7 +194,7 @@ public static class ScrollAnimationHelper
                 return;
             }
 
-            _startedAt = DateTime.UtcNow;
+            _startedAt = Stopwatch.GetTimestamp();
             _startOffset = scrollViewer.VerticalOffset;
             IsActive = true;
             AttachRendering();
@@ -198,7 +211,7 @@ public static class ScrollAnimationHelper
             TargetOffset = targetOffset;
             _duration = duration;
             _easingFunction = easingFunction;
-            _startedAt = DateTime.UtcNow;
+            _startedAt = Stopwatch.GetTimestamp();
             _startOffset = scrollViewer.VerticalOffset;
 
             if (!IsActive)
@@ -267,7 +280,7 @@ public static class ScrollAnimationHelper
 
         private void Tick(ScrollViewer scrollViewer)
         {
-            var elapsed = DateTime.UtcNow - _startedAt;
+            var elapsed = Stopwatch.GetElapsedTime(_startedAt);
             var progress = Math.Clamp(elapsed.TotalMilliseconds / _duration.TotalMilliseconds, 0, 1);
             var easedProgress = _easingFunction.Ease(progress);
             var nextOffset = _startOffset + ((TargetOffset - _startOffset) * easedProgress);

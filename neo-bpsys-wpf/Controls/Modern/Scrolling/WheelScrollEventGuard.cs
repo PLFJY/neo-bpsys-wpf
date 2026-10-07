@@ -23,14 +23,14 @@ internal static class WheelScrollEventGuard
         ScrollViewer owner,
         MouseWheelEventArgs e,
         DependencyObject? explicitSource,
-        bool respectExplicitSelfOwnership)
+        bool respectExplicitSelfOwnership,
+        ModifierKeys? modifiers = null)
     {
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(e);
 
         if (e.Handled
-            || Keyboard.Modifiers.HasFlag(ModifierKeys.Control)
-            || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            || ((modifiers ?? Keyboard.Modifiers) & (ModifierKeys.Control | ModifierKeys.Shift)) != 0)
         {
             return true;
         }
@@ -69,7 +69,7 @@ internal static class WheelScrollEventGuard
 
         if (IsOpenComboBoxCandidate(e, hoverSource)
             || IsInsidePopupTree(hoverSource)
-            || IsInsideExplicitSelfScrollRegion(owner, hoverSource))
+            || IsInsideExplicitSelfScrollRegion(owner, hoverSource, e.Delta))
         {
             return false;
         }
@@ -111,7 +111,7 @@ internal static class WheelScrollEventGuard
 
             if (IsInsideOpenComboBox(source)
                 || IsInsidePopupTree(source)
-                || (respectExplicitSelfOwnership && IsInsideExplicitSelfScrollRegion(owner, source)))
+                || (respectExplicitSelfOwnership && IsInsideExplicitSelfScrollRegion(owner, source, e.Delta)))
             {
                 return true;
             }
@@ -185,7 +185,7 @@ internal static class WheelScrollEventGuard
         return false;
     }
 
-    private static bool IsInsideExplicitSelfScrollRegion(ScrollViewer owner, DependencyObject source)
+    private static bool IsInsideExplicitSelfScrollRegion(ScrollViewer owner, DependencyObject source, int delta)
     {
         foreach (var ancestor in EnumerateAncestorsAndSelf(source))
         {
@@ -194,9 +194,21 @@ internal static class WheelScrollEventGuard
                 return false;
             }
 
-            var ownership = ModernScroll.GetOwnership(ancestor);
+            var ownership = DependencyPropertyHelper.GetValueSource(ancestor, ModernScroll.OwnershipProperty).BaseValueSource
+                == BaseValueSource.Inherited ? ModernScrollOwnership.Auto : ModernScroll.GetOwnership(ancestor);
             if (ownership == ModernScrollOwnership.Self)
             {
+                // 模板的 logical/templated parent 路径可能先于 viewer 被访问。
+                // 包含 owner 的声明不是 owner 自身内容的边界。
+                if (IsRelatedDescendantOf(ancestor, owner))
+                {
+                    continue;
+                }
+                if (ancestor is UIElement target && NestedSmoothScrollBehavior.GetIsEnabled(target)
+                    && !NestedSmoothScrollBehavior.CanConsumeWheel(target, delta))
+                {
+                    continue; // 同一个 preview 路由交接到外层，不重放滚轮事件。
+                }
                 return true;
             }
 
