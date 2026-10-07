@@ -122,6 +122,9 @@ public static class NestedSmoothScrollBehavior
     private static void SetState(DependencyObject obj, NestedSmoothScrollState? value) =>
         obj.SetValue(StateProperty, value);
 
+    internal static bool CanConsumeWheel(UIElement target, int delta) =>
+        GetState(target)?.CanConsumeWheel(delta) == true;
+
     private static void OnIsEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         if (d is not UIElement element)
@@ -144,6 +147,7 @@ public static class NestedSmoothScrollBehavior
     {
         private readonly UIElement _target;
         private ScrollViewer? _scrollViewer;
+        private ControlTemplate? _resolvedTemplate;
         private bool _isAttached;
 
         public NestedSmoothScrollState(UIElement target)
@@ -156,6 +160,14 @@ public static class NestedSmoothScrollBehavior
             if (_isAttached)
             {
                 return;
+            }
+
+            WheelScrollInput.EnableNativePanning(_target);
+            if (_target is ListBox or ListView or DataGrid
+                && DependencyPropertyHelper.GetValueSource(_target, VirtualizingPanel.ScrollUnitProperty).BaseValueSource
+                    == BaseValueSource.Default)
+            {
+                _target.SetCurrentValue(VirtualizingPanel.ScrollUnitProperty, ScrollUnit.Pixel);
             }
 
             _target.PreviewMouseWheel += OnPreviewMouseWheel;
@@ -201,8 +213,9 @@ public static class NestedSmoothScrollBehavior
         {
             if (_scrollViewer is not null)
             {
-                ScrollAnimationHelper.CancelVerticalAnimation(_scrollViewer);
+                WheelScrollInput.Reset(_scrollViewer);
             }
+            _scrollViewer = null;
         }
 
         private void ResolveScrollViewer()
@@ -210,9 +223,37 @@ public static class NestedSmoothScrollBehavior
             if (_target is Control control)
             {
                 control.ApplyTemplate();
+                _resolvedTemplate = control.Template;
             }
 
-            _scrollViewer = _target as ScrollViewer ?? FindDescendant<ScrollViewer>(_target);
+            var viewer = _target as ScrollViewer ?? FindDescendant<ScrollViewer>(_target);
+            if (_scrollViewer is not null && !ReferenceEquals(_scrollViewer, viewer))
+            {
+                WheelScrollInput.Reset(_scrollViewer);
+            }
+            _scrollViewer = viewer;
+            if (viewer is not null)
+            {
+                WheelScrollInput.Initialize(viewer);
+            }
+        }
+
+        internal bool CanConsumeWheel(int delta)
+        {
+            if (_scrollViewer is null || (_target is Control control && !ReferenceEquals(control.Template, _resolvedTemplate)))
+            {
+                ResolveScrollViewer();
+            }
+            if (_scrollViewer is null)
+            {
+                return false;
+            }
+            if (ModernScrollViewer.CanScrollVerticallyInWheelDirection(_scrollViewer, delta))
+            {
+                return true;
+            }
+            WheelScrollInput.Reset(_scrollViewer);
+            return false;
         }
 
         private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -230,9 +271,9 @@ public static class NestedSmoothScrollBehavior
                 return;
             }
 
-            ResolveScrollViewer();
-            if (_scrollViewer is null
-                || !ModernScrollViewer.CanScrollVerticallyInWheelDirection(_scrollViewer, e.Delta))
+            if (!CanConsumeWheel(e.Delta) || _scrollViewer is null
+                || WheelScrollEventGuard.ShouldSkipSmoothScroll(_scrollViewer, e,
+                    e.OriginalSource as DependencyObject, respectExplicitSelfOwnership: true))
             {
                 return;
             }

@@ -164,6 +164,7 @@ public static class SmoothScrollBehavior
 
         public void Attach()
         {
+            WheelScrollInput.Initialize(_scrollViewer);
             if (!_isLifecycleAttached)
             {
                 _scrollViewer.Loaded += OnLoaded;

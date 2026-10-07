@@ -186,6 +186,10 @@ public static class ComboBoxDropdownSmoothScrollBehavior
             }
 
             _scrollViewer = FindDescendant<ScrollViewer>(popupChild);
+            if (_scrollViewer is not null)
+            {
+                WheelScrollInput.Initialize(_scrollViewer);
+            }
             _handlerElement = _scrollViewer ?? popupChild;
             _handlerElement.PreviewMouseWheel += OnPreviewMouseWheel;
         }
