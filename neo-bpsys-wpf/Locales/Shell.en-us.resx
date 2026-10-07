@@ -1035,4 +1035,11 @@
   <data name="CompressAndApplyImage"><value>Compress and apply</value></data>
   <data name="ImageCompressed"><value>The oversized image was compressed and applied.</value></data>
   <data name="ImageCompressionFailed"><value>Image compression failed and the image could not be applied.</value></data>
+  <data name="Announcements"><value>Announcements</value></data>
+  <data name="MarkAnnouncementsRead"><value>Mark as read</value></data>
+  <data name="ReadAnnouncementsLater"><value>Read later</value></data>
+  <data name="NoAnnouncements"><value>No announcements</value></data>
+  <data name="AnnouncementLevelInfo"><value>Info</value></data>
+  <data name="AnnouncementLevelWarning"><value>Warning</value></data>
+  <data name="AnnouncementLevelCritical"><value>Critical</value></data>
 </root>

@@ -15,6 +15,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ProductTour;
 using neo_bpsys_wpf.Tutorial;
 using neo_bpsys_wpf.Views.Pages;
+using neo_bpsys_wpf.ViewModels;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
@@ -59,6 +60,9 @@ public partial class MainWindowViewModel :
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly ISmartBpAutoRecognitionGlobalControl _smartBpAutoRecognitionGlobalControl;
     private readonly IGlobalRestartService _globalRestartService;
+
+    /// <summary>主窗口公告中心。</summary>
+    public AnnouncementCenterViewModel AnnouncementCenter { get; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(StopSmartBpAutoRecognitionCommand))]
@@ -115,6 +119,7 @@ public partial class MainWindowViewModel :
         ITutorialSignalService tutorialSignalService,
         ISmartBpAutoRecognitionGlobalControl smartBpAutoRecognitionGlobalControl,
         IGlobalRestartService globalRestartService,
+        AnnouncementCenterViewModel announcementCenter,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
@@ -125,6 +130,7 @@ public partial class MainWindowViewModel :
         _tutorialSignalService = tutorialSignalService;
         _smartBpAutoRecognitionGlobalControl = smartBpAutoRecognitionGlobalControl;
         _globalRestartService = globalRestartService;
+        AnnouncementCenter = announcementCenter;
         _logger = logger;
         _isGuidanceStarted = false;
         _jsonSerializerOptions = new JsonSerializerOptions

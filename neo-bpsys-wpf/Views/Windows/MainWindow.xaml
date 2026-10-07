@@ -97,7 +97,18 @@
             VerticalAlignment="Bottom"
             Panel.ZIndex="2" />
         <ui:ContentDialogHost x:Name="ContentDialogHost" Panel.ZIndex="3" />
-        <Grid>
+        <Grid x:Name="ApplicationContentRoot">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding AnnouncementCenter.IsOpen}" Value="True">
+                            <Setter Property="Effect">
+                                <Setter.Value><BlurEffect Radius="5" /></Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto " />
@@ -342,6 +353,8 @@
                     OpenPaneLength="200" />
             </Grid>
         </Grid>
+        <controls:AnnouncementOverlay Panel.ZIndex="4"
+                                      DataContext="{Binding AnnouncementCenter}" />
         <!--  主题切换相关的东西  -->
         <Border
             x:Name="themeMask"

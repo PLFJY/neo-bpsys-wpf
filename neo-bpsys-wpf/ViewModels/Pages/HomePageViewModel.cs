@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,8 +33,11 @@ public partial class HomePageViewModel : ViewModelBase
     /// </summary>
     /// <param name="updaterService">更新服务</param>
     /// <param name="settingsHostService">设置宿主服务</param>
-    public HomePageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService)
+    /// <param name="announcementCenter">共享公告中心。</param>
+    public HomePageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
+        AnnouncementCenterViewModel announcementCenter)
     {
+        AnnouncementCenter = announcementCenter;
         updaterService.NewVersionInfoChanged += (sender, args) =>
         {
             ReleaseInfo = updaterService.NewVersionInfo;
@@ -43,6 +47,9 @@ public partial class HomePageViewModel : ViewModelBase
         IsExpanded = settingsHostService.Settings.ShowAfterUpdateTip;
         ReleaseNotes = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "LoadingFailed");
     }
+
+    /// <summary>主页与主窗口共享的公告中心。</summary>
+    public AnnouncementCenterViewModel AnnouncementCenter { get; }
 
     /// <summary>
     /// 获取或设置更新日志区域是否展开。

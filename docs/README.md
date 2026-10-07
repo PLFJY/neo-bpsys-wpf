@@ -34,6 +34,7 @@ Xaml Styler 插件仅适用于 Visual Studio——Rider 整理出来的格式不
 | [module-overview.md](architecture/module-overview.md) | 解决方案内各项目和目录的职责 |
 | [data-flow.md](architecture/data-flow.md) | Core 模型、SharedDataService 和 WPF 绑定系统的数据流架构与示例 |
 | [shared-data-and-state.md](architecture/shared-data-and-state.md) | 共享状态、CurrentGame、队伍、Ban、倒计时和前台绑定 |
+| [remote-announcements.md](architecture/remote-announcements.md) | 远程公告启动同步、缓存、已读状态和 MainWindow 公告层 |
 | [threading-dispatcher-and-async.md](architecture/threading-dispatcher-and-async.md) | WPF UI 线程、Dispatcher、下载/OCR/捕获回调 |
 
 ### 前台窗口与布局（frontend/）

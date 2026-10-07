@@ -1,0 +1,156 @@
+<UserControl
+    x:Class="neo_bpsys_wpf.Controls.AnnouncementOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Visibility="Collapsed">
+    <UserControl.Resources>
+        <cv:ApplicationThemeToBooleanConverter x:Key="AnnouncementThemeConverter" />
+        <Storyboard x:Key="AnnouncementOpenAnimation">
+            <DoubleAnimation Storyboard.TargetName="BackdropScrim" Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.18" />
+            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                             From="0.98" To="1" Duration="0:0:0.18" />
+            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                             From="0.98" To="1" Duration="0:0:0.18" />
+            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                             From="10" To="0" Duration="0:0:0.18" />
+        </Storyboard>
+        <Storyboard x:Key="AnnouncementCloseAnimation">
+            <DoubleAnimation Storyboard.TargetName="BackdropScrim" Storyboard.TargetProperty="Opacity"
+                             To="0" Duration="0:0:0.15" />
+            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
+                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)"
+                             To="7" Duration="0:0:0.15" />
+        </Storyboard>
+    </UserControl.Resources>
+    <Grid x:Name="OverlayRoot" Background="Transparent">
+        <Border x:Name="BackdropScrim" Background="#99000000" />
+        <Border
+            x:Name="AnnouncementCard"
+            Width="700"
+            MaxWidth="700"
+            MaxHeight="650"
+            Margin="24"
+            Padding="24"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="12"
+            RenderTransformOrigin="0.5,0.5">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="#202020" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding DataContext.ApplicationTheme, RelativeSource={RelativeSource AncestorType={x:Type ui:FluentWindow}}, Converter={StaticResource AnnouncementThemeConverter}}"
+                                     Value="False">
+                            <Setter Property="Background" Value="#FFFFFF" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Border.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform />
+                    <TranslateTransform />
+                </TransformGroup>
+            </Border.RenderTransform>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Alert24" FontSize="24" />
+                        <TextBlock Margin="12,0,0,0" FontSize="22" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   Text="{lex:Loc Announcements}" />
+                    </StackPanel>
+                    <ui:Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                               lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                               Command="{Binding RefreshAnnouncementsCommand}"
+                               Content="{lex:Loc Refresh}"
+                               Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                </Grid>
+                <Grid Grid.Row="1" Margin="0,18,0,18">
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Text="{lex:Loc NoAnnouncements}"
+                               Visibility="{Binding HasAnnouncements, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                    <ScrollViewer x:Name="AnnouncementsScrollViewer"
+                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding Announcements}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:CardExpander Margin="0,0,0,12"
+                                                     HorizontalAlignment="Stretch"
+                                                     IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+                                        <ui:CardExpander.Header>
+                                            <Grid Margin="0,0,12,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock FontSize="13" FontWeight="SemiBold"
+                                                               Foreground="{Binding LevelBrush}"
+                                                               Text="{Binding LevelLabel}" />
+                                                    <Grid Margin="0,7,0,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Ellipse Width="9" Height="9" Margin="0,0,8,0"
+                                                                 VerticalAlignment="Center"
+                                                                 Fill="{DynamicResource AccentFillColorDefaultBrush}"
+                                                                 Visibility="{Binding IsUnseen, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                        <TextBlock Grid.Column="1"
+                                                                   FontSize="18" FontWeight="SemiBold"
+                                                                   TextWrapping="Wrap"
+                                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                   Text="{Binding Title}" />
+                                                    </Grid>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Margin="16,0,0,0"
+                                                            HorizontalAlignment="Right">
+                                                    <TextBlock Margin="0,7,0,0"
+                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                               Text="{Binding PublishedDate}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </ui:CardExpander.Header>
+                                        <md:MarkdownViewer Margin="0,8,0,0"
+                                                           FontFamily="{StaticResource NotoSans}"
+                                                           Markdown="{Binding Content}"
+                                                           PreviewMouseWheel="MarkdownViewer_OnPreviewMouseWheel" />
+                                    </ui:CardExpander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal">
+                    <ui:Button Margin="0,0,10,0"
+                               Command="{Binding ReadLaterCommand}"
+                               Content="{lex:Loc ReadAnnouncementsLater}"
+                               Icon="{ui:SymbolIcon Symbol=Clock24}" />
+                    <ui:Button Appearance="Primary"
+                               Command="{Binding MarkAsReadAndCloseCommand}"
+                               Content="{lex:Loc MarkAnnouncementsRead}"
+                               Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
