@@ -17,6 +17,32 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 public class MatchScoreServiceTest
 {
+    /// <summary>结果按钮只提交一次完整预览刷新，避免通知放大阻塞 UI。</summary>
+    /// <param name="progress">标准半场或自由对局进度。</param>
+    [Theory]
+    [InlineData(GameProgress.Game1FirstHalf)]
+    [InlineData(GameProgress.Free)]
+    public void ResultButtonRefreshesPreviewOnceWithFinalScore(GameProgress progress)
+    {
+        var (_, sharedDataService, service) = CreateScorePageTestServices(progress);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
+        var resets = 0;
+        viewModel.ScorePreviewRows.CollectionChanged += (_, args) =>
+        {
+            if (args.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+                resets++;
+        };
+
+        viewModel.Escape3Command.Execute(null);
+
+        Assert.Equal(1, resets);
+        Assert.All(viewModel.ScorePreviewRows, row =>
+        {
+            Assert.Equal("3", row.HomeTotalMinorScoreText);
+            Assert.Equal("1", row.AwayTotalMinorScoreText);
+        });
+    }
+
     [Fact]
     public void SetCurrentHalfResultWritesToCurrentGameMatchScore()
     {

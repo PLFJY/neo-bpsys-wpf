@@ -89,7 +89,15 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
 
         private void OnGameProgressChanged(object? sender, EventArgs args) => RenderCells();
 
-        private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args) => RenderCells();
+        private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args)
+        {
+            // 等待整场派生值完成刷新，不为每个中间属性重建比分行。
+            if (string.IsNullOrEmpty(args.PropertyName)
+                || args.PropertyName == nameof(MatchScoreState.CurrentHalf))
+            {
+                RenderCells();
+            }
+        }
 
         private void SubscribeMatchScore(MatchScoreState? matchScore)
         {
@@ -113,8 +121,6 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
 
         private void RenderCells()
         {
-            Children.Clear();
-
             var cells = _config.Cells.Count > 0
                 ? _config.Cells
 #pragma warning disable CS0618
@@ -125,8 +131,14 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
                     _config.HalfGameGap);
 #pragma warning restore CS0618
 
-            foreach (var cell in cells)
+            // 配置在控件生命周期内稳定；比分变化只更新现有格子，避免重新加载模板和图标。
+            var reusePresenters = Children.Count == cells.Count;
+            if (!reusePresenters)
+                Children.Clear();
+
+            for (var index = 0; index < cells.Count; index++)
             {
+                var cell = cells[index];
                 var display = CreateDisplay(
                     _sharedDataService.CurrentGame.GameProgress == GameProgress.Free
                         ? _sharedDataService.CurrentGame.MatchScore.FreeScore
@@ -135,8 +147,17 @@ public class GlobalScoreRowFrontedControl : FrontedV3ControlBase
                     _config.TeamType,
                     cell,
                     cell.ShowCampIcon ?? _config.ShowCampIcon);
-                var presenter = CreatePresenter(cell, display);
-                Children.Add(presenter);
+                if (reusePresenters)
+                {
+                    var presenter = (GlobalScorePresenter)Children[index];
+                    presenter.Text = display.Text;
+                    presenter.IsCampVisible = display.IsCampVisible;
+                    presenter.IsHunIcon = display.IsHunIcon;
+                }
+                else
+                {
+                    Children.Add(CreatePresenter(cell, display));
+                }
             }
 
             if (!_config.Width.HasValue && cells.Count > 0)

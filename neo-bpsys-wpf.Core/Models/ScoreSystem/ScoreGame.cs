@@ -158,5 +158,16 @@ public partial class ScoreGame : ObservableObjectBase
 
     private void UnsubscribeHalf(ScoreHalf half) => half.PropertyChanged -= OnHalfPropertyChanged;
 
-    private void OnHalfPropertyChanged(object? sender, PropertyChangedEventArgs args) => NotifyDerivedPropertiesChanged();
+    private void OnHalfPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        // 派生属性通知只供绑定使用，不能再次触发上层派生计算。
+        if (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName is nameof(ScoreHalf.Progress) or nameof(ScoreHalf.HalfKind)
+                or nameof(ScoreHalf.Result)
+                or nameof(ScoreHalf.SurTeamTypeWhenRecorded)
+                or nameof(ScoreHalf.HunTeamTypeWhenRecorded))
+        {
+            NotifyDerivedPropertiesChanged();
+        }
+    }
 }
