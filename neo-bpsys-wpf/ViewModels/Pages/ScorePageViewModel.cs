@@ -129,6 +129,7 @@ public partial class ScorePageViewModel : ViewModelBase
     private readonly IMatchScoreService _matchScoreService;
     private Game? _subscribedGame;
     private MatchScoreState? _subscribedMatchScore;
+    private bool _isUpdatingScore;
 
     /// <summary>
     /// 初始化比分页面视图模型。
@@ -171,8 +172,7 @@ public partial class ScorePageViewModel : ViewModelBase
             if (IsFreeMode || _matchScoreService.CurrentHalf?.Result == value)
                 return;
 
-            _matchScoreService.SetCurrentHalfResult(value);
-            RefreshScorePageState();
+            UpdateScore(() => _matchScoreService.SetCurrentHalfResult(value));
             PublishScoreChanged(value);
         }
     }
@@ -217,13 +217,11 @@ public partial class ScorePageViewModel : ViewModelBase
     {
         if (IsFreeMode)
         {
-            _matchScoreService.ClearFreeCurrentMinorScore();
-            RefreshScorePageState();
+            UpdateScore(_matchScoreService.ClearFreeCurrentMinorScore);
             return;
         }
 
-        _matchScoreService.ClearCurrentHalfResult();
-        RefreshScorePageState();
+        UpdateScore(_matchScoreService.ClearCurrentHalfResult);
     }
 
     [RelayCommand]
@@ -231,20 +229,21 @@ public partial class ScorePageViewModel : ViewModelBase
     {
         if (IsFreeMode)
         {
-            _matchScoreService.ResetFreeScores();
-            RefreshScorePageState();
+            UpdateScore(_matchScoreService.ResetFreeScores);
             return;
         }
 
-        foreach (var scoreGame in _matchScoreService.Current.Games)
+        UpdateScore(() =>
         {
-            ClearHalf(scoreGame.FirstHalf);
-            ClearHalf(scoreGame.SecondHalf);
-        }
+            foreach (var scoreGame in _matchScoreService.Current.Games)
+            {
+                ClearHalf(scoreGame.FirstHalf);
+                ClearHalf(scoreGame.SecondHalf);
+            }
 
-        _matchScoreService.Recalculate();
-        _matchScoreService.RefreshCurrentProgress();
-        RefreshScorePageState();
+            _matchScoreService.Recalculate();
+            _matchScoreService.RefreshCurrentProgress();
+        });
     }
 
     #endregion
@@ -255,22 +254,19 @@ public partial class ScorePageViewModel : ViewModelBase
     {
         if (IsFreeMode)
         {
-            _matchScoreService.ApplyFreeResultPreset(result);
-            RefreshScorePageState();
+            UpdateScore(() => _matchScoreService.ApplyFreeResultPreset(result));
             PublishScoreChanged(result);
             return;
         }
 
-        _matchScoreService.SetCurrentHalfResult(result);
-        RefreshScorePageState();
+        UpdateScore(() => _matchScoreService.SetCurrentHalfResult(result));
         PublishScoreChanged(result);
     }
 
     [RelayCommand]
     private void SettleFreeMajorScore()
     {
-        _matchScoreService.SettleFreeMajorScore();
-        RefreshScorePageState();
+        UpdateScore(_matchScoreService.SettleFreeMajorScore);
     }
 
     [RelayCommand]
@@ -306,13 +302,25 @@ public partial class ScorePageViewModel : ViewModelBase
 
     private void RefreshScorePageState()
     {
-        _matchScoreService.Recalculate();
-        _matchScoreService.RefreshCurrentProgress();
         RefreshScorePreviewRows();
         OnPropertyChanged(nameof(CurrentGame));
         OnPropertyChanged(nameof(HomeTeam));
         OnPropertyChanged(nameof(AwayTeam));
         RefreshCurrentHalfBindings();
+    }
+
+    private void UpdateScore(Action update)
+    {
+        _isUpdatingScore = true;
+        try
+        {
+            update();
+        }
+        finally
+        {
+            _isUpdatingScore = false;
+            RefreshScorePageState();
+        }
     }
 
     private void RefreshScorePreviewRows()
@@ -429,11 +437,12 @@ public partial class ScorePageViewModel : ViewModelBase
 
     private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
-        RefreshScorePreviewRows();
-        OnPropertyChanged(nameof(CurrentGame));
-        OnPropertyChanged(nameof(HomeTeam));
-        OnPropertyChanged(nameof(AwayTeam));
-        RefreshCurrentHalfBindings();
+        // CurrentHalf 在整场派生值更新后通知；命令内的修改在结束时统一刷新。
+        if (!_isUpdatingScore && (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName == nameof(MatchScoreState.CurrentHalf)))
+        {
+            RefreshScorePageState();
+        }
     }
 
     private void RefreshCurrentHalfBindings()

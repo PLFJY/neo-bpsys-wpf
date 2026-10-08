@@ -28,6 +28,8 @@ public class MatchScoreService : IMatchScoreService
         SubscribeGame(_sharedDataService.CurrentGame);
         _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
         _sharedDataService.IsBo3ModeChanged += OnIsBo3ModeChanged;
+        RefreshCurrentProgress();
+        Recalculate();
     }
 
     /// <inheritdoc />

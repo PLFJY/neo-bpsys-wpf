@@ -733,8 +733,16 @@ public partial class MatchScoreState : ObservableObjectBase
         Recalculate(_lastRecalculateIsBo3Mode);
     }
 
-    private void OnScoreGamePropertyChanged(object? sender, PropertyChangedEventArgs args) =>
-        Recalculate(_lastRecalculateIsBo3Mode);
+    private void OnScoreGamePropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        // MajorResult 已覆盖同次半场修改，不再逐条响应其他派生属性通知。
+        if (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName is nameof(ScoreGame.Key) or nameof(ScoreGame.FirstHalf)
+                or nameof(ScoreGame.SecondHalf) or nameof(ScoreGame.MajorResult))
+        {
+            Recalculate(_lastRecalculateIsBo3Mode);
+        }
+    }
 
     private void OnFreeScorePropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
