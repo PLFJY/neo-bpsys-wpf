@@ -2,11 +2,13 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Models.RemoteAnnouncements;
 using neo_bpsys_wpf.Services.Abstractions;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -103,96 +105,27 @@ public sealed partial class RemoteAnnouncementService(
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            logger.LogInformation("Remote announcement manifest fetch started.");
-            var client = httpClientFactory.CreateClient("RemoteAnnouncements");
-            var rawBaseUri = new Uri(AppConstants.GitCodeAnnouncementRawBaseUrl);
-            var bytes = await client.GetByteArrayAsync(new Uri(rawBaseUri, "manifest.json"), cancellationToken);
-            var remoteManifest = JsonSerializer.Deserialize<RemoteAnnouncementManifest>(bytes, JsonOptions);
-            if (remoteManifest?.SchemaVersion != 1 || remoteManifest.Announcements is null)
-                throw new JsonException("Unsupported remote announcement manifest.");
-
-            var currentVersion = ParseVersion(AppConstants.AppVersion, allowSuffix: true);
-            if (currentVersion is null)
+            using var client = httpClientFactory.CreateClient("RemoteAnnouncements");
+            var preferGitee = IsSimplifiedChinese(LocalizeDictionary.CurrentCulture);
+            var sources = preferGitee
+                ? new[] { AppConstants.GiteeAnnouncementRawBaseUrl, AppConstants.GitHubAnnouncementRawBaseUrl }
+                : new[] { AppConstants.GitHubAnnouncementRawBaseUrl, AppConstants.GiteeAnnouncementRawBaseUrl };
+            foreach (var source in sources)
             {
-                logger.LogWarning("Cannot parse application version for remote announcements: {Version}.", AppConstants.AppVersion);
-                return;
-            }
-
-            var existing = _manifest?.Announcements.Where(e => e is not null && !string.IsNullOrWhiteSpace(e.Id))
-                .GroupBy(e => e.Id, StringComparer.Ordinal)
-                .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal)
-                ?? new Dictionary<string, RemoteAnnouncementManifestEntry>(StringComparer.Ordinal);
-            var allSynced = true;
-            var pendingBodies = new List<(string Path, byte[] Bytes)>();
-            var seenManifestIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var entry in remoteManifest.Announcements)
-            {
-                if (!seenManifestIds.Add(entry.Id))
-                {
-                    logger.LogWarning("Duplicate remote announcement ID {Id}; skipping.", entry.Id);
-                    allSynced = false;
-                    continue;
-                }
-                if (!IsApplicable(entry, currentVersion, logger))
-                    continue;
-
-                var relativePath = string.IsNullOrWhiteSpace(entry.Path)
-                    ? $"announcements/{entry.Id}.json"
-                    : entry.Path;
-                if (!TryGetRawAnnouncementUri(rawBaseUri, relativePath, out var bodyUri))
-                {
-                    logger.LogWarning("Invalid raw path for announcement {Id}: {Path}.", entry.Id, relativePath);
-                    allSynced = false;
-                    continue;
-                }
-
-                var path = GetCachePath(entry.Id);
-                var cacheMatches = existing.TryGetValue(entry.Id, out var oldEntry)
-                    && string.Equals(oldEntry.Sha256, entry.Sha256, StringComparison.OrdinalIgnoreCase)
-                    && await IsValidCacheAsync(path, entry, cancellationToken);
-                if (cacheMatches)
-                    continue;
-
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    var bodyBytes = await client.GetByteArrayAsync(bodyUri, cancellationToken);
-                    var actualHash = Convert.ToHexString(SHA256.HashData(bodyBytes));
-                    if (!string.Equals(actualHash, entry.Sha256, StringComparison.OrdinalIgnoreCase))
-                    {
-                        logger.LogWarning("Announcement {Id} hash mismatch.", entry.Id);
-                        allSynced = false;
-                        continue;
-                    }
-                    var announcement = JsonSerializer.Deserialize<RemoteAnnouncement>(bodyBytes, JsonOptions);
-                    if (announcement?.SchemaVersion != 1 || announcement.Id != entry.Id
-                        || !Enum.IsDefined(announcement.Level) || announcement.Title is null || announcement.Content is null)
-                    {
-                        logger.LogWarning("Announcement {Id} has invalid JSON content.", entry.Id);
-                        allSynced = false;
-                        continue;
-                    }
-                    pendingBodies.Add((path, bodyBytes));
-                    logger.LogInformation("{Action} announcement {Id}.", oldEntry is null ? "Downloaded" : "Updated", entry.Id);
+                    if (await TrySyncFromSourceAsync(client, new Uri(source), cancellationToken))
+                        return;
                 }
-                catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException or JsonException or TaskCanceledException)
+                catch (Exception ex) when (ex is HttpRequestException or JsonException
+                    || ex is OperationCanceledException && !cancellationToken.IsCancellationRequested)
                 {
-                    logger.LogWarning(ex, "Remote announcement fetch failed for {Id}.", entry.Id);
-                    allSynced = false;
+                    logger.LogWarning(ex, "Remote announcement source failed: {Source}.", source);
                 }
+                logger.LogWarning("Remote announcement sync from {Source} failed; trying next source if available.", source);
             }
-
-            if (!allSynced)
-            {
-                logger.LogWarning("Remote announcement sync incomplete; retaining last successful manifest.");
-                return;
-            }
-
-            foreach (var pending in pendingBodies)
-                await WriteAtomicallyAsync(pending.Path, pending.Bytes, cancellationToken);
-            await WriteAtomicallyAsync(AppConstants.RemoteAnnouncementsManifestPath, bytes, cancellationToken);
-            _manifest = remoteManifest;
-            _announcements = await LoadAnnouncementsAsync(remoteManifest, cancellationToken);
-            logger.LogInformation("Remote announcement manifest synced; {Count} unseen.", UnseenCount);
+            logger.LogWarning("All remote announcement sources failed; using local cache.");
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException or JsonException or TaskCanceledException or UriFormatException)
         {
@@ -204,6 +137,111 @@ public sealed partial class RemoteAnnouncementService(
             _gate.Release();
             AnnouncementsChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    private static bool IsSimplifiedChinese(CultureInfo culture)
+    {
+        for (var current = culture; !string.IsNullOrEmpty(current.Name); current = current.Parent)
+        {
+            if (current.Name.Equals("zh-Hans", StringComparison.OrdinalIgnoreCase)
+                || current.Name.Equals("zh-CHS", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
+    private async Task<bool> TrySyncFromSourceAsync(HttpClient client, Uri rawBaseUri, CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Remote announcement manifest fetch started.");
+        var bytes = await client.GetByteArrayAsync(new Uri(rawBaseUri, "manifest.json"), cancellationToken);
+        var remoteManifest = JsonSerializer.Deserialize<RemoteAnnouncementManifest>(bytes, JsonOptions);
+        if (remoteManifest?.SchemaVersion != 1 || remoteManifest.Announcements is null)
+            throw new JsonException("Unsupported remote announcement manifest.");
+
+        var currentVersion = ParseVersion(AppConstants.AppVersion, allowSuffix: true);
+        if (currentVersion is null)
+        {
+            logger.LogWarning("Cannot parse application version for remote announcements: {Version}.", AppConstants.AppVersion);
+            return false;
+        }
+
+        var existing = _manifest?.Announcements.Where(e => e is not null && !string.IsNullOrWhiteSpace(e.Id))
+            .GroupBy(e => e.Id, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.Ordinal)
+            ?? new Dictionary<string, RemoteAnnouncementManifestEntry>(StringComparer.Ordinal);
+        var allSynced = true;
+        var pendingBodies = new List<(string Path, byte[] Bytes)>();
+        var seenManifestIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var entry in remoteManifest.Announcements)
+        {
+            if (!seenManifestIds.Add(entry.Id))
+            {
+                logger.LogWarning("Duplicate remote announcement ID {Id}; skipping.", entry.Id);
+                allSynced = false;
+                continue;
+            }
+            if (!IsApplicable(entry, currentVersion, logger))
+                continue;
+
+            var relativePath = string.IsNullOrWhiteSpace(entry.Path)
+                ? $"announcements/{entry.Id}.json"
+                : entry.Path;
+            if (!TryGetRawAnnouncementUri(rawBaseUri, relativePath, out var bodyUri))
+            {
+                logger.LogWarning("Invalid raw path for announcement {Id}: {Path}.", entry.Id, relativePath);
+                allSynced = false;
+                continue;
+            }
+
+            var path = GetCachePath(entry.Id);
+            var cacheMatches = existing.TryGetValue(entry.Id, out var oldEntry)
+                && string.Equals(oldEntry.Sha256, entry.Sha256, StringComparison.OrdinalIgnoreCase)
+                && await IsValidCacheAsync(path, entry, cancellationToken);
+            if (cacheMatches)
+                continue;
+
+            try
+            {
+                var bodyBytes = await client.GetByteArrayAsync(bodyUri, cancellationToken);
+                var actualHash = Convert.ToHexString(SHA256.HashData(bodyBytes));
+                if (!string.Equals(actualHash, entry.Sha256, StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.LogWarning("Announcement {Id} hash mismatch.", entry.Id);
+                    allSynced = false;
+                    continue;
+                }
+                var announcement = JsonSerializer.Deserialize<RemoteAnnouncement>(bodyBytes, JsonOptions);
+                if (announcement?.SchemaVersion != 1 || announcement.Id != entry.Id
+                    || !Enum.IsDefined(announcement.Level) || announcement.Title is null || announcement.Content is null)
+                {
+                    logger.LogWarning("Announcement {Id} has invalid JSON content.", entry.Id);
+                    allSynced = false;
+                    continue;
+                }
+                pendingBodies.Add((path, bodyBytes));
+                logger.LogInformation("{Action} announcement {Id}.", oldEntry is null ? "Downloaded" : "Updated", entry.Id);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException or JsonException
+                || ex is OperationCanceledException && !cancellationToken.IsCancellationRequested)
+            {
+                logger.LogWarning(ex, "Remote announcement fetch failed for {Id}.", entry.Id);
+                allSynced = false;
+            }
+        }
+
+        if (!allSynced)
+        {
+            logger.LogWarning("Remote announcement sync incomplete; retaining last successful manifest.");
+            return false;
+        }
+
+        foreach (var pending in pendingBodies)
+            await WriteAtomicallyAsync(pending.Path, pending.Bytes, cancellationToken);
+        await WriteAtomicallyAsync(AppConstants.RemoteAnnouncementsManifestPath, bytes, cancellationToken);
+        _manifest = remoteManifest;
+        _announcements = await LoadAnnouncementsAsync(remoteManifest, cancellationToken);
+        logger.LogInformation("Remote announcement manifest synced; {Count} unseen.", UnseenCount);
+        return true;
     }
 
     /// <inheritdoc />

@@ -21,9 +21,13 @@ public static class AppConstants
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
         .InformationalVersion ?? "unknown";
 
-    /// <summary>GitCode 公开 Raw 公告文件的基础地址。</summary>
-    public const string GitCodeAnnouncementRawBaseUrl =
-        "https://raw.gitcode.com/PLFJY/neo-bpsys-announce-source/raw/main/";
+    /// <summary>GitHub 公开 Raw 公告文件的基础地址。</summary>
+    public const string GitHubAnnouncementRawBaseUrl =
+        "https://raw.githubusercontent.com/PLFJY/neo-bpsys-announce-source/main/";
+
+    /// <summary>Gitee 镜像仓库公开 Raw 公告文件的基础地址。</summary>
+    public const string GiteeAnnouncementRawBaseUrl =
+        "https://gitee.com/PLFJY/neo-bpsys-announce-source/raw/main/";
 
     #region Paths
 

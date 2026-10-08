@@ -1,12 +1,14 @@
 # 远程公告中心
 
-远程公告是 WPF 后台的独立运行数据。客户端只访问 GitCode 的公开 Raw JSON，基础地址集中定义在 `AppConstants.GitCodeAnnouncementRawBaseUrl`：`https://raw.gitcode.com/PLFJY/neo-bpsys-announce-source/raw/main/`。客户端不使用 GitCode REST API、Token 或中间服务。
+远程公告是 WPF 后台的独立运行数据。客户端访问 GitHub 和 Gitee 的公开 Raw JSON，两个镜像仓库均为 `PLFJY/neo-bpsys-announce-source`，使用 `main` 分支且文件结构相同。基础地址集中定义在 `AppConstants.GitHubAnnouncementRawBaseUrl`（`https://raw.githubusercontent.com/PLFJY/neo-bpsys-announce-source/main/`）和 `AppConstants.GiteeAnnouncementRawBaseUrl`（`https://gitee.com/PLFJY/neo-bpsys-announce-source/raw/main/`）。客户端不使用平台 REST API、Token 或中间服务。
 
-启动时 `App.OnStartup` 在主窗口显示后启动受异常保护的异步任务：先读取本地 `manifest.json`、`state.json` 和有效正文缓存，再请求 Raw 基础地址下的 `manifest.json`。正文 URL 优先由同一基础地址与 manifest entry 的相对 `path` 拼接；缺失或空白 `path` 时使用 `announcements/{id}.json`。显式填写但不安全的路径会被拒绝。公告 HttpClient 使用 Chrome User-Agent 请求 Raw JSON，且不跟随重定向，以保证请求只发往 Raw 域名。每次启动只自动检查一次，不定时轮询；主页按钮打开公告层时会触发一次联网刷新，公告层右上角的刷新按钮也可手动同步。`RemoteAnnouncementService` 是 HTTP、过滤、SHA-256 校验及文件持久化的唯一责任方；公告 UI 通过共享的 `AnnouncementCenterViewModel` 观察它。更新服务不参与公告流程。
+每次刷新按 `WPFLocalizeExtension` 当前应用语言选择源：简体中文（包括 `zh-Hans`、`zh-CN` 等简体中文文化）优先 Gitee，其他语言优先 GitHub；跟随系统时使用应用当前解析后的文化。首选源请求失败、超时、清单格式不支持、正文哈希或内容校验失败时，使用备用源从清单开始重新同步。单次源同步的清单与正文始终使用同一基础地址；两个源都失败时保留最近成功的清单与缓存。用户取消不触发备用源请求。
+
+启动时 `App.OnStartup` 在主窗口显示后启动受异常保护的异步任务：先读取本地 `manifest.json`、`state.json` 和有效正文缓存，再请求 Raw 基础地址下的 `manifest.json`。正文 URL 优先由同一基础地址与 manifest entry 的相对 `path` 拼接；缺失或空白 `path` 时使用 `announcements/{id}.json`。显式填写但不安全的路径会被拒绝。公告 HttpClient 使用 Chrome User-Agent 请求 Raw JSON，且不跟随重定向，以保证请求只发往所选公告源。每次启动只自动检查一次，不定时轮询；主页按钮打开公告层时会触发一次联网刷新，公告层右上角的刷新按钮也可手动同步。`RemoteAnnouncementService` 是 HTTP、过滤、SHA-256 校验及文件持久化的唯一责任方；公告 UI 通过共享的 `AnnouncementCenterViewModel` 观察它。更新服务不参与公告流程。
 
 缓存位于 `%APPDATA%/neo-bpsys-wpf/RemoteAnnouncements/`，包含 `manifest.json`、`state.json` 和 `cache/{id}.json`。路径由 `AppConstants` 集中定义。正文原始字节的 SHA-256 必须匹配清单；仅缺失或 hash 变化的适用公告需要下载。新正文先完成校验，必要下载全部成功后才写入正文缓存和最近成功的 manifest。文件采用同目录临时文件与覆盖移动，失败时保留上次成功的 manifest 与可用缓存。远端停用或删除公告不清理缓存文件。
 
-正常启动只请求一次 Raw manifest。缓存 hash 全部匹配时不请求正文；每条新增或 hash 变化的适用公告各增加一次 Raw 正文请求。
+首选源正常响应时，启动只请求一次 Raw manifest；失败回退时备用源会重新请求 manifest。缓存 hash 全部匹配时不请求正文；每条新增或 hash 变化的适用公告各增加一次 Raw 正文请求。
 
 适用性由 `enabled`、编译通道（`BETA`、`PREVIEW`、其它为 `release`）和包含边界的应用版本范围决定。版本取 `AppConstants.AppVersion` 的开头数字版本部分；异常版本范围只跳过相应公告。`state.json` 只保存已读公告 ID。正文修订或 hash 改变不会再次提示同一个 ID。
 
