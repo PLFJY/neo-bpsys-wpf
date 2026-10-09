@@ -17,13 +17,17 @@
     <None Update="manifest.yml" CopyToOutputDirectory="Always" />
     <None Include="..\..\icon.png" Link="icon.png" CopyToOutputDirectory="Always" />
   </ItemGroup>
-  <Target Name="BuildWebRendererSidecar" BeforeTargets="Build">
-    <MSBuild Projects="Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=false;WebRendererSkipWebBuild=$(WebRendererSkipWebBuild)" />
+  <Target Name="ValidateWebRendererBuildOptions" BeforeTargets="Build">
+    <Error Condition="'$(RequireWebRenderer)' == 'true' And '$(WebRendererSkipWebBuild)' == 'true'" Text="RequireWebRenderer conflicts with WebRendererSkipWebBuild." />
+  </Target>
+  <Target Name="BuildWebRendererSidecar" BeforeTargets="Build" Condition="'$(WebRendererSkipWebBuild)' != 'true'">
+    <RemoveDir Directories="$(OutDir)Host" />
+    <MSBuild Projects="Host\neo-bpsys-wpf.WebRenderer.Host.csproj" Targets="Restore;Build" Properties="Configuration=$(Configuration);RuntimeIdentifier=win-x64;SelfContained=false;WebRendererSkipWebBuild=$(WebRendererSkipWebBuild);RequireWebRenderer=$(RequireWebRenderer)" />
   </Target>
   <Target Name="CopyWebRendererSidecar" AfterTargets="Build">
     <RemoveDir Directories="$(OutDir)Host" />
-    <MakeDir Directories="$(OutDir)Host" />
-    <ItemGroup>
+    <MakeDir Directories="$(OutDir)Host" Condition="'$(WebRendererSkipWebBuild)' != 'true'" />
+    <ItemGroup Condition="'$(WebRendererSkipWebBuild)' != 'true'">
       <WebRendererHostFiles Include="Host\bin\$(Configuration)\net10.0\win-x64\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(WebRendererHostFiles)" DestinationFiles="@(WebRendererHostFiles->'$(OutDir)Host\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />

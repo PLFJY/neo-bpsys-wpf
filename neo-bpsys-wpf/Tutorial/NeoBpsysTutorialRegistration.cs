@@ -41,6 +41,5 @@ public static class NeoBpsysTutorialRegistration
         builder.RegisterOwner<ScorePage>();
 
         builder.RegisterApp<App>();
-        NeoBpsysTutorialFlows.Register(builder);
     }
 }

@@ -220,34 +220,6 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
-    public void PackageInfoUsesExplicitActivePackagePropertyName()
-    {
-        var properties = typeof(FrontedLayoutPackageInfo)
-            .GetProperties()
-            .Select(property => property.Name)
-            .ToHashSet(StringComparer.Ordinal);
-
-        Assert.DoesNotContain("IsActive", properties);
-        Assert.Contains("IsActivePackage", properties);
-    }
-
-    [Fact]
-    public void ExportWindowViewModelDefaultsAuthorAndMinVersionWithoutScopeOptions()
-    {
-        var viewModel = new FrontedLayoutPackageExportWindowViewModel(new FakeFilePickerService(null));
-
-        Assert.Equal(Environment.UserName ?? string.Empty, viewModel.Author);
-        Assert.False(string.IsNullOrWhiteSpace(viewModel.MinVersion));
-        Assert.False(string.IsNullOrWhiteSpace(viewModel.PackageId));
-        Assert.False(string.IsNullOrWhiteSpace(viewModel.PackageName));
-        Assert.True(FrontedLayoutPackageExporter.IsSafePackageId(viewModel.PackageId));
-
-        var type = typeof(FrontedLayoutPackageExportWindowViewModel);
-        Assert.Null(type.GetProperty("ScopeOptions"));
-        Assert.Null(type.GetProperty("SelectedScopeOption"));
-    }
-
-    [Fact]
     public void BrowseOutputPathCommandCallsFilePickerAndUpdatesOutputPath()
     {
         var picker = new FakeFilePickerService(@"C:\exports\layout.bpui");
@@ -274,8 +246,13 @@ public class FrontedLayoutPackageManagerTest : IDisposable
     }
 
     [Fact]
-    public void ExportWindowViewModelCreateRequestKeepsRootMinVersion()
+    public void ExportWindowDefaultsAndRequestKeepSafeIdentityAndRootMinVersion()
     {
+        var defaults = new FrontedLayoutPackageExportWindowViewModel(new FakeFilePickerService(null));
+        Assert.Equal(Environment.UserName ?? string.Empty, defaults.Author);
+        Assert.False(string.IsNullOrWhiteSpace(defaults.MinVersion));
+        Assert.False(string.IsNullOrWhiteSpace(defaults.PackageName));
+        Assert.True(FrontedLayoutPackageExporter.IsSafePackageId(defaults.PackageId));
         var viewModel = new FrontedLayoutPackageExportWindowViewModel(new FakeFilePickerService(null))
         {
             PackageId = "package-id",

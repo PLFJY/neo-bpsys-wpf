@@ -24,7 +24,7 @@
 10. 初始化部分资源图标、主题、语言。
 11. `IAppHost.Host.StartAsync()`，触发 hosted service。
 12. 设置生命周期为 `Running`。
-13. 启动更新检查受条件编译控制；当前源码条件写作 `#if !DEBUG && !Preview`。项目配置定义的是 `PREVIEW`，因此不要在未编译验证前断言 Preview 构建一定被排除。
+13. 启动更新检查使用 `#if !DEBUG && !PREVIEW`，Debug 和 Preview 不编译此启动更新检查分支。
 
 退出时 `OnExit` 会发送 `AppStopping`，记录关闭日志，停止并释放 Host。
 
@@ -76,7 +76,7 @@ SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`�
 %APPDATA%\neo-bpsys-wpf\Config.json
 ```
 
-`SettingsHostService` 负责读写。保存时会把当前用户 AppData 路径替换成 `%APPDATA%`，降低配置跨机器或用户名变化时的路径耦合。
+`SettingsHostService` 负责读写。无参数重置恢复 `Settings` 默认值并保存一次，不改变活动布局包；设置替换通知页面重新订阅，新语言通过语言事件传播。窗口级重置与旧 `ISettingsMigrationService` 仅保留 Obsolete 空壳，不再执行操作。保存时会把当前用户 AppData 路径替换成 `%APPDATA%`，降低配置跨机器或用户名变化时的路径耦合。
 
 主题启动时固定应用深色：`ApplicationThemeManager.Apply(ApplicationTheme.Dark)`。主题切换会更新 `IconThemesDictionary`。
 
@@ -88,7 +88,7 @@ Application.Current.Resources["CurrentLanguage"] =
     XmlLanguage.GetLanguage(settingService.Settings.CultureInfo.Name);
 ```
 
-因此新增用户可见文本时应优先进入 `Locales/Lang.resx` 及对应语言资源。
+新增用户可见文本应放入 `Locales` 下对应功能域的 resx 字典及其语言资源，沿用 `AppI18nDictionaries` 和现有 XAML 本地化入口。
 
 ## ApplicationHostService
 

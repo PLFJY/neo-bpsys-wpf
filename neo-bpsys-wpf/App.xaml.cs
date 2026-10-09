@@ -104,7 +104,14 @@ public partial class App : AppBase
             .EnsureAssociationState(settingsHostService.Settings.AssociateBpuiFiles);
         ApplyLogLevel(settingsHostService.Settings.LogLevel);
         SyncProductTourDebugState(settingsHostService.Settings);
-        settingsHostService.SettingsChanged += (_, settings) => SyncProductTourDebugState(settings);
+        settingsHostService.SettingsChanged += (_, settings) => Dispatcher.Invoke(() =>
+        {
+            ApplyLogLevel(settings.LogLevel);
+            SyncProductTourDebugState(settings);
+            LocalizeDictionary.Instance.Culture = settings.CultureInfo;
+            Current.Resources["CurrentLanguage"] = XmlLanguage.GetLanguage(settings.CultureInfo.Name);
+            ProductTourFontResourceHelper.Apply(settings.CultureInfo);
+        });
         IAppHost.Host.Services.GetRequiredService<FrontedSharedDataBehaviorEventBridge>().Start();
         _ = IAppHost.Host.Services.GetRequiredService<IFrontedBehaviorEventDebugService>();
 

@@ -29,6 +29,8 @@ public interface ISettingsHostService
     /// 重置指定窗口的配置
     /// </summary>
     /// <param name="windowType">窗口类型</param>
+    /// <returns>已完成的任务；此入口不再重置窗口布局。</returns>
+    [Obsolete("Window configuration reset is retired. Reset layouts through the Designer.")]
     Task ResetConfigAsync(FrontedWindowType windowType);
     /// <summary>
     /// 配置项改变事件

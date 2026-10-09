@@ -83,9 +83,8 @@ Designer v3 独立编辑器（`FrontedDesignerWindow`）已实现并作为设计
 ## 代码中观察到的边界
 
 1. SmartBP 已覆盖固定 Ban 槽位、Unknown/Empty、Observation TTL、跨局隔离、缓冲容量和 Guidance 补偿等自动回归；真实赛事画面、不同缩放与 OCR Provider 组合仍需持续扩充样本。
-2. `App.xaml.cs` 更新检查条件写作 `#if !DEBUG && !Preview`，而项目配置定义 `PREVIEW`。这是代码观察到的命名 caveat；本文档不声称其运行时效果已经通过编译验证，本任务也不修改代码。
-3. `GameRule.json` 是项目内规则配置，不是外部权威赛事规则源。
-4. 前台默认布局依赖文件命名约定，插件窗口默认布局缺失时恢复默认会失败。
+2. `GameRule.json` 是项目内规则配置，不是外部权威赛事规则源。
+3. Designer 恢复为内置布局需要 `builtin` 包中存在对应窗口布局；插件自定义窗口没有对应内置布局时会报告缺失。
 
 ## Score System v2
 

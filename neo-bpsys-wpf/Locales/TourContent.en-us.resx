@@ -576,19 +576,6 @@
   <data name="Dialogue.FirstRun.Ending">
     <value>Frontend interface editing will be covered in a separate tutorial when you first open the v3 editor.&#10;Smart BP will be covered in a separate tutorial when you first enter the Smart BP page.&#10;Start your Broadcast journey.</value>
   </data>
-  <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
-  <data name="Dialogue.Probe.Navigation.Opening.Lines">
-    <value>Now let's verify the tutorial guidance of the left navigation bar.</value>
-  </data>
-  <data name="Dialogue.Probe.Navigation.Closing.Lines">
-    <value>Navigation guidance verification complete.</value>
-  </data>
-  <data name="Dialogue.Probe.RealTarget.Opening.Lines">
-    <value>Now let's start verifying real page targets and operation signals.</value>
-  </data>
-  <data name="Dialogue.Probe.RealTarget.Closing.Lines">
-    <value>Real target verification complete. The full tutorial flow will be provided in subsequent versions.</value>
-  </data>
   <!-- FrontedLayoutPackagesView.Tutorials.cs -->
   <data name="Step.FrontManageLayoutPackagesBasic.0.Title">
     <value>Layout Packages list</value>

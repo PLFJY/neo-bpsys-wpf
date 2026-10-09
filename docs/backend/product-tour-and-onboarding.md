@@ -175,7 +175,6 @@ Flow 内部引用 package 时使用 `TutorialTriggerMode.EmbeddedInFlow`，并�
 | `NeoBpsysTutorialIds.cs` | 集中维护 flow、page、package、signal、target 的稳定字符串常量 |
 | `NeoBpsysTutorialRegistration.cs` | 总入口，只调度 owner、app、flow 注册 |
 | `*.Tutorials.cs` | 各 owner 自己声明 package refs、sequence 和步骤 |
-| `NeoBpsysTutorialFlows.cs` | 注册导航验证 flow 和真实目标验证 flow，只引用 `TutorialPackageRef`；标准首次导览 flow 由 `App.Tour.xaml.cs` 注册 |
 | `TourContent.resx` | Tutorial 步骤标题/描述/对话文案，通过 `ITutorialContentResolver` 解析（neutral + en-us + ja-jp） |
 
 新增教程包时，owner 应公开 `Tours` 静态类，成员类型为 `TutorialPackageRef`。已有 ID 的字符串值用于持久化状态兼容，不得随意改名。
@@ -281,8 +280,6 @@ Layer B 通过 `ITutorialContentResolver` 抽象提供，`NeoBpsysTutorialConten
 | `Step.<PackageShortName>.<StepIndex>.Description` | 步骤描述 |
 | `Dialogue.<PackageShortName>.Lines` | 包内对话台词 |
 | `Dialogue.FirstRun.Opening` / `Dialogue.FirstRun.Ending` | 首次导览开场/结束台词 |
-| `Dialogue.Probe.Navigation.Opening.Lines` / `Dialogue.Probe.Navigation.Closing.Lines` | 导航探针开场/结束台词 |
-| `Dialogue.Probe.RealTarget.Opening.Lines` / `Dialogue.Probe.RealTarget.Closing.Lines` | 真实目标探针开场/结束台词 |
 | `Hint.<PackageShortName>.HomePickerTitle` / `Hint.<PackageShortName>.AwayPickerTitle` | 文件选择器提示标题 |
 
 ### 语言热切换机制

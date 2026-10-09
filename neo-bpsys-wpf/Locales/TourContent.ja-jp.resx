@@ -576,19 +576,6 @@
   <data name="Dialogue.FirstRun.Ending">
     <value>フロントエンド画面編集は初めて v3 エディターを開いた時に別途チュートリアルを行います。&#10;スマートBP は初めてスマートBP ページに進んだ時に別途チュートリアルを行います。&#10;導播の旅を始めましょう。</value>
   </data>
-  <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
-  <data name="Dialogue.Probe.Navigation.Opening.Lines">
-    <value>これから左側ナビゲーションバーのチュートリアルガイドを検証します。</value>
-  </data>
-  <data name="Dialogue.Probe.Navigation.Closing.Lines">
-    <value>ナビゲーションガイドの検証が完了しました。</value>
-  </data>
-  <data name="Dialogue.Probe.RealTarget.Opening.Lines">
-    <value>これから実際のページターゲットと操作シグナルの検証を開始します。</value>
-  </data>
-  <data name="Dialogue.Probe.RealTarget.Closing.Lines">
-    <value>実ターゲットの検証が完了しました。完全なチュートリアルフローは今後のバージョンで提供されます。</value>
-  </data>
   <!-- FrontedLayoutPackagesView.Tutorials.cs -->
   <data name="Step.FrontManageLayoutPackagesBasic.0.Title">
     <value>レイアウトパッケージリスト</value>

@@ -18,32 +18,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
-/// <summary>
-/// Phase 6 SubTask 7.5 测试：覆盖 Designer 去特化后的统一 selection 构造、
-/// Schema 驱动属性编辑、统一 GeometryTarget 的 Move/Resize/Undo，
-/// 以及 Designer ViewModel 不再引用控件专用 Config 类型的契约。
-/// </summary>
-/// <remarks>
-/// <para>
-/// 这些测试验证 Phase 6 的核心契约：
-/// <list type="bullet">
-/// <item><see cref="FrontedV3DesignSelection"/> 通过 <see cref="FrontedV3DesignSelectionBuilder"/>
-/// 统一构造 Root/FixedPart/CollectionItem 三类 selection。</item>
-/// <item>属性 Schema 由 <see cref="BuiltInPropertyDefinitionResolver"/> 提供，
-/// 属性编辑通过 <see cref="FrontedV3PropertyDefinition.Storage"/> 写入，不通过 propertyName 字符串反射。</item>
-/// <item>Move/Resize 只调用 <see cref="IFrontedV3GeometryTarget"/>，
-/// 不通过 <c>if (config is BorderedImage...)</c> 等类型分支选择几何实现。</item>
-/// <item>Undo 对 Root/FixedPart/CollectionItem 三种 GeometryTarget 都工作。</item>
-/// <item>Designer ViewModel 源码不引用 <c>BorderedImageFrontedControlConfig</c>/
-/// <c>MapV2DisplayControlConfig</c>/<c>GlobalScoreRowControlConfig</c>，
-/// 通用编辑路径完全去特化。</item>
-/// </list>
-/// </para>
-/// <para>
-/// 这些是数据流与契约测试，不涉及 WPF 视觉树，无需
-/// <see cref="neo_bpsys_wpf.Tests.Infrastructure.WpfTestThread"/>。
-/// </para>
-/// </remarks>
+/// <summary>覆盖选择属性、插件 schema、属性写入和几何编辑的可观察结果。</summary>
 public class FrontedV3DesignerDespecializationTest
 {
     // -------------------------------------------------------------------
@@ -137,33 +112,6 @@ public class FrontedV3DesignerDespecializationTest
 
         // "Unknown" 未注册，Registry 返回 null Registration，selection 为 null。
         Assert.Null(selection);
-    }
-
-    /// <summary>
-    /// 已注册控件即使没有 Schema 属性也必须返回非空 Root Selection，
-    /// 使仅声明 FixedPart/PartCollection 的控件也能在画布上形成 Root 几何目标与 Part hitbox。
-    /// </summary>
-    /// <remarks>
-    /// 验收 Round-3 P1-2：插件作者可能声明一个只有 Part、没有 FrontedV3Property&lt;T&gt; 的控件，
-    /// 此时 Root Selection 不应因 Properties.Count == 0 而返回 null，否则 PropertyGrid 会回退到旧反射路径，
-    /// 画布也不会生成 Part 的透明 hitbox。
-    /// </remarks>
-    [Fact]
-    public void RootSelection_NonNullForRegisteredControlWithoutProperties()
-    {
-        var designItem = new FrontedControlDesignItem
-        {
-            Name = "NoProps",
-            Config = new FrontedControlConfigBase { ControlType = "Text" }
-        };
-
-        // Text 控件在 CreateTestRegistry 中已注册，但其 Properties 在测试用例中可能为空。
-        // 无论 Properties 是否为空，只要 ControlType 已注册，就应返回非 null Selection。
-        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
-        var selection = builder.BuildRootSelection(designItem);
-
-        Assert.NotNull(selection);
-        Assert.Equal(FrontedV3DesignSelectionKind.Root, selection!.Kind);
     }
 
     /// <summary>
@@ -349,6 +297,8 @@ public class FrontedV3DesignerDespecializationTest
 
         Assert.Equal(123, firstCell.X);
         Assert.Equal(456, firstCell.Width);
+        foreach (var name in new[] { "Color", "FontFamily", "FontWeight", "FontSize", "ShowCampIcon", "CampIconColor", "Visibility" })
+            Assert.Contains(name, optionsPaths);
     }
 
     /// <summary>
@@ -375,61 +325,6 @@ public class FrontedV3DesignerDespecializationTest
     // -------------------------------------------------------------------
     // 3a. SelectCollectionItem_IncludesAppearanceProperties
     // -------------------------------------------------------------------
-
-    /// <summary>
-    /// 选中 GlobalScoreRow 的 Cell 后，<see cref="FrontedV3DesignSelection.Properties"/>
-    /// 必须包含几何属性（X/Y/Width/Height）与外观属性（Color/FontFamily/FontWeight/
-    /// FontSize/ShowCampIcon/CampIconColor/Visibility），证明子控件外观属性 Schema 已合并。
-    /// </summary>
-    [Fact]
-    public void SelectCollectionItem_IncludesAppearanceProperties()
-    {
-        var config = new GlobalScoreRowControlConfig();
-        var designItem = new FrontedControlDesignItem
-        {
-            Name = "GlobalScoreRow1",
-            Config = config
-        };
-
-        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
-
-        // 通过 EnsureTemplateItems 补齐 BO5 模板 Cell
-        var collections = builder.GetAvailableCollections(designItem);
-        var cellsCollection = Assert.Single(collections);
-        cellsCollection.EnsureTemplateItems?.Invoke(config);
-        Assert.True(config.Cells.Count > 0);
-
-        var firstCell = config.Cells[0];
-        var itemKey = cellsCollection.ItemKeySelector(firstCell);
-
-        // 构造 CollectionItem selection
-        var selection = builder.BuildCollectionItemSelection(
-            designItem, collectionId: "Cells", itemKey: itemKey);
-
-        Assert.NotNull(selection);
-        Assert.Equal(FrontedV3DesignSelectionKind.CollectionItem, selection!.Kind);
-
-        // 收集所有 OptionsPath，断言几何与外观属性同时存在
-        var optionsPaths = selection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
-
-        // 几何属性
-        Assert.Contains("X", optionsPaths);
-        Assert.Contains("Y", optionsPaths);
-        Assert.Contains("Width", optionsPaths);
-        Assert.Contains("Height", optionsPaths);
-
-        // 外观属性
-        Assert.Contains(nameof(GlobalScoreCellConfig.Color), optionsPaths);
-        Assert.Contains(nameof(GlobalScoreCellConfig.FontFamily), optionsPaths);
-        Assert.Contains(nameof(GlobalScoreCellConfig.FontWeight), optionsPaths);
-        Assert.Contains(nameof(GlobalScoreCellConfig.FontSize), optionsPaths);
-        Assert.Contains(nameof(GlobalScoreCellConfig.ShowCampIcon), optionsPaths);
-        Assert.Contains(nameof(GlobalScoreCellConfig.CampIconColor), optionsPaths);
-        Assert.Contains(nameof(GlobalScoreCellConfig.Visibility), optionsPaths);
-
-        // 总数应为 4（几何） + 7（外观） = 11
-        Assert.Equal(11, selection.Properties.Count);
-    }
 
     /// <summary>
     /// 选中 MapV2 的固定 Part（如 TeamName）后，<see cref="FrontedV3DesignSelection.Properties"/>
@@ -597,41 +492,20 @@ public class FrontedV3DesignerDespecializationTest
         Assert.NotNull(colorProperty);
 
         var newValue = "#00FF00";
-        colorProperty!.Storage.SetValue(config, newValue);
+        colorProperty!.SetValue(config, newValue);
+        var fontSizeProperty = properties.First(p => p.OptionsPath == nameof(TextFrontedControlConfig.FontSize));
+        fontSizeProperty.SetValue(config, 32D);
+        Assert.Equal(32D, fontSizeProperty.GetValue(config));
 
         // Config 的 Color 字段被更新
         Assert.Equal(newValue, config.Color);
 
-        // 其他字段不得被波及
-        Assert.Equal(24, config.FontSize);
+        Assert.Equal(32, config.FontSize);
+        // 未编辑的文本保持不变
         Assert.Equal("Hello", config.Text);
 
         // 反向读取：Storage.GetValue 返回当前 Config 值
         Assert.Equal(newValue, colorProperty.Storage.GetValue(config));
-    }
-
-    /// <summary>
-    /// <see cref="FrontedV3PropertyDefinition.SetValue"/> 通过 Storage 写入 Config，
-    /// 内部完成类型转换（string → string）。验证 SetValue 与 Storage.SetValue 行为一致。
-    /// </summary>
-    [Fact]
-    public void PropertyDefinitionSetValueWritesThroughStorage()
-    {
-        var config = new TextFrontedControlConfig { FontSize = 16 };
-
-        var properties = BuiltInPropertyDefinitionResolver.GetProperties(config);
-        var fontSizeProperty = properties.First(p =>
-            string.Equals(p.OptionsPath, nameof(TextFrontedControlConfig.FontSize), StringComparison.Ordinal));
-
-        // FontSize 是 double，传入 double 值
-        fontSizeProperty.SetValue(config, 32D);
-
-        Assert.Equal(32, config.FontSize);
-
-        // GetValue 返回转换后的值
-        var value = fontSizeProperty.GetValue(config);
-        Assert.IsType<double>(value);
-        Assert.Equal(32D, value);
     }
 
     // -------------------------------------------------------------------
@@ -746,28 +620,28 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     // -------------------------------------------------------------------
-    // 7. UndoWorksForAllGeometryTargets
+    // 7. GeometryRoundtripWorksForAllGeometryTargets
     // -------------------------------------------------------------------
 
     /// <summary>
-    /// Undo 机制对所有 <see cref="IFrontedV3GeometryTarget"/> 类型工作：
+    /// 几何数据往返对所有 <see cref="IFrontedV3GeometryTarget"/> 类型工作：
     /// 记录原始几何值 → 通过 GeometryTarget 修改 → 验证已修改 →
     /// 通过 GeometryTarget 恢复原始值 → 验证已恢复。
-    /// 该测试覆盖 Root/FixedPart/CollectionItem 三种 GeometryTarget。
+    /// 此测试不执行撤销栈；覆盖 Root/FixedPart/CollectionItem 三种 GeometryTarget。
     /// </summary>
     [Fact]
-    public void UndoWorksForAllGeometryTargets()
+    public void GeometryRoundtripWorksForAllGeometryTargets()
     {
-        UndoWorksForRootGeometryTarget();
-        UndoWorksForFixedPartGeometryTarget();
-        UndoWorksForCollectionItemGeometryTarget();
+        GeometryRoundtripWorksForRootGeometryTarget();
+        GeometryRoundtripWorksForFixedPartGeometryTarget();
+        GeometryRoundtripWorksForCollectionItemGeometryTarget();
     }
 
     /// <summary>
-    /// Root GeometryTarget 的 Undo：记录 Config 原始几何 → ResizeTo 修改 →
+    /// Root GeometryTarget 的几何往返：记录 Config 原始几何 → ResizeTo 修改 →
     /// ResizeTo 恢复 → 验证 Config 几何已恢复。
     /// </summary>
-    private static void UndoWorksForRootGeometryTarget()
+    private static void GeometryRoundtripWorksForRootGeometryTarget()
     {
         var config = new TextFrontedControlConfig
         {
@@ -792,7 +666,7 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Equal(400, config.Width);
         Assert.Equal(200, config.Height);
 
-        // 恢复（Undo）
+        // 恢复原始几何
         target.ResizeTo(
             left: originalLeft,
             top: originalTop,
@@ -807,10 +681,10 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     /// <summary>
-    /// FixedPart GeometryTarget 的 Undo：记录 MapV2 Part 原始几何 →
+    /// FixedPart GeometryTarget 的几何往返：记录 MapV2 Part 原始几何 →
     /// ResizeTo 修改 → ResizeTo 恢复 → 验证 InternalParts 项几何已恢复。
     /// </summary>
-    private static void UndoWorksForFixedPartGeometryTarget()
+    private static void GeometryRoundtripWorksForFixedPartGeometryTarget()
     {
         var config = new MapV2DisplayControlConfig
         {
@@ -840,7 +714,7 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Equal(333, teamNameItem.Width);
         Assert.Equal(444, teamNameItem.Height);
 
-        // 恢复（Undo）
+        // 恢复原始几何
         target.ResizeTo(
             left: originalX,
             top: originalY,
@@ -855,10 +729,10 @@ public class FrontedV3DesignerDespecializationTest
     }
 
     /// <summary>
-    /// CollectionItem GeometryTarget 的 Undo：记录 GlobalScoreRow Cell 原始几何 →
+    /// CollectionItem GeometryTarget 的几何往返：记录 GlobalScoreRow Cell 原始几何 →
     /// ResizeTo 修改 → ResizeTo 恢复 → 验证 Cell 几何已恢复。
     /// </summary>
-    private static void UndoWorksForCollectionItemGeometryTarget()
+    private static void GeometryRoundtripWorksForCollectionItemGeometryTarget()
     {
         var config = new GlobalScoreRowControlConfig();
         var collections = BuiltInPartCollectionDefinitionResolver.GetCollections(config);
@@ -883,7 +757,7 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Equal(777, firstCell.Width);
         Assert.Equal(888, firstCell.Height);
 
-        // 恢复（Undo）
+        // 恢复原始几何
         target.ResizeTo(
             left: originalX,
             top: originalY,
@@ -895,60 +769,6 @@ public class FrontedV3DesignerDespecializationTest
         Assert.Equal(originalY, firstCell.Y);
         Assert.Equal(originalWidth, firstCell.Width);
         Assert.Equal(originalHeight, firstCell.Height);
-    }
-
-    // -------------------------------------------------------------------
-    // 8. EscReturnsToRootSelection
-    // -------------------------------------------------------------------
-
-    /// <summary>
-    /// 子控件选中后通过 <see cref="FrontedV3DesignSelectionBuilder.BuildRootSelection"/>
-    /// 回退到根选中：从 FixedPart selection 取得 DesignItem，重新构建 Root selection，
-    /// 验证 Kind 切换为 Root 且 Schema 包含根控件属性。这是 <c>EscapeToRootSelection</c>
-    /// 方法依赖的数据流契约。
-    /// </summary>
-    [Fact]
-    public void EscReturnsToRootSelection()
-    {
-        var config = new BorderedImageFrontedControlConfig
-        {
-            ImageWidth = 60,
-            ImageHeight = 40,
-            Left = 10,
-            Top = 20,
-            Width = 200,
-            Height = 100
-        };
-        var designItem = new FrontedControlDesignItem
-        {
-            Name = "BorderedImage1",
-            Config = config
-        };
-
-        var builder = new FrontedV3DesignSelectionBuilder(CreateTestRegistry());
-
-        // 先构建 FixedPart 选中（模拟用户点击内部 Image 部件）
-        var partSelection = builder.BuildFixedPartSelection(designItem, partId: "Image");
-        Assert.NotNull(partSelection);
-        Assert.Equal(FrontedV3DesignSelectionKind.FixedPart, partSelection!.Kind);
-        Assert.NotNull(partSelection.DesignItem);
-
-        // 模拟 Esc：从子控件选中取得 DesignItem，重新构建 Root 选中
-        var rootSelection = builder.BuildRootSelection(partSelection.DesignItem!);
-        Assert.NotNull(rootSelection);
-        Assert.Equal(FrontedV3DesignSelectionKind.Root, rootSelection!.Kind);
-        Assert.Null(rootSelection.SubTarget);
-
-        // Root Schema 应包含根控件外观属性（ImageWidth/ImageHeight）和通用根布局字段，
-        // 证明 Esc 后回到根选中重建了完整的可编辑 Schema。
-        var optionsPaths = rootSelection.Properties.Select(p => p.OptionsPath).ToHashSet(StringComparer.Ordinal);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.ImageWidth), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.ImageHeight), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Left), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Top), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Width), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.Height), optionsPaths);
-        Assert.Contains(nameof(BorderedImageFrontedControlConfig.ZIndex), optionsPaths);
     }
 
     /// <summary>

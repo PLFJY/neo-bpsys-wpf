@@ -649,11 +649,6 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         RunningBehaviorState state,
         CancellationToken cancellationToken)
     {
-        // Temporary diagnostic logging for a startup hang in legacy picking-border loops.
-        _logger.LogInformation(
-            "Loop {BehaviorId} lifecycle entered. DisplayName={DisplayName}.",
-            behavior.BehaviorId,
-            set.DisplayName);
         try
         {
             try
@@ -678,30 +673,28 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 using (var startLinkedCts = CancellationTokenSource.CreateLinkedTokenSource(
                     cancellationToken, state.StartCts.Token))
                 {
-                    _logger.LogInformation("Loop {BehaviorId} StartGraph execution begins.", behavior.BehaviorId);
                     var startResult = await _graphRuntime.ExecuteAsync(
                         behavior.StartGraph,
                         startContext,
                         startLinkedCts.Token);
-                    _logger.LogInformation(
-                        "Loop {BehaviorId} StartGraph execution completed. Status={Status}.",
-                        behavior.BehaviorId,
-                        startResult.Status);
                     if (startResult.Status != FrontedGraphExecutionStatus.Success)
                     {
-                        foreach (var item in startResult.LogItems)
+                        if (_logger.IsEnabled(LogLevel.Debug))
                         {
-                            _logger.LogInformation(
-                                "Loop {BehaviorId} StartGraph diagnostic: Node={NodeId}, Level={Level}, Message={Message}",
-                                behavior.BehaviorId,
-                                item.NodeId,
-                                item.Level,
-                                item.Message);
+                            foreach (var item in startResult.LogItems)
+                            {
+                                _logger.LogDebug(
+                                    "Loop {BehaviorId} StartGraph diagnostic: Node={NodeId}, Level={Level}, Message={Message}",
+                                    behavior.BehaviorId,
+                                    item.NodeId,
+                                    item.Level,
+                                    item.Message);
+                            }
                         }
 
                         if (startResult.Exception is not null)
                         {
-                            _logger.LogInformation(
+                            _logger.LogWarning(
                                 startResult.Exception,
                                 "Loop {BehaviorId} StartGraph execution failed with an exception.",
                                 behavior.BehaviorId);
@@ -709,7 +702,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
                         if (startResult.Status == FrontedGraphExecutionStatus.Failed)
                         {
-                            _logger.LogInformation(
+                            _logger.LogWarning(
                                 "Loop {BehaviorId} StartGraph failed; the loop will not start.",
                                 behavior.BehaviorId);
                             return;
@@ -755,7 +748,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         var loopResult = await _graphRuntime.ExecuteAsync(behavior.LoopGraph, loopContext, loopCt);
                         if (loopResult.Status == FrontedGraphExecutionStatus.Failed)
                         {
-                            _logger.LogInformation(
+                            _logger.LogWarning(
                                 "Loop {BehaviorId} LoopGraph failed at iteration {Iteration}; stopping to prevent a tight retry loop.",
                                 behavior.BehaviorId,
                                 iteration + 1);

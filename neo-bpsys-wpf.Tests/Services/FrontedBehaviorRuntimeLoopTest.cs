@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,13 +22,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
 
-/// <summary>
-/// 针对 <see cref="FrontedBehaviorRuntimeHost" /> 中 Loop 行为生命周期的测试。
-///
-/// <see cref="FrontedBehaviorRuntimeHost" /> 在 neo-bpsys-wpf.Core 中是 internal，
-/// 测试程序集对该项目没有 InternalsVisibleTo，
-/// 因此我们通过反射来创建宿主并调用其方法。
-/// </summary>
+/// <summary>覆盖循环生命周期、停止策略和事件上下文的可观察行为。</summary>
 public class FrontedBehaviorRuntimeLoopTest
 {
     /// <summary>
@@ -54,7 +47,8 @@ public class FrontedBehaviorRuntimeLoopTest
             await AttachHost(host, CreateDocument(behavior));
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
 
-            await WaitForConditionAsync(() => CountRunningBehaviors(host) == 0, TimeSpan.FromSeconds(3));
+            await DrainDispatcherAsync();
+            Assert.Equal(0, await StopAllLoopsAsync(host, FrontedBehaviorStopReason.ManualClear, TimeSpan.FromSeconds(1)));
             Assert.Single(runtime.ExecutedGraphs);
             Assert.Same(behavior.StartGraph, runtime.ExecutedGraphs[0]);
         });
@@ -91,55 +85,7 @@ public class FrontedBehaviorRuntimeLoopTest
             // StartGraph executed once, LoopGraph executed once (RepeatCount=1)
             Assert.Contains(behavior.StartGraph, runtime.ExecutedGraphs);
             Assert.Contains(behavior.LoopGraph, runtime.ExecutedGraphs);
-            Assert.Equal(2, runtime.ExecutedGraphs.Count);
-        });
-    }
-
-    /// <summary>
-    /// 循环启动后发布 StopTrigger，等待执行 StopGraph。
-    /// </summary>
-    [Fact]
-    public async Task BehaviorRuntime_Loop_StopTrigger_RunsStopGraph()
-    {
-        await RunOnStaThreadAsync(async () =>
-        {
-            var runtime = new ControlledGraphRuntime
-            {
-                // Keep LoopGraph "running" by blocking on a gate
-                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
-            };
-            var behavior = new FrontedBehavior
-            {
-                Kind = FrontedBehaviorKind.Loop,
-                StartTrigger = new TriggerDescriptor { EventType = "start" },
-                StopTriggers = [new TriggerDescriptor { EventType = "end" }],
-                StartGraph = new FrontedNodeGraph(),
-                LoopGraph = new FrontedNodeGraph(),
-                StopGraph = new FrontedNodeGraph(),
-                LoopPolicy = new FrontedLoopPolicy
-                {
-                    RepeatCount = -1,
-                    StopMode = FrontedLoopStopMode.RunStopGraph,
-                    ResetOnStop = false
-                }
-            };
-            var document = CreateDocument(behavior);
-
-            using var host = CreateHost(runtime);
-            await AttachHost(host, document);
-
-            // Publish start trigger — starts StartGraph, then blocks on LoopGraph
-            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
-
-            // Now LoopGraph is blocked; publish end trigger
-            RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
-
-            // Wait for StopGraph to appear in ExecutedGraphs (the unified lifecycle
-            // executes StopGraph in the same task after cancelling LoopGraph)
-            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
-
-            Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
+            Assert.Equal(new[] { behavior.StartGraph, behavior.LoopGraph }, runtime.ExecutedGraphs);
         });
     }
 
@@ -312,7 +258,7 @@ public class FrontedBehaviorRuntimeLoopTest
                     ["PreviousIndexesText"] = "[1]"
                 }
             });
-            await Task.Delay(150);
+            await DrainDispatcherAsync();
             Assert.DoesNotContain(behavior.StopGraph, runtime.ExecutedGraphs);
 
             RunEvent(host, new FrontedBehaviorEvent
@@ -353,7 +299,7 @@ public class FrontedBehaviorRuntimeLoopTest
             Assert.Equal(2, stopped);
             Assert.Contains(first.StopGraph, runtime.ExecutedGraphs);
             Assert.Contains(second.StopGraph, runtime.ExecutedGraphs);
-            Assert.Equal(0, CountRunningBehaviors(host));
+            Assert.Equal(0, await StopAllLoopsAsync(host, FrontedBehaviorStopReason.ManualClear, TimeSpan.FromSeconds(1)));
         });
     }
 
@@ -375,7 +321,7 @@ public class FrontedBehaviorRuntimeLoopTest
 
             Assert.Equal(1, stopped);
             Assert.True(runtime.StopGraphStarted.Task.IsCompleted);
-            Assert.Equal(0, CountRunningBehaviors(host));
+            Assert.Equal(0, await StopAllLoopsAsync(host, FrontedBehaviorStopReason.ManualClear, TimeSpan.FromSeconds(1)));
         });
     }
 
@@ -418,7 +364,7 @@ public class FrontedBehaviorRuntimeLoopTest
 
             // Second start trigger while running — should be ignored
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-            await Task.Delay(200); // Let any async processing settle
+            await DrainDispatcherAsync();
 
             // No additional graph executions
             Assert.Empty(runtime.ExecutedGraphs);
@@ -561,8 +507,10 @@ public class FrontedBehaviorRuntimeLoopTest
     /// ResetOnStop=true 但 StopMode=RunStopGraph 时，StopGraph 执行后不调用 ResetTarget。
     /// StopGraph 本身就是结束动画，Reset 会覆盖其视觉效果。
     /// </summary>
-    [Fact]
-    public async Task BehaviorRuntime_Loop_RunStopGraph_DoesNotReset()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BehaviorRuntime_Loop_RunStopGraph_ExecutesWithoutReset(bool resetOnStop)
     {
         await RunOnStaThreadAsync(async () =>
         {
@@ -583,7 +531,7 @@ public class FrontedBehaviorRuntimeLoopTest
                 {
                     RepeatCount = -1,
                     StopMode = FrontedLoopStopMode.RunStopGraph,
-                    ResetOnStop = true
+                    ResetOnStop = resetOnStop
                 }
             };
             var document = CreateDocument(behavior);
@@ -599,6 +547,8 @@ public class FrontedBehaviorRuntimeLoopTest
             await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
 
             // StopGraph executed → SuppressReset = true → ResetTarget must NOT be called
+            Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
+            await DrainDispatcherAsync();
             Assert.Empty(animationRuntime.ResetTargetCalls);
         });
     }
@@ -639,88 +589,10 @@ public class FrontedBehaviorRuntimeLoopTest
             await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
 
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
-            await Task.Delay(200);
+            await DrainDispatcherAsync();
 
             // StopGraph should NOT be executed
             Assert.DoesNotContain(behavior.StopGraph, runtime.ExecutedGraphs);
-        });
-    }
-
-    /// <summary>
-    /// StopMode=RunStopGraph 时，收到 StopTrigger 后执行 StopGraph。
-    /// </summary>
-    [Fact]
-    public async Task BehaviorRuntime_Loop_RunStopGraph_ExecutesStopGraph()
-    {
-        await RunOnStaThreadAsync(async () =>
-        {
-            var runtime = new ControlledGraphRuntime
-            {
-                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
-            };
-            var behavior = new FrontedBehavior
-            {
-                Kind = FrontedBehaviorKind.Loop,
-                StartTrigger = new TriggerDescriptor { EventType = "start" },
-                StopTriggers = [new TriggerDescriptor { EventType = "end" }],
-                StartGraph = new FrontedNodeGraph(),
-                LoopGraph = new FrontedNodeGraph(),
-                StopGraph = new FrontedNodeGraph(),
-                LoopPolicy = new FrontedLoopPolicy
-                {
-                    RepeatCount = -1,
-                    StopMode = FrontedLoopStopMode.RunStopGraph,
-                    ResetOnStop = false
-                }
-            };
-            var document = CreateDocument(behavior);
-
-            using var host = CreateHost(runtime);
-            await AttachHost(host, document);
-
-            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
-
-            RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
-
-            await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
-
-            Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
-        });
-    }
-
-    [Fact]
-    public async Task Loop_StartGraphCompletesBeforeLoopGraphStarts()
-    {
-        await RunOnStaThreadAsync(async () =>
-        {
-            var runtime = new ControlledGraphRuntime();
-            var behavior = new FrontedBehavior
-            {
-                Kind = FrontedBehaviorKind.Loop,
-                StartTrigger = new TriggerDescriptor { EventType = "start" },
-                StopTriggers = [new TriggerDescriptor { EventType = "end" }],
-                StartGraph = new FrontedNodeGraph(),
-                LoopGraph = new FrontedNodeGraph(),
-                LoopPolicy = new FrontedLoopPolicy { RepeatCount = 1 }
-            };
-            var document = CreateDocument(behavior);
-
-            using var host = CreateHost(runtime);
-            await AttachHost(host, document);
-
-            runtime.ExecutionCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-
-            await runtime.ExecutionCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
-
-            // StartGraph should appear before LoopGraph in execution order
-            var executedGraphs = runtime.ExecutedGraphs.ToArray();
-            var startIndex = Array.IndexOf(executedGraphs, behavior.StartGraph);
-            var loopIndex = Array.IndexOf(executedGraphs, behavior.LoopGraph);
-            Assert.True(startIndex >= 0, "StartGraph should be executed");
-            Assert.True(loopIndex >= 0, "LoopGraph should be executed");
-            Assert.True(startIndex < loopIndex, "StartGraph should execute before LoopGraph");
         });
     }
 
@@ -729,67 +601,22 @@ public class FrontedBehaviorRuntimeLoopTest
     {
         await RunOnStaThreadAsync(async () =>
         {
-            var runtime = new ControlledGraphRuntime();
-            var behavior = new FrontedBehavior
-            {
-                Kind = FrontedBehaviorKind.Loop,
-                StartTrigger = new TriggerDescriptor { EventType = "start" },
-                StopTriggers = [new TriggerDescriptor { EventType = "end" }],
-                StartGraph = new FrontedNodeGraph(),
-                LoopGraph = new FrontedNodeGraph(),
-                LoopPolicy = new FrontedLoopPolicy { RepeatCount = 3 }
-            };
-            var document = CreateDocument(behavior);
-
-            using var host = CreateHost(runtime);
-            await AttachHost(host, document);
-
-            runtime.ExecutionCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-
-            await runtime.ExecutionCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5));
-
-            // LoopGraph should have been executed exactly RepeatCount times (3)
-            var executedGraphs = runtime.ExecutedGraphs.ToArray();
-            var loopExecutions = executedGraphs.Count(g => g == behavior.LoopGraph);
-            Assert.Equal(3, loopExecutions);
-        });
-    }
-
-    [Fact]
-    public async Task Loop_IntervalBetweenIterations()
-    {
-        await RunOnStaThreadAsync(async () =>
-        {
             var runtime = new ControlledGraphRuntime
             {
                 LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
             };
-            var behavior = new FrontedBehavior
-            {
-                Kind = FrontedBehaviorKind.Loop,
-                StartTrigger = new TriggerDescriptor { EventType = "start" },
-                StopTriggers = [new TriggerDescriptor { EventType = "end" }],
-                StartGraph = new FrontedNodeGraph(),
-                LoopGraph = new FrontedNodeGraph(),
-                LoopPolicy = new FrontedLoopPolicy
-                {
-                    RepeatCount = -1,
-                    IntervalMs = 100,
-                    StopMode = FrontedLoopStopMode.StopImmediately
-                }
-            };
-            var document = CreateDocument(behavior);
-
+            var behavior = LoopBehavior("start");
+            behavior.LoopPolicy!.RepeatCount = 3;
+            behavior.LoopPolicy.IntervalMs = 0;
             using var host = CreateHost(runtime);
-            await AttachHost(host, document);
-
+            await AttachHost(host, CreateDocument(behavior));
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
-
-            // The LoopGraph runs once, then waits IntervalMs before the next iteration.
-            // With the LoopGate blocking, only one LoopGraph execution should occur.
-            Assert.Contains(behavior.LoopGraph, runtime.ExecutedGraphs);
+            await runtime.WaitForExecutionCountAsync(behavior.LoopGraph, 1, TimeSpan.FromSeconds(5));
+            await DrainDispatcherAsync();
+            Assert.Equal(1, runtime.ExecutedGraphs.Count(graph => graph == behavior.LoopGraph));
+            runtime.LoopGate.SetResult();
+            await runtime.WaitForExecutionCountAsync(behavior.LoopGraph, 3, TimeSpan.FromSeconds(5));
+            Assert.Equal(3, runtime.ExecutedGraphs.Count(graph => graph == behavior.LoopGraph));
         });
     }
 
@@ -877,7 +704,7 @@ public class FrontedBehaviorRuntimeLoopTest
 
             // Start trigger fires — StartGraph begins, blocks on StartGate
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-            await Task.Delay(100); // Let StartGraph start and block
+            await DrainDispatcherAsync();
 
             // StopTrigger fires while StartGraph is still executing (LoopPhase = Starting).
             // RunStopGraph mode cancels StartGraph via StartCts, then proceeds to StopGraph.
@@ -932,13 +759,13 @@ public class FrontedBehaviorRuntimeLoopTest
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
             // HoldCurrentState should NOT cancel LoopCts → LoopGate should not be cancelled
-            await Task.Delay(200);
+            await DrainDispatcherAsync();
             Assert.False(runtime.LoopGate.Task.IsCanceled,
                 "HoldCurrentState should not cancel LoopCts");
 
             // Release the gate so the current iteration can complete
             runtime.LoopGate.TrySetResult();
-            await Task.Delay(200);
+            await DrainDispatcherAsync();
 
             // StopGraph should NOT be executed for HoldCurrentState
             Assert.DoesNotContain(behavior.StopGraph, runtime.ExecutedGraphs);
@@ -984,7 +811,7 @@ public class FrontedBehaviorRuntimeLoopTest
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
             // Wait for lifecycle to complete (StopGraph should NOT be executed)
-            await Task.Delay(500);
+            await DrainDispatcherAsync();
 
             // HoldCurrentState should NOT call ResetTarget
             Assert.Empty(animationRuntime.ResetTargetCalls);
@@ -1027,7 +854,7 @@ public class FrontedBehaviorRuntimeLoopTest
 
             // Fire start trigger — StartGraph begins, blocks on StartGate
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
-            await Task.Delay(100); // Let StartGraph start and block on StartGate
+            await DrainDispatcherAsync();
 
             // StartGraph is still blocked by the simulated Delay;
             // LoopGraph should NOT have been executed yet
@@ -1096,7 +923,7 @@ public class FrontedBehaviorRuntimeLoopTest
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
             // Wait for lifecycle to complete (StopGraph won't execute; SuppressReset skips Reset)
-            await Task.Delay(500);
+            await DrainDispatcherAsync();
 
             // No ResetTarget because SuppressReset = true
             Assert.Empty(animationRuntime.ResetTargetCalls);
@@ -1171,41 +998,12 @@ public class FrontedBehaviorRuntimeLoopTest
     // Test helper: waits for a specific graph to appear in ExecutedGraphs
     // ---------------------------------------------------------------
 
-    /// <summary>
-    /// 轮询等待，直到 <paramref name="graph"/> 出现在 <paramref name="runtime"/>.<see cref="ControlledGraphRuntime.ExecutedGraphs"/> 中。
-    /// 用于在统一生命周期中检测 StopGraph 的执行，在该生命周期中 StopGraph
-    /// 在同一任务内运行（而非单独的 StopTask）。
-    /// </summary>
-    private static async Task WaitForGraphAsync(
-        ControlledGraphRuntime runtime,
-        FrontedNodeGraph graph,
-        TimeSpan timeout)
-    {
-        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        _ = Task.Run(async () =>
-        {
-            while (!runtime.ExecutedGraphs.Contains(graph))
-            {
-                await Task.Delay(30);
-            }
-            tcs.TrySetResult();
-        });
-        await tcs.Task.WaitAsync(timeout);
-    }
+    private static Task WaitForGraphAsync(ControlledGraphRuntime runtime, FrontedNodeGraph graph, TimeSpan timeout) =>
+        runtime.WaitForExecutionCountAsync(graph, 1, timeout);
 
-    private static async Task WaitForConditionAsync(Func<bool> condition, TimeSpan timeout)
-    {
-        var startedAt = DateTime.UtcNow;
-        while (!condition())
-        {
-            if (DateTime.UtcNow - startedAt >= timeout)
-            {
-                throw new TimeoutException("The expected WPF behavior state was not reached in time.");
-            }
-
-            await Task.Delay(20);
-        }
-    }
+    private static Task DrainDispatcherAsync() =>
+        System.Windows.Threading.Dispatcher.CurrentDispatcher.InvokeAsync(
+            () => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle).Task;
 
     private static FrontedNodeConnection Connect(
         FrontedNode source,
@@ -1232,17 +1030,11 @@ public class FrontedBehaviorRuntimeLoopTest
         await WpfTestThread.RunAsync(action);
     }
 
-    // ---------------------------------------------------------------
-    // Reflection helpers for FrontedBehaviorRuntimeHost
-    // ---------------------------------------------------------------
-
-    private static readonly Type HostType = typeof(FrontedBehaviorRuntimeContext).Assembly
-        .GetType("neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedBehaviorRuntimeHost")!;
-
-    private static IDisposable CreateHost(
+    private static TestHost CreateHost(
         IFrontedNodeGraphRuntime graphRuntime,
         IFrontedAnimationRuntime? animationRuntime = null,
-        Canvas? rootCanvas = null)
+        Canvas? rootCanvas = null,
+        ILogger? logger = null)
     {
         var context = new FrontedBehaviorRuntimeContext
         {
@@ -1250,89 +1042,32 @@ public class FrontedBehaviorRuntimeLoopTest
             WindowType = "BpWindow",
             CanvasName = "BaseCanvas",
             RootCanvas = rootCanvas ?? new Canvas(),
-            WindowConfig = neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig()),
-            SharedDataService = new MockSharedDataService(),
-            Logger = NullLogger.Instance,
+            WindowConfig = FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig()),
+            SharedDataService = Moq.Mock.Of<ISharedDataService>(),
+            Logger = logger ?? NullLogger.Instance,
             IsDesignerPreview = true
         };
-
-        var eventBus = new MockEventBus();
-        var triggerEvaluator = new FrontedBehaviorTriggerEvaluator();
-        var animRuntime = animationRuntime ?? new RecordingAnimationRuntime();
-
-        var constructor = HostType.GetConstructor([
-            typeof(FrontedBehaviorRuntimeContext),
-            typeof(IFrontedEventBus),
-            typeof(IFrontedNodeGraphRuntime),
-            typeof(IFrontedAnimationRuntime),
-            typeof(FrontedBehaviorTriggerEvaluator)])!;
-
-        return (IDisposable)constructor.Invoke([context, eventBus, graphRuntime, animRuntime, triggerEvaluator]);
+        var events = new MockEventBus();
+        return new TestHost(new FrontedBehaviorRuntimeHost(context, events, graphRuntime,
+            animationRuntime ?? new RecordingAnimationRuntime(), new FrontedBehaviorTriggerEvaluator()), events);
     }
 
-    private static IDisposable CreateHostWithLogger(
-        IFrontedNodeGraphRuntime graphRuntime,
-        ILogger logger)
+    private static TestHost CreateHostWithLogger(IFrontedNodeGraphRuntime graphRuntime, ILogger logger) =>
+        CreateHost(graphRuntime, logger: logger);
+
+    private static Task AttachHost(TestHost host, FrontedBehaviorDocument document) => host.Runtime.AttachAsync(document);
+    private static void RunEvent(TestHost host, FrontedBehaviorEvent behaviorEvent) => host.Events.Publish(behaviorEvent);
+    private static Task<int> StopAllLoopsAsync(TestHost host, FrontedBehaviorStopReason reason, TimeSpan timeout) =>
+        host.Runtime.StopAllLoopBehaviorsAsync(reason, timeout, TestContext.Current.CancellationToken);
+
+    private sealed class TestHost(FrontedBehaviorRuntimeHost runtime, MockEventBus events) : IDisposable
     {
-        var context = new FrontedBehaviorRuntimeContext
-        {
-            WindowId = "TestWindow",
-            WindowType = "BpWindow",
-            CanvasName = "BaseCanvas",
-            RootCanvas = new Canvas(),
-            WindowConfig = neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedWindowConfigCanvasAdapter.FromCanvasConfig(new FrontedCanvasConfig()),
-            SharedDataService = new MockSharedDataService(),
-            Logger = logger,
-            IsDesignerPreview = true
-        };
-
-        var eventBus = new MockEventBus();
-        var triggerEvaluator = new FrontedBehaviorTriggerEvaluator();
-        var animRuntime = new RecordingAnimationRuntime();
-
-        var constructor = HostType.GetConstructor([
-            typeof(FrontedBehaviorRuntimeContext),
-            typeof(IFrontedEventBus),
-            typeof(IFrontedNodeGraphRuntime),
-            typeof(IFrontedAnimationRuntime),
-            typeof(FrontedBehaviorTriggerEvaluator)])!;
-
-        return (IDisposable)constructor.Invoke([context, eventBus, graphRuntime, animRuntime, triggerEvaluator]);
-    }
-
-    private static async Task AttachHost(IDisposable host, FrontedBehaviorDocument document)
-    {
-        var method = HostType.GetMethod("AttachAsync")!;
-        var task = (Task)method.Invoke(host, [document])!;
-        await task;
-    }
-
-    private static void RunEvent(IDisposable host, FrontedBehaviorEvent behaviorEvent)
-    {
-        // The host subscribed to the MockEventBus via Subscribe(null, OnEventAsync).
-        // We publish through the bus, and the bus calls the handler.
-        var eventBusField = HostType.GetField("_eventBus", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var eventBus = (MockEventBus)eventBusField.GetValue(host)!;
-
-        eventBus.Publish(behaviorEvent);
-    }
-
-    private static async Task<int> StopAllLoopsAsync(
-        IDisposable host,
-        FrontedBehaviorStopReason reason,
-        TimeSpan timeout)
-    {
-        var method = HostType.GetMethod("StopAllLoopBehaviorsAsync")!;
-        var task = (Task<int>)method.Invoke(host, [reason, timeout, CancellationToken.None])!;
-        return await task;
-    }
-
-    private static int CountRunningBehaviors(IDisposable host)
-    {
-        var field = HostType.GetField("_runningBehaviors", BindingFlags.Instance | BindingFlags.NonPublic)!;
-        var value = field.GetValue(host)!;
-        var countProperty = value.GetType().GetProperty("Count")!;
-        return (int)countProperty.GetValue(value)!;
+        /// <summary>被测行为运行时。</summary>
+        public FrontedBehaviorRuntimeHost Runtime { get; } = runtime;
+        /// <summary>测试持有的事件入口。</summary>
+        public MockEventBus Events { get; } = events;
+        /// <summary>取消并释放行为运行时。</summary>
+        public void Dispose() => Runtime.Dispose();
     }
 
     // ---------------------------------------------------------------
@@ -1412,56 +1147,6 @@ public class FrontedBehaviorRuntimeLoopTest
         public void Dispose() => action();
     }
 
-    private sealed class MockSharedDataService : ISharedDataService
-    {
-        public event EventHandler? CurrentGameChanged;
-
-        /// <summary>
-        /// 当前对局进度改变事件。
-        /// </summary>
-        public event EventHandler? GameProgressChanged;
-        public event EventHandler<BanCountChangedEventArgs>? BanCountChanged;
-        public event EventHandler? IsTraitVisibleChanged;
-        public event EventHandler? IsBo3ModeChanged;
-        public event EventHandler? CountDownValueChanged;
-        public event EventHandler? TeamSwapped;
-        public event EventHandler? IsMapV2BreathingChanged;
-        public event EventHandler<MapV2PickingBorderStateChangedEventArgs>? MapV2PickingBorderStateChanged;
-        public event EventHandler? IsMapV2CampVisibleChanged;
-        public event EventHandler? PickedMapChanged;
-        public event EventHandler? MapV2BannedChanged;
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public string RemainingSeconds { get; set; } = string.Empty;
-        public Team HomeTeam => throw new NotImplementedException();
-        public Team AwayTeam => throw new NotImplementedException();
-        public Game CurrentGame => throw new NotImplementedException();
-        public SortedDictionary<string, Character> SurCharaDict
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
-        public SortedDictionary<string, Character> HunCharaDict
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
-        public ObservableCollection<bool> CanCurrentSurBannedList => throw new NotImplementedException();
-        public ObservableCollection<bool> CanCurrentHunBannedList => throw new NotImplementedException();
-        public ObservableCollection<bool> CanGlobalSurBannedList => throw new NotImplementedException();
-        public ObservableCollection<bool> CanGlobalHunBannedList => throw new NotImplementedException();
-        public bool IsTraitVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IsBo3Mode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IsMapV2Breathing { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public bool IsMapV2CampVisible { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        public void NewGame() => throw new NotImplementedException();
-        public Task ImportGameAsync(string filePath) => throw new NotImplementedException();
-        public void SetBanCount(BanListName listName, int count) => throw new NotImplementedException();
-        public void TimerStart(int? seconds) => throw new NotImplementedException();
-        public void TimerStop() => throw new NotImplementedException();
-    }
-
     /// <summary>
     /// 用于 Loop 行为测试的 <see cref="IFrontedNodeGraphRuntime" /> 受控实现。
     /// 跟踪执行过的图，并支持在 LoopGraph 上阻塞以进行 StopTrigger 测试。
@@ -1470,6 +1155,23 @@ public class FrontedBehaviorRuntimeLoopTest
     {
         /// <summary>已执行的图，按顺序排列。</summary>
         public List<FrontedNodeGraph> ExecutedGraphs { get; } = [];
+
+        private readonly Dictionary<(FrontedNodeGraph Graph, int Count), TaskCompletionSource> _executionSignals = [];
+
+        /// <summary>等待指定图开始指定次数，不使用后台轮询。</summary>
+        /// <param name="graph">待观察的图。</param>
+        /// <param name="count">期望执行次数。</param>
+        /// <param name="timeout">等待上限。</param>
+        /// <returns>达到执行次数时完成的任务。</returns>
+        public Task WaitForExecutionCountAsync(FrontedNodeGraph graph, int count, TimeSpan timeout)
+        {
+            if (ExecutedGraphs.Count(item => ReferenceEquals(item, graph)) >= count)
+                return Task.CompletedTask;
+            var key = (graph, count);
+            if (!_executionSignals.TryGetValue(key, out var signal))
+                _executionSignals[key] = signal = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            return signal.Task.WaitAsync(timeout);
+        }
 
         /// <summary>图执行记录以及提供给它们的上下文。</summary>
         public List<(FrontedNodeGraph Graph, FrontedGraphExecutionContext Context)> Executions { get; } = [];
@@ -1509,6 +1211,8 @@ public class FrontedBehaviorRuntimeLoopTest
             CancellationToken cancellationToken)
         {
             ExecutedGraphs.Add(graph);
+            var executionCount = ExecutedGraphs.Count(item => ReferenceEquals(item, graph));
+            if (_executionSignals.TryGetValue((graph, executionCount), out var signal)) signal.TrySetResult();
             Executions.Add((graph, context));
 
             // Signal StartGraph execution

@@ -87,7 +87,9 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 Application.Current.Dispatcher.BeginInvoke(SyncModuleDownloadState);
         };
         _moduleManager.ModuleVersionOutdated += OnModuleVersionOutdated;
-        _settingsHostService.Settings.PropertyChanged += Settings_PropertyChanged;
+        _observedSettings = _settingsHostService.Settings;
+        _observedSettings.PropertyChanged += Settings_PropertyChanged;
+        _settingsHostService.SettingsChanged += Settings_Replaced;
         SyncGhProxyMirrorFromSettings();
         _ = InitializeAsync();
         _ = InspectSelectedPathAsync();
@@ -228,6 +230,25 @@ public partial class SmartBpPageViewModel : ViewModelBase
         {
             _isSyncingGhProxyMirror = false;
         }
+    }
+
+    private Core.Models.Settings? _observedSettings;
+
+    private void Settings_Replaced(object? sender, Core.Models.Settings settings)
+    {
+        void Synchronize()
+        {
+            if (_observedSettings is not null)
+                _observedSettings.PropertyChanged -= Settings_PropertyChanged;
+            _observedSettings = settings;
+            settings.PropertyChanged += Settings_PropertyChanged;
+            SyncGhProxyMirrorFromSettings();
+        }
+
+        if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+            dispatcher.Invoke(Synchronize);
+        else
+            Synchronize();
     }
 
     /// <summary>

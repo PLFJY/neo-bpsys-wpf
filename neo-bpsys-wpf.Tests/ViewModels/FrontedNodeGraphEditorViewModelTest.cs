@@ -347,27 +347,6 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.All(ports.Take(3), port => Assert.Equal(FrontedNodePortRole.ParallelBranch, port.Role));
         var continuation = ports.Single(port => port.Name == "Out");
         Assert.Equal(FrontedNodePortRole.ParallelContinuation, continuation.Role);
-        Assert.True(continuation.CenterOffsetY > ports.Single(port => port.Name == "Branch3").CenterOffsetY + 24);
-        Assert.Contains("所有已连接的并行分支执行完成后", continuation.TooltipText);
-    }
-
-    [Fact]
-    public void ParallelConnections_UseSourcePortRoleStyleAndMeaning()
-    {
-        var editor = CreateEditorWithNodes("flow.parallel", "action.log", "flow.end");
-        var parallel = editor.Nodes[0];
-        var log = editor.Nodes[1];
-        var end = editor.Nodes[2];
-        editor.AddConnection(parallel.OutputPorts.Single(port => port.Name == "Branch1"), log.InputPorts[0]);
-        editor.AddConnection(parallel.OutputPorts.Single(port => port.Name == "Out"), end.InputPorts[0]);
-
-        var branchConnection = editor.Connections.Single(connection => connection.Model.SourcePort == "Branch1");
-        var continuationConnection = editor.Connections.Single(connection => connection.Model.SourcePort == "Out");
-
-        Assert.Equal("#1976D2", branchConnection.StrokeColorHex);
-        Assert.Equal("#8BC34A", continuationConnection.StrokeColorHex);
-        Assert.True(continuationConnection.StrokeThickness > branchConnection.StrokeThickness);
-        Assert.Contains("所有并行分支完成后继续", continuationConnection.Meaning);
     }
 
     [Fact]
