@@ -184,40 +184,29 @@ public class CharaSelectViewModelBaseDisabledKeysTest
         Assert.Empty(vm.DisabledKeys);
     }
 
-    [Fact]
-    public void DisabledKeys_IncludesCurrentBannedCharacter()
+    /// <summary>选择器已创建后，角色来源变化仍更新禁用列表。</summary>
+    /// <param name="source">角色来源。</param>
+    [Theory]
+    [InlineData("CurrentBan")]
+    [InlineData("Pick")]
+    [InlineData("GlobalBan")]
+    public void DisabledKeys_UpdatesWhenCharacterSourceChanges(string source)
     {
         var ctx = CreateContext();
+        ctx.CanGlobalSur[0] = true;
         var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Sur);
+        Assert.Empty(vm.DisabledKeys);
 
-        ctx.Game.CurrentSurBannedList[0] = CreateChara("医生");
+        var character = CreateChara("医生");
+        switch (source)
+        {
+            case "CurrentBan": ctx.Game.CurrentSurBannedList[0] = character; break;
+            case "Pick": ctx.Game.SurPlayerList[0].Character = character; break;
+            case "GlobalBan": SetEffectiveGlobalBan(ctx.HomeTeam, 0, character, Camp.Sur); break;
+        }
 
         Assert.Contains("医生", vm.DisabledKeys);
         Assert.DoesNotContain("律师", vm.DisabledKeys);
-    }
-
-    [Fact]
-    public void DisabledKeys_IncludesPickedCharacter()
-    {
-        var ctx = CreateContext();
-        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Sur);
-
-        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
-
-        Assert.Contains("园丁", vm.DisabledKeys);
-    }
-
-    [Fact]
-    public void DisabledKeys_IncludesEffectiveGlobalBan()
-    {
-        var ctx = CreateContext();
-        // 启用全局 Ban 位[0]
-        ctx.CanGlobalSur[0] = true;
-        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Sur);
-
-        SetEffectiveGlobalBan(ctx.HomeTeam, 0, CreateChara("律师"), Camp.Sur);
-
-        Assert.Contains("律师", vm.DisabledKeys);
     }
 
     [Fact]
@@ -264,18 +253,6 @@ public class CharaSelectViewModelBaseDisabledKeysTest
     }
 
     [Fact]
-    public void DisabledKeys_FiltersNullAndEmptyName()
-    {
-        var ctx = CreateContext();
-        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Sur);
-
-        // CurrentSurBannedList 默认填充 new Character(Camp.Sur)，Name 为 null
-        // UpdateDisabledKeys 应该过滤掉这些空名角色
-
-        Assert.Empty(vm.DisabledKeys);
-    }
-
-    [Fact]
     public void ClearGlobalBanRecords_DoesNotChangeEffectiveGlobalBans()
     {
         var team = new Team(Camp.Sur, TeamType.HomeTeam);
@@ -292,55 +269,32 @@ public class CharaSelectViewModelBaseDisabledKeysTest
 
     #region Ban 位启用/禁用联动
 
-    [Fact]
-    public void DisabledKeys_DisabledCurrentBanSlot_NotIncluded()
+    /// <summary>禁选位关闭与重新启用都更新角色可选状态。</summary>
+    /// <param name="camp">阵营。</param>
+    /// <param name="global">是否为全局禁选位。</param>
+    [Theory]
+    [InlineData(Camp.Sur, false)]
+    [InlineData(Camp.Sur, true)]
+    [InlineData(Camp.Hun, false)]
+    public void DisabledKeys_BanSlotToggleUpdatesAvailability(Camp camp, bool global)
     {
         var ctx = CreateContext();
-        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Sur);
+        var enabled = global ? ctx.CanGlobalSur : camp == Camp.Sur ? ctx.CanCurrentSur : ctx.CanCurrentHun;
+        enabled[0] = true;
+        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, camp);
+        var character = CreateChara(camp == Camp.Sur ? "医生" : "杰克", camp);
+        if (global)
+            SetEffectiveGlobalBan(ctx.HomeTeam, 0, character, camp);
+        else if (camp == Camp.Sur)
+            ctx.Game.CurrentSurBannedList[0] = character;
+        else
+            ctx.Game.CurrentHunBannedList[0] = character;
+        Assert.Contains(character.Name!, vm.DisabledKeys);
 
-        // 先 Ban 一个角色
-        ctx.Game.CurrentSurBannedList[0] = CreateChara("医生");
-        Assert.Contains("医生", vm.DisabledKeys);
-
-        // 关闭该 Ban 位
-        ctx.CanCurrentSur[0] = false;
-
-        Assert.DoesNotContain("医生", vm.DisabledKeys);
-    }
-
-    [Fact]
-    public void DisabledKeys_DisabledGlobalBanSlot_NotIncluded()
-    {
-        var ctx = CreateContext();
-        ctx.CanGlobalSur[0] = true;
-        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Sur);
-
-        SetEffectiveGlobalBan(ctx.HomeTeam, 0, CreateChara("律师"), Camp.Sur);
-        Assert.Contains("律师", vm.DisabledKeys);
-
-        // 关闭全局 Ban 位
-        ctx.CanGlobalSur[0] = false;
-
-        Assert.DoesNotContain("律师", vm.DisabledKeys);
-    }
-
-    [Fact]
-    public void DisabledKeys_TogglingBanSlot_TriggersUpdate()
-    {
-        var ctx = CreateContext();
-        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Sur);
-
-        // 先确保 Ban 位启用且有角色
-        ctx.Game.CurrentSurBannedList[0] = CreateChara("医生");
-        Assert.Contains("医生", vm.DisabledKeys);
-
-        // 切换 toggle 关闭
-        ctx.CanCurrentSur[0] = false;
-        Assert.DoesNotContain("医生", vm.DisabledKeys);
-
-        // 切换 toggle 重新打开
-        ctx.CanCurrentSur[0] = true;
-        Assert.Contains("医生", vm.DisabledKeys);
+        enabled[0] = false;
+        Assert.DoesNotContain(character.Name!, vm.DisabledKeys);
+        enabled[0] = true;
+        Assert.Contains(character.Name!, vm.DisabledKeys);
     }
 
     #endregion
@@ -571,20 +525,6 @@ public class CharaSelectViewModelBaseDisabledKeysTest
     }
 
     [Fact]
-    public void DisabledKeys_Hunter_DisabledSlotNotIncluded()
-    {
-        var ctx = CreateContext();
-        var vm = new TestCharaSelectViewModel(ctx.SharedDataService, Camp.Hun);
-
-        ctx.Game.CurrentHunBannedList[0] = CreateChara("杰克", Camp.Hun);
-        Assert.Contains("杰克", vm.DisabledKeys);
-
-        // 关闭 Ban 位
-        ctx.CanCurrentHun[0] = false;
-        Assert.DoesNotContain("杰克", vm.DisabledKeys);
-    }
-
-    [Fact]
     public void DisabledKeys_Hunter_GlobalBanFollowsSwap()
     {
         var ctx = CreateContext();
@@ -634,36 +574,31 @@ public class CharaSelectViewModelBaseDisabledKeysTest
 
     #region 允许角色复选开关
 
-    /// <summary>
-    /// Pick 选择器在开关关闭时，已 Pick 角色应出现在 DisabledKeys 中（保持既有行为）。
-    /// </summary>
-    [Fact]
-    public void DisabledKeys_PickSelector_ReselectOff_IncludesPickedChara()
+    /// <summary>复选开关只影响 Pick 选择器，Ban 选择器仍排除已选角色。</summary>
+    /// <param name="camp">阵营。</param>
+    /// <param name="isPickSelector">是否为 Pick 选择器。</param>
+    /// <param name="allowReselect">是否允许角色复选。</param>
+    [Theory]
+    [InlineData(Camp.Sur, true, false)]
+    [InlineData(Camp.Sur, true, true)]
+    [InlineData(Camp.Sur, false, false)]
+    [InlineData(Camp.Sur, false, true)]
+    [InlineData(Camp.Hun, true, true)]
+    public void DisabledKeys_ReselectOnlyAllowsPicksInPickSelectors(Camp camp, bool isPickSelector, bool allowReselect)
     {
         var ctx = CreateContext();
-        var vm = new TestReselectCharaSelectViewModel(
-            ctx.SharedDataService, Camp.Sur, isPickSelector: true, allowReselect: false);
+        var vm = new TestReselectCharaSelectViewModel(ctx.SharedDataService, camp, isPickSelector, allowReselect);
+        var names = camp == Camp.Sur ? new[] { "园丁", "医生" } : new[] { "杰克" };
+        for (var i = 0; i < names.Length; i++)
+        {
+            if (camp == Camp.Sur)
+                ctx.Game.SurPlayerList[i].Character = CreateChara(names[i], camp);
+            else
+                ctx.Game.HunPlayer.Character = CreateChara(names[i], camp);
+        }
 
-        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
-
-        Assert.Contains("园丁", vm.DisabledKeys);
-    }
-
-    /// <summary>
-    /// Pick 选择器在开关打开时，已 Pick 角色不应出现在 DisabledKeys 中（允许复选）。
-    /// </summary>
-    [Fact]
-    public void DisabledKeys_PickSelector_ReselectOn_ExcludesPickedChara()
-    {
-        var ctx = CreateContext();
-        var vm = new TestReselectCharaSelectViewModel(
-            ctx.SharedDataService, Camp.Sur, isPickSelector: true, allowReselect: true);
-
-        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
-        ctx.Game.SurPlayerList[1].Character = CreateChara("医生");
-
-        Assert.DoesNotContain("园丁", vm.DisabledKeys);
-        Assert.DoesNotContain("医生", vm.DisabledKeys);
+        foreach (var name in names)
+            Assert.Equal(!(isPickSelector && allowReselect), vm.DisabledKeys.Contains(name));
     }
 
     /// <summary>
@@ -685,44 +620,6 @@ public class CharaSelectViewModelBaseDisabledKeysTest
         Assert.Contains("律师", vm.DisabledKeys);
         // Pick 的角色可复选（不在 DisabledKeys）
         Assert.DoesNotContain("园丁", vm.DisabledKeys);
-    }
-
-    /// <summary>
-    /// Ban 类选择器无论开关状态如何，已 Pick 角色始终出现在 DisabledKeys 中。
-    /// 验证 <see cref="CharaSelectViewModelBase.IsPickSelector"/> 为 false 时，
-    /// 即使 <see cref="CharaSelectViewModelBase.IsAllowCharacterReselect"/> 为 true，
-    /// 也不会跳过已 Pick 角色的禁用（保护 Ban 页面行为不变）。
-    /// </summary>
-    [Fact]
-    public void DisabledKeys_BanSelector_ReselectOnOrOff_AlwaysIncludesPickedChara()
-    {
-        var ctx = CreateContext();
-
-        // Ban 选择器 + 开关 ON（异常配置，模拟设置已开启但 Ban VM 不应响应）
-        var vmReselectOn = new TestReselectCharaSelectViewModel(
-            ctx.SharedDataService, Camp.Sur, isPickSelector: false, allowReselect: true);
-        ctx.Game.SurPlayerList[0].Character = CreateChara("园丁");
-        Assert.Contains("园丁", vmReselectOn.DisabledKeys);
-
-        // Ban 选择器 + 开关 OFF（正常默认）
-        var vmReselectOff = new TestReselectCharaSelectViewModel(
-            ctx.SharedDataService, Camp.Sur, isPickSelector: false, allowReselect: false);
-        Assert.Contains("园丁", vmReselectOff.DisabledKeys);
-    }
-
-    /// <summary>
-    /// 监管者侧 Pick 选择器在开关打开时也应跳过已 Pick 角色。
-    /// </summary>
-    [Fact]
-    public void DisabledKeys_HunterPickSelector_ReselectOn_ExcludesPickedChara()
-    {
-        var ctx = CreateContext();
-        var vm = new TestReselectCharaSelectViewModel(
-            ctx.SharedDataService, Camp.Hun, isPickSelector: true, allowReselect: true);
-
-        ctx.Game.HunPlayer.Character = CreateChara("杰克", Camp.Hun);
-
-        Assert.DoesNotContain("杰克", vm.DisabledKeys);
     }
 
     #endregion

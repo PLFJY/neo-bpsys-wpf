@@ -4,11 +4,11 @@
 
 ## 核心原则
 
-单元测试优先保护业务逻辑、稳定契约和可回归的服务行为。适合保留的测试包括：
+永久测试的准入和清理规则以根目录 `AGENTS.md` 的「测试策略」为准：默认不新增，开发验证可以临时大量执行，完成后清理临时资产。以下是可能具有长期价值的行为范围，不代表每项功能都应配套新增测试：
 
 | 类型 | 示例 |
 | --- | --- |
-| ViewModel 行为 | 命令、筛选、撤销重做、图层排序、属性编辑、拖拽提交等 |
+| 高风险 ViewModel 行为 | 撤销导致数据丢失、跨窗口设置误写、复杂状态协调；普通命令和属性展示优先临时验证 |
 | 服务和模型 | `FrontedLayoutService` 加载路径、包导入导出、插件 registry、Score System v2、导入导出兼容 |
 | v3 布局契约 | JSON schema、控件配置 roundtrip、缺失插件占位符、插件依赖扫描 |
 | 数据迁移 | legacy `.bpui` 转换、旧 Game JSON 兼容、缺字段不崩溃 |
@@ -17,13 +17,7 @@
 
 禁止新增样式/布局宽高类测试。测试不得断言视觉样式、坐标、窗口宽高、Canvas 宽高、控件位置、Margin/Padding、精确行列结构等展示细节；唯一例外是为了验证 WPF/XAML 语法、解析、或 code-behind 运行时必需命名部件是否正确。已有此类测试失败时，应删除或降级为行为/契约测试，不得为了通过测试回滚布局。
 
-XAML 文本测试只能作为 smoke test，保护 code-behind 或运行时真正依赖的稳定契约：
-
-| 允许 | 不建议 |
-| --- | --- |
-| 必需命名部件存在，例如 `LayerPanelScrollViewer`、`LayerTopDropZone`、`LayerBottomDropZone`、`LayerDragGhost` | 断言精确 `RowDefinition` 数量 |
-| code-behind 直接引用的事件处理器名存在，例如 `LayerTopDropZone_OnDrop` | 断言具体 `Grid.Row`、嵌套层级、`Margin`、`Padding`、宽高 |
-| 关键命令或绑定入口存在，例如保存、撤销、打开浏览器按钮 | 断言视觉细节如 `TextTrimming`、某个控件必须用某种容器实现 |
+不要通过读取 `.cs` / `.xaml` 源文件、字符串搜索或正则冻结实现。确需保护 WPF/XAML 语法或运行时必需命名部件时，应实际解析或实例化控件验证；命令、属性和事件处理器名称存在性本身不足以成为永久测试。
 
 Designer v3、`PluginPage`、`FrontedDesignerWindow` 等 UI 会随交互体验持续调整。测试不应强迫一个固定 XAML 布局，只应保护行为和 code-behind 必要命名契约。
 
@@ -32,9 +26,9 @@ Designer v3、`PluginPage`、`FrontedDesignerWindow` 等 UI 会随交互体验�
 当 UI 意图发生变化时，AI agent 和维护者不应为了通过脆弱 XAML 测试而回滚 UI。正确处理顺序是：
 
 1. 确认失败测试保护的是行为契约还是视觉实现细节。
-2. 如果是行为契约，优先修实现或新增 ViewModel/服务级测试。
-3. 如果只是 XAML 结构细节，降级为命名部件 / 事件 smoke，或删除该测试。
-4. 视觉 polish 当前以人工验证为主；未来如需自动化，应优先引入截图回归测试，而不是继续扩张 XAML 字符串断言。
+2. 如果是行为契约，修复实现并复用已有测试；必要时用临时验证确认。
+3. 如果只是 XAML 结构细节，删除低价值断言；运行时必需命名部件按实际解析行为验证。
+4. 视觉调整以运行和人工验证为主，不自动扩充永久测试或截图基础设施。
 
 文档-only 改动通常不需要完整 build，但提交前仍应至少运行 `git diff --check` 和 `git diff --stat`。涉及服务、模型、导入导出或 Designer v3 行为时，应运行对应测试；发布前运行 `dotnet build` 和 `dotnet test`。
 

@@ -53,46 +53,23 @@ public class FrontManagePageWindowGroupingTest
         }
     }
 
-    [Fact]
-    public void BuiltInRegistration_GoesToBuiltInGroup()
+    /// <summary>窗口分组使用注册来源，管理项保留 canonical ID。</summary>
+    /// <param name="id">窗口 ID。</param>
+    /// <param name="isBuiltIn">是否内置。</param>
+    /// <param name="packageId">插件包 ID。</param>
+    /// <param name="expectedGroup">预期来源分组。</param>
+    [Theory]
+    [InlineData("BpWindow", true, null, "BuiltIn")]
+    [InlineData("plugin:test.plugin/Overlay", false, "test.plugin", "Plugin")]
+    [InlineData("ExternalOverlay", false, null, "External")]
+    public void Registration_IsGroupedByOrigin(string id, bool isBuiltIn, string? packageId, string expectedGroup)
     {
-        FrontedWindowRegistration[] registrations =
-        [
-            CreateV3Registration("BpWindow", isBuiltIn: true, packageId: null)
-        ];
+        var registration = CreateV3Registration(id, isBuiltIn, packageId);
+        var groups = FrontedWindowManageGroup.FromRegistrations([registration]);
 
-        var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
-
-        Assert.Equal("BuiltIn", groups.First(group => group.GroupKey == "BuiltIn").GroupKey);
+        Assert.Contains(groups.Single(group => group.GroupKey == expectedGroup).Windows, item => item.WindowId == id);
         Assert.Contains(groups, group => group.GroupKey == "Custom");
-    }
-
-    [Fact]
-    public void PluginRegistration_GoesToPluginGroup()
-    {
-        FrontedWindowRegistration[] registrations =
-        [
-            CreateV3Registration("plugin:test.plugin/Overlay", isBuiltIn: false, packageId: "test.plugin")
-        ];
-
-        var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
-
-        Assert.Equal("Plugin", groups.First(group => group.GroupKey == "Plugin").GroupKey);
-        Assert.Contains(groups, group => group.GroupKey == "Custom");
-    }
-
-    [Fact]
-    public void HostNonBuiltInRegistration_GoesToExternalGroup()
-    {
-        FrontedWindowRegistration[] registrations =
-        [
-            CreateV3Registration("ExternalOverlay", isBuiltIn: false, packageId: null)
-        ];
-
-        var groups = FrontedWindowManageGroup.FromRegistrations(registrations);
-
-        Assert.Equal("External", groups.First(group => group.GroupKey == "External").GroupKey);
-        Assert.Contains(groups, group => group.GroupKey == "Custom");
+        Assert.Equal(id, FrontedWindowManageItem.FromRegistration(registration).WindowId);
     }
 
     [Fact]
@@ -169,26 +146,6 @@ public class FrontManagePageWindowGroupingTest
 
         // V3Layout and XAML have different KindDisplay.
         Assert.NotEqual(items[0].KindDisplay, items[2].KindDisplay);
-    }
-
-    [Fact]
-    public void V3RegistrationReportsV3LayoutKind()
-    {
-        var registration = CreateV3Registration("Overlay", isBuiltIn: false, packageId: null);
-
-        Assert.Equal(FrontedWindowRegistrationKind.V3Layout, registration.Kind);
-    }
-
-    [Fact]
-    public void ManageItemDoesNotExposeDuplicateFullWindowType()
-    {
-        var registration = CreateV3Registration("BpWindow", isBuiltIn: true, packageId: null);
-
-        var item = FrontedWindowManageItem.FromRegistration(registration);
-
-        // WindowId is the single Canonical ID property; FullWindowType has been removed.
-        Assert.Equal(registration.Id, item.WindowId);
-        Assert.DoesNotContain("FullWindowType", item.GetType().GetProperties().Select(property => property.Name));
     }
 
     private static FrontedV3LayoutWindowRegistration CreateV3Registration(

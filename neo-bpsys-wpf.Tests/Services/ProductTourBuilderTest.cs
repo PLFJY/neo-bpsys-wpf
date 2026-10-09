@@ -348,45 +348,6 @@ public sealed class ProductTourBuilderTest
     }
 
     [Fact]
-    public void PublicAuthoringApi_ShouldNotExposeOldStepCreationMethods()
-    {
-        var forbiddenNames = new[]
-        {
-            "Action",
-            "Group",
-            "Navigation",
-            "Tag",
-            "TagAction",
-            "Descendant",
-            "DescendantAction",
-            "StepNavigationItem",
-            "StepDescendantType",
-            "StepElementTag",
-            "Item",
-            "Include",
-            "Covers",
-            "CanRun"
-        };
-        var packageMethodNames = typeof(ITutorialPackageBuilder<TestTutorialOwner>)
-            .GetMethods()
-            .Select(method => method.Name)
-            .ToArray();
-        var flowMethodNames = typeof(ITutorialFlowBuilder)
-            .GetMethods()
-            .Select(method => method.Name)
-            .ToArray();
-
-        foreach (var forbiddenName in forbiddenNames)
-        {
-            Assert.DoesNotContain(forbiddenName, packageMethodNames);
-            Assert.DoesNotContain(forbiddenName, flowMethodNames);
-        }
-
-        Assert.Equal(["Step"], packageMethodNames.Where(name => name == "Step").Distinct().ToArray());
-        Assert.Contains("Dialogue", packageMethodNames);
-    }
-
-    [Fact]
     public void Package_ShouldAllowDialogueAndStepItemsInOrder()
     {
         var fixture = new AuthoringFixture();

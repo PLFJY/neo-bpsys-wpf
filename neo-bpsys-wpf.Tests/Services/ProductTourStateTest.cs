@@ -282,18 +282,6 @@ public sealed class ProductTourStateTest
         });
     }
 
-    [Fact]
-    public void OldExecutionApisAndAutoRunStrategy_ShouldNotExist()
-    {
-        var runnerMethods = typeof(ITutorialRunner).GetMethods().Select(method => method.Name).ToArray();
-        Assert.DoesNotContain("TryRunNextPackageAsync", runnerMethods);
-        Assert.DoesNotContain("RunUntilBlockedAsync", runnerMethods);
-        Assert.DoesNotContain("TryRunPackageAsync", runnerMethods);
-        Assert.DoesNotContain("TryRunFlowAsync", runnerMethods);
-        Assert.Null(typeof(ITutorialRunner).Assembly.GetType("neo_bpsys_wpf.ProductTour.TutorialAutoRunStrategy"));
-        Assert.DoesNotContain("Suppressed", Enum.GetNames<TutorialRunResult>());
-    }
-
     private static TutorialPlaybackCoordinator CreateCoordinator() =>
         new(NullLogger<TutorialPlaybackCoordinator>.Instance);
 

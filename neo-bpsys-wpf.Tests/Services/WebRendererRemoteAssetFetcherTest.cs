@@ -49,17 +49,24 @@ public sealed class WebRendererRemoteAssetFetcherTest
     public async Task CoalescesConcurrentRequestsForSameUrl()
     {
         var calls = 0;
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await WithFetcherAsync(async (_, cancellationToken) =>
         {
             Interlocked.Increment(ref calls);
-            await Task.Delay(50, cancellationToken);
+            started.TrySetResult();
+            await release.Task.WaitAsync(cancellationToken);
             return Response(HttpStatusCode.OK, "image/png", Png);
         }, async (fetcher, _) =>
         {
             fetcher.SetGeneration(1);
             var first = fetcher.FetchAsync(Request(1, 'a', 'b', "https://images.example.test/shared.png"), TestContext.Current.CancellationToken);
+            await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
             var second = fetcher.FetchAsync(Request(1, 'c', 'b', "https://images.example.test/shared.png"), TestContext.Current.CancellationToken);
 
+            Assert.False(first.IsCompleted);
+            Assert.False(second.IsCompleted);
+            release.TrySetResult();
             await Task.WhenAll(first, second);
 
             Assert.Equal(1, calls);
@@ -71,10 +78,13 @@ public sealed class WebRendererRemoteAssetFetcherTest
     public async Task CallerCancellationDoesNotCancelSharedDownload()
     {
         var calls = 0;
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         await WithFetcherAsync(async (_, cancellationToken) =>
         {
             Interlocked.Increment(ref calls);
-            await Task.Delay(75, cancellationToken);
+            started.TrySetResult();
+            await release.Task.WaitAsync(cancellationToken);
             return Response(HttpStatusCode.OK, "image/png", Png);
         }, async (fetcher, _) =>
         {
@@ -82,12 +92,15 @@ public sealed class WebRendererRemoteAssetFetcherTest
             using var firstCancellation = new CancellationTokenSource();
             var first = fetcher.FetchAsync(Request(1, 'a', 'b', "https://images.example.test/shared.png"),
                 firstCancellation.Token);
+            await started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
             var second = fetcher.FetchAsync(Request(1, 'c', 'b', "https://images.example.test/shared.png"),
                 TestContext.Current.CancellationToken);
 
             firstCancellation.Cancel();
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+            Assert.False(second.IsCompleted);
+            release.TrySetResult();
             Assert.Equal("image/png", (await second).ContentType);
             Assert.Equal(1, calls);
         });

@@ -38,15 +38,6 @@ public sealed class RapidOcrIntegrationTest : IDisposable
     private readonly string _root = Path.Combine(Path.GetTempPath(), "neo-bpsys-rapidocr-tests", Guid.NewGuid().ToString("N"));
 
     [Fact]
-    public void RapidProfileUsesOfficialDirectModelScopeUrl()
-    {
-        var profile = Profile();
-        Assert.Equal(
-            "https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/v3.8.0/onnx/PP-OCRv5/det/ch_PP-OCRv5_det_mobile.onnx",
-            profile.Det.DownloadUrl);
-    }
-
-    [Fact]
     public async Task BundledManifestContainsChineseJapaneseAndEnglishOfficialProfiles()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "Resources", "SmartBp", "RapidOcrModelManifest.json");

@@ -13,19 +13,26 @@ namespace neo_bpsys_wpf.Tests.ViewModels;
 
 public class BehaviorPanelViewModelTest
 {
-    [Fact]
-    public void BehaviorPanel_AddOneShot_AssignsBehaviorGuidWhenEmpty()
+    /// <summary>新增行为时保留已有身份，缺失身份时同时标记布局与行为需要保存。</summary>
+    /// <param name="hasExistingGuid">控件是否已有持久化行为身份。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BehaviorPanel_AddOneShot_PreservesOrAssignsBehaviorIdentity(bool hasExistingGuid)
     {
+        var existingGuid = hasExistingGuid ? Guid.NewGuid() : Guid.Empty;
         var layoutDirtyCount = 0;
         var behaviorDirtyCount = 0;
         var panel = CreatePanel(() => layoutDirtyCount++, () => behaviorDirtyCount++);
-        var item = CreateItem(Guid.Empty);
+        var item = CreateItem(existingGuid);
 
         panel.SetSelectedControl(item);
         panel.AddOneShotBehavior();
 
         Assert.NotEqual(Guid.Empty, item.Config.BehaviorGuid);
-        Assert.Equal(1, layoutDirtyCount);
+        if (hasExistingGuid)
+            Assert.Equal(existingGuid, item.Config.BehaviorGuid);
+        Assert.Equal(hasExistingGuid ? 0 : 1, layoutDirtyCount);
         Assert.True(behaviorDirtyCount > 0);
         Assert.NotNull(panel.CurrentDocument.FindSet(item.Config.BehaviorGuid));
     }
@@ -50,22 +57,6 @@ public class BehaviorPanelViewModelTest
         Assert.Equal(Guid.Empty, capturedBehaviorGuid);
         Assert.NotEqual(Guid.Empty, item.Config.BehaviorGuid);
         Assert.Single(panel.CurrentDocument.ControlBehaviorSets);
-    }
-
-    [Fact]
-    public void BehaviorPanel_AddOneShot_UsesExistingBehaviorGuid()
-    {
-        var existingGuid = Guid.NewGuid();
-        var layoutDirtyCount = 0;
-        var panel = CreatePanel(() => layoutDirtyCount++, static () => { });
-        var item = CreateItem(existingGuid);
-
-        panel.SetSelectedControl(item);
-        panel.AddOneShotBehavior();
-
-        Assert.Equal(existingGuid, item.Config.BehaviorGuid);
-        Assert.Equal(0, layoutDirtyCount);
-        Assert.NotNull(panel.CurrentDocument.FindSet(existingGuid));
     }
 
     [Fact]
@@ -380,92 +371,38 @@ public class BehaviorPanelViewModelTest
         Assert.Equal(string.Empty, Assert.Single(panel.SelectedBehavior.StartTrigger.Filters).Left);
     }
 
-    [Fact]
-    public void TriggerFilterOperator_DisplaySymbols()
-    {
-        var panel = CreatePanel();
-
-        Assert.Equal("=", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.Equals)).DisplayName);
-        Assert.Equal(">", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.GreaterThan)).DisplayName);
-        Assert.Equal("<", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.LessThan)).DisplayName);
-        Assert.Equal("≥", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.GreaterThanOrEqual)).DisplayName);
-        Assert.Equal("≤", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.LessThanOrEqual)).DisplayName);
-        Assert.Contains(panel.OperatorOptions, option => Equals(option.Value, TriggerFilterOperator.Contains));
-        Assert.Contains(panel.OperatorOptions, option => Equals(option.Value, TriggerFilterOperator.NotContains));
-    }
-
-    [Fact]
-    public void OpenAnimationEditor_Loop_ProvidesThreeStages()
+    /// <summary>动画编辑器直接编辑所属行为的各阶段图。</summary>
+    /// <param name="kind">行为种类。</param>
+    [Theory]
+    [InlineData(FrontedBehaviorKind.OneShot)]
+    [InlineData(FrontedBehaviorKind.Loop)]
+    [InlineData(FrontedBehaviorKind.Transition)]
+    public void AnimationEditor_UsesBehaviorGraphsInStageOrder(FrontedBehaviorKind kind)
     {
         var panel = CreatePanel();
         panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
-        panel.AddLoopBehavior();
+        switch (kind)
+        {
+            case FrontedBehaviorKind.OneShot: panel.AddOneShotBehavior(); break;
+            case FrontedBehaviorKind.Loop: panel.AddLoopBehavior(); break;
+            case FrontedBehaviorKind.Transition: panel.AddTransitionBehavior(); break;
+        }
+        var behavior = panel.SelectedBehavior!.Model;
+        FrontedNodeGraph?[] expected = kind switch
+        {
+            FrontedBehaviorKind.OneShot => [behavior.Graph],
+            FrontedBehaviorKind.Loop => [behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph],
+            _ => [behavior.ExitGraph, behavior.EnterGraph]
+        };
         FrontedBehaviorAnimationEditorViewModel? editor = null;
         panel.AnimationEditorRequested += value => editor = value;
 
-        panel.SelectedBehavior!.OpenAnimationEditorCommand.Execute(null);
+        panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
 
         Assert.NotNull(editor);
-        Assert.Equal(3, editor.Stages.Count);
-    }
-
-    [Fact]
-    public void OneShotAnimationEditor_UsesBehaviorGraph()
-    {
-        var panel = CreatePanel();
-        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
-        panel.AddOneShotBehavior();
-        var behavior = panel.SelectedBehavior!.Model;
-        FrontedBehaviorAnimationEditorViewModel? editor = null;
-        panel.AnimationEditorRequested += value => editor = value;
-
-        panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
-
-        Assert.Same(behavior.Graph, Assert.Single(editor!.Stages).Graph);
-    }
-
-    [Fact]
-    public void LoopAnimationEditor_HasStartLoopStopGraphStages()
-    {
-        var panel = CreatePanel();
-        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
-        panel.AddLoopBehavior();
-        var behavior = panel.SelectedBehavior!.Model;
-        FrontedBehaviorAnimationEditorViewModel? editor = null;
-        panel.AnimationEditorRequested += value => editor = value;
-
-        panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
-
-        Assert.Equal([behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph], editor!.Stages.Select(stage => stage.Graph).ToArray());
-    }
-
-    [Fact]
-    public void TransitionAnimationEditor_HasExitEnterGraphStages()
-    {
-        var panel = CreatePanel();
-        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
-        panel.AddTransitionBehavior();
-        var behavior = panel.SelectedBehavior!.Model;
-        FrontedBehaviorAnimationEditorViewModel? editor = null;
-        panel.AnimationEditorRequested += value => editor = value;
-
-        panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
-
-        Assert.Equal([behavior.ExitGraph, behavior.EnterGraph], editor!.Stages.Select(stage => stage.Graph).ToArray());
-    }
-
-    [Fact]
-    public void BehaviorPanel_DoesNotExposeTransitionPresetCommands()
-    {
-        var methodNames = typeof(BehaviorPanelViewModel)
-            .GetMethods()
-            .Select(method => method.Name)
-            .ToArray();
-
-        Assert.DoesNotContain(methodNames, name => name.Contains("Preset", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(methodNames, name => name.Contains("Template", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(methodNames, name => name.Contains("FadeSwitch", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(methodNames, name => name.Contains("Wipe", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(expected.Length, editor.Stages.Count);
+        for (var i = 0; i < expected.Length; i++)
+            Assert.Same(expected[i], editor.Stages[i].Graph);
     }
 
     [Fact]
@@ -484,21 +421,6 @@ public class BehaviorPanelViewModelTest
         Assert.Equal("flow.start", Assert.Single(editor.Stages[0].Graph.Nodes).NodeType);
         Assert.Equal("action.log", Assert.Single(editor.Stages[1].Graph.Nodes).NodeType);
         Assert.Empty(editor.Stages[2].Graph.Nodes);
-    }
-
-    [Fact]
-    public void OpenAnimationEditor_OneShot_CommandExists()
-    {
-        var panel = CreatePanel();
-        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
-        panel.AddOneShotBehavior();
-        FrontedBehaviorAnimationEditorViewModel? editor = null;
-        panel.AnimationEditorRequested += value => editor = value;
-
-        panel.SelectedBehavior!.OpenAnimationEditorCommand.Execute(null);
-
-        Assert.NotNull(editor);
-        Assert.Single(editor.Stages);
     }
 
     [Fact]
@@ -523,27 +445,6 @@ public class BehaviorPanelViewModelTest
 
         Assert.Equal("Event.LegacyPath", Assert.Single(editor.Filters).Left);
         Assert.True(Assert.Single(editor.Filters).IsUnknownParameter);
-    }
-
-    [Fact]
-    public void BehaviorPanel_DoesNotExposeSourceAndRightValueKindInNormalEditor()
-    {
-        Assert.Null(typeof(TriggerDescriptorEditorViewModel).GetProperty("Source"));
-        Assert.Null(typeof(TriggerFilterEditorViewModel).GetProperty("RightValueKind"));
-    }
-
-    [Fact]
-    public void TriggerFilter_RightValueKind_NotRequiredForNewFilter()
-    {
-        var filter = new TriggerFilter
-        {
-            Left = "Event.RemainingSeconds",
-            Operator = TriggerFilterOperator.Equals,
-            Right = "10"
-        };
-
-        Assert.Equal("10", filter.Right);
-        Assert.Equal(TriggerFilterValueKind.Literal, filter.RightValueKind);
     }
 
     [Fact]

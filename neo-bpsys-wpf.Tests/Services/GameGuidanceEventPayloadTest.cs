@@ -36,7 +36,7 @@ public class GameGuidanceEventPayloadTest
     /// 验证 step changed 参数可以在不带本地化动作显示名的情况下构造。
     /// </summary>
     [Fact]
-    public void StepChangedArgs_DoNotExposeLocalizedActionNames()
+    public void StepChangedArgs_CarryStableActionsAndIndexes()
     {
         var args = new GameGuidanceStepChangedEventArgs(
             stepIndex: 1,
@@ -52,8 +52,6 @@ public class GameGuidanceEventPayloadTest
         Assert.Equal("[0]", args.IndexesText);
         Assert.Equal(GameAction.BanSur, args.PreviousAction);
         Assert.Equal("[1, 2]", args.PreviousIndexesText);
-        Assert.Null(typeof(GameGuidanceStepChangedEventArgs).GetProperty("ActionName"));
-        Assert.Null(typeof(GameGuidanceStepChangedEventArgs).GetProperty("PreviousActionName"));
     }
 
     /// <summary>

@@ -145,7 +145,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
     }
 
     [Fact]
-    public async Task SharedDataBridge_UnmarkedEvents_NotPublished()
+    public void SharedDataBridge_UnmarkedEvents_NotPublished()
     {
         var service = new MockSharedDataService();
         var bus = new MockEventBus();
@@ -162,15 +162,14 @@ public class FrontedSharedDataBehaviorEventBridgeTest
 
             service.FirePropertyChanged(nameof(MockSharedDataService.RemainingSeconds));
 
-            // Give async handlers a moment to invoke
-            await Task.Delay(200, TestContext.Current.CancellationToken);
+            // 服务事件和此夹具的 Publish 都同步分发，触发返回后即可检查。
         }
 
         Assert.Equal(0, publishedCount);
     }
 
     [Fact]
-    public async Task SharedDataBridge_Dispose_Unsubscribes()
+    public void SharedDataBridge_Dispose_Unsubscribes()
     {
         var service = new MockSharedDataService();
         var bus = new MockEventBus();
@@ -189,8 +188,7 @@ public class FrontedSharedDataBehaviorEventBridgeTest
 
             service.FireCountDownValueChanged();
 
-            // Give async handlers a moment to invoke
-            await Task.Delay(200, TestContext.Current.CancellationToken);
+            // Dispose 已同步解绑；再次触发服务事件不应发布。
         }
 
         Assert.Equal(0, publishedCount);
