@@ -73,6 +73,9 @@ internal sealed class SmartBpOcrBpRecognitionService(
                 dimensions.GetValueOrDefault(regionText.Region).Width);
             parsed[regionText.Region] = parsedRegion.Result;
             diagnostics.AddRange(parsedRegion.Diagnostics);
+            if (regionText.Region == SmartBpRecognitionRegion.LeftBottom)
+                await RecoverMergedPlayerNamesAsync(frame, regionText.Lines, effectiveParseContext,
+                    parsedRegion.Result, diagnostics, cancellationToken).ConfigureAwait(false);
             foreach (var line in regionText.Lines)
                 diagnostics.Add($"provider={line.Provider ?? "unknown"}; region={ToRegionId(regionText.Region)}; coordinateSpace=region-local; text={line.Text}; bbox={line.BoundingBox}; center={line.CenterX:0.0},{line.CenterY:0.0}; confidence={line.Confidence:0.00}");
         }
@@ -92,6 +95,49 @@ internal sealed class SmartBpOcrBpRecognitionService(
             PostBpStatus = requestedRegions.Contains(SmartBpRecognitionRegion.TopLeftStatus) ? postBpStatus : null,
             Diagnostics = diagnostics
         };
+    }
+
+    private async Task RecoverMergedPlayerNamesAsync(
+        BitmapSource frame,
+        IReadOnlyList<OcrTextLine> lines,
+        SmartBpOcrFieldParseContext context,
+        SmartBpFocusedBusinessExtractionResult parsed,
+        ICollection<string> diagnostics,
+        CancellationToken cancellationToken)
+    {
+        var crops = parser.GetMergedPlayerNameCrops(lines, context);
+        if (crops.Count == 0)
+            return;
+
+        await Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var region = cropper.CropWithInfo(frame, SmartBpRecognitionRegion.LeftBottom);
+            using var raw = BitmapSourceConverter.ToMat(region.Image);
+            using var bgr = ToBgr(raw);
+            foreach (var (slotIndex, requestedBounds) in crops)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                // 合并文字没有可靠的单槽位含义，重识别失败时也不能保留整串名称。
+                var slot = parsed.Slots.Single(slot => slot.Index == slotIndex);
+                slot.PlayerId = null;
+                var bounds = requestedBounds.Intersect(new Rect(0, 0, bgr.Width, bgr.Height));
+                if (bounds.Width <= 0 || bounds.Height <= 0)
+                    continue;
+                using var nameCrop = new Mat(bgr, bounds);
+                using var padded = new Mat();
+                using var enlarged = new Mat();
+                Cv2.CopyMakeBorder(nameCrop, padded, 12, 12, 12, 12, BorderTypes.Constant, Scalar.All(0));
+                Cv2.Resize(padded, enlarged, new Size(), 2, 2, InterpolationFlags.Cubic);
+                var result = ocr.RecognizeTextLines(enlarged);
+                cancellationToken.ThrowIfCancellationRequested();
+                var name = SmartBpOcrTextResolver.NormalizeText(string.Concat(result.Lines
+                    .OrderBy(line => line.CenterX).Select(line => line.Text)));
+                if (!string.IsNullOrWhiteSpace(name) && !SmartBpBusinessStateParser.IsUnselected(name))
+                    slot.PlayerId = name;
+                diagnostics.Add($"picked_sur player-name re-OCR: slot={slotIndex}; region-local crop={bounds}; provider={result.Provider ?? ocr.SelectedProvider.ToString()}; player_id={slot.PlayerId ?? "null"}.");
+            }
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<IReadOnlyList<SmartBpOcrRegionText>> RecognizeContactSheetAsync(

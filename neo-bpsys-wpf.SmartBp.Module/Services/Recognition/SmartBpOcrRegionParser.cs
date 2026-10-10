@@ -171,29 +171,12 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         var scoredRows = rows.Select((row, index) => ScoreRow(row, index, xMin, xMax)).ToArray();
         AddRowClassificationDiagnostics(scoredRows, diagnostics);
 
-        var nonNoiseRows = scoredRows.Where(sr => sr.Classification != RowClassification.Noise).ToArray();
-        if (nonNoiseRows.Length == 0)
+        var (characterRowScored, playerRowScored) = SelectPickedSurRows(scoredRows);
+        if (characterRowScored == null)
         {
             diagnostics.Add("picked_sur: all rows classified as noise; no slots parsed.");
-            diagnostics.Add($"picked_sur: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}/{slot.PlayerId ?? "null"}"))}]");
             return new() { Phase = "未知", TargetField = "picked_sur", Slots = slots };
         }
-
-        // 选择 character row：优先选择 slot-like character texts 最多的行。
-        var characterRowScored = nonNoiseRows
-            .Where(sr => sr.Classification == RowClassification.Character || sr.Features.HasFourSlotStructure)
-            .OrderByDescending(sr => sr.Features.ValidSurvivorCharacterCount + sr.Features.UnselectedCount)
-            .ThenByDescending(sr => sr.Features.CoveredSlotsCount)
-            .ThenBy(sr => sr.PhysicalIndex)
-            .FirstOrDefault() ?? nonNoiseRows.First();
-
-        // 选择 player-id row：character row 之后的第一个 player-id-like 行。
-        // 相邻名称可能被 OCR 合并而降低覆盖槽位数，不能因此改选更下方的天赋行。
-        var playerRowScored = nonNoiseRows
-            .Where(sr => sr.PhysicalIndex > characterRowScored.PhysicalIndex)
-            .Where(sr => sr.Classification == RowClassification.PlayerId || sr.Features.PlayerIdLikeCount > 0)
-            .OrderBy(sr => sr.PhysicalIndex)
-            .FirstOrDefault();
 
         diagnostics.Add($"picked_sur selected character row={characterRowScored.PhysicalIndex}; player-id row={playerRowScored?.PhysicalIndex ?? -1}");
 
@@ -230,6 +213,73 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             diagnostics.Add($"slot {slot.Index} char={slot.CharacterName} player_id={slot.PlayerId ?? "null"}");
         diagnostics.Add($"picked_sur: parsed [{string.Join(", ", slots.Select(slot => $"{slot.Index}={slot.CharacterName}/{slot.PlayerId ?? "null"}"))}]");
         return new() { Phase = "未知", TargetField = "picked_sur", Slots = slots };
+    }
+
+    private static (ScoredRow? Character, ScoredRow? Player) SelectPickedSurRows(ScoredRow[] scoredRows)
+    {
+        var nonNoiseRows = scoredRows.Where(sr => sr.Classification != RowClassification.Noise).ToArray();
+        if (nonNoiseRows.Length == 0)
+            return (null, null);
+        // 选择 character row：优先选择 slot-like character texts 最多的行。
+        var characterRowScored = nonNoiseRows
+            .Where(sr => sr.Classification == RowClassification.Character || sr.Features.HasFourSlotStructure)
+            .OrderByDescending(sr => sr.Features.ValidSurvivorCharacterCount + sr.Features.UnselectedCount)
+            .ThenByDescending(sr => sr.Features.CoveredSlotsCount)
+            .ThenBy(sr => sr.PhysicalIndex)
+            .FirstOrDefault() ?? nonNoiseRows.First();
+
+        // 选择 player-id row：character row 之后的第一个 player-id-like 行。
+        // 相邻名称可能被 OCR 合并而降低覆盖槽位数，不能因此改选更下方的天赋行。
+        var playerRowScored = nonNoiseRows
+            .Where(sr => sr.PhysicalIndex > characterRowScored.PhysicalIndex)
+            .Where(sr => sr.Classification == RowClassification.PlayerId || sr.Features.PlayerIdLikeCount > 0)
+            .OrderBy(sr => sr.PhysicalIndex)
+            .FirstOrDefault();
+
+        return (characterRowScored, playerRowScored);
+    }
+
+    /// <summary>为横跨多个已识别角色中心的玩家名称框生成逐槽位重识别裁剪。</summary>
+    /// <param name="lines">求生者区域的原始 OCR 文本。</param>
+    /// <param name="context">字段解析上下文。</param>
+    /// <returns>待重识别的槽位及区域局部裁剪框；角色锚点不足或没有合并框时为空。</returns>
+    internal IReadOnlyList<(int SlotIndex, Rect Bounds)> GetMergedPlayerNameCrops(
+        IReadOnlyList<OcrTextLine> lines, SmartBpOcrFieldParseContext context)
+    {
+        if (context.ResolvePickedSurParseMode() == SmartBpPickedSurOcrParseMode.Unknown)
+            return [];
+        var layout = lines.Where(line => !IsStatusLine(line.Text))
+            .Select(line => CreateLayoutLine(SmartBpRecognitionRegion.LeftBottom, line))
+            .Where(line => !string.IsNullOrWhiteSpace(line.Text)).ToArray();
+        var (xMin, xMax) = ResolveXRange(layout);
+        var rows = ClusterRows(layout, CalculateRowTolerance(layout));
+        var (character, player) = SelectPickedSurRows(rows
+            .Select((row, index) => ScoreRow(row, index, xMin, xMax)).ToArray());
+        if (character == null || player == null || character.Lines.Count != 4 ||
+            character.Features.ValidSurvivorCharacterCount + character.Features.UnselectedCount != 4)
+            return [];
+
+        var centers = character.Lines.Select(line => line.CenterX).Order().ToArray();
+        if (centers.Zip(centers.Skip(1), (left, right) => right - left).Any(gap => gap <= 0))
+            return [];
+        var affectedSlots = new HashSet<int>();
+        foreach (var line in player.Lines)
+        {
+            var covered = Enumerable.Range(0, 4).Where(index =>
+                line.BoundingBox.Left <= centers[index] && line.BoundingBox.Right >= centers[index]).ToArray();
+            if (covered.Length > 1)
+                affectedSlots.UnionWith(covered);
+        }
+        var top = player.Lines.Min(line => line.BoundingBox.Top);
+        var bottom = player.Lines.Max(line => line.BoundingBox.Bottom);
+        return affectedSlots.Order().Select(index =>
+        {
+            var left = (int)Math.Floor(index == 0 ? centers[0] - (centers[1] - centers[0]) / 2
+                : (centers[index - 1] + centers[index]) / 2);
+            var right = (int)Math.Floor(index == 3 ? centers[3] + (centers[3] - centers[2]) / 2
+                : (centers[index] + centers[index + 1]) / 2);
+            return (index, new Rect(left, top, right - left, bottom - top));
+        }).ToArray();
     }
 
     /// <summary>未知模式下的旧行为回退：物理行索引语义。</summary>
