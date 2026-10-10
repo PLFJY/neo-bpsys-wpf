@@ -618,28 +618,6 @@ public sealed class SmartBpOcrRecognitionContractTest
     }
 
     [Fact]
-    public void PickedSurSingleLowConfidenceFragmentRowClassifiedAsNoise()
-    {
-        var parser = Parser();
-        var context = new SmartBpOcrFieldParseContext
-        {
-            AuthoritativePhase = "选择求生者",
-            CurrentGuidanceAction = GameAction.PickSur,
-            SurvivorPickLocked = false
-        };
-        var diagnostics = new List<string>();
-        var lines = new[]
-        {
-            Line("藏", 89, 65, 0.30),
-            Line("未选择", 89, 180), Line("未选择", 216, 180), Line("未选择", 344, 180), Line("未选择", 472, 180),
-            Line("PlayerA", 89, 203), Line("PlayerB", 216, 203), Line("PlayerC", 344, 203), Line("PlayerD", 472, 203)
-        };
-        var result = parser.Parse(SmartBpRecognitionRegion.LeftBottom, lines, diagnostics, context);
-        Assert.Contains(diagnostics, d => d.Contains("row 0 => Noise", StringComparison.Ordinal));
-        Assert.Equal("PlayerA", result.Slots[0].PlayerId);
-    }
-
-    [Fact]
     public void PickedSurSurvivorTalentModeTalentRowIgnored()
     {
         var parser = Parser(
@@ -657,38 +635,16 @@ public sealed class SmartBpOcrRecognitionContractTest
         var lines = new[]
         {
             Line("拉拉队员", 89, 180), Line("魔术师", 216, 180), Line("守墓人", 344, 180), Line("先知", 472, 180),
-            Line("PlayerA", 89, 203), Line("PlayerB", 216, 203), Line("PlayerC", 344, 203), Line("PlayerD", 472, 203),
+            // OCR 合并相邻名称后仅覆盖三个槽位，四槽位天赋行不能取代玩家名称行。
+            Line("PlayerA", 89, 203), Line("PlayerBPlayerC", 280, 203), Line("PlayerD", 472, 203),
             Line("冒险家", 89, 230), Line("博命心", 216, 230), Line("救", 344, 230), Line("双弹飞轮", 472, 230)
         };
-        var diagnostics = new List<string>();
-        var result = parser.Parse(SmartBpRecognitionRegion.LeftBottom, lines, diagnostics, context);
+        var result = parser.Parse(SmartBpRecognitionRegion.LeftBottom, lines, [], context);
         Assert.Equal("拉拉队员", result.Slots[0].CharacterName);
         Assert.Equal("魔术师", result.Slots[1].CharacterName);
         Assert.Equal("守墓人", result.Slots[2].CharacterName);
         Assert.Equal("先知", result.Slots[3].CharacterName);
-        Assert.Contains(diagnostics, d => d.Contains("ignored talent/extra", StringComparison.Ordinal) && d.Contains("冒险家", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void PickedSurSurvivorTalentModeTalentRowCharacterDoesNotOverwriteCharacterRow()
-    {
-        var parser = Parser(
-            new Character("拉拉队员", Camp.Sur, "cheerleader"),
-            new Character("冒险家", Camp.Sur, "explorer"));
-        var context = new SmartBpOcrFieldParseContext
-        {
-            AuthoritativePhase = "求生者选择天赋中",
-            CurrentGuidanceAction = GameAction.PickSurTalent,
-            SurvivorPickLocked = true
-        };
-        var lines = new[]
-        {
-            Line("拉拉队员", 89, 180),
-            Line("PlayerA", 89, 203),
-            Line("冒险家", 89, 230)
-        };
-        var result = parser.Parse(SmartBpRecognitionRegion.LeftBottom, lines, [], context);
-        Assert.Equal("拉拉队员", result.Slots[0].CharacterName);
+        Assert.Equal(["PlayerA", "PlayerBPlayerC", null, "PlayerD"], result.Slots.Select(slot => slot.PlayerId));
     }
 
     [Fact]

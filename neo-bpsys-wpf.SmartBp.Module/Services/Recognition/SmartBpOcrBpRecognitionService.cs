@@ -73,6 +73,9 @@ internal sealed class SmartBpOcrBpRecognitionService(
                 dimensions.GetValueOrDefault(regionText.Region).Width);
             parsed[regionText.Region] = parsedRegion.Result;
             diagnostics.AddRange(parsedRegion.Diagnostics);
+            if (regionText.Region == SmartBpRecognitionRegion.LeftBottom)
+                await RecoverMergedPlayerNamesAsync(frame, regionText.Lines, effectiveParseContext,
+                    parsedRegion.Result, diagnostics, cancellationToken).ConfigureAwait(false);
             foreach (var line in regionText.Lines)
                 diagnostics.Add($"provider={line.Provider ?? "unknown"}; region={ToRegionId(regionText.Region)}; coordinateSpace=region-local; text={line.Text}; bbox={line.BoundingBox}; center={line.CenterX:0.0},{line.CenterY:0.0}; confidence={line.Confidence:0.00}");
         }
@@ -93,6 +96,73 @@ internal sealed class SmartBpOcrBpRecognitionService(
             Diagnostics = diagnostics
         };
     }
+
+    private async Task RecoverMergedPlayerNamesAsync(
+        BitmapSource frame,
+        IReadOnlyList<OcrTextLine> lines,
+        SmartBpOcrFieldParseContext context,
+        SmartBpFocusedBusinessExtractionResult parsed,
+        ICollection<string> diagnostics,
+        CancellationToken cancellationToken)
+    {
+        var plans = parser.GetMergedPlayerNameCrops(lines, context);
+        if (plans.Count == 0)
+            return;
+
+        await Task.Run(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var region = cropper.CropWithInfo(frame, SmartBpRecognitionRegion.LeftBottom);
+            using var raw = BitmapSourceConverter.ToMat(region.Image);
+            using var bgr = ToBgr(raw);
+            var options = new OcrRecognitionOptions
+            {
+                Psm = 7,
+                PreferChinese = true,
+                PreferEnglish = true,
+                UsePreprocessingVariants = false
+            };
+            foreach (var (sourceText, crops) in plans)
+            {
+                var names = new List<(int SlotIndex, string Name)>();
+                var valid = true;
+                foreach (var (slotIndex, requestedBounds) in crops)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var bounds = requestedBounds.Intersect(new Rect(0, 0, bgr.Width, bgr.Height));
+                    if (bounds != requestedBounds || bounds.Width <= 0 || bounds.Height <= 0)
+                    {
+                        valid = false;
+                        diagnostics.Add($"picked_sur single-line player-name rejected: slot={slotIndex}; reason=crop-outside-region; crop={requestedBounds}.");
+                        break;
+                    }
+                    using var view = new Mat(bgr, bounds);
+                    // 独立像素缓冲隔离父图；不加边、不放大，交给单行识别入口。
+                    using var nameCrop = view.Clone();
+                    var result = ocr.RecognizeSingleText(nameCrop, options);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var name = SmartBpOcrTextResolver.NormalizeText(result?.Text);
+                    var accepted = result != null && double.IsFinite(result.Confidence) && result.Confidence >= .90 &&
+                        !string.IsNullOrWhiteSpace(name) && !name.Contains('\n') && !name.Contains('\r') &&
+                        !SmartBpBusinessStateParser.IsUnselected(name);
+                    valid &= accepted;
+                    names.Add((slotIndex, name));
+                    diagnostics.Add($"picked_sur single-line player-name candidate: slot={slotIndex}; region-local crop={bounds}; provider={result?.Provider ?? ocr.SelectedProvider.ToString()}; text={name}; confidence={result?.Confidence ?? 0:0.00}; valid={accepted}.");
+                }
+                // 只有完整拆分能够还原原始文字时才整组提交；不以模糊匹配容忍串行或幻觉。
+                var matchesSource = PlayerNameEvidence(string.Concat(names.Select(item => item.Name))) == PlayerNameEvidence(sourceText);
+                if (valid && matchesSource)
+                {
+                    foreach (var (slotIndex, name) in names)
+                        parsed.Slots.Single(slot => slot.Index == slotIndex).PlayerId = name;
+                }
+                diagnostics.Add($"picked_sur player-name recovery: slots=[{string.Join(",", crops.Select(item => item.SlotIndex))}]; source={sourceText}; accepted={valid && matchesSource}; reason={(valid && matchesSource ? "source-text-confirmed" : valid ? "source-text-mismatch" : "invalid-single-line-result")}.");
+            }
+        }, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static string PlayerNameEvidence(string text) =>
+        string.Concat(SmartBpOcrTextResolver.NormalizeText(text).Where(character => !char.IsWhiteSpace(character)));
 
     private async Task<IReadOnlyList<SmartBpOcrRegionText>> RecognizeContactSheetAsync(
         BitmapSource frame,
