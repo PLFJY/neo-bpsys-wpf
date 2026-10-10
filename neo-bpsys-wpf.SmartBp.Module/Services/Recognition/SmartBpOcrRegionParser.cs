@@ -188,11 +188,11 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
             .FirstOrDefault() ?? nonNoiseRows.First();
 
         // 选择 player-id row：character row 之后的第一个 player-id-like 行。
+        // 相邻名称可能被 OCR 合并而降低覆盖槽位数，不能因此改选更下方的天赋行。
         var playerRowScored = nonNoiseRows
             .Where(sr => sr.PhysicalIndex > characterRowScored.PhysicalIndex)
             .Where(sr => sr.Classification == RowClassification.PlayerId || sr.Features.PlayerIdLikeCount > 0)
-            .OrderByDescending(sr => sr.Features.CoveredSlotsCount)
-            .ThenBy(sr => sr.PhysicalIndex)
+            .OrderBy(sr => sr.PhysicalIndex)
             .FirstOrDefault();
 
         diagnostics.Add($"picked_sur selected character row={characterRowScored.PhysicalIndex}; player-id row={playerRowScored?.PhysicalIndex ?? -1}");

@@ -179,6 +179,8 @@ BP 状态识别和赛后数据 OCR 是两条不同流程。BP 识别先生成仅
 6. 本地解析四个粗区域：`right_top -> banned_sur`、`left_top -> banned_hun`、`left_bottom -> picked_sur`、`right_bottom -> picked_hun`。
 7. 角色名只从 `ISharedDataService.SurCharaDict` / `HunCharaDict` 匹配；无法明确解析的 OCR 文本只进入诊断，不会应用为角色。
 
+`picked_sur` 的结构化解析先按 Y 坐标聚类，再选择角色行下方最近的有效玩家名称候选行；槽位覆盖数更高的下方天赋行不能替代该名称行。OCR 将相邻玩家名称合并为一个文本框时，保留原始名称文本并按现有 X 坐标规则归属，未获得名称证据的槽位保持空值，不猜测拆分名称或用天赋文字补齐。选定名称行之后的天赋等附加行只记录诊断。没有解析上下文的旧物理行解析方式保持原有语义。
+
 `UseOcrContactSheet = false` 时会逐区域 OCR，主要用于排查 contact sheet 映射问题。OCR 识别默认间隔较短；短时回看窗口由帧缓冲长度、OCR 周期、最低 OCR 周期和 `RecognitionTransitionLookBehindMilliseconds` 共同限定。
 
 自动 BP 循环使用 `SmartBpRecognitionScene` 场景门禁。角色 BP 场景才允许生成和应用 Ban/Pick 操作；求生者/监管者天赋阶段只允许同步引导；大厅、规则、禁选顺序、转场不写入。区域选择、等待开始、加载和对局内会阻断当前帧的内容识别与新操作生成，并停止调度后续 tick；已经排队或正在应用的角色 BP 操作会继续完成，队列排空后才以 `SmartBpCharacterBpEnded` 正常完成 GameGuidance 和自动识别，不触发取消事件。区域选择不属于 MapBP 或角色 BP 识别范围。用户手动停止仍会立即取消当前识别。
