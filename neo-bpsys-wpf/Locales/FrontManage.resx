@@ -24,7 +24,8 @@
   </data>
   <data name="CreateCustomWindow"><value>新建 v3 窗口</value></data>
   <data name="CustomWindows"><value>用户自定义窗口</value></data>
-  <data name="DeleteCustomWindow"><value>删除自定义窗口</value></data>
+  <data name="EditCustomWindow"><value>修改</value></data>
+  <data name="DeleteCustomWindow"><value>删除</value></data>
   <data name="CustomWindowAdvancedMode"><value>高级模式（自定义 ID 和多语言名称）</value></data>
   <data name="CustomWindowId"><value>窗口 ID</value></data>
   <data name="CustomWindowChineseName"><value>简体中文名称</value></data>

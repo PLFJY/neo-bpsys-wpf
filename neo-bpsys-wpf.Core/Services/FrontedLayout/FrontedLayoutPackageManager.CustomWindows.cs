@@ -165,6 +165,60 @@ public sealed partial class FrontedLayoutPackageManager
     }
 
     /// <inheritdoc />
+    public async Task UpdateCustomWindowDisplayNamesAsync(
+        string canonicalWindowId,
+        IReadOnlyDictionary<string, string> displayNames,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(displayNames);
+        if (!FrontedV3LayoutWindowPathHelper.TryParseCustomCanonicalWindowId(
+                canonicalWindowId, out var packageId, out _))
+        {
+            throw new ArgumentException("The window ID is not a valid custom Canonical ID.", nameof(canonicalWindowId));
+        }
+
+        var names = displayNames
+            .Where(pair => pair.Key is "zh_Hans" or "en_US" or "ja_JP")
+            .Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value?.Trim() ?? string.Empty))
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Value))
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        if (names.Count == 0)
+        {
+            throw new ArgumentException("At least one display name is required.", nameof(displayNames));
+        }
+
+        if (names.Values.Any(value => value.Length > FrontedLayoutLimits.MaxWindowDisplayNameLength))
+        {
+            throw new ArgumentException("A display name is too long.", nameof(displayNames));
+        }
+
+        var activeState = await GetActivePackageStateAsync(cancellationToken);
+        if (!string.Equals(activeState.PackageId, packageId, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(activeState.PackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Only a custom window in the active user package can be edited.");
+        }
+
+        var packagePath = GetInstalledPackagePath(packageId);
+        var manifest = await ReadManifestAsync(packagePath, cancellationToken);
+        if (!manifest.Content.CustomWindows.Any(entry =>
+                string.Equals(entry.Window, canonicalWindowId, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException("The custom window is not registered in the active package.");
+        }
+
+        var layoutPath = GetPackageLayoutPath(packageId, canonicalWindowId);
+        var layout = JsonNode.Parse(await File.ReadAllTextAsync(layoutPath, cancellationToken)) as JsonObject;
+        if (layout is null || layout["Version"]?.GetValue<int>() != 3)
+        {
+            throw new InvalidOperationException("The custom window layout is not a v3 layout.");
+        }
+
+        layout["DisplayNames"] = JsonSerializer.SerializeToNode(names, _jsonSerializerOptions);
+        await File.WriteAllTextAsync(layoutPath, layout.ToJsonString(_jsonSerializerOptions), cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task DeleteCustomWindowAsync(
         string canonicalWindowId,
         CancellationToken cancellationToken = default)

@@ -180,25 +180,6 @@ public sealed partial class FrontManagePageViewModel
             PackageManagerStatus = ex.Message;
         }
 
-        static System.Windows.Controls.StackPanel AddField(
-            System.Windows.Controls.Panel panel,
-            string labelKey,
-            System.Windows.Controls.Control control,
-            out System.Windows.Controls.TextBlock label)
-        {
-            var field = new System.Windows.Controls.StackPanel();
-            label = new System.Windows.Controls.TextBlock
-            {
-                Margin = new Thickness(0, 0, 0, 4),
-                Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, labelKey)
-            };
-            field.Children.Add(label);
-            field.Children.Add(control);
-            field.Children.Add(new System.Windows.Controls.Border { Height = 8, Background = null });
-            panel.Children.Add(field);
-            return field;
-        }
-
         void ApplyLanguageFields(bool showAllLanguages)
         {
             var showChinese = showAllLanguages || language == LanguageKey.zh_Hans;
@@ -229,6 +210,101 @@ public sealed partial class FrontManagePageViewModel
                 ? I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowNameJapanese")
                 : I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "CustomWindowName");
         }
+    }
+
+    [RelayCommand]
+    private async Task EditCustomWindowAsync(FrontedWindowManageItem? item)
+    {
+        if (item is not { IsCustom: true, IsCreatePlaceholder: false }
+            || _packageManager is null || _customWindowSynchronizer is null || _serviceProvider is null)
+        {
+            return;
+        }
+
+        try
+        {
+            // 先处理未保存的文档，避免后续设计器保存旧名称覆盖本次修改。
+            if (!await PrepareDesignerForPackageChangeAsync())
+            {
+                return;
+            }
+
+            var registrations = await _packageManager.GetActiveCustomWindowsAsync();
+            var registration = registrations.FirstOrDefault(window => window.Id == item.WindowId);
+            if (registration is null)
+            {
+                return;
+            }
+
+            var content = new System.Windows.Controls.StackPanel { MinWidth = 360 };
+            AddField(content, "CustomWindowId", new System.Windows.Controls.TextBox
+            {
+                MinWidth = 280,
+                Text = registration.LocalId,
+                IsReadOnly = true,
+                IsEnabled = false
+            }, out _);
+            var names = new Dictionary<string, System.Windows.Controls.TextBox>(StringComparer.Ordinal);
+            foreach (var (language, label) in new[]
+                     {
+                         ("zh_Hans", "CustomWindowNameChinese"),
+                         ("en_US", "CustomWindowNameEnglish"),
+                         ("ja_JP", "CustomWindowNameJapanese")
+                     })
+            {
+                var textBox = new System.Windows.Controls.TextBox
+                {
+                    MinWidth = 280,
+                    Text = registration.DisplayNames.GetValueOrDefault(language) ?? string.Empty
+                };
+                names.Add(language, textBox);
+                AddField(content, label, textBox, out _);
+            }
+
+            var dialog = new ContentDialog
+            {
+                Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, "EditCustomWindow"),
+                Content = content,
+                PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel")
+            };
+            var contentDialogService = _serviceProvider.GetService<IContentDialogService>();
+            if (contentDialogService is null
+                || await contentDialogService.ShowAsync(dialog) is not ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            await _packageManager.UpdateCustomWindowDisplayNamesAsync(
+                registration.Id, names.ToDictionary(pair => pair.Key, pair => pair.Value.Text, StringComparer.Ordinal));
+            await _customWindowSynchronizer.RefreshAsync();
+            await _frontedWindowService.ReloadFrontedLayoutsAsync();
+            await RefreshCustomWindowViewsAsync(reloadDesignerLayout: true);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to edit custom fronted window {WindowId}.", item.WindowId);
+            PackageManagerStatus = ex.Message;
+        }
+    }
+
+    private static System.Windows.Controls.StackPanel AddField(
+        System.Windows.Controls.Panel panel,
+        string labelKey,
+        System.Windows.Controls.Control control,
+        out System.Windows.Controls.TextBlock label)
+    {
+        var field = new System.Windows.Controls.StackPanel();
+        label = new System.Windows.Controls.TextBlock
+        {
+            Margin = new Thickness(0, 0, 0, 4),
+            Text = I18nHelper.GetLocalizedString(AppI18nDictionaries.FrontManage, labelKey)
+        };
+        field.Children.Add(label);
+        field.Children.Add(control);
+        field.Children.Add(new System.Windows.Controls.Border { Height = 8, Background = null });
+        panel.Children.Add(field);
+        return field;
     }
 
     [RelayCommand]
