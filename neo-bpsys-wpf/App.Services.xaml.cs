@@ -59,7 +59,7 @@ public partial class App
             client.DefaultRequestHeaders.UserAgent.ParseAdd(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
         })
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler ());
         services.AddSingleton<IRemoteAnnouncementService, RemoteAnnouncementService>();
         services.AddSingleton<AnnouncementCenterViewModel>();
         services.AddSingleton<IFileDownloadService>(serviceProvider =>
