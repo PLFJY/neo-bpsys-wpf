@@ -96,6 +96,7 @@ Xaml Styler 插件仅适用于 Visual Studio——Rider 整理出来的格式不
 | [updater-and-downloads.md](build/updater-and-downloads.md) | 应用更新、镜像、安装包校验、三类下载差异 |
 | [testing-and-debugging.md](build/testing-and-debugging.md) | 测试现状、日志、SmartBP/OCR/插件调试 |
 | [testing-guidelines.md](build/testing-guidelines.md) | 单元测试边界、XAML smoke test 规则、UI 变更时如何处理脆弱测试 |
+| [异常退出与本地 Dump 收集](diagnostics/crash-collection.md) | 全局异常、运行状态、日志保留和用户手动启用 Windows WER |
 | [memory-baseline-and-diagnostics.md](build/memory-baseline-and-diagnostics.md) | 内存回归验证方案、基线测量步骤和已知引用链 |
 | [commit-convention.md](build/commit-convention.md) | Commit 提交规范、类型列表（feat/fix/refactor/docs 等）、BREAKING CHANGE 用法 |
 | [repository-management.md](build/repository-management.md) | 仓库分支管理流程：main/dev 分支结构、PR 合并、feature 分支、squash merge |

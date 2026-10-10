@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Logging;
 using System.IO;
 using System.Reflection;
 using YamlDotNet.Serialization;
@@ -66,7 +67,8 @@ public class PluginService : IPluginService
             }
             catch (Exception ex)
             {
-                Logger?.LogWarning(ex, "Failed to apply staged plugin updates from {Path}", newPath);
+                FileLoggerProvider.WriteDiagnostic(typeof(PluginService).FullName!, LogLevel.Warning,
+                    $"Failed to apply staged plugin updates. Path={newPath}", ex);
             }
         }
 
@@ -90,7 +92,8 @@ public class PluginService : IPluginService
             }
             catch (Exception ex)
             {
-                Logger?.LogError(ex, "Failed to read or parse plugin manifest: {ManifestPath}", manifestPath);
+                FileLoggerProvider.WriteDiagnostic(typeof(PluginService).FullName!, LogLevel.Error,
+                    $"Failed to read or parse plugin manifest. ManifestPath={manifestPath}", ex);
                 continue;
             }
 
@@ -203,8 +206,9 @@ public class PluginService : IPluginService
             {
                 info.Exception = ex;
                 info.LoadStatus = PluginLoadStatus.Error;
-                Logger?.LogError(ex, "Failed to load plugin. PluginId: {PluginId}, PluginDir: {PluginDir}",
-                    manifest.Id, pluginDir);
+                // Initialize 在 Host.Build 前执行，此时 DI logger 可能不存在。
+                FileLoggerProvider.WriteDiagnostic(typeof(PluginService).FullName!, LogLevel.Error,
+                    $"Failed to load plugin. PluginId={manifest.Id} PluginDir={pluginDir}", ex);
             }
         }
     }

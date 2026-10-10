@@ -26,7 +26,7 @@
 12. 设置生命周期为 `Running`。
 13. 启动更新检查使用 `#if !DEBUG && !PREVIEW`，Debug 和 Preview 不编译此启动更新检查分支。
 
-退出时 `OnExit` 会发送 `AppStopping`，记录关闭日志，停止并释放 Host。
+退出时 `OnExit` 先记录 ShutdownRequested，再发送 `AppStopping`，有期限地同步等待 Host 停止并释放；成功完成后才记录 ShutdownCompleted 和关闭日志，再归档。异常和超时不标记正常完成。重启新进程通过独立诊断 Mutex 等待旧进程完成归档。
 
 当前启动链可以简化为：
 
@@ -67,6 +67,8 @@ SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`�
 ```
 
 日志由自定义 `FileLoggerProvider`（`neo-bpsys-wpf/Logging/FileLoggerProvider.cs`）实现，通过 `Microsoft.Extensions.Logging` 的 `ILogger<T>` 抽象向全应用提供。当前运行的日志始终写入 `latest.txt`，并在文件开头记录本次启动时间；应用正常退出时 `App.OnExit` 调用 `FileLoggerProvider.FinalizeRun()` 将其按启动时间归档为 `log-YYYYMMDD_HHMMSS.txt`。若上次运行因故障未正常退出，`latest.txt` 会被保留，下次启动时读取其头部记录的启动时间完成归档（读取不到时回退到文件最后写入时间），并清理旧文件只保留最近 10 次运行的归档日志。初始日志级别在 Host 构建前从 `Config.json` 的 `LogLevel` 字段读取，设置加载后通过 `App.ApplyLogLevel(...)` → `FileLoggerProvider.SetLevel(...)` 动态应用。
+
+全局异常入口在 App 构造时注册，文件日志及运行状态在单实例/诊断锁取得后、Host 构建前初始化。Error/Critical 始终保留；少量运行诊断绕过普通级别过滤，仍复用同一文件追加机制。日志失败不抛出，诊断/错误尽力写入临时目录的紧急文件。运行状态、异常语义和用户手动启用 WER Dump 的步骤见 [异常退出与本地 Dump 收集](../diagnostics/crash-collection.md)。
 
 ## 设置、主题与语言
 

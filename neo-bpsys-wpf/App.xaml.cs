@@ -39,6 +39,22 @@ public partial class App : AppBase
     private static Mutex? _mutex;
 
     private bool _createdNew;
+    private Mutex? _diagnosticMutex;
+    private bool _ownsDiagnosticMutex;
+    private readonly ApplicationRunDiagnostics _runDiagnostics = new(AppConstants.LogPath);
+
+    /// <summary>在 WPF 启动和 Host 构建之前安装同步异常诊断入口。</summary>
+    public App()
+    {
+        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    private void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        => _runDiagnostics.DomainException(e);
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        => _runDiagnostics.UnobservedTaskException(e);
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -70,14 +86,32 @@ public partial class App : AppBase
             return;
         }
 
+        // 重启会提前释放单实例锁；等待旧进程归档，避免覆盖 latest 和运行状态。
+        _diagnosticMutex = new Mutex(false, AppConstants.AppName + ".run-diagnostics");
+        try
+        {
+            _ownsDiagnosticMutex = _diagnosticMutex.WaitOne(TimeSpan.FromSeconds(45));
+        }
+        catch (AbandonedMutexException)
+        {
+            _ownsDiagnosticMutex = true;
+        }
+        if (!_ownsDiagnosticMutex)
+        {
+            FileLoggerProvider.WriteDiagnostic("App", LogLevel.Warning, "Previous process still owns run diagnostics; startup canceled to preserve its logs.");
+            Current.Shutdown();
+            return;
+        }
+        _ = new FileLoggerProvider(AppConstants.LogPath, GetInitialAppLogLevel());
+        _runDiagnostics.Start();
+
         IAppHost.Host = Host
             .CreateDefaultBuilder(e.Args)
             .ConfigureLogging(loggingBuilder =>
             {
-                if (!Directory.Exists(AppConstants.LogPath))
-                    Directory.CreateDirectory(AppConstants.LogPath);
-
                 loggingBuilder.ClearProviders();
+                // Host 不过滤；由 provider 控制普通日志，保证 Error/Critical 可达。
+                loggingBuilder.AddFilter<FileLoggerProvider>(null, LogLevel.Trace);
                 // 自定义文件日志：当前运行始终写入 latest.txt，正常退出时按启动时间归档为 log-{时间}.txt
                 loggingBuilder.AddProvider(new FileLoggerProvider(AppConstants.LogPath, GetInitialAppLogLevel()));
             })
@@ -184,33 +218,72 @@ public partial class App : AppBase
 
 
 
-    protected override async void OnExit(ExitEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
     {
-        CurrentLifetime = ApplicationLifetime.Stopping;
-        AppStopping?.Invoke(this, EventArgs.Empty);
-        var host = IAppHost.Host;
-        if (host is not null)
+        if (!_ownsDiagnosticMutex)
         {
-            try
+            base.OnExit(e);
+            _diagnosticMutex?.Dispose();
+            return;
+        }
+        _runDiagnostics.ShutdownRequested();
+        CurrentLifetime = ApplicationLifetime.Stopping;
+        try
+        {
+            AppStopping?.Invoke(this, EventArgs.Empty);
+            var host = IAppHost.Host;
+            if (host is not null)
             {
-                host.Services.GetService<ILogger<App>>()?.LogInformation("Application Closed");
-                host.Services.GetService<IBpuiFileActivationService>()?.StopListening();
-                await host.StopAsync();
-            }
-            finally
-            {
-                host.Dispose();
-                if (ReferenceEquals(IAppHost.Host, host))
+                try
                 {
-                    IAppHost.Host = null;
+                    host.Services.GetService<IBpuiFileActivationService>()?.StopListening();
+                    // WPF 不等待 async void OnExit。Dispatcher 已进入关闭流程，
+                    // 不让停止 continuation 捕获 UI context；有期限地同步收口。
+                    var context = SynchronizationContext.Current;
+                    try
+                    {
+                        SynchronizationContext.SetSynchronizationContext(null);
+                        using var stopping = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                        host.StopAsync(stopping.Token).WaitAsync(stopping.Token).GetAwaiter().GetResult();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Dispose 也可能失败；先保存停止异常，避免它被二次异常覆盖。
+                        FileLoggerProvider.WriteDiagnostic("App", LogLevel.Error, "Host shutdown failed or exceeded its deadline.", ex);
+                        throw;
+                    }
+                    finally
+                    {
+                        SynchronizationContext.SetSynchronizationContext(context);
+                    }
+                }
+                finally
+                {
+                    host.Dispose();
+                    if (ReferenceEquals(IAppHost.Host, host)) IAppHost.Host = null;
                 }
             }
+            base.OnExit(e);
+            if (_runDiagnostics.ShutdownCompleted())
+            {
+                FileLoggerProvider.WriteDiagnostic("App", LogLevel.Information, "Application Closed. Shutdown work completed.");
+                FileLoggerProvider.FinalizeRun();
+            }
         }
-
-        // 正常退出时将 latest.txt 按启动时间归档；若未正常退出（崩溃），latest.txt 保留供下次启动归档
-        FileLoggerProvider.FinalizeRun();
-
-        base.OnExit(e);
+        catch (Exception ex)
+        {
+            FileLoggerProvider.WriteDiagnostic("App", LogLevel.Error, "Application shutdown failed; clean shutdown was not recorded.", ex);
+            throw;
+        }
+        finally
+        {
+            if (_ownsDiagnosticMutex)
+            {
+                _diagnosticMutex?.ReleaseMutex();
+                _ownsDiagnosticMutex = false;
+            }
+            _diagnosticMutex?.Dispose();
+        }
     }
 
     /// <inheritdoc/>
@@ -222,6 +295,7 @@ public partial class App : AppBase
     /// <param name="additionalArgs">要附加到新进程的命令行参数；为 <see langword="null"/> 时不附加额外参数，直接用当前进程参数重启。</param>
     public void Restart(string[]? additionalArgs)
     {
+        FileLoggerProvider.WriteDiagnostic("App", LogLevel.Information, "Application Restart requested.");
         var exePath = ResourceAssembly.Location.Replace(".dll", ".exe");
 
         // 保留当前进程的命令行参数（跳过可执行文件路径）
@@ -267,6 +341,7 @@ public partial class App : AppBase
     /// </exception>
     public void RestartAsAdmin()
     {
+        FileLoggerProvider.WriteDiagnostic("App", LogLevel.Information, "Application RestartAsAdmin requested.");
         var exePath = ResourceAssembly.Location.Replace(".dll", ".exe");
 
         // 保留当前进程的命令行参数（跳过可执行文件路径）
@@ -304,19 +379,13 @@ public partial class App : AppBase
     /// <summary>
     /// 当应用抛出异常但未被处理时发生。
     /// </summary>
-    private async void OnDispatcherUnhandledException(
+    private void OnDispatcherUnhandledException(
         object sender,
         DispatcherUnhandledExceptionEventArgs e
     )
     {
-        var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
-        logger.LogError("Application crashed unexpectedly");
-        logger.LogError(e.Exception.Message);
-#if !DEBUG
-        await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "UnexpectedExceptionMessage")}\n\n{AppConstants.LogPath}\n ", "Error");
-        Process.Start("explorer.exe", AppConstants.LogPath);
-#endif
-        // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
+        // 不做异步 UI 操作、不设置 Handled，保持原有异常传播语义。
+        _runDiagnostics.DispatcherException(e.Exception);
     }
 
     /// <inheritdoc/>

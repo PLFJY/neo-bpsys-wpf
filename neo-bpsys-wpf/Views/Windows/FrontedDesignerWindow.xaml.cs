@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
@@ -109,6 +110,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private bool _initialLayoutLoaded;
     private int _userSelectionDepth;
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _childResizeHandles = new();
+    private readonly Guid _diagnosticWindowId = Guid.NewGuid();
+
     private Border? _childSelectionOutline;
     private Border? _childSelectionLabel;
     private DesignerChildTargetInfo? _currentSubTargetInfo;
@@ -142,6 +145,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _logger = logger;
         _settingsHostService = settingsHostService;
 
+        DesignerDiagnostic(LogLevel.Information, "Designer window creation started.");
         InitializeComponent();
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
         InitializePropertyAutoCommitTimer();
@@ -152,7 +156,12 @@ public partial class FrontedDesignerWindow : FluentWindow
         Deactivated += OnDeactivated;
         StateChanged += OnWindowStateChanged;
         settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;
+        DesignerDiagnostic(LogLevel.Information, "Designer window created.");
     }
+
+    private void DesignerDiagnostic(LogLevel level, string message, Exception? exception = null)
+        => FileLoggerProvider.WriteDiagnostic(typeof(FrontedDesignerWindow).FullName!, level,
+            $"WindowInstance={_diagnosticWindowId} {message}", exception);
 
     private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)
     {
@@ -186,17 +195,28 @@ public partial class FrontedDesignerWindow : FluentWindow
         try
         {
             _isLoaded = true;
-            _logger?.LogInformation("Designer loaded.");
+            DesignerDiagnostic(LogLevel.Information, "Designer initialization started.");
             TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
             AttachViewModel();
             await RefreshWindowCatalogAsync();
+            DesignerDiagnostic(LogLevel.Information, "Designer window catalog loaded.");
+            DesignerDiagnostic(LogLevel.Information, "Designer initial layout loading started.");
             await LoadInitialLayoutAsync();
-            _logger?.LogInformation("Initial layout loaded.");
+            DesignerDiagnostic(LogLevel.Information, "Designer initial layout loaded.");
             QueueDesignerTutorial();
-            await _designerTutorialTask!;
+            DesignerDiagnostic(LogLevel.Information, "Designer tutorial queued; awaiting result.");
+            var tutorialResult = await _designerTutorialTask!;
+            DesignerDiagnostic(LogLevel.Information, $"Designer tutorial finished. Result={tutorialResult}");
+            DesignerDiagnostic(LogLevel.Information, "Designer initialization completed.");
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
+            DesignerDiagnostic(LogLevel.Information, "Designer initialization canceled by window lifetime.");
+        }
+        catch (Exception ex)
+        {
+            DesignerDiagnostic(LogLevel.Error, "Designer initialization failed.", ex);
+            throw;
         }
     }
 
@@ -255,6 +275,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        DesignerDiagnostic(LogLevel.Information, "Designer window closed; cleanup started.");
         // Unsubscribe from the Singleton ISettingsHostService first so a closed window
         // is never retained by the long-lived language-setting event. This must happen
         // even if subsequent cleanup throws.
@@ -290,6 +311,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _propertyGridReady?.TrySetCanceled();
         _propertyGridReady = null;
         _lastSeenSelectedDesignItem = null;
+        DesignerDiagnostic(LogLevel.Information, "Designer window cleanup completed.");
     }
 
 }

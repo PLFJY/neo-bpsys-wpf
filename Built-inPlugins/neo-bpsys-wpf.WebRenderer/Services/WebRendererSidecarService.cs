@@ -481,7 +481,32 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     }
     private void NotifyStatus() => StatusChanged?.Invoke(this, EventArgs.Empty);
     private void Observe(Task task) => _ = task.ContinueWith(completed => _logger.LogWarning(completed.Exception, "Web Renderer background operation failed."), TaskContinuationOptions.OnlyOnFaulted);
-    private async Task ObserveOutputAsync(StreamReader reader, string stream, CancellationToken cancellationToken) { try { while (await reader.ReadLineAsync(cancellationToken) is { } line) { if (stream == "stderr") lock (_gate) _lastError = line.Length > 2000 ? line[..2000] : line; _logger.LogInformation("Web Renderer sidecar {Stream}: {Line}", stream, line); } } catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { } }
+    private async Task ObserveOutputAsync(StreamReader reader, string stream, CancellationToken cancellationToken)
+    {
+        var outputLevel = stream == "stderr" ? LogLevel.Warning : LogLevel.Debug;
+        try
+        {
+            while (await reader.ReadLineAsync(cancellationToken) is { } line)
+            {
+                if (stream == "stderr")
+                {
+                    lock (_gate) _lastError = line.Length > 2000 ? line[..2000] : line;
+                }
+                else
+                {
+                    // 默认 .NET Console 日志的缩进续行沿用 header 级别，保留异常堆栈。
+                    // 普通 HTTP 和协议流水仅在 Debug 时转发。
+                    if (line.StartsWith("fail: ", StringComparison.Ordinal)) outputLevel = LogLevel.Error;
+                    else if (line.StartsWith("crit: ", StringComparison.Ordinal)) outputLevel = LogLevel.Critical;
+                    else if (line.StartsWith("warn: ", StringComparison.Ordinal)) outputLevel = LogLevel.Warning;
+                    else if (line.Length > 0 && !char.IsWhiteSpace(line[0])) outputLevel = LogLevel.Debug;
+                }
+                _logger.Log(outputLevel, "Web Renderer sidecar {Stream}: {Line}", stream, line);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+    }
+
     private void OnSidecarExited(object? sender, EventArgs args)
     {
         if (_manualStopped || _stopping.IsCancellationRequested) return;
@@ -492,6 +517,8 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
         {
             if (!ReferenceEquals(sender, _process)) return;
             process = _process; _process = null;
+            try { _logger.LogWarning("Web Renderer sidecar exited unexpectedly. PID={Pid} ExitCode={ExitCode}", process?.Id, process?.ExitCode); }
+            catch (InvalidOperationException ex) { _logger.LogWarning(ex, "Web Renderer sidecar exited unexpectedly; exit details unavailable."); }
             job = _sidecarJob; _sidecarJob = null;
             accept = _acceptCancellation; _acceptCancellation = null;
             _outbound?.Writer.TryComplete(); _outbound = null;
