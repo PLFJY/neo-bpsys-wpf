@@ -39,12 +39,12 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     private readonly ISettingsHostService _settingsHostService;
+    private Core.Models.Settings? _observedSettings;
     private readonly IPluginMarketService _pluginMarketService;
     private readonly IBpuiFileAssociationService _bpuiFileAssociationService;
     private readonly IFilePickerService _filePickerService;
     private readonly SmartBpModuleManager _smartBpModuleManager;
     private readonly ITutorialStateManager _tutorialStateManager;
-    private readonly ITutorialRunner _tutorialRunner;
     private readonly IOnboardingCoordinator _onboardingCoordinator;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
@@ -79,7 +79,6 @@ public partial class SettingPageViewModel : ViewModelBase
     /// <param name="filePickerService">文件选择服务</param>
     /// <param name="smartBpModuleManager">SmartBP 模块管理器</param>
     /// <param name="tutorialStateManager">教程状态管理器</param>
-    /// <param name="tutorialRunner">教程运行器</param>
     /// <param name="onboardingCoordinator">首次导览协调器</param>
     /// <param name="serviceProvider">服务Provider</param>
     /// <param name="logger">日志记录器</param>
@@ -92,7 +91,6 @@ public partial class SettingPageViewModel : ViewModelBase
         IFilePickerService filePickerService,
         SmartBpModuleManager smartBpModuleManager,
         ITutorialStateManager tutorialStateManager,
-        ITutorialRunner tutorialRunner,
         IOnboardingCoordinator onboardingCoordinator,
         IServiceProvider serviceProvider,
         ILogger<SettingPageViewModel> logger,
@@ -106,7 +104,6 @@ public partial class SettingPageViewModel : ViewModelBase
         _filePickerService = filePickerService;
         _smartBpModuleManager = smartBpModuleManager;
         _tutorialStateManager = tutorialStateManager;
-        _tutorialRunner = tutorialRunner;
         _onboardingCoordinator = onboardingCoordinator;
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -114,7 +111,9 @@ public partial class SettingPageViewModel : ViewModelBase
 
         UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
         RefreshUpdateDownloadState();
-        _settingsHostService.Settings.PropertyChanged += Settings_PropertyChanged;
+        _observedSettings = _settingsHostService.Settings;
+        _observedSettings.PropertyChanged += Settings_PropertyChanged;
+        _settingsHostService.SettingsChanged += Settings_Replaced;
         SyncMirrorFromSettings();
 
         SelectedLanguage = _settingsHostService.Settings.Language;
@@ -244,6 +243,44 @@ public partial class SettingPageViewModel : ViewModelBase
         }
     }
 
+    private void Settings_Replaced(object? sender, Core.Models.Settings settings)
+    {
+        void Synchronize()
+        {
+            if (_observedSettings is not null)
+            {
+                _observedSettings.PropertyChanged -= Settings_PropertyChanged;
+                if (_observedSettings.IsClassicMode != settings.IsClassicMode
+                    || _observedSettings.IsPageTransitionAnimationEnabled != settings.IsPageTransitionAnimationEnabled)
+                {
+                    _globalRestartService.IsRestartRequired = true;
+                }
+            }
+
+            _observedSettings = settings;
+            settings.PropertyChanged += Settings_PropertyChanged;
+            _selectedLanguage = settings.Language;
+            _isSyncingLogLevel = true;
+            try
+            {
+                SelectedLogLevel = App.GetEffectiveLogLevel(settings.LogLevel);
+            }
+            finally
+            {
+                _isSyncingLogLevel = false;
+            }
+
+            SyncMirrorFromSettings();
+            _bpuiFileAssociationService.EnsureAssociationState(settings.AssociateBpuiFiles);
+            OnPropertyChanged(string.Empty);
+        }
+
+        if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+            dispatcher.Invoke(Synchronize);
+        else
+            Synchronize();
+    }
+
     #region 教程与导览
 
     /// <summary>
@@ -282,21 +319,6 @@ public partial class SettingPageViewModel : ViewModelBase
         }
 
         await _tutorialStateManager.ResetStateAsync();
-    }
-
-    /// <summary>
-    /// 运行真实页面目标与操作信号验证导览。
-    /// </summary>
-    [RelayCommand]
-    private async Task RunRealTargetProbeTutorialAsync()
-    {
-        if (Application.Current.MainWindow is not Window owner)
-        {
-            return;
-        }
-
-        owner.Activate();
-        await _tutorialRunner.RunFlowAsync(owner, TutorialFlowIds.Phase4RealTargetProbe, force: true);
     }
 
     #endregion

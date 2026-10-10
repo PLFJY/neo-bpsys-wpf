@@ -46,6 +46,14 @@ public sealed class FileLoggerProvider : ILoggerProvider
     private static bool s_initialized;
     private static bool s_finalized;
 
+    /// <summary>同步记录少量运行诊断，绕过普通日志级别且不依赖 DI；失败时写入本地紧急日志。</summary>
+    /// <param name="categoryName">事件来源。</param>
+    /// <param name="level">事件级别。</param>
+    /// <param name="message">不含用户数据的事件描述。</param>
+    /// <param name="exception">需要完整记录的异常。</param>
+    internal static void WriteDiagnostic(string categoryName, LogLevel level, string message, Exception? exception = null)
+        => Write(categoryName, level, message, exception, bypassFilter: true);
+
     /// <summary>
     /// 初始化 <see cref="FileLoggerProvider"/> 的新实例。
     /// </summary>
@@ -116,9 +124,11 @@ public sealed class FileLoggerProvider : ILoggerProvider
 
                 CleanupOldLogs(directory);
             }
-            catch
+            catch (Exception ex)
             {
                 // 归档失败不应阻止应用退出
+                WriteDiagnostic(nameof(FileLoggerProvider), LogLevel.Warning,
+                    "Current run log could not be archived; latest.txt is retained.", ex);
             }
         }
     }
@@ -142,10 +152,12 @@ public sealed class FileLoggerProvider : ILoggerProvider
                 s_currentFilePath = Path.Combine(logDirectory, LatestFileName);
                 WriteRunHeader(s_currentFilePath, s_currentRunStartTime);
             }
-            catch
+            catch (Exception ex)
             {
-                // 初始化失败不应阻止应用启动
-                s_currentFilePath = Path.Combine(logDirectory, LatestFileName);
+                // 初始化失败不应阻止应用启动，也不能向旧 latest 混入新运行。
+                s_currentFilePath = null;
+                WriteDiagnostic(nameof(FileLoggerProvider), LogLevel.Warning,
+                    "File log initialization failed; previous latest.txt will not be overwritten.", ex);
             }
         }
     }
@@ -177,7 +189,8 @@ public sealed class FileLoggerProvider : ILoggerProvider
         }
         catch
         {
-            // 旧日志归档失败时不应阻塞新运行；后续 WriteRunHeader 会重置 latest.txt
+            // 旧日志归档失败时保留原文件，禁止覆盖诊断证据。
+            throw;
         }
     }
 
@@ -298,65 +311,69 @@ public sealed class FileLoggerProvider : ILoggerProvider
     /// <param name="logLevel">Microsoft 日志级别。</param>
     /// <param name="message">格式化后的日志消息。</param>
     /// <param name="exception">关联异常（可为 null）。</param>
-    internal static void Write(string categoryName, LogLevel logLevel, string message, Exception? exception)
+    /// <param name="bypassFilter">是否为始终保留的低频运行诊断。</param>
+    internal static void Write(string categoryName, LogLevel logLevel, string message, Exception? exception, bool bypassFilter = false)
     {
-        AppLogLevel current;
-        lock (SyncRoot)
-        {
-            current = s_currentLevel;
-            if (s_finalized || s_currentFilePath is null)
-            {
-                return;
-            }
-        }
-
-        if (!IsLevelEnabled(logLevel, current))
-        {
-            return;
-        }
-
-        var levelText = logLevel switch
-        {
-            LogLevel.Trace => "TRACE",
-            LogLevel.Debug => "DEBUG",
-            LogLevel.Information => "INFO",
-            LogLevel.Warning => "WARN",
-            LogLevel.Error => "ERROR",
-            LogLevel.Critical => "FATAL",
-            _ => logLevel.ToString().ToUpperInvariant()
-        };
-
-        var builder = new StringBuilder()
-            .Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"))
-            .Append(" [").Append(levelText).Append("] ")
-            .Append('[').Append(categoryName).Append("] ")
-            .Append(message);
-        if (exception is not null)
-        {
-            builder.AppendLine().Append(exception);
-        }
-        builder.AppendLine();
-
         try
         {
             lock (SyncRoot)
             {
+                if (!bypassFilter && !IsLevelEnabled(logLevel, s_currentLevel)) return;
+
+                var levelText = logLevel switch
+                {
+                    LogLevel.Trace => "TRACE",
+                    LogLevel.Debug => "DEBUG",
+                    LogLevel.Information => "INFO",
+                    LogLevel.Warning => "WARN",
+                    LogLevel.Error => "ERROR",
+                    LogLevel.Critical => "FATAL",
+                    _ => logLevel.ToString().ToUpperInvariant()
+                };
+                var builder = new StringBuilder()
+                    .Append(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"))
+                    .Append(" [").Append(levelText).Append("] ")
+                    .Append('[').Append(categoryName).Append("] ")
+                    .Append($"[PID={Environment.ProcessId} Thread={Environment.CurrentManagedThreadId}] ")
+                    .Append(message);
+                if (exception is not null) builder.AppendLine().Append(exception);
+                builder.AppendLine();
+
                 if (s_finalized || s_currentFilePath is null)
                 {
+                    if (bypassFilter || logLevel >= LogLevel.Error) WriteEmergency(builder.ToString());
                     return;
                 }
-
-                File.AppendAllText(s_currentFilePath, builder.ToString(), Encoding.UTF8);
+                try
+                {
+                    File.AppendAllText(s_currentFilePath, builder.ToString(), Encoding.UTF8);
+                }
+                catch
+                {
+                    if (bypassFilter || logLevel >= LogLevel.Error) WriteEmergency(builder.ToString());
+                }
             }
         }
         catch
         {
-            // 写入失败不应影响业务流程
+            // 包括第三方异常对象的格式化失败：不得递归触发异常处理器。
+            WriteEmergency($"{DateTimeOffset.Now:O} PID={Environment.ProcessId} Thread={Environment.CurrentManagedThreadId} {categoryName}: diagnostic formatting failed.\n");
         }
     }
 
+    private static void WriteEmergency(string entry)
+    {
+        try
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf", "Log");
+            Directory.CreateDirectory(directory);
+            File.AppendAllText(Path.Combine(directory, $"emergency-{Environment.ProcessId}.txt"), entry, Encoding.UTF8);
+        }
+        catch { /* 日志目录和紧急目录均不可用时只能尽力而为。 */ }
+    }
+
     private static bool IsLevelEnabled(LogLevel logLevel, AppLogLevel current)
-        => ToAppLogLevel(logLevel) >= current;
+        => logLevel != LogLevel.None && (logLevel >= LogLevel.Error || ToAppLogLevel(logLevel) >= current);
 
     private static AppLogLevel ToAppLogLevel(LogLevel logLevel) => logLevel switch
     {
@@ -384,7 +401,7 @@ public sealed class FileLoggerProvider : ILoggerProvider
         {
             lock (SyncRoot)
             {
-                return !s_finalized && s_currentFilePath is not null && IsLevelEnabled(logLevel, s_currentLevel);
+                return IsLevelEnabled(logLevel, s_currentLevel);
             }
         }
 
@@ -395,8 +412,13 @@ public sealed class FileLoggerProvider : ILoggerProvider
                 return;
             }
 
-            var message = formatter(state, exception);
-            Write(_categoryName, logLevel, message, exception);
+            if (!IsEnabled(logLevel)) return;
+            try
+            {
+                var message = formatter(state, exception);
+                Write(_categoryName, logLevel, message, exception);
+            }
+            catch { /* 第三方 formatter 不得破坏业务流程。 */ }
         }
     }
 }

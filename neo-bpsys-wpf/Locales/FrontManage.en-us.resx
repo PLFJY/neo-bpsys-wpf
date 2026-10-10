@@ -24,7 +24,8 @@
   </data>
   <data name="CreateCustomWindow"><value>New v3 Window</value></data>
   <data name="CustomWindows"><value>Custom Windows</value></data>
-  <data name="DeleteCustomWindow"><value>Delete Custom Window</value></data>
+  <data name="EditCustomWindow"><value>Edit</value></data>
+  <data name="DeleteCustomWindow"><value>Delete</value></data>
   <data name="CustomWindowAdvancedMode"><value>Advanced mode (custom ID and multilingual names)</value></data>
   <data name="CustomWindowId"><value>Window ID</value></data>
   <data name="CustomWindowChineseName"><value>Simplified Chinese name</value></data>

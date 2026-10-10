@@ -63,12 +63,15 @@ public sealed class SmartBpModuleNativeDependencyTest : IDisposable
     }
 
     [Fact]
-    public async Task RapidOcrNet_InitializesAndDetectsThroughSmartBpModuleLoadContext()
+    [Trait("Category", "NativeIntegration")]
+    public async Task RapidOcrNet_IsolatedProbeInitializesAndDetects()
     {
-        var repositoryRoot = FindRepositoryRoot();
-        if (repositoryRoot == null) return;
+        if (Environment.GetEnvironmentVariable("RUN_SMARTBP_NATIVE_TESTS") != "1")
+            Assert.Skip("Set RUN_SMARTBP_NATIVE_TESTS=1 and SMARTBP_NATIVE_MODULE_ROOT to run the x64 native OCR probe.");
 
-        var moduleRoot = Path.Combine(repositoryRoot, "neo-bpsys-wpf.SmartBp.Module", "bin", "Debug", "net10.0-windows10.0.20348");
+        var moduleRoot = Environment.GetEnvironmentVariable("SMARTBP_NATIVE_MODULE_ROOT");
+        Assert.False(string.IsNullOrWhiteSpace(moduleRoot), "SMARTBP_NATIVE_MODULE_ROOT is required for an explicitly enabled native probe.");
+        moduleRoot = Path.GetFullPath(moduleRoot);
         var hostAssemblyPath = Path.Combine(AppContext.BaseDirectory, "neo-bpsys-wpf.dll");
         var modelRoot = Path.Combine(moduleRoot, "OCRModels", "RapidOCR", "Models", "ppocr-v5-zh-mobile");
         var samplePath = Path.Combine(moduleRoot, "Resources", "SmartBp", "TestFrames", "ban-sur-16x9.png");
@@ -84,7 +87,8 @@ public sealed class SmartBpModuleNativeDependencyTest : IDisposable
             samplePath,
             hostAssemblyPath
         };
-        if (requiredFiles.Any(path => !File.Exists(path))) return;
+        var missingFiles = requiredFiles.Where(path => !File.Exists(path)).ToArray();
+        Assert.True(missingFiles.Length == 0, "Native probe prerequisites are missing:" + Environment.NewLine + string.Join(Environment.NewLine, missingFiles));
 
         var probeRoot = Path.Combine(_root, "probe");
         Directory.CreateDirectory(probeRoot);
@@ -94,7 +98,7 @@ public sealed class SmartBpModuleNativeDependencyTest : IDisposable
         using var process = Process.Start(new ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = $"run -- \"{moduleRoot}\" \"{modelRoot}\" \"{samplePath}\" \"{hostAssemblyPath}\"",
+            Arguments = $"run --arch x64 -- \"{moduleRoot}\" \"{modelRoot}\" \"{samplePath}\" \"{hostAssemblyPath}\"",
             WorkingDirectory = probeRoot,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -123,17 +127,6 @@ public sealed class SmartBpModuleNativeDependencyTest : IDisposable
     {
         if (Directory.Exists(_root))
             Directory.Delete(_root, recursive: true);
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
-                return directory.FullName;
-        }
-
-        return null;
     }
 
     private const string ProbeProject = """

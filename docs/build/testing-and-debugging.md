@@ -2,12 +2,13 @@
 
 ## 测试现状
 
-`neo-bpsys-wpf.Tests` 使用 xUnit v3、Moq 和 `Microsoft.NET.Test.Sdk`，引用主 WPF 项目。当前 `SmartBpServiceTest` 中的大部分断言和样例代码被注释，`[Fact]` 方法基本是空执行，更接近手工调试记录，而不是稳定自动化测试覆盖。
+`neo-bpsys-wpf.Tests` 使用 xUnit v3、Moq 和 `Microsoft.NET.Test.Sdk`，引用主 WPF 项目。现有测试覆盖 SmartBP 识别规则与状态协调、比分、v3 布局、BPUI 包安全及插件契约。测试维护边界见 [testing-guidelines.md](testing-guidelines.md)。
 
-可运行测试命令：
+当前 .NET 10 SDK 可直接构建后使用 xUnit runner：
 
 ```powershell
-dotnet test .\neo-bpsys-wpf.Tests\neo-bpsys-wpf.Tests.csproj
+dotnet build .\neo-bpsys-wpf.Tests\neo-bpsys-wpf.Tests.csproj -p:WebRendererSkipWebBuild=true
+dotnet .\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\neo-bpsys-wpf.Tests.dll
 ```
 
 文档变更通常不需要 full build。改服务、注册、项目文件或资源复制规则时应至少运行相关测试或 `dotnet build`。
@@ -64,6 +65,19 @@ neo-bpsys-wpf.SmartBp.Module\bin\Debug\net10.0-windows10.0.20348
 
 Debug 加载不进行远端 manifest 检查，也不强制比较模块版本。
 
+### 可选原生 OCR Probe
+
+`SmartBpModuleNativeDependencyTest.RapidOcrNet_IsolatedProbeInitializesAndDetects` 属于 `NativeIntegration`。普通测试显示 Skip；显式启用后，依赖、模型或样例缺失会失败，不再空执行通过：
+
+```powershell
+$env:RUN_SMARTBP_NATIVE_TESTS = '1'
+$env:SMARTBP_NATIVE_MODULE_ROOT = 'C:\path\to\SmartBpModule'
+dotnet build .\neo-bpsys-wpf.Tests\neo-bpsys-wpf.Tests.csproj -p:WebRendererSkipWebBuild=true
+dotnet .\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\neo-bpsys-wpf.Tests.dll -trait 'Category=NativeIntegration'
+```
+
+模块目录必须包含 RapidOCR 的 `ppocr-v5-zh-mobile` ONNX 模型、字典和内置测试帧，机器需要 .NET 10 x64 运行时及 SDK。Probe 使用独立 x64 子进程，覆盖原生目录注册、OCR 初始化和推理；它不等于完整执行生产模块加载器。当前 .NET 10 SDK 若通过 `dotnet test` 遇到 MTP/VSTest 入口错误，可直接使用上述 xUnit runner。执行后清除上述环境变量，恢复普通测试的默认 Skip。
+
 ## 插件加载调试
 
 插件加载失败时看：
@@ -82,8 +96,8 @@ Debug 加载不进行远端 manifest 检查，也不强制比较模块版本。
 ## 前台窗口调试
 
 1. OBS 捕获前先确认窗口已通过后台显示。
-2. 布局异常时检查 `%APPDATA%\neo-bpsys-wpf\*Config-*.json`。
-3. 恢复默认布局会从内置 `Resources/FrontedDefaultPositions` 或插件 `FrontedDefaultPositions` 读取。
+2. 布局异常时先检查活动布局包；用户包位于 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\FrontedLayouts`，内置包位于程序 `Resources/FrontedLayouts`。旧 `*Config-*.json` 仅作为启动迁移输入。
+3. Designer 恢复为内置布局通过包管理器读取 `builtin` 对应窗口布局与行为；不存在对应内置布局时报告缺失。
 4. 插件 v3 控件不显示时检查 `plugin:{PackageId}/{ControlTypeName}`、插件是否已加载、layout 是否包含该控件，以及安装后是否已重启。
 
 ## 提交前检查

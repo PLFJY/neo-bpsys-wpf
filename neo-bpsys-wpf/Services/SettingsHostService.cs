@@ -20,10 +20,9 @@ namespace neo_bpsys_wpf.Services;
 public class SettingsHostService : ISettingsHostService
 {
     private readonly ILogger<SettingsHostService> _logger;
-    private readonly ISettingsMigrationService _settingsMigrationService;
     private readonly ILegacyV2StartupMigrationService _legacyV2StartupMigrationService;
+    private readonly string _configFilePath;
     private Settings _settings = new();
-    private bool _isBulk;
 
     /// <summary>
     /// 当前应用设置。
@@ -38,11 +37,16 @@ public class SettingsHostService : ISettingsHostService
                 return;
             }
 
+            var previousCulture = _settings.CultureInfo;
             _settings.PropertyChanged -= OnSettingsPropertyChanged;
             _settings = value;
             _settings.PropertyChanged += OnSettingsPropertyChanged;
 
             SettingsChanged?.Invoke(this, value);
+            if (!Equals(previousCulture, value.CultureInfo))
+            {
+                LanguageSettingChanged?.Invoke(this, new LanguageChangedEventArgs(value.CultureInfo));
+            }
         }
     }
 
@@ -51,22 +55,29 @@ public class SettingsHostService : ISettingsHostService
         PropertyNameCaseInsensitive = true,
         WriteIndented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    /// <summary>
-    /// 初始化设置服务。
-    /// </summary>
-    /// <param name="logger">日志记录器。</param>
-    /// <param name="settingsMigrationService">设置迁移服务。</param>
-    /// <param name="legacyV2StartupMigrationService">旧版 v2 启动迁移服务。</param>
         Converters = { new FontWeightJsonConverter() }
     };
 
+    /// <summary>初始化设置服务；配置由 App.OnStartup 显式加载。</summary>
+    /// <param name="logger">日志记录器。</param>
+    /// <param name="settingsMigrationService">保留旧构造签名的兼容参数，不再使用。</param>
+    /// <param name="legacyV2StartupMigrationService">旧版 v2 启动迁移服务。</param>
     public SettingsHostService(
         ILogger<SettingsHostService> logger,
         ISettingsMigrationService settingsMigrationService,
         ILegacyV2StartupMigrationService legacyV2StartupMigrationService)
+        : this(logger, legacyV2StartupMigrationService, AppConstants.ConfigFilePath)
+    {
+    }
+
+    internal SettingsHostService(
+        ILogger<SettingsHostService> logger,
+        ILegacyV2StartupMigrationService legacyV2StartupMigrationService,
+        string configFilePath)
     {
         _logger = logger;
-        _settingsMigrationService = settingsMigrationService;
+        _configFilePath = configFilePath;
+        _settings.PropertyChanged += OnSettingsPropertyChanged;
         _legacyV2StartupMigrationService = legacyV2StartupMigrationService;
         // Config loading is intentionally triggered and awaited from App.OnStartup.
     }
@@ -76,17 +87,13 @@ public class SettingsHostService : ISettingsHostService
     /// </summary>
     public async Task SaveConfigAsync()
     {
-        if (!Directory.Exists(AppConstants.AppDataPath))
-        {
-            Directory.CreateDirectory(AppConstants.AppDataPath);
-        }
-
         try
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(_configFilePath)!);
             var jsonStr = JsonSerializer.Serialize(Settings, _jsonSerializerOptions);
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace(@"\", @"\\");
             jsonStr = jsonStr.Replace(appDataPath, "%APPDATA%");
-            await File.WriteAllTextAsync(AppConstants.ConfigFilePath, jsonStr);
+            await File.WriteAllTextAsync(_configFilePath, jsonStr);
         }
         catch (Exception e)
         {
@@ -101,14 +108,15 @@ public class SettingsHostService : ISettingsHostService
     /// </summary>
     public async Task LoadConfig()
     {
-        if (!File.Exists(AppConstants.ConfigFilePath))
+        if (!File.Exists(_configFilePath))
         {
             await ResetConfigAsync();
+            return;
         }
 
-        var json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
         try
         {
+            var json = await File.ReadAllTextAsync(_configFilePath);
             var versionInfo = SettingsConfigVersionHelper.InspectJson(json);
             if (versionInfo.IsLegacy)
             {
@@ -120,7 +128,7 @@ public class SettingsHostService : ISettingsHostService
 
                 if (result.Migrated)
                 {
-                    json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
+                    json = await File.ReadAllTextAsync(_configFilePath);
                 }
             }
             else if (versionInfo.Version != SettingsConfigVersionHelper.CurrentSettingsVersion)
@@ -161,84 +169,19 @@ public class SettingsHostService : ISettingsHostService
         }
     }
 
-    /// <summary>
-    /// 重置设置
-    /// </summary>
+    /// <summary>恢复应用设置默认值并保存一次，不改变布局包或比赛数据。</summary>
+    /// <returns>保存处理完成后结束的任务。</returns>
     public async Task ResetConfigAsync()
     {
-        try
-        {
-            if (!Directory.Exists(AppConstants.AppDataPath))
-            {
-                Directory.CreateDirectory(AppConstants.AppDataPath);
-            }
-
-            _isBulk = true;
-            foreach (var window in Enum.GetValues<FrontedWindowType>())
-            {
-                if (window is FrontedWindowType.ScoreGlobalWindow or FrontedWindowType.ScoreSurWindow
-                    or FrontedWindowType.ScoreHunWindow)
-                    continue;
-                await ResetConfigAsync(window);
-            }
-
-            _isBulk = false;
-            await SaveConfigAsync();
-            await LoadConfig();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Reset configuration file error");
-            _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileError")}\n{e.Message}");
-        }
+        Settings = new Settings();
+        await SaveConfigAsync();
     }
 
-    /// <summary>
-    /// 重置指定窗口的设置
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    public async Task ResetConfigAsync(FrontedWindowType windowType)
-    {
-        try
-        {
-            if (!Directory.Exists(AppConstants.AppDataPath))
-            {
-                Directory.CreateDirectory(AppConstants.AppDataPath);
-            }
-
-            switch (windowType)
-            {
-                case FrontedWindowType.BpWindow:
-                    break;
-                case FrontedWindowType.CutSceneWindow:
-                    break;
-                case FrontedWindowType.ScoreWindow:
-                case FrontedWindowType.ScoreGlobalWindow:
-                case FrontedWindowType.ScoreSurWindow:
-                case FrontedWindowType.ScoreHunWindow:
-                    break;
-                case FrontedWindowType.GameDataWindow:
-                    break;
-                case FrontedWindowType.BpOverviewWindow:
-                case FrontedWindowType.MapV2Window:
-                    break;
-                default:
-                    _logger.LogWarning("Unsupported window type for config reset: {WindowType}", windowType);
-                    throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);
-            }
-
-            if (_isBulk)
-                await SaveConfigAsync();
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Reset Configuration file error");
-            _ = MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Settings, "ResetConfigurationFileError")}\n{e.Message}");
-            throw;
-        }
-    }
+    /// <summary>已退役的窗口设置重置入口，不执行任何操作。</summary>
+    /// <param name="windowType">兼容参数，不再使用。</param>
+    /// <returns>已完成的任务。</returns>
+    [Obsolete("Window configuration reset is retired. Reset layouts through the Designer.")]
+    public Task ResetConfigAsync(FrontedWindowType windowType) => Task.CompletedTask;
 
     private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
@@ -252,11 +195,9 @@ public class SettingsHostService : ISettingsHostService
 
     /// <summary>
     /// 配置文件改变事件
-    /// <summary>
-    /// 语言设置变更事件。
-    /// </summary>
     /// </summary>
     public event EventHandler<Settings>? SettingsChanged;
 
+    /// <summary>语言设置变更事件。</summary>
     public event EventHandler<LanguageChangedEventArgs>? LanguageSettingChanged;
 }

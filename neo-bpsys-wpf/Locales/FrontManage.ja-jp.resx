@@ -24,7 +24,8 @@
   </data>
   <data name="CreateCustomWindow"><value>v3 ウィンドウを新規作成</value></data>
   <data name="CustomWindows"><value>ユーザー定義ウィンドウ</value></data>
-  <data name="DeleteCustomWindow"><value>カスタムウィンドウを削除</value></data>
+  <data name="EditCustomWindow"><value>編集</value></data>
+  <data name="DeleteCustomWindow"><value>削除</value></data>
   <data name="CustomWindowAdvancedMode"><value>詳細モード（ID と多言語名を指定）</value></data>
   <data name="CustomWindowId"><value>ウィンドウ ID</value></data>
   <data name="CustomWindowChineseName"><value>簡体字中国語名</value></data>

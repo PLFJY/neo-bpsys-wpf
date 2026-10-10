@@ -456,7 +456,7 @@ Designer v3 的选中模型由 `FrontedV3DesignSelection` 统一管理，不再�
 
 当前活动布局包还可以声明用户自定义 v3 窗口。其 Canonical ID 为 `custom:{PackageId}/{WindowId}`，文件位于 `FrontedLayouts/custom/{PackageId}/{WindowId}.json`，注册表在活动包切换、导入和创建后动态刷新。自定义窗口与内置/插件 v3 窗口共用 `FrontedWindowBase` 和 `BaseCanvas` 渲染流程，但只属于活动布局包作用域；切换包会关闭并移除旧包的自定义窗口。
 
-窗口 JSON 根级 `DisplayNames` 保存 `zh_Hans`、`en_US`、`ja_JP` 译名。解析顺序是当前语言、简体中文、英语（美国）、日语，最后回退到 Window ID；历史 JSON 缺少该字段时继续使用旧资源回退。前台管理页可创建空白自定义窗口并直接进入 Designer，也可删除其布局和行为文件。
+窗口 JSON 根级 `DisplayNames` 保存 `zh_Hans`、`en_US`、`ja_JP` 译名。解析顺序是当前语言、简体中文、英语（美国）、日语，最后回退到 Window ID；历史 JSON 缺少该字段时继续使用旧资源回退。前台管理页可创建空白自定义窗口并直接进入 Designer，也可删除其布局和行为文件。自定义窗口卡片的“修改”入口可编辑三语显示名称，窗口 ID 只读；保存只更新布局 JSON 的 `DisplayNames`，不改变窗口身份、布局或行为。至少保留一个非空名称，并沿用创建窗口的名称长度限制。修改前处理设计器未保存的文档，修改后同步刷新窗口注册、管理页和设计器。
 
 | 区域/能力 | 设计要求 |
 | --- | --- |

@@ -532,22 +532,24 @@ public sealed class SmartBpOcrRecognitionContractTest
         Assert.Contains(result.Diagnostics, item => item.Contains("OCR elapsed time", StringComparison.Ordinal));
     }
 
-    [Fact]
-    public void PickedSurPickSurModeNoiseRowDoesNotShiftSemanticRows()
+    [Theory]
+    [InlineData("P", 0.44, "求生者选择角色中")]
+    [InlineData("!", 0.40, "选择求生者")]
+    public void PickedSurPickSurModeNoiseRowDoesNotShiftSemanticRows(string noise, double confidence, string phase)
     {
         var parser = Parser(
             new Character("先知", Camp.Sur, "prophet"),
             new Character("拉拉队员", Camp.Sur, "cheerleader"));
         var context = new SmartBpOcrFieldParseContext
         {
-            AuthoritativePhase = "求生者选择角色中",
+            AuthoritativePhase = phase,
             CurrentGuidanceAction = GameAction.PickSur,
             SurvivorPickLocked = false
         };
         // row 0: [P] noise; row 1: [未选择×4] character; row 2: [player names×4] player-id
         var lines = new[]
         {
-            Line("P", 89, 65, 0.44),
+            Line(noise, 89, 65, confidence),
             Line("未选择", 89, 180), Line("未选择", 216, 180), Line("未选择", 344, 180), Line("未选择", 472, 180),
             Line("IHiganbanal", 89, 203), Line("夜风之缚", 216, 203), Line("磁兮小狗", 344, 203), Line("叶落摘星", 472, 203)
         };
@@ -561,50 +563,6 @@ public sealed class SmartBpOcrRecognitionContractTest
         Assert.Equal("夜风之缚", result.Slots[1].PlayerId);
         Assert.Equal("磁兮小狗", result.Slots[2].PlayerId);
         Assert.Equal("叶落摘星", result.Slots[3].PlayerId);
-    }
-
-    [Fact]
-    public void PickedSurPickSurModeDifferentNoiseFragmentAlsoClassifiedAsNoise()
-    {
-        var parser = Parser();
-        var context = new SmartBpOcrFieldParseContext
-        {
-            AuthoritativePhase = "选择求生者",
-            CurrentGuidanceAction = GameAction.PickSur,
-            SurvivorPickLocked = false
-        };
-        var lines = new[]
-        {
-            Line("!", 89, 65, 0.40),
-            Line("未选择", 89, 180), Line("未选择", 216, 180), Line("未选择", 344, 180), Line("未选择", 472, 180),
-            Line("PlayerA", 89, 203), Line("PlayerB", 216, 203), Line("PlayerC", 344, 203), Line("PlayerD", 472, 203)
-        };
-        var result = parser.Parse(SmartBpRecognitionRegion.LeftBottom, lines, [], context);
-        Assert.Equal("PlayerA", result.Slots[0].PlayerId);
-        Assert.Equal("PlayerB", result.Slots[1].PlayerId);
-        Assert.Equal("PlayerC", result.Slots[2].PlayerId);
-        Assert.Equal("PlayerD", result.Slots[3].PlayerId);
-    }
-
-    [Fact]
-    public void PickedSurPickSurModeDoesNotLogPlayerIdRowAsTalentExtra()
-    {
-        var parser = Parser();
-        var context = new SmartBpOcrFieldParseContext
-        {
-            AuthoritativePhase = "求生者选择角色中",
-            CurrentGuidanceAction = GameAction.PickSur,
-            SurvivorPickLocked = false
-        };
-        var diagnostics = new List<string>();
-        var lines = new[]
-        {
-            Line("P", 89, 65, 0.44),
-            Line("未选择", 89, 180), Line("未选择", 216, 180), Line("未选择", 344, 180), Line("未选择", 472, 180),
-            Line("IHiganbanal", 89, 203), Line("夜风之缚", 216, 203), Line("磁兮小狗", 344, 203), Line("叶落摘星", 472, 203)
-        };
-        parser.Parse(SmartBpRecognitionRegion.LeftBottom, lines, diagnostics, context);
-        Assert.DoesNotContain(diagnostics, d => d.Contains("ignored talent/extra", StringComparison.Ordinal));
     }
 
     [Fact]

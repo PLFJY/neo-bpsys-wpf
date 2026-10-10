@@ -168,16 +168,24 @@
                                                             CommandParameter="{Binding WindowId}"
                                                             Content="{lex:Loc Close}" />
                                                     </StackPanel>
-                                                    <Grid
+                                                    <StackPanel
                                                         Grid.Row="3"
                                                         Margin="0,10,0,0"
+                                                        HorizontalAlignment="Center"
+                                                        Orientation="Horizontal"
                                                         Visibility="{Binding IsCustom, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                                        <ui:Button
+                                                            Margin="0,0,10,0"
+                                                            Command="{Binding DataContext.EditCustomWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="{lex:Loc EditCustomWindow}"
+                                                            Icon="{ui:SymbolIcon Edit24}" />
                                                         <controls:DeleteConfirmationButton
                                                             ButtonText="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.FrontManage:DeleteCustomWindow}"
                                                             Command="{Binding DataContext.ConfirmDeleteCustomWindowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"
                                                             ConfirmationText="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.FrontManage:ConfirmDeleteCustomWindow}" />
-                                                    </Grid>
+                                                    </StackPanel>
                                                 </Grid>
                                             </Grid>
                                         </Border>

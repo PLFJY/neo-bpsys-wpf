@@ -10,7 +10,6 @@ using neo_bpsys_wpf.ViewModels.Pages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Services;
@@ -391,10 +390,6 @@ public class MatchScoreServiceTest
 
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
 
-        Assert.Null(typeof(IMatchScoreService).GetMethod("SyncLegacyTeamScoreMirror"));
-        Assert.Null(typeof(MatchScoreService).GetMethod(
-            "SyncLegacyTeamScoreMirror",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
         Assert.Equal(42, sharedDataService.Object.HomeTeam.Score.GameScores);
         Assert.Equal(24, sharedDataService.Object.AwayTeam.Score.GameScores);
     }

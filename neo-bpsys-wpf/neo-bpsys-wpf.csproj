@@ -76,94 +76,93 @@
 
     <!-- 1) Build plugins before main Build. Restore;Build ensures plugin dependencies are restored inline. -->
     <Target Name="BuildBuiltinPlugins" BeforeTargets="Build" Condition="@(BuiltinPlugin) != ''">
-        <MSBuild Projects="@(BuiltinPlugin)" Targets="Restore;Build" BuildInParallel="false" Properties="Configuration=$(Configuration)" />
+        <Error Condition="'$(RequireWebRenderer)' == 'true' And '$(WebRendererSkipWebBuild)' == 'true'" Text="RequireWebRenderer conflicts with WebRendererSkipWebBuild." />
+        <MSBuild Projects="@(BuiltinPlugin)" Targets="Restore;Build" BuildInParallel="false" Properties="Configuration=$(Configuration);WebRendererSkipWebBuild=$(WebRendererSkipWebBuild);RequireWebRenderer=$(RequireWebRenderer)" />
     </Target>
 
     <Target Name="BuildSmartBpModuleForDebug" BeforeTargets="Build" Condition="'$(Configuration)'=='Debug'">
         <MSBuild Projects="..\neo-bpsys-wpf.SmartBp.Module\neo-bpsys-wpf.SmartBp.Module.csproj" Targets="Build" Properties="Configuration=Debug" />
     </Target>
 
-    <!-- Build: copy plugins into bin\<cfg>\<tfm>\Plugins\... -->
+    <!-- Build and Publish keep independent copy lists and validate complete WebRenderer assets. -->
     <Target Name="CopyBuiltinPluginsToOutput_Build" AfterTargets="Build" Condition="@(BuiltinPlugin) != ''">
-        <PropertyGroup>
-            <PluginsOutDir>$(TargetDir)Plugins\</PluginsOutDir>
-        </PropertyGroup>
-
+        <PropertyGroup><PluginsOutDir>$(TargetDir)Plugins\</PluginsOutDir></PropertyGroup>
         <ItemGroup>
+            <_BuiltinPluginsToCopy Remove="@(_BuiltinPluginsToCopy)" />
+            <_PluginFiles Remove="@(_PluginFiles)" />
+            <_WebRendererJs Remove="@(_WebRendererJs)" />
+            <_BuiltinPluginsToCopy Include="@(BuiltinPlugin)" />
+            <_WebRendererBuiltinPlugin Remove="@(_WebRendererBuiltinPlugin)" />
             <_WebRendererBuiltinPlugin Include="@(BuiltinPlugin)" Condition="'%(BuiltinPlugin.FolderName)' == 'top.plfjy.bpsys.WebRenderer'" />
         </ItemGroup>
         <RemoveDir Directories="@(_WebRendererBuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
-
-        <!-- 检测 WebRenderer 前端是否构建成功（Host wwwroot 是否存在）；缺失则跳过整个插件，避免打包残缺插件 -->
-        <PropertyGroup Condition="@(_WebRendererBuiltinPlugin) != ''">
-            <_WebRendererPluginRoot>$([System.IO.Path]::GetDirectoryName('%(_WebRendererBuiltinPlugin.FullPath)'))</_WebRendererPluginRoot>
-            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' != ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\Host\wwwroot</_WebRendererHostWwwroot>
-            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' == ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\Host\wwwroot</_WebRendererHostWwwroot>
-            <_WebRendererFrontendReady Condition="Exists('$(_WebRendererHostWwwroot)')">true</_WebRendererFrontendReady>
+        <PropertyGroup>
+            <_WebRendererPluginRoot>$([System.IO.Path]::GetDirectoryName('%(_WebRendererBuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)</_WebRendererPluginRoot>
+            <_WebRendererPluginRoot Condition="'$(RuntimeIdentifier)' != ''">$(_WebRendererPluginRoot)\$(RuntimeIdentifier)</_WebRendererPluginRoot>
+            <_WebRendererFrontendReady>false</_WebRendererFrontendReady>
         </PropertyGroup>
-        <Warning Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'" Text="WebRenderer 前端未构建（pnpm 不可用或构建失败），跳过复制 WebRenderer 插件到主程序输出目录。主程序构建继续。" />
-        <ItemGroup Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'">
-            <BuiltinPlugin Remove="@(_WebRendererBuiltinPlugin)" />
+        <ItemGroup><_WebRendererJs Include="$(_WebRendererPluginRoot)\Host\wwwroot\assets\**\*.js" /></ItemGroup>
+        <PropertyGroup Condition="Exists('$(_WebRendererPluginRoot)\neo-bpsys-wpf.WebRenderer.dll') And Exists('$(_WebRendererPluginRoot)\manifest.yml') And Exists('$(_WebRendererPluginRoot)\Host\neo-bpsys-wpf.WebRenderer.Host.exe') And Exists('$(_WebRendererPluginRoot)\Host\wwwroot\index.html') And Exists('$(_WebRendererPluginRoot)\Host\wwwroot\.web-renderer-build.stamp') And '@(_WebRendererJs)' != ''">
+            <_WebRendererFrontendReady>true</_WebRendererFrontendReady>
+        </PropertyGroup>
+        <Error Condition="'$(RequireWebRenderer)' == 'true' And '$(WebRendererSkipWebBuild)' == 'true'" Text="RequireWebRenderer conflicts with WebRendererSkipWebBuild." />
+        <Error Condition="'$(WebRendererSkipWebBuild)' != 'true' And '$(_WebRendererFrontendReady)' != 'true' And ('$(Configuration)' != 'Debug' Or '$(RequireWebRenderer)' == 'true')" Text="Required WebRenderer plugin or client assets are missing." />
+        <Warning Condition="'$(WebRendererSkipWebBuild)' != 'true' And '$(_WebRendererFrontendReady)' != 'true'" Text="WebRenderer is incomplete; omitting it from Debug output." />
+        <ItemGroup Condition="'$(WebRendererSkipWebBuild)' == 'true' Or '$(_WebRendererFrontendReady)' != 'true'">
+            <_BuiltinPluginsToCopy Remove="@(_WebRendererBuiltinPlugin)" />
         </ItemGroup>
-
-        <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
-
+        <MakeDir Directories="@(_BuiltinPluginsToCopy->'$(PluginsOutDir)%(FolderName)\')" />
         <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\**\*.*">
-                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(_BuiltinPluginsToCopy.FullPath)'))\bin\$(Configuration)\%(_BuiltinPluginsToCopy.PluginTargetFramework)\$(RuntimeIdentifier)\**\*.*">
+                <FolderName>%(_BuiltinPluginsToCopy.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
-
         <ItemGroup Condition="'$(RuntimeIdentifier)' == ''">
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
-                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(_BuiltinPluginsToCopy.FullPath)'))\bin\$(Configuration)\%(_BuiltinPluginsToCopy.PluginTargetFramework)\**\*.*">
+                <FolderName>%(_BuiltinPluginsToCopy.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
-
         <Copy SourceFiles="@(_PluginFiles)" DestinationFiles="@(_PluginFiles->'$(PluginsOutDir)%(FolderName)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
     </Target>
-
-    <!-- Publish: copy plugins into publish output Plugins\... -->
     <Target Name="CopyBuiltinPluginsToOutput_Publish" AfterTargets="Publish" Condition="@(BuiltinPlugin) != ''">
-        <PropertyGroup>
-            <PluginsOutDir>$(PublishDir)Plugins\</PluginsOutDir>
-        </PropertyGroup>
-
+        <PropertyGroup><PluginsOutDir>$(PublishDir)Plugins\</PluginsOutDir></PropertyGroup>
         <ItemGroup>
+            <_BuiltinPluginsToCopy Remove="@(_BuiltinPluginsToCopy)" />
+            <_PluginFiles Remove="@(_PluginFiles)" />
+            <_WebRendererJs Remove="@(_WebRendererJs)" />
+            <_BuiltinPluginsToCopy Include="@(BuiltinPlugin)" />
+            <_WebRendererBuiltinPlugin Remove="@(_WebRendererBuiltinPlugin)" />
             <_WebRendererBuiltinPlugin Include="@(BuiltinPlugin)" Condition="'%(BuiltinPlugin.FolderName)' == 'top.plfjy.bpsys.WebRenderer'" />
         </ItemGroup>
         <RemoveDir Directories="@(_WebRendererBuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
-
-        <!-- 检测 WebRenderer 前端是否构建成功（Host wwwroot 是否存在）；缺失则跳过整个插件，避免打包残缺插件 -->
-        <PropertyGroup Condition="@(_WebRendererBuiltinPlugin) != ''">
-            <_WebRendererPluginRoot>$([System.IO.Path]::GetDirectoryName('%(_WebRendererBuiltinPlugin.FullPath)'))</_WebRendererPluginRoot>
-            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' != ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\Host\wwwroot</_WebRendererHostWwwroot>
-            <_WebRendererHostWwwroot Condition="'$(RuntimeIdentifier)' == ''">$(_WebRendererPluginRoot)\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)\Host\wwwroot</_WebRendererHostWwwroot>
-            <_WebRendererFrontendReady Condition="Exists('$(_WebRendererHostWwwroot)')">true</_WebRendererFrontendReady>
+        <PropertyGroup>
+            <_WebRendererPluginRoot>$([System.IO.Path]::GetDirectoryName('%(_WebRendererBuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(_WebRendererBuiltinPlugin.PluginTargetFramework)</_WebRendererPluginRoot>
+            <_WebRendererPluginRoot Condition="'$(RuntimeIdentifier)' != ''">$(_WebRendererPluginRoot)\$(RuntimeIdentifier)</_WebRendererPluginRoot>
+            <_WebRendererFrontendReady>false</_WebRendererFrontendReady>
         </PropertyGroup>
-        <Warning Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'" Text="WebRenderer 前端未构建（pnpm 不可用或构建失败），跳过复制 WebRenderer 插件到主程序输出目录。主程序构建继续。" />
-        <ItemGroup Condition="@(_WebRendererBuiltinPlugin) != '' And '$(_WebRendererFrontendReady)' != 'true'">
-            <BuiltinPlugin Remove="@(_WebRendererBuiltinPlugin)" />
+        <ItemGroup><_WebRendererJs Include="$(_WebRendererPluginRoot)\Host\wwwroot\assets\**\*.js" /></ItemGroup>
+        <PropertyGroup Condition="Exists('$(_WebRendererPluginRoot)\neo-bpsys-wpf.WebRenderer.dll') And Exists('$(_WebRendererPluginRoot)\manifest.yml') And Exists('$(_WebRendererPluginRoot)\Host\neo-bpsys-wpf.WebRenderer.Host.exe') And Exists('$(_WebRendererPluginRoot)\Host\wwwroot\index.html') And Exists('$(_WebRendererPluginRoot)\Host\wwwroot\.web-renderer-build.stamp') And '@(_WebRendererJs)' != ''">
+            <_WebRendererFrontendReady>true</_WebRendererFrontendReady>
+        </PropertyGroup>
+        <Error Condition="'$(RequireWebRenderer)' == 'true' And '$(WebRendererSkipWebBuild)' == 'true'" Text="RequireWebRenderer conflicts with WebRendererSkipWebBuild." />
+        <Error Condition="'$(WebRendererSkipWebBuild)' != 'true' And '$(_WebRendererFrontendReady)' != 'true'" Text="Required WebRenderer plugin or client assets are missing." />
+        <Warning Condition="'$(WebRendererSkipWebBuild)' != 'true' And '$(_WebRendererFrontendReady)' != 'true'" Text="WebRenderer is incomplete; omitting it from Debug output." />
+        <ItemGroup Condition="'$(WebRendererSkipWebBuild)' == 'true' Or '$(_WebRendererFrontendReady)' != 'true'">
+            <_BuiltinPluginsToCopy Remove="@(_WebRendererBuiltinPlugin)" />
         </ItemGroup>
-
-        <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
-
+        <MakeDir Directories="@(_BuiltinPluginsToCopy->'$(PluginsOutDir)%(FolderName)\')" />
         <ItemGroup Condition="'$(RuntimeIdentifier)' != ''">
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\$(RuntimeIdentifier)\**\*.*">
-                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(_BuiltinPluginsToCopy.FullPath)'))\bin\$(Configuration)\%(_BuiltinPluginsToCopy.PluginTargetFramework)\$(RuntimeIdentifier)\**\*.*">
+                <FolderName>%(_BuiltinPluginsToCopy.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
-
         <ItemGroup Condition="'$(RuntimeIdentifier)' == ''">
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
-                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(_BuiltinPluginsToCopy.FullPath)'))\bin\$(Configuration)\%(_BuiltinPluginsToCopy.PluginTargetFramework)\**\*.*">
+                <FolderName>%(_BuiltinPluginsToCopy.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
-
         <Copy SourceFiles="@(_PluginFiles)" DestinationFiles="@(_PluginFiles->'$(PluginsOutDir)%(FolderName)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
     </Target>
-
-
 
     <ItemGroup>
         <Resource Include="Assets\Contributors\plfjy.png" />

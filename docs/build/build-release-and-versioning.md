@@ -26,7 +26,11 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 
 WebRenderer 插件的前端由 Host sidecar 的 MSBuild target 调用 `pnpm` 构建（`pnpm install --frozen-lockfile` + `pnpm run build`），构建机需要 pnpm + Node.js。
 
-该步骤为非致命：若构建机未安装 pnpm/Node.js 或前端构建失败，MSBuild 不会中断主程序构建，而是发出警告并跳过该插件的打包——不复制到 `Plugins\`，Host sidecar 仍正常编译但不包含 `wwwroot`。主程序及其它内置插件照常构建。主程序运行时本就不依赖 WebRenderer sidecar / Node.js，因此构建期跳过该插件是安全的优雅降级。
+普通 Debug Build 在 pnpm 不可用或前端失败时警告并省略整个 WebRenderer 插件。Release、Beta、Preview Build 以及默认 Publish 必须具备完整前端与 sidecar 产物，否则失败。
+
+显式传入 `-p:WebRendererSkipWebBuild=true` 可省略整个 WebRenderer，包括直接 Publish 的精简产物；不会复用旧前端或旧插件输出。该选项适用于本地业务调试。`RequireWebRenderer=true` 表示必须包含 WebRenderer，与显式跳过同时设置时报错。
+
+官方 `build.ps1`（含 Beta/Preview wrapper）强制 `RequireWebRenderer=true`、`WebRendererSkipWebBuild=false`，并在调用安装器前检查最终插件 DLL、manifest、Host 程序、前端 index 和 JS。Actions 使用同一脚本，不能将缺件发布降级为成功。仅检查 `wwwroot` 目录存在不足以证明构建完整。
 
 ## 构建脚本
 
@@ -124,7 +128,7 @@ build/neo-bpsys-wpf_Installer_full.exe
 | Preview | 定义 `PREVIEW`，版本后缀 `-preview`，优化关闭、调试符号开启 |
 | Debug | 开发调试 |
 
-代码观察到的 caveat：`App.xaml.cs` 中更新检查条件写作 `#if !DEBUG && !Preview`，而 csproj 定义的是 `PREVIEW`。因此本文档不随口声称 Preview 构建一定跳过更新检查；本任务只记录 caveat，不修改代码。
+`App.xaml.cs` 的启动更新检查条件为 `#if !DEBUG && !PREVIEW`，与项目定义的 `PREVIEW` 一致。Debug 和 Preview 不编译该检查分支。
 
 ## 版本概念
 

@@ -8,11 +8,7 @@ public static class TutorialFlowIds
     /// <summary>标准首次运行 BP 教程流程 id。</summary>
     public const string FirstRunStandardBp = "Flow.FirstRun.StandardBp";
 
-    /// <summary>导航探针教程流程 id。</summary>
-    public const string Phase4ANavigationProbe = "Flow.Phase4A.NavigationProbe";
 
-    /// <summary>真实目标探针教程流程 id。</summary>
-    public const string Phase4RealTargetProbe = "Flow.Phase4.RealTargetProbe";
 }
 
 /// <summary>

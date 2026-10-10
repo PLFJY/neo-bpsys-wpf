@@ -146,7 +146,9 @@ Invoke-External -FilePath "dotnet" -Arguments @(
     "-o", $BuildPath,
     "-r", $RuntimeIdentifier,
     "--self-contained", $SelfContained,
-    "/p:BuildMeta=$GitHash"
+    "/p:BuildMeta=$GitHash",
+    "/p:RequireWebRenderer=true",
+    "/p:WebRendererSkipWebBuild=false"
 ) -ErrorMessage "dotnet publish failed"
 
 # Validate build artifact exists (required by Inno Setup script)
@@ -158,6 +160,16 @@ if (-not (Test-Path -LiteralPath $MainExe)) {
     throw "dotnet publish finished but main executable was not produced."
 }
 
+# Official installers always include the complete Web Renderer plugin.
+$WebRendererOutput = Join-Path $BuildPath "Plugins\top.plfjy.bpsys.WebRenderer"
+foreach ($requiredFile in @("neo-bpsys-wpf.WebRenderer.dll", "manifest.yml", "Host\neo-bpsys-wpf.WebRenderer.Host.exe", "Host\wwwroot\index.html", "Host\wwwroot\.web-renderer-build.stamp")) {
+    if (-not (Test-Path -LiteralPath (Join-Path $WebRendererOutput $requiredFile) -PathType Leaf)) {
+        throw "Required Web Renderer artifact missing: $requiredFile"
+    }
+}
+if (-not (Get-ChildItem -LiteralPath (Join-Path $WebRendererOutput "Host\wwwroot\assets") -Filter *.js -Recurse -File -ErrorAction SilentlyContinue)) {
+    throw "Required Web Renderer JavaScript assets are missing."
+}
 $ReleaseTag = (Get-Item -LiteralPath $MainExe).VersionInfo.ProductVersion.Trim()
 if ([string]::IsNullOrWhiteSpace($ReleaseTag)) {
     throw "Failed to read release tag from ProductVersion: $MainExe"

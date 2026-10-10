@@ -246,7 +246,9 @@ public partial class PluginPageViewModel
     /// </summary>
     private void InitializePluginMarket()
     {
-        _settingsHostService.Settings.PropertyChanged += Settings_PropertyChanged;
+        _observedSettings = _settingsHostService.Settings;
+        _observedSettings.PropertyChanged += Settings_PropertyChanged;
+        _settingsHostService.SettingsChanged += Settings_Replaced;
         if (PluginDownloadQueue is INotifyCollectionChanged notifyCollectionChanged)
         {
             notifyCollectionChanged.CollectionChanged += PluginDownloadQueue_CollectionChanged;
@@ -267,6 +269,25 @@ public partial class PluginPageViewModel
         OnPropertyChanged(nameof(HasPluginDownloadQueueItems));
         OnPropertyChanged(nameof(HasActivePluginDownloadQueueItems));
         OnPropertyChanged(nameof(PluginDownloadQueueCount));
+    }
+
+    private Core.Models.Settings? _observedSettings;
+
+    private void Settings_Replaced(object? sender, Core.Models.Settings settings)
+    {
+        void Synchronize()
+        {
+            if (_observedSettings is not null)
+                _observedSettings.PropertyChanged -= Settings_PropertyChanged;
+            _observedSettings = settings;
+            settings.PropertyChanged += Settings_PropertyChanged;
+            SyncPluginMarketSettingsFromSettings();
+        }
+
+        if (System.Windows.Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+            dispatcher.Invoke(Synchronize);
+        else
+            Synchronize();
     }
 
     /// <summary>

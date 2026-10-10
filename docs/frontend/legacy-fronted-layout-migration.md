@@ -4,11 +4,13 @@ Designer v3 layout package 是当前前台窗口自定义的唯一运行时来�
 
 ## 迁移入口
 
+旧 `ISettingsMigrationService`、`SettingsMigrationService` 和结果类型仅保留 Obsolete 兼容入口。旧检测返回 false，旧迁移返回未执行的失败结果，均不访问文件；实际升级必须经过下述启动迁移链。显式 `Version=1` 或 `Version=2` 不自动视为 legacy。
+
 启动加载 `%APPDATA%\neo-bpsys-wpf\Config.json` 时，如果 `Version` 缺失或为 `null`，`ILegacyV2StartupMigrationService` 会先备份原文件，再把旧前台字段转换成普通 v3 package：
 
 ```text
 FrontedLayoutPackages/
-  converted-v2-{config-sha256-prefix}/
+  converted-v2-{source-sha256-prefix}/
     manifest.json
     migration-state.json
     FrontedLayouts/{Window}.json
@@ -16,7 +18,7 @@ FrontedLayoutPackages/
     Resources/...
 ```
 
-包 id 使用原始 legacy `Config.json` 的 SHA-256 前缀，迁移状态记录 schema version、源 hash、备份路径、包 id 和迁移时间。同一份 legacy 配置重复启动时会复用已有 converted package，不会重复创建。只有 staging package 写入和校验成功后才会激活包并保存干净 Settings v3；失败时保留原始 `Config.json`，恢复原活动包，必要时回到 `builtin`。
+包 id 使用原始 legacy `Config.json`、旧 loose 布局文件 hash 和迁移 schema version 的联合 SHA-256 前缀。迁移状态记录 schema version、配置与布局 hash、备份路径、包 id 和迁移时间。源配置与布局未变、迁移状态匹配时会复用已有 converted package。只有 staging package 写入和校验成功后才会激活包并保存干净 Settings v3；失败时尽可能从备份恢复原始 `Config.json` 和原活动包，必要时回到 `builtin`；这不是完整事务，取消或失败后可能保留已经安装的转换包。
 
 旧字段映射到 converted package 内的 `FrontedLayouts`：
 

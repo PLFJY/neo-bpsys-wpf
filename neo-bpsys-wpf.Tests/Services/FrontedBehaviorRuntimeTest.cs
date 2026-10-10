@@ -7,7 +7,6 @@ using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,10 +17,6 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 /// <summary>
 /// 针对 <see cref="FrontedBehaviorRuntimeHost" /> 的测试。
-///
-/// FrontedBehaviorRuntimeHost 在 neo-bpsys-wpf.Core 中是 internal sealed
-/// （InternalsVisibleTo 仅授予 neo-bpsys-wpf 访问权限，不包括测试项目），
-/// 因此这些测试通过 <see cref="FrontedBehaviorRuntimeHostProxy" /> 使用反射。
 /// </summary>
 public class FrontedBehaviorRuntimeTest
 {
@@ -45,13 +40,12 @@ public class FrontedBehaviorRuntimeTest
 
         await RunOnStaThreadAsync(async () =>
         {
-            var proxy = CreateHostWithMocks(document, out var eventHandler, out var graphRuntimeMock);
+            var host = CreateHostWithMocks(document, out var eventHandler, out var graphRuntimeMock);
 
-            using (proxy)
+            using (host)
             {
-                await proxy.AttachAsync(document);
+                await host.AttachAsync(document);
                 await eventHandler(new FrontedBehaviorEvent { EventType = "ManualTrigger" });
-                await Task.Delay(100);
             }
 
             graphRuntimeMock.Verify(
@@ -81,19 +75,20 @@ public class FrontedBehaviorRuntimeTest
 
         await RunOnStaThreadAsync(async () =>
         {
-            var proxy = CreateHostWithBlockingMocks(document, out var eventHandler, out var graphRuntimeMock);
+            var host = CreateHostWithBlockingMocks(document, out var eventHandler, out var graphRuntimeMock);
 
-            using (proxy)
+            using (host)
             {
-                await proxy.AttachAsync(document);
+                await host.AttachAsync(document);
 
                 // First trigger
                 await eventHandler(new FrontedBehaviorEvent { EventType = "ManualTrigger" });
-                await graphRuntimeMock.FirstCallStarted;
+                await graphRuntimeMock.FirstCallStarted.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
                 // Second trigger — should cancel the first
                 await eventHandler(new FrontedBehaviorEvent { EventType = "ManualTrigger" });
-                await Task.Delay(100);
+                await graphRuntimeMock.FirstCallBlockedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+                await graphRuntimeMock.SecondCallStartedTcs.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
             }
 
             Assert.Equal(2, graphRuntimeMock.CallCount);
@@ -119,19 +114,18 @@ public class FrontedBehaviorRuntimeTest
 
         await RunOnStaThreadAsync(async () =>
         {
-            var proxy = CreateHostWithBlockingMocks(document, out var eventHandler, out var graphRuntimeMock);
+            var host = CreateHostWithBlockingMocks(document, out var eventHandler, out var graphRuntimeMock);
 
-            using (proxy)
+            using (host)
             {
-                await proxy.AttachAsync(document);
+                await host.AttachAsync(document);
 
                 // First trigger
                 await eventHandler(new FrontedBehaviorEvent { EventType = "ManualTrigger" });
-                await graphRuntimeMock.FirstCallStarted;
+                await graphRuntimeMock.FirstCallStarted.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
 
                 // Second trigger — should be ignored
                 await eventHandler(new FrontedBehaviorEvent { EventType = "ManualTrigger" });
-                await Task.Delay(100);
             }
 
             // Only one execution — the second should have been skipped
@@ -158,18 +152,17 @@ public class FrontedBehaviorRuntimeTest
         await RunOnStaThreadAsync(async () =>
         {
             // Use a real graph runtime so the graph actually gets processed
-            var proxy = CreateHostWithRealGraphRuntime(document, out var eventHandler);
+            var host = CreateHostWithRealGraphRuntime(document, out var eventHandler);
 
-            using (proxy)
+            using (host)
             {
-                await proxy.AttachAsync(document);
+                await host.AttachAsync(document);
 
                 // This should not throw despite the graph referencing a non-existent target
                 var ex = await Record.ExceptionAsync(() =>
                     eventHandler(new FrontedBehaviorEvent { EventType = "ManualTrigger" }));
                 Assert.Null(ex);
 
-                await Task.Delay(100);
             }
         });
     }
@@ -252,10 +245,10 @@ public class FrontedBehaviorRuntimeTest
     // ---------------------------------------------------------------
 
     /// <summary>
-    /// 创建一个使用模拟图运行时的宿主。返回代理、捕获的事件处理器，
+    /// 创建一个使用模拟图运行时的宿主。返回宿主、捕获的事件处理器，
     /// 以及 mock，调用方可以据此验证调用情况。
     /// </summary>
-    private static FrontedBehaviorRuntimeHostProxy CreateHostWithMocks(
+    private static FrontedBehaviorRuntimeHost CreateHostWithMocks(
         FrontedBehaviorDocument document,
         out Func<FrontedBehaviorEvent, Task> eventHandler,
         out Mock<IFrontedNodeGraphRuntime> graphRuntimeMock)
@@ -282,18 +275,18 @@ public class FrontedBehaviorRuntimeTest
         var animationRuntimeMock = new Mock<IFrontedAnimationRuntime>();
         var triggerEvaluator = new FrontedBehaviorTriggerEvaluator();
 
-        var proxy = new FrontedBehaviorRuntimeHostProxy(context, eventBusMock.Object, graphRuntimeMock.Object,
+        var host = new FrontedBehaviorRuntimeHost(context, eventBusMock.Object, graphRuntimeMock.Object,
             animationRuntimeMock.Object, triggerEvaluator);
 
         eventHandler = e => capturedHandler?.Invoke(e) ?? Task.CompletedTask;
-        return proxy;
+        return host;
     }
 
     /// <summary>
     /// 创建一个使用 <see cref="BlockableGraphRuntimeMock" /> 的宿主，让测试可以
     /// 控制首次执行何时完成。
     /// </summary>
-    private static FrontedBehaviorRuntimeHostProxy CreateHostWithBlockingMocks(
+    private static FrontedBehaviorRuntimeHost CreateHostWithBlockingMocks(
         FrontedBehaviorDocument document,
         out Func<FrontedBehaviorEvent, Task> eventHandler,
         out BlockableGraphRuntimeMock graphRuntimeMock)
@@ -312,18 +305,18 @@ public class FrontedBehaviorRuntimeTest
         var animationRuntimeMock = new Mock<IFrontedAnimationRuntime>();
         var triggerEvaluator = new FrontedBehaviorTriggerEvaluator();
 
-        var proxy = new FrontedBehaviorRuntimeHostProxy(context, eventBusMock.Object, graphRuntimeMock,
+        var host = new FrontedBehaviorRuntimeHost(context, eventBusMock.Object, graphRuntimeMock,
             animationRuntimeMock.Object, triggerEvaluator);
 
         eventHandler = e => capturedHandler?.Invoke(e) ?? Task.CompletedTask;
-        return proxy;
+        return host;
     }
 
     /// <summary>
     /// 创建一个使用真实 <see cref="FrontedNodeGraphRuntime" /> 的宿主，使图能被实际处理
     /// （用于 MissingTarget 测试）。
     /// </summary>
-    private static FrontedBehaviorRuntimeHostProxy CreateHostWithRealGraphRuntime(
+    private static FrontedBehaviorRuntimeHost CreateHostWithRealGraphRuntime(
         FrontedBehaviorDocument document,
         out Func<FrontedBehaviorEvent, Task> eventHandler)
     {
@@ -343,11 +336,11 @@ public class FrontedBehaviorRuntimeTest
         var animationRuntimeMock = new Mock<IFrontedAnimationRuntime>();
         var triggerEvaluator = new FrontedBehaviorTriggerEvaluator();
 
-        var proxy = new FrontedBehaviorRuntimeHostProxy(context, eventBusMock.Object, graphRuntime,
+        var host = new FrontedBehaviorRuntimeHost(context, eventBusMock.Object, graphRuntime,
             animationRuntimeMock.Object, triggerEvaluator);
 
         eventHandler = e => capturedHandler?.Invoke(e) ?? Task.CompletedTask;
-        return proxy;
+        return host;
     }
 
     /// <summary>
@@ -356,56 +349,6 @@ public class FrontedBehaviorRuntimeTest
     private static async Task RunOnStaThreadAsync(Func<Task> action)
     {
         await WpfTestThread.RunAsync(action);
-    }
-
-    // ---------------------------------------------------------------
-    // Reflection proxy for internal FrontedBehaviorRuntimeHost
-    // ---------------------------------------------------------------
-
-    /// <summary>
-    /// 通过反射访问 internal <c>FrontedBehaviorRuntimeHost</c> 的代理。
-    /// </summary>
-    internal sealed class FrontedBehaviorRuntimeHostProxy : IDisposable
-    {
-        private static readonly Type HostType = typeof(FrontedNodeGraphRuntime).Assembly
-            .GetType("neo_bpsys_wpf.Core.Services.FrontedLayout.FrontedBehaviorRuntimeHost")
-            ?? throw new InvalidOperationException("Type FrontedBehaviorRuntimeHost not found.");
-
-        private static readonly ConstructorInfo Constructor =
-            HostType.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single();
-
-        private static readonly MethodInfo AttachAsyncMethod =
-            HostType.GetMethod("AttachAsync", BindingFlags.Public | BindingFlags.Instance)
-            ?? throw new InvalidOperationException("Method AttachAsync not found.");
-
-        private readonly object _instance;
-
-        /// <summary>
-        /// 通过反射代理初始化一个新实例。
-        /// </summary>
-        public FrontedBehaviorRuntimeHostProxy(
-            FrontedBehaviorRuntimeContext context,
-            IFrontedEventBus eventBus,
-            IFrontedNodeGraphRuntime graphRuntime,
-            IFrontedAnimationRuntime animationRuntime,
-            FrontedBehaviorTriggerEvaluator triggerEvaluator)
-        {
-            _instance = Constructor.Invoke([context, eventBus, graphRuntime, animationRuntime, triggerEvaluator]);
-        }
-
-        /// <summary>
-        /// 调用 internal 宿主上的 <c>AttachAsync</c>。
-        /// </summary>
-        public Task AttachAsync(FrontedBehaviorDocument document)
-        {
-            return (Task)AttachAsyncMethod.Invoke(_instance, [document])!;
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            ((IDisposable)_instance).Dispose();
-        }
     }
 
     // ---------------------------------------------------------------
@@ -427,7 +370,8 @@ public class FrontedBehaviorRuntimeTest
         public Task FirstCallStarted => FirstCallStartedTcs.Task;
 
         internal TaskCompletionSource FirstCallStartedTcs { get; } = new();
-        internal TaskCompletionSource FirstCallBlockedTcs { get; } = new();
+        internal TaskCompletionSource FirstCallBlockedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource SecondCallStartedTcs { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal CancellationToken? FirstToken { get; private set; }
 
         /// <summary>首次调用的令牌是否已被取消。</summary>
@@ -459,6 +403,8 @@ public class FrontedBehaviorRuntimeTest
                 FirstCallBlockedTcs.TrySetResult();
                 return new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Cancelled };
             }
+
+            SecondCallStartedTcs.TrySetResult();
 
             // Second call completes immediately
             return new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Success };

@@ -58,6 +58,20 @@ public interface IFrontedLayoutPackageManager
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 更新当前活动包中用户自定义 v3 窗口的显示名称，保持窗口身份及布局内容不变。
+    /// </summary>
+    /// <param name="canonicalWindowId">要修改的 custom Canonical ID。</param>
+    /// <param name="displayNames">简体中文、英语（美国）和日语的显示名称，至少一个非空。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>名称保存完成后结束的任务。</returns>
+    /// <exception cref="ArgumentException">窗口 ID 无效、名称全部为空或名称超长。</exception>
+    /// <exception cref="InvalidOperationException">窗口不属于活动用户包、未注册或布局无效。</exception>
+    Task UpdateCustomWindowDisplayNamesAsync(
+        string canonicalWindowId,
+        IReadOnlyDictionary<string, string> displayNames,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 删除当前活动包中的用户自定义 v3 窗口及其布局、行为文件。
     /// </summary>
     /// <param name="canonicalWindowId">要删除的 custom Canonical ID。</param>

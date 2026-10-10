@@ -98,8 +98,10 @@ var recognizedData = await Task.Run(
 
 | 位置 | 原因 |
 | --- | --- |
-| `App.OnStartup` / `App.OnExit` | WPF override 签名 |
-| `App.OnDispatcherUnhandledException` | WPF 事件 |
+| `App.OnStartup` | WPF override 签名 |
+
+
+`App.OnExit` 和全局异常回调使用同步诊断。WPF 不等待异步 OnExit，因此 Host 停止采用不捕获 UI 同步上下文的有期限同步等待；关闭中的 Dispatcher 不可作为插件停止 continuation 的必要条件。
 
 `async void` 不应出现在普通业务方法中。事件处理器内必须自行捕获异常、清理状态并通知 UI。
 

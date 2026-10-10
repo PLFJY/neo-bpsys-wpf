@@ -757,56 +757,8 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         return outputPath;
     }
 
-    /// <summary>
-    /// Task 5.4：导入包含未安装插件窗口（plugin:missing.plugin/Overlay）的 .bpui 包应成功，
-    /// 不因当前 Registry 中缺少该插件而阻止导入。
-    /// </summary>
     [Fact]
-    public async Task UnknownPluginWindow_ImportSucceeds()
-    {
-        var root = CreateTempDirectory();
-        try
-        {
-            var archivePath = Path.Combine(root, "unknown-plugin.bpui");
-            CreateUnknownPluginBpuiArchive(archivePath);
-
-            var packageRoot = Path.Combine(root, "packages");
-            var builtInRoot = Path.Combine(root, "builtIn");
-            var tempRoot = Path.Combine(root, "temp");
-            Directory.CreateDirectory(builtInRoot);
-
-            var packageManager = new FrontedLayoutPackageManager(
-                packageRoot,
-                builtInRoot,
-                logger: NullLogger<FrontedLayoutPackageManager>.Instance);
-
-            var importer = new FrontedLayoutPackageImporter(
-                packageRoot,
-                tempRoot,
-                packageManager: packageManager,
-                controlRegistry: CreateTextOnlyRegistry());
-
-            var importResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
-            {
-                PackagePath = archivePath,
-                ReplaceExisting = true,
-                ActivateAfterImport = true
-            }, TestContext.Current.CancellationToken);
-
-            Assert.True(importResult.Success, importResult.ErrorMessage);
-
-            // 导入后布局文件应存在于包目录中。
-            var layoutPath = Path.Combine(packageRoot, "unknown-plugin-package", "FrontedLayouts", "plugin", "missing.plugin", "Overlay.json");
-            Assert.True(File.Exists(layoutPath), "导入后未知插件窗口的布局文件应存在");
-        }
-        finally
-        {
-            DeleteTempDirectory(root);
-        }
-    }
-
-    [Fact]
-    public async Task UnknownPluginWindow_ImportExportPreservesEntry()
+    public async Task UnknownPluginWindow_ImportExportPreservesLayoutIdentityExtensionsAndBehavior()
     {
         var root = CreateTempDirectory();
         try
@@ -815,55 +767,15 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             CreateUnknownPluginBpuiArchive(archivePath);
             var outputPath = await ImportActivateExportAsync(root, archivePath);
 
+            Assert.True(File.Exists(Path.Combine(root, "packages", "unknown-plugin-package", "FrontedLayouts", "plugin", "missing.plugin", "Overlay.json")));
             using var archive = ZipFile.OpenRead(outputPath);
-            var manifest = ReadManifest(archive);
-            Assert.Contains(manifest.Content.Layouts, entry =>
-                string.Equals(entry.Window, "plugin:missing.plugin/Overlay", StringComparison.OrdinalIgnoreCase));
-        }
-        finally
-        {
-            DeleteTempDirectory(root);
-        }
-    }
-
-    [Fact]
-    public async Task UnknownPluginWindow_ImportExportPreservesPath()
-    {
-        var root = CreateTempDirectory();
-        try
-        {
-            var archivePath = Path.Combine(root, "unknown-plugin.bpui");
-            CreateUnknownPluginBpuiArchive(archivePath);
-            var outputPath = await ImportActivateExportAsync(root, archivePath);
-
-            using var archive = ZipFile.OpenRead(outputPath);
-            var manifest = ReadManifest(archive);
-            var entry = Assert.Single(manifest.Content.Layouts);
+            var entry = Assert.Single(ReadManifest(archive).Content.Layouts);
             Assert.Equal("plugin:missing.plugin/Overlay", entry.Window);
             Assert.Equal("FrontedLayouts/plugin/missing.plugin/Overlay.json", entry.Path);
-            Assert.Contains(archive.Entries, e =>
-                string.Equals(e.FullName, "FrontedLayouts/plugin/missing.plugin/Overlay.json", StringComparison.OrdinalIgnoreCase));
-            var layoutJson = ReadZipEntry(archive, "FrontedLayouts/plugin/missing.plugin/Overlay.json");
+            Assert.Contains(archive.Entries, e => e.FullName == entry.Path);
+            var layoutJson = ReadZipEntry(archive, entry.Path);
             Assert.Contains("VendorExtension", layoutJson);
             Assert.Contains("KeepMe", layoutJson);
-        }
-        finally
-        {
-            DeleteTempDirectory(root);
-        }
-    }
-
-    [Fact]
-    public async Task UnknownPluginWindow_ImportExportPreservesBehavior()
-    {
-        var root = CreateTempDirectory();
-        try
-        {
-            var archivePath = Path.Combine(root, "unknown-plugin.bpui");
-            CreateUnknownPluginBpuiArchive(archivePath);
-            var outputPath = await ImportActivateExportAsync(root, archivePath);
-
-            using var archive = ZipFile.OpenRead(outputPath);
             Assert.Contains(archive.Entries, e =>
                 string.Equals(e.FullName, "FrontedBehaviors/plugin/missing.plugin/Overlay.behaviors.json", StringComparison.OrdinalIgnoreCase));
             var behaviorJson = ReadZipEntry(archive, "FrontedBehaviors/plugin/missing.plugin/Overlay.behaviors.json");

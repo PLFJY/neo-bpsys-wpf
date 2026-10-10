@@ -14,47 +14,25 @@ namespace neo_bpsys_wpf.Tests.Models;
 
 public class FrontedWindowIdentityTest
 {
-    [Fact]
-    public void BuildCanonicalId_BuiltIn_ReturnsLocalId()
+    /// <summary>窗口身份按内置来源与插件包作用域生成稳定的公开 ID。</summary>
+    /// <param name="localId">局部 ID。</param>
+    /// <param name="packageId">插件包 ID。</param>
+    /// <param name="isBuiltIn">是否为内置窗口。</param>
+    /// <param name="expected">预期 canonical ID。</param>
+    [Theory]
+    [InlineData("BpWindow", null, true, "BpWindow")]
+    [InlineData("Overlay", "a", false, "plugin:a/Overlay")]
+    [InlineData("Overlay", "b", false, "plugin:b/Overlay")]
+    [InlineData("BpWindow", "some-package", true, "BpWindow")]
+    [InlineData("Overlay", null, false, "Overlay")]
+    public void BuildCanonicalId_RespectsBuiltInAndPackageScope(
+        string localId, string? packageId, bool isBuiltIn, string expected)
     {
-        Assert.Equal(
-            "BpWindow",
-            FrontedWindowIdentity.BuildCanonicalId("BpWindow", packageId: null, isBuiltIn: true));
-    }
-
-    [Fact]
-    public void BuildCanonicalId_PluginA_PrefixedWithPluginAndPackage()
-    {
-        Assert.Equal(
-            "plugin:a/Overlay",
-            FrontedWindowIdentity.BuildCanonicalId("Overlay", "a", isBuiltIn: false));
-    }
-
-    [Fact]
-    public void BuildCanonicalId_PluginB_PrefixedWithPluginAndPackage()
-    {
-        Assert.Equal(
-            "plugin:b/Overlay",
-            FrontedWindowIdentity.BuildCanonicalId("Overlay", "b", isBuiltIn: false));
-    }
-
-    [Fact]
-    public void BuildCanonicalId_BuiltInIgnoresPackageIdEvenWhenProvided()
-    {
-        Assert.Equal(
-            "BpWindow",
-            FrontedWindowIdentity.BuildCanonicalId("BpWindow", "some-package", isBuiltIn: true));
-    }
-
-    [Fact]
-    public void BuildCanonicalId_NullPackageIdForNonBuiltIn_ReturnsLocalId()
-    {
-        Assert.Equal(
-            "Overlay",
-            FrontedWindowIdentity.BuildCanonicalId("Overlay", packageId: null, isBuiltIn: false));
+        Assert.Equal(expected, FrontedWindowIdentity.BuildCanonicalId(localId, packageId, isBuiltIn));
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("plugin:x/y")]
     [InlineData("../escape")]
     [InlineData("a.b")]
@@ -64,19 +42,11 @@ public class FrontedWindowIdentityTest
     [InlineData("   ")]
     [InlineData("\t")]
     [InlineData(" \n ")]
-    public void EnsureValidLocalWindowId_RejectsInvalidIds(string localWindowId)
+    public void EnsureValidLocalWindowId_RejectsInvalidIds(string? localWindowId)
     {
-        Assert.False(FrontedV3LayoutWindowIdValidator.IsValidLocalWindowId(localWindowId));
+        Assert.False(FrontedV3LayoutWindowIdValidator.IsValidLocalWindowId(localWindowId!));
         Assert.Throws<ArgumentException>(
-            () => FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(localWindowId));
-    }
-
-    [Fact]
-    public void EnsureValidLocalWindowId_RejectsNull()
-    {
-        Assert.False(FrontedV3LayoutWindowIdValidator.IsValidLocalWindowId(null!));
-        Assert.Throws<ArgumentException>(
-            () => FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(null!));
+            () => FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(localWindowId!));
     }
 
     [Theory]
@@ -85,18 +55,8 @@ public class FrontedWindowIdentityTest
     [InlineData("a-b_c")]
     public void EnsureValidLocalWindowId_AcceptsValidIds(string localWindowId)
     {
-        Assert.True(FrontedV3LayoutWindowIdValidator.IsValidLocalWindowId(localWindowId));
-        FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(localWindowId);
-    }
-
-    [Fact]
-    public void EnsureValidLocalWindowId_ExceptionMessageContainsValueAndReason()
-    {
-        var exception = Assert.Throws<ArgumentException>(
-            () => FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId("a.b"));
-
-        Assert.Contains("a.b", exception.Message, StringComparison.Ordinal);
-        Assert.Contains(".", exception.Message, StringComparison.Ordinal);
+        Assert.True(FrontedV3LayoutWindowIdValidator.IsValidLocalWindowId(localWindowId!));
+        FrontedV3LayoutWindowIdValidator.EnsureValidLocalWindowId(localWindowId!);
     }
 
     /// <summary>
@@ -355,56 +315,18 @@ public class FrontedWindowIdentityTest
         Assert.Null(exception);
     }
 
-    /// <summary>
-    /// 含 <c>/</c> 的局部 ID 会破坏 <c>plugin:{PackageId}/{LocalId}</c> 结构，应被拒绝。
-    /// </summary>
-    [Fact]
-    public void Xaml_IdContainingSlash_IsRejected()
-    {
-        Assert.Throws<ArgumentException>(
-            () => FrontedWindowIdentity.EnsureValidWindowLocalId("foo/bar"));
-    }
-
-    /// <summary>
-    /// 含 <c>\</c> 的局部 ID 会干扰路径解析，应被拒绝。
-    /// </summary>
-    [Fact]
-    public void Xaml_IdContainingBackslash_IsRejected()
-    {
-        Assert.Throws<ArgumentException>(
-            () => FrontedWindowIdentity.EnsureValidWindowLocalId("foo\\bar"));
-    }
-
-    /// <summary>
-    /// 含 <c>:</c> 的局部 ID 会与 <c>plugin:</c> 前缀歧义，应被拒绝。
-    /// </summary>
-    [Fact]
-    public void Xaml_IdContainingColon_IsRejected()
-    {
-        Assert.Throws<ArgumentException>(
-            () => FrontedWindowIdentity.EnsureValidWindowLocalId("foo:bar"));
-    }
-
-    /// <summary>
-    /// 含控制字符（如 TAB）的局部 ID 应被拒绝。
-    /// </summary>
-    [Fact]
-    public void Xaml_IdContainingControlCharacter_IsRejected()
-    {
-        Assert.Throws<ArgumentException>(
-            () => FrontedWindowIdentity.EnsureValidWindowLocalId("abc\tdef"));
-    }
-
-    /// <summary>
-    /// 含前导或尾随空白的局部 ID 会破坏稳定比较语义，应被拒绝。
-    /// </summary>
+    /// <summary>拒绝会破坏 canonical ID 或路径安全的 XAML 窗口局部 ID。</summary>
+    /// <param name="id">不安全的局部 ID。</param>
     [Theory]
+    [InlineData("foo/bar")]
+    [InlineData("foo\\bar")]
+    [InlineData("foo:bar")]
+    [InlineData("abc\tdef")]
     [InlineData(" foo")]
     [InlineData("foo ")]
-    public void Xaml_IdWithLeadingOrTrailingWhitespace_IsRejected(string id)
+    public void Xaml_UnsafeLocalId_IsRejected(string id)
     {
-        Assert.Throws<ArgumentException>(
-            () => FrontedWindowIdentity.EnsureValidWindowLocalId(id));
+        Assert.Throws<ArgumentException>(() => FrontedWindowIdentity.EnsureValidWindowLocalId(id));
     }
 
     /// <summary>

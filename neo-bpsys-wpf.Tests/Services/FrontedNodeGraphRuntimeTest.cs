@@ -384,7 +384,8 @@ public class FrontedNodeGraphRuntimeTest
             TestContext.Current.CancellationToken);
 
         // B should not execute while animation is blocked
-        await Task.Delay(50, TestContext.Current.CancellationToken);
+        await blockingExecutor.Started.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        Assert.False(resultTask.IsCompleted);
         Assert.DoesNotContain(blockingExecutor.CompletedRequests, r => r.RequestType == FrontedGraphActionRequestType.AnimateProperty);
 
         // Signal completion
@@ -669,6 +670,7 @@ public class FrontedNodeGraphRuntimeTest
     private sealed class BlockingActionExecutor(bool completeImmediately = false) : IFrontedGraphActionExecutor
     {
         private readonly TaskCompletionSource _completion = new();
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public List<FrontedGraphActionRequest> CompletedRequests { get; } = [];
 
         public void Complete() => _completion.TrySetResult();
@@ -681,6 +683,7 @@ public class FrontedNodeGraphRuntimeTest
                 return;
             }
 
+            Started.TrySetResult();
             await _completion.Task.WaitAsync(cancellationToken);
             CompletedRequests.Add(request);
         }

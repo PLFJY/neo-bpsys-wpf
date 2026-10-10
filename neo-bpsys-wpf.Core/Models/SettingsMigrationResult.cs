@@ -3,6 +3,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 设置迁移结果
 /// </summary>
+[Obsolete("Compatibility result for the retired ISettingsMigrationService. Use LegacyV2StartupMigrationResult.")]
 public class SettingsMigrationResult
 {
     /// <summary>

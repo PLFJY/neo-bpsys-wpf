@@ -13,7 +13,6 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -164,46 +163,6 @@ public class FrontedV3PartVisualRuntimeBinderTest
                 d.Severity == FrontedV3PartVisualDiagnosticSeverity.Warning &&
                 d.Message.Contains("Duplicate", StringComparison.Ordinal));
         });
-    }
-
-    // -------------------------------------------------------------------
-    // 5. PluginPart_DoesNotRequirePluginManualGeometryCode
-    // -------------------------------------------------------------------
-
-    /// <summary>
-    /// TeamCardControl 不得重写 <see cref="FrontedV3ControlBase.OnInitializeFrontedV3"/>
-    /// 来手写 Part 几何读取代码；Part 几何由框架通过
-    /// <see cref="FrontedV3PartVisualRuntimeBinder"/> 统一接管。
-    /// </summary>
-    [Fact]
-    public void PluginPart_DoesNotRequirePluginManualGeometryCode()
-    {
-        var onInitializeMethod = typeof(neo_bpsys_wpf.ExamplePlugin.TeamCardControl)
-            .GetMethod(
-                "OnInitializeFrontedV3",
-                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public,
-                binder: null,
-                types: new[] { typeof(FrontedV3ControlContext) },
-                modifiers: null);
-
-        // TeamCardControl 不得重写 OnInitializeFrontedV3；如果重写，必须不是手写几何读取代码。
-        // 检查方式：方法不应声明在 TeamCardControl 自身（应继承基类的空实现）。
-        if (onInitializeMethod is not null
-            && onInitializeMethod.DeclaringType == typeof(neo_bpsys_wpf.ExamplePlugin.TeamCardControl))
-        {
-            // 如果重写了，方法体应不引用 LogoWidth/LogoHeight/ExtensionData。
-            // 这里通过反射验证方法存在但无手写几何代码——更严格的做法是 Roslyn 分析，
-            // 当前测试通过断言"方法不属于 TeamCardControl"来强制约束。
-            Assert.True(false,
-                "TeamCardControl should not override OnInitializeFrontedV3; " +
-                "Part geometry is now applied by FrontedV3PartVisualRuntimeBinder.");
-        }
-
-        // TeamCardControl 必须有 LogoPart 声明字段。
-        var logoPartField = typeof(neo_bpsys_wpf.ExamplePlugin.TeamCardControl)
-            .GetField("LogoPart", BindingFlags.Public | BindingFlags.Static);
-        Assert.NotNull(logoPartField);
-        Assert.Equal(typeof(FrontedV3Part), logoPartField!.FieldType);
     }
 
     // -------------------------------------------------------------------

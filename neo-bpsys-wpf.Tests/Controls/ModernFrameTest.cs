@@ -190,7 +190,7 @@ public class ModernFrameTest
         {
             if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
             {
-                return;
+                Assert.Skip("Requires WPF rendering acceleration and enabled client-area animations.");
             }
 
             var frame = new ModernFrame
@@ -356,7 +356,7 @@ public class ModernFrameTest
         {
             if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
             {
-                return;
+                Assert.Skip("Requires WPF rendering acceleration and enabled client-area animations.");
             }
 
             var frame = new ModernFrame
@@ -458,7 +458,7 @@ public class ModernFrameTest
         {
             if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
             {
-                return;
+                Assert.Skip("Requires WPF rendering acceleration and enabled client-area animations.");
             }
 
             var first = new Border();

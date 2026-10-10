@@ -576,19 +576,6 @@
   <data name="Dialogue.FirstRun.Ending">
     <value>前台界面编辑会在首次打开 v3 编辑器时单独教学。&#10;智慧 BP 会在首次进入智慧 BP 页面时单独教学。&#10;开始你的导播之旅吧。</value>
   </data>
-  <!-- Probe Dialogues (NeoBpsysTutorialFlows.cs) -->
-  <data name="Dialogue.Probe.Navigation.Opening.Lines">
-    <value>现在我们验证左侧导航栏的教程引导。</value>
-  </data>
-  <data name="Dialogue.Probe.Navigation.Closing.Lines">
-    <value>导航引导验证完成。</value>
-  </data>
-  <data name="Dialogue.Probe.RealTarget.Opening.Lines">
-    <value>现在开始验证真实页面目标和操作信号。</value>
-  </data>
-  <data name="Dialogue.Probe.RealTarget.Closing.Lines">
-    <value>真实目标验证完成。完整教学流程会在后续版本中提供。</value>
-  </data>
   <!-- FrontedLayoutPackagesView.Tutorials.cs -->
   <data name="Step.FrontManageLayoutPackagesBasic.0.Title">
     <value>布局包列表</value>
