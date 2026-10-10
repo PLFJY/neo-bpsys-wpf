@@ -105,8 +105,8 @@ internal sealed class SmartBpOcrBpRecognitionService(
         ICollection<string> diagnostics,
         CancellationToken cancellationToken)
     {
-        var crops = parser.GetMergedPlayerNameCrops(lines, context);
-        if (crops.Count == 0)
+        var plans = parser.GetMergedPlayerNameCrops(lines, context);
+        if (plans.Count == 0)
             return;
 
         await Task.Run(() =>
@@ -115,30 +115,54 @@ internal sealed class SmartBpOcrBpRecognitionService(
             var region = cropper.CropWithInfo(frame, SmartBpRecognitionRegion.LeftBottom);
             using var raw = BitmapSourceConverter.ToMat(region.Image);
             using var bgr = ToBgr(raw);
-            foreach (var (slotIndex, requestedBounds) in crops)
+            var options = new OcrRecognitionOptions
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                // 合并文字没有可靠的单槽位含义，重识别失败时也不能保留整串名称。
-                var slot = parsed.Slots.Single(slot => slot.Index == slotIndex);
-                slot.PlayerId = null;
-                var bounds = requestedBounds.Intersect(new Rect(0, 0, bgr.Width, bgr.Height));
-                if (bounds.Width <= 0 || bounds.Height <= 0)
-                    continue;
-                using var nameCrop = new Mat(bgr, bounds);
-                using var padded = new Mat();
-                using var enlarged = new Mat();
-                Cv2.CopyMakeBorder(nameCrop, padded, 12, 12, 12, 12, BorderTypes.Constant, Scalar.All(0));
-                Cv2.Resize(padded, enlarged, new Size(), 2, 2, InterpolationFlags.Cubic);
-                var result = ocr.RecognizeTextLines(enlarged);
-                cancellationToken.ThrowIfCancellationRequested();
-                var name = SmartBpOcrTextResolver.NormalizeText(string.Concat(result.Lines
-                    .OrderBy(line => line.CenterX).Select(line => line.Text)));
-                if (!string.IsNullOrWhiteSpace(name) && !SmartBpBusinessStateParser.IsUnselected(name))
-                    slot.PlayerId = name;
-                diagnostics.Add($"picked_sur player-name re-OCR: slot={slotIndex}; region-local crop={bounds}; provider={result.Provider ?? ocr.SelectedProvider.ToString()}; player_id={slot.PlayerId ?? "null"}.");
+                Psm = 7,
+                PreferChinese = true,
+                PreferEnglish = true,
+                UsePreprocessingVariants = false
+            };
+            foreach (var (sourceText, crops) in plans)
+            {
+                var names = new List<(int SlotIndex, string Name)>();
+                var valid = true;
+                foreach (var (slotIndex, requestedBounds) in crops)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var bounds = requestedBounds.Intersect(new Rect(0, 0, bgr.Width, bgr.Height));
+                    if (bounds != requestedBounds || bounds.Width <= 0 || bounds.Height <= 0)
+                    {
+                        valid = false;
+                        diagnostics.Add($"picked_sur single-line player-name rejected: slot={slotIndex}; reason=crop-outside-region; crop={requestedBounds}.");
+                        break;
+                    }
+                    using var view = new Mat(bgr, bounds);
+                    // 独立像素缓冲隔离父图；不加边、不放大，交给单行识别入口。
+                    using var nameCrop = view.Clone();
+                    var result = ocr.RecognizeSingleText(nameCrop, options);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var name = SmartBpOcrTextResolver.NormalizeText(result?.Text);
+                    var accepted = result != null && double.IsFinite(result.Confidence) && result.Confidence >= .90 &&
+                        !string.IsNullOrWhiteSpace(name) && !name.Contains('\n') && !name.Contains('\r') &&
+                        !SmartBpBusinessStateParser.IsUnselected(name);
+                    valid &= accepted;
+                    names.Add((slotIndex, name));
+                    diagnostics.Add($"picked_sur single-line player-name candidate: slot={slotIndex}; region-local crop={bounds}; provider={result?.Provider ?? ocr.SelectedProvider.ToString()}; text={name}; confidence={result?.Confidence ?? 0:0.00}; valid={accepted}.");
+                }
+                // 只有完整拆分能够还原原始文字时才整组提交；不以模糊匹配容忍串行或幻觉。
+                var matchesSource = PlayerNameEvidence(string.Concat(names.Select(item => item.Name))) == PlayerNameEvidence(sourceText);
+                if (valid && matchesSource)
+                {
+                    foreach (var (slotIndex, name) in names)
+                        parsed.Slots.Single(slot => slot.Index == slotIndex).PlayerId = name;
+                }
+                diagnostics.Add($"picked_sur player-name recovery: slots=[{string.Join(",", crops.Select(item => item.SlotIndex))}]; source={sourceText}; accepted={valid && matchesSource}; reason={(valid && matchesSource ? "source-text-confirmed" : valid ? "source-text-mismatch" : "invalid-single-line-result")}.");
             }
         }, cancellationToken).ConfigureAwait(false);
     }
+
+    private static string PlayerNameEvidence(string text) =>
+        string.Concat(SmartBpOcrTextResolver.NormalizeText(text).Where(character => !char.IsWhiteSpace(character)));
 
     private async Task<IReadOnlyList<SmartBpOcrRegionText>> RecognizeContactSheetAsync(
         BitmapSource frame,

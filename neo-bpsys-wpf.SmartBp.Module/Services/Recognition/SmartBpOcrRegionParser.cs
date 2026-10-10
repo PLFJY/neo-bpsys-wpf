@@ -181,14 +181,17 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         diagnostics.Add($"picked_sur selected character row={characterRowScored.PhysicalIndex}; player-id row={playerRowScored?.PhysicalIndex ?? -1}");
 
         // 分配 character slots。
-        var slotCenters = BuildSlotCentersFromXRange(xMin, xMax, slots.Count);
+        var characterCenters = GetPickedSurCharacterCenters(characterRowScored);
+        var slotCenters = characterCenters ?? BuildSlotCentersFromXRange(xMin, xMax, slots.Count);
         var characterItems = characterRowScored.Lines.OrderBy(line => line.CenterX).ToArray();
         var assignedCharacterSlots = new HashSet<int>();
         foreach (var item in characterItems)
         {
             if (assignedCharacterSlots.Count >= slots.Count)
                 break;
-            var slotIndex = ResolveSurvivorSlotIndex(item.CenterX, xMin, xMax, slots.Count);
+            var slotIndex = characterCenters != null
+                ? FindNearestSlot(item.CenterX, slotCenters)
+                : ResolveSurvivorSlotIndex(item.CenterX, xMin, xMax, slots.Count);
             if (assignedCharacterSlots.Contains(slotIndex))
                 slotIndex = Enumerable.Range(0, slots.Count)
                     .Where(index => !assignedCharacterSlots.Contains(index))
@@ -200,7 +203,12 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
 
         // 分配 player IDs。
         if (playerRowScored != null)
-            AssignPickedSurPlayerIdsBySlot(slots, slotCenters, playerRowScored.Lines, xMin, xMax, diagnostics);
+        {
+            if (characterCenters != null)
+                AssignPickedSurPlayerIdsByAnchors(slots, characterCenters, playerRowScored.Lines, diagnostics);
+            else
+                AssignPickedSurPlayerIdsBySlot(slots, slotCenters, playerRowScored.Lines, xMin, xMax, diagnostics);
+        }
 
         // 全局快照和已选定角色阶段均可能包含 talent/extra 行，只把角色行和选手 ID 行写入业务槽位。
         if (mode is SmartBpPickedSurOcrParseMode.GlobalSnapshot or
@@ -239,11 +247,11 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         return (characterRowScored, playerRowScored);
     }
 
-    /// <summary>为横跨多个已识别角色中心的玩家名称框生成逐槽位重识别裁剪。</summary>
+    /// <summary>为无槽位冲突的合并名称框生成局部单行识别计划，并保留原文用于验收。</summary>
     /// <param name="lines">求生者区域的原始 OCR 文本。</param>
     /// <param name="context">字段解析上下文。</param>
-    /// <returns>待重识别的槽位及区域局部裁剪框；角色锚点不足或没有合并框时为空。</returns>
-    internal IReadOnlyList<(int SlotIndex, Rect Bounds)> GetMergedPlayerNameCrops(
+    /// <returns>每个合并框的原文及逐槽裁剪；角色锚点不足或存在冲突时不生成对应计划。</returns>
+    internal IReadOnlyList<(string SourceText, IReadOnlyList<(int SlotIndex, Rect Bounds)> Crops)> GetMergedPlayerNameCrops(
         IReadOnlyList<OcrTextLine> lines, SmartBpOcrFieldParseContext context)
     {
         if (context.ResolvePickedSurParseMode() == SmartBpPickedSurOcrParseMode.Unknown)
@@ -255,31 +263,71 @@ internal sealed class SmartBpOcrRegionParser(ISmartBpOcrTextResolver resolver)
         var rows = ClusterRows(layout, CalculateRowTolerance(layout));
         var (character, player) = SelectPickedSurRows(rows
             .Select((row, index) => ScoreRow(row, index, xMin, xMax)).ToArray());
-        if (character == null || player == null || character.Lines.Count != 4 ||
-            character.Features.ValidSurvivorCharacterCount + character.Features.UnselectedCount != 4)
+        var centers = GetPickedSurCharacterCenters(character);
+        if (centers == null || player == null)
             return [];
 
-        var centers = character.Lines.Select(line => line.CenterX).Order().ToArray();
-        if (centers.Zip(centers.Skip(1), (left, right) => right - left).Any(gap => gap <= 0))
-            return [];
-        var affectedSlots = new HashSet<int>();
+        var plans = new List<(string, IReadOnlyList<(int, Rect)>)>();
         foreach (var line in player.Lines)
         {
-            var covered = Enumerable.Range(0, 4).Where(index =>
-                line.BoundingBox.Left <= centers[index] && line.BoundingBox.Right >= centers[index]).ToArray();
-            if (covered.Length > 1)
-                affectedSlots.UnionWith(covered);
+            var covered = GetPlayerNameSlots(line, centers);
+            if (covered.Length < 2 || player.Lines.Any(other =>
+                    !ReferenceEquals(other, line) && GetPlayerNameSlots(other, centers).Intersect(covered).Any()))
+                continue;
+            var crops = covered.Select(index =>
+            {
+                // 只切原始合并框，不扩展到整个槽位或整行高度。
+                var left = index == 0 ? line.BoundingBox.Left
+                    : Math.Max(line.BoundingBox.Left, (int)Math.Floor((centers[index - 1] + centers[index]) / 2));
+                var right = index == 3 ? line.BoundingBox.Right
+                    : Math.Min(line.BoundingBox.Right, (int)Math.Floor((centers[index] + centers[index + 1]) / 2));
+                return (index, new Rect(left, line.BoundingBox.Top, right - left, line.BoundingBox.Height));
+            }).ToArray();
+            plans.Add((line.Text, crops));
         }
-        var top = player.Lines.Min(line => line.BoundingBox.Top);
-        var bottom = player.Lines.Max(line => line.BoundingBox.Bottom);
-        return affectedSlots.Order().Select(index =>
+        return plans;
+    }
+
+    private static double[]? GetPickedSurCharacterCenters(ScoredRow? character)
+    {
+        if (character == null || character.Lines.Count != 4 ||
+            character.Features.ValidSurvivorCharacterCount + character.Features.UnselectedCount != 4)
+            return null;
+        var centers = character.Lines.Select(line => line.CenterX).Order().ToArray();
+        return centers.Zip(centers.Skip(1), (left, right) => right - left).All(gap => gap > 0) ? centers : null;
+    }
+
+    private static int FindNearestSlot(double centerX, IReadOnlyList<double> centers) =>
+        Enumerable.Range(0, centers.Count).OrderBy(index => Math.Abs(centerX - centers[index])).First();
+
+    private static int[] GetPlayerNameSlots(OcrLineLayout line, IReadOnlyList<double> centers)
+    {
+        var covered = Enumerable.Range(0, centers.Count).Where(index =>
+            line.BoundingBox.Left <= centers[index] && line.BoundingBox.Right >= centers[index]).ToArray();
+        return covered.Length > 1 ? covered : [FindNearestSlot(line.CenterX, centers)];
+    }
+
+    private void AssignPickedSurPlayerIdsByAnchors(
+        IReadOnlyList<SmartBpRecognizedPlayerCharacterSlot> slots,
+        IReadOnlyList<double> centers,
+        IReadOnlyList<OcrLineLayout> playerRow,
+        ICollection<string> diagnostics)
+    {
+        var candidates = playerRow.Select(line => (Line: line, Slots: GetPlayerNameSlots(line, centers))).ToArray();
+        foreach (var slot in slots)
         {
-            var left = (int)Math.Floor(index == 0 ? centers[0] - (centers[1] - centers[0]) / 2
-                : (centers[index - 1] + centers[index]) / 2);
-            var right = (int)Math.Floor(index == 3 ? centers[3] + (centers[3] - centers[2]) / 2
-                : (centers[index] + centers[index + 1]) / 2);
-            return (index, new Rect(left, top, right - left, bottom - top));
-        }).ToArray();
+            var matches = candidates.Where(item => item.Slots.Contains(slot.Index)).ToArray();
+            if (matches.Length != 1 || matches[0].Slots.Length != 1)
+            {
+                if (matches.Length > 0)
+                    diagnostics.Add($"picked_sur player_id pending: slot={slot.Index}; reason=merged-or-conflicting-boxes.");
+                continue;
+            }
+            var line = matches[0].Line;
+            if (!IsInvalidPlayerId(line.Text))
+                slot.PlayerId = line.Text;
+            diagnostics.Add($"line text=\"{line.Text}\" centerX={line.CenterX:0.0} -> character-anchor slot={slot.Index}; player_id={slot.PlayerId ?? "null"}");
+        }
     }
 
     /// <summary>未知模式下的旧行为回退：物理行索引语义。</summary>
