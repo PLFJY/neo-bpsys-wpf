@@ -26,7 +26,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
     private IDisposable? _eventSubscription;
     private FrontedBehaviorDocument? _document;
-    private bool _disposed;
+    private volatile bool _disposed;
 
     /// <summary>
     /// 初始化 <see cref="FrontedBehaviorRuntimeHost" /> 的新实例。
@@ -60,7 +60,9 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     /// <summary>
     /// 附加此宿主：加载行为文档并订阅事件总线。
     /// </summary>
-    public async Task AttachAsync(FrontedBehaviorDocument document)
+    /// <param name="document">行为文档。</param>
+    /// <returns>已完成的附加任务；附加过程不执行异步 I/O。</returns>
+    public Task AttachAsync(FrontedBehaviorDocument document)
     {
         _document = document;
         // Subscribe to all events on the bus that are relevant to this window.
@@ -71,6 +73,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
             _context.WindowType,
             _context.WindowId,
             _document.ControlBehaviorSets?.Count ?? 0);
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -224,6 +227,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     {
         lock (_gate)
         {
+            if (_disposed) return null;
             if (_runningBehaviors.TryGetValue(behavior.BehaviorId, out var existing))
             {
                 switch (behavior.ReentryPolicy)
@@ -368,7 +372,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
         if (shouldDispose)
         {
-            execution.State.LifecycleCts.Dispose();
+            execution.State.DisposeCancellationSources();
         }
     }
 
@@ -397,6 +401,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
         lock (_gate)
         {
+            if (_disposed) return;
             if (_runningBehaviors.TryGetValue(behavior.BehaviorId, out var existing))
             {
                 // Apply reentry policy
@@ -420,17 +425,12 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         break;
                 }
             }
-        }
-
-        var cts = new CancellationTokenSource();
-        var state = new RunningBehaviorState(cts);
-        lock (_gate)
-        {
+            var cts = new CancellationTokenSource();
+            var state = new RunningBehaviorState(cts);
             _runningBehaviors[behavior.BehaviorId] = state;
+            var task = ExecuteOneShotGraphAsync(behavior, set, behaviorEvent, state, cts.Token);
+            state.RunningTask = task;
         }
-
-        var task = ExecuteOneShotGraphAsync(behavior, set, behaviorEvent, state, cts.Token);
-        state.RunningTask = task;
     }
 
     private async Task ExecuteOneShotGraphAsync(
@@ -494,7 +494,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
             if (shouldDispose)
             {
-                state.LifecycleCts.Dispose();
+                state.DisposeCancellationSources();
             }
         }
     }
@@ -506,6 +506,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     {
         lock (_gate)
         {
+            if (_disposed) return;
             var startTrigger = behavior.StartTrigger;
             var startMatches = startTrigger is not null &&
                 _triggerEvaluator.Evaluate(startTrigger, behaviorEvent);
@@ -926,7 +927,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
     private void ResetIfNeeded(FrontedBehavior behavior, ControlBehaviorSet set)
     {
-        if (behavior.LoopPolicy?.ResetOnStop != true)
+        if (_disposed || behavior.LoopPolicy?.ResetOnStop != true)
         {
             return;
         }
@@ -941,7 +942,10 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
             IsDesignerPreview = false,
             Logger = _logger
         };
-        _animationRuntime.ResetTarget(set.BehaviorGuid, resetContext);
+        _context.RootCanvas.Dispatcher.Invoke(() =>
+        {
+            if (!_disposed) _animationRuntime.ResetTarget(set.BehaviorGuid, resetContext);
+        });
     }
 
     private void CleanupLoop(FrontedBehavior behavior, RunningBehaviorState state)
@@ -963,10 +967,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
         if (shouldDispose)
         {
-            state.LifecycleCts.Dispose();
-            state.LoopCts.Dispose();
-            state.StartCts.Dispose();
-            state.StopGraphCts.Dispose();
+            state.DisposeCancellationSources();
         }
     }
 
@@ -984,19 +985,14 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
         foreach (var state in states)
         {
-            try
+            foreach (var cancellation in new[] { state.LifecycleCts, state.LoopCts, state.StartCts, state.StopGraphCts })
             {
-                state.LifecycleCts.Cancel();
-                state.LoopCts.Cancel();
-                state.StartCts.Cancel();
-                state.LifecycleCts.Dispose();
-                state.LoopCts.Dispose();
-                state.StartCts.Dispose();
-                state.StopGraphCts.Dispose();
+                try { cancellation.Cancel(); }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to cancel behavior during detach."); }
             }
-            catch (ObjectDisposedException)
-            {
-            }
+            // Running graph tasks dispose their sources in finally after their last token access.
+            if (state.RunningTask is null) state.DisposeCancellationSources();
         }
     }
 
@@ -1121,12 +1117,15 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
-        CancelAllRunningBehaviors();
+        lock (_gate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+        }
         _eventSubscription?.Dispose();
-        _animationRuntime.Release(_context.RootCanvas);
+        _eventSubscription = null;
+        try { CancelAllRunningBehaviors(); }
+        finally { _animationRuntime.Release(_context.RootCanvas); }
 
         _logger.LogInformation(
             "Behavior host detached: Window={WindowType}({WindowId}), Canvas={CanvasName}",
@@ -1145,6 +1144,16 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
     internal sealed class RunningBehaviorState
     {
+        private int _sourcesDisposed;
+
+        internal void DisposeCancellationSources()
+        {
+            if (Interlocked.Exchange(ref _sourcesDisposed, 1) != 0) return;
+            LifecycleCts.Dispose();
+            LoopCts.Dispose();
+            StartCts.Dispose();
+            StopGraphCts.Dispose();
+        }
         /// <summary>
         /// 整个生命周期的 CTS。仅由 Dispose/Detach/InterruptPrevious 取消。
         /// 不会被停止触发器取消。

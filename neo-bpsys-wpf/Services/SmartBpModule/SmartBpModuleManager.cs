@@ -20,8 +20,41 @@ namespace neo_bpsys_wpf.Services.SmartBpModule;
 /// <summary>
 /// 负责加载、校验、安装和持久化 SmartBP 模块。
 /// </summary>
-public sealed partial class SmartBpModuleManager
+public sealed partial class SmartBpModuleManager : IDisposable
 {
+    private readonly SemaphoreSlim _moduleLoadGate = new(1, 1);
+    private volatile bool _hasRuntimeLoadStarted;
+    private int _disposed;
+
+    /// <summary>在宿主退出时释放模块拥有的容器和订阅，不卸载程序集或正在使用的原生 DLL。</summary>
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        if (!_moduleLoadGate.Wait(0))
+        {
+            // Stop an already-created module immediately, even while migration I/O is pending.
+            // The loader still owns field cleanup in its finally block.
+            (Volatile.Read(ref _entryPoint) as IDisposable)?.Dispose();
+            return;
+        }
+        try { ReleaseModule(); }
+        finally { _moduleLoadGate.Release(); }
+    }
+
+    private void ReleaseModule()
+    {
+        if (_postGameRecognitionProgressSource is not null)
+            _postGameRecognitionProgressSource.ProgressChanged -= OnPostGameRecognitionProgressChanged;
+        try { (_entryPoint as IDisposable)?.Dispose(); }
+        finally
+        {
+            _entryPoint = null;
+            ModuleContent = null;
+            _featureCommands = [];
+            _postGameRecognitionProgressSource = null;
+        }
+    }
+
     private const string GitHubReleaseDownloadBaseUrl = "https://github.com/PLFJY/neo-bpsys-wpf/releases/download";
     private const string ModuleManifestAssetName = "SmartBpModuleManifest.json";
     private const string ModuleManifestFallbackBaseUrl = "https://smartbp-module-manifest.plfjy.top/";
@@ -155,7 +188,7 @@ public sealed partial class SmartBpModuleManager
     /// 获取模块程序集是否已物理加载（不考虑版本是否过时）。
     /// 仅用于内部安装/替换流程中判断是否需要暂存到下次重启。
     /// </summary>
-    private bool IsModulePhysicallyLoaded => _entryPoint != null && ModuleContent != null;
+    private bool IsModulePhysicallyLoaded => _hasRuntimeLoadStarted;
 
     /// <summary>
     /// 获取已加载模块的版本是否低于远程发布标签要求的版本。

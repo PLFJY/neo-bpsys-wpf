@@ -194,11 +194,16 @@ public partial class SmartBpModuleContentViewModel
 
         RefreshCudaStatus();
 
-        _paddleRuntimeState.StateChanged += (_, _) => BeginOnUiThread(RefreshCudaStatus);
-        _paddleRuntimeComponentService.DownloadStateChanged += (_, _) => BeginOnUiThread(OnCudaDownloadStateChanged);
-        _paddleCudaPrerequisiteSetupService.StatusChanged += (_, _) => BeginOnUiThread(OnCudaPrerequisiteStateChanged);
-        _globalRestartService.RestartRequiredStateChanged += (_, _) => BeginOnUiThread(OnCudaRestartRequiredChanged);
+        _paddleRuntimeState.StateChanged += OnPaddleRuntimeStateChanged;
+        _paddleRuntimeComponentService.DownloadStateChanged += OnPaddleDownloadStateChanged;
+        _paddleCudaPrerequisiteSetupService.StatusChanged += OnPaddlePrerequisiteStateChanged;
+        _globalRestartService.RestartRequiredStateChanged += OnRestartRequiredStateChanged;
     }
+
+    private void OnPaddleRuntimeStateChanged(object? sender, EventArgs e) => BeginOnUiThread(RefreshCudaStatus);
+    private void OnPaddleDownloadStateChanged(object? sender, EventArgs e) => BeginOnUiThread(OnCudaDownloadStateChanged);
+    private void OnPaddlePrerequisiteStateChanged(object? sender, EventArgs e) => BeginOnUiThread(OnCudaPrerequisiteStateChanged);
+    private void OnRestartRequiredStateChanged(object? sender, EventArgs e) => BeginOnUiThread(OnCudaRestartRequiredChanged);
 
     /// <summary>
     /// 根据当前选中设备的 Compute Capability 解析匹配的 CUDA runtime 包。

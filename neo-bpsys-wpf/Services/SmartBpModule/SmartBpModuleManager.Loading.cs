@@ -28,6 +28,7 @@ public sealed partial class SmartBpModuleManager
     /// <returns>成功加载时返回 <see langword="true"/>。</returns>
     public async Task<bool> TryLoadPersistedModuleAsync()
     {
+        if (Volatile.Read(ref _disposed) != 0 || IsModulePhysicallyLoaded) return IsModuleLoaded;
         var state = ReadState();
         var pending = ReadMovePendingState();
         if (!string.IsNullOrWhiteSpace(pending?.PreparedRoot))
@@ -71,6 +72,22 @@ public sealed partial class SmartBpModuleManager
     /// <returns>成功加载时返回 <see langword="true"/>。</returns>
     public async Task<bool> LoadModuleFromDirectoryAsync(string moduleRoot, string installKind = "LocalDirectory")
     {
+        if (Volatile.Read(ref _disposed) != 0 || !await _moduleLoadGate.WaitAsync(0)) return false;
+        try
+        {
+            if (Volatile.Read(ref _disposed) != 0) return false;
+            if (IsModulePhysicallyLoaded) return IsModuleLoaded;
+            return await LoadModuleCoreAsync(moduleRoot, installKind);
+        }
+        finally
+        {
+            if (Volatile.Read(ref _disposed) != 0) ReleaseModule();
+            _moduleLoadGate.Release();
+        }
+    }
+
+    private async Task<bool> LoadModuleCoreAsync(string moduleRoot, string installKind)
+    {
         _logger.LogInformation(
             "Loading SmartBP module from directory. ModuleRoot={ModuleRoot}, InstallKind={InstallKind}",
             moduleRoot,
@@ -91,6 +108,8 @@ public sealed partial class SmartBpModuleManager
         var entryAssembly = Path.Combine(moduleRoot, SmartBpModuleConstants.EntryAssemblyName);
         try
         {
+            _hasRuntimeLoadStarted = true;
+            ModuleRoot = moduleRoot;
             var loadContext = new AssemblyLoadContext($"SmartBpModule-{Guid.NewGuid():N}", isCollectible: false);
             RegisterModuleNativeSearchDirectories(moduleRoot, _logger);
             loadContext.Resolving += (_, name) =>
@@ -222,6 +241,7 @@ public sealed partial class SmartBpModuleManager
                 return false;
 
             _entryPoint = entryPoint;
+            if (Volatile.Read(ref _disposed) != 0) return false;
 
             // CreateSmartBpContent 创建 WPF UI 元素（InitializeComponent/BAML 解析），
             // 必须在 UI 线程执行。
@@ -253,6 +273,7 @@ public sealed partial class SmartBpModuleManager
         }
         catch (Exception ex)
         {
+            ReleaseModule();
             LastFailureMessage = FormatExceptionForUser(ex);
             _logger.LogError(ex, "Failed to load SmartBP module from {ModuleRoot}", moduleRoot);
             return false;

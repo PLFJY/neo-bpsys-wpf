@@ -4,6 +4,8 @@
 
 当前编辑器已实现：设计期基础模型、配置转换、校验器、引用扫描和运行时关键名称目录；独立 `FrontedDesignerWindow` shell、窗口选择器、只读预览渲染、缩放控制和校验面板；内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调；基础 Property Grid、Add Control 菜单、Binding Browser 和 Resource Browser；保存用户布局、重置为内置、脏状态提示、吸附网格、Undo/Redo。Designer v3 显示层 i18n 已完成，属性名、控件类型、ComboBox 选项等可本地化，但 layout schema 与保存值不变。
 
+Designer 真正关闭时取消待执行的预览/选择器 DispatcherOperation，停止窗口计时器，释放预览动画 runtime session，并清空单例 PreviewAnimationScope 的根视觉树、控件和行为文档引用。重新打开后由新预览渲染重新建立作用域；普通重绘不执行窗口关闭清理。动画编辑器关闭会取消循环及单次图预览，图任务自行在 finally 中释放自己的令牌源。节点图视图使用 WPF 弱属性事件；行为面板在 Loaded/Unloaded 时幂等订阅/解除 ViewModel 事件。
+
 ## 1. 硬规则：JSON Key = Control Name
 
 v3 layout JSON 中，root object 的控件属性名就是控件名：

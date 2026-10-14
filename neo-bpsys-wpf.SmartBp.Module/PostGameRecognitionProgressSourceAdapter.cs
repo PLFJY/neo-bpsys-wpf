@@ -9,7 +9,7 @@ namespace neo_bpsys_wpf.SmartBp.Module;
 /// 将模块内部的 <see cref="IPostGameRecognitionProgressSource"/> 适配为宿主侧
 /// <see cref="ISmartBpPostGameRecognitionProgressSource"/>，避免模块私有类型泄漏到宿主。
 /// </summary>
-internal sealed class PostGameRecognitionProgressSourceAdapter : ISmartBpPostGameRecognitionProgressSource
+internal sealed class PostGameRecognitionProgressSourceAdapter : ISmartBpPostGameRecognitionProgressSource, IDisposable
 {
     private readonly IPostGameRecognitionProgressSource _inner;
 
@@ -37,6 +37,13 @@ internal sealed class PostGameRecognitionProgressSourceAdapter : ISmartBpPostGam
     {
         var host = ToHost(e.Progress);
         ProgressChanged?.Invoke(sender, new SmartBpPostGameRecognitionProgressEventArgs(host));
+    }
+
+    /// <summary>解除模块进度源的订阅。</summary>
+    public void Dispose()
+    {
+        _inner.ProgressChanged -= OnInnerProgressChanged;
+        ProgressChanged = null;
     }
 
     private static SmartBpPostGameRecognitionProgress ToHost(PostGameRecognitionProgress progress)

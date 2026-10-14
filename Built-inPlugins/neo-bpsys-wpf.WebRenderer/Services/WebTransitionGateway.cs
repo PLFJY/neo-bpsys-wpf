@@ -45,6 +45,35 @@ public interface IWebTransitionGateway
 /// <summary>一次跨端过渡的不可变标识和等待句柄。</summary>
 public sealed class WebTransitionSession
 {
+    private readonly object _registrationGate = new();
+    private CancellationTokenRegistration _cancellationRegistration;
+    private bool _completed;
+
+    internal void SetCancellationRegistration(CancellationTokenRegistration registration)
+    {
+        lock (_registrationGate)
+        {
+            if (!_completed)
+            {
+                _cancellationRegistration = registration;
+                return;
+            }
+        }
+        registration.Unregister();
+    }
+
+    internal void CompleteRegistration()
+    {
+        CancellationTokenRegistration registration;
+        lock (_registrationGate)
+        {
+            _completed = true;
+            registration = _cancellationRegistration;
+            _cancellationRegistration = default;
+        }
+        // Never wait for a cancellation callback which may be reentering this gateway.
+        registration.Unregister();
+    }
     internal WebTransitionSession(string correlationId, long generation, IReadOnlyList<FrontedTransitionRequest> requests)
     {
         CorrelationId = correlationId;
@@ -100,8 +129,17 @@ public sealed class WebTransitionGateway : IWebTransitionGateway
             return session;
         }
         _sessions[session.CorrelationId] = session;
-        cancellationToken.Register(() => Cancel(session, "cancelled"));
-        SignalPublished?.Invoke(this, new WebTransitionSignal(WebRendererIpcProtocol.TransitionPrepare, session, null));
+        session.SetCancellationRegistration(cancellationToken.Register(() => Cancel(session, "cancelled")));
+        try
+        {
+            if (_sessions.ContainsKey(session.CorrelationId))
+                SignalPublished?.Invoke(this, new WebTransitionSignal(WebRendererIpcProtocol.TransitionPrepare, session, null));
+        }
+        catch
+        {
+            Cancel(session, "prepare-failed");
+            throw;
+        }
         return session;
     }
 
@@ -125,6 +163,7 @@ public sealed class WebTransitionGateway : IWebTransitionGateway
     {
         if (_sessions.TryRemove(session.CorrelationId, out _))
         {
+            session.CompleteRegistration();
             session.Exit.TrySetCanceled();
             session.Enter.TrySetCanceled();
             SignalPublished?.Invoke(this, new WebTransitionSignal(WebRendererIpcProtocol.TransitionCancel, session, reason));
@@ -139,6 +178,7 @@ public sealed class WebTransitionGateway : IWebTransitionGateway
         {
             session.Enter.TrySetResult();
             _sessions.TryRemove(correlationId, out _);
+            session.CompleteRegistration();
         }
         else session.Exit.TrySetResult();
     }

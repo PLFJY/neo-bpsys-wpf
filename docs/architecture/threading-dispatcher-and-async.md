@@ -50,6 +50,10 @@ WebRenderer sidecar 的 `RemoteAssetFetcher` 是受 IPC、内容类型、大小�
 
 当 `GetCurrentFrame()` 发现没有启动捕获时，它通过 Dispatcher 异步弹提示并导航到 SmartBP 页面。
 
+StopCapture 在帧锁下清空最新帧并更新捕获世代，旧 WGC/BitBlt 回调不能在停止或换源后重新写回缓存。WGC 回调与 staging 资源销毁使用同一资源锁，帧池与会话在该锁外 Dispose，避免等待正在退出的回调。Direct3D 设备跨会话复用，只在 DI 释放捕获服务时销毁。
+
+前台行为 HostManager 按 Window ID 协调同步附加/分离，异步文档加载不持有普通锁；只有最新 Attach 请求可以注册宿主，Detach 和 Dispose 会使旧请求失效。FrontedWindowBase 用异步 gate 协调自身 Attach/Detach，隐藏会取消未完成的附加，真正关闭还会取消排队中的布局加载。分离异常在任务内部记录，停止循环失败仍会执行 Detach；已释放宿主的循环 finally 不得重新 Reset 并创建动画 session。
+
 ## DispatcherTimer 与后台 Timer
 
 项目中多个 UI 相关周期任务使用 `DispatcherTimer`：

@@ -33,6 +33,7 @@ public partial class FrontedDesignerWindow
         object? sender,
         FrontedDesignerPreviewRenderRequestedEventArgs e)
     {
+        if (!_isLoaded) return;
         _pendingPreviewRenderArgs = e;
         if (_previewRenderScheduled)
         {
@@ -40,13 +41,14 @@ public partial class FrontedDesignerWindow
         }
 
         _previewRenderScheduled = true;
-        Dispatcher.BeginInvoke(
+        _previewRenderOperation = Dispatcher.BeginInvoke(
             new Action(ExecutePendingPreviewRender),
             DispatcherPriority.Background);
     }
 
     private void ExecutePendingPreviewRender()
     {
+        _previewRenderOperation = null;
         _previewRenderScheduled = false;
         var args = _pendingPreviewRenderArgs;
         _pendingPreviewRenderArgs = null;

@@ -19,6 +19,54 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 public class FrontedBehaviorRuntimeHostTest
 {
+    /// <summary>过期 Attach 不得留下总线订阅，也不得在 Detach 或 Dispose 后重新附加。</summary>
+    /// <returns>受控并发附加/分离验证任务。</returns>
+    [Fact]
+    public async Task ConcurrentAttachDetach_DoesNotResurrectOrDuplicateHosts()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var document = CreateDocumentWithOneShot(Guid.NewGuid(), Guid.NewGuid(), "TestEvent");
+            var pending = new Queue<TaskCompletionSource<FrontedBehaviorDocument>>();
+            var service = new Mock<IFrontedBehaviorService>();
+            service.Setup(s => s.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Returns(() => pending.Dequeue().Task);
+            using var bus = new FrontedEventBus();
+            var executions = 0;
+            var runtime = new Mock<IFrontedNodeGraphRuntime>();
+            runtime.Setup(r => r.ExecuteAsync(It.IsAny<FrontedNodeGraph>(), It.IsAny<FrontedGraphExecutionContext>(), It.IsAny<CancellationToken>()))
+                .Callback(() => executions++)
+                .ReturnsAsync(new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Success });
+            using var manager = CreateManager(service.Object, bus, runtime.Object);
+
+            var firstLoad = new TaskCompletionSource<FrontedBehaviorDocument>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var secondLoad = new TaskCompletionSource<FrontedBehaviorDocument>(TaskCreationOptions.RunContinuationsAsynchronously);
+            pending.Enqueue(firstLoad);
+            pending.Enqueue(secondLoad);
+            var first = manager.AttachHostAsync(CreateContext(new Canvas()), TestContext.Current.CancellationToken);
+            var second = manager.AttachHostAsync(CreateContext(new Canvas()), TestContext.Current.CancellationToken);
+            secondLoad.SetResult(document);
+            await second;
+            firstLoad.SetResult(document);
+            await first;
+            bus.Publish(new FrontedBehaviorEvent { EventType = "TestEvent", WindowId = "TestWindow" });
+            Assert.Equal(1, executions);
+
+            foreach (var dispose in new[] { false, true })
+            {
+                var load = new TaskCompletionSource<FrontedBehaviorDocument>(TaskCreationOptions.RunContinuationsAsynchronously);
+                pending.Enqueue(load);
+                var attach = manager.AttachHostAsync(CreateContext(new Canvas()), TestContext.Current.CancellationToken);
+                if (dispose) manager.Dispose();
+                else manager.DetachHost("TestWindow");
+                load.SetResult(document);
+                await attach;
+                bus.Publish(new FrontedBehaviorEvent { EventType = "TestEvent", WindowId = "TestWindow" });
+                Assert.Equal(1, executions);
+            }
+        });
+    }
+
     [Fact]
     public async Task RuntimeHost_Attach_PublishesCanvasLoaded()
     {

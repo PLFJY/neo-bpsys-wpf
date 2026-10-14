@@ -39,6 +39,7 @@ internal sealed class RapidOcrEngine : IRapidOcrEngine
         catch
         {
             replacement.Dispose();
+            _ocr?.Dispose();
             _ocr = null;
             throw;
         }
@@ -73,7 +74,11 @@ internal sealed class RapidOcrEngine : IRapidOcrEngine
             .ToArray();
     }
 
-    public void Dispose() => _ocr?.Dispose();
+    public void Dispose()
+    {
+        _ocr?.Dispose();
+        _ocr = null;
+    }
 }
 
 /// <summary>使用 RapidOcrNet 和托管中文 PP-OCR 模型识别带位置的文本。</summary>
@@ -87,6 +92,7 @@ public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
     private readonly object _sync = new();
     private string? _initializedKey;
     private string? _initializationError;
+    private bool _disposed;
 
     /// <summary>初始化 RapidOCR Provider。</summary>
     /// <param name="assets">托管模型资产管理器。</param>
@@ -227,6 +233,7 @@ public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
 
     private void EnsureInitializedUnsafe()
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var paths = _assets.GetInstalledPathsAsync().GetAwaiter().GetResult();
         var key = string.Join('|', paths.DetPath, paths.ClsPath, paths.RecPath, paths.DictPath);
         if (string.Equals(_initializedKey, key, StringComparison.Ordinal)) return;
@@ -299,6 +306,12 @@ public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        lock (_sync) _engine.Dispose();
+        lock (_sync)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _engine.Dispose();
+            _initializedKey = null;
+        }
     }
 }

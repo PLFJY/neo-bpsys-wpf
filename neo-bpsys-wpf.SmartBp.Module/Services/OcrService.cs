@@ -23,8 +23,9 @@ namespace neo_bpsys_wpf.Services;
 /// OCR 服务实现。
 /// 提供模型管理（枚举、下载、删除、切换）与图像文本识别能力。
 /// </summary>
-public sealed partial class PaddleOcrProvider : IOcrProvider
+public sealed partial class PaddleOcrProvider : IOcrProvider, IDisposable
 {
+    private volatile bool _disposed;
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<PaddleOcrProvider> _logger;
     private readonly ISmartBpDebugLog _debugLog;
@@ -116,5 +117,19 @@ public sealed partial class PaddleOcrProvider : IOcrProvider
         _globalRestartService = globalRestartService;
         _fileDownloadService = fileDownloadService;
         SmartBpOcrModelRegistry.ConfigurePathProvider(modelPathProvider);
+    }
+
+    /// <summary>释放模块拥有的 Paddle predictor，并取消模型下载；不卸载原生运行库。</summary>
+    public void Dispose()
+    {
+        lock (_ocrLock)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _ocr?.Dispose();
+            _ocr = null;
+            CurrentOcrModelKey = null;
+        }
+        lock (_downloadLock) _downloadCts?.Cancel();
     }
 }

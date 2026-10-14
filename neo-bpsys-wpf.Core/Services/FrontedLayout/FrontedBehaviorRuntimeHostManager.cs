@@ -19,6 +19,8 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     private readonly FrontedBehaviorTriggerEvaluator _triggerEvaluator;
     private readonly ILogger<FrontedBehaviorRuntimeHostManager> _logger;
     private readonly Dictionary<string, FrontedBehaviorRuntimeHost> _hosts = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, object> _pendingAttaches = new(StringComparer.Ordinal);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, object> _windowGates = new(StringComparer.Ordinal);
     private readonly object _gate = new();
     private bool _disposed;
 
@@ -47,84 +49,141 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     /// 为给定上下文附加行为运行时宿主。
     /// 如果同一窗口 ID 的宿主已存在，则先将其分离。
     /// </summary>
+    /// <param name="context">窗口行为上下文。</param>
+    /// <param name="cancellationToken">取消文档加载和附加的令牌。</param>
+    /// <returns>附加完成或被后续请求取代后结束的任务。</returns>
+    /// <exception cref="OperationCanceledException">取消令牌已取消。</exception>
     public async Task AttachHostAsync(FrontedBehaviorRuntimeContext context, CancellationToken cancellationToken = default)
     {
-        if (_disposed)
-        {
-            _logger.LogWarning("HostManager is disposed; ignoring AttachHost.");
-            return;
-        }
-
-        var key = BuildKey(context.WindowId);
-
-        // Detach existing host first to prevent duplicate subscriptions
-        DetachHost(context.WindowId);
-
-        // Load the behavior document
-        var document = await _behaviorService.LoadDocumentAsync(
-            context.WindowType,
-            cancellationToken);
-
-        if (document.ControlBehaviorSets is null || document.ControlBehaviorSets.Count == 0)
-        {
-            _logger.LogDebug(
-                "No behaviors found for Window={WindowType}. Host will still be created.",
-                context.WindowType);
-        }
-
-        _animationPartRenderer.ApplyAnimationParts(context.RootCanvas, document);
-
-        // Create and attach the host
-        var host = new FrontedBehaviorRuntimeHost(
-            context,
-            _eventBus,
-            _graphRuntime,
-            _animationRuntime,
-            _triggerEvaluator);
-
-        await host.AttachAsync(document);
-
+        cancellationToken.ThrowIfCancellationRequested();
         lock (_gate)
         {
-            _hosts[key] = host;
+            if (_disposed) return;
+        }
+        var key = BuildKey(context.WindowId);
+        var windowGate = _windowGates.GetOrAdd(key, _ => new object());
+        var attempt = new object();
+        lock (windowGate)
+        {
+            lock (_gate)
+            {
+                if (_disposed) return;
+            }
+            DetachHost(context.WindowId);
+            lock (_gate)
+            {
+                if (_disposed) return;
+                _pendingAttaches[key] = attempt;
+            }
         }
 
-        _logger.LogInformation(
-            "Behavior host attached: {Key} with {Count} behavior sets.",
-            key, document.ControlBehaviorSets?.Count ?? 0);
-
-        // Publish CanvasLoaded
-        var canvasLoadedEvent = new FrontedBehaviorEvent
+        try
         {
-            EventType = "CanvasLoaded",
-            WindowId = context.WindowId,
-            WindowType = context.WindowType,
-            CanvasName = FrontedLayoutConstants.BaseCanvasName,
-            Source = "WindowLifecycle",
-            Timestamp = DateTimeOffset.UtcNow,
-            IsPreview = context.IsDesignerPreview
-        };
-        _eventBus.Publish(canvasLoadedEvent);
+            var document = await _behaviorService.LoadDocumentAsync(context.WindowType, cancellationToken).WaitAsync(cancellationToken);
+            lock (windowGate)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                lock (_gate)
+                {
+                    if (_disposed || !_pendingAttaches.TryGetValue(key, out var current) || !ReferenceEquals(current, attempt))
+                        return;
+                }
+
+                var host = new FrontedBehaviorRuntimeHost(
+                    context, _eventBus, _graphRuntime, _animationRuntime, _triggerEvaluator);
+                try
+                {
+                    _animationPartRenderer.ApplyAnimationParts(context.RootCanvas, document);
+                    // Attach only subscribes synchronously; no asynchronous work is blocked here.
+                    host.AttachAsync(document).GetAwaiter().GetResult();
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var accepted = false;
+                    lock (_gate)
+                    {
+                        if (!_disposed && _pendingAttaches.TryGetValue(key, out var current) && ReferenceEquals(current, attempt))
+                        {
+                            _hosts[key] = host;
+                            accepted = true;
+                        }
+                    }
+                    if (!accepted)
+                    {
+                        host.Dispose();
+                        return;
+                    }
+                }
+                catch
+                {
+                    host.Dispose();
+                    throw;
+                }
+
+                _logger.LogInformation("Behavior host attached: {Key} with {Count} behavior sets.",
+                    key, document.ControlBehaviorSets?.Count ?? 0);
+                _eventBus.Publish(new FrontedBehaviorEvent
+                {
+                    EventType = "CanvasLoaded",
+                    WindowId = context.WindowId,
+                    WindowType = context.WindowType,
+                    CanvasName = FrontedLayoutConstants.BaseCanvasName,
+                    Source = "WindowLifecycle",
+                    Timestamp = DateTimeOffset.UtcNow,
+                    IsPreview = context.IsDesignerPreview
+                });
+            }
+        }
+        catch
+        {
+            lock (windowGate)
+            {
+                FrontedBehaviorRuntimeHost? failedHost = null;
+                lock (_gate)
+                {
+                    if (_pendingAttaches.TryGetValue(key, out var current) && ReferenceEquals(current, attempt))
+                        _hosts.Remove(key, out failedHost);
+                }
+                failedHost?.Dispose();
+            }
+            throw;
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                if (_pendingAttaches.TryGetValue(key, out var current) && ReferenceEquals(current, attempt))
+                    _pendingAttaches.Remove(key);
+            }
+        }
     }
 
     /// <summary>
     /// 分离并释放给定窗口 ID 的宿主。
     /// 取消所有正在运行的行为，释放事件订阅和动画会话。
     /// </summary>
+    /// <param name="windowId">窗口标识符。</param>
     public void DetachHost(string windowId)
     {
         var key = BuildKey(windowId);
-        FrontedBehaviorRuntimeHost? host;
-
-        lock (_gate)
+        FrontedBehaviorRuntimeHost? existing;
+        lock (_gate) { existing = _hosts.GetValueOrDefault(key); }
+        if (existing is not null && !existing.Context.RootCanvas.Dispatcher.CheckAccess())
         {
-            if (!_hosts.Remove(key, out host))
-            {
-                return;
-            }
+            // Release mutates WPF animation state. Dispatch before taking the per-window lock,
+            // so the UI thread can never wait for a lock held by a thread waiting for that UI.
+            existing.Context.RootCanvas.Dispatcher.Invoke(() => DetachHost(windowId));
+            return;
         }
-
-        host.Dispose();
+        if (!_windowGates.TryGetValue(key, out var windowGate)) return;
+        lock (windowGate)
+        {
+            FrontedBehaviorRuntimeHost? host;
+            lock (_gate)
+            {
+                _pendingAttaches.Remove(key);
+                _hosts.Remove(key, out host);
+            }
+            host?.Dispose();
+        }
         _logger.LogInformation("Behavior host detached: {Key}", key);
     }
 
@@ -233,12 +292,12 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
-
         List<FrontedBehaviorRuntimeHost> hosts;
         lock (_gate)
         {
+            if (_disposed) return;
+            _disposed = true;
+            _pendingAttaches.Clear();
             hosts = [.. _hosts.Values];
             _hosts.Clear();
         }
@@ -254,6 +313,8 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
                 _logger.LogWarning(ex, "Error disposing behavior host.");
             }
         }
+
+        _windowGates.Clear();
 
         _logger.LogInformation("All behavior hosts detached ({Count}).", hosts.Count);
     }

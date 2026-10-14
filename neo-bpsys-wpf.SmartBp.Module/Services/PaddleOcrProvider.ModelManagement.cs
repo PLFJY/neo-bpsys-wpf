@@ -30,7 +30,7 @@ public sealed partial class PaddleOcrProvider
     /// </summary>
     public void StartLoadingPreferredModel()
     {
-        if (_isModelLoading || _ocr != null)
+        if (_disposed || _isModelLoading || _ocr != null)
             return;
         _ = Task.Run(TryLoadPreferredModel);
     }
@@ -82,6 +82,7 @@ public sealed partial class PaddleOcrProvider
 
         lock (_downloadLock)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (IsDownloading)
             {
                 throw new InvalidOperationException(L("SmartBpOcrDownloadAlreadyInProgress"));
@@ -274,6 +275,7 @@ public sealed partial class PaddleOcrProvider
     public bool TrySwitchOcrModel(string modelKey, out string errorMessage)
     {
         errorMessage = string.Empty;
+        if (_disposed) return false;
 
         if (!SmartBpOcrModelRegistry.TryGet(modelKey, out var definition))
         {
@@ -304,6 +306,11 @@ public sealed partial class PaddleOcrProvider
 
             lock (_ocrLock)
             {
+                if (_disposed)
+                {
+                    nextOcr.Dispose();
+                    return false;
+                }
                 _ocr?.Dispose();
                 _ocr = nextOcr;
                 _ocr.AllowRotateDetection = false;

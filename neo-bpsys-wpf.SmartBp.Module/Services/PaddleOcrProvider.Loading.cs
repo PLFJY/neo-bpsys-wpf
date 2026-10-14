@@ -29,6 +29,7 @@ public sealed partial class PaddleOcrProvider
     /// </summary>
     private void TryLoadPreferredModel()
     {
+        if (_disposed) return;
         string? preferredModel = _settingsHostService.Settings.OcrModelKey;
 
         if (string.IsNullOrWhiteSpace(preferredModel))
@@ -52,6 +53,7 @@ public sealed partial class PaddleOcrProvider
     /// </summary>
     private void ShowMissingModelWarningOnce()
     {
+        if (_disposed) return;
         if (Interlocked.Exchange(ref _missingModelWarningShown, 1) == 1)
             return;
 

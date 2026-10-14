@@ -30,7 +30,7 @@ public sealed partial class PaddleOcrProvider
     /// </summary>
     private bool TryRebuildCurrentOcrUnsafe()
     {
-        if (string.IsNullOrWhiteSpace(CurrentOcrModelKey))
+        if (_disposed || string.IsNullOrWhiteSpace(CurrentOcrModelKey))
             return false;
 
         if (!SmartBpOcrModelRegistry.TryGet(CurrentOcrModelKey, out var definition))

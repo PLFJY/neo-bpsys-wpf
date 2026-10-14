@@ -26,6 +26,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     private readonly Func<string, string, string> _localize;
     private readonly Func<Task<bool>>? _saveAsync;
     private CancellationTokenSource? _loopPreviewCancellation;
+    private readonly HashSet<CancellationTokenSource> _graphPreviewCancellations = [];
     private TaskCompletionSource? _loopPreviewStopped;
 
     public FrontedBehaviorAnimationEditorViewModel(
@@ -163,6 +164,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
 
         foreach (var stage in Stages)
         {
+            stage.GraphEditor.StopPreview();
+            stage.GraphEditor.PreviewRoot = null;
             stage.GraphEditor.DiscardLocalDirtyState();
         }
 
@@ -369,7 +372,9 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         var cancellation = _loopPreviewCancellation;
         _loopPreviewCancellation = null;
         cancellation?.Cancel();
-        cancellation?.Dispose();
+        // The running loop owns disposal in its finally block.
+        foreach (var graphCancellation in _graphPreviewCancellations.ToArray())
+            graphCancellation.Cancel();
         IsLoopPreviewRunning = false;
     }
 
@@ -387,55 +392,64 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
 
     private async Task<FrontedGraphExecutionResult> ExecuteGraphAsync(FrontedNodeGraph graph, CancellationToken cancellationToken)
     {
-        var animationContext = _previewAnimationScope?.CreateContext();
-        var graphContext = new FrontedGraphExecutionContext
+        using var previewCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _graphPreviewCancellations.Add(previewCancellation);
+        try
         {
-            BehaviorGuid = animationContext?.SelfBehaviorGuid ?? Guid.Empty,
-            CurrentControlDisplayName = animationContext?.SelfDisplayName ?? string.Empty,
-            ActionExecutor = _animationRuntime is null || animationContext is null
-                ? null
-                : new AnimationRuntimeGraphActionExecutor(_animationRuntime, animationContext)
-        };
-        var missingPath = graph.Nodes
-            .Where(node => node.NodeType == "flow.if")
-            .Select(node => node.Properties.TryGetValue("Left", out var value)
-                ? value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()
-                : null)
-            .FirstOrDefault(path => path?.StartsWith("Event.", StringComparison.Ordinal) == true);
-        var stage = Stages.FirstOrDefault(item => ReferenceEquals(item.Graph, graph));
-        if (missingPath is not null && graphContext.EventPayload.Count == 0)
-        {
-            AddExecutionLog(stage?.GraphEditor, new FrontedGraphExecutionLogItem
+            var animationContext = _previewAnimationScope?.CreateContext();
+            var graphContext = new FrontedGraphExecutionContext
             {
-                Level = FrontedGraphExecutionLogLevel.Warning,
-                Message = string.Format(
-                    _localize(
-                        "Designer.Graph.Preview.MissingEventContext",
-                        "The current preview has no event context, so {0} cannot be resolved."),
-                    missingPath)
-            });
-        }
-        var result = await _runtime.ExecuteAsync(graph, graphContext, cancellationToken);
-        if (stage is null)
-        {
+                BehaviorGuid = animationContext?.SelfBehaviorGuid ?? Guid.Empty,
+                CurrentControlDisplayName = animationContext?.SelfDisplayName ?? string.Empty,
+                ActionExecutor = _animationRuntime is null || animationContext is null
+                    ? null
+                    : new AnimationRuntimeGraphActionExecutor(_animationRuntime, animationContext)
+            };
+            var missingPath = graph.Nodes
+                .Where(node => node.NodeType == "flow.if")
+                .Select(node => node.Properties.TryGetValue("Left", out var value)
+                    ? value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()
+                    : null)
+                .FirstOrDefault(path => path?.StartsWith("Event.", StringComparison.Ordinal) == true);
+            var stage = Stages.FirstOrDefault(item => ReferenceEquals(item.Graph, graph));
+            if (missingPath is not null && graphContext.EventPayload.Count == 0)
+            {
+                AddExecutionLog(stage?.GraphEditor, new FrontedGraphExecutionLogItem
+                {
+                    Level = FrontedGraphExecutionLogLevel.Warning,
+                    Message = string.Format(
+                        _localize(
+                            "Designer.Graph.Preview.MissingEventContext",
+                            "The current preview has no event context, so {0} cannot be resolved."),
+                        missingPath)
+                });
+            }
+            var result = await _runtime.ExecuteAsync(graph, graphContext, previewCancellation.Token);
+            if (stage is null)
+            {
+                return result;
+            }
+
+            if (_animationRuntime is not null && animationContext is null)
+            {
+                AddExecutionLog(stage.GraphEditor, new FrontedGraphExecutionLogItem
+                {
+                    Level = FrontedGraphExecutionLogLevel.Warning,
+                    Message = _localize("Designer.Graph.Preview.NoTargetScope", "No preview target scope available.")
+                });
+            }
+
+            foreach (var item in result.LogItems)
+            {
+                AddExecutionLog(stage.GraphEditor, item);
+            }
+
             return result;
         }
-
-        if (_animationRuntime is not null && animationContext is null)
+        finally
         {
-            AddExecutionLog(stage.GraphEditor, new FrontedGraphExecutionLogItem
-            {
-                Level = FrontedGraphExecutionLogLevel.Warning,
-                Message = _localize("Designer.Graph.Preview.NoTargetScope", "No preview target scope available.")
-            });
+            _graphPreviewCancellations.Remove(previewCancellation);
         }
-
-        foreach (var item in result.LogItems)
-        {
-            AddExecutionLog(stage.GraphEditor, item);
-        }
-
-        return result;
     }
 
     private static void AddExecutionLog(FrontedNodeGraphEditorViewModel? graphEditor, FrontedGraphExecutionLogItem item)

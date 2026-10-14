@@ -139,6 +139,10 @@ SmartBP 页面先显示宿主侧页面壳。模块未加载时，内容区域显
 
 宿主使用独立 `AssemblyLoadContext` 加载模块。托管依赖优先复用宿主程序集，再从模块根目录解析；OpenCvSharp、PaddleInference 等原生依赖则从模块的 `runtimes/{Rid}/native/` 目录解析，并兼容位于模块根目录的原生 DLL。模块发布和迁移时必须保留 `runtimes` 目录结构，否则托管包装程序集存在也无法初始化对应 native runtime。
 
+模块加载使用进程级、不可卸载的 ALC。加载进行中不接受第二次加载；已创建 ALC 后，无论成功、版本过旧或后续初始化失败，都不能在当前进程再创建另一份模块运行时，安装替换仍须重启。目录校验失败发生在创建 ALC 前，可以修正目录后重试。失败及宿主退出时释放模块内部 ServiceProvider；页面普通 Unloaded 只表示导航，不释放模块单例。ViewModel 退出清理解订阅、停止采样/识别/日志计时器，并取消识别与 CUDA 下载；OCR Provider 仅在模块容器结束时释放。原生预加载句柄和 DLL 搜索目录仍按进程生命周期保留，不能在 native runtime 尚被使用时提前卸载。
+
+历史帧缓冲同时受时间窗口、帧数和 192 MiB 估算像素预算限制，超过预算先淘汰最旧帧。估算包括 CroppedBitmap 等对象保留的源位图，可能保守地高估共享图像的占用；始终允许保留当前一帧，即使单帧超过预算。停止/完成自动识别、停止捕获和切换捕获源时清空旧缓冲，不改变当前对局上下文过滤与历史补偿识别规则。
+
 Release 构建只检查当前应用版本对应的 tag，不会获取最新 release。优先直接访问 GitHub Releases 下载当前 tag 对应的 `SmartBpModuleManifest.json`（`https://github.com/PLFJY/neo-bpsys-wpf/releases/download/{tag}/SmartBpModuleManifest.json`），失败时回退到 `https://smartbp-module-manifest.plfjy.top/?tag={tag}` 获取。官方模块 asset 是 `SmartBpModule.7z`，实际下载地址会套用设置中的 GitHub 下载镜像。该镜像由软件更新、插件市场设置和 SmartBP 模块下载高级选项共用 `GhProxyMirror` 持久化字段，SmartBP 页面可直接测试候选镜像延迟。
 
 远程版本检查只作为更新提示，不阻塞本地模块加载：ABI 兼容性由 `component.json` 的 `RuntimeAbiVersion` 硬性校验保证，本地模块只要通过目录、RID、ABI 和入口程序集校验就立即加载显示。加载成功后异步拉取远端 manifest，仅在本地版本低于要求版本时通过 `ModuleVersionOutdated` 事件触发 `IInfoBarService` 警告提示用户更新；拉取失败或网络不可达时静默跳过，不影响已加载模块使用。Preview 构建不进行在线检查，主要支持选择本地模块目录或导入 `SmartBpModule.7z` / 旧 `SmartBpModule.zip`。

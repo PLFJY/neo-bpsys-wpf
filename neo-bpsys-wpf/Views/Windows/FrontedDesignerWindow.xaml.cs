@@ -46,6 +46,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private DispatcherTimer? _propertyAutoCommitTimer;
     private FrameworkElement? _pendingAutoCommitEditor;
     private bool _isLoaded;
+    private DispatcherOperation? _previewRenderOperation;
+    private DispatcherOperation? _selectorReloadOperation;
     private bool _suppressPropertyEditorCommit;
     private FrontedDesignerWindowViewModel? _viewModel;
     private ValidationDetailsWindow? _validationDetailsWindow;
@@ -199,9 +201,11 @@ public partial class FrontedDesignerWindow : FluentWindow
             TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
             AttachViewModel();
             await RefreshWindowCatalogAsync();
+            token.ThrowIfCancellationRequested();
             DesignerDiagnostic(LogLevel.Information, "Designer window catalog loaded.");
             DesignerDiagnostic(LogLevel.Information, "Designer initial layout loading started.");
             await LoadInitialLayoutAsync();
+            token.ThrowIfCancellationRequested();
             DesignerDiagnostic(LogLevel.Information, "Designer initial layout loaded.");
             QueueDesignerTutorial();
             DesignerDiagnostic(LogLevel.Information, "Designer tutorial queued; awaiting result.");
@@ -235,7 +239,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _suppressSelectorReload = true;
         try
         {
-            await _viewModel.RefreshWindowDisplayNamesAsync();
+            await _viewModel.RefreshWindowDisplayNamesAsync().WaitAsync(_tutorialLifetime.Token);
             _lastAcceptedWindow = _viewModel.SelectedWindow;
             if (reloadSelectedLayout)
             {
@@ -286,6 +290,12 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         _isLoaded = false;
         _tutorialLifetime.Cancel();
+        _initialPreviewReady.TrySetCanceled();
+        _previewRenderOperation?.Abort();
+        _previewRenderOperation = null;
+        _selectorReloadOperation?.Abort();
+        _selectorReloadOperation = null;
+        _selectorReloadRequested = false;
         _pendingPreviewRenderArgs = null;
         _previewRenderScheduled = false;
         _propertyAutoCommitTimer?.Stop();
@@ -299,6 +309,9 @@ public partial class FrontedDesignerWindow : FluentWindow
             _viewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
             _viewModel.PropertyEditorItems.CollectionChanged -= PropertyEditorItems_OnCollectionChanged;
         }
+
+        try { _viewModel?.EndDesignerPreviewSession(); }
+        catch (Exception ex) { _logger?.LogWarning(ex, "Failed to release designer preview animations."); }
 
         CloseValidationDetailsWindowSafely();
         _validationDetailsWindow = null;

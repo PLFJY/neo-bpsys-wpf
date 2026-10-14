@@ -66,7 +66,7 @@ public partial class FrontedDesignerWindow
         }
 
         _selectorReloadScheduled = true;
-        Dispatcher.BeginInvoke(
+        _selectorReloadOperation = Dispatcher.BeginInvoke(
             new Action(async () => await HandleScheduledSelectorReloadAsync()),
             DispatcherPriority.Background);
     }
@@ -74,7 +74,8 @@ public partial class FrontedDesignerWindow
     private async Task HandleScheduledSelectorReloadAsync()
     {
         _selectorReloadScheduled = false;
-        if (_viewModel is null)
+        _selectorReloadOperation = null;
+        if (!_isLoaded || _viewModel is null)
         {
             return;
         }
@@ -106,7 +107,7 @@ public partial class FrontedDesignerWindow
                 await _viewModel.ReloadLayoutCoreAsync();
                 _lastAcceptedWindow = loadingWindow;
             }
-            while (_selectorReloadRequested);
+            while (_isLoaded && _selectorReloadRequested);
         }
         finally
         {

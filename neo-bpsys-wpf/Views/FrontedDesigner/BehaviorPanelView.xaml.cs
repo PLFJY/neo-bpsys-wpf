@@ -14,24 +14,38 @@ namespace neo_bpsys_wpf.Views.FrontedDesigner;
 public partial class BehaviorPanelView : UserControl
 {
     private FrontedBehaviorAnimationHelpWindow? _helpWindow;
+    private BehaviorPanelViewModel? _subscribedViewModel;
 
     public BehaviorPanelView()
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
-        Unloaded += (_, _) => CloseHelpWindow();
+        Loaded += (_, _) => AttachViewModel();
+        Unloaded += (_, _) => { DetachViewModel(); CloseHelpWindow(); };
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
-        if (e.OldValue is BehaviorPanelViewModel oldViewModel)
+        DetachViewModel();
+        if (IsLoaded) AttachViewModel();
+    }
+
+    private void DetachViewModel()
+    {
+        if (_subscribedViewModel is { } oldViewModel)
         {
             oldViewModel.AnimationEditorRequested -= OpenAnimationEditor;
             oldViewModel.CopyBehaviorToRequested -= OpenCopyBehaviorTo;
+            _subscribedViewModel = null;
         }
+    }
 
-        if (e.NewValue is BehaviorPanelViewModel newViewModel)
+    private void AttachViewModel()
+    {
+        if (_subscribedViewModel is not null) return;
+        if (DataContext is BehaviorPanelViewModel newViewModel)
         {
+            _subscribedViewModel = newViewModel;
             newViewModel.AnimationEditorRequested += OpenAnimationEditor;
             newViewModel.CopyBehaviorToRequested += OpenCopyBehaviorTo;
         }

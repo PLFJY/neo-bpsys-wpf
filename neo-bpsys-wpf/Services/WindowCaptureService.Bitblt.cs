@@ -87,6 +87,7 @@ public partial class WindowCaptureService
     /// <param name="args">事件参数。</param>
     private void OnBitbltTimerTick(object? sender, EventArgs args)
     {
+        if (!ReferenceEquals(sender, _bitbltTimer)) return;
         // 句柄被重置（例如 StopCapture 后）时直接退出当前 tick。
         if (_bitbltTargetHwnd == HWND.Zero)
         {
@@ -111,6 +112,7 @@ public partial class WindowCaptureService
     /// <returns>抓帧成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     private bool TryCaptureBitbltFrame(HWND hwnd)
     {
+        var generation = Volatile.Read(ref _captureGeneration);
         if (hwnd == 0)
         {
             return false;
@@ -227,6 +229,8 @@ public partial class WindowCaptureService
 
             lock (_frameLock)
             {
+                if (generation != Volatile.Read(ref _captureGeneration) || hwnd != _bitbltTargetHwnd)
+                    return false;
                 _currentFrame = frame;
             }
 
