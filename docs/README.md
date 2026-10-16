@@ -42,6 +42,7 @@ Xaml Styler 插件仅适用于 Visual Studio——Rider 整理出来的格式不
 | 文档 | 内容 |
 | --- | --- |
 | [frontend-windows-and-layout.md](frontend/frontend-windows-and-layout.md) | 前台窗口、OBS 捕获、v3 布局、插件前台窗口 |
+| [direct-output-spout-poc.md](frontend/direct-output-spout-poc.md) | 实验性 WPF 离屏到 Spout2/OBS 的实现、运行入口、实测性能与限制 |
 | [fronted-window-system-deep-dive.md](frontend/fronted-window-system-deep-dive.md) | 前台窗口启动链路、注册、创建、配置读取、配置应用与生命周期的源码级解析 |
 | [fronted-layout-v3-window-centric.md](frontend/fronted-layout-v3-window-centric.md) | Fronted Layout v3 Window-centric schema、路径、BaseCanvas、behavior、package 和 legacy 转换规则 |
 | [fronted-designer-v3.md](frontend/fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和实现历史 |

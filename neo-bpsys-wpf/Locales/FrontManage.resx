@@ -421,4 +421,22 @@
   <data name="PackageCreatedByNewerVersion">
     <value>此布局包由较新版本的软件创建，部分内容可能无法正常使用。</value>
   </data>
+  <data name="DirectOutputDescription" xml:space="preserve">
+    <value>通过不可见 WPF 宿主以目标 30 FPS 向 Spout2 输出真实 v3 布局，需要 x64 进程。OBS 中添加 Spout2 Capture，合成模式选 Default。默认窗口捕获仍可使用。</value>
+  </data>
+  <data name="DirectOutputPackageChanged" xml:space="preserve">
+    <value>活动布局包不再提供当前输出窗口，Direct Output 已停止。请选择其他窗口。</value>
+  </data>
+  <data name="DirectOutputRunning" xml:space="preserve">
+    <value>正在输出</value>
+  </data>
+  <data name="DirectOutputStart" xml:space="preserve">
+    <value>开始输出</value>
+  </data>
+  <data name="DirectOutputStop" xml:space="preserve">
+    <value>停止输出</value>
+  </data>
+  <data name="DirectOutputTitle" xml:space="preserve">
+    <value>Direct Output（实验性）</value>
+  </data>
 </root>

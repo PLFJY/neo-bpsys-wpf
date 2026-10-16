@@ -421,4 +421,22 @@
   <data name="PackageCreatedByNewerVersion">
     <value>This layout package was created by a newer app version; some content may not work as expected.</value>
   </data>
+  <data name="DirectOutputDescription" xml:space="preserve">
+    <value>Send a live v3 layout to Spout2 at a target of 30 FPS using an invisible WPF host. Requires an x64 process. Add Spout2 Capture in OBS and select Default for Composite mode. Window capture remains available.</value>
+  </data>
+  <data name="DirectOutputPackageChanged" xml:space="preserve">
+    <value>The active package no longer provides this output window. Direct Output stopped; select another window.</value>
+  </data>
+  <data name="DirectOutputRunning" xml:space="preserve">
+    <value>Output running</value>
+  </data>
+  <data name="DirectOutputStart" xml:space="preserve">
+    <value>Start output</value>
+  </data>
+  <data name="DirectOutputStop" xml:space="preserve">
+    <value>Stop output</value>
+  </data>
+  <data name="DirectOutputTitle" xml:space="preserve">
+    <value>Direct Output (experimental)</value>
+  </data>
 </root>

@@ -2,6 +2,10 @@
 
 本文面向维护者和 AI agent，用于避免把当前边界误判为已完成能力。
 
+## Direct Output（实验性）
+
+已实现单个 v3 布局经不可见 WPF HwndSource、RenderTargetBitmap 和 Spout2 发送给 OBS，真实绑定、选角过渡、透明合成及重连已做端到端验证。固定依赖目前只支持 x64 进程；在本次 Parallels/x64 仿真环境中尚未达到 1080p30，WPF 帧生成仍占用主 Dispatcher，不视为生产级替代方案。默认仍使用 Window Capture。具体测量、复制链路及验证边界见 [Direct Output PoC](frontend/direct-output-spout-poc.md)。
+
 ## SmartBP
 
 | 能力 | 状态 |

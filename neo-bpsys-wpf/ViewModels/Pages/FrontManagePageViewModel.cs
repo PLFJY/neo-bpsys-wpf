@@ -55,6 +55,9 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
+    /// <summary>获取按需创建的实验性 Direct Output 入口。</summary>
+    public object? DirectOutput => _serviceProvider?.GetService<Services.DirectOutput.FrontedDirectOutputService>();
+
     /// <summary>
     /// 初始化前台管理页视图模型。
     /// </summary>

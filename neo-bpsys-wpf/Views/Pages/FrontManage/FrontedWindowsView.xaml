@@ -82,6 +82,26 @@
                 </Grid>
             </Border>
 
+            <Border Margin="0,0,0,10" Style="{StaticResource Card}" DataContext="{Binding DirectOutput}">
+                <StackPanel>
+                    <TextBlock FontSize="18" FontWeight="DemiBold" Text="{lex:Loc DirectOutputTitle}" />
+                    <TextBlock Margin="0,6,0,8" TextWrapping="Wrap" Text="{lex:Loc DirectOutputDescription}" />
+                    <ComboBox ItemsSource="{Binding Windows}" DisplayMemberPath="DisplayName" SelectedValuePath="Id"
+                              SelectedValue="{Binding SelectedWindowId}" HorizontalAlignment="Left" MinWidth="220" />
+                    <WrapPanel Margin="0,8,0,8">
+                        <ui:Button Command="{Binding StartCommand}" Content="{lex:Loc DirectOutputStart}"
+                                   Icon="{ui:SymbolIcon Symbol=Play24}" />
+                        <ui:Button Margin="8,0,0,0" Command="{Binding StopCommand}" Content="{lex:Loc DirectOutputStop}"
+                                   Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        <CheckBox Margin="12,0,0,0" IsEnabled="False" IsChecked="{Binding IsOutputRunning, Mode=OneWay}"
+                                  Content="{lex:Loc DirectOutputRunning}" />
+                    </WrapPanel>
+                    <TextBlock Text="{Binding SenderName}" />
+                    <TextBlock Text="{Binding Metrics}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+                </StackPanel>
+            </Border>
+
             <ItemsControl x:Name="ManageableWindowGroupsPanel" ItemsSource="{Binding ManageableWindowGroups}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>

@@ -229,6 +229,8 @@
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
         <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="Spout2.NET" Version="0.1.0-alpha" />
+        <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
         <PackageReference Include="WPF-UI.DependencyInjection" Version="4.3.0" />
         <PackageReference Include="WPF-UI.Markdown" Version="4.3.0" />
         <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" />
