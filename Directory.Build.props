@@ -4,6 +4,10 @@
     AssemblyVersion 保持 API/二进制兼容版本，BuildMeta 可由发布脚本通过 /p:BuildMeta 覆盖。
   -->
   <PropertyGroup>
+    <!-- 与解决方案配置保持一致；各项目仍可在自己的 csproj 中覆盖。 -->
+    <Configurations Condition="'$(Configurations)' == ''">Debug;Release;Beta;Preview</Configurations>
+    <Platforms Condition="'$(Platforms)' == ''">AnyCPU;x64</Platforms>
+
     <VersionPrefix Condition="'$(VersionPrefix)' == ''">3.2.4</VersionPrefix>
     <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">3.0.0.0</AssemblyVersion>
     <FileVersion Condition="'$(FileVersion)' == ''">$(VersionPrefix).0</FileVersion>

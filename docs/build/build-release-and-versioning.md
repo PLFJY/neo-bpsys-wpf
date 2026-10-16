@@ -121,11 +121,14 @@ build/neo-bpsys-wpf_Installer_full.exe
 
 ## 构建配置
 
-主项目定义：
+`Directory.Build.props` 为仓库内项目统一声明默认构建配置和平台，项目可在自己的 `.csproj` 中覆盖：
 
 ```xml
 <Configurations>Debug;Release;Beta;Preview</Configurations>
+<Platforms>AnyCPU;x64</Platforms>
 ```
+
+`neo-bpsys-wpf.slnx` 保留各项目的配置映射（包括部分辅助项目将 Beta/Preview 映射到 Debug/Release）。新增项目若沿用解决方案配置，应继承上述默认声明，避免映射指向项目未声明的配置或平台，导致 IDE 提示「当前解决方案包含未知的项目配置映射」。
 
 | 配置 | 行为 |
 | --- | --- |
