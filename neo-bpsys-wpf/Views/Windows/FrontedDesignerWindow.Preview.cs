@@ -191,6 +191,14 @@ public partial class FrontedDesignerWindow
         if (e.RebuildLayerPanel || e.ZIndexChanged)
         {
             ReorderPreviewChildrenToDocument();
+            foreach (var (item, index) in _viewModel.CurrentDocument.Controls.Select((item, index) => (item, index)))
+            {
+                if (_hitboxes.TryGetValue(item, out var hitbox))
+                {
+                    Panel.SetZIndex(hitbox, FrontedDesignerEditorVisualHelper.GetHitboxZIndex(
+                        item.Config.ZIndex, index, ReferenceEquals(item, _viewModel.SelectedDesignItem)));
+                }
+            }
         }
 
         if (e.RebuildInteractionLayer)

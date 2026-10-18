@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.V3;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 using neo_bpsys_wpf.Services.FrontedDesigner;
+using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Windows;
 using Xunit;
 
@@ -18,6 +19,73 @@ namespace neo_bpsys_wpf.Tests.Models;
 /// </summary>
 public sealed class FrontedDesignerBehaviorTest
 {
+    /// <summary>
+    /// 图层历史与内容编辑交错时，撤销只能恢复对应操作，并写回操作所属的 BO 状态。
+    /// </summary>
+    [Fact]
+    public void LayerReorderHistoryPreservesContentAndOtherBoState() => WpfTestThread.Run(() =>
+    {
+        var config = new FrontedCanvasConfig
+        {
+            EnableBoModeStates = true,
+            Controls =
+            {
+                ["Title"] = new TextFrontedControlConfig { Text = "Original", ZIndex = 0 },
+                ["Other"] = new TextFrontedControlConfig { Text = "Other", ZIndex = 2 }
+            },
+            BoModeStates =
+            {
+                ["Bo3"] = new FrontedCanvasStateConfig
+                {
+                    Controls = { ["Title"] = new TextFrontedControlConfig { Text = "BO3", ZIndex = 7 } }
+                }
+            }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = new FrontedLayoutDesignConverter().FromConfig("TestWindow", "BaseCanvas", config)
+        };
+        var source = viewModel.CurrentDocument.Controls.First(item => item.Name == "Title");
+        viewModel.SelectDesignItem(source);
+        Assert.True(viewModel.ApplyPropertyEdit(new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(TextFrontedControlConfig.Text), EditorKind = FrontedPropertyEditorKind.Text
+        }, "Edited"));
+        Assert.True(viewModel.CommitLayerDrop(source, 3, null, true));
+
+        viewModel.SelectedBoModeStateOption = viewModel.BoModeStateOptions.Single(option => option.State == FrontedCanvasBoModeState.Bo3);
+        viewModel.UndoCommand.Execute(null);
+        Assert.Equal(FrontedCanvasBoModeState.Bo3, viewModel.CurrentDocument.EditingBoModeState);
+        Assert.Equal(7, viewModel.CurrentDocument.Controls.Single().Config.ZIndex);
+        Assert.Equal("BO3", Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument.Controls.Single().Config).Text);
+        Assert.Equal(0, viewModel.CurrentDocument.CanvasConfig.Controls["Title"].ZIndex);
+        Assert.Equal("Edited", Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument.CanvasConfig.Controls["Title"]).Text);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.Equal("Original", Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument.CanvasConfig.Controls["Title"]).Text);
+        viewModel.RedoCommand.Execute(null);
+        viewModel.RedoCommand.Execute(null);
+        Assert.Equal(3, viewModel.CurrentDocument.CanvasConfig.Controls["Title"].ZIndex);
+        Assert.Equal("Edited", Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument.CanvasConfig.Controls["Title"]).Text);
+        Assert.Equal("BO3", Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument.Controls.Single().Config).Text);
+
+        viewModel.SelectedBoModeStateOption = viewModel.BoModeStateOptions.Single(option => option.State == FrontedCanvasBoModeState.Bo5);
+        var title = viewModel.CurrentDocument.Controls.First(item => item.Name == "Title");
+        Assert.True(viewModel.CommitLayerDrop(title, 4, null, true));
+        viewModel.UndoCommand.Execute(null);
+        Assert.Equal(3, title.Config.ZIndex);
+        viewModel.RedoCommand.Execute(null);
+        Assert.Equal(4, title.Config.ZIndex);
+        viewModel.SelectedBoModeStateOption = viewModel.BoModeStateOptions.Single(option => option.State == FrontedCanvasBoModeState.Bo3);
+        var bo3Title = viewModel.CurrentDocument.Controls.Single();
+        Assert.True(viewModel.CommitLayerDrop(bo3Title, 9, null, true));
+        viewModel.UndoCommand.Execute(null);
+        Assert.Equal(7, bo3Title.Config.ZIndex);
+        viewModel.RedoCommand.Execute(null);
+        Assert.Equal(9, bo3Title.Config.ZIndex);
+        Assert.Equal(4, viewModel.CurrentDocument.CanvasConfig.Controls["Title"].ZIndex);
+    });
+
     /// <summary>
     /// Verifies conversion keeps control identity in dictionary keys, not duplicated JSON fields.
     /// </summary>

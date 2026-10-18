@@ -30,6 +30,7 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     PreviewKeyDown="Window_OnPreviewKeyDown"
     PreviewKeyUp="Window_OnPreviewKeyUp"
+    PreviewMouseDown="Window_OnPreviewMouseDown"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
@@ -615,8 +616,8 @@
                                 Drop="LayerPanel_OnDrop"
                                 HorizontalScrollBarVisibility="Disabled"
                                 VerticalScrollBarVisibility="Auto">
-                                <StackPanel>
-                                    <ItemsControl ItemsSource="{Binding LayerGroups}">
+                                <StackPanel x:Name="LayerPanelContent">
+                                    <ItemsControl x:Name="LayerGroupsItemsControl" ItemsSource="{Binding LayerGroups}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate DataType="{x:Type designer:FrontedLayerGroup}">
                                                 <Border
@@ -657,6 +658,7 @@
                                                         <ItemsControl ItemsSource="{Binding Items}">
                                                             <ItemsControl.ItemTemplate>
                                                                 <DataTemplate DataType="{x:Type designer:DesignerLayerNode}">
+                                                                    <StackPanel>
                                                                     <Border
                                                                         Margin="0,3"
                                                                         Padding="8,6"
@@ -668,6 +670,8 @@
                                                                         DragOver="LayerItem_OnDragOver"
                                                                         Drop="LayerItem_OnDrop"
                                                                         MouseLeftButtonDown="LayerItem_OnMouseLeftButtonDown"
+                                                                        MouseLeftButtonUp="LayerItem_OnMouseLeftButtonUp"
+                                                                        LostMouseCapture="LayerItem_OnLostMouseCapture"
                                                                         MouseMove="LayerItem_OnMouseMove"
                                                                         PreviewMouseRightButtonDown="LayerItem_OnPreviewMouseRightButtonDown"
                                                                         Tag="{Binding}">
@@ -768,6 +772,7 @@
                                                                             </ItemsControl>
                                                                         </Grid>
                                                                     </Border>
+                                                                    </StackPanel>
                                                                 </DataTemplate>
                                                             </ItemsControl.ItemTemplate>
                                                         </ItemsControl>

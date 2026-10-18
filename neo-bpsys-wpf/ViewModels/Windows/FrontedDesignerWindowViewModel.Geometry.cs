@@ -511,6 +511,25 @@ public partial class FrontedDesignerWindowViewModel
         bool insertAfter,
         bool moveToNewTopLayer = false,
         bool moveToNewBottomLayer = false)
+        => CommitLayerDropCore(source, targetZIndex, targetItem, insertAfter, moveToNewTopLayer, moveToNewBottomLayer, selectSource: true);
+
+    internal bool CommitLayerDragDrop(
+        FrontedControlDesignItem source,
+        int? targetZIndex,
+        FrontedControlDesignItem? targetItem,
+        bool insertAfter,
+        bool moveToNewTopLayer,
+        bool moveToNewBottomLayer)
+        => CommitLayerDropCore(source, targetZIndex, targetItem, insertAfter, moveToNewTopLayer, moveToNewBottomLayer, selectSource: false);
+
+    private bool CommitLayerDropCore(
+        FrontedControlDesignItem source,
+        int? targetZIndex,
+        FrontedControlDesignItem? targetItem,
+        bool insertAfter,
+        bool moveToNewTopLayer,
+        bool moveToNewBottomLayer,
+        bool selectSource)
     {
         if (CurrentDocument is null || !CanReorderLayers || !IsLayerReorderable(source))
         {
@@ -524,6 +543,8 @@ public partial class FrontedDesignerWindowViewModel
             return false;
         }
 
+        if (ReferenceEquals(source, targetItem)) return false;
+
         var reorderableItems = CurrentDocument.Controls
             .Where(IsLayerReorderable)
             .ToList();
@@ -535,7 +556,7 @@ public partial class FrontedDesignerWindowViewModel
 
         var originalOrder = CurrentDocument.Controls.ToArray();
         var originalZIndex = source.Config.ZIndex;
-        var oldSnapshot = CreateSnapshot();
+        var oldSnapshot = CreateLayerOrderSnapshot(source.Name, CurrentDocument.EditingBoModeState);
         var targetLayer = ResolveDropTargetZIndex(targetZIndex, moveToNewTopLayer, moveToNewBottomLayer);
         var desiredGroups = reorderableItems
             .Where(item => !ReferenceEquals(item, source))
@@ -571,8 +592,7 @@ public partial class FrontedDesignerWindowViewModel
 
         if (originalZIndex == source.Config.ZIndex && originalOrder.SequenceEqual(CurrentDocument.Controls))
         {
-            RebuildFilteredDesignItems();
-            SelectDesignItem(source);
+            if (selectSource) SelectDesignItem(source);
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             return false;
         }
@@ -590,25 +610,37 @@ public partial class FrontedDesignerWindowViewModel
 
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
-        RebuildFilteredDesignItems();
-        SelectDesignItem(source);
+        UpdateLayerListsAfterDrop(source);
+        if (selectSource) SelectDesignItem(source);
+        RefreshSelectedLayerOrderDisplay(source);
         var patch = new FrontedDesignerGeometryPatchRequestedEventArgs(
             [source],
             rebuildLayerPanel: true,
-            rebuildInteractionLayer: true,
+            rebuildInteractionLayer: false,
             updateSelection: true,
             zIndexChanged: true);
         DesignerGeometryPatchRequested?.Invoke(this, patch);
-        if (patch.Applied)
-        {
-            ScheduleValidationOnly("LayerReorder");
-        }
-        else
+        if (!patch.Applied)
         {
             ScheduleValidationAndPreviewRender("LayerReorder");
         }
         StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Reordered");
         return true;
+    }
+
+    private void RefreshSelectedLayerOrderDisplay(FrontedControlDesignItem source)
+    {
+        RefreshSelectedControlDisplay();
+        if (ReferenceEquals(SelectedDesignItem, source))
+        {
+            var zIndexRow = PropertyEditorItems.FirstOrDefault(row => row.PropertyName == nameof(FrontedControlConfigBase.ZIndex));
+            if (zIndexRow is not null)
+            {
+                zIndexRow.Value = source.Config.ZIndex;
+                zIndexRow.EditText = source.Config.ZIndex.ToString(CultureInfo.InvariantCulture);
+                zIndexRow.DisplayValue = zIndexRow.EditText;
+            }
+        }
     }
 
     public bool CommitLayerNodeDrop(

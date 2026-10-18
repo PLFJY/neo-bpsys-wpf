@@ -300,6 +300,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         _previewRenderScheduled = false;
         _propertyAutoCommitTimer?.Stop();
         _pendingAutoCommitEditor = null;
+        _layerSelectionOperation?.Abort();
+        _layerSelectionOperation = null;
+        ResetPendingLayerPointer();
+        HideLayerInsertionPreview();
+        _layerDropTarget = null;
         HideLayerDragGhost();
         StopLayerAutoScroll();
         if (_viewModel is not null)
