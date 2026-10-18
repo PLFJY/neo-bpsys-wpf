@@ -81,7 +81,7 @@ public partial class FrontedDesignerWindowViewModel
         {
             BehaviorPanel.CurrentDocument.WindowType = CurrentDocument?.WindowTypeName;
             BehaviorPanel.CurrentDocument.CanvasName = CurrentDocument?.CanvasName;
-            await _behaviorService.SaveDocumentAsync(BehaviorPanel.CurrentDocument).ConfigureAwait(false);
+            await _behaviorService.SaveDocumentAsync(BehaviorPanel.CurrentDocument);
             AreBehaviorsDirty = false;
             RefreshDirtyState();
             return true;
@@ -136,6 +136,9 @@ public partial class FrontedDesignerWindowViewModel
             BehaviorPanel.CurrentDocument);
     }
 
+    /// <summary>仅同步当前选择的动画 Self 身份，不扫描整个预览树。</summary>
+    internal void UpdateBehaviorPreviewSelection() => _previewAnimationScope?.UpdateSelection(SelectedDesignItem);
+
     /// <summary>释放预览动画会话并清除预览视觉树引用。</summary>
     public void ClearBehaviorPreviewAnimationScope()
     {
@@ -150,6 +153,12 @@ public partial class FrontedDesignerWindowViewModel
     /// <summary>结束关闭窗口的预览会话，取消未完成的布局加载并释放预览作用域。</summary>
     public void EndDesignerPreviewSession()
     {
+        _scheduledDesignerWorkOperation?.Abort();
+        _scheduledDesignerWorkOperation = null;
+        _scheduledValidationAndPreviewPending = false;
+        _scheduledValidationRequested = false;
+        _scheduledPreviewRequested = false;
+        _clearRestoreVisualsAfterScheduledPreview = false;
         try
         {
             ++_reloadLayoutVersion;

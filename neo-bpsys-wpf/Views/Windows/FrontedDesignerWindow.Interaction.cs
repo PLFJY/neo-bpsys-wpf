@@ -212,7 +212,7 @@ public partial class FrontedDesignerWindow
 
         if (action == FrontedDesignerPointerAction.BeginDragSelected)
         {
-            _viewModel.CaptureUndoSnapshot();
+            _viewModel.CaptureGeometryUndoSnapshot();
             _hasStartedDrag = true;
             _interactionMode = InteractionMode.Drag;
         }
@@ -464,7 +464,8 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        _viewModel?.CaptureUndoSnapshot();
+        if (mode == InteractionMode.PolygonVertex) _viewModel?.CaptureUndoSnapshot();
+        else _viewModel?.CaptureGeometryUndoSnapshot();
         _interactionMode = mode;
         _startMousePosition = startMousePosition;
         _originalLeft = item.Config.Left;
@@ -826,9 +827,11 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        Dispatcher.BeginInvoke(
+        if (_selectionVisualRefreshOperation is { Status: DispatcherOperationStatus.Pending }) return;
+        _selectionVisualRefreshOperation = Dispatcher.BeginInvoke(
             new Action(() =>
             {
+                _selectionVisualRefreshOperation = null;
                 if (!_isLoaded || _viewModel?.SelectedDesignItem is null)
                 {
                     return;

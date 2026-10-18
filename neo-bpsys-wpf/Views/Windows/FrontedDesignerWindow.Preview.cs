@@ -77,6 +77,8 @@ public partial class FrontedDesignerWindow
 
         try
         {
+            // 完整渲染会替换控件；旧动画 session 的 BaseValues/overlay 仍引用旧视觉对象。
+            _viewModel?.ClearBehaviorPreviewAnimationScope();
             ConfigureDesignSurface(e.Config.CanvasWidth, e.Config.CanvasHeight);
             LogDesignerPerf("PreviewRender", "configure surface", Elapsed(total));
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
@@ -134,9 +136,10 @@ public partial class FrontedDesignerWindow
     private void ClearPreviewCanvas()
     {
         _viewModel?.ClearActiveSnapGuides();
+        _viewModel?.ClearBehaviorPreviewAnimationScope();
+        FrontedRenderer.ClearGeneratedControls(PreviewCanvas);
         PreviewCanvas.Children.Clear();
         _previewElementsByControlName.Clear();
-        _viewModel?.ClearBehaviorPreviewAnimationScope();
         PreviewCanvas.Background = null;
         ConfigureDesignSurface(640, 360);
         InteractionLayer.Children.Clear();
@@ -367,10 +370,12 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        Dispatcher.BeginInvoke(
+        if (_fitScrollResetOperation is { Status: DispatcherOperationStatus.Pending }) return;
+        _fitScrollResetOperation = Dispatcher.BeginInvoke(
             DispatcherPriority.Loaded,
             new Action(() =>
             {
+                _fitScrollResetOperation = null;
                 PreviewScrollViewer.ScrollToHorizontalOffset(0D);
                 PreviewScrollViewer.ScrollToVerticalOffset(0D);
             }));

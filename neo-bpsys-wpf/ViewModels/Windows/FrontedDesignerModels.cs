@@ -217,7 +217,7 @@ internal static class FrontedDesignerSnapshotRestorePlanner
             || Math.Abs(current.CanvasHeight - target.CanvasHeight) >= 0.0001D
             || !string.Equals(current.BackgroundImage, target.BackgroundImage, StringComparison.Ordinal)
             || current.EnableBoModeStates != target.EnableBoModeStates
-            || !JsonEquivalent(current.BoModeStates, target.BoModeStates)
+            || !BoModeStatesEqual(current.BoModeStates, target.BoModeStates)
             || !JsonEquivalent(current.RequiredPlugins, target.RequiredPlugins))
         {
             return Fail("canvas/window config changed");
@@ -265,6 +265,28 @@ internal static class FrontedDesignerSnapshotRestorePlanner
     private static FrontedDesignerSnapshotDiff Fail(string reason)
     {
         return new FrontedDesignerSnapshotDiff(false, false, false, reason);
+    }
+
+    private static bool BoModeStatesEqual(IReadOnlyDictionary<string, FrontedCanvasStateConfig> current,
+        IReadOnlyDictionary<string, FrontedCanvasStateConfig> target)
+    {
+        if (current.Count != target.Count) return false;
+        foreach (var (key, state) in current)
+        {
+            if (!target.TryGetValue(key, out var other) || state.BackgroundImage != other.BackgroundImage
+                || !JsonEquivalent(state.RequiredPlugins, other.RequiredPlugins)
+                || !state.Controls.Keys.SequenceEqual(other.Controls.Keys, StringComparer.Ordinal)) return false;
+            foreach (var (name, config) in state.Controls)
+            {
+                var targetConfig = other.Controls[name];
+                // 默认序列化 Dictionary<string, FrontedControlConfigBase> 会遗漏 Text 等派生字段。
+                // 非当前 BO 状态不会被几何补丁写回，必须完整比较实际配置类型。
+                if (config.GetType() != targetConfig.GetType()
+                    || !JsonElement.DeepEquals(JsonSerializer.SerializeToElement(config, config.GetType()),
+                        JsonSerializer.SerializeToElement(targetConfig, targetConfig.GetType()))) return false;
+            }
+        }
+        return true;
     }
 
     private static bool JsonEquivalentWithoutGeometry(

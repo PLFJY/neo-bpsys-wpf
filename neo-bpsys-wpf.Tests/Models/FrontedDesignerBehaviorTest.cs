@@ -19,6 +19,64 @@ namespace neo_bpsys_wpf.Tests.Models;
 /// </summary>
 public sealed class FrontedDesignerBehaviorTest
 {
+    /// <summary>几何与内容历史交错且切换 BO 状态后，撤销重做不得覆盖其他状态或丢失派生配置字段。</summary>
+    [Fact]
+    public void MixedGeometryAndContentHistoryPreservesBothBoStates() => WpfTestThread.Run(() =>
+    {
+        var config = new FrontedCanvasConfig
+        {
+            EnableBoModeStates = true,
+            Controls = { ["Title"] = new TextFrontedControlConfig { Text = "BO5" } },
+            BoModeStates =
+            {
+                ["Bo3"] = new FrontedCanvasStateConfig
+                {
+                    Controls = { ["Title"] = new TextFrontedControlConfig { Text = "BO3" } }
+                }
+            }
+        };
+        var converter = new FrontedLayoutDesignConverter();
+        var vm = new FrontedDesignerWindowViewModel { CurrentDocument = converter.FromConfig("TestWindow", "BaseCanvas", config) };
+        var textRow = new FrontedPropertyEditorItem { PropertyName = "Text", EditorKind = FrontedPropertyEditorKind.Text };
+        vm.SelectDesignItem(vm.CurrentDocument.Controls.Single());
+        vm.MoveSelectedDesignItemBy(5, 0);
+        Assert.True(vm.ApplyPropertyEdit(textRow, "Edited BO5"));
+        vm.SelectedBoModeStateOption = vm.BoModeStateOptions.Single(option => option.State == FrontedCanvasBoModeState.Bo3);
+        vm.SelectDesignItem(vm.CurrentDocument.Controls.Single());
+        vm.MoveSelectedDesignItemBy(7, 0);
+        Assert.True(vm.ApplyPropertyEdit(textRow, "Edited BO3"));
+        vm.SelectedBoModeStateOption = vm.BoModeStateOptions.Single(option => option.State == FrontedCanvasBoModeState.Bo5);
+
+        void Verify(string text, double left, string bo3Text, double bo3Left)
+        {
+            vm.ExecuteScheduledDesignerWorkForTests();
+            Assert.Equal(FrontedCanvasBoModeState.Bo5, vm.CurrentDocument.EditingBoModeState);
+            var saved = converter.ToConfig(vm.CurrentDocument);
+            var root = Assert.IsType<TextFrontedControlConfig>(saved.Controls["Title"]);
+            var bo3 = Assert.IsType<TextFrontedControlConfig>(saved.BoModeStates["Bo3"].Controls["Title"]);
+            Assert.Equal((text, left, bo3Text, bo3Left), (root.Text, root.Left, bo3.Text, bo3.Left));
+            Assert.Null(root.Width);
+            Assert.Null(bo3.Width);
+        }
+
+        vm.UndoCommand.Execute(null);
+        Verify("Edited BO5", 5, "BO3", 7);
+        vm.UndoCommand.Execute(null);
+        Verify("Edited BO5", 5, "BO3", 0);
+        vm.UndoCommand.Execute(null);
+        Verify("BO5", 5, "BO3", 0);
+        vm.UndoCommand.Execute(null);
+        Verify("BO5", 0, "BO3", 0);
+        vm.RedoCommand.Execute(null);
+        Verify("BO5", 5, "BO3", 0);
+        vm.RedoCommand.Execute(null);
+        Verify("Edited BO5", 5, "BO3", 0);
+        vm.RedoCommand.Execute(null);
+        Verify("Edited BO5", 5, "BO3", 7);
+        vm.RedoCommand.Execute(null);
+        Verify("Edited BO5", 5, "Edited BO3", 7);
+    });
+
     /// <summary>
     /// 图层历史与内容编辑交错时，撤销只能恢复对应操作，并写回操作所属的 BO 状态。
     /// </summary>

@@ -17,6 +17,28 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public sealed partial class FrontedPropertyGridBuilder
 {
+    /// <summary>比较另一个控件的 Schema 编辑器能力，不为多选中的每个控件创建完整属性行。</summary>
+    /// <param name="item">待比较的设计项。</param>
+    /// <param name="property">该项自身的属性定义。</param>
+    /// <param name="expected">主选中项的属性行。</param>
+    /// <param name="options">待比较的属性选项。</param>
+    /// <returns>该项是否可以使用相同编辑器批量编辑。</returns>
+    internal bool CanShareBatchPropertyEditor(FrontedControlDesignItem item, FrontedV3PropertyDefinition property,
+        FrontedPropertyEditorItem expected, out IReadOnlyList<object>? options)
+    {
+        options = null;
+        var name = property.Metadata.DisplayNameKey ?? property.OptionsPath;
+        if (!property.Metadata.IsVisible || property.Metadata.IsReadOnly
+            || !item.IsEditableInEditor || !item.IsSelectableInEditor
+            || property.PropertyType != expected.PropertyType || !IsVisibleProperty(item.Config, name)
+            || IsEffectDetailDisabled(name, item.Config) || IsOverlayStretchEditingDisabled(name, item.Config)
+            || IsBindingPathProperty(name) || IsResourcePathProperty(name)) return false;
+        var kind = property.Metadata.EditorKind ?? ResolveEditorKindFromType(property.PropertyType, name);
+        if (kind != expected.EditorKind) return false;
+        options = ResolveSchemaOptions(property, kind, name);
+        return true;
+    }
+
     private void AddSchemaConfigRows(
         List<FrontedPropertyEditorItem> rows,
         FrontedControlDesignItem selectedItem,

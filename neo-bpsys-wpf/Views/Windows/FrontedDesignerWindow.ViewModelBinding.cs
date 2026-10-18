@@ -55,6 +55,8 @@ public partial class FrontedDesignerWindow
         {
             if (propertyGridViewModel.IsRebuildingPropertyGrid)
             {
+                _propertyAutoCommitTimer?.Stop();
+                _pendingAutoCommitEditor = null;
                 SuppressPropertyEditorCommitForLayoutPass();
             }
             else
@@ -80,7 +82,7 @@ public partial class FrontedDesignerWindow
             {
                 RebuildInteractionLayer();
             }
-            _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
+            _viewModel?.UpdateBehaviorPreviewSelection();
             FocusDesignSurface();
 
             if (_initialLayoutLoaded

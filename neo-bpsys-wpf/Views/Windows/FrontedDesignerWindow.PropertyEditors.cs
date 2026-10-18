@@ -454,7 +454,8 @@ public partial class FrontedDesignerWindow
 
     private bool IsPropertyEditorCommitSuppressed()
     {
-        return !_isLoaded || _suppressPropertyEditorCommit || _viewModel?.IsRebuildingPropertyGrid == true;
+        return !_isLoaded || _suppressPropertyEditorCommit || _viewModel?.IsRebuildingPropertyGrid == true
+            || _viewModel?.IsRestoringSnapshotVisuals == true;
     }
 
     private void InitializePropertyAutoCommitTimer()
@@ -509,8 +510,13 @@ public partial class FrontedDesignerWindow
     private void SuppressPropertyEditorCommitForLayoutPass()
     {
         _suppressPropertyEditorCommit = true;
-        Dispatcher.BeginInvoke(
-            () => _suppressPropertyEditorCommit = false,
+        if (_propertyCommitResumeOperation is { Status: DispatcherOperationStatus.Pending }) return;
+        _propertyCommitResumeOperation = Dispatcher.BeginInvoke(
+            () =>
+            {
+                _propertyCommitResumeOperation = null;
+                _suppressPropertyEditorCommit = false;
+            },
             DispatcherPriority.Loaded);
     }
 

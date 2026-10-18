@@ -104,6 +104,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     {
         _markDirty();
         IsDirty = true;
+        if (_isDragging) return;
         ValidateGraph();
         OnPropertyChanged(nameof(FilteredCatalog));
     }
@@ -127,21 +128,26 @@ public sealed partial class FrontedNodeGraphEditorViewModel
 
         _captureUndoSnapshot();
 
-        if (_undoStack.Count >= UndoStackLimit)
-        {
-            // 限制撤销栈大小：移除最旧的条目
-            var items = _undoStack.ToArray();
-            _undoStack.Clear();
-            for (var i = items.Length - 1; i > 0; i--)
-            {
-                _undoStack.Push(items[i]);
-            }
-        }
-
-        _undoStack.Push(JsonSerializer.Serialize(Graph));
+        PushGraphSnapshot(_undoStack, JsonSerializer.SerializeToUtf8Bytes(Graph));
         _redoStack.Clear();
         CanUndo = true;
         CanRedo = false;
+    }
+
+    private static void PushGraphSnapshot(Stack<byte[]> stack, byte[] snapshot)
+    {
+        stack.Push(snapshot);
+        if (stack.Count <= UndoStackLimit && stack.Sum(item => item.LongLength) <= UndoStackByteLimit) return;
+        var retained = new List<byte[]>();
+        long bytes = 0;
+        foreach (var item in stack)
+        {
+            if (retained.Count > 0 && (retained.Count >= UndoStackLimit || bytes + item.LongLength > UndoStackByteLimit)) break;
+            retained.Add(item);
+            bytes += item.LongLength;
+        }
+        stack.Clear();
+        foreach (var item in retained.AsEnumerable().Reverse()) stack.Push(item);
     }
 
     /// <summary>撤销</summary>
@@ -152,11 +158,11 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         {
             return;
         }
-        _redoStack.Push(JsonSerializer.Serialize(Graph));
+        PushGraphSnapshot(_redoStack, JsonSerializer.SerializeToUtf8Bytes(Graph));
         var snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_undoStack.Pop());
         _isRestoring = true;
-        RestoreGraph(snapshot);
-        _isRestoring = false;
+        try { RestoreGraph(snapshot); }
+        finally { _isRestoring = false; }
         CanUndo = _undoStack.Count > 0;
         CanRedo = _redoStack.Count > 0;
     }
@@ -169,11 +175,11 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         {
             return;
         }
-        _undoStack.Push(JsonSerializer.Serialize(Graph));
+        PushGraphSnapshot(_undoStack, JsonSerializer.SerializeToUtf8Bytes(Graph));
         var snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_redoStack.Pop());
         _isRestoring = true;
-        RestoreGraph(snapshot);
-        _isRestoring = false;
+        try { RestoreGraph(snapshot); }
+        finally { _isRestoring = false; }
         CanUndo = _undoStack.Count > 0;
         CanRedo = _redoStack.Count > 0;
     }

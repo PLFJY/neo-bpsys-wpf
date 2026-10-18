@@ -49,6 +49,9 @@ public partial class FrontedDesignerWindow : FluentWindow
     private DispatcherOperation? _previewRenderOperation;
     private DispatcherOperation? _selectorReloadOperation;
     private bool _suppressPropertyEditorCommit;
+    private DispatcherOperation? _propertyCommitResumeOperation;
+    private DispatcherOperation? _selectionVisualRefreshOperation;
+    private DispatcherOperation? _fitScrollResetOperation;
     private FrontedDesignerWindowViewModel? _viewModel;
     private ValidationDetailsWindow? _validationDetailsWindow;
     private FrontedDesignerHelpWindow? _helpWindow;
@@ -293,6 +296,12 @@ public partial class FrontedDesignerWindow : FluentWindow
         _initialPreviewReady.TrySetCanceled();
         _previewRenderOperation?.Abort();
         _previewRenderOperation = null;
+        _propertyCommitResumeOperation?.Abort();
+        _propertyCommitResumeOperation = null;
+        _selectionVisualRefreshOperation?.Abort();
+        _selectionVisualRefreshOperation = null;
+        _fitScrollResetOperation?.Abort();
+        _fitScrollResetOperation = null;
         _selectorReloadOperation?.Abort();
         _selectorReloadOperation = null;
         _selectorReloadRequested = false;

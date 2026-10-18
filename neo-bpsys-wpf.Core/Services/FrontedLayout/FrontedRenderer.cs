@@ -195,7 +195,9 @@ public class FrontedRenderer(
         return border;
     }
 
-    private static void ClearGeneratedControls(Canvas canvas)
+    /// <summary>移除生成的控件并注销其完整名称树，供重绘和设计器清空预览共用。</summary>
+    /// <param name="canvas">承载生成控件的画布。</param>
+    internal static void ClearGeneratedControls(Canvas canvas)
     {
         for (var i = canvas.Children.Count - 1; i >= 0; i--)
         {

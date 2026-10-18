@@ -23,7 +23,7 @@ public sealed partial class FrontedPropertyGridBuilder
     /// <returns>字体系列选项。</returns>
     public IReadOnlyList<object> GetFontFamilyOptions()
     {
-        return _fontFamilyOptionProvider.GetFontFamilyOptions().Cast<object>().ToArray();
+        return _fontFamilyOptionProvider.GetFontFamilyOptions();
     }
 
     /// <summary>

@@ -484,10 +484,12 @@ public partial class FrontedDesignerWindowViewModel
                 SelectedDesignItems.Add(item);
             }
 
+            var primaryChanged = !ReferenceEquals(SelectedDesignItem, primary);
             SelectedDesignItem = primary;
-            if (ReferenceEquals(SelectedDesignItem, primary))
+            if (!primaryChanged)
             {
-                ApplyDesignSelectionFlags();
+                // 主选中项不变时 setter 不通知，但多选交集与行为面板仍需更新。
+                OnSelectedDesignItemChanged(primary);
             }
 
             OnPropertyChanged(nameof(SelectedDesignItems));
@@ -792,6 +794,26 @@ public partial class FrontedDesignerWindowViewModel
                 });
             }
         }
+    }
+
+    private void RefreshEditedLayerNodes()
+    {
+        var selected = SelectedDesignItems.ToHashSet();
+        if (SelectedDesignItem is { } primary) selected.Add(primary);
+        foreach (var node in LayerGroups.SelectMany(group => group.Items).Where(node => node.ControlItem is not null && selected.Contains(node.ControlItem)))
+        {
+            var updated = new DesignerLayerNode();
+            AppendChildLayerNodes(updated, node.ControlItem!);
+            var unchanged = node.Children.Count == updated.Children.Count
+                && node.Children.Zip(updated.Children).All(pair =>
+                    pair.First.Kind == pair.Second.Kind && pair.First.PartId == pair.Second.PartId
+                    && pair.First.CollectionId == pair.Second.CollectionId && pair.First.ItemKey == pair.Second.ItemKey
+                    && pair.First.CanSelect == pair.Second.CanSelect && pair.First.DisplayName == pair.Second.DisplayName);
+            if (unchanged) continue;
+            node.Children.Clear();
+            foreach (var child in updated.Children) node.Children.Add(child);
+        }
+        RefreshLayerNodeSelection();
     }
 
     private void RefreshLayerNodeSelection()

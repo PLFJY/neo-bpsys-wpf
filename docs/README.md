@@ -46,6 +46,7 @@ Xaml Styler 插件仅适用于 Visual Studio——Rider 整理出来的格式不
 | [fronted-layout-v3-window-centric.md](frontend/fronted-layout-v3-window-centric.md) | Fronted Layout v3 Window-centric schema、路径、BaseCanvas、behavior、package 和 legacy 转换规则 |
 | [fronted-designer-v3.md](frontend/fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和实现历史 |
 | [fronted-designer-editor.md](frontend/fronted-designer-editor.md) | Designer v3 独立编辑器技术设计，包括 Window-centric 选择、JSON key = 控件名、透明 hitbox、Property Grid、Binding/Resource Browser 和保存策略 |
+| [fronted-designer-performance-review.md](frontend/fronted-designer-performance-review.md) | v3 设计器性能审查、交互与历史内存优化、实测范围及后续维护约束 |
 | [fronted-behavior-system.md](frontend/fronted-behavior-system.md) | Fronted Behavior Graph System 设计 — BehaviorGuid、window-level behaviors 文件结构、事件总线候选来源和实现说明 |
 | [bpui-package-v3.md](frontend/bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |
 | [legacy-fronted-layout-migration.md](frontend/legacy-fronted-layout-migration.md) | 旧 `Config.json` 前台字段和旧 `.bpui` 到 Designer v3 布局的迁移规则 |

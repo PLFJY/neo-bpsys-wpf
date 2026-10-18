@@ -227,6 +227,8 @@ public partial class FrontedDesignerWindowViewModel
         _scheduledPreviewRequested |= preview;
         if (_scheduledValidationAndPreviewPending)
         {
+            if (preview && _scheduledDesignerWorkOperation is { Status: DispatcherOperationStatus.Pending })
+                _scheduledDesignerWorkOperation.Priority = DispatcherPriority.Render;
             LogDesignerPerf(reason, "designer work already scheduled");
             return;
         }
@@ -234,7 +236,7 @@ public partial class FrontedDesignerWindowViewModel
         _scheduledValidationAndPreviewPending = true;
         var dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
         var priority = preview ? DispatcherPriority.Render : DispatcherPriority.Background;
-        dispatcher.BeginInvoke(
+        _scheduledDesignerWorkOperation = dispatcher.BeginInvoke(
             new Action(ExecuteScheduledValidationAndPreviewRender),
             priority);
     }
@@ -256,6 +258,8 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
+        _scheduledDesignerWorkOperation?.Abort();
+        _scheduledDesignerWorkOperation = null;
         _scheduledValidationAndPreviewPending = false;
         var shouldValidate = _scheduledValidationRequested;
         var shouldPreview = _scheduledPreviewRequested;

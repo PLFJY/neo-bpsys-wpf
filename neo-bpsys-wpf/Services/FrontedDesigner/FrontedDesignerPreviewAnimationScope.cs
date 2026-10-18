@@ -70,6 +70,14 @@ public sealed class FrontedDesignerPreviewAnimationScope
         RefreshTargets();
     }
 
+    /// <summary>更新动画 Self 上下文；选择变化不改变已渲染的动画目标目录。</summary>
+    /// <param name="selectedControl">当前主选中控件。</param>
+    internal void UpdateSelection(FrontedControlDesignItem? selectedControl)
+    {
+        _selfBehaviorGuid = selectedControl?.Config.BehaviorGuid ?? Guid.Empty;
+        _selfDisplayName = selectedControl?.Name;
+    }
+
     /// <summary>
     /// 根据当前控件配置和预览可视化树重新生成动画目标选项。
     /// </summary>

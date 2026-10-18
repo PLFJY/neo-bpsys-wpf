@@ -126,6 +126,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _isUpdatingBoModeStateUi;
     private bool _preserveUndoRedoDuringDocumentSwap;
     private bool _scheduledValidationAndPreviewPending;
+    private DispatcherOperation? _scheduledDesignerWorkOperation;
     private bool _scheduledValidationRequested;
     private bool _scheduledPreviewRequested;
     private bool _clearRestoreVisualsAfterScheduledPreview;

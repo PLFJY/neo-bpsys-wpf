@@ -221,7 +221,7 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        CaptureUndoSnapshot();
+        CaptureGeometryUndoSnapshot();
         ClearActiveSnapGuides();
 
         // 子控件选中时，键盘微调通过 GeometryTarget 执行。

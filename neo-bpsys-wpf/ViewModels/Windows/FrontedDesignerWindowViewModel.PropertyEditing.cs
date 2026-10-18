@@ -350,7 +350,10 @@ public partial class FrontedDesignerWindowViewModel
             return true;
         }
 
-        CaptureUndoSnapshot();
+        if (IsGeometryProperty(item.PropertyName) && _selectedTarget.Kind == FrontedV3DesignSelectionKind.Root)
+            CaptureGeometryUndoSnapshot();
+        else
+            CaptureUndoSnapshot();
         foreach (var target in changedTargets)
         {
             target.Property.SetValue(target.Item.Config, convertedValue);
@@ -373,7 +376,6 @@ public partial class FrontedDesignerWindowViewModel
         }
 
         FinishPropertyEdit(item.PropertyName, refreshPropertyGrid);
-        OnDesignItemGeometryChanged(renderPreview: true, refreshPropertyGrid: refreshPropertyGrid);
         return true;
     }
 
@@ -539,12 +541,12 @@ public partial class FrontedDesignerWindowViewModel
         OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         try
         {
-            PropertyEditorItems.Clear();
             _schemaPropertiesByPath.Clear();
             _batchPropertyTargets.Clear();
 
             if (CurrentDocument is null || SelectedDesignItem is null)
             {
+                PropertyEditorItems.Clear();
                 return;
             }
 
@@ -552,11 +554,7 @@ public partial class FrontedDesignerWindowViewModel
             // 属性行由 SelectedTarget.Properties 构造，属性编辑通过 Storage 写入。
             if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root } subTarget)
             {
-                foreach (var row in BuildSchemaPropertyEditorItems(subTarget))
-                {
-                    PropertyEditorItems.Add(row);
-                }
-
+                UpdatePropertyEditorItems(BuildSchemaPropertyEditorItems(subTarget).ToArray());
                 return;
             }
 
@@ -591,7 +589,8 @@ public partial class FrontedDesignerWindowViewModel
 
             string? currentGroup = null;
             string? currentSection = null;
-            foreach (var row in FilterMultiSelectionPropertyRows(rows, validationMessages))
+            var updatedRows = new List<FrontedPropertyEditorItem>();
+            foreach (var row in FilterMultiSelectionPropertyRows(rows))
             {
                 ApplyMultiSelectionPropertyRowState(row);
                 // 筛选可能移除了原来的组首行，标题应跟随第一条实际显示的属性。
@@ -618,14 +617,74 @@ public partial class FrontedDesignerWindowViewModel
                         .ToArray();
                 }
 
-                PropertyEditorItems.Add(row);
+                updatedRows.Add(row);
             }
+            UpdatePropertyEditorItems(updatedRows);
         }
         finally
         {
             _isRebuildingPropertyGrid = false;
             OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         }
+    }
+
+    private void UpdatePropertyEditorItems(IReadOnlyList<FrontedPropertyEditorItem> rows)
+    {
+        var existingByPath = PropertyEditorItems.ToDictionary(row => row.PropertyName, StringComparer.Ordinal);
+        for (var index = 0; index < rows.Count; index++)
+        {
+            var next = rows[index];
+            if (existingByPath.TryGetValue(next.PropertyName, out var existing)
+                && existing.PropertyType == next.PropertyType && existing.EditorKind == next.EditorKind)
+            {
+                CopyPropertyEditorRow(existing, next);
+                var oldIndex = PropertyEditorItems.IndexOf(existing);
+                if (oldIndex != index) PropertyEditorItems.Move(oldIndex, index);
+            }
+            else
+            {
+                PropertyEditorItems.Insert(index, next);
+            }
+        }
+
+        while (PropertyEditorItems.Count > rows.Count)
+            PropertyEditorItems.RemoveAt(PropertyEditorItems.Count - 1);
+    }
+
+    private static void CopyPropertyEditorRow(FrontedPropertyEditorItem target, FrontedPropertyEditorItem source)
+    {
+        target.DisplayName = source.DisplayName;
+        target.Description = source.Description;
+        target.IsReadOnly = source.IsReadOnly;
+        target.IsEditingDisabled = source.IsEditingDisabled;
+        target.IsRequired = source.IsRequired;
+        target.GroupName = source.GroupName;
+        target.GroupDisplayName = source.GroupDisplayName;
+        target.IsGroupHeaderVisible = source.IsGroupHeaderVisible;
+        target.SectionName = source.SectionName;
+        target.SectionDisplayName = source.SectionDisplayName;
+        target.IsSectionHeaderVisible = source.IsSectionHeaderVisible;
+        target.CanBrowseBinding = source.CanBrowseBinding;
+        target.CanBrowseResource = source.CanBrowseResource;
+        target.IsMultiSelectionMixedValue = source.IsMultiSelectionMixedValue;
+        target.IsMultiSelectionBatchEditable = source.IsMultiSelectionBatchEditable;
+        target.RequiresExplicitCommit = source.RequiresExplicitCommit;
+        target.CanToggleInheritance = source.CanToggleInheritance;
+        target.IsInheritedFromParent = source.IsInheritedFromParent;
+        target.BrowseButtonText = source.BrowseButtonText;
+        target.BrowseDialogTitle = source.BrowseDialogTitle;
+        target.BindingTargetKind = source.BindingTargetKind;
+        target.ExpectedBindingTypeName = source.ExpectedBindingTypeName;
+        if (!target.AllowedBindingTypeNames.SequenceEqual(source.AllowedBindingTypeNames))
+            target.AllowedBindingTypeNames = source.AllowedBindingTypeNames;
+        if (!PropertyEditorOptionsEqual(target.Options, source.Options)) target.Options = source.Options;
+        target.Value = source.Value;
+        target.DisplayValue = source.DisplayValue;
+        target.EditText = source.EditText;
+        if (!target.ValidationErrors.SequenceEqual(source.ValidationErrors)) target.ValidationErrors = source.ValidationErrors;
+        if (!target.ValidationMessages.SequenceEqual(source.ValidationMessages)) target.ValidationMessages = source.ValidationMessages;
+        target.HasEditError = source.HasEditError;
+        target.EditError = source.EditError;
     }
 
     /// <summary>
@@ -861,17 +920,15 @@ public partial class FrontedDesignerWindowViewModel
     private sealed record BatchPropertyTarget(FrontedControlDesignItem Item, FrontedV3PropertyDefinition Property);
 
     private IEnumerable<FrontedPropertyEditorItem> FilterMultiSelectionPropertyRows(
-        IEnumerable<FrontedPropertyEditorItem> rows,
-        IReadOnlyList<FrontedLayoutValidationMessage> validationMessages)
+        IEnumerable<FrontedPropertyEditorItem> rows)
     {
         if (SelectedDesignItem is null || SelectedDesignItems.Count <= 1)
         {
             return rows;
         }
 
-        var otherSelections = new List<(FrontedControlDesignItem Item,
-            Dictionary<string, FrontedPropertyEditorItem> Rows,
-            Dictionary<string, FrontedV3PropertyDefinition> Schema)>();
+        var otherSelections = new List<(FrontedControlDesignItem Item, IReadOnlyDictionary<string, FrontedV3PropertyDefinition> Schema)>();
+        var schemasByType = new Dictionary<string, IReadOnlyDictionary<string, FrontedV3PropertyDefinition>>(StringComparer.Ordinal);
         foreach (var item in SelectedDesignItems)
         {
             if (!item.IsEditableInEditor || !item.IsSelectableInEditor)
@@ -884,16 +941,15 @@ public partial class FrontedDesignerWindowViewModel
                 continue;
             }
 
-            var selection = _selectionBuilder.BuildRootSelection(item);
-            if (selection is null)
+            if (!schemasByType.TryGetValue(item.Config.ControlType, out var schema))
             {
-                return [];
+                var selection = _selectionBuilder.BuildRootSelection(item);
+                if (selection is null) return [];
+                schema = selection.Properties.ToDictionary(property => property.OptionsPath, StringComparer.Ordinal);
+                schemasByType.Add(item.Config.ControlType, schema);
             }
 
-            var schema = new Dictionary<string, FrontedV3PropertyDefinition>(StringComparer.Ordinal);
-            var itemRows = _propertyGridBuilder.BuildFromSchema(CurrentDocument!, item, _referenceScanner,
-                selection.Properties, schema, validationMessages);
-            otherSelections.Add((item, itemRows.ToDictionary(row => row.PropertyName, StringComparer.Ordinal), schema));
+            otherSelections.Add((item, schema));
         }
 
         var commonRows = new List<FrontedPropertyEditorItem>();
@@ -908,12 +964,9 @@ public partial class FrontedDesignerWindowViewModel
             var targets = new List<BatchPropertyTarget> { new(SelectedDesignItem, property) };
             foreach (var other in otherSelections)
             {
-                if (!other.Rows.TryGetValue(row.PropertyName, out var otherRow)
-                    || !IsBatchEditablePropertyRow(otherRow)
-                    || row.PropertyType != otherRow.PropertyType
-                    || row.EditorKind != otherRow.EditorKind
-                    || !PropertyEditorOptionsEqual(row.Options, otherRow.Options)
-                    || !other.Schema.TryGetValue(row.PropertyName, out var otherProperty))
+                if (!other.Schema.TryGetValue(row.PropertyName, out var otherProperty)
+                    || !_propertyGridBuilder.CanShareBatchPropertyEditor(other.Item, otherProperty, row, out var otherOptions)
+                    || !PropertyEditorOptionsEqual(row.Options, otherOptions))
                 {
                     break;
                 }
@@ -933,6 +986,7 @@ public partial class FrontedDesignerWindowViewModel
 
     private static bool PropertyEditorOptionsEqual(IReadOnlyList<object>? left, IReadOnlyList<object>? right)
     {
+        if (ReferenceEquals(left, right)) return true;
         static object? Value(object option) => option is FrontedPropertyEditorOption editorOption ? editorOption.Value : option;
         return left is null || right is null
             ? left is null && right is null
@@ -1089,7 +1143,25 @@ public partial class FrontedDesignerWindowViewModel
     {
         ClearPropertyEditError(propertyName);
         RefreshDirtyState();
-        RebuildFilteredDesignItems();
+        if (IsGeometryProperty(propertyName) && _selectedTarget?.Kind == FrontedV3DesignSelectionKind.Root)
+        {
+            var targets = _batchPropertyTargets.TryGetValue(propertyName, out var batch)
+                ? batch.Select(target => target.Item).ToArray()
+                : SelectedDesignItem is { } selected ? [selected] : Array.Empty<FrontedControlDesignItem>();
+            RequestDesignerGeometryPatch(targets, updateSelection: true);
+            if (refreshPropertyGrid)
+            {
+                RefreshGeometryPropertyValues();
+                ScheduleValidationOnly("GeometryPropertyEdit");
+            }
+            else ValidateCurrentDocument(refreshPropertyGrid: false);
+            return;
+        }
+
+        if (propertyName is nameof(FrontedControlDesignItem.Name) or nameof(FrontedControlConfigBase.ZIndex))
+            RebuildFilteredDesignItems();
+        else
+            RefreshEditedLayerNodes();
         ValidateCurrentDocument(refreshPropertyGrid);
         RequestPreviewRenderCurrentDocument();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
