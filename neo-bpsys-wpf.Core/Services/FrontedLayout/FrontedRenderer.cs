@@ -200,11 +200,25 @@ public class FrontedRenderer(
         for (var i = canvas.Children.Count - 1; i >= 0; i--)
         {
             if (canvas.Children[i] is FrameworkElement child
-                && FindGeneratedSemanticRoot(child) is { } semanticRoot)
+                && FindGeneratedSemanticRoot(child) is not null)
             {
-                UnregisterGeneratedName(canvas, semanticRoot);
+                UnregisterGeneratedTreeNames(canvas, child);
                 canvas.Children.RemoveAt(i);
             }
+        }
+    }
+
+    private static void UnregisterGeneratedTreeNames(Canvas canvas, DependencyObject root)
+    {
+        // 动画部件也注册在窗口 NameScope 中。仅注销根控件会让已删除部件继续持有旧预览树。
+        if (FrontedRendererProperties.GetIsGeneratedControl(root))
+        {
+            UnregisterGeneratedName(canvas, root);
+        }
+
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            UnregisterGeneratedTreeNames(canvas, VisualTreeHelper.GetChild(root, i));
         }
     }
 

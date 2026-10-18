@@ -54,6 +54,12 @@ StopCapture 在帧锁下清空最新帧并更新捕获世代，旧 WGC/BitBlt �
 
 前台行为 HostManager 按 Window ID 协调同步附加/分离，异步文档加载不持有普通锁；只有最新 Attach 请求可以注册宿主，Detach 和 Dispose 会使旧请求失效。FrontedWindowBase 用异步 gate 协调自身 Attach/Detach，隐藏会取消未完成的附加，真正关闭还会取消排队中的布局加载。分离异常在任务内部记录，停止循环失败仍会执行 Detach；已释放宿主的循环 finally 不得重新 Reset 并创建动画 session。
 
+## 队伍在线图片
+
+`Team.Logo` 和 `Member.Image` 对 HTTP/HTTPS URI 只启动一次异步加载，首次读取在图片未就绪时返回 `null`。`RemoteImageLoader` 在后台执行下载和 WIC 解码，使用 `OnLoad` 并冻结图片，再回到首次读取时的 Dispatcher 发布 `PropertyChanged`。`Player` 继续通过成员图片通知刷新三个 `PictureShown*` 派生属性，因此 JSON 导入、选手上场和换边首次显示定妆照都不会在 getter 中等待网络或解码。
+
+修改 URI、显式设置图片或重新导入 Logo 时会取消旧请求；旧结果不能覆盖新值。异步完成直接更新图片缓存，不调用会清空 URI 的公开图片 setter，原 JSON 图片地址保持可导出。失败后记录日志并保持空图片，不在绑定读取时无限重试；重新设置来源或重新导入后可以再次加载。本地文件和 pack URI 延续原加载方式。
+
 ## DispatcherTimer 与后台 Timer
 
 项目中多个 UI 相关周期任务使用 `DispatcherTimer`：

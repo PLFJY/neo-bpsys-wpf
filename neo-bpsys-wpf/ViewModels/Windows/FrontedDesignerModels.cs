@@ -197,7 +197,7 @@ internal sealed class FrontedDesignerSnapshotDiff(
 
 internal static class FrontedDesignerSnapshotRestorePlanner
 {
-    private static readonly string[] GeometryProperties =
+    private static readonly HashSet<string> GeometryProperties =
     [
         nameof(FrontedControlConfigBase.Left),
         nameof(FrontedControlConfigBase.Top),
@@ -271,36 +271,38 @@ internal static class FrontedDesignerSnapshotRestorePlanner
         FrontedControlConfigBase current,
         FrontedControlConfigBase target)
     {
-        return string.Equals(
-            CanonicalNonGeometryJson(current),
-            CanonicalNonGeometryJson(target),
-            StringComparison.Ordinal);
+        var currentJson = JsonSerializer.SerializeToElement(current, current.GetType());
+        var targetJson = JsonSerializer.SerializeToElement(target, target.GetType());
+        var currentProperties = currentJson.EnumerateObject();
+        var targetProperties = targetJson.EnumerateObject();
+        while (true)
+        {
+            var hasCurrent = MoveNextNonGeometryProperty(ref currentProperties);
+            var hasTarget = MoveNextNonGeometryProperty(ref targetProperties);
+            if (!hasCurrent || !hasTarget) return hasCurrent == hasTarget;
+            if (!currentProperties.Current.NameEquals(targetProperties.Current.Name)
+                || !JsonElement.DeepEquals(currentProperties.Current.Value, targetProperties.Current.Value))
+            {
+                return false;
+            }
+        }
     }
 
-    private static string CanonicalNonGeometryJson(FrontedControlConfigBase config)
+    private static bool MoveNextNonGeometryProperty(ref JsonElement.ObjectEnumerator properties)
     {
-        var json = JsonSerializer.Serialize(config, config.GetType());
-        var node = JsonNode.Parse(json)?.AsObject();
-        if (node is null)
+        while (properties.MoveNext())
         {
-            IAppHost.TryGetService<ILogger<FrontedDesignerWindowViewModel>>()
-                ?.LogError("Failed to parse fronted control config JSON.");
-            throw new InvalidOperationException("Failed to parse fronted control config JSON.");
-        }
-        foreach (var property in GeometryProperties)
-        {
-            node.Remove(property);
+            if (!GeometryProperties.Contains(properties.Current.Name)) return true;
         }
 
-        return node.ToJsonString();
+        return false;
     }
 
     private static bool JsonEquivalent<T>(T current, T target)
     {
-        return string.Equals(
-            JsonSerializer.Serialize(current),
-            JsonSerializer.Serialize(target),
-            StringComparison.Ordinal);
+        return JsonElement.DeepEquals(
+            JsonSerializer.SerializeToElement(current),
+            JsonSerializer.SerializeToElement(target));
     }
 
 }

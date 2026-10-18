@@ -200,11 +200,30 @@ public partial class FrontedPropertyGridBuilder
         FrontedLayoutReferenceScanner referenceScanner,
         IReadOnlyList<FrontedV3PropertyDefinition> properties,
         IDictionary<string, FrontedV3PropertyDefinition> schemaByPath)
+        => BuildFromSchema(document, selectedItem, referenceScanner, properties, schemaByPath, validator.Validate(document));
+
+    /// <summary>
+    /// 使用本次布局校验的结果构建 Schema 属性行，避免再次扫描并解码全部图片。
+    /// </summary>
+    /// <param name="document">当前设计文档。</param>
+    /// <param name="selectedItem">选中的设计项。</param>
+    /// <param name="referenceScanner">引用扫描器。</param>
+    /// <param name="properties">选中目标的 Schema 属性定义。</param>
+    /// <param name="schemaByPath">接收属性路径映射的字典。</param>
+    /// <param name="messages">当前文档的校验结果。</param>
+    /// <returns>属性编辑器行集合。</returns>
+    /// <exception cref="ArgumentNullException">属性列表或路径字典为 null。</exception>
+    public ObservableCollection<FrontedPropertyEditorItem> BuildFromSchema(
+        FrontedCanvasDesignDocument document,
+        FrontedControlDesignItem selectedItem,
+        FrontedLayoutReferenceScanner referenceScanner,
+        IReadOnlyList<FrontedV3PropertyDefinition> properties,
+        IDictionary<string, FrontedV3PropertyDefinition> schemaByPath,
+        IReadOnlyList<FrontedLayoutValidationMessage> messages)
     {
         ArgumentNullException.ThrowIfNull(properties);
         ArgumentNullException.ThrowIfNull(schemaByPath);
 
-        var messages = validator.Validate(document);
         referenceScanner.SetControls(document.Controls);
 
         var rows = new List<FrontedPropertyEditorItem>();

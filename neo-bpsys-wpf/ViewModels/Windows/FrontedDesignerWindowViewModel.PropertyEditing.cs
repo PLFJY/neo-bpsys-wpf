@@ -530,7 +530,7 @@ public partial class FrontedDesignerWindowViewModel
 
         return true;
     }
-    private void RebuildPropertyEditorItems()
+    private void RebuildPropertyEditorItems(IReadOnlyList<FrontedLayoutValidationMessage>? validationMessages = null)
     {
         _isRebuildingPropertyGrid = true;
         OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
@@ -561,15 +561,16 @@ public partial class FrontedDesignerWindowViewModel
             // SelectedTarget 为 null 时（Missing Plugin：Registry 中未注册）同样走 BuildFromSchema，
             // 由 AddMissingPluginRows 显示诊断行，不再回退到旧反射路径扫描 Config 公共属性。
             IEnumerable<FrontedPropertyEditorItem> rows;
+            validationMessages ??= _validator.Validate(CurrentDocument);
             if (_selectedTarget is { Kind: FrontedV3DesignSelectionKind.Root } rootTarget)
             {
                 rows = _propertyGridBuilder.BuildFromSchema(
                     CurrentDocument,
                     SelectedDesignItem,
-                    _validator,
                     _referenceScanner,
                     rootTarget.Properties,
-                    _schemaPropertiesByPath);
+                    _schemaPropertiesByPath,
+                    validationMessages);
             }
             else
             {
@@ -578,10 +579,10 @@ public partial class FrontedDesignerWindowViewModel
                 rows = _propertyGridBuilder.BuildFromSchema(
                     CurrentDocument,
                     SelectedDesignItem,
-                    _validator,
                     _referenceScanner,
                     Array.Empty<FrontedV3PropertyDefinition>(),
-                    _schemaPropertiesByPath);
+                    _schemaPropertiesByPath,
+                    validationMessages);
             }
 
             foreach (var row in rows)

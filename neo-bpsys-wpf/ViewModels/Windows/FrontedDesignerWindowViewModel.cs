@@ -519,6 +519,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool IsRebuildingPropertyGrid => _isRebuildingPropertyGrid;
 
+    /// <summary>
+    /// 指示选择集合尚在更新；View 在最终的集合通知中统一重建交互层。
+    /// </summary>
+    internal bool IsUpdatingDesignSelection => _isApplyingDesignSelection;
+
     [ObservableProperty]
     public partial FrontedDesignerWindowOption? SelectedWindow { get; set; }
 

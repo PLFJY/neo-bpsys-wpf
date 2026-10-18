@@ -208,20 +208,19 @@ public partial class TeamInfoPageViewModel
         }
 
         [RelayCommand]
-        private void ImportInfoFromJson()
+        private async Task ImportInfoFromJsonAsync()
         {
             var fileName = _filePickerService.PickJsonFile();
 
             if (string.IsNullOrEmpty(fileName))
                 return;
 
-            var jsonFile = File.ReadAllText(fileName);
-
-            if (string.IsNullOrEmpty(jsonFile))
-                return;
-
             try
             {
+                var jsonFile = await File.ReadAllTextAsync(fileName);
+                if (string.IsNullOrEmpty(jsonFile))
+                    return;
+
                 var missingColor = IsTeamColorMissing(jsonFile);
                 var teamInfo = JsonSerializer.Deserialize<Team>(jsonFile);
 

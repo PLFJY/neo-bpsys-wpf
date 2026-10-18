@@ -189,7 +189,7 @@ public partial class FrontedDesignerWindowViewModel
         RefreshSelectedControlDisplay();
         if (refreshPropertyGrid)
         {
-            RebuildPropertyEditorItems();
+            RebuildPropertyEditorItems(messages);
         }
     }
 

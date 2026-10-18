@@ -245,15 +245,8 @@ public partial class FrontedDesignerWindow
         Canvas.SetLeft(layoutCarrier, item.Config.Left);
         Canvas.SetTop(layoutCarrier, item.Config.Top);
 
-        if (item.Config.Width.HasValue)
-        {
-            element.Width = item.Config.Width.Value;
-        }
-
-        if (item.Config.Height.HasValue)
-        {
-            element.Height = item.Config.Height.Value;
-        }
+        element.Width = item.Config.Width ?? double.NaN;
+        element.Height = item.Config.Height ?? double.NaN;
 
         if (item.Config is BorderedImageFrontedControlConfig imageConfig)
         {
@@ -326,14 +319,12 @@ public partial class FrontedDesignerWindow
             .Cast<UIElement>()
             .ToList();
 
-        foreach (var child in generatedChildren)
+        for (var index = 0; index < generatedChildren.Count; index++)
         {
+            var child = generatedChildren[index];
+            if (PreviewCanvas.Children.IndexOf(child) == index) continue;
             PreviewCanvas.Children.Remove(child);
-        }
-
-        foreach (var child in generatedChildren)
-        {
-            PreviewCanvas.Children.Add(child);
+            PreviewCanvas.Children.Insert(index, child);
         }
     }
 
@@ -414,15 +405,8 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        if (config.ImageWidth.HasValue)
-        {
-            innerImage.Width = config.ImageWidth.Value;
-        }
-
-        if (config.ImageHeight.HasValue)
-        {
-            innerImage.Height = config.ImageHeight.Value;
-        }
+        innerImage.Width = config.ImageWidth ?? double.NaN;
+        innerImage.Height = config.ImageHeight ?? double.NaN;
     }
 
     private void UpdatePreviewElement(FrontedControlDesignItem item, bool syncLinkedOverlays = true)

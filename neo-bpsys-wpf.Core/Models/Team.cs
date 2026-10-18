@@ -70,25 +70,34 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 队伍LOGO
     /// </summary>
+    /// <remarks>HTTP/HTTPS 图片在后台下载和解码，未完成时返回 null，完成后通知绑定更新。</remarks>
     [JsonIgnore]
     public ImageSource? Logo
     {
         get
         {
             if (_logo is not null || string.IsNullOrWhiteSpace(ImageUri)) return _logo;
+            if (_remoteImageLoader.TryLoad(ImageUri, image =>
+                {
+                    _logo = image;
+                    OnPropertyChanged(nameof(Logo));
+                })) return _logo;
             _logo = new BitmapImage(new Uri(ImageUri));
             return _logo;
         }
         set
         {
-            if (!SetProperty(ref _logo, value)) return;
-            if (string.IsNullOrEmpty(_imageUri)) return;
+            if (ReferenceEquals(_logo, value) && !_remoteImageLoader.HasStarted) return;
+            _remoteImageLoader.Reset();
+            var uriChanged = !string.IsNullOrEmpty(_imageUri);
             _imageUri = string.Empty;
-            OnPropertyChanged(nameof(ImageUri));
+            SetProperty(ref _logo, value);
+            if (uriChanged) OnPropertyChanged(nameof(ImageUri));
         }
     }
 
     private ImageSource? _logo;
+    private readonly RemoteImageLoader _remoteImageLoader = new();
     private string _imageUri = string.Empty;
 
     /// <summary>
@@ -102,6 +111,7 @@ public partial class Team : ObservableObjectBase
         {
             value ??= string.Empty;
             if (!SetProperty(ref _imageUri, value)) return;
+            _remoteImageLoader.Reset();
             _logo = null;
             OnPropertyChanged(nameof(Logo));
         }
@@ -335,11 +345,11 @@ public partial class Team : ObservableObjectBase
         var importedImageUri = string.Equals(newTeam.ImageUri, "null", StringComparison.OrdinalIgnoreCase)
             ? string.Empty
             : newTeam.ImageUri;
-        var hadCachedLogo = _logo is not null;
+        _remoteImageLoader.Reset();
         _logo = null;
         if (string.Equals(_imageUri, importedImageUri, StringComparison.Ordinal))
         {
-            if (hadCachedLogo) OnPropertyChanged(nameof(Logo));
+            OnPropertyChanged(nameof(Logo));
         }
         else
         {

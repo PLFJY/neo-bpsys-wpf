@@ -368,6 +368,12 @@ public partial class FrontedDesignerWindowViewModel
             ? primaryItem
             : selected.FirstOrDefault();
 
+        if (ReferenceEquals(SelectedDesignItem, primary)
+            && SelectedDesignItems.SequenceEqual(selected))
+        {
+            return;
+        }
+
         SetSelectedDesignItems(selected, primary);
     }
 

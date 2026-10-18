@@ -103,6 +103,9 @@ public partial class FrontedDesignerWindowViewModel
         StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Redo");
         LogDesignerPerf("Redo", "total", Elapsed(total));
     }
+    /// <summary>
+    /// 在编辑前捕获布局与行为文档，并清除重做分支。
+    /// </summary>
     public void CaptureUndoSnapshot()
     {
         var snapshot = CreateSnapshot();
@@ -277,7 +280,8 @@ public partial class FrontedDesignerWindowViewModel
             var document = _designConverter.FromConfig(
                 windowTypeName,
                 canvasName,
-                config);
+                config,
+                CurrentDocument.EditingBoModeState);
             LogDesignerPerf(traceOperation, "design document rebuild", Elapsed(total));
             document.IsDirty = true;
             CurrentDocument = document;
@@ -434,10 +438,6 @@ public partial class FrontedDesignerWindowViewModel
             {
                 RebuildFilteredDesignItems();
             }
-            else
-            {
-                RebuildLayerGroups();
-            }
 
             var selectedItem = selectedName is null
                 ? null
@@ -449,7 +449,6 @@ public partial class FrontedDesignerWindowViewModel
             }
             else
             {
-                NormalizeSelectionState();
                 RefreshSelectedControlDisplay();
             }
 

@@ -6,6 +6,12 @@
 
 Designer 真正关闭时取消待执行的预览/选择器 DispatcherOperation，停止窗口计时器，释放预览动画 runtime session，并清空单例 PreviewAnimationScope 的根视觉树、控件和行为文档引用。重新打开后由新预览渲染重新建立作用域；普通重绘不执行窗口关闭清理。动画编辑器关闭会取消循环及单次图预览，图任务自行在 finally 中释放自己的令牌源。节点图视图使用 WPF 弱属性事件；行为面板在 Loaded/Unloaded 时幂等订阅/解除 ViewModel 事件。
 
+### 交互、撤销与预览更新
+
+根控件拖动、缩放提交和图层重排优先修补现有预览元素；松手后合并调度校验，不重新创建所有控件、绑定和图片。重复选择当前条目不刷新选择集合；更新完整选择集合期间，View 在最终通知中统一重建交互层，避免根条目和派生选择属性分别重建。子部件提交仍通过完整渲染更新内部结构。Undo/Redo 保留完整布局与行为快照；几何恢复在确认非几何字段与行为未变化后复用设计项和预览树，纯位置/尺寸变更不重建图层列表。非几何比较使用 JSON 元素比较，避免为每个控件构建可变 JSON 树并再次输出字符串；本次校验结果直接供属性网格使用，避免重复全量校验。
+
+行为动画部件会在 `FrontedV3ControlHost` 外增加装饰 Grid。预览坐标与 ZIndex 更新、重排必须通过 `FrontedEffectHostFactory.ResolveLayoutCarrier` 找到该直接画布子元素，确保图片、边框和动画部件一起移动，撤销后立即恢复。尺寸从显式值恢复为自动时，也必须清除旧的 Width/Height。完整重建预览时，renderer 递归注销旧生成树中的名称，包括动画辅助部件，防止窗口 NameScope 持有已删除的预览树。
+
 ## 1. 硬规则：JSON Key = Control Name
 
 v3 layout JSON 中，root object 的控件属性名就是控件名：
