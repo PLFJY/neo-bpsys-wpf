@@ -306,6 +306,12 @@
   <data name="SmartBpModuleReinstall" xml:space="preserve">
     <value>重新安装</value>
   </data>
+  <data name="SmartBpModuleRepairAndInstall" xml:space="preserve">
+    <value>重新下载并修复</value>
+  </data>
+  <data name="SmartBpModuleIncompleteDescription" xml:space="preserve">
+    <value>智慧 BP 模块文件缺失、损坏或未完成安装。请重新下载安装以修复，已有的 OCR 模型会保留。</value>
+  </data>
   <data name="SmartBpModuleUpdateAndInstall" xml:space="preserve">
     <value>更新并安装</value>
   </data>

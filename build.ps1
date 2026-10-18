@@ -66,6 +66,39 @@ function Get-Sha256Hash {
     }
 }
 
+function Write-SmartBpModuleIntegrity {
+    param(
+        [Parameter(Mandatory)] [string] $ModuleRoot
+    )
+
+    $manifestPath = Join-Path $ModuleRoot 'component.json'
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    # 清单不哈希自身；用户模型、可选 CUDA 及下载缓存不属于不可变发布内容。
+    $mutableRoots = @('OCRModels/', 'tessdata/', 'AI/', 'Runtime/Paddle/cuda/', 'Runtime/Paddle/Downloads/', 'PaddleRuntimeDownload/')
+    $records = @(
+        Get-ChildItem -LiteralPath $ModuleRoot -Recurse -File | Sort-Object FullName | ForEach-Object {
+            $relative = (Get-RelativePathCompat -BasePath $ModuleRoot -TargetPath $_.FullName) -replace '\\', '/'
+            $mutable = $false
+            foreach ($root in $mutableRoots) {
+                if ($relative.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) { $mutable = $true; break }
+            }
+            if ($relative -ne 'component.json' -and -not $mutable) {
+                [ordered]@{ Path = $relative; Size = $_.Length; Sha256 = (Get-Sha256Hash -LiteralPath $_.FullName) }
+            }
+        }
+    )
+    if (-not ($records | Where-Object { $_.Path -eq 'neo-bpsys-wpf.SmartBp.Module.dll' })) {
+        throw 'SmartBP integrity inventory is missing the module entry assembly.'
+    }
+    $integrity = [ordered]@{ Version = 1; Files = $records }
+    $manifest | Add-Member -NotePropertyName Integrity -NotePropertyValue $integrity -Force
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    $manifestJson = $manifest | ConvertTo-Json -Depth 8
+    if ($utf8NoBom.GetByteCount($manifestJson) -gt 8MB) { throw 'SmartBP component manifest exceeds the 8 MiB runtime limit.' }
+    [System.IO.File]::WriteAllText($manifestPath, $manifestJson, $utf8NoBom)
+    return $integrity
+}
+
 function Get-RelativePathCompat {
     param(
         [Parameter(Mandatory)] [string] $BasePath,
@@ -237,6 +270,7 @@ if ([string]::IsNullOrWhiteSpace($ModuleVersion)) {
     throw "SmartBP module component manifest has empty ModuleVersion: $ComponentManifestPath"
 }
 Write-Host "SmartBP module version: $ModuleVersion" -ForegroundColor Cyan
+$ModuleIntegrity = Write-SmartBpModuleIntegrity -ModuleRoot $ModuleBuildPath
 
 $ModuleArchive = Join-Path $RepoRoot "build\SmartBpModule.7z"
 if (Test-Path -LiteralPath $ModuleArchive) {
@@ -338,6 +372,7 @@ $ModuleManifest = [ordered]@{
     RuntimeAbiVersion = 1
     Rid = "win-x64"
     RequiredAppVersion = ">=3.0.0"
+    Integrity = $ModuleIntegrity
     PackageVersions = [ordered]@{
         "OpenCvSharp4.Windows.Slim" = "4.13.0.20260602"
         "OpenCvSharp4.WpfExtensions" = "4.13.0.20260602"
@@ -352,7 +387,11 @@ $ModuleManifest = [ordered]@{
         Sha256 = $ModuleArchiveHash
     }
 }
-$ModuleManifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $ModuleManifestPath -Encoding UTF8
+$ModuleManifestJson = $ModuleManifest | ConvertTo-Json -Depth 8
+if ([System.Text.Encoding]::UTF8.GetByteCount($ModuleManifestJson) -gt 8MB) {
+    throw 'SmartBP release manifest exceeds the 8 MiB runtime limit.'
+}
+[System.IO.File]::WriteAllText($ModuleManifestPath, $ModuleManifestJson, (New-Object System.Text.UTF8Encoding($false)))
 
 $FullInstallerIss = Join-Path $RepoRoot "Installer\build_Installer_full.iss"
 Invoke-External -FilePath $IsccPath -Arguments @($FullInstallerIss) -ErrorMessage "Full Inno Setup packaging failed"

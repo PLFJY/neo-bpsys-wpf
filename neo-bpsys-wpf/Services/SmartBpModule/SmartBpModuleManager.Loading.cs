@@ -35,7 +35,9 @@ public sealed partial class SmartBpModuleManager
         {
             if (!await Task.Run(() => TryCompletePendingArchiveImport(pending)))
             {
-                IsRestartRequiredForPendingModuleImport = true;
+                // 重启已经尝试过；继续要求重启无法修复磁盘/权限错误，保留标记并允许重新安装。
+                IsRestartRequiredForPendingModuleImport = false;
+                IsModuleRepairRequired = true;
                 ModuleStateChanged?.Invoke(this, EventArgs.Empty);
                 return false;
             }
@@ -46,6 +48,7 @@ public sealed partial class SmartBpModuleManager
 
         if (pending != null)
         {
+            await Task.Run(() => TryRecoverPendingModuleMigration(pending));
             await Task.Run(() => TryCopyManagedAssetsBeforeTargetLoad(pending));
         }
 
@@ -102,12 +105,21 @@ public sealed partial class SmartBpModuleManager
         _isModuleVersionOutdated = false;
         RequiredModuleVersion = null;
 
-        if (!ValidateModuleDirectory(moduleRoot, allowDevelopmentDirectory: IsDebugBuild(), out var manifest, out var error))
+        var (valid, manifest, error) = await Task.Run(() =>
+        {
+            var valid = ValidateModuleDirectoryCore(moduleRoot, IsDebugBuild(), out var manifest, out var error, verifyHashes: true);
+            return (valid, manifest, error);
+        });
+        if (Volatile.Read(ref _disposed) != 0) return false;
+        if (!valid)
         {
             LastFailureMessage = error;
+            IsModuleRepairRequired = Directory.Exists(moduleRoot);
             _logger.LogWarning("SmartBP module validation failed: {Error}", error);
+            ModuleStateChanged?.Invoke(this, EventArgs.Empty);
             return false;
         }
+        IsModuleRepairRequired = false;
 
         // 远程版本检查不再阻塞加载流程：ABI 兼容性已由 ValidateModuleDirectory 硬性校验，
         // 本地模块版本是否过时只作为更新提示，在加载成功后异步通知。
@@ -273,6 +285,7 @@ public sealed partial class SmartBpModuleManager
                 LegacyOcrModelMigration = ReadState()?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState { Completed = true, Reason = "Completed" }
             });
             await Task.Run(() => CompletePendingModuleRootMigration(moduleRoot));
+            LoadedModuleVersion = manifest?.ModuleVersion;
             ModuleStateChanged?.Invoke(this, EventArgs.Empty);
             // 加载成功后异步检查远程版本是否过时；不阻塞加载流程，结果通过事件通知。
             _ = NotifyModuleVersionOutdatedIfNeededAsync(manifest?.ModuleVersion);
@@ -282,7 +295,9 @@ public sealed partial class SmartBpModuleManager
         {
             ReleaseModule();
             LastFailureMessage = FormatExceptionForUser(ex);
+            IsModuleRepairRequired = true;
             _logger.LogError(ex, "Failed to load SmartBP module from {ModuleRoot}", moduleRoot);
+            ModuleStateChanged?.Invoke(this, EventArgs.Empty);
             return false;
         }
     }

@@ -281,12 +281,21 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         }, TimeSpan.FromSeconds(30));
     }
 
-    [Fact]
-    public async Task MissingPreparedDirectory_DoesNotBlockLoadingExistingTarget()
+    /// <summary>验证暂存包丢失不阻塞完整目标加载，也不丢弃原目录的用户模型。</summary>
+    /// <param name="useSeparateSource">是否从另一个原目录迁移用户模型。</param>
+    /// <returns>丢失暂存包后的启动恢复验证任务。</returns>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MissingPreparedDirectory_DoesNotBlockLoadingExistingTarget(bool useSeparateSource)
     {
         await WpfTestThread.RunAsync(async () =>
         {
             var targetRoot = CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false);
+            var sourceRoot = useSeparateSource ? CreateTestModuleDirectory("1.0.0", false) : targetRoot;
+            var relativeModel = Path.Combine("OCRModels", "user", "model.bin");
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(sourceRoot, relativeModel))!);
+            await File.WriteAllTextAsync(Path.Combine(sourceRoot, relativeModel), "keep-user-model");
             var missingPreparedRoot = Path.Combine(
                 AppConstants.AppDataPath,
                 "SmartBpModulePending",
@@ -299,7 +308,7 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
                 SmartBpModuleManager.MovePendingFilePath,
                 JsonSerializer.Serialize(new SmartBpModuleMovePendingState
                 {
-                    SourceRoot = targetRoot,
+                    SourceRoot = sourceRoot,
                     TargetRoot = targetRoot,
                     PreparedRoot = missingPreparedRoot,
                     InstallKind = "LiteDownload"
@@ -307,6 +316,7 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
 
             Assert.True(await CreateManager().TryLoadPersistedModuleAsync());
 
+            Assert.Equal("keep-user-model", await File.ReadAllTextAsync(Path.Combine(targetRoot, relativeModel)));
             Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
         }, TimeSpan.FromSeconds(30));
     }
@@ -365,7 +375,8 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             {
                 Assert.False(await manager.TryLoadPersistedModuleAsync());
                 Assert.False(manager.IsModuleLoaded);
-                Assert.True(manager.IsRestartRequiredForPendingModuleImport);
+                Assert.False(manager.IsRestartRequiredForPendingModuleImport);
+                Assert.True(manager.IsModuleRepairRequired);
                 Assert.NotEmpty(manager.LastFailureMessage);
                 Assert.True(Directory.Exists(preparedRoot));
                 Assert.True(File.Exists(SmartBpModuleManager.MovePendingFilePath));
@@ -412,6 +423,160 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             Assert.True(await CreateManager().TryLoadPersistedModuleAsync());
             Assert.False(Directory.Exists(sourceRoot));
             Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    /// <summary>验证缺失、截断、等长损坏和坏清单均在加载前被拒绝，并可保留模型原地修复。</summary>
+    /// <param name="damage">文件损坏方式。</param>
+    /// <returns>修复验证任务。</returns>
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("truncated")]
+    [InlineData("same-size-corruption")]
+    [InlineData("invalid-manifest")]
+    [InlineData("oversized-manifest")]
+    public async Task DamagedInstallation_IsRejectedBeforeLoadingAndCanBeRepairedWithoutRestart(string damage)
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var targetRoot = CreateTestModuleDirectory("1.0.0", false);
+            var versionFile = Path.Combine(targetRoot, "module-version.txt");
+            switch (damage)
+            {
+                case "missing": File.Delete(versionFile); break;
+                case "truncated": await File.WriteAllTextAsync(versionFile, "1"); break;
+                case "same-size-corruption": await File.WriteAllTextAsync(versionFile, "9.9.9"); break;
+                case "invalid-manifest": await File.WriteAllTextAsync(Path.Combine(targetRoot, "component.json"), "{"); break;
+                case "oversized-manifest":
+                    using (var stream = File.OpenWrite(Path.Combine(targetRoot, "component.json")))
+                        stream.SetLength(SmartBpModuleConstants.MaxManifestBytes + 1L);
+                    break;
+            }
+            var modelFile = Path.Combine(targetRoot, "OCRModels", "user", "model.bin");
+            Directory.CreateDirectory(Path.GetDirectoryName(modelFile)!);
+            await File.WriteAllTextAsync(modelFile, "user-model");
+            var manager = CreateManager();
+            Assert.False(await manager.LoadModuleFromDirectoryAsync(targetRoot));
+            Assert.True(manager.IsModuleRepairRequired);
+            Assert.NotEmpty(manager.LastFailureMessage);
+
+            var archive = Path.Combine(_root, "repair.zip");
+            CreateModuleArchive(archive, ArchiveFormat.Zip);
+            Assert.True(await manager.ImportArchiveAsync(archive, targetRoot));
+            Assert.False(manager.IsRestartRequiredForPendingModuleImport);
+            Assert.False(manager.IsModuleRepairRequired);
+            Assert.Equal("1.0.0", manager.LoadedModuleVersion);
+            Assert.Equal("1.0.0", await File.ReadAllTextAsync(versionFile));
+            Assert.Equal("user-model", await File.ReadAllTextAsync(modelFile));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    /// <summary>验证新旧迁移标记均能从完整来源恢复模块和截断模型，成功后再清理来源。</summary>
+    /// <param name="installKind">迁移标记的来源标签。</param>
+    /// <param name="damageStaticFile">是否同时损坏模块发布文件。</param>
+    /// <returns>启动恢复验证任务。</returns>
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("PathMigrationPending", true)]
+    [InlineData("PathMigrationPending", false)]
+    public async Task InterruptedMigration_RestoresStaticFilesAndTruncatedModelsFromSource(string? installKind, bool damageStaticFile)
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var sourceRoot = CreateTestModuleDirectory("1.0.0", false);
+            var targetRoot = Path.Combine(_root, "interrupted-target");
+            CopyTestDirectory(sourceRoot, targetRoot);
+            if (damageStaticFile) await File.WriteAllTextAsync(Path.Combine(targetRoot, "module-version.txt"), "9.9.9");
+            var relativeModel = Path.Combine("OCRModels", "user", "model.bin");
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(sourceRoot, relativeModel))!);
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(targetRoot, relativeModel))!);
+            await File.WriteAllTextAsync(Path.Combine(sourceRoot, relativeModel), "complete-model");
+            await File.WriteAllTextAsync(Path.Combine(targetRoot, relativeModel), "broken");
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+            await File.WriteAllTextAsync(SmartBpModuleManager.StateFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleState { ModuleRoot = sourceRoot }));
+            await File.WriteAllTextAsync(SmartBpModuleManager.MovePendingFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleMovePendingState
+                {
+                    SourceRoot = sourceRoot, TargetRoot = targetRoot, InstallKind = installKind
+                }));
+
+            var manager = CreateManager();
+            Assert.True(await manager.TryLoadPersistedModuleAsync());
+            Assert.Equal("1.0.0", await File.ReadAllTextAsync(Path.Combine(targetRoot, "module-version.txt")));
+            Assert.Equal("complete-model", await File.ReadAllTextAsync(Path.Combine(targetRoot, relativeModel)));
+            Assert.False(Directory.Exists(sourceRoot));
+            Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+            Assert.Equal(targetRoot, manager.ReadState()!.ModuleRoot);
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    /// <summary>验证双方残缺时不循环要求重启，仍可通过导入包修复并保留已有模型。</summary>
+    /// <returns>无完整来源的修复验证任务。</returns>
+    [Fact]
+    public async Task InterruptedMigration_WithoutCompleteSourceAllowsArchiveRepairAndRetainsModels()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var sourceRoot = CreateTestModuleDirectory("1.0.0", false);
+            var targetRoot = Path.Combine(_root, "broken-target");
+            CopyTestDirectory(sourceRoot, targetRoot);
+            File.Delete(Path.Combine(sourceRoot, "module-version.txt"));
+            File.Delete(Path.Combine(targetRoot, "module-version.txt"));
+            var sourceModel = Path.Combine(sourceRoot, "OCRModels", "user", "model.bin");
+            Directory.CreateDirectory(Path.GetDirectoryName(sourceModel)!);
+            await File.WriteAllTextAsync(sourceModel, "keep-model");
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+            await File.WriteAllTextAsync(SmartBpModuleManager.MovePendingFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleMovePendingState { SourceRoot = sourceRoot, TargetRoot = targetRoot }));
+            var manager = CreateManager();
+            Assert.False(await manager.TryLoadPersistedModuleAsync());
+            Assert.True(manager.IsModuleRepairRequired);
+            Assert.False(manager.IsRestartRequiredForPendingModuleImport);
+            Assert.True(Directory.Exists(sourceRoot));
+
+            var archive = Path.Combine(_root, "repair.zip");
+            CreateModuleArchive(archive, ArchiveFormat.Zip);
+            Assert.True(await manager.ImportArchiveAsync(archive, targetRoot));
+            Assert.Equal("keep-model", await File.ReadAllTextAsync(Path.Combine(targetRoot, "OCRModels", "user", "model.bin")));
+            Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    /// <summary>验证旧包缺少关键组件时被拒绝，且旧清单不被自动改写。</summary>
+    [Fact]
+    public void LegacyModuleWithoutInventory_UsesProbesAndDoesNotRewriteManifest()
+    {
+        var moduleRoot = CreateTestModuleDirectory("1.0.0", false);
+        var manifestPath = Path.Combine(moduleRoot, "component.json");
+        var manifest = JsonSerializer.Deserialize<SmartBpModuleManifest>(File.ReadAllText(manifestPath))!;
+        manifest.Integrity = null;
+        var json = JsonSerializer.Serialize(manifest);
+        File.WriteAllText(manifestPath, json);
+        // 旧格式的入口和清单都在，但缺少原生 CPU 运行库和资源时不能误判为完整。
+        Assert.False(CreateManager().ValidateModuleDirectory(moduleRoot, false, out _, out var error));
+        Assert.NotEmpty(error);
+        Assert.Equal(json, File.ReadAllText(manifestPath));
+    }
+
+    /// <summary>验证不完整的归档不能替换现有安装或覆盖用户模型。</summary>
+    /// <returns>安装前完整性校验任务。</returns>
+    [Fact]
+    public async Task IncompleteArchive_DoesNotReplaceExistingModule()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var targetRoot = CreateTestModuleDirectory("1.0.0", false);
+            var candidateRoot = CreateTestModuleDirectory("2.0.0", false);
+            File.Delete(Path.Combine(candidateRoot, "module-version.txt"));
+            var archive = Path.Combine(_root, "incomplete.zip");
+            System.IO.Compression.ZipFile.CreateFromDirectory(candidateRoot, archive);
+
+            var manager = CreateManager();
+            Assert.False(await manager.ImportArchiveAsync(archive, targetRoot));
+            Assert.False(manager.IsRestartRequiredForPendingModuleImport);
+            Assert.Equal("1.0.0", await File.ReadAllTextAsync(Path.Combine(targetRoot, "module-version.txt")));
+            Assert.True(manager.ValidateModuleDirectory(targetRoot, false, out _, out _));
         }, TimeSpan.FromSeconds(30));
     }
 
@@ -559,7 +724,27 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
               "Rid": "win-x64"
             }
             """);
+        WriteTestIntegrity(moduleRoot);
         return moduleRoot;
+    }
+
+    private static void WriteTestIntegrity(string moduleRoot)
+    {
+        var manifestPath = Path.Combine(moduleRoot, "component.json");
+        var manifest = JsonSerializer.Deserialize<SmartBpModuleManifest>(File.ReadAllText(manifestPath))!;
+        manifest.Integrity = new SmartBpModuleIntegrity
+        {
+            Version = 1,
+            Files = Directory.EnumerateFiles(moduleRoot, "*", SearchOption.AllDirectories)
+                .Where(file => file != manifestPath && !Path.GetRelativePath(moduleRoot, file).StartsWith("OCRModels" + Path.DirectorySeparatorChar))
+                .Select(file => new SmartBpModuleFile
+                {
+                    Path = Path.GetRelativePath(moduleRoot, file).Replace('\\', '/'),
+                    Size = new FileInfo(file).Length,
+                    Sha256 = SmartBpModuleManager.ComputeSha256(file)
+                }).ToList()
+        };
+        File.WriteAllText(manifestPath, JsonSerializer.Serialize(manifest, new JsonSerializerOptions { WriteIndented = true }));
     }
 
     private static void CopyTestDirectory(string source, string target)

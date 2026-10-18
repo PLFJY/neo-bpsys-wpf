@@ -29,7 +29,7 @@ public sealed partial class SmartBpModuleManager
     private void WriteState(SmartBpModuleState state)
     {
         Directory.CreateDirectory(AppConstants.AppDataPath);
-        File.WriteAllText(StateFilePath, JsonSerializer.Serialize(state, JsonOptions));
+        WriteJsonAtomically(StateFilePath, state);
         WriteModuleRootRegistryValue(state.ModuleRoot);
         _logger.LogDebug(
             "SmartBP module state written. StateFilePath={StateFilePath}, ModuleRoot={ModuleRoot}, InstallKind={InstallKind}, LastLoadedSuccessfully={LastLoadedSuccessfully}",
@@ -103,7 +103,7 @@ public sealed partial class SmartBpModuleManager
         {
             Directory.CreateDirectory(preparedRoot);
             CopyDirectory(normalizedCandidateRoot, preparedRoot);
-            if (!ValidateModuleDirectory(preparedRoot, false, out _, out var error))
+            if (!ValidateModuleDirectoryCore(preparedRoot, false, out _, out var error, verifyHashes: true))
                 throw new InvalidOperationException($"Prepared SmartBP module failed validation: {error}");
         }
         catch
@@ -228,7 +228,7 @@ public sealed partial class SmartBpModuleManager
                 _logger.LogWarning(
                     "Discarding pending SmartBP module archive import because prepared directory is missing: {PreparedRoot}",
                     preparedRoot);
-                AbandonPendingModuleOperation(pending, "prepared directory missing");
+                DiscardPendingArchivePreservingMigration(pending, "prepared directory missing");
                 return true;
             }
 
@@ -244,17 +244,17 @@ public sealed partial class SmartBpModuleManager
                 return true;
             }
 
-            if (!ValidateModuleDirectory(
+            if (!ValidateModuleDirectoryCore(
                     preparedRoot,
                     allowDevelopmentDirectory: false,
                     out _,
-                    out var validationError))
+                    out var validationError, verifyHashes: true))
             {
                 _logger.LogWarning(
                     "Discarding invalid pending SmartBP module archive import. PreparedRoot={PreparedRoot}, Error={Error}",
                     preparedRoot,
                     validationError);
-                AbandonPendingModuleOperation(pending, "prepared module validation failed");
+                DiscardPendingArchivePreservingMigration(pending, "prepared module validation failed");
                 return true;
             }
 
@@ -300,6 +300,19 @@ public sealed partial class SmartBpModuleManager
         }
     }
 
+    private void DiscardPendingArchivePreservingMigration(SmartBpModuleMovePendingState pending, string reason)
+    {
+        AbandonPendingModuleOperation(pending, reason);
+        // 暂存包损坏不代表原目录中的用户模型可以丢失；保留跨目录资产迁移的来源。
+        if (!string.IsNullOrWhiteSpace(pending.SourceRoot) &&
+            !string.Equals(pending.SourceRoot, pending.TargetRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            pending.PreparedRoot = null;
+            pending.LastCleanupError = reason;
+            WriteMovePendingState(pending);
+        }
+    }
+
     /// <summary>
     /// 通过已校验的暂存目录，把现有模块根目录复制到新的目标根目录。
     /// </summary>
@@ -309,21 +322,60 @@ public sealed partial class SmartBpModuleManager
     /// <exception cref="InvalidOperationException">目标目录或暂存副本不是有效的 SmartBP 模块时抛出。</exception>
     private async Task CopyModuleRootForMigrationAsync(string sourceRoot, string targetRoot)
     {
+        await Task.Run(() => ReplaceModuleRootPreservingManagedAssets(sourceRoot, targetRoot, relocateRuntime: true));
+    }
+
+    private void EnsureMigrationTargetIsModuleOrEmpty(string targetRoot)
+    {
         var targetExists = Directory.Exists(targetRoot);
         if (targetExists && Directory.EnumerateFileSystemEntries(targetRoot).Any())
         {
             if (!ValidateModuleDirectory(
                     targetRoot,
                     allowDevelopmentDirectory: IsDebugBuild(),
-                    out _,
-                    out var targetValidationError))
+                    out var manifest,
+                    out var targetValidationError) && manifest?.ComponentId != SmartBpModuleConstants.ComponentId)
             {
                 throw new InvalidOperationException(
                     $"Target directory already contains non-SmartBP files or an invalid module: {targetValidationError}");
             }
         }
 
-        await Task.Run(() => ReplaceModuleRootPreservingManagedAssets(sourceRoot, targetRoot, relocateRuntime: true));
+    }
+
+    private void TryRecoverPendingModuleMigration(SmartBpModuleMovePendingState pending)
+    {
+        // 下载目录变更并不代表要求复制旧模块；只恢复明确的路径迁移（旧标记的 InstallKind 为空）。
+        if (!string.IsNullOrWhiteSpace(pending.PreparedRoot) ||
+            (pending.InstallKind != null && pending.InstallKind != "PathMigrationPending") ||
+            string.IsNullOrWhiteSpace(pending.SourceRoot) || string.IsNullOrWhiteSpace(pending.TargetRoot))
+            return;
+
+        try
+        {
+            var sourceRoot = Path.GetFullPath(pending.SourceRoot);
+            var targetRoot = Path.GetFullPath(pending.TargetRoot);
+            if (IsSameOrChildPath(sourceRoot, targetRoot) || IsSameOrChildPath(targetRoot, sourceRoot) ||
+                IsUnsafeInstallPath(targetRoot) ||
+                ValidateModuleDirectoryCore(targetRoot, false, out _, out _, verifyHashes: true))
+                return;
+            if (!ValidateModuleDirectoryCore(sourceRoot, false, out _, out var error, verifyHashes: true))
+            {
+                _logger.LogWarning("SmartBP migration recovery has no complete source. SourceRoot={SourceRoot}, Error={Error}", sourceRoot, error);
+                return;
+            }
+
+            _logger.LogWarning("Recovering incomplete SmartBP module migration from intact source. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}", sourceRoot, targetRoot);
+            ReplaceModuleRootPreservingManagedAssets(sourceRoot, targetRoot, relocateRuntime: true);
+            pending.LastCleanupError = null;
+            WriteMovePendingState(pending);
+        }
+        catch (Exception ex)
+        {
+            pending.LastCleanupError = FormatExceptionForUser(ex);
+            TryRecordPendingFailure(pending, "interrupted module migration recovery failed");
+            _logger.LogWarning(ex, "SmartBP migration recovery failed; source is retained and installation may be retried.");
+        }
     }
 
     /// <summary>
@@ -400,12 +452,26 @@ public sealed partial class SmartBpModuleManager
     private void WriteMovePendingState(SmartBpModuleMovePendingState state)
     {
         Directory.CreateDirectory(AppConstants.AppDataPath);
-        File.WriteAllText(MovePendingFilePath, JsonSerializer.Serialize(state, JsonOptions));
+        WriteJsonAtomically(MovePendingFilePath, state);
         _logger.LogDebug(
             "SmartBP module move marker written. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}, Marker={Marker}",
             state.SourceRoot,
             state.TargetRoot,
             MovePendingFilePath);
+    }
+
+    private static void WriteJsonAtomically<T>(string path, T value)
+    {
+        var temporaryPath = path + $".{Guid.NewGuid():N}.tmp";
+        try
+        {
+            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(value, JsonOptions));
+            File.Move(temporaryPath, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+        }
     }
 
     /// <summary>
@@ -517,7 +583,8 @@ public sealed partial class SmartBpModuleManager
         {
             if (Directory.Exists(normalizedSourceRoot))
             {
-                CopyManagedAssetsForPathMigration(normalizedSourceRoot, normalizedTargetRoot);
+                CopyManagedAssetsForPathMigration(normalizedSourceRoot, normalizedTargetRoot,
+                    overwriteExisting: pending.InstallKind is null or "PathMigrationPending");
                 Directory.Delete(normalizedSourceRoot, recursive: true);
                 _logger.LogInformation(
                     "Deleted old SmartBP module directory after successful target load. SourceRoot={SourceRoot}, TargetRoot={TargetRoot}",
@@ -566,7 +633,8 @@ public sealed partial class SmartBpModuleManager
                 return;
             }
 
-            CopyManagedAssetsForPathMigration(sourceRoot, targetRoot);
+            CopyManagedAssetsForPathMigration(sourceRoot, targetRoot,
+                overwriteExisting: pending.InstallKind is null or "PathMigrationPending");
             pending.LastCleanupError = null;
             WriteMovePendingState(pending);
         }
@@ -583,11 +651,12 @@ public sealed partial class SmartBpModuleManager
     }
 
     /// <summary>
-    /// 把旧模块目录中的托管模型资产合并复制到新目录。目标中已有的文件保持不变。
+    /// 把旧模块目录中的托管模型资产合并复制到新目录。
     /// </summary>
     /// <param name="sourceRoot">旧模块根目录。</param>
     /// <param name="targetRoot">新模块根目录。</param>
-    private static void CopyManagedAssetsForPathMigration(string sourceRoot, string targetRoot)
+    /// <param name="overwriteExisting">显式路径迁移时以来源为准，修复旧版本留下的截断文件；下载目录变更保持目标已有资产。</param>
+    private static void CopyManagedAssetsForPathMigration(string sourceRoot, string targetRoot, bool overwriteExisting)
     {
         foreach (var assetRootName in ManagedAssetRootNames)
         {
@@ -606,17 +675,20 @@ public sealed partial class SmartBpModuleManager
             foreach (var sourceFile in Directory.EnumerateFiles(sourceAssetRoot, "*", SearchOption.AllDirectories))
             {
                 var targetFile = Path.Combine(targetAssetRoot, Path.GetRelativePath(sourceAssetRoot, sourceFile));
-                if (File.Exists(targetFile))
+                if (File.Exists(targetFile) && !overwriteExisting)
                 {
                     continue;
                 }
+                if (File.Exists(targetFile) && new FileInfo(sourceFile).Length == new FileInfo(targetFile).Length &&
+                    string.Equals(ComputeSha256(sourceFile), ComputeSha256(targetFile), StringComparison.OrdinalIgnoreCase))
+                    continue;
 
                 Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
                 var temporaryFile = targetFile + $".migration-{Guid.NewGuid():N}.tmp";
                 try
                 {
                     File.Copy(sourceFile, temporaryFile, overwrite: false);
-                    File.Move(temporaryFile, targetFile, overwrite: false);
+                    File.Move(temporaryFile, targetFile, overwrite: overwriteExisting);
                 }
                 finally
                 {
@@ -748,7 +820,8 @@ public sealed partial class SmartBpModuleManager
     /// </summary>
     /// <param name="source">源目录。</param>
     /// <param name="target">目标目录。</param>
-    private static void CopyDirectory(string source, string target)
+    /// <param name="overwrite">是否覆盖目标已有文件。</param>
+    private static void CopyDirectory(string source, string target, bool overwrite = true)
     {
         foreach (var directory in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
             Directory.CreateDirectory(Path.Combine(target, Path.GetRelativePath(source, directory)));
@@ -756,7 +829,7 @@ public sealed partial class SmartBpModuleManager
         {
             var destination = Path.Combine(target, Path.GetRelativePath(source, file));
             Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-            File.Copy(file, destination, overwrite: true);
+            if (overwrite || !File.Exists(destination)) File.Copy(file, destination, overwrite);
         }
     }
 
@@ -797,16 +870,16 @@ public sealed partial class SmartBpModuleManager
                     }
 
                     var replacementAssetRoot = Path.Combine(replacementRoot, assetRootName);
-                    DeleteFileSystemEntry(replacementAssetRoot);
+                    if (!relocateRuntime) DeleteFileSystemEntry(replacementAssetRoot);
                     Directory.CreateDirectory(replacementAssetRoot);
-                    CopyDirectory(existingAssetRoot, replacementAssetRoot);
+                    CopyDirectory(existingAssetRoot, replacementAssetRoot, overwrite: !relocateRuntime);
                 }
             }
 
             if (relocateRuntime)
                 RelocateCudaInstallManifests(replacementRoot, normalizedSourceRoot, normalizedTargetRoot);
 
-            if (!ValidateModuleDirectory(replacementRoot, allowDevelopmentDirectory: false, out _, out var validationError))
+            if (!ValidateModuleDirectoryCore(replacementRoot, allowDevelopmentDirectory: false, out _, out var validationError, verifyHashes: true))
             {
                 throw new InvalidOperationException($"Prepared SmartBP module replacement failed validation: {validationError}");
             }
@@ -833,7 +906,7 @@ public sealed partial class SmartBpModuleManager
 
                         _logger.LogWarning(ex, "SmartBP module target is incomplete and cannot be renamed. Restoring module files in place. TargetRoot={TargetRoot}", normalizedTargetRoot);
                         CopyDirectory(replacementRoot, normalizedTargetRoot);
-                        if (!ValidateModuleDirectory(normalizedTargetRoot, allowDevelopmentDirectory: false, out _, out var restoredError))
+                        if (!ValidateModuleDirectoryCore(normalizedTargetRoot, allowDevelopmentDirectory: false, out _, out var restoredError, verifyHashes: true))
                         {
                             throw new InvalidOperationException($"Restored SmartBP module failed validation: {restoredError}");
                         }
@@ -1030,17 +1103,19 @@ public sealed partial class SmartBpModuleManager
     {
         try
         {
-            using var httpClient = new HttpClient();
+            using var httpClient = new HttpClient
+            {
+                MaxResponseContentBufferSize = SmartBpModuleConstants.MaxManifestBytes
+            };
             httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(AppConstants.AppName);
             _logger.LogInformation("Downloading SmartBP module manifest from {Source}. Url={Url}", sourceLabel, url);
-            var json = await httpClient.GetStringAsync(url);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                _logger.LogWarning("SmartBP module manifest content was empty from {Source}. Url={Url}", sourceLabel, url);
-                return null;
-            }
-
-            return JsonSerializer.Deserialize<SmartBpModuleManifest>(json, JsonOptions);
+            // ResponseContentRead 在无 Content-Length 或分块响应下也执行缓冲区上限；
+            // 不经整份 UTF-16 字符串，解析显式放到后台，避免缓冲命中时占用 UI 线程。
+            using var response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            return await Task.Run(async () =>
+                await JsonSerializer.DeserializeAsync<SmartBpModuleManifest>(stream, JsonOptions).ConfigureAwait(false)).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

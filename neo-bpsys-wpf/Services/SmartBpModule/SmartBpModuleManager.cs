@@ -49,6 +49,7 @@ public sealed partial class SmartBpModuleManager : IDisposable
         finally
         {
             _entryPoint = null;
+            LoadedModuleVersion = null;
             ModuleContent = null;
             _featureCommands = [];
             _postGameRecognitionProgressSource = null;
@@ -80,6 +81,7 @@ public sealed partial class SmartBpModuleManager : IDisposable
     private static readonly HashSet<string> ManagedAssetRootNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "OCRModels",
+        "tessdata",
         "AI",
         "Runtime/Paddle/cuda",
         "Runtime/Paddle/Downloads",
@@ -181,6 +183,9 @@ public sealed partial class SmartBpModuleManager : IDisposable
     /// </summary>
     public string ModuleRoot { get; private set; }
 
+    /// <summary>获取本次成功加载时已验证的模块版本；无需再次读取模块清单。</summary>
+    public string? LoadedModuleVersion { get; private set; }
+
     /// <summary>
     /// 获取模块是否已加载且版本未过时。
     /// 版本过旧时返回 <see langword="false"/>，使全局表现为模块未加载。
@@ -222,6 +227,9 @@ public sealed partial class SmartBpModuleManager : IDisposable
     /// 获取最近一次模块加载或校验失败消息。
     /// </summary>
     public string LastFailureMessage { get; private set; } = string.Empty;
+
+    /// <summary>获取模块文件是否不完整或启动恢复失败，需要重新安装修复。</summary>
+    public bool IsModuleRepairRequired { get; private set; }
 
     /// <summary>
     /// 获取最近一次模块压缩包导入是否已暂存且需要重启应用才能完成。
@@ -478,11 +486,12 @@ public sealed partial class SmartBpModuleManager : IDisposable
             return false;
         }
 
-        if (!ValidateModuleDirectory(
-                normalizedSource,
-                allowDevelopmentDirectory: false,
-                out var sourceManifest,
-                out var sourceValidationError))
+        var (sourceValid, sourceManifest, sourceValidationError) = await Task.Run(() =>
+        {
+            var valid = ValidateModuleDirectoryCore(normalizedSource, false, out var manifest, out var error, verifyHashes: true);
+            return (valid, manifest, error);
+        });
+        if (!sourceValid)
         {
             LastFailureMessage = sourceValidationError;
             _logger.LogWarning(
@@ -494,14 +503,18 @@ public sealed partial class SmartBpModuleManager : IDisposable
 
         try
         {
+            await Task.Run(() => EnsureMigrationTargetIsModuleOrEmpty(normalizedTarget));
             AbandonPendingModuleOperation(existingPending, "new path migration requested");
-            await CopyModuleRootForMigrationAsync(normalizedSource, normalizedTarget);
             WriteMovePendingState(new SmartBpModuleMovePendingState
             {
                 SourceRoot = normalizedSource,
                 TargetRoot = normalizedTarget,
+                InstallKind = "PathMigrationPending",
                 CreatedAt = DateTimeOffset.UtcNow
             });
+
+            // 先发布操作意图；复制中断时下次启动仍知道完整来源，不能把半成品当作安装结果。
+            await CopyModuleRootForMigrationAsync(normalizedSource, normalizedTarget);
 
             WriteState(new SmartBpModuleState
             {

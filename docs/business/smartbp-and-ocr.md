@@ -136,6 +136,9 @@ SmartBP 页面先显示宿主侧页面壳。模块未加载时，内容区域显
 2. `Rid` 必须匹配 `win-x64`。
 3. `RuntimeAbiVersion` 必须匹配宿主 ABI。
 4. 必须存在模块入口程序集 `neo-bpsys-wpf.SmartBp.Module.dll`。
+5. 发布包声明 `Integrity.Version = 1` 时，按 `Integrity.Files` 校验所有不可变发布文件的存在性、大小和 SHA-256；拒绝空清单、未知版本、重复路径、越界路径、可变模型资产以及漏掉入口程序集的清单。加载、导入和副本切换的完整校验在后台执行；页面路径检查只检查大小。
+
+旧包未声明完整性清单时，不补写或猜测摘要，只探测既有核心 OCR 托管依赖、CPU native 库和内置区域配置。该探针能识别常见残缺包，但无法证明所有旧文件的内容正确。发现模块残缺、清单损坏或恢复失败时，未加载状态提供“重新下载并修复”；已有 OCR 模型和用户配置保留，完整下载归档仍可按摘要复用，不会因为残缺目录存在就阻止重装。
 
 宿主使用独立 `AssemblyLoadContext` 加载模块。托管依赖优先复用宿主程序集，再从模块根目录解析；OpenCvSharp、PaddleInference 等原生依赖则从模块的 `runtimes/{Rid}/native/` 目录解析，并兼容位于模块根目录的原生 DLL。模块发布和迁移时必须保留 `runtimes` 目录结构，否则托管包装程序集存在也无法初始化对应 native runtime。
 
@@ -149,7 +152,7 @@ Paddle 文件路径接口依赖 ANSI 编码，模型目录含中文等非 ASCII 
 
 Release 构建只检查当前应用版本对应的 tag，不会获取最新 release。优先直接访问 GitHub Releases 下载当前 tag 对应的 `SmartBpModuleManifest.json`（`https://github.com/PLFJY/neo-bpsys-wpf/releases/download/{tag}/SmartBpModuleManifest.json`），失败时回退到 `https://smartbp-module-manifest.plfjy.top/?tag={tag}` 获取。官方模块 asset 是 `SmartBpModule.7z`，实际下载地址会套用设置中的 GitHub 下载镜像。该镜像由软件更新、插件市场设置和 SmartBP 模块下载高级选项共用 `GhProxyMirror` 持久化字段，SmartBP 页面可直接测试候选镜像延迟。
 
-远程版本检查只作为更新提示，不阻塞本地模块加载：ABI 兼容性由 `component.json` 的 `RuntimeAbiVersion` 硬性校验保证，本地模块只要通过目录、RID、ABI 和入口程序集校验就立即加载显示。加载成功后异步拉取远端 manifest，仅在本地版本低于要求版本时通过 `ModuleVersionOutdated` 事件触发 `IInfoBarService` 警告提示用户更新；拉取失败或网络不可达时静默跳过，不影响已加载模块使用。Preview 构建不进行在线检查，主要支持选择本地模块目录或导入 `SmartBpModule.7z` / 旧 `SmartBpModule.zip`。
+远程版本检查只作为更新提示，不阻塞本地模块加载：ABI 兼容性由 `component.json` 的 `RuntimeAbiVersion` 硬性校验保证，本地模块通过目录、RID、ABI、入口程序集及本地完整性校验后加载显示。加载成功后异步拉取远端 manifest，仅在本地版本低于要求版本时通过 `ModuleVersionOutdated` 事件触发 `IInfoBarService` 警告提示用户更新；拉取失败或网络不可达时静默跳过，不影响已加载模块使用。Preview 构建不进行在线检查，主要支持选择本地模块目录或导入 `SmartBpModule.7z` / 旧 `SmartBpModule.zip`。
 
 SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档格式通过文件内容探测，不只依赖扩展名。运行时解压使用随应用发布的官方 x64 7-Zip（位于 `<AppBase>/Tools/7Zip/`），用户不需要单独安装 7-Zip。这只影响 SmartBP 模块包；`.bpui` / Designer v3 布局包导入导出行为不变。
 
@@ -157,7 +160,9 @@ SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档
 
 归档替换先在目标磁盘的同级临时目录复制并校验完整模块，复制原目录中的 `OCRModels`、`AI` 托管资产后，通过同卷目录重命名切换新旧目录。切换失败时恢复原目录并保留待安装标记供下次启动重试；切换成功后才清理旧目录。旧目录内受保护的额外文件若导致清理失败，只记录备份目录路径，不影响新模块加载。若目标本来就是不完整的模块目录，且受保护的无关文件连目录重命名也阻止，则把已校验的新模块文件复制到目标并再次校验，保留该无关文件。该流程允许下载暂存目录与用户选择的模块目录位于不同磁盘，并避免失败时留下只有部分 DLL 的模块目录。
 
-设置页的目录迁移复用上述目标卷暂存与替换流程，不再从系统临时目录直接跨卷 `Directory.Move`。已加载模块的归档导入使用完整复制写入 `%APPDATA%\neo-bpsys-wpf\SmartBpModulePending`，复制并校验成功后才记录重启操作，因此 TEMP 与 APPDATA 也可以位于不同磁盘。重启替换因占用或权限失败时保留暂存包、原目录及错误详情，不加载尚待替换的旧版本；界面继续提示需要重启并展示失败原因。
+设置页的目录迁移复用上述目标卷暂存与替换流程，不再从系统临时目录直接跨卷 `Directory.Move`。迁移在复制前原子保存 pending 标记；下次启动若目标完整性校验失败而来源完整，则重新准备目标副本，成功加载后才清理来源。新旧路径迁移标记均可恢复，显式迁移以来源模型为准修复目标截断文件；单纯下载目录变更不自动复制旧模块，也不覆盖目标已有模型。无完整来源时保留旧目录和标记，进入下载修复流程。状态和 pending JSON 都通过同目录临时文件加原子替换写入，避免中断导致半份 JSON。
+
+已加载模块的归档导入使用完整复制写入 `%APPDATA%\neo-bpsys-wpf\SmartBpModulePending`，复制并校验成功后才记录重启操作，因此 TEMP 与 APPDATA 也可以位于不同磁盘。重启替换因占用或权限失败时保留暂存包、原目录及错误详情，不加载尚待替换的旧版本；不再循环要求重启，而是提供修复操作。缺失或损坏的暂存包会放弃该操作，已有目标仍可通过自身校验加载。
 
 更新与目录迁移还保留用户下载的 `Runtime/Paddle/cuda`、`Runtime/Paddle/Downloads` 和 `PaddleRuntimeDownload`（含断点续传文件），不会覆盖归档自带的 `Runtime/Paddle/cpu`。显式目录迁移会在副本中更新 CUDA `install.json` 的 `NativeDirectory` 绝对路径，旧目录在新模块成功加载后才清理；不在读取安装记录时猜测或修补路径。CUDA 安装状态同时检查记录中的 native 目录、验证标记和必需 DLL，残留的 `install.json` 不代表依赖已安装。
 

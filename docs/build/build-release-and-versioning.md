@@ -57,7 +57,7 @@ WebRenderer 插件的前端由 Host sidecar 的 MSBuild target 调用 `pnpm` 构
 10. 计算 `neo-bpsys-wpf_Installer.exe.sha256`。
 11. 按 `win-x64`、`SelfContained=false` 执行 SmartBP 模块项目 `dotnet restore`。
 12. 按同一 RID 和 self-contained 配置执行 SmartBP 模块项目 `dotnet publish` 到 `build\SmartBpModule`。
-13. 用本次 tag 写入模块 staging 的 `component.json`。
+13. 读取模块 staging 的 `component.json` 版本，在剔除宿主已提供的文件后生成 `Integrity.Version = 1` 文件清单并写回 staging 清单。
 14. 用仓库内官方 x64 7-Zip（`third_party/7zip/win-x64/7z.exe`）从同一 staging 目录生成 `SmartBpModule.7z` 和 `SmartBpModuleManifest.json`。
 15. 调用 `Installer/build_Installer_full.iss` 构建 full 安装包。
 16. 计算 `neo-bpsys-wpf_Installer_full.exe.sha256`。
@@ -76,6 +76,12 @@ SmartBpModuleManifest.json
 `neo-bpsys-wpf_Installer.exe` 是 lite 默认安装包，也是旧 updater 固定目标。它不包含 SmartBP 的 OpenCvSharp、PaddleOCR、PaddleInference 和具体实现 DLL。`neo-bpsys-wpf_Installer_full.exe` 是首次安装便利包，包含 lite 应用和 SmartBP 模块 staging 文件，并在安装时写入 `%APPDATA%\neo-bpsys-wpf\SmartBpModuleState.json`。
 
 `SmartBpModule.7z` 和 full 安装包必须来自同一个 `build\SmartBpModule` staging 目录，避免 release 模块包与 full installer 内置模块不一致。官方 SmartBP 模块 release artifact 是 `SmartBpModule.7z`；运行时仍兼容旧 `SmartBpModule.zip` 包。
+
+`build.ps1` 的 `Write-SmartBpModuleIntegrity` 根据最终 staging 文件自动生成 `Integrity.Files`：每项包含 `/` 分隔的相对 `Path`、字节 `Size` 和 `Sha256`。同一份清单同时嵌入包内 `component.json`、full 安装器文件和远程 `SmartBpModuleManifest.json`。清单不包含 `component.json` 自身，也不包含可变资产 `OCRModels/`、`tessdata/`、`AI/`、`Runtime/Paddle/cuda/`、`Runtime/Paddle/Downloads/`、`PaddleRuntimeDownload/`。不要手工把生成的清单写进模块项目源码中的 `component.json`；普通开发构建仍使用旧包关键文件探针。
+
+清单大小随发布文件数量增长，与 DLL、模型的容量无关。本地及远端清单上限为 8 MiB（`SmartBpModuleConstants.MaxManifestBytes`），构建时对包内和远端清单执行相同字节数限制。运行时直接从 UTF-8 流反序列化，不先构造整份 UTF-16 字符串；本地清单在读取前检查长度，网络响应的缓冲上限同样覆盖无 Content-Length 的响应。网络 I/O 异步执行，JSON 解析和本地校验在后台执行；UI 版本标签复用成功加载时的版本，不重新读取或校验整份清单。
+
+加载、解压导入及目标卷副本切换前在后台验证清单中的文件大小和 SHA-256，缺失、截断或等长内容损坏都不能进入模块运行时。页面路径检查只验证大小，不重复读取大型 DLL。旧包没有 `Integrity` 时保留旧格式，执行关键托管依赖、CPU native 库和内置区域配置探针；不生成伪摘要，也不改写旧清单。旧包探针不等价于完整逐文件校验，修复安装的新包才提供发布文件全量摘要。
 
 SmartBP 模块通过在线下载、设置页导入或 SmartBP 页面手动导入 `.7z` / `.zip` 升级时，只替换模块程序文件；模块目录下的托管 OCR 资产根目录 `OCRModels/` 和 `tessdata/` 会原地保留。这里包含 PaddleOCR、RapidOCR 模型和 Tesseract traineddata。即使归档包误带同名资产目录，也不得覆盖用户已经下载好的 OCR 资产。
 

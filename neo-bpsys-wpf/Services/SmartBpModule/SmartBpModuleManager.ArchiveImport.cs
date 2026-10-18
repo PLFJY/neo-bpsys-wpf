@@ -89,7 +89,12 @@ public sealed partial class SmartBpModuleManager
             var candidateRoot = File.Exists(Path.Combine(staging, "component.json"))
                 ? staging
                 : Directory.EnumerateDirectories(staging).FirstOrDefault() ?? staging;
-            if (!ValidateModuleDirectory(candidateRoot, allowDevelopmentDirectory: false, out var manifest, out var validationError))
+            var (valid, manifest, validationError) = await Task.Run(() =>
+            {
+                var valid = ValidateModuleDirectoryCore(candidateRoot, false, out var manifest, out var error, verifyHashes: true);
+                return (valid, manifest, error);
+            });
+            if (!valid)
             {
                 LastFailureMessage = validationError;
                 _logger.LogWarning("Imported SmartBP module archive failed validation: {ValidationError}", validationError);

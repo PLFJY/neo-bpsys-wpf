@@ -491,7 +491,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         if (!_moduleManager.IsModuleVersionOutdated)
         {
-            if (await _moduleManager.LoadModuleFromDirectoryAsync(SelectedModulePath))
+            var usePersistedOperation = _moduleManager.HasPersistedModuleRoot() &&
+                string.Equals(SelectedModulePath, _moduleManager.GetPreferredModuleRoot(), StringComparison.OrdinalIgnoreCase);
+            var loaded = usePersistedOperation
+                ? await _moduleManager.TryLoadPersistedModuleAsync()
+                : await _moduleManager.LoadModuleFromDirectoryAsync(SelectedModulePath);
+            if (loaded)
             {
                 IsProgressVisible = false;
                 return;
@@ -696,13 +701,24 @@ public partial class SmartBpPageViewModel : ViewModelBase
             return;
         }
 
-        if (_moduleManager.ValidateModuleDirectory(
-                SelectedModulePath,
-                allowDevelopmentDirectory: IsDebugMode,
-                out var manifest,
-                out var error))
+        var inspectedPath = SelectedModulePath;
+        var (valid, manifest, error) = await Task.Run(() =>
         {
-            var inspectedPath = SelectedModulePath;
+            var valid = _moduleManager.ValidateModuleDirectory(inspectedPath, IsDebugMode, out var manifest, out var error);
+            return (valid, manifest, error);
+        });
+        if (!string.Equals(inspectedPath, SelectedModulePath, StringComparison.OrdinalIgnoreCase) || IsModuleLoaded)
+            return;
+        if (valid && _moduleManager.IsModuleRepairRequired &&
+            string.Equals(inspectedPath, _moduleManager.GetPreferredModuleRoot(), StringComparison.OrdinalIgnoreCase))
+        {
+            PrimaryActionText = IsDebugMode || IsPreviewMode ? L("SmartBpModuleLoadLocal") : L("SmartBpModuleRepairAndInstall");
+            OverlayMessage = BuildLocalLoadFailureMessage(L("SmartBpModuleIncompleteDescription"));
+            IsSelectInstalledModuleButtonVisible = true;
+            return;
+        }
+        if (valid)
+        {
             var requiredManifest = await _moduleManager.TryFetchRequiredModuleManifestAsync();
             if (!string.Equals(inspectedPath, SelectedModulePath, StringComparison.OrdinalIgnoreCase) || IsModuleLoaded)
                 return;
@@ -730,11 +746,14 @@ public partial class SmartBpPageViewModel : ViewModelBase
             return;
         }
 
-        PrimaryActionText = error.Contains("ABI", StringComparison.OrdinalIgnoreCase) ||
+        var needsRepair = Directory.Exists(inspectedPath) && !IsDebugMode && !IsPreviewMode;
+        PrimaryActionText = needsRepair ? L("SmartBpModuleRepairAndInstall") :
+                            error.Contains("ABI", StringComparison.OrdinalIgnoreCase) ||
                             error.Contains("RID", StringComparison.OrdinalIgnoreCase)
             ? L("SmartBpModuleReinstall")
             : IsDebugMode || IsPreviewMode ? L("SmartBpModuleLoadLocal") : L("SmartBpModuleDownloadAndInstall");
-        OverlayMessage = string.IsNullOrWhiteSpace(error)
+        OverlayMessage = needsRepair && !IsAdvancedOptionsExpanded ? L("SmartBpModuleIncompleteDescription") :
+            string.IsNullOrWhiteSpace(error)
             ? L("SmartBpModuleNotInstalledDescription")
             : (IsAdvancedOptionsExpanded
                 ? string.Format(L("SmartBpModulePathModuleInvalidFormat"), error)
@@ -775,6 +794,12 @@ public partial class SmartBpPageViewModel : ViewModelBase
             OverlayMessage = string.Format(L("SmartBpModuleOutdatedFormat"), requiredVersion);
             IsSelectInstalledModuleButtonVisible = true;
         }
+        else if (!IsModuleLoaded && _moduleManager.IsModuleRepairRequired)
+        {
+            PrimaryActionText = IsDebugMode || IsPreviewMode ? L("SmartBpModuleLoadLocal") : L("SmartBpModuleRepairAndInstall");
+            OverlayMessage = BuildLocalLoadFailureMessage(L("SmartBpModuleIncompleteDescription"));
+            IsSelectInstalledModuleButtonVisible = true;
+        }
 
         var persistedRoot = _moduleManager.GetPreferredModuleRoot();
         if (!IsModuleLoaded &&
@@ -797,7 +822,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
             return;
         }
 
-        var version = TryReadLoadedModuleVersion() ?? _moduleManager.ReadState()?.ModuleVersion;
+        var version = _moduleManager.LoadedModuleVersion ?? _moduleManager.ReadState()?.ModuleVersion;
         if (string.IsNullOrWhiteSpace(version))
         {
             ModuleVersionText = string.Empty;
@@ -807,26 +832,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         ModuleVersionText = string.Format(L("SmartBpModuleVersionFormat"), version);
         IsModuleVersionVisible = true;
-    }
-
-    /// <summary>
-    /// 在当前已加载模块目录仍有效时读取 manifest 版本。
-    /// </summary>
-    /// <returns>已加载模块版本；无法读取时返回 <see langword="null"/>。</returns>
-    private string? TryReadLoadedModuleVersion()
-    {
-        if (string.IsNullOrWhiteSpace(_moduleManager.ModuleRoot))
-        {
-            return null;
-        }
-
-        return _moduleManager.ValidateModuleDirectory(
-            _moduleManager.ModuleRoot,
-            allowDevelopmentDirectory: IsDebugMode,
-            out var manifest,
-            out _)
-            ? manifest?.ModuleVersion
-            : null;
     }
 
     /// <summary>
