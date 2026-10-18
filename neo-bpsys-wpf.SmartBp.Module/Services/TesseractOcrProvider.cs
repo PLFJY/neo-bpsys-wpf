@@ -31,6 +31,9 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
         _settingsService = settingsService;
         _storage = storage;
         _logger = logger;
+        // Tesseract 自行加载 native DLL，不经过 ALC 的 P/Invoke 解析器。
+        // 传模块根目录，由其追加 x64；不能依赖宿主目录或当前工作目录。
+        TesseractEnviornment.CustomSearchPath = Path.GetFullPath(storage.ModuleRoot);
     }
 
     /// <inheritdoc />

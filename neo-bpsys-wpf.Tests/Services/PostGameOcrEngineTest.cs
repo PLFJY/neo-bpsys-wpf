@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Tests.Infrastructure;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using OpenCvSharp;
 using Xunit;
 using IOcrService = smartbp::neo_bpsys_wpf.Core.Abstractions.Services.IOcrService;
@@ -111,6 +116,80 @@ public sealed class NoopDebugLog : ISmartBpDebugLog
 public sealed class PostGameOcrEngineTest
 {
     private const double GridUpscaleFactor = 2.0;
+
+    /// <summary>验证后台入口只运行一次，并在 UI 线程回填最初对局，切局后丢弃旧结果。</summary>
+    /// <param name="changeGame">等待 OCR 时是否更换当前对局。</param>
+    /// <returns>回填线程和任务协调验证任务。</returns>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AutoFill_SerializesEntrypointsAndAppliesOnlyToCapturedGameOnUiThread(bool changeGame)
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var uiThread = Environment.CurrentManagedThreadId;
+            var game = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Game1FirstHalf);
+            var currentGame = game;
+            var shared = new Mock<ISharedDataService>();
+            shared.SetupGet(service => service.CurrentGame).Returns(() => currentGame);
+            var bitmap = BitmapSource.Create(1920, 1080, 96, 96, PixelFormats.Bgra32, null, new byte[1920 * 1080 * 4], 1920 * 4);
+            bitmap.Freeze();
+            var capture = new Mock<IWindowCaptureService>();
+            capture.SetupGet(service => service.IsCapturing).Returns(true);
+            capture.Setup(service => service.GetCurrentFrame()).Returns(bitmap);
+            var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var release = new ManualResetEventSlim();
+            var ocr = new Mock<IOcrService>();
+            ocr.SetupGet(service => service.SelectedProvider).Returns(SmartBpOcrProviderKind.Paddle);
+            ocr.SetupGet(service => service.CurrentOcrModelKey).Returns("test-model");
+            ocr.Setup(service => service.GetProviderStatus(It.IsAny<SmartBpOcrProviderKind>()))
+                .Returns(new SmartBpOcrProviderStatus(SmartBpOcrProviderKind.Paddle, true, null, "test"));
+            var calls = 0;
+            ocr.Setup(service => service.RecognizeTextLines(It.IsAny<Mat>())).Returns(() =>
+            {
+                if (Interlocked.Increment(ref calls) == 1) return OcrTextBlockResult.Empty; // warmup
+                entered.TrySetResult();
+                if (!release.Wait(TimeSpan.FromSeconds(5))) throw new TimeoutException("OCR test was not released.");
+                return new OcrTextBlockResult(BuildCompleteTable(), "", "test");
+            });
+            var service = new smartbp::neo_bpsys_wpf.Services.SmartBpService(shared.Object, capture.Object, ocr.Object,
+                Mock.Of<ICharacterSelectionService>(),
+                Mock.Of<smartbp::neo_bpsys_wpf.SmartBp.Module.Abstractions.ISmartBpRecognitionSettingsService>(),
+                new NoopDebugLog(), Mock.Of<ILogger<smartbp::neo_bpsys_wpf.Services.SmartBpService>>());
+            var changedOn = new List<int>();
+            game.HunPlayer.Data.PropertyChanged += (_, _) => changedOn.Add(Environment.CurrentManagedThreadId);
+            var snapshotThreads = new List<int>();
+            service.SnapshotChanged += (_, _) => snapshotThreads.Add(Environment.CurrentManagedThreadId);
+
+            var first = Task.Run(() => service.AutoFillGameDataAsync());
+            try
+            {
+                await entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                await service.AutoFillGameDataAsync();
+                Assert.False(first.IsCompleted);
+                if (changeGame)
+                    currentGame = new Game(new Team(Camp.Sur, TeamType.HomeTeam), new Team(Camp.Hun, TeamType.AwayTeam), GameProgress.Game1SecondHalf);
+            }
+            finally { release.Set(); }
+            await first.WaitAsync(TimeSpan.FromSeconds(5));
+
+            Assert.Equal(2, calls); // one warmup and one table, including the duplicate request
+            capture.Verify(service => service.GetCurrentFrame(), Times.Once);
+            if (changeGame)
+            {
+                Assert.Empty(changedOn);
+                Assert.Equal("-", currentGame.HunPlayer.Data.RemainingCipher);
+                Assert.Empty(snapshotThreads);
+            }
+            else
+            {
+                Assert.NotEmpty(changedOn);
+                Assert.All(changedOn, thread => Assert.Equal(uiThread, thread));
+                Assert.Equal(new[] { uiThread }, snapshotThreads);
+                Assert.NotEqual("-", game.HunPlayer.Data.RemainingCipher);
+            }
+        });
+    }
 
     // ==================== 性能调用次数测试 ====================
 

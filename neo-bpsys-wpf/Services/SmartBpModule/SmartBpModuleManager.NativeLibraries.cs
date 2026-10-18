@@ -108,7 +108,7 @@ public sealed partial class SmartBpModuleManager
 
             try
             {
-                var handle = NativeLibrary.Load(libraryPath);
+                var handle = LoadModuleNativeLibrary(libraryPath);
                 PreloadedNativeLibraries[libraryPath] = handle;
                 logger?.LogDebug("Preloaded SmartBP module native library: {LibraryPath}", libraryPath);
             }
@@ -121,6 +121,16 @@ public sealed partial class SmartBpModuleManager
             }
         }
     }
+
+    /// <summary>从模块的完整路径加载原生库，并以该库所在目录解析其传递依赖。</summary>
+    /// <param name="libraryPath">原生库的完整路径。</param>
+    /// <returns>加载成功的原生库句柄，由调用方按进程生命周期保留。</returns>
+    /// <exception cref="DllNotFoundException">目标库或其依赖不存在时抛出。</exception>
+    /// <exception cref="BadImageFormatException">原生库与当前进程架构不兼容时抛出。</exception>
+    internal static IntPtr LoadModuleNativeLibrary(string libraryPath) => NativeLibrary.Load(
+        libraryPath,
+        typeof(SmartBpModuleManager).Assembly,
+        DllImportSearchPath.UseDllDirectoryForDependencies | DllImportSearchPath.UserDirectories | DllImportSearchPath.System32);
 
     /// <summary>
     /// 枚举在托管模块代码运行前应提前加载的 native 库。
@@ -150,26 +160,17 @@ public sealed partial class SmartBpModuleManager
     /// 构建 SmartBP 模块加载所需 native 探测目录的有序集合。
     /// </summary>
     /// <param name="moduleRoot">SmartBP 模块根目录。</param>
-    /// <returns>native 探测目录，包含模块 RID 特定目录、模块自带 CPU Paddle runtime 和模块根目录回退。</returns>
+    /// <returns>native 探测目录，包含 win-x64 RID、Tesseract x64 目录、模块自带 CPU Paddle runtime 和模块根目录。</returns>
     internal static IReadOnlyList<string> GetModuleNativeSearchDirectories(string moduleRoot)
     {
         if (string.IsNullOrWhiteSpace(moduleRoot)) return [];
+        moduleRoot = Path.GetFullPath(moduleRoot);
 
         var directories = new List<string>
         {
-            Path.Combine(moduleRoot, "runtimes", SmartBpModuleConstants.Rid, "native")
+            Path.Combine(moduleRoot, "runtimes", SmartBpModuleConstants.Rid, "native"),
+            Path.Combine(moduleRoot, "x64")
         };
-
-        var runtimesRoot = Path.Combine(moduleRoot, "runtimes");
-        if (Directory.Exists(runtimesRoot))
-        {
-            foreach (var runtimeDirectory in Directory.EnumerateDirectories(runtimesRoot))
-            {
-                var nativeDirectory = Path.Combine(runtimeDirectory, "native");
-                if (!directories.Contains(nativeDirectory, StringComparer.OrdinalIgnoreCase))
-                    directories.Add(nativeDirectory);
-            }
-        }
 
         var paddleCpuRoot = Path.Combine(moduleRoot, "Runtime", "Paddle", "cpu");
         if (Directory.Exists(paddleCpuRoot))

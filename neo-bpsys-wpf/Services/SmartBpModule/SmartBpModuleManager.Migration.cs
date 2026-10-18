@@ -98,7 +98,19 @@ public sealed partial class SmartBpModuleManager
         // 并在下一次进程启动、模块加载前完成替换。
         var existingPending = ReadMovePendingState();
         Directory.CreateDirectory(pendingParent);
-        Directory.Move(normalizedCandidateRoot, preparedRoot);
+        // TEMP 和 APPDATA 可能位于不同卷；完整复制成功后才发布 pending 标记。
+        try
+        {
+            Directory.CreateDirectory(preparedRoot);
+            CopyDirectory(normalizedCandidateRoot, preparedRoot);
+            if (!ValidateModuleDirectory(preparedRoot, false, out _, out var error))
+                throw new InvalidOperationException($"Prepared SmartBP module failed validation: {error}");
+        }
+        catch
+        {
+            if (Directory.Exists(preparedRoot)) Directory.Delete(preparedRoot, recursive: true);
+            throw;
+        }
         AbandonPendingModuleOperation(existingPending, "new archive import staged");
 
         var sourceRoot = IsModulePhysicallyLoaded
@@ -138,7 +150,6 @@ public sealed partial class SmartBpModuleManager
             preparedRoot,
             normalizedTargetRoot,
             installKind);
-        ModuleStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -282,6 +293,7 @@ public sealed partial class SmartBpModuleManager
         catch (Exception ex)
         {
             pending.LastCleanupError = FormatExceptionForUser(ex);
+            LastFailureMessage = pending.LastCleanupError;
             TryRecordPendingFailure(pending, "archive import completion failed");
             _logger.LogWarning(ex, "Failed to complete pending SmartBP module archive import.");
             return false;
@@ -311,37 +323,7 @@ public sealed partial class SmartBpModuleManager
             }
         }
 
-        var tempRoot = Path.Combine(AppConstants.AppTempPath, "SmartBpModuleMove", Guid.NewGuid().ToString("N"));
-        var stagingRoot = Path.Combine(tempRoot, "SmartBpModule");
-        Directory.CreateDirectory(tempRoot);
-        try
-        {
-            await Task.Run(() => CopyDirectory(sourceRoot, stagingRoot));
-            if (!ValidateModuleDirectory(
-                    stagingRoot,
-                    allowDevelopmentDirectory: IsDebugBuild(),
-                    out _,
-                    out var stagingValidationError))
-            {
-                throw new InvalidOperationException($"Copied module failed validation: {stagingValidationError}");
-            }
-
-            if (Directory.Exists(targetRoot))
-            {
-                _logger.LogInformation("Replacing SmartBP module migration target: {TargetRoot}", targetRoot);
-                Directory.Delete(targetRoot, recursive: true);
-            }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(targetRoot)!);
-            Directory.Move(stagingRoot, targetRoot);
-        }
-        finally
-        {
-            if (Directory.Exists(tempRoot))
-            {
-                Directory.Delete(tempRoot, recursive: true);
-            }
-        }
+        await Task.Run(() => ReplaceModuleRootPreservingManagedAssets(sourceRoot, targetRoot, relocateRuntime: true));
     }
 
     /// <summary>
@@ -645,6 +627,36 @@ public sealed partial class SmartBpModuleManager
                 }
             }
         }
+
+        RelocateCudaInstallManifests(targetRoot, sourceRoot, targetRoot);
+    }
+
+    // 仅在显式目录迁移时更新已有绝对路径契约，不在读取状态时猜测或修补路径。
+    private static void RelocateCudaInstallManifests(string copiedRoot, string sourceRoot, string targetRoot)
+    {
+        var cudaRoot = Path.Combine(copiedRoot, "Runtime", "Paddle", "cuda");
+        if (!Directory.Exists(cudaRoot)) return;
+        foreach (var versionRoot in Directory.EnumerateDirectories(cudaRoot))
+        foreach (var packageRoot in Directory.EnumerateDirectories(versionRoot))
+        {
+            var manifestPath = Path.Combine(packageRoot, "install.json");
+            if (!File.Exists(manifestPath)) continue;
+            var manifest = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(manifestPath))
+                ?? throw new InvalidDataException($"Invalid CUDA install manifest: {manifestPath}");
+            var nativePath = manifest["NativeDirectory"]?.GetValue<string>();
+            if (string.IsNullOrWhiteSpace(nativePath) || !IsSameOrChildPath(nativePath, sourceRoot)) continue;
+            manifest["NativeDirectory"] = Path.GetFullPath(Path.Combine(targetRoot, Path.GetRelativePath(sourceRoot, nativePath)));
+            var temporaryPath = manifestPath + ".migration.tmp";
+            try
+            {
+                File.WriteAllText(temporaryPath, manifest.ToJsonString(JsonOptions));
+                File.Move(temporaryPath, manifestPath, overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+            }
+        }
     }
 
     /// <summary>
@@ -753,7 +765,8 @@ public sealed partial class SmartBpModuleManager
     /// </summary>
     /// <param name="sourceRoot">已校验的替换模块根目录。</param>
     /// <param name="targetRoot">要更新的现有模块根目录。</param>
-    private void ReplaceModuleRootPreservingManagedAssets(string sourceRoot, string targetRoot)
+    /// <param name="relocateRuntime">是否在显式目录迁移时更新 CUDA 安装记录中的绝对路径。</param>
+    private void ReplaceModuleRootPreservingManagedAssets(string sourceRoot, string targetRoot, bool relocateRuntime = false)
     {
         var normalizedSourceRoot = Path.GetFullPath(sourceRoot);
         var normalizedTargetRoot = Path.GetFullPath(targetRoot);
@@ -789,6 +802,9 @@ public sealed partial class SmartBpModuleManager
                     CopyDirectory(existingAssetRoot, replacementAssetRoot);
                 }
             }
+
+            if (relocateRuntime)
+                RelocateCudaInstallManifests(replacementRoot, normalizedSourceRoot, normalizedTargetRoot);
 
             if (!ValidateModuleDirectory(replacementRoot, allowDevelopmentDirectory: false, out _, out var validationError))
             {

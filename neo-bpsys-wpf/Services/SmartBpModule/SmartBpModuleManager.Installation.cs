@@ -37,6 +37,7 @@ public sealed partial class SmartBpModuleManager
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Starting SmartBP module download and install. TargetRoot={TargetRoot}", targetRoot);
+        LastFailureMessage = string.Empty;
         if (IsPreviewBuild())
         {
             _logger.LogInformation("SmartBP module online install is disabled in Preview builds.");
@@ -66,62 +67,73 @@ public sealed partial class SmartBpModuleManager
         Directory.CreateDirectory(downloadRoot);
         try
         {
+            var canReuseArchive = File.Exists(archivePath) &&
+                                  !string.IsNullOrWhiteSpace(manifest.Asset.Sha256) &&
+                                  string.Equals(await Task.Run(() => ComputeSha256(archivePath), cancellationToken),
+                                      manifest.Asset.Sha256, StringComparison.OrdinalIgnoreCase);
             progress?.Report(5);
             _logger.LogInformation(
                 "Downloading SmartBP module package. Url={Url}, ArchivePath={ArchivePath}",
                 url,
                 archivePath);
-            var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(
-                new Uri(url, UriKind.Absolute),
-                archivePath)
+            if (!canReuseArchive)
             {
-                UserAgent = AppConstants.AppName
-            });
-            _currentModuleDownload = operation;
-            operation.StateChanged += OnModuleDownloadStateChanged;
-            try
-            {
-                operation.StateChanged += (_, _) =>
+                var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(
+                    new Uri(url, UriKind.Absolute),
+                    archivePath)
                 {
-                    if (operation.Progress.Percentage is { } percentage)
-                        progress?.Report(5 + percentage * 0.65);
-                };
-                await operation.StartAsync(cancellationToken);
-            }
-            finally
-            {
-                operation.StateChanged -= OnModuleDownloadStateChanged;
-                if (ReferenceEquals(_currentModuleDownload, operation))
-                    _currentModuleDownload = null;
-                DownloadStateChanged?.Invoke(this, EventArgs.Empty);
+                    UserAgent = AppConstants.AppName
+                });
+                _currentModuleDownload = operation;
+                operation.StateChanged += OnModuleDownloadStateChanged;
+                try
+                {
+                    operation.StateChanged += (_, _) =>
+                    {
+                        if (operation.Progress.Percentage is { } percentage)
+                            progress?.Report(5 + percentage * 0.65);
+                    };
+                    await operation.StartAsync(cancellationToken);
+                }
+                finally
+                {
+                    operation.StateChanged -= OnModuleDownloadStateChanged;
+                    if (ReferenceEquals(_currentModuleDownload, operation))
+                        _currentModuleDownload = null;
+                    DownloadStateChanged?.Invoke(this, EventArgs.Empty);
+                }
             }
 
             progress?.Report(70);
-            if (!string.IsNullOrWhiteSpace(manifest.Asset.Sha256))
+            if (!canReuseArchive && !string.IsNullOrWhiteSpace(manifest.Asset.Sha256))
             {
-                var actual = ComputeSha256(archivePath);
+                var actual = await Task.Run(() => ComputeSha256(archivePath), cancellationToken);
                 if (!string.Equals(actual, manifest.Asset.Sha256, StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.LogWarning("SmartBP module hash mismatch. Expected={Expected}, Actual={Actual}", manifest.Asset.Sha256, actual);
+                    LastFailureMessage = "Downloaded SmartBP module SHA-256 verification failed.";
+                    File.Delete(archivePath);
                     return false;
                 }
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             progress?.Report(80);
             var installed = await ImportArchiveAsync(archivePath, targetRoot, "LiteDownload", extractionProgress);
             _logger.LogInformation("SmartBP module download install completed. Installed={Installed}", installed);
+            if (installed)
+            {
+                try { File.Delete(archivePath); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to clean installed SmartBP module archive: {ArchivePath}", archivePath); }
+            }
             progress?.Report(installed ? 100 : 80);
             return installed;
         }
         catch (Exception ex)
         {
+            LastFailureMessage = FormatExceptionForUser(ex);
             _logger.LogWarning(ex, "Failed to download and install SmartBP module.");
             return false;
-        }
-        finally
-        {
-            if (File.Exists(archivePath))
-                File.Delete(archivePath);
         }
     }
 

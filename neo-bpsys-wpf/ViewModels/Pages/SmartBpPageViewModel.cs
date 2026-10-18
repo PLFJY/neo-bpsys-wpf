@@ -548,7 +548,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 return;
             }
 
-            OverlayMessage = L("SmartBpModuleDownloadInstallFailed");
+            OverlayMessage = BuildLocalLoadFailureMessage(L("SmartBpModuleDownloadInstallFailed"));
+            return;
         }
 
         IsProgressVisible = false;
@@ -681,7 +682,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         if (_moduleManager.IsRestartRequiredForPendingModuleImport)
         {
-            EnterRestartRequiredState(OverlayMessage);
+            EnterRestartRequiredState(BuildLocalLoadFailureMessage(L("SmartBpModuleDownloadExtractedRestartRequired")));
             return;
         }
 
@@ -701,7 +702,16 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 out var manifest,
                 out var error))
         {
+            var inspectedPath = SelectedModulePath;
             var requiredManifest = await _moduleManager.TryFetchRequiredModuleManifestAsync();
+            if (!string.Equals(inspectedPath, SelectedModulePath, StringComparison.OrdinalIgnoreCase) || IsModuleLoaded)
+                return;
+            // 启动恢复或安装可能在远程检查期间完成暂存；旧检查结果不得覆盖重启提示。
+            if (_moduleManager.IsRestartRequiredForPendingModuleImport)
+            {
+                EnterRestartRequiredState(BuildLocalLoadFailureMessage(L("SmartBpModuleDownloadExtractedRestartRequired")));
+                return;
+            }
             if (manifest != null &&
                 requiredManifest != null &&
                 !SmartBpModuleManager.IsModuleVersionAllowed(manifest.ModuleVersion, requiredManifest.ModuleVersion))
@@ -754,7 +764,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         if (_moduleManager.IsRestartRequiredForPendingModuleImport)
         {
-            EnterRestartRequiredState(OverlayMessage);
+            EnterRestartRequiredState(BuildLocalLoadFailureMessage(L("SmartBpModuleDownloadExtractedRestartRequired")));
             return;
         }
 

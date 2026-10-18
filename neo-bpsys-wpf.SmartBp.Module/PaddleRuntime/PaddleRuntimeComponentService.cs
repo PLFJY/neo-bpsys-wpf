@@ -112,8 +112,10 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
     {
         get
         {
+            IFileDownloadOperation? operation;
             lock (_downloadLock)
-                return _currentDownload?.State == FileDownloadState.Paused;
+                operation = _currentDownload;
+            return operation?.State == FileDownloadState.Paused;
         }
     }
 
@@ -228,7 +230,8 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
             operation.StateChanged += OnDownloadOperationStateChanged;
             lock (_downloadLock)
                 _currentDownload = operation;
-            _ = RunDownloadAndInstallAsync(package, _pendingDownloadPath, operation);
+            var downloadPath = _pendingDownloadPath;
+            _ = Task.Run(() => RunDownloadAndInstallAsync(package, downloadPath, operation));
         }
         catch (Exception ex)
         {
@@ -298,12 +301,14 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
     {
         if (sender is not IFileDownloadOperation operation)
             return;
+        var progress = operation.Progress;
+        var state = operation.State;
         lock (_downloadLock)
         {
-            _downloadProgress = operation.Progress.Percentage;
-            _downloadSpeed = operation.State == FileDownloadState.Paused
+            _downloadProgress = progress.Percentage;
+            _downloadSpeed = state == FileDownloadState.Paused
                 ? 0
-                : operation.Progress.BytesPerSecond;
+                : progress.BytesPerSecond;
 
         }
 
@@ -611,6 +616,16 @@ public sealed class PaddleRuntimeComponentService : IPaddleRuntimeComponentServi
                     continue;
                 var manifest = TryReadInstallManifest(manifestPath);
                 if (manifest is null)
+                    continue;
+                // install.json 不能替代磁盘上的运行库；迁移必须显式更新其绝对路径。
+                var nativeRoot = Path.GetFullPath(Path.Combine(packageDir, "native"));
+                var package = _manifestProvider.GetAllPackages().FirstOrDefault(candidate =>
+                    string.Equals(candidate.PackageId, manifest.PackageId, StringComparison.OrdinalIgnoreCase));
+                if (!manifest.Verified ||
+                    !string.Equals(manifest.NativeDirectory, nativeRoot, StringComparison.OrdinalIgnoreCase) ||
+                    !Directory.Exists(nativeRoot) ||
+                    !File.Exists(Path.Combine(nativeRoot, "paddle_inference_c.dll")) ||
+                    (package is not null && package.ExpectedNativeFiles.Any(file => !File.Exists(Path.Combine(nativeRoot, file)))))
                     continue;
                 var versionMatches = string.Equals(
                     manifest.PackageVersion,

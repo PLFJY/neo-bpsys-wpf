@@ -9,6 +9,8 @@ using neo_bpsys_wpf.SmartBp.Module.Models.Recognition;
 using OpenCvSharp;
 using System.Diagnostics;
 using System.Threading;
+using System.Windows;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Services;
@@ -28,6 +30,8 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
     private readonly ILogger<SmartBpService> _logger;
     private readonly DispatcherTimer _timer;
     private readonly PostGameOcrEngine _postGameOcrEngine;
+    private readonly Dispatcher _dispatcher;
+    private int _recognitionInProgress;
 
     /// <inheritdoc />
     public event EventHandler? SnapshotChanged;
@@ -72,6 +76,7 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
         _recognitionSettingsService = recognitionSettingsService;
         _debugLog = debugLog;
         _logger = logger;
+        _dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1000) };
         _timer.Tick += Timer_Tick;
         _postGameOcrEngine = new PostGameOcrEngine(_ocrService, _debugLog, _logger);
@@ -86,6 +91,8 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
     /// <param name="stage">当前逻辑阶段。</param>
     private void RaiseProgress(int percent, PostGameRecognitionStage stage)
     {
+        _logger.LogInformation("SmartBp post-game OCR stage. Stage={Stage}, Percent={Percent}, Provider={Provider}, Model={Model}",
+            stage, percent, _ocrService.SelectedProvider, _ocrService.CurrentOcrModelKey);
         CurrentProgress = new PostGameRecognitionProgress(percent, stage, ResolveStageText(stage));
         ProgressChanged?.Invoke(this, new PostGameRecognitionProgressEventArgs(CurrentProgress));
     }
@@ -140,6 +147,38 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
     /// <inheritdoc />
     public async Task AutoFillGameDataAsync(CancellationToken cancellationToken = default)
     {
+        // 两个后台页面及插件共享同一服务；命令自身的防重复不能覆盖其他入口。
+        if (Interlocked.CompareExchange(ref _recognitionInProgress, 1, 0) != 0)
+        {
+            _logger.LogDebug("SmartBp AutoFill skipped: another post-game recognition is running.");
+            return;
+        }
+        try
+        {
+            if (_dispatcher.HasShutdownStarted || _dispatcher.HasShutdownFinished) return;
+            if (_dispatcher.CheckAccess())
+                await AutoFillGameDataCoreAsync(cancellationToken);
+            else
+                await _dispatcher.InvokeAsync(() => AutoFillGameDataCoreAsync(cancellationToken),
+                    DispatcherPriority.Normal, cancellationToken).Task.Unwrap();
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug("SmartBp AutoFill dispatch canceled.");
+        }
+        catch (Exception ex)
+        {
+            // 连错误弹窗自身也可能因窗口关闭失败，不能再从 async 命令抛出第二个异常。
+            _logger.LogError(ex, "SmartBp AutoFill could not complete UI notification.");
+        }
+        finally
+        {
+            Volatile.Write(ref _recognitionInProgress, 0);
+        }
+    }
+
+    private async Task AutoFillGameDataCoreAsync(CancellationToken cancellationToken)
+    {
         _debugLog.Write("post-game", "赛后数据识别 requested.");
         try
         {
@@ -151,10 +190,13 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
                 return;
             }
 
-            if (!_windowCaptureService.IsCapturing || _windowCaptureService.GetCurrentFrame() == null)
+            var captureSw = Stopwatch.StartNew();
+            var frame = _windowCaptureService.IsCapturing ? _windowCaptureService.GetCurrentFrame() : null;
+            captureSw.Stop();
+            if (frame == null)
             {
                 _logger.LogDebug("SmartBp AutoFill skipped: capture or current frame is unavailable.");
-                _debugLog.Write("post-game", $"skipped: capture_available={_windowCaptureService.IsCapturing}; frame_available={_windowCaptureService.GetCurrentFrame() != null}.");
+                _debugLog.Write("post-game", $"skipped: capture_available={_windowCaptureService.IsCapturing}; frame_available=False.");
                 await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString(
                     _windowCaptureService.IsCapturing
                         ? "SmartBpValidationCaptureFrameUnavailable"
@@ -162,12 +204,28 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
                 return;
             }
 
+            var game = _sharedDataService.CurrentGame;
+            var gameProgress = game.GameProgress;
+            var surTeam = game.SurTeam;
+            var hunTeam = game.HunTeam;
             RaiseProgress(5, PostGameRecognitionStage.Preparing);
-            await _postGameOcrEngine.EnsureWarmupAsync().ConfigureAwait(false);
+            await _postGameOcrEngine.EnsureWarmupAsync().WaitAsync(cancellationToken);
 
-            var recognizedData = await Task.Run(
-                () => CaptureAndRecognizeGameData(cancellationToken),
+            var result = await Task.Run(
+                () => CaptureAndRecognizeGameData(frame, captureSw.ElapsedMilliseconds, cancellationToken),
                 cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_dispatcher.HasShutdownStarted || _dispatcher.HasShutdownFinished) return;
+            if (!ReferenceEquals(game, _sharedDataService.CurrentGame) ||
+                gameProgress != game.GameProgress ||
+                !ReferenceEquals(surTeam, game.SurTeam) || !ReferenceEquals(hunTeam, game.HunTeam))
+            {
+                _logger.LogInformation("Discarded post-game OCR result because the game or camps changed.");
+                RaiseProgress(0, PostGameRecognitionStage.Idle);
+                return;
+            }
+            PublishGameDataDebugSnapshot(result.OcrLineCount, result.Parsed);
+            var recognizedData = result.Data;
             if (recognizedData == null)
             {
                 _debugLog.Write("post-game", "finished: no usable post-game rows were parsed.");
@@ -192,6 +250,7 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
         {
             _logger.LogError(ex, "SmartBp AutoFill failed with exception. {Message}", ex.Message);
             _debugLog.Write("post-game", $"failed: {ToLogText(ex.ToString())}");
+            if (_dispatcher.HasShutdownStarted || _dispatcher.HasShutdownFinished) return;
             RaiseProgress(0, PostGameRecognitionStage.Idle);
             await MessageBoxHelper.ShowErrorAsync(string.Format(
                 I18nHelper.GetLocalizedString("SmartBpOperationFailedFormat"), ex.Message));
@@ -204,14 +263,9 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
             _logger.LogDebug("SmartBp auto BP skipped: capture is not running.");
     }
 
-    private RecognizedGameData? CaptureAndRecognizeGameData(CancellationToken cancellationToken)
+    private CapturedGameData CaptureAndRecognizeGameData(BitmapSource frame, long captureMs, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var captureSw = Stopwatch.StartNew();
-        var frame = _windowCaptureService.GetCurrentFrame();
-        captureSw.Stop();
-        if (frame == null)
-            return null;
 
         var bitmapToMatSw = Stopwatch.StartNew();
         using var full = frame.ToBgrMat();
@@ -221,7 +275,7 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
             "post-game",
             $"capture: pixel_size={frame.PixelWidth}x{frame.PixelHeight}; provider={_ocrService.SelectedProvider}; configured_provider_details=[{ToLogText(_ocrService.GetProviderStatus(_ocrService.SelectedProvider).Details)}].");
 
-        var runResult = _postGameOcrEngine.RunAsync(full, captureSw.ElapsedMilliseconds, bitmapToMatSw.ElapsedMilliseconds, cancellationToken)
+        var runResult = _postGameOcrEngine.RunAsync(full, captureMs, bitmapToMatSw.ElapsedMilliseconds, cancellationToken)
             .GetAwaiter().GetResult();
         var parsed = runResult.Parsed;
         var ocrLineCount = runResult.Lines.Count;
@@ -236,9 +290,8 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
                 $"row[{row.RowIndex}]: raw_name=[{ToLogText(row.RawNameText)}]; player=[{ToLogText(row.PlayerName)}]; character=[{ToLogText(row.CharacterName)}]; values=[{string.Join(",", row.Values)}]; complete={row.HasAllDataColumns}.");
         }
 
-        PublishGameDataDebugSnapshot(ocrLineCount, parsed);
         if (parsed.Rows.Count == 0)
-            return null;
+            return new CapturedGameData(null, ocrLineCount, parsed);
 
         // OCR 常会漏掉界面中的“-”空值标记；名称和角色已可靠定位时，仍应回填该行，
         // 未识别的数据列沿用 PlayerData 的空字符串语义。
@@ -251,7 +304,9 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
         _logger.LogInformation(
             "SmartBp GameData table OCR parsed. OcrLineCount={OcrLineCount}, ParsedRowCount={ParsedRowCount}, CompleteRowCount={CompleteRowCount}, HunterFound={HunterFound}, SurvivorRowCount={SurvivorRowCount}",
             ocrLineCount, parsed.Rows.Count, parsed.Rows.Count(row => row.HasAllDataColumns), hunterData != null, survivorInfos.Count);
-        return hunterData == null && survivorInfos.Count == 0 ? null : new RecognizedGameData(hunterData, survivorInfos);
+        return new CapturedGameData(
+            hunterData == null && survivorInfos.Count == 0 ? null : new RecognizedGameData(hunterData, survivorInfos),
+            ocrLineCount, parsed);
     }
 
     private void PublishGameDataDebugSnapshot(int ocrLineCount, GameDataTableParseResult parsed)
@@ -332,4 +387,5 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
     public record PlayerInfo(string PlayerName, string CharacterName, PlayerData PlayerData);
 
     private sealed record RecognizedGameData(PlayerData? HunterData, List<PlayerInfo> SurvivorInfos);
+    private sealed record CapturedGameData(RecognizedGameData? Data, int OcrLineCount, GameDataTableParseResult Parsed);
 }

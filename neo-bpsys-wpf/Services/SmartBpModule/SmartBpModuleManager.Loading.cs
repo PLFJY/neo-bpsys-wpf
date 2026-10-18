@@ -33,14 +33,20 @@ public sealed partial class SmartBpModuleManager
         var pending = ReadMovePendingState();
         if (!string.IsNullOrWhiteSpace(pending?.PreparedRoot))
         {
-            TryCompletePendingArchiveImport(pending);
+            if (!await Task.Run(() => TryCompletePendingArchiveImport(pending)))
+            {
+                IsRestartRequiredForPendingModuleImport = true;
+                ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+                return false;
+            }
+            IsRestartRequiredForPendingModuleImport = false;
             state = ReadState();
             pending = ReadMovePendingState();
         }
 
         if (pending != null)
         {
-            TryCopyManagedAssetsBeforeTargetLoad(pending);
+            await Task.Run(() => TryCopyManagedAssetsBeforeTargetLoad(pending));
         }
 
         var moduleRoot = !string.IsNullOrWhiteSpace(pending?.TargetRoot)
@@ -105,6 +111,7 @@ public sealed partial class SmartBpModuleManager
 
         // 远程版本检查不再阻塞加载流程：ABI 兼容性已由 ValidateModuleDirectory 硬性校验，
         // 本地模块版本是否过时只作为更新提示，在加载成功后异步通知。
+        moduleRoot = Path.GetFullPath(moduleRoot);
         var entryAssembly = Path.Combine(moduleRoot, SmartBpModuleConstants.EntryAssemblyName);
         try
         {
@@ -187,7 +194,7 @@ public sealed partial class SmartBpModuleManager
                         "Loading SmartBP module native dependency. LibraryName={LibraryName}, Candidate={Candidate}",
                         libraryName,
                         candidate);
-                    return NativeLibrary.Load(candidate);
+                    return LoadModuleNativeLibrary(candidate);
                 }
                 catch (Exception ex)
                 {
@@ -253,7 +260,7 @@ public sealed partial class SmartBpModuleManager
                 _postGameRecognitionProgressSource.ProgressChanged += OnPostGameRecognitionProgressChanged;
             _logger.LogInformation("SmartBP module content created. FeatureCommandCount={FeatureCommandCount}", _featureCommands.Count);
             LastFailureMessage = string.Empty;
-            await MigrateLegacyOcrModelsOnceAsync(moduleRoot);
+            await Task.Run(() => MigrateLegacyOcrModelsOnceAsync(moduleRoot));
             WriteState(new SmartBpModuleState
             {
                 ModuleRoot = moduleRoot,
@@ -265,7 +272,7 @@ public sealed partial class SmartBpModuleManager
                 LastLoadedAt = DateTimeOffset.UtcNow,
                 LegacyOcrModelMigration = ReadState()?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState { Completed = true, Reason = "Completed" }
             });
-            CompletePendingModuleRootMigration(moduleRoot);
+            await Task.Run(() => CompletePendingModuleRootMigration(moduleRoot));
             ModuleStateChanged?.Invoke(this, EventArgs.Empty);
             // 加载成功后异步检查远程版本是否过时；不阻塞加载流程，结果通过事件通知。
             _ = NotifyModuleVersionOutdatedIfNeededAsync(manifest?.ModuleVersion);

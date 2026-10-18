@@ -43,6 +43,9 @@ public partial class SmartBpModuleContentViewModel
     /// 最近一次 CUDA 安装失败的原始错误详情；无错误时为 <see langword="null"/>。
     /// </summary>
     private string? _cudaInstallationErrorDetail;
+    private System.Windows.Threading.DispatcherTimer? _cudaProgressTimer;
+    private int _cudaRuntimeProgressDirty;
+    private int _cudaPrerequisiteProgressDirty;
 
     /// <summary>
     /// 获取或设置是否检测到至少一张 NVIDIA CUDA 设备。
@@ -194,6 +197,21 @@ public partial class SmartBpModuleContentViewModel
 
         RefreshCudaStatus();
 
+        // Downloader 可高频报告多个分片进度。只采样最新状态，避免淹没 Dispatcher 输入队列。
+        _cudaProgressTimer = new System.Windows.Threading.DispatcherTimer(
+            System.Windows.Threading.DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(100)
+        };
+        _cudaProgressTimer.Tick += (_, _) =>
+        {
+            if (Interlocked.Exchange(ref _cudaRuntimeProgressDirty, 0) != 0)
+                OnCudaDownloadStateChanged();
+            if (Interlocked.Exchange(ref _cudaPrerequisiteProgressDirty, 0) != 0)
+                OnCudaPrerequisiteStateChanged();
+        };
+        _cudaProgressTimer.Start();
+
         _paddleRuntimeState.StateChanged += OnPaddleRuntimeStateChanged;
         _paddleRuntimeComponentService.DownloadStateChanged += OnPaddleDownloadStateChanged;
         _paddleCudaPrerequisiteSetupService.StatusChanged += OnPaddlePrerequisiteStateChanged;
@@ -201,8 +219,8 @@ public partial class SmartBpModuleContentViewModel
     }
 
     private void OnPaddleRuntimeStateChanged(object? sender, EventArgs e) => BeginOnUiThread(RefreshCudaStatus);
-    private void OnPaddleDownloadStateChanged(object? sender, EventArgs e) => BeginOnUiThread(OnCudaDownloadStateChanged);
-    private void OnPaddlePrerequisiteStateChanged(object? sender, EventArgs e) => BeginOnUiThread(OnCudaPrerequisiteStateChanged);
+    private void OnPaddleDownloadStateChanged(object? sender, EventArgs e) => Interlocked.Exchange(ref _cudaRuntimeProgressDirty, 1);
+    private void OnPaddlePrerequisiteStateChanged(object? sender, EventArgs e) => Interlocked.Exchange(ref _cudaPrerequisiteProgressDirty, 1);
     private void OnRestartRequiredStateChanged(object? sender, EventArgs e) => BeginOnUiThread(OnCudaRestartRequiredChanged);
 
     /// <summary>
@@ -410,7 +428,8 @@ public partial class SmartBpModuleContentViewModel
         var componentService = _paddleRuntimeComponentService;
         var installInfo = componentService.GetInstallStatus();
 
-        IsCudaDependencyInstalled = IsCudaDependencyReady();
+        IsCudaDependencyInstalled = installInfo.Status == PaddleRuntimeInstallStatus.Installed
+            && _paddleCudaPrerequisiteSetupService.Status.Status == PaddleCudaPrerequisiteInstallStatus.Installed;
 
         // 当前选中的 OCR 引擎（Paddle / Rapid / Tesseract）。CUDA 只服务于 PaddleOCR，
         // 其他引擎下即使 CUDA runtime 已就绪也不会被使用。

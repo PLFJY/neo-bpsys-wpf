@@ -145,11 +145,21 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             var paddleModel = Path.Combine(targetRoot, "OCRModels", "zh-cn-v5-mobile", "det", "inference.pdiparams");
             Directory.CreateDirectory(Path.GetDirectoryName(paddleModel)!);
             await File.WriteAllTextAsync(paddleModel, "downloaded-paddle");
+            var cudaDll = Path.Combine(targetRoot, "Runtime", "Paddle", "cuda", "1.0", "package", "native", "dependency.dll");
+            var cudaCache = Path.Combine(targetRoot, "Runtime", "Paddle", "Downloads", "NVIDIA", "installer.exe");
+            var partialPackage = Path.Combine(targetRoot, "PaddleRuntimeDownload", "package.nupkg.download.part");
+            foreach (var path in new[] { cudaDll, cudaCache, partialPackage })
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                await File.WriteAllTextAsync(path, "user-downloaded-content");
+            }
 
             Assert.True(await CreateManager().ImportArchiveAsync(updateArchivePath, targetRoot));
 
             Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
             Assert.Equal("downloaded-paddle", await File.ReadAllTextAsync(paddleModel));
+            foreach (var path in new[] { cudaDll, cudaCache, partialPackage })
+                Assert.Equal("user-downloaded-content", await File.ReadAllTextAsync(path));
         }, TimeSpan.FromSeconds(30));
     }
 
@@ -331,6 +341,78 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         Assert.Equal(Path.GetFullPath(nextTarget), Path.GetFullPath(pending.TargetRoot));
         Assert.Null(pending.PreparedRoot);
         Assert.Null(pending.LastCleanupError);
+    }
+
+    /// <summary>验证重启安装受阻时保留原模块和暂存包，释放占用后可重试成功。</summary>
+    /// <returns>重启安装恢复验证任务。</returns>
+    [Fact]
+    public async Task PendingArchiveImport_WhenTargetIsLocked_PreservesPendingAndRetriesBeforeLoading()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var targetRoot = CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false);
+            var preparedRoot = CreateTestModuleDirectory("2.0.0", includePackagedAssetDirectories: false);
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+            await File.WriteAllTextAsync(SmartBpModuleManager.StateFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleState { ModuleRoot = targetRoot }));
+            await File.WriteAllTextAsync(SmartBpModuleManager.MovePendingFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleMovePendingState
+                {
+                    SourceRoot = targetRoot, TargetRoot = targetRoot, PreparedRoot = preparedRoot, InstallKind = "LiteDownload"
+                }));
+            using var manager = CreateManager();
+            using (File.Open(Path.Combine(targetRoot, "component.json"), FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                Assert.False(await manager.TryLoadPersistedModuleAsync());
+                Assert.False(manager.IsModuleLoaded);
+                Assert.True(manager.IsRestartRequiredForPendingModuleImport);
+                Assert.NotEmpty(manager.LastFailureMessage);
+                Assert.True(Directory.Exists(preparedRoot));
+                Assert.True(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+                Assert.Equal("1.0.0", await File.ReadAllTextAsync(Path.Combine(targetRoot, "module-version.txt")));
+            }
+            Assert.True(await manager.TryLoadPersistedModuleAsync());
+            Assert.False(manager.IsRestartRequiredForPendingModuleImport);
+            Assert.Equal("2.0.0", await File.ReadAllTextAsync(Path.Combine(targetRoot, "module-version.txt")));
+            Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+        }, TimeSpan.FromSeconds(30));
+    }
+
+    /// <summary>验证显式迁移保留完整依赖树，并更新 CUDA 路径后才在下次加载时清理源目录。</summary>
+    /// <returns>迁移和重启加载验证任务。</returns>
+    [Fact]
+    public async Task MigrateModuleRoot_PreservesDependenciesAndRelocatesCudaManifestBeforeSourceCleanup()
+    {
+        await WpfTestThread.RunAsync(async () =>
+        {
+            var sourceRoot = CreateTestModuleDirectory("1.0.0", includePackagedAssetDirectories: false);
+            var targetRoot = Path.Combine(_root, "migrated-module");
+            var nativeRelative = Path.Combine("Runtime", "Paddle", "cuda", "1.0", "package", "native");
+            var sourceNative = Path.Combine(sourceRoot, nativeRelative);
+            Directory.CreateDirectory(sourceNative);
+            await File.WriteAllTextAsync(Path.Combine(sourceNative, "dependency.dll"), "cuda-dependency");
+            var manifestRelative = Path.Combine("Runtime", "Paddle", "cuda", "1.0", "package", "install.json");
+            await File.WriteAllTextAsync(Path.Combine(sourceRoot, manifestRelative),
+                JsonSerializer.Serialize(new { NativeDirectory = sourceNative, Verified = true }));
+            var ridDependency = Path.Combine(sourceRoot, "runtimes", "win-x64", "native", "dependency.dll");
+            Directory.CreateDirectory(Path.GetDirectoryName(ridDependency)!);
+            await File.WriteAllTextAsync(ridDependency, "rid-dependency");
+            Directory.CreateDirectory(AppConstants.AppDataPath);
+            await File.WriteAllTextAsync(SmartBpModuleManager.StateFilePath,
+                JsonSerializer.Serialize(new SmartBpModuleState { ModuleRoot = sourceRoot }));
+            if (File.Exists(SmartBpModuleManager.MovePendingFilePath)) File.Delete(SmartBpModuleManager.MovePendingFilePath);
+
+            Assert.True(await CreateManager().MigrateModuleRootPreferenceAsync(targetRoot));
+
+            Assert.True(Directory.Exists(sourceRoot));
+            Assert.Equal("cuda-dependency", await File.ReadAllTextAsync(Path.Combine(targetRoot, nativeRelative, "dependency.dll")));
+            Assert.Equal("rid-dependency", await File.ReadAllTextAsync(Path.Combine(targetRoot, "runtimes", "win-x64", "native", "dependency.dll")));
+            using var manifest = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(targetRoot, manifestRelative)));
+            Assert.Equal(Path.Combine(targetRoot, nativeRelative), manifest.RootElement.GetProperty("NativeDirectory").GetString());
+            Assert.True(await CreateManager().TryLoadPersistedModuleAsync());
+            Assert.False(Directory.Exists(sourceRoot));
+            Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
+        }, TimeSpan.FromSeconds(30));
     }
 
     public void Dispose()

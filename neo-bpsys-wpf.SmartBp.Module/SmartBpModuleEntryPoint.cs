@@ -105,6 +105,8 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
     /// <returns>模块内部服务容器。</returns>
     private static ServiceProvider BuildServices(IServiceProvider hostServices)
     {
+        // 在任何 Provider 或 UI 访问静态模型注册表前绑定本次实际加载的模块目录。
+        SmartBpOcrModelRegistry.ConfigurePathProvider(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
         var services = new ServiceCollection();
         var loggerFactory = hostServices.GetRequiredService<ILoggerFactory>();
 

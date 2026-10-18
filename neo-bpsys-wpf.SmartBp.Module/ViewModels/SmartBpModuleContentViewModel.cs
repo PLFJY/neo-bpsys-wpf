@@ -196,6 +196,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase, IDisposable
         _paddleRuntimeState.StateChanged -= OnPaddleRuntimeStateChanged;
         _paddleRuntimeComponentService.DownloadStateChanged -= OnPaddleDownloadStateChanged;
         _paddleCudaPrerequisiteSetupService.StatusChanged -= OnPaddlePrerequisiteStateChanged;
+        _cudaProgressTimer?.Stop();
+        _cudaProgressTimer = null;
         _globalRestartService.RestartRequiredStateChanged -= OnRestartRequiredStateChanged;
         _previewTimer.Stop();
         _frameSamplingTimer.Stop();

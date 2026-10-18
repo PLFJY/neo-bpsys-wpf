@@ -98,13 +98,14 @@ public sealed partial class SmartBpModuleManager
 
             if (IsModulePhysicallyLoaded)
             {
-                PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest);
+                await Task.Run(() => PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest));
+                ModuleStateChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
 
             try
             {
-                ReplaceModuleRootPreservingManagedAssets(candidateRoot, normalizedTargetRoot);
+                await Task.Run(() => ReplaceModuleRootPreservingManagedAssets(candidateRoot, normalizedTargetRoot));
                 return await LoadModuleFromDirectoryAsync(normalizedTargetRoot, installKind);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -113,14 +114,18 @@ public sealed partial class SmartBpModuleManager
                     ex,
                     "SmartBP module target could not be replaced immediately. Staging import for next restart. TargetRoot={TargetRoot}",
                     normalizedTargetRoot);
-                PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest);
+                await Task.Run(() => PrepareArchiveImportForRestart(candidateRoot, normalizedTargetRoot, installKind, manifest));
+                ModuleStateChanged?.Invoke(this, EventArgs.Empty);
                 return true;
             }
         }
         finally
         {
             if (Directory.Exists(staging))
-                Directory.Delete(staging, recursive: true);
+            {
+                try { await Task.Run(() => Directory.Delete(staging, recursive: true)); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to clean SmartBP archive extraction directory: {Staging}", staging); }
+            }
         }
     }
 

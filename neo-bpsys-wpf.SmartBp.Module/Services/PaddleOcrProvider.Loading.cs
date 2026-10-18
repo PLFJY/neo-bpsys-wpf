@@ -57,7 +57,25 @@ public sealed partial class PaddleOcrProvider
         if (Interlocked.Exchange(ref _missingModelWarningShown, 1) == 1)
             return;
 
-        _ = MessageBoxHelper.ShowErrorAsync(L("SmartBpOcrNotReadyFirstDownloadAndSwitchModel"));
+        _ = ShowMissingModelWarningOnUiThreadAsync();
+    }
+
+    private async Task ShowMissingModelWarningOnUiThreadAsync()
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.HasShutdownStarted || dispatcher.HasShutdownFinished) return;
+        try
+        {
+            // 调用方可能还持有原生运行锁，始终异步投递，不在锁内创建弹窗或等待 UI。
+            await dispatcher.InvokeAsync(() => _disposed || dispatcher.HasShutdownStarted
+                    ? Task.CompletedTask
+                    : MessageBoxHelper.ShowErrorAsync(L("SmartBpOcrNotReadyFirstDownloadAndSwitchModel")),
+                System.Windows.Threading.DispatcherPriority.Background).Task.Unwrap();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not show the missing OCR model notification.");
+        }
     }
 
     /// <summary>
@@ -115,6 +133,57 @@ public sealed partial class PaddleOcrProvider
                 onlineRec.Version)
         };
 
+        // Paddle 的文件路径接口依赖 ANSI 编码，切换界面语言后可能无法表示模块目录。
+        // 非 ASCII 目录由 .NET 读取模型，再通过官方内存接口创建 Predictor；不搬移或改写模型文件。
+        var detDirectory = SmartBpOcrModelRegistry.GetDetDirectory(modelKey);
+        var clsDirectory = SmartBpOcrModelRegistry.GetClsDirectory(modelKey);
+        var recDirectory = SmartBpOcrModelRegistry.GetRecDirectory(modelKey);
+        if (detDirectory.Any(character => character > 127))
+            detModel = new MemoryDetectionModel(detModel, detDirectory);
+        if (clsDirectory.Any(character => character > 127))
+            clsModel = new MemoryClassificationModel(clsModel, clsDirectory);
+        if (recDirectory.Any(character => character > 127))
+            recModel = new MemoryRecognizationModel(recModel, recDirectory);
+
         return new FullOcrModel(detModel, clsModel, recModel);
+    }
+
+    private static PaddleConfig CreateMemoryModelConfig(string directory)
+    {
+        var jsonPath = Path.Combine(directory, "inference.json");
+        var isPirModel = File.Exists(jsonPath);
+        var programPath = isPirModel ? jsonPath : Path.Combine(directory, "inference.pdmodel");
+        var config = PaddleConfig.FromMemoryModel(
+            File.ReadAllBytes(programPath),
+            File.ReadAllBytes(Path.Combine(directory, "inference.pdiparams")));
+        if (isPirModel) config.NewExecutorEnabled = true;
+        return config;
+    }
+
+    private sealed class MemoryDetectionModel(DetectionModel original, string directory) : DetectionModel(original.Version)
+    {
+        /// <inheritdoc />
+        public override PaddleConfig CreateConfig() => CreateMemoryModelConfig(directory);
+    }
+
+    private sealed class MemoryClassificationModel(ClassificationModel original, string directory) : ClassificationModel(original.Version)
+    {
+        /// <inheritdoc />
+        public override OcrShape Shape => original.Shape;
+
+        /// <inheritdoc />
+        public override PaddleConfig CreateConfig() => CreateMemoryModelConfig(directory);
+    }
+
+    private sealed class MemoryRecognizationModel(RecognizationModel original, string directory) : RecognizationModel(original.Version)
+    {
+        /// <inheritdoc />
+        public override OcrShape Shape => original.Shape;
+
+        /// <inheritdoc />
+        public override string GetLabelByIndex(int i) => original.GetLabelByIndex(i);
+
+        /// <inheritdoc />
+        public override PaddleConfig CreateConfig() => CreateMemoryModelConfig(directory);
     }
 }

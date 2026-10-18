@@ -80,7 +80,10 @@ public sealed partial class SmartBpModuleManager : IDisposable
     private static readonly HashSet<string> ManagedAssetRootNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "OCRModels",
-        "AI"
+        "AI",
+        "Runtime/Paddle/cuda",
+        "Runtime/Paddle/Downloads",
+        "PaddleRuntimeDownload"
     };
 
     private readonly IServiceProvider _serviceProvider;
