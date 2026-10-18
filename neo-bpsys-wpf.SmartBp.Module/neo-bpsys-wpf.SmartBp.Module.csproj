@@ -24,8 +24,8 @@
     <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="$(PaddleInferenceRuntimeVersion)" ExcludeAssets="native" GeneratePathProperty="true" />
     <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />
     <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.3.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" ExcludeAssets="runtime" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
     <PackageReference Include="WPF-UI" Version="4.3.0" ExcludeAssets="runtime" />
@@ -33,7 +33,7 @@
     <!-- SharpCompress 是 Sdcb.PaddleOCR.Models.Online 的传递依赖,本模块不使用其 API:
          模型下载用宿主统一下载服务,解压用 System.IO.Compression.TarFile(.NET 内置)。
          显式排除以避免 SharpCompress.dll 被打包进 SmartBpModule.7z。 -->
-    <PackageReference Include="SharpCompress" Version="0.50.4" ExcludeAssets="all" />
+    <PackageReference Include="SharpCompress" Version="0.50.5" ExcludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
