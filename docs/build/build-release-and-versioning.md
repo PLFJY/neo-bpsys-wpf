@@ -85,7 +85,9 @@ SmartBpModuleManifest.json
 
 SmartBP 模块通过在线下载、设置页导入或 SmartBP 页面手动导入 `.7z` / `.zip` 升级时，只替换模块程序文件；模块目录下的托管 OCR 资产根目录 `OCRModels/` 和 `tessdata/` 会原地保留。这里包含 PaddleOCR、RapidOCR 模型和 Tesseract traineddata。`Runtime/Paddle/cuda/`、`Runtime/Paddle/Dependencies/`、`Runtime/Paddle/Downloads/` 和 `PaddleRuntimeDownload/` 也作为已安装资产保留，覆盖 Paddle CUDA、CUDA/cuDNN 依赖和下载缓存；升级包带有同名文件时仍保留原有内容。lite/full 安装器使用相同的目录排除规则，full 更新默认复用已记录的模块位置。即使归档包误带同名资产目录，也不得覆盖用户已经下载好的 OCR 资产。
 
-`SmartBpModuleManifest.json` 中的 `ModuleVersion` 和下载 URL 使用本次构建确定的 release tag，也就是主程序 `ProductVersion`。正式 GitHub Actions 发布时同样读取安装包 `ProductVersion` 并作为 `tag_name`，因此 manifest 内不再保留 `{tag}` 占位。full 安装器写入的 `SmartBpModuleState.ModuleVersion` 也使用同一个 `ProductVersion`。
+SmartBP 模块版本独立维护在模块源码的 `component.json`，`build.ps1` 从发布后的该文件读取 `ModuleVersion` 并写入 `SmartBpModuleManifest.json`。更新检查使用已加载模块的 `component.json` 版本，通过 .NET `Version` 做数值比较，支持 `26.10.19` 和 `26.10.19.1` 这样的三段、四段版本号，后者会被识别为前者的更新版本。full 安装器写入的初始 `SmartBpModuleState.ModuleVersion` 仍使用主程序 `ProductVersion`；模块成功加载后以 `component.json` 中的实际模块版本更新该状态。
+
+模块下载 URL 使用本次构建确定的 release tag，也就是主程序 `ProductVersion`。正式 GitHub Actions 发布时同样读取安装包 `ProductVersion` 并作为 `tag_name`，因此 manifest 内不再保留 `{tag}` 占位。模块版本递增不会改变主程序版本或 release tag；在线更新仍查询当前主程序 tag 对应的模块 manifest。
 
 SmartBP 模块打包使用仓库内官方 x64 7-Zip（`third_party/7zip/win-x64/7z.exe`），构建机器不需要安装 7-Zip。运行时解压由随应用发布的官方 7-Zip 完成（位于 `<AppBase>/Tools/7Zip/`），用户不需要单独安装 7-Zip。应用仅发布 `win-x64`。
 

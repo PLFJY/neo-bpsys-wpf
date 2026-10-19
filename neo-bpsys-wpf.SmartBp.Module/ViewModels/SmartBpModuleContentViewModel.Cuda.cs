@@ -46,6 +46,8 @@ public partial class SmartBpModuleContentViewModel
     private System.Windows.Threading.DispatcherTimer? _cudaProgressTimer;
     private int _cudaRuntimeProgressDirty;
     private int _cudaPrerequisiteProgressDirty;
+    private double _cudaPrerequisiteProgressOffset;
+    private PaddleCudaPrerequisiteComponentProgress? _cudaDownloadComponentProgress;
 
     /// <summary>
     /// 获取或设置是否检测到至少一张 NVIDIA CUDA 设备。
@@ -123,6 +125,10 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     [ObservableProperty]
     public partial string CudaDownloadStageText { get; set; } = "";
+
+    /// <summary>获取或设置当前 NVIDIA 组件序号、名称和归档文件名；无组件时为空。</summary>
+    [ObservableProperty]
+    public partial string CudaDownloadComponentText { get; set; } = "";
 
     /// <summary>
     /// 获取或设置当前 CUDA 依赖操作是否具有可量化的网络传输进度。
@@ -276,6 +282,7 @@ public partial class SmartBpModuleContentViewModel
     [RelayCommand(CanExecute = nameof(CanDownloadCudaDependency))]
     private async Task DownloadCudaDependencyAsync()
     {
+        if (IsCudaDownloading) return;
         if (!IsCudaSupported || _selectedCudaPackage is null)
         {
             SetCudaUnsupportedReason("CudaInstallFailed");
@@ -285,6 +292,9 @@ public partial class SmartBpModuleContentViewModel
         // 清除上一次下载失败提示，开始新一轮下载。
         SetCudaUnsupportedReason(null);
         SetCudaInstallationError(null);
+        var needsPaddleRuntime = _paddleRuntimeComponentService.GetInstallStatus().Status != PaddleRuntimeInstallStatus.Installed;
+        _cudaPrerequisiteProgressOffset = needsPaddleRuntime ? 10 : 0;
+        _cudaDownloadComponentProgress = null;
 
         _cudaDownloadCts = new CancellationTokenSource();
         IsCudaDownloading = true;
@@ -294,7 +304,7 @@ public partial class SmartBpModuleContentViewModel
         SetCudaDownloadStage("CudaStagePreparing", false);
         try
         {
-            if (_paddleRuntimeComponentService.GetInstallStatus().Status != PaddleRuntimeInstallStatus.Installed)
+            if (needsPaddleRuntime)
             {
                 await _paddleRuntimeComponentService.DownloadAsync(_selectedCudaPackage, _cudaDownloadCts.Token);
                 await WaitForPaddleRuntimeInstallAsync(_cudaDownloadCts.Token);
@@ -543,6 +553,8 @@ public partial class SmartBpModuleContentViewModel
         _cudaDownloadStageKey = key;
         CudaDownloadStageText = key is null ? "" : FormatCudaDependencyText(key);
         IsCudaTransferActive = isTransferActive;
+        if (key is null) _cudaDownloadComponentProgress = null;
+        RefreshCudaDownloadComponentText();
     }
 
     /// <summary>
@@ -554,6 +566,49 @@ public partial class SmartBpModuleContentViewModel
             return;
 
         CudaDownloadStageText = FormatCudaDependencyText(_cudaDownloadStageKey);
+        RefreshCudaDownloadComponentText();
+        if (_cudaDownloadComponentProgress is not null) RefreshCudaDownloadProgressText();
+    }
+
+    private void RefreshCudaDownloadComponentText()
+    {
+        var component = _cudaDownloadComponentProgress;
+        if (component is null)
+        {
+            CudaDownloadComponentText = "";
+            return;
+        }
+
+        var name = component.Id switch
+        {
+            "cuda_cudart" => "CUDA Runtime",
+            "libcublas" => "cuBLAS",
+            "libcufft" => "cuFFT",
+            "libcurand" => "cuRAND",
+            "libcusolver" => "cuSOLVER",
+            "libcusparse" => "cuSPARSE",
+            "cuda_nvrtc" => "NVRTC",
+            "libnvjitlink" => "nvJitLink",
+            "cudnn" => "cuDNN",
+            _ => component.Id
+        };
+        CudaDownloadComponentText = string.Format(ResolveLocalizedOrRaw("CudaDependencyComponentFormat"),
+            component.Index, component.Count, name, component.FileName);
+    }
+
+    private void RefreshCudaDownloadProgressText()
+    {
+        if (_cudaDownloadComponentProgress is not { } component)
+        {
+            CudaDownloadProgressText = $"{CudaDownloadProgress:0.00}%";
+            return;
+        }
+
+        var fileProgress = component.FilePercentage is { } percentage
+            ? $"{percentage:0.00}%"
+            : $"{component.FileBytesReceived / 1048576d:0.00} / {component.FileSize / 1048576d:0.00} MiB";
+        CudaDownloadProgressText = string.Format(ResolveLocalizedOrRaw("CudaDependencyOverallProgressFormat"),
+            $"{CudaDownloadProgress:0.00}%", fileProgress);
     }
 
     private string FormatCudaDependencyText(string key)
@@ -586,6 +641,7 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     private void OnCudaDownloadStateChanged()
     {
+        if (!IsCudaDownloading || _cudaDownloadComponentProgress is not null) return;
         IsCudaDownloadPaused = _paddleRuntimeComponentService.IsDownloadPaused;
         if (_paddleRuntimeComponentService.IsDownloading && IsCudaDownloading)
             SetCudaDownloadStage("CudaStageDownloadingPaddleRuntime", true);
@@ -602,10 +658,12 @@ public partial class SmartBpModuleContentViewModel
     /// </summary>
     private void OnCudaPrerequisiteStateChanged()
     {
-        var status = _paddleCudaPrerequisiteSetupService.Status;
+        var progress = (_paddleCudaPrerequisiteSetupService as IPaddleCudaPrerequisiteProgressSource)?.Progress;
+        var status = progress?.Status ?? _paddleCudaPrerequisiteSetupService.Status;
         IsCudaDownloadPaused = status.IsPaused;
         if (status.IsBusy)
         {
+            _cudaDownloadComponentProgress = progress?.ComponentProgress;
             var (stageKey, isTransferActive) = status.CurrentStep switch
             {
                 "DownloadingCudaToolkit" => ("CudaStageDownloadingCudaToolkit", true),
@@ -618,11 +676,9 @@ public partial class SmartBpModuleContentViewModel
             };
             SetCudaDownloadStage(stageKey, isTransferActive);
 
-            var runtimeAlreadyInstalled = _paddleRuntimeComponentService.GetInstallStatus().Status == PaddleRuntimeInstallStatus.Installed;
-            CudaDownloadProgress = runtimeAlreadyInstalled
-                ? status.DownloadProgress
-                : 10 + status.DownloadProgress * 0.9;
-            CudaDownloadProgressText = isTransferActive ? $"{CudaDownloadProgress:0.00}%" : "";
+            var prerequisiteProgress = progress?.ComponentProgress?.OverallPercentage ?? status.DownloadProgress;
+            CudaDownloadProgress = _cudaPrerequisiteProgressOffset + prerequisiteProgress * (100 - _cudaPrerequisiteProgressOffset) / 100;
+            RefreshCudaDownloadProgressText();
             CudaDownloadSpeedText = isTransferActive && status.DownloadSpeed is > 0
                 ? $"{status.DownloadSpeed.Value / 1024 / 1024:0.00} MB/s"
                 : "";

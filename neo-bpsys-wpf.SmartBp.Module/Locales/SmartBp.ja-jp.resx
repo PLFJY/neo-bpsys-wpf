@@ -963,6 +963,12 @@
   <data name="CudaStatusModuleRuntimeMissing" xml:space="preserve">
     <value>CUDA/cuDNN は準備済みですが、現在の スマートBP モジュールに Paddle CUDA runtime がありません</value>
   </data>
+  <data name="CudaDependencyComponentFormat" xml:space="preserve">
+    <value>コンポーネント {0}/{1}：{2}（{3}）</value>
+  </data>
+  <data name="CudaDependencyOverallProgressFormat" xml:space="preserve">
+    <value>ダウンロード全体 {0} · 現在のファイル {1}</value>
+  </data>
   <data name="CudaStagePreparing" xml:space="preserve">
     <value>CUDA 依存関係のインストールを準備しています...</value>
   </data>

@@ -172,6 +172,8 @@ CUDA 依赖管理按 Paddle 包声明的版本工作：现有显卡使用 CUDA 1
 
 固定下载地址、大小、SHA-256 和 x64 DLL 白名单位于模块嵌入的 PaddleRuntime/PaddleCudaDependencies.json，来源为 NVIDIA CUDA 11.8.0 / 12.9.0 和 cuDNN 8.9.6 / 9.10.2 的 redistrib JSON。ZIP 缓存每次复用前校验大小与 SHA-256，只提取白名单 DLL 并保留许可证，拒绝路径穿越和重复 DLL。全部组件在临时目录完成校验后才替换正式目录；失败不覆盖现有目录，取消保留统一下载服务的断点续传文件。私有 install.json 只保存格式版本、依赖契约指纹及 DLL 相对名称和大小，读取时校验清单与文件，不补写缺失记录；因此目录迁移无需重写该记录。
 
+CUDA 11.8 / 12.9 分别顺序处理 8 / 9 个归档，并非重复下载同一运行库。安装界面显示当前组件序号、名称和文件名，同时区分总下载进度与当前文件进度。总进度按固定清单大小加权，切换组件、校验和解压时不归零；已有归档在校验通过后计入已完成部分。需要先下载 Paddle runtime 时，为其保留前 10% 的进度，后续 NVIDIA 组件使用剩余区间。统一下载服务仍原样报告单文件进度，累计计算只在 CUDA 业务层进行。模块通过自己的 IPaddleCudaPrerequisiteProgressSource 发布一致的状态与组件快照，不改变宿主 Core 的状态 ABI。日志记录每个归档的序号、地址、缓存复用、实际校验差异及失败文件，便于区分组件切换与真正重下。
+
 启动时只注册所选系统或私有依赖目录，不同时加入两套 CUDA；注册失败则保持 CPU。是否真正可用仍须在有 NVIDIA 显卡的机器上通过现有 Predictor probe 和实际 OCR 验证，虚拟机上的下载与安装逻辑验证不能替代 GPU 推理验证。
 
 更新与目录迁移还保留用户下载的 `Runtime/Paddle/cuda`、`Runtime/Paddle/Dependencies`、`Runtime/Paddle/Downloads` 和 `PaddleRuntimeDownload`（含断点续传文件），不会覆盖归档自带的 `Runtime/Paddle/cpu`。显式目录迁移会在副本中更新 CUDA `install.json` 的 `NativeDirectory` 绝对路径，旧目录在新模块成功加载后才清理；不在读取安装记录时猜测或修补路径。CUDA 安装状态同时检查记录中的 native 目录、验证标记和必需 DLL，残留的 `install.json` 不代表依赖已安装。
