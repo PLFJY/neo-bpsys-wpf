@@ -20,7 +20,7 @@ public enum PaddleCudaPrerequisiteInstallStatus
 /// </summary>
 /// <param name="Status">安装状态。</param>
 /// <param name="IsBusy">是否正在下载或安装。</param>
-/// <param name="DownloadProgress">当前总下载进度，范围 0-100；非下载阶段为 0。</param>
+/// <param name="DownloadProgress">下载器报告的当前文件进度，范围 0-100；非下载阶段为 0。</param>
 /// <param name="DownloadSpeed">当前下载速度（字节/秒）；非下载阶段为 <see langword="null"/>。</param>
 /// <param name="CurrentStep">当前处理步骤的稳定标识。</param>
 /// <param name="ErrorMessage">最近失败原因；非失败时为 <see langword="null"/>。</param>

@@ -963,6 +963,12 @@
   <data name="CudaStatusModuleRuntimeMissing" xml:space="preserve">
     <value>CUDA/cuDNN 已就绪，当前 SmartBP 模块缺少 Paddle CUDA runtime</value>
   </data>
+  <data name="CudaDependencyComponentFormat" xml:space="preserve">
+    <value>组件 {0}/{1}：{2}（{3}）</value>
+  </data>
+  <data name="CudaDependencyOverallProgressFormat" xml:space="preserve">
+    <value>总下载进度 {0} · 当前文件 {1}</value>
+  </data>
   <data name="CudaStagePreparing" xml:space="preserve">
     <value>正在准备 CUDA 依赖安装...</value>
   </data>

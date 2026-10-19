@@ -479,6 +479,11 @@
                         FontWeight="SemiBold"
                         Text="{Binding CudaDownloadStageText}"
                         TextWrapping="Wrap" />
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding CudaDownloadComponentText}"
+                        TextWrapping="Wrap" />
                     <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                         <ui:ProgressRing
                             Width="26"
@@ -498,8 +503,7 @@
                         </ui:ProgressRing>
                         <StackPanel
                             Margin="10,0,0,0"
-                            Orientation="Horizontal"
-                            Visibility="{Binding IsCudaTransferActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            Orientation="Horizontal">
                             <ProgressBar
                                 Width="175"
                                 Height="20"

@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.SmartBp.Module.Abstractions;
 
 namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
@@ -12,7 +13,7 @@ namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 /// 优先复用完整且版本匹配的系统 CUDA/cuDNN；否则将官方运行库安装到 SmartBP 模块目录。
 /// 不运行系统安装器、不修改环境变量、不复制 NVIDIA 驱动。
 /// </summary>
-public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisiteSetupService
+public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisiteSetupService, IPaddleCudaPrerequisiteProgressSource
 {
     private const string InstallManifestFileName = "install.json";
     private static readonly DependencyProfile[] Profiles = ReadProfiles();
@@ -21,7 +22,7 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
     private readonly string _dependencyRoot;
     private readonly string _downloadCacheDirectory;
     private readonly SemaphoreSlim _setupLock = new(1, 1);
-    private PaddleCudaPrerequisiteSetupStatus _status;
+    private PaddleCudaPrerequisiteSetupProgress _progress;
     private IFileDownloadOperation? _currentDownload;
 
     /// <summary>初始化 CUDA/cuDNN 依赖管理服务。</summary>
@@ -40,11 +41,13 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
         _dependencyRoot = Path.GetFullPath(Path.Combine(moduleStorage.PaddleRuntimeRoot, "Dependencies"));
         _downloadCacheDirectory = Path.Combine(moduleStorage.PaddleRuntimeRoot, "Downloads", "NVIDIA");
         // 无包参数入口保留 11.8 语义；设备相关的调用必须传入明确的 Paddle 包。
-        _status = new(GetInstallStatus(Profiles[0]), false, 0, null, null, null);
+        _progress = new(new(GetInstallStatus(Profiles[0]), false, 0, null, null, null), null);
     }
 
     /// <inheritdoc />
-    public PaddleCudaPrerequisiteSetupStatus Status => _status;
+    public PaddleCudaPrerequisiteSetupStatus Status => _progress.Status;
+    /// <inheritdoc />
+    public PaddleCudaPrerequisiteSetupProgress Progress => _progress;
     /// <inheritdoc />
     public event EventHandler? StatusChanged;
     /// <inheritdoc />
@@ -101,12 +104,24 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
             Directory.CreateDirectory(nativeDirectory);
             _logger.LogInformation("Installing module-local CUDA dependencies. PackageId={PackageId}, Profile={Profile}, Directory={Directory}",
                 package.PackageId, profile.Id, finalDirectory);
-            foreach (var asset in profile.Archives)
+            long completedBytes = 0;
+            var totalBytes = profile.Archives.Sum(asset => asset.Size);
+            for (var index = 0; index < profile.Archives.Length; index++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var archivePath = await GetOrDownloadCachedPackageAsync(asset, cancellationToken).ConfigureAwait(false);
-                SetBusy(asset.Id == "cudnn" ? "InstallingCuDnn" : "InstallingCudaToolkit");
+                var asset = profile.Archives[index];
+                var component = new PaddleCudaPrerequisiteComponentProgress(
+                    asset.Id, Path.GetFileName(new Uri(asset.Url).AbsolutePath), index + 1, profile.Archives.Length,
+                    completedBytes, totalBytes, asset.Size, 0, 0);
+                _logger.LogInformation("Preparing NVIDIA dependency component {Index}/{Count}. Component={Component}, File={File}, Size={Size}, Url={Url}",
+                    component.Index, component.Count, component.Id, component.FileName, asset.Size, asset.Url);
+                var archivePath = await GetOrDownloadCachedPackageAsync(asset, component, cancellationToken).ConfigureAwait(false);
+                SetBusy(asset.Id == "cudnn" ? "InstallingCuDnn" : "InstallingCudaToolkit",
+                    component with { FileBytesReceived = asset.Size, FilePercentage = 100 });
                 await ExtractArchiveAsync(asset, archivePath, stagingDirectory, cancellationToken).ConfigureAwait(false);
+                completedBytes += asset.Size;
+                _logger.LogInformation("NVIDIA dependency component {Index}/{Count} verified and extracted. Component={Component}, Path={Path}",
+                    component.Index, component.Count, component.Id, archivePath);
             }
 
             var files = profile.Archives.SelectMany(asset => asset.RequiredDlls)
@@ -130,7 +145,8 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "CUDA dependency setup failed. PackageId={PackageId}", package.PackageId);
+            _logger.LogError(ex, "CUDA dependency setup failed. PackageId={PackageId}, Component={Component}, File={File}",
+                package.PackageId, _progress.ComponentProgress?.Id, _progress.ComponentProgress?.FileName);
             SetStatus(new(profile is null ? PaddleCudaPrerequisiteInstallStatus.Invalid : GetInstallStatus(profile),
                 false, 0, null, null, ex.Message));
         }
@@ -141,7 +157,8 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
         }
     }
 
-    private async Task<string> GetOrDownloadCachedPackageAsync(DependencyArchive asset, CancellationToken cancellationToken)
+    private async Task<string> GetOrDownloadCachedPackageAsync(
+        DependencyArchive asset, PaddleCudaPrerequisiteComponentProgress component, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(_downloadCacheDirectory);
         var source = new Uri(asset.Url);
@@ -150,7 +167,7 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
         var verifyStep = isCudnn ? "VerifyingCuDnn" : "VerifyingCudaToolkit";
         if (File.Exists(cachedPath))
         {
-            SetBusy(verifyStep);
+            SetBusy(verifyStep, component);
             if (await VerifyArchiveAsync(cachedPath, asset, cancellationToken).ConfigureAwait(false))
             {
                 _logger.LogInformation("Reusing verified NVIDIA download cache. Path={CachePath}", cachedPath);
@@ -160,7 +177,9 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
             File.Delete(cachedPath);
         }
 
-        SetBusy(isCudnn ? "DownloadingCuDnn" : "DownloadingCudaToolkit");
+        SetBusy(isCudnn ? "DownloadingCuDnn" : "DownloadingCudaToolkit", component);
+        _logger.LogInformation("Downloading NVIDIA dependency archive. Component={Component}, File={File}, Url={Url}, Destination={Destination}",
+            component.Id, component.FileName, source, cachedPath);
         var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(source, cachedPath) { UserAgent = "neo-bpsys-wpf" });
         _currentDownload = operation;
         operation.StateChanged += OnStateChanged;
@@ -170,28 +189,42 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
             operation.StateChanged -= OnStateChanged;
             _currentDownload = null;
         }
-        SetBusy(verifyStep);
+        SetBusy(verifyStep, component with { FileBytesReceived = asset.Size, FilePercentage = 100 });
         if (!await VerifyArchiveAsync(cachedPath, asset, cancellationToken).ConfigureAwait(false))
         {
             File.Delete(cachedPath);
-            throw new InvalidDataException($"NVIDIA dependency archive integrity verification failed: {asset.Id}.");
+            throw new InvalidDataException($"NVIDIA dependency archive integrity verification failed: {component.FileName}.");
         }
         return cachedPath;
 
-        void OnStateChanged(object? sender, EventArgs args) => SetStatus(_status with
+        void OnStateChanged(object? sender, EventArgs args)
         {
-            DownloadProgress = operation.Progress.Percentage ?? 0,
-            DownloadSpeed = operation.State == FileDownloadState.Paused ? 0 : operation.Progress.BytesPerSecond,
-            IsPaused = operation.State == FileDownloadState.Paused
-        });
+            var progress = operation.Progress;
+            SetStatus(Status with
+            {
+                DownloadProgress = progress.Percentage ?? 0,
+                DownloadSpeed = operation.State == FileDownloadState.Paused ? 0 : progress.BytesPerSecond,
+                IsPaused = operation.State == FileDownloadState.Paused
+            }, component with { FileBytesReceived = progress.BytesReceived, FilePercentage = progress.Percentage });
+        }
     }
 
-    private static async Task<bool> VerifyArchiveAsync(string path, DependencyArchive asset, CancellationToken cancellationToken)
+    private async Task<bool> VerifyArchiveAsync(string path, DependencyArchive asset, CancellationToken cancellationToken)
     {
-        if (new FileInfo(path).Length != asset.Size) return false;
+        var actualSize = new FileInfo(path).Length;
+        if (actualSize != asset.Size)
+        {
+            _logger.LogWarning("NVIDIA archive size mismatch. Path={Path}, ExpectedSize={ExpectedSize}, ActualSize={ActualSize}",
+                path, asset.Size, actualSize);
+            return false;
+        }
         await using var stream = File.OpenRead(path);
         var hash = await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
-        return string.Equals(Convert.ToHexString(hash), asset.Sha256, StringComparison.OrdinalIgnoreCase);
+        var actualHash = Convert.ToHexString(hash);
+        if (string.Equals(actualHash, asset.Sha256, StringComparison.OrdinalIgnoreCase)) return true;
+        _logger.LogWarning("NVIDIA archive SHA-256 mismatch. Path={Path}, ExpectedHash={ExpectedHash}, ActualHash={ActualHash}",
+            path, asset.Sha256, actualHash);
+        return false;
     }
 
     private static async Task ExtractArchiveAsync(DependencyArchive asset, string archivePath, string stagingDirectory, CancellationToken cancellationToken)
@@ -356,8 +389,13 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
         { _logger.LogDebug(ex, "CUDA dependency staging cleanup failed. Path={Path}", path); }
     }
 
-    private void SetBusy(string step) => SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, step, null));
-    private void SetStatus(PaddleCudaPrerequisiteSetupStatus status) { _status = status; StatusChanged?.Invoke(this, EventArgs.Empty); }
+    private void SetBusy(string step, PaddleCudaPrerequisiteComponentProgress component)
+        => SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, step, null), component);
+    private void SetStatus(PaddleCudaPrerequisiteSetupStatus status, PaddleCudaPrerequisiteComponentProgress? component = null)
+    {
+        _progress = new(status, component);
+        StatusChanged?.Invoke(this, EventArgs.Empty);
+    }
 
     /// <summary>固定的运行库版本组合。</summary>
     /// <param name="Id">模块内安装目录名。</param>
