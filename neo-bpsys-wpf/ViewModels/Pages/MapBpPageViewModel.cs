@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
@@ -62,6 +63,18 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     /// <param name="sharedDataService">共享数据服务</param>
     /// <param name="settingsHostService">设置宿主服务</param>
     public MapBpPageViewModel(ISharedDataService sharedDataService, ISettingsHostService? settingsHostService)
+        : this(sharedDataService, settingsHostService, null)
+    {
+    }
+
+    /// <summary>
+    /// 初始化地图 BP 页面视图模型并订阅对局引导事件。
+    /// </summary>
+    /// <param name="sharedDataService">共享数据服务。</param>
+    /// <param name="settingsHostService">设置宿主服务。</param>
+    /// <param name="gameGuidanceService">对局引导服务。</param>
+    public MapBpPageViewModel(ISharedDataService sharedDataService, ISettingsHostService? settingsHostService,
+        IGameGuidanceService? gameGuidanceService)
     {
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
@@ -89,6 +102,29 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         sharedDataService.IsMapV2BreathingChanged += (_, _) => IsBreathing = sharedDataService.IsMapV2Breathing;
         sharedDataService.IsMapV2CampVisibleChanged += (_, _) => IsCampVisible = sharedDataService.IsMapV2CampVisible;
         sharedDataService.CurrentGame.PropertyChanged += OnCurrentGameSelectedMapChanged;
+        _breathing = sharedDataService.IsMapV2Breathing;
+        if (gameGuidanceService != null)
+        {
+            gameGuidanceService.GuidanceStepChanged += OnGuidanceStepChanged;
+            gameGuidanceService.GuidanceStateChanged += OnGuidanceStateChanged;
+        }
+    }
+
+    private void OnGuidanceStepChanged(object? sender, GameGuidanceStepChangedEventArgs args)
+    {
+        if (args.Action is GameAction.BanMap or GameAction.PickMap
+            || args.PreviousAction is GameAction.BanMap or GameAction.PickMap)
+        {
+            IsBreathing = args.Action is GameAction.BanMap or GameAction.PickMap;
+        }
+    }
+
+    private void OnGuidanceStateChanged(object? sender, GameGuidanceStateChangedEventArgs args)
+    {
+        if (!args.IsStarted)
+        {
+            IsBreathing = false;
+        }
     }
 
     private void OnCurrentGameSelectedMapChanged(object? sender, PropertyChangedEventArgs args)

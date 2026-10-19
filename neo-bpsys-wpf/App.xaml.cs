@@ -148,6 +148,8 @@ public partial class App : AppBase
         });
         IAppHost.Host.Services.GetRequiredService<FrontedSharedDataBehaviorEventBridge>().Start();
         _ = IAppHost.Host.Services.GetRequiredService<IFrontedBehaviorEventDebugService>();
+        // 提前订阅地图引导事件，不依赖地图页面是否已打开。
+        _ = IAppHost.Host.Services.GetRequiredService<ViewModels.Pages.MapBpPageViewModel>();
 
         CurrentLifetime = ApplicationLifetime.StartingOnline;
         //添加不同颜色的icon到resources里面
