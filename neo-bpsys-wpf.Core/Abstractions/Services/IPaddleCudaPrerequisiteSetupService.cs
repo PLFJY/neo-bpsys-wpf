@@ -35,23 +35,45 @@ public sealed record PaddleCudaPrerequisiteSetupStatus(
     bool IsPaused = false);
 
 /// <summary>
-/// 管理 SmartBP CUDA OCR 所需的系统级 NVIDIA CUDA/cuDNN 前置条件。
+/// 管理 SmartBP CUDA OCR 所需的 NVIDIA CUDA/cuDNN 依赖；优先复用系统安装，否则部署到模块目录。
 /// </summary>
 public interface IPaddleCudaPrerequisiteSetupService
 {
     /// <summary>
-    /// 获取当前状态快照。
+    /// 获取最近一次安装操作的状态快照；初始快照使用 CUDA 11.8 规则。设备相关检测请使用带包参数的入口。
     /// </summary>
     PaddleCudaPrerequisiteSetupStatus Status { get; }
 
+    /// <summary>检测指定 Paddle 包所需的系统或模块私有依赖，不修改当前安装操作的状态。</summary>
+    /// <param name="package">目标 Paddle CUDA runtime 包。</param>
+    /// <returns>该包对应的 CUDA/cuDNN 安装状态；未支持的版本组合返回 Invalid。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="package"/> 为 null。</exception>
+    /// <exception cref="NotSupportedException">旧服务实现未提供按包检测能力。</exception>
+    PaddleCudaPrerequisiteInstallStatus GetInstallStatus(PaddleRuntimePackageInfo package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        throw new NotSupportedException("This CUDA dependency service does not support package-specific detection.");
+    }
+
     /// <summary>
-    /// 获取已验证的 DLL 搜索目录。
+    /// 获取 CUDA 11.8 / cuDNN 8.9 已验证的 DLL 搜索目录。
     /// </summary>
     /// <returns>可安全加入进程 DLL 搜索路径的目录；依赖未安装时为空。</returns>
     IReadOnlyList<string> GetDllSearchDirectories();
 
+    /// <summary>获取指定 Paddle 包已验证的 DLL 搜索目录，优先返回匹配的系统目录。</summary>
+    /// <param name="package">目标 Paddle CUDA runtime 包。</param>
+    /// <returns>仅包含该包对应的已验证目录；依赖未就绪时为空。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="package"/> 为 null。</exception>
+    /// <exception cref="NotSupportedException">旧服务实现未提供按包获取搜索目录的能力。</exception>
+    IReadOnlyList<string> GetDllSearchDirectories(PaddleRuntimePackageInfo package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        throw new NotSupportedException("This CUDA dependency service does not support package-specific DLL search directories.");
+    }
+
     /// <summary>
-    /// 下载并安装与指定 Paddle CUDA runtime 匹配的 NVIDIA 可再发行依赖。
+    /// 复用已就绪的依赖，否则将指定 Paddle 包所需的 NVIDIA 可再发行运行库下载、校验并解压到模块目录。
     /// </summary>
     /// <param name="package">目标 Paddle CUDA runtime 包。</param>
     /// <param name="cancellationToken">取消令牌。</param>

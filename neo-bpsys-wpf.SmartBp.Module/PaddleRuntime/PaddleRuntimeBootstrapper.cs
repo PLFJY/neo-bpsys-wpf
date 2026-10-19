@@ -237,20 +237,6 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
             return;
         }
 
-        if (_prerequisiteSetupService.Status.Status != PaddleCudaPrerequisiteInstallStatus.Installed)
-        {
-            _logger.LogWarning(
-                "CUDA/cuDNN prerequisites are not ready. Status={Status}. Falling back to CPU.",
-                _prerequisiteSetupService.Status.Status);
-            LoadCpuAndCommit(
-                devices: devices,
-                selectedDevice: selectedDevice,
-                cudaInstalled: cudaInstalled,
-                cudaCompatible: cudaCompatible,
-                error: "CUDA/cuDNN prerequisites are not installed.");
-            return;
-        }
-
         // 确认 manifest 中存在匹配 Compute Capability 的包
         var package = _manifestProvider.ResolveByComputeCapability(
             selectedDevice.ComputeCapabilityMajor,
@@ -270,7 +256,22 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
             return;
         }
 
-        // CUDA runtime native 目录来自 install.json
+        var prerequisiteStatus = _prerequisiteSetupService.GetInstallStatus(package);
+        if (prerequisiteStatus != PaddleCudaPrerequisiteInstallStatus.Installed)
+        {
+            _logger.LogWarning(
+                "CUDA/cuDNN prerequisites are not ready. PackageId={PackageId}, CUDA={CudaVersion}, cuDNN={CudnnVersion}, Status={Status}. Falling back to CPU.",
+                package.PackageId, package.CudaVersion, package.CudnnVersion, prerequisiteStatus);
+            LoadCpuAndCommit(
+                devices: devices,
+                selectedDevice: selectedDevice,
+                cudaInstalled: cudaInstalled,
+                cudaCompatible: cudaCompatible,
+                error: $"CUDA {package.CudaVersion} / cuDNN {package.CudnnVersion} prerequisites are not installed.");
+            return;
+        }
+
+        // CUDA runtime native 目录来自 Paddle 包的 install.json。
         var cudaRuntimeDirectory = installInfo.NativeDirectory;
         if (string.IsNullOrWhiteSpace(cudaRuntimeDirectory) || !Directory.Exists(cudaRuntimeDirectory))
         {
@@ -292,7 +293,12 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
             package.PackageId,
             cudaRuntimeDirectory);
 
-        RegisterPrerequisiteSearchDirectories();
+        if (!RegisterPrerequisiteSearchDirectories(package))
+        {
+            LoadCpuAndCommit(devices, selectedDevice, cudaInstalled, cudaCompatible,
+                "Unable to register the selected CUDA dependency DLL directories.");
+            return;
+        }
 
         // 尝试加载 CUDA DLL
         if (TryLoadNativeRuntime(cudaRuntimeDirectory, out var cudaModulePath))
@@ -455,15 +461,18 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
     }
 
     /// <summary>
-    /// 将模块管理的 CUDA/cuDNN 目录加入当前进程的安全 DLL 搜索路径。
-    /// 该目录仅在已验证的安装 manifest 存在时由依赖服务返回。
+    /// 将明确匹配所选 Paddle 包的系统或模块私有 CUDA/cuDNN 目录加入当前进程的安全 DLL 搜索路径。
     /// </summary>
-    private void RegisterPrerequisiteSearchDirectories()
+    /// <param name="package">选中设备对应的 Paddle 包。</param>
+    /// <returns>所有依赖目录均成功注册时返回 true；缺失或注册失败时返回 false。</returns>
+    private bool RegisterPrerequisiteSearchDirectories(PaddleRuntimePackageInfo package)
     {
-        foreach (var directory in _prerequisiteSetupService.GetDllSearchDirectories())
+        var directories = _prerequisiteSetupService.GetDllSearchDirectories(package);
+        if (directories.Count == 0) return false;
+        foreach (var directory in directories)
         {
             if (!Directory.Exists(directory))
-                continue;
+                return false;
 
             var cookie = AddDllDirectory(directory);
             if (cookie == IntPtr.Zero)
@@ -472,12 +481,14 @@ public sealed class PaddleRuntimeBootstrapper : IPaddleRuntimeBootstrapper
                     "AddDllDirectory failed for CUDA prerequisite directory. Directory={Directory}, Win32Error={Win32Error}",
                     directory,
                     Marshal.GetLastWin32Error());
+                return false;
             }
             else
             {
                 _logger.LogInformation("Registered CUDA prerequisite DLL directory. Directory={Directory}", directory);
             }
         }
+        return true;
     }
 
     /// <summary>

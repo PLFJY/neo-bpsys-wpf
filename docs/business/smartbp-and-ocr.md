@@ -164,7 +164,17 @@ SmartBP 模块在线安装和手动导入支持 `.7z` 与旧 `.zip` 包，归档
 
 已加载模块的归档导入使用完整复制写入 `%APPDATA%\neo-bpsys-wpf\SmartBpModulePending`，复制并校验成功后才记录重启操作，因此 TEMP 与 APPDATA 也可以位于不同磁盘。重启替换因占用或权限失败时保留暂存包、原目录及错误详情，不加载尚待替换的旧版本；不再循环要求重启，而是提供修复操作。缺失或损坏的暂存包会放弃该操作，已有目标仍可通过自身校验加载。
 
-更新与目录迁移还保留用户下载的 `Runtime/Paddle/cuda`、`Runtime/Paddle/Downloads` 和 `PaddleRuntimeDownload`（含断点续传文件），不会覆盖归档自带的 `Runtime/Paddle/cpu`。显式目录迁移会在副本中更新 CUDA `install.json` 的 `NativeDirectory` 绝对路径，旧目录在新模块成功加载后才清理；不在读取安装记录时猜测或修补路径。CUDA 安装状态同时检查记录中的 native 目录、验证标记和必需 DLL，残留的 `install.json` 不代表依赖已安装。
+CUDA 依赖管理按 Paddle 包声明的版本工作：现有显卡使用 CUDA 11.8/cuDNN 8.9.6.50，RTX 50 系列（sm120）使用 CUDA 12.9/cuDNN 9.10.2.21。安装、状态检测与启动 DLL 搜索都传递明确的目标包，不再用 11.8 的全局状态判断 12.9 是否就绪。未知版本组合直接报告包名与要求版本，不猜测替代版本。
+
+优先复用系统依赖：从版本化的 CUDA_PATH_V11_8 / CUDA_PATH_V12_9、CUDA_PATH、CUDNN_PATH 和系统、用户、进程 PATH 中读取明确发布的绝对目录。CUDA DLL 组必须完整且 cudart 的实际 Win32 文件版本匹配；cuDNN DLL 组必须完整、版本一致、位于相同主次版本且不低于对应私有分发版本。NVIDIA cudart 的文件版本是 6.14.11.11080 / 6.14.11.12090，不能把它当成 Toolkit 的 11.8 / 12.9 比较。CUDA 与 cuDNN 可以位于不同目录；不满足条件的系统安装不会被改写，也不与私有 DLL 混装。
+
+系统依赖不完整时，下载 NVIDIA 官方可再发行 ZIP，将 CUDA Runtime、cuBLAS、cuFFT、cuRAND、cuSOLVER、cuSPARSE、NVRTC、cuDNN，以及 CUDA 12.9 所需的 nvJitLink 解压到模块目录 Runtime/Paddle/Dependencies/{ProfileId}/native/。只提取所需 DLL 与许可证，不安装编译器、开发头文件或显卡驱动，不启动系统安装器、不提权、不改写系统或用户 PATH。NVIDIA 驱动仍须由 Windows 提供；私有部署仅隔离模块文件和当前应用进程的搜索路径，不是插件或原生库沙箱。
+
+固定下载地址、大小、SHA-256 和 x64 DLL 白名单位于模块嵌入的 PaddleRuntime/PaddleCudaDependencies.json，来源为 NVIDIA CUDA 11.8.0 / 12.9.0 和 cuDNN 8.9.6 / 9.10.2 的 redistrib JSON。ZIP 缓存每次复用前校验大小与 SHA-256，只提取白名单 DLL 并保留许可证，拒绝路径穿越和重复 DLL。全部组件在临时目录完成校验后才替换正式目录；失败不覆盖现有目录，取消保留统一下载服务的断点续传文件。私有 install.json 只保存格式版本、依赖契约指纹及 DLL 相对名称和大小，读取时校验清单与文件，不补写缺失记录；因此目录迁移无需重写该记录。
+
+启动时只注册所选系统或私有依赖目录，不同时加入两套 CUDA；注册失败则保持 CPU。是否真正可用仍须在有 NVIDIA 显卡的机器上通过现有 Predictor probe 和实际 OCR 验证，虚拟机上的下载与安装逻辑验证不能替代 GPU 推理验证。
+
+更新与目录迁移还保留用户下载的 `Runtime/Paddle/cuda`、`Runtime/Paddle/Dependencies`、`Runtime/Paddle/Downloads` 和 `PaddleRuntimeDownload`（含断点续传文件），不会覆盖归档自带的 `Runtime/Paddle/cpu`。显式目录迁移会在副本中更新 CUDA `install.json` 的 `NativeDirectory` 绝对路径，旧目录在新模块成功加载后才清理；不在读取安装记录时猜测或修补路径。CUDA 安装状态同时检查记录中的 native 目录、验证标记和必需 DLL，残留的 `install.json` 不代表依赖已安装。
 
 模块下载完成但安装失败时保留完整归档；重试时只有与远程 manifest 的 SHA-256 一致才复用，否则重新下载。安装或重启暂存成功后才尽力清理归档，清理失败不改变安装结果。目录复制、归档哈希、重启替换及旧目录清理在后台执行，模块内容仍在 UI 线程创建。
 

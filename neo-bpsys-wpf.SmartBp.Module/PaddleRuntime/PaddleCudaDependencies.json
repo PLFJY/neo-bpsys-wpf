@@ -1,0 +1,190 @@
+[
+  {
+    "Id": "cuda11.8-cudnn8.9.6.50",
+    "CudaVersion": "11.8",
+    "CudnnVersion": "8.9",
+    "Archives": [
+      {
+        "Id": "cuda_cudart",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/cuda_cudart/windows-x86_64/cuda_cudart-windows-x86_64-11.8.89-archive.zip",
+        "Sha256": "988cc9e7d3785d4b1975521f312c57c6814cbf15e73a2b7941d961835f2a945e",
+        "Size": 2987306,
+        "RequiredDlls": [
+          "cudart64_110.dll"
+        ]
+      },
+      {
+        "Id": "libcublas",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcublas/windows-x86_64/libcublas-windows-x86_64-11.11.3.6-archive.zip",
+        "Sha256": "67b0934a6359e4ee26fff823c356021589d392c4fd49ca12624f570edc08e2b9",
+        "Size": 420850025,
+        "RequiredDlls": [
+          "cublas64_11.dll",
+          "cublasLt64_11.dll"
+        ]
+      },
+      {
+        "Id": "libcufft",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcufft/windows-x86_64/libcufft-windows-x86_64-10.9.0.58-archive.zip",
+        "Sha256": "a4071a85e3983bf42ea7a2e9bebe3b0b3c9ac258668580adc32ee1c385f7556f",
+        "Size": 168982770,
+        "RequiredDlls": [
+          "cufft64_10.dll"
+        ]
+      },
+      {
+        "Id": "libcurand",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcurand/windows-x86_64/libcurand-windows-x86_64-10.3.0.86-archive.zip",
+        "Sha256": "aaccf56d68a63378edc05109c233ed47e185237c8d334f9df136923440a9a6b7",
+        "Size": 56863367,
+        "RequiredDlls": [
+          "curand64_10.dll"
+        ]
+      },
+      {
+        "Id": "libcusolver",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcusolver/windows-x86_64/libcusolver-windows-x86_64-11.4.1.48-archive.zip",
+        "Sha256": "965298e47640b643827cd6fe4ca5cab3c5a97b4bedc5357e9b6551298d1f9c2c",
+        "Size": 120198030,
+        "RequiredDlls": [
+          "cusolver64_11.dll"
+        ]
+      },
+      {
+        "Id": "libcusparse",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcusparse/windows-x86_64/libcusparse-windows-x86_64-11.7.5.86-archive.zip",
+        "Sha256": "b51a46f4f6bb9476ffe433a1dedad2c94a546c8a92e70dfed63207b64ff57e50",
+        "Size": 201218990,
+        "RequiredDlls": [
+          "cusparse64_11.dll"
+        ]
+      },
+      {
+        "Id": "cuda_nvrtc",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/windows-x86_64/cuda_nvrtc-windows-x86_64-11.8.89-archive.zip",
+        "Sha256": "e5d571247e71e0b0922a929516175844efa9e7ac424ed3c1b764bffb4899d3c9",
+        "Size": 95854990,
+        "RequiredDlls": [
+          "nvrtc-builtins64_118.dll",
+          "nvrtc64_112_0.dll"
+        ]
+      },
+      {
+        "Id": "cudnn",
+        "Url": "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-8.9.6.50_cuda11-archive.zip",
+        "Sha256": "f7a013f9181c863d68e67083813ecc87c0f781ef7481467fa20095373798de50",
+        "Size": 704235924,
+        "RequiredDlls": [
+          "cudnn64_8.dll",
+          "cudnn_adv_infer64_8.dll",
+          "cudnn_adv_train64_8.dll",
+          "cudnn_cnn_infer64_8.dll",
+          "cudnn_cnn_train64_8.dll",
+          "cudnn_ops_infer64_8.dll",
+          "cudnn_ops_train64_8.dll"
+        ]
+      }
+    ],
+    "CudnnRuntimeVersion": "8.9.6.50",
+    "CudaRuntimeFileVersion": "6.14.11.11080"
+  },
+  {
+    "Id": "cuda12.9-cudnn9.10.2.21",
+    "CudaVersion": "12.9",
+    "CudnnVersion": "9.10",
+    "Archives": [
+      {
+        "Id": "cuda_cudart",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/cuda_cudart/windows-x86_64/cuda_cudart-windows-x86_64-12.9.37-archive.zip",
+        "Sha256": "f96afe6df898bc8510c48b44668bd9f825731efbf460f3640a922b2b8ae59ccc",
+        "Size": 3519893,
+        "RequiredDlls": [
+          "cudart64_12.dll"
+        ]
+      },
+      {
+        "Id": "libcublas",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcublas/windows-x86_64/libcublas-windows-x86_64-12.9.0.13-archive.zip",
+        "Sha256": "20d9c2cd3810c948b875820917b38053dacf200b23cb3b8b8a14ff3569aa1f31",
+        "Size": 549211990,
+        "RequiredDlls": [
+          "cublas64_12.dll",
+          "cublasLt64_12.dll"
+        ]
+      },
+      {
+        "Id": "libcufft",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcufft/windows-x86_64/libcufft-windows-x86_64-11.4.0.6-archive.zip",
+        "Sha256": "caed5da0d48de61eb0acc600fe29a07c8a850d219ccc0d447ce08786d4564114",
+        "Size": 198394513,
+        "RequiredDlls": [
+          "cufft64_11.dll"
+        ]
+      },
+      {
+        "Id": "libcurand",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcurand/windows-x86_64/libcurand-windows-x86_64-10.3.10.19-archive.zip",
+        "Sha256": "d0411f0b8c07e90d0fb6e01bfa7a54c9cb80f2ddf67e4ded2d96a50e19aadad6",
+        "Size": 67904600,
+        "RequiredDlls": [
+          "curand64_10.dll"
+        ]
+      },
+      {
+        "Id": "libcusolver",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcusolver/windows-x86_64/libcusolver-windows-x86_64-11.7.4.40-archive.zip",
+        "Sha256": "85d9a098231feea58c3728037d8986af85eaa43555cb2f852753ba62c73660c1",
+        "Size": 316344091,
+        "RequiredDlls": [
+          "cusolver64_11.dll"
+        ]
+      },
+      {
+        "Id": "libcusparse",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libcusparse/windows-x86_64/libcusparse-windows-x86_64-12.5.9.5-archive.zip",
+        "Sha256": "5f50aab32ad988108e50073092ca51fd99c12b8ba82f0cb6ecd44a5b89286508",
+        "Size": 358101108,
+        "RequiredDlls": [
+          "cusparse64_12.dll"
+        ]
+      },
+      {
+        "Id": "cuda_nvrtc",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvrtc/windows-x86_64/cuda_nvrtc-windows-x86_64-12.9.41-archive.zip",
+        "Sha256": "6eab81244b5764c5d7653c58a49d70345560033a53a08c528231cdcc5141cc36",
+        "Size": 314624037,
+        "RequiredDlls": [
+          "nvrtc-builtins64_129.dll",
+          "nvrtc64_120_0.dll"
+        ]
+      },
+      {
+        "Id": "libnvjitlink",
+        "Url": "https://developer.download.nvidia.com/compute/cuda/redist/libnvjitlink/windows-x86_64/libnvjitlink-windows-x86_64-12.9.41-archive.zip",
+        "Sha256": "13e4b2a17206314d643c0c61585566ade5b93751ed0b8f43be030a715dfae1b0",
+        "Size": 265668207,
+        "RequiredDlls": [
+          "nvJitLink_120_0.dll"
+        ]
+      },
+      {
+        "Id": "cudnn",
+        "Url": "https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/cudnn-windows-x86_64-9.10.2.21_cuda12-archive.zip",
+        "Sha256": "c1a4567d822ebda7373fa1f19255dff4942302de741f830160b6c7d1fb31af23",
+        "Size": 683336095,
+        "RequiredDlls": [
+          "cudnn64_9.dll",
+          "cudnn_adv64_9.dll",
+          "cudnn_cnn64_9.dll",
+          "cudnn_engines_precompiled64_9.dll",
+          "cudnn_engines_runtime_compiled64_9.dll",
+          "cudnn_graph64_9.dll",
+          "cudnn_heuristic64_9.dll",
+          "cudnn_ops64_9.dll"
+        ]
+      }
+    ],
+    "CudnnRuntimeVersion": "9.10.2.21",
+    "CudaRuntimeFileVersion": "6.14.11.12090"
+  }
+]

@@ -961,7 +961,7 @@
     <value>正在下载</value>
   </data>
   <data name="CudaStatusModuleRuntimeMissing" xml:space="preserve">
-    <value>系统 CUDA/cuDNN 已就绪，当前 SmartBP 模块缺少 Paddle CUDA runtime</value>
+    <value>CUDA/cuDNN 已就绪，当前 SmartBP 模块缺少 Paddle CUDA runtime</value>
   </data>
   <data name="CudaStagePreparing" xml:space="preserve">
     <value>正在准备 CUDA 依赖安装...</value>
@@ -970,22 +970,22 @@
     <value>正在下载 Paddle CUDA runtime...</value>
   </data>
   <data name="CudaStageDownloadingCudaToolkit" xml:space="preserve">
-    <value>正在下载 NVIDIA CUDA 11.8 安装包...</value>
+    <value>正在下载 NVIDIA CUDA {0} 运行库...</value>
   </data>
   <data name="CudaStageVerifyingCudaToolkit" xml:space="preserve">
-    <value>正在校验 NVIDIA CUDA 11.8 安装包完整性...</value>
+    <value>正在校验 NVIDIA CUDA {0} 运行库完整性...</value>
   </data>
   <data name="CudaStageInstallingCudaToolkit" xml:space="preserve">
-    <value>正在打开 NVIDIA CUDA 11.8 图形安装程序。请确认 UAC 授权并按照安装界面完成安装；程序会等待并自动检测结果...</value>
+    <value>正在将 CUDA {0} 运行库解压到 SmartBP 模块目录...</value>
   </data>
   <data name="CudaStageDownloadingCuDnn" xml:space="preserve">
-    <value>正在下载 NVIDIA cuDNN 8.9.6...</value>
+    <value>正在下载 NVIDIA cuDNN {1}...</value>
   </data>
   <data name="CudaStageVerifyingCuDnn" xml:space="preserve">
-    <value>正在校验 NVIDIA cuDNN 8.9.6 安装包完整性...</value>
+    <value>正在校验 NVIDIA cuDNN {1} 安装包完整性...</value>
   </data>
   <data name="CudaStageInstallingCuDnn" xml:space="preserve">
-    <value>正在安装 cuDNN 8.9.6 并更新系统 PATH，请在 UAC 弹窗中确认授权...</value>
+    <value>正在将 cuDNN {1} 解压到 SmartBP 模块目录...</value>
   </data>
   <data name="CudaInstallErrorDetails" xml:space="preserve">
     <value>CUDA 安装失败：{0}</value>
@@ -1021,7 +1021,7 @@
     <value>下载 CUDA 运行时依赖</value>
   </data>
   <data name="CudaDependencyRequiredHint" xml:space="preserve">
-    <value>需要先安装 NVIDIA CUDA 11.8 与 cuDNN 依赖（约 4 GB，需要 UAC 授权）才能启用硬件加速</value>
+    <value>优先使用系统中匹配的 CUDA {0} / cuDNN {1}；依赖不完整时下载到 SmartBP 模块目录，无需系统安装或 UAC 授权。NVIDIA 显卡驱动仍需由系统提供。</value>
   </data>
   <data name="CudaStatusDependencyReady" xml:space="preserve">
     <value>依赖已就绪，可启用硬件加速</value>

@@ -74,7 +74,7 @@ function Write-SmartBpModuleIntegrity {
     $manifestPath = Join-Path $ModuleRoot 'component.json'
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
     # 清单不哈希自身；用户模型、可选 CUDA 及下载缓存不属于不可变发布内容。
-    $mutableRoots = @('OCRModels/', 'tessdata/', 'AI/', 'Runtime/Paddle/cuda/', 'Runtime/Paddle/Downloads/', 'PaddleRuntimeDownload/')
+    $mutableRoots = @('OCRModels/', 'tessdata/', 'AI/', 'Runtime/Paddle/cuda/', 'Runtime/Paddle/Dependencies/', 'Runtime/Paddle/Downloads/', 'PaddleRuntimeDownload/')
     $records = @(
         Get-ChildItem -LiteralPath $ModuleRoot -Recurse -File | Sort-Object FullName | ForEach-Object {
             $relative = (Get-RelativePathCompat -BasePath $ModuleRoot -TargetPath $_.FullName) -replace '\\', '/'

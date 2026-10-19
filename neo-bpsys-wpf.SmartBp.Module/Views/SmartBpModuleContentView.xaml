@@ -463,7 +463,7 @@
                     Visibility="{Binding CanDownloadCudaDependency, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        Text="{lex:Loc CudaDependencyRequiredHint}"
+                        Text="{Binding CudaDependencyRequiredHint}"
                         TextWrapping="Wrap" />
                     <ui:Button
                         Margin="0,8,0,0"

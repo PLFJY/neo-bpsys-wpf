@@ -42,6 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="PaddleRuntime\PaddleCudaDependencies.json" />
     <None Remove="Resources\**" />
     <Content Include="component.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

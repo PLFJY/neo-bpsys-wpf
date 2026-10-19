@@ -73,6 +73,11 @@ public partial class SmartBpModuleContentViewModel
     [ObservableProperty]
     public partial string CudaStatusText { get; set; } = "";
 
+    /// <summary>获取当前设备匹配的 CUDA/cuDNN 版本及安装提示。</summary>
+    public string CudaDependencyRequiredHint => _selectedCudaPackage is null
+        ? ""
+        : FormatCudaDependencyText("CudaDependencyRequiredHint");
+
     /// <summary>
     /// 获取或设置 CUDA 加速开关当前状态（用户偏好）。
     /// </summary>
@@ -237,6 +242,7 @@ public partial class SmartBpModuleContentViewModel
         _selectedCudaPackage = _paddleRuntimeManifestProvider.ResolveByComputeCapability(
             _selectedCudaDevice.ComputeCapabilityMajor,
             _selectedCudaDevice.ComputeCapabilityMinor);
+        OnPropertyChanged(nameof(CudaDependencyRequiredHint));
     }
 
     /// <summary>
@@ -427,9 +433,10 @@ public partial class SmartBpModuleContentViewModel
         var runtimeState = _paddleRuntimeState;
         var componentService = _paddleRuntimeComponentService;
         var installInfo = componentService.GetInstallStatus();
+        var prerequisitesInstalled = AreCudaPrerequisitesInstalled();
 
         IsCudaDependencyInstalled = installInfo.Status == PaddleRuntimeInstallStatus.Installed
-            && _paddleCudaPrerequisiteSetupService.Status.Status == PaddleCudaPrerequisiteInstallStatus.Installed;
+            && prerequisitesInstalled;
 
         // 当前选中的 OCR 引擎（Paddle / Rapid / Tesseract）。CUDA 只服务于 PaddleOCR，
         // 其他引擎下即使 CUDA runtime 已就绪也不会被使用。
@@ -465,12 +472,12 @@ public partial class SmartBpModuleContentViewModel
             statusKey = "CudaStatusDownloading";
         }
         else if (installInfo.Status == PaddleRuntimeInstallStatus.Installed
-                 && _paddleCudaPrerequisiteSetupService.Status.Status != PaddleCudaPrerequisiteInstallStatus.Installed)
+                 && !prerequisitesInstalled)
         {
             statusKey = "CudaStatusPrerequisitesMissing";
         }
         else if (installInfo.Status == PaddleRuntimeInstallStatus.NotInstalled
-                 && _paddleCudaPrerequisiteSetupService.Status.Status == PaddleCudaPrerequisiteInstallStatus.Installed)
+                 && prerequisitesInstalled)
         {
             statusKey = "CudaStatusModuleRuntimeMissing";
         }
@@ -534,7 +541,7 @@ public partial class SmartBpModuleContentViewModel
     private void SetCudaDownloadStage(string? key, bool isTransferActive)
     {
         _cudaDownloadStageKey = key;
-        CudaDownloadStageText = key is null ? "" : ResolveLocalizedOrRaw(key);
+        CudaDownloadStageText = key is null ? "" : FormatCudaDependencyText(key);
         IsCudaTransferActive = isTransferActive;
     }
 
@@ -546,8 +553,12 @@ public partial class SmartBpModuleContentViewModel
         if (_cudaDownloadStageKey is null)
             return;
 
-        CudaDownloadStageText = ResolveLocalizedOrRaw(_cudaDownloadStageKey);
+        CudaDownloadStageText = FormatCudaDependencyText(_cudaDownloadStageKey);
     }
+
+    private string FormatCudaDependencyText(string key)
+        => _selectedCudaPackage is null ? ResolveLocalizedOrRaw(key)
+            : string.Format(ResolveLocalizedOrRaw(key), _selectedCudaPackage.CudaVersion, _selectedCudaPackage.CudnnVersion);
 
     /// <summary>
     /// 设置最近一次 CUDA 安装错误详情，并生成独立于操作区生命周期的常驻错误文本。
@@ -673,7 +684,11 @@ public partial class SmartBpModuleContentViewModel
     /// <returns>两个依赖均已安装时返回 <see langword="true"/>。</returns>
     private bool IsCudaDependencyReady()
         => _paddleRuntimeComponentService.GetInstallStatus().Status == PaddleRuntimeInstallStatus.Installed
-           && _paddleCudaPrerequisiteSetupService.Status.Status == PaddleCudaPrerequisiteInstallStatus.Installed;
+           && AreCudaPrerequisitesInstalled();
+
+    private bool AreCudaPrerequisitesInstalled()
+        => _selectedCudaPackage is not null
+           && _paddleCudaPrerequisiteSetupService.GetInstallStatus(_selectedCudaPackage) == PaddleCudaPrerequisiteInstallStatus.Installed;
 
     /// <summary>
     /// 处理全局重启需求变化：同步 <see cref="IsCudaRestartRequired"/> 并刷新状态文本。

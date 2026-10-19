@@ -45,8 +45,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "..\build\neo-bpsys-wpf\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\build\SmartBpModule\*"; DestDir: "{code:GetSmartBpModuleDir}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; CUDA 依赖和下载缓存归模块管理，完整安装包更新也不能覆盖已下载的文件。
+Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Excludes: "Runtime\Paddle\cuda,Runtime\Paddle\Dependencies,Runtime\Paddle\Downloads,PaddleRuntimeDownload"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\build\SmartBpModule\*"; DestDir: "{code:GetSmartBpModuleDir}"; Excludes: "Runtime\Paddle\cuda,Runtime\Paddle\Dependencies,Runtime\Paddle\Downloads,PaddleRuntimeDownload"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Dependency installer is included; InitializeSetup skips it only under Wine.
@@ -58,6 +59,8 @@ var
   SmartBpDirPage: TInputDirWizardPage;
   SmartBpDirPageCreated: Boolean;
   SmartBpModuleDirValue: string;
+
+function TryReadSmartBpModuleRootFromState(var ModuleRoot: string): Boolean; forward;
 
 function IsWine: Boolean;
 begin
@@ -117,6 +120,32 @@ begin
     (not IsWritableDirectory(Full));
 end;
 
+// 软件更新默认沿用宿主记录的模块根目录，保留该位置的 CUDA 依赖。
+function GetInitialSmartBpModuleDir(): string;
+var
+  ExistingRoot: string;
+begin
+  if TryReadSmartBpModuleRootFromState(ExistingRoot) then
+  begin
+    if DirExists(ExistingRoot) and (not IsUnsafeSmartBpPath(ExistingRoot)) then
+    begin
+      Result := ExistingRoot;
+      exit;
+    end;
+  end;
+
+  if RegQueryStringValue(HKCU, 'Software\neo-bpsys-wpf\SmartBpModule', 'ModuleRoot', ExistingRoot) then
+  begin
+    if DirExists(ExistingRoot) and (not IsUnsafeSmartBpPath(ExistingRoot)) then
+    begin
+      Result := ExistingRoot;
+      exit;
+    end;
+  end;
+
+  Result := GetDefaultSmartBpModuleDir();
+end;
+
 function GetSmartBpModuleDir(Param: string): string;
 begin
   if SmartBpDirPageCreated then
@@ -129,8 +158,7 @@ procedure InitializeWizard();
 begin
   Log('InitializeWizard: begin.');
 
-  if SmartBpModuleDirValue = '' then
-    SmartBpModuleDirValue := GetDefaultSmartBpModuleDir();
+  SmartBpModuleDirValue := GetInitialSmartBpModuleDir();
 
   if WizardSilent or IsWine then
   begin
@@ -213,9 +241,9 @@ end;
 
 function ExtractJsonStringValue(Json: string; Name: string): string;
 var
-  Key, Tail, Ch: string;
-  KeyPos, ColonPos, QuoteStart, I: Integer;
-  Escaped: Boolean;
+  Key, Tail, Ch, Decoded: string;
+  KeyPos, ColonPos, QuoteStart, I, UnicodeCode, LowSurrogate: Integer;
+  Utf8Bytes: AnsiString;
 begin
   Result := '';
   Key := '"' + Name + '"';
@@ -234,22 +262,73 @@ begin
     exit;
 
   Tail := Copy(Tail, QuoteStart + 1, Length(Tail));
-  Escaped := False;
-  for I := 1 to Length(Tail) do
+  Decoded := '';
+  I := 1;
+  while I <= Length(Tail) do
   begin
     Ch := Copy(Tail, I, 1);
-    if (Ch = '"') and (not Escaped) then
+    if Ch = '"' then
     begin
-      Result := Copy(Tail, 1, I - 1);
-      StringChangeEx(Result, '\\', '\', True);
-      StringChangeEx(Result, '\/', '/', True);
+      Result := Decoded;
       exit;
     end;
+    if Ch = '\' then
+    begin
+      I := I + 1;
+      Ch := Copy(Tail, I, 1);
+      case Ch of
+        '"', '\', '/': Decoded := Decoded + Ch;
+        'b': Decoded := Decoded + #8;
+        'f': Decoded := Decoded + #12;
+        'n': Decoded := Decoded + #10;
+        'r': Decoded := Decoded + #13;
+        't': Decoded := Decoded + #9;
+        'u':
+          begin
+            if I + 4 > Length(Tail) then
+              exit;
+            UnicodeCode := StrToIntDef('$' + Copy(Tail, I + 1, 4), -1);
+            if UnicodeCode < 0 then
+              exit;
+            if (UnicodeCode >= $D800) and (UnicodeCode <= $DBFF) then
+            begin
+              if (I + 10 > Length(Tail)) or (Copy(Tail, I + 5, 2) <> '\u') then
+                exit;
+              LowSurrogate := StrToIntDef('$' + Copy(Tail, I + 7, 4), -1);
+              if (LowSurrogate < $DC00) or (LowSurrogate > $DFFF) then
+                exit;
+              UnicodeCode := $10000 + (UnicodeCode - $D800) * $400 + LowSurrogate - $DC00;
+              I := I + 6;
+            end
+            else if (UnicodeCode >= $DC00) and (UnicodeCode <= $DFFF) then
+              exit;
 
-    if (Ch = '\') and (not Escaped) then
-      Escaped := True
+            // Pascal Script 的 Char 是单字节；通过明确的 UTF-8 字节构造 Unicode 字符。
+            if UnicodeCode < $80 then
+              Utf8Bytes := Chr(UnicodeCode)
+            else if UnicodeCode < $800 then
+              Utf8Bytes := Chr($C0 + UnicodeCode div $40) + Chr($80 + UnicodeCode mod $40)
+            else if UnicodeCode < $10000 then
+              Utf8Bytes := Chr($E0 + UnicodeCode div $1000) +
+                Chr($80 + (UnicodeCode div $40) mod $40) + Chr($80 + UnicodeCode mod $40)
+            else
+              Utf8Bytes := Chr($F0 + UnicodeCode div $40000) +
+                Chr($80 + (UnicodeCode div $1000) mod $40) +
+                Chr($80 + (UnicodeCode div $40) mod $40) + Chr($80 + UnicodeCode mod $40);
+            Decoded := Decoded + Utf8Decode(Utf8Bytes);
+            I := I + 4;
+          end;
+      else
+        exit;
+      end;
+    end
     else
-      Escaped := False;
+    begin
+      if Ord(Ch[1]) < 32 then
+        exit;
+      Decoded := Decoded + Ch;
+    end;
+    I := I + 1;
   end;
 end;
 
@@ -263,7 +342,7 @@ begin
   if not LoadStringFromFile(StatePath, StateJson) then
     exit;
 
-  ModuleRoot := ExtractJsonStringValue(StateJson, 'ModuleRoot');
+  ModuleRoot := ExtractJsonStringValue(Utf8Decode(StateJson), 'ModuleRoot');
   Result := ModuleRoot <> '';
 end;
 
@@ -319,7 +398,7 @@ begin
       '  "LastLoadedSuccessfully": false,' + #13#10 +
       '  "LegacyOcrModelMigration": { "Completed": false }' + #13#10 +
       '}';
-    SaveStringToFile(StatePath, StateJson, False);
+    SaveStringToFile(StatePath, Utf8Encode(StateJson), False);
     RegWriteStringValue(HKCU, 'Software\neo-bpsys-wpf\SmartBpModule', 'ModuleRoot', GetSmartBpModuleDir(''));
   end;
 end;
