@@ -333,6 +333,11 @@ public partial class SharedDataService : ISharedDataService
 
     private void OnMapV2PropertyChanged(object? sender, PropertyChangedEventArgs args)
     {
+        if (args.PropertyName == nameof(MapV2.IsPicked) && sender is MapV2 { IsPicked: true })
+        {
+            IsMapV2Breathing = false;
+        }
+
         if (args.PropertyName == nameof(MapV2.IsBanned) || args.PropertyName == nameof(MapV2.IsGloballyDisabled))
         {
             MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
