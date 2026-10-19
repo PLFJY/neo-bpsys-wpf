@@ -26,8 +26,8 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     </Page.Resources>
-    <WrapPanel Orientation="Horizontal">
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+    <StackPanel>
+        <Border Margin="0,0,10,10" HorizontalAlignment="Left" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -190,9 +190,9 @@
             </Grid>
         </Border>
         <Border
-            Width="860"
             Margin="0,0,10,10"
-            Style="{StaticResource Card}">
+            Style="{StaticResource Card}"
+            Visibility="{Binding IsFreeMode, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -281,5 +281,5 @@
                 </ui:DataGrid>
             </Grid>
         </Border>
-    </WrapPanel>
+    </StackPanel>
 </Page>

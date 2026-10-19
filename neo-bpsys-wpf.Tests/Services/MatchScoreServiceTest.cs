@@ -37,8 +37,8 @@ public class MatchScoreServiceTest
         Assert.Equal(1, resets);
         Assert.All(viewModel.ScorePreviewRows, row =>
         {
-            Assert.Equal("3", row.HomeTotalMinorScoreText);
-            Assert.Equal("1", row.AwayTotalMinorScoreText);
+            Assert.Equal(progress == GameProgress.Free ? "0" : "3", row.HomeTotalMinorScoreText);
+            Assert.Equal(progress == GameProgress.Free ? "0" : "1", row.AwayTotalMinorScoreText);
         });
     }
 
@@ -333,19 +333,38 @@ public class MatchScoreServiceTest
         Assert.True(row.HasResult);
         Assert.Equal("-6", row.HomeMinorScoreText);
         Assert.Equal("11", row.AwayMinorScoreText);
-        Assert.Equal("24", row.HomeTotalMinorScoreText);
-        Assert.Equal("-8", row.AwayTotalMinorScoreText);
+        Assert.Equal("-6", row.HomeTotalMinorScoreText);
+        Assert.Equal("11", row.AwayTotalMinorScoreText);
         Assert.NotEqual("-", row.HomeCampText);
         Assert.NotEqual("-", row.AwayCampText);
+
+        var secondHalf = service.FreeScore.GetGlobalHalf(
+            new ScoreGameKey(1, ScoreGameKind.Normal), ScoreHalfKind.SecondHalf)!;
+        secondHalf.HomeMinorScore = 4;
+        secondHalf.AwayMinorScore = -2;
+        Assert.Equal("-6", viewModel.ScorePreviewRows[1].HomeTotalMinorScoreText);
+        Assert.Equal("11", viewModel.ScorePreviewRows[1].AwayTotalMinorScoreText);
+
+        secondHalf.IsCompleted = true;
+        Assert.Equal("-6", viewModel.ScorePreviewRows[0].HomeTotalMinorScoreText);
+        Assert.Equal("11", viewModel.ScorePreviewRows[0].AwayTotalMinorScoreText);
+        Assert.Equal("-2", viewModel.ScorePreviewRows[1].HomeTotalMinorScoreText);
+        Assert.Equal("9", viewModel.ScorePreviewRows[1].AwayTotalMinorScoreText);
+        Assert.Equal(24, service.FreeScore.Home.TotalMinorScore);
+        Assert.Equal(-8, service.FreeScore.Away.TotalMinorScore);
     }
 
+    /// <summary>预览按历史主客队归属累计到每行，修改历史半场时同步更新后续累计值。</summary>
     [Fact]
-    public void V2ScorePreviewSeparatesHalfMinorScoreFromMatchTotalMinorScore()
+    public void V2ScorePreviewAccumulatesMinorScoresThroughEachHalf()
     {
         var (currentGame, sharedDataService, service) =
             CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
         service.SetCurrentHalfResult(GameResult.Escape4);
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+        currentGame.Swap();
+        service.SetCurrentHalfResult(GameResult.Escape3);
         currentGame.GameProgress = GameProgress.Game2FirstHalf;
         service.SetCurrentHalfResult(GameResult.Escape3);
 
@@ -354,8 +373,22 @@ public class MatchScoreServiceTest
 
         Assert.Equal("5", firstHalfRow.HomeMinorScoreText);
         Assert.Equal("0", firstHalfRow.AwayMinorScoreText);
-        Assert.Equal("8", firstHalfRow.HomeTotalMinorScoreText);
-        Assert.Equal("1", firstHalfRow.AwayTotalMinorScoreText);
+        Assert.Equal("5", firstHalfRow.HomeTotalMinorScoreText);
+        Assert.Equal("0", firstHalfRow.AwayTotalMinorScoreText);
+        Assert.Equal("6", viewModel.ScorePreviewRows[1].HomeTotalMinorScoreText);
+        Assert.Equal("3", viewModel.ScorePreviewRows[1].AwayTotalMinorScoreText);
+        Assert.Equal("7", viewModel.ScorePreviewRows[2].HomeTotalMinorScoreText);
+        Assert.Equal("6", viewModel.ScorePreviewRows[2].AwayTotalMinorScoreText);
+        Assert.Equal("7", viewModel.ScorePreviewRows[3].HomeTotalMinorScoreText);
+        Assert.Equal("6", viewModel.ScorePreviewRows[3].AwayTotalMinorScoreText);
+
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+        service.ClearCurrentHalfResult();
+
+        Assert.Equal("5", viewModel.ScorePreviewRows[1].HomeTotalMinorScoreText);
+        Assert.Equal("0", viewModel.ScorePreviewRows[1].AwayTotalMinorScoreText);
+        Assert.Equal("6", viewModel.ScorePreviewRows[2].HomeTotalMinorScoreText);
+        Assert.Equal("3", viewModel.ScorePreviewRows[2].AwayTotalMinorScoreText);
     }
 
     [Fact]

@@ -354,7 +354,9 @@ BO3 可见范围是 Game 1、Game 2、Game 3、Game 3 Overtime。BO5 可见范�
 
 当前后台实现不再暴露普通 UI 的 `IsGameFinished`、手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”流程。清除当前半场比分按钮位于旧“小比分清零”按钮位置，会把全局 `CurrentGame.GameProgress` 对应半场的 `ScoreHalf.Result` 设为 `null`；后台预览表和 `ScoreGlobalWindow` 都由 `CurrentGame.MatchScore` 绑定自动刷新。
 
-后台 `ScorePage` 的预览表是导播检查用只读 UI。普通进度从 `CurrentGame.MatchScore.Games` 重建；自由进度则从 `FreeScore.GlobalGames` 重建。每行同时显示该半场的小比分，以及主客队当前的总小比分：普通进度读取 `MatchScoreState.HomeTotalMinorScore` / `AwayTotalMinorScore`，自由进度读取 `FreeScore.Home.TotalMinorScore` / `Away.TotalMinorScore`。两者都使用 `ScoreGameKey` 区分 Game 3 Overtime 与 Game 4，不把 `GameProgress` 原始数值作为唯一判断依据。自由全局比分通过独立编辑器修改，预览表本身不承担编辑职责。
+后台 `ScorePage` 的预览表是导播检查用只读 UI。普通进度从 `CurrentGame.MatchScore.Games` 重建；自由进度则从 `FreeScore.GlobalGames` 重建。每行同时显示该半场的小比分，以及当前 BO 模式下按场次、上下半场顺序累计到该行的主客队总小比分；未记录半场不增加累计值，后续半场不影响之前行的累计值，用户排序只改变展示顺序。自由进度仅累计 `IsCompleted` 半场，预览累计值独立于手动编辑的 `FreeScore.Home.TotalMinorScore` / `Away.TotalMinorScore`，不会反写手动总分。两者都使用 `ScoreGameKey` 区分 Game 3 Overtime 与 Game 4，不把 `GameProgress` 原始数值作为唯一判断依据。自由全局比分通过独立编辑器修改，预览表本身不承担编辑职责。
+
+自由对局模式下，比分页面隐藏预览表，经典后台也隐藏预览表入口；若抽屉已经打开，进入自由模式时立即关闭。自由比分继续通过手动编辑器查看和修改。
 
 ### 7.1 自由模式控制
 

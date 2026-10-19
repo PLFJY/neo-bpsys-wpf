@@ -88,10 +88,10 @@ public sealed class ScorePreviewRow
     /// <summary>客队小分文本。</summary>
     public string AwayMinorScoreText { get; }
 
-    /// <summary>主队总小分文本。</summary>
+    /// <summary>截至该行半场的主队累计小分文本。</summary>
     public string HomeTotalMinorScoreText { get; }
 
-    /// <summary>客队总小分文本。</summary>
+    /// <summary>截至该行半场的客队累计小分文本。</summary>
     public string AwayTotalMinorScoreText { get; }
 
     /// <summary>是否有结果。</summary>
@@ -326,28 +326,44 @@ public partial class ScorePageViewModel : ViewModelBase
     private void RefreshScorePreviewRows()
     {
         ScorePreviewRows.Clear();
+        var homeTotalMinorScore = 0;
+        var awayTotalMinorScore = 0;
 
         if (IsFreeMode)
         {
             foreach (var scoreGame in CurrentGame.MatchScore.FreeScore.GlobalGames
-                         .Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode)))
+                         .Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode))
+                         .OrderBy(game => game.Key.GameNumber).ThenBy(game => game.Key.GameKind))
             {
-                AddFreePreviewRow(scoreGame, scoreGame.FirstHalf);
-                AddFreePreviewRow(scoreGame, scoreGame.SecondHalf);
+                foreach (var half in new[] { scoreGame.FirstHalf, scoreGame.SecondHalf })
+                {
+                    if (half.IsCompleted)
+                    {
+                        homeTotalMinorScore += half.HomeMinorScore;
+                        awayTotalMinorScore += half.AwayMinorScore;
+                    }
+
+                    AddFreePreviewRow(scoreGame, half, homeTotalMinorScore, awayTotalMinorScore);
+                }
             }
 
             return;
         }
 
         foreach (var scoreGame in CurrentGame.MatchScore.Games
-                     .Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode)))
+                     .Where(game => ScoreGameVisibility.IsVisibleInBoMode(game.Key, _sharedDataService.IsBo3Mode))
+                     .OrderBy(game => game.Key.GameNumber).ThenBy(game => game.Key.GameKind))
         {
-            AddPreviewRow(scoreGame, scoreGame.FirstHalf);
-            AddPreviewRow(scoreGame, scoreGame.SecondHalf);
+            foreach (var half in new[] { scoreGame.FirstHalf, scoreGame.SecondHalf })
+            {
+                homeTotalMinorScore += half.HomeMinorScore ?? 0;
+                awayTotalMinorScore += half.AwayMinorScore ?? 0;
+                AddPreviewRow(scoreGame, half, homeTotalMinorScore, awayTotalMinorScore);
+            }
         }
     }
 
-    private void AddPreviewRow(ScoreGame scoreGame, ScoreHalf half)
+    private void AddPreviewRow(ScoreGame scoreGame, ScoreHalf half, int homeTotalMinorScore, int awayTotalMinorScore)
     {
         var isCurrentProgress = half.Progress == CurrentGame.GameProgress;
         var hasResult = half.HasResult;
@@ -362,8 +378,8 @@ public partial class ScorePageViewModel : ViewModelBase
             FormatRecordedCamp(half, TeamType.AwayTeam),
             half.HomeDisplayText,
             half.AwayDisplayText,
-            CurrentGame.MatchScore.HomeTotalMinorScore.ToString(),
-            CurrentGame.MatchScore.AwayTotalMinorScore.ToString(),
+            homeTotalMinorScore.ToString(),
+            awayTotalMinorScore.ToString(),
             hasResult,
             isCurrentProgress,
             isCurrentProgress
@@ -375,7 +391,8 @@ public partial class ScorePageViewModel : ViewModelBase
             AwayTeam.Name));
     }
 
-    private void AddFreePreviewRow(FreeGlobalScoreGame scoreGame, FreeGlobalScoreHalf half)
+    private void AddFreePreviewRow(FreeGlobalScoreGame scoreGame, FreeGlobalScoreHalf half,
+        int homeTotalMinorScore, int awayTotalMinorScore)
     {
         ScorePreviewRows.Add(new ScorePreviewRow(
             FormatGameLabel(scoreGame.Key),
@@ -387,8 +404,8 @@ public partial class ScorePageViewModel : ViewModelBase
             half.IsCompleted ? FormatCamp(half.AwayCamp) : "-",
             half.IsCompleted ? half.HomeMinorScore.ToString() : "-",
             half.IsCompleted ? half.AwayMinorScore.ToString() : "-",
-            CurrentGame.MatchScore.FreeScore.Home.TotalMinorScore.ToString(),
-            CurrentGame.MatchScore.FreeScore.Away.TotalMinorScore.ToString(),
+            homeTotalMinorScore.ToString(),
+            awayTotalMinorScore.ToString(),
             half.IsCompleted,
             false,
             half.IsCompleted ? Loc("ScorePreviewRecorded") : Loc("ScorePreviewEmpty"),

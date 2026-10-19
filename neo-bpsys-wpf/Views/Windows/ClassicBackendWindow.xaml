@@ -881,7 +881,6 @@
                                         <Button Command="{Binding ResetCommand}" Content="{lex:Loc ResetAllScores}" />
                                         <Button Command="{Binding OpenFreeInGameScoreEditorCommand}" Content="{lex:Loc EditInGameScores}" />
                                         <Button Command="{Binding OpenFreeGlobalScoreEditorCommand}" Content="{lex:Loc EditGlobalScores}" />
-                                        <Button Click="ToggleScorePreviewDrawer_Click" Content="{lex:Loc ScorePreviewTable}" />
                                     </WrapPanel>
                                 </Grid>
                                 <TextBlock
@@ -1178,7 +1177,7 @@
         </Grid>
         <Border
             x:Name="ScorePreviewDrawerRoot"
-            Width="860"
+            MaxWidth="1100"
             Margin="0,45,10,10"
             Padding="16"
             HorizontalAlignment="Right"
