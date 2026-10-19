@@ -31,11 +31,13 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> _conditionFieldOptions;
     private CancellationTokenSource? _previewCancellation;
     private FrontedNodePortViewModel? _pendingPort;
-    private readonly Stack<string> _undoStack = new();
-    private readonly Stack<string> _redoStack = new();
+    private readonly Stack<byte[]> _undoStack = new();
+    private readonly Stack<byte[]> _redoStack = new();
     private bool _isRestoring;
     private bool _isDragging;
+    private bool _hasMovedNodes;
     private const int UndoStackLimit = 50;
+    private const long UndoStackByteLimit = 16L * 1024 * 1024;
     private Func<Task<bool>>? _saveAsync;
 
     /// <summary>

@@ -74,6 +74,8 @@ internal sealed class SmartBpFrameRingBuffer(
 {
     private readonly object _gate = new();
     private readonly Queue<SmartBpBufferedFrame> _frames = new();
+    private const long PixelBudgetBytes = 192L * 1024 * 1024;
+    private long _pixelBytes;
     private long _maximumObservedOcrProcessingMilliseconds;
 
     /// <inheritdoc />
@@ -99,9 +101,10 @@ internal sealed class SmartBpFrameRingBuffer(
         {
             var game = shared.CurrentGame;
             _frames.Enqueue(new(sequence, frame, timestamp, game.Guid, game.GameProgress));
+            _pixelBytes += EstimatePixelBytes(frame);
             Trim(timestamp, EffectiveWindow);
-            while (_frames.Count > Capacity)
-                _frames.Dequeue();
+            while (_frames.Count > 1 && (_frames.Count > Capacity || _pixelBytes > PixelBudgetBytes))
+                RemoveOldestFrame();
         }
     }
 
@@ -124,7 +127,10 @@ internal sealed class SmartBpFrameRingBuffer(
     public void Reset()
     {
         lock (_gate)
+        {
             _frames.Clear();
+            _pixelBytes = 0;
+        }
     }
 
     /// <inheritdoc />
@@ -142,8 +148,24 @@ internal sealed class SmartBpFrameRingBuffer(
 
     private void Trim(DateTimeOffset now, TimeSpan window)
     {
-        while (_frames.TryPeek(out var frame) && now - frame.Timestamp > window)
-            _frames.Dequeue();
+        while (_frames.Count > 1 && _frames.TryPeek(out var frame) && now - frame.Timestamp > window)
+            RemoveOldestFrame();
+    }
+
+    private void RemoveOldestFrame() => _pixelBytes -= EstimatePixelBytes(_frames.Dequeue().Frame);
+
+    private static long EstimatePixelBytes(BitmapSource frame)
+    {
+        var bytes = ((long)frame.PixelWidth * Math.Max(1, frame.Format.BitsPerPixel) + 31) / 32 * 4 * frame.PixelHeight;
+        // WGC client-area crops can retain the full capture bitmap as their Source.
+        var source = frame switch
+        {
+            CroppedBitmap crop => crop.Source,
+            TransformedBitmap transformed => transformed.Source,
+            FormatConvertedBitmap converted => converted.Source,
+            _ => null
+        };
+        return bytes + (source is null ? 0 : EstimatePixelBytes(source));
     }
 
     private TimeSpan EffectiveWindow => TimeSpan.FromMilliseconds(Math.Max(

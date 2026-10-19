@@ -39,6 +39,34 @@ public sealed class SmartBpModuleManifest
     /// 打包素材元数据。
     /// </summary>
     public SmartBpModuleAsset Asset { get; set; } = new();
+
+    /// <summary>
+    /// 发布时生成的模块文件完整性清单；旧包未声明时仅执行关键文件探针，不补写清单。
+    /// </summary>
+    public SmartBpModuleIntegrity? Integrity { get; set; }
+}
+
+/// <summary>SmartBP 模块不可变发布文件的完整性契约。</summary>
+public sealed class SmartBpModuleIntegrity
+{
+    /// <summary>契约版本；当前支持版本 1。</summary>
+    public int Version { get; set; }
+
+    /// <summary>相对模块根目录的文件列表，不包含清单自身和用户下载的模型、CUDA 或缓存。</summary>
+    public List<SmartBpModuleFile> Files { get; set; } = [];
+}
+
+/// <summary>SmartBP 发布文件的大小和 SHA-256 摘要。</summary>
+public sealed class SmartBpModuleFile
+{
+    /// <summary>使用正斜线分隔的模块内相对路径。</summary>
+    public string Path { get; set; } = string.Empty;
+
+    /// <summary>文件大小，单位为字节。</summary>
+    public long Size { get; set; }
+
+    /// <summary>文件的 SHA-256 十六进制摘要。</summary>
+    public string Sha256 { get; set; } = string.Empty;
 }
 
 /// <summary>

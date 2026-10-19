@@ -56,7 +56,8 @@ public sealed partial class FrontManagePageViewModel
         try
         {
             var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
-            window.Owner = Application.Current?.MainWindow;
+            // 编辑器是长期打开的非模态窗口；Owner 会让自定义窗口边框的激活和最小化状态联动。
+            // 保持独立窗口，与设计器窗口生命周期约定一致。
             EventHandler? closedHandler = null;
             closedHandler = (_, _) =>
             {

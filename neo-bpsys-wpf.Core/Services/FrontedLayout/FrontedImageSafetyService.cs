@@ -37,6 +37,10 @@ public interface IFrontedImageSafetyService
 
 public sealed class FrontedImageSafetyService : IFrontedImageSafetyService
 {
+    private const int MaxCachedImageHeaders = 1024;
+    private readonly Dictionary<string, ImageHeader> _imageHeaders = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Queue<string> _imageHeaderOrder = new();
+    private sealed record ImageHeader(long FileBytes, DateTime LastWriteTimeUtc, DateTime CreationTimeUtc, int Width, int Height);
     private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".png",
@@ -68,10 +72,22 @@ public sealed class FrontedImageSafetyService : IFrontedImageSafetyService
         }
 
         var info = new FileInfo(path);
+        var fileBytes = info.Length;
+        var lastWriteTime = info.LastWriteTimeUtc;
+        var creationTime = info.CreationTimeUtc;
         var (maxBytes, maxLongSide, maxPixels) = GetLimits(purpose, knownBackgroundImage, knownUiImage);
-        if (info.Length > maxBytes)
+        if (fileBytes > maxBytes)
         {
-            return Invalid("ImageTooLarge", "Image file is too large.", fileBytes: info.Length);
+            return Invalid("ImageTooLarge", "Image file is too large.", fileBytes: fileBytes);
+        }
+
+        lock (_imageHeaders)
+        {
+            if (_imageHeaders.TryGetValue(info.FullName, out var header)
+                && header.FileBytes == fileBytes && header.LastWriteTimeUtc == lastWriteTime && header.CreationTimeUtc == creationTime)
+            {
+                return ValidateDimensions(fileBytes, header.Width, header.Height, maxLongSide, maxPixels);
+            }
         }
 
         try
@@ -94,28 +110,31 @@ public sealed class FrontedImageSafetyService : IFrontedImageSafetyService
                 return Invalid("UnsupportedImageFormat", "Unsupported image dimensions.", fileBytes: info.Length);
             }
 
-            if (Math.Max(width, height) > maxLongSide || (long)width * height > maxPixels)
+            info.Refresh();
+            if (info.Exists && info.Length == fileBytes && info.LastWriteTimeUtc == lastWriteTime && info.CreationTimeUtc == creationTime)
             {
-                return Invalid(
-                    "ImageTooManyPixels",
-                    "Image dimensions are too large.",
-                    info.Length,
-                    width,
-                    height);
+                lock (_imageHeaders)
+                {
+                    if (!_imageHeaders.ContainsKey(info.FullName)) _imageHeaderOrder.Enqueue(info.FullName);
+                    _imageHeaders[info.FullName] = new ImageHeader(fileBytes, lastWriteTime, creationTime, width, height);
+                    while (_imageHeaders.Count > MaxCachedImageHeaders)
+                        _imageHeaders.Remove(_imageHeaderOrder.Dequeue());
+                }
             }
 
-            return new FrontedImageValidationResult
-            {
-                IsValid = true,
-                FileBytes = info.Length,
-                PixelWidth = width,
-                PixelHeight = height
-            };
+            return ValidateDimensions(fileBytes, width, height, maxLongSide, maxPixels);
         }
         catch (Exception ex)
         {
             return Invalid("UnsupportedImageFormat", ex.Message, fileBytes: info.Length);
         }
+    }
+
+    private static FrontedImageValidationResult ValidateDimensions(long fileBytes, int width, int height, int maxLongSide, long maxPixels)
+    {
+        if (Math.Max(width, height) > maxLongSide || (long)width * height > maxPixels)
+            return Invalid("ImageTooManyPixels", "Image dimensions are too large.", fileBytes, width, height);
+        return new FrontedImageValidationResult { IsValid = true, FileBytes = fileBytes, PixelWidth = width, PixelHeight = height };
     }
 
     private static (long MaxBytes, int MaxLongSide, long MaxPixels) GetLimits(

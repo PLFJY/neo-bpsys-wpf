@@ -46,6 +46,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows;
 /// </summary>
 public partial class FrontedDesignerWindowViewModel
 {
+    private const long MaxHistoryBytesPerStack = 32L * 1024 * 1024;
     /// <summary>
     /// 恢复上一个 Designer 撤销快照。
     /// </summary>
@@ -60,7 +61,7 @@ public partial class FrontedDesignerWindowViewModel
 
         var total = StartDesignerPerfTrace();
         LogDesignerPerf("Undo", "start");
-        var currentSnapshot = CreateSnapshot();
+        var currentSnapshot = CreateInverseSnapshot(_undoStack.Peek());
         LogDesignerPerf("Undo", "create current snapshot", Elapsed(total));
         if (currentSnapshot is not null)
         {
@@ -89,7 +90,7 @@ public partial class FrontedDesignerWindowViewModel
 
         var total = StartDesignerPerfTrace();
         LogDesignerPerf("Redo", "start");
-        var currentSnapshot = CreateSnapshot();
+        var currentSnapshot = CreateInverseSnapshot(_redoStack.Peek());
         LogDesignerPerf("Redo", "create current snapshot", Elapsed(total));
         if (currentSnapshot is not null)
         {
@@ -103,6 +104,9 @@ public partial class FrontedDesignerWindowViewModel
         StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Redo");
         LogDesignerPerf("Redo", "total", Elapsed(total));
     }
+    /// <summary>
+    /// 在编辑前捕获布局与行为文档，并清除重做分支。
+    /// </summary>
     public void CaptureUndoSnapshot()
     {
         var snapshot = CreateSnapshot();
@@ -111,7 +115,8 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        if (_undoStack.TryPeek(out var previous) && previous == snapshot)
+        if (_undoStack.TryPeek(out var previous) && previous is DocumentHistorySnapshot document
+            && document.Json.AsSpan().SequenceEqual(snapshot.Json))
         {
             return;
         }
@@ -121,47 +126,237 @@ public partial class FrontedDesignerWindowViewModel
         NotifyUndoRedoCommands();
     }
 
-    private static void PushLimited(Stack<string> stack, string snapshot)
+    private static void PushLimited(Stack<DesignerHistorySnapshot> stack, DesignerHistorySnapshot snapshot)
     {
         stack.Push(snapshot);
-        if (stack.Count <= FrontedLayoutLimits.MaxDesignerUndoSnapshots)
+        if (stack.Count <= FrontedLayoutLimits.MaxDesignerUndoSnapshots
+            && stack.Sum(EstimateSnapshotBytes) <= MaxHistoryBytesPerStack)
         {
             return;
         }
 
-        var retained = stack
-            .Take(FrontedLayoutLimits.MaxDesignerUndoSnapshots)
-            .Reverse()
-            .ToList();
+        var retained = new List<DesignerHistorySnapshot>();
+        long bytes = 0;
+        foreach (var entry in stack)
+        {
+            var entryBytes = EstimateSnapshotBytes(entry);
+            if (retained.Count > 0 && (retained.Count >= FrontedLayoutLimits.MaxDesignerUndoSnapshots
+                || bytes + entryBytes > MaxHistoryBytesPerStack)) break;
+            retained.Add(entry);
+            bytes += entryBytes;
+        }
 
         stack.Clear();
-        foreach (var item in retained)
+        foreach (var item in retained.AsEnumerable().Reverse())
         {
             stack.Push(item);
         }
     }
 
-    private void PushUndoSnapshot(string snapshot)
+    private static long EstimateSnapshotBytes(DesignerHistorySnapshot snapshot) => snapshot switch
+    {
+        DocumentHistorySnapshot document => document.Json.LongLength,
+        GeometryHistorySnapshot geometry => 64L * geometry.Items.Length,
+        LayerOrderSnapshot order => 16L * order.Order.Length,
+        _ => 0
+    };
+
+    private void PushUndoSnapshot(DesignerHistorySnapshot snapshot)
     {
         PushLimited(_undoStack, snapshot);
     }
 
-    private void PushRedoSnapshot(string snapshot)
+    private void PushRedoSnapshot(DesignerHistorySnapshot snapshot)
     {
         PushLimited(_redoStack, snapshot);
     }
-    private string? CreateSnapshot()
+    private DocumentHistorySnapshot? CreateSnapshot()
     {
         if (CurrentDocument is null)
         {
             return null;
         }
 
-        return JsonSerializer.Serialize(new FrontedDesignerUndoSnapshot
+        return new DocumentHistorySnapshot(JsonSerializer.SerializeToUtf8Bytes(new FrontedDesignerUndoSnapshot
         {
             CanvasConfig = _designConverter.ToConfig(CurrentDocument),
             BehaviorDocument = BehaviorPanel.CurrentDocument
-        });
+        }));
+    }
+
+    private abstract record DesignerHistorySnapshot;
+
+    private sealed record DocumentHistorySnapshot(byte[] Json) : DesignerHistorySnapshot;
+
+    private readonly record struct ItemGeometrySnapshot(string Name, double Left, double Top, double? Width, double? Height);
+
+    private sealed record GeometryHistorySnapshot(ItemGeometrySnapshot[] Items, FrontedCanvasBoModeState EditingState)
+        : DesignerHistorySnapshot;
+
+    /// <summary>为根控件移动和缩放保存所选项几何；子部件继续保存完整快照。</summary>
+    internal void CaptureGeometryUndoSnapshot()
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null) return;
+        if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
+        {
+            CaptureUndoSnapshot();
+            return;
+        }
+
+        var names = SelectedDesignItems.Append(SelectedDesignItem).Distinct().Select(item => item.Name);
+        var snapshot = CreateGeometrySnapshot(names, CurrentDocument.EditingBoModeState);
+        if (snapshot.Items.Length == 0) return;
+        if (_undoStack.TryPeek(out var previous) && previous is GeometryHistorySnapshot geometry
+            && geometry.EditingState == snapshot.EditingState && geometry.Items.AsSpan().SequenceEqual(snapshot.Items)) return;
+        PushUndoSnapshot(snapshot);
+        _redoStack.Clear();
+        NotifyUndoRedoCommands();
+    }
+
+    private GeometryHistorySnapshot CreateGeometrySnapshot(IEnumerable<string> names, FrontedCanvasBoModeState state)
+    {
+        var controls = GetGeometrySnapshotControls(state);
+        return new GeometryHistorySnapshot(names.Select(name =>
+        {
+            var config = controls[name];
+            return new ItemGeometrySnapshot(name, config.Left, config.Top, config.Width, config.Height);
+        }).ToArray(), state);
+    }
+
+    private IReadOnlyDictionary<string, FrontedControlConfigBase> GetGeometrySnapshotControls(FrontedCanvasBoModeState state)
+    {
+        if (CurrentDocument!.EditingBoModeState == state)
+            return CurrentDocument.Controls.ToDictionary(item => item.Name, item => item.Config, StringComparer.Ordinal);
+        var config = _designConverter.ToConfig(CurrentDocument);
+        return state == FrontedCanvasBoModeState.Bo3
+            ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls : config.Controls;
+    }
+
+    private void RestoreGeometrySnapshot(GeometryHistorySnapshot snapshot)
+    {
+        var controls = GetGeometrySnapshotControls(snapshot.EditingState);
+        SetIsRestoringSnapshotVisuals(true);
+        try
+        {
+            foreach (var geometry in snapshot.Items)
+            {
+                var config = controls[geometry.Name];
+                config.Left = geometry.Left;
+                config.Top = geometry.Top;
+                config.Width = geometry.Width;
+                config.Height = geometry.Height;
+            }
+
+            CurrentDocument!.IsDirty = true;
+            RefreshDirtyState();
+            if (CurrentDocument.EditingBoModeState == snapshot.EditingState)
+            {
+                var changedNames = snapshot.Items.Select(item => item.Name).ToHashSet(StringComparer.Ordinal);
+                var changedItems = CurrentDocument.Controls.Where(item => changedNames.Contains(item.Name)).ToArray();
+                RequestDesignerGeometryPatch(changedItems, updateSelection: true);
+                RefreshGeometryPropertyValues();
+                ScheduleValidationOnly("GeometryHistoryRestore");
+            }
+        }
+        finally
+        {
+            SetIsRestoringSnapshotVisuals(false);
+            NotifyUndoRedoCommands();
+        }
+    }
+
+    private void RefreshGeometryPropertyValues()
+    {
+        foreach (var row in PropertyEditorItems.Where(row => IsGeometryProperty(row.PropertyName)))
+        {
+            if (SelectedDesignItems.Count > 1) ApplyMultiSelectionPropertyRowState(row);
+            else if (SelectedDesignItem is { } selected && _schemaPropertiesByPath.TryGetValue(row.PropertyName, out var property))
+            {
+                var value = property.GetValue(selected.Config);
+                row.Value = value;
+                row.DisplayValue = GetPropertyEditorDisplayValue(value);
+                row.EditText = GetCommittedEditText(row, value);
+            }
+        }
+    }
+
+    private sealed record LayerOrderSnapshot(
+        string ControlName,
+        int ZIndex,
+        string[] Order,
+        FrontedCanvasBoModeState EditingState) : DesignerHistorySnapshot;
+
+    private DesignerHistorySnapshot? CreateInverseSnapshot(DesignerHistorySnapshot snapshot)
+    {
+        if (snapshot is GeometryHistorySnapshot geometry)
+            return CreateGeometrySnapshot(geometry.Items.Select(item => item.Name), geometry.EditingState);
+        if (snapshot is not LayerOrderSnapshot layerOrder) return CreateSnapshot();
+        return CreateLayerOrderSnapshot(layerOrder.ControlName, layerOrder.EditingState);
+    }
+
+    private LayerOrderSnapshot CreateLayerOrderSnapshot(string controlName, FrontedCanvasBoModeState editingState)
+    {
+        if (CurrentDocument!.EditingBoModeState == editingState)
+        {
+            return new LayerOrderSnapshot(controlName,
+                CurrentDocument.Controls.First(item => item.Name == controlName).Config.ZIndex,
+                CurrentDocument.Controls.Select(item => item.Name).ToArray(), editingState);
+        }
+
+        var config = _designConverter.ToConfig(CurrentDocument!);
+        var controls = editingState == FrontedCanvasBoModeState.Bo3
+            ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls
+            : config.Controls;
+        return new LayerOrderSnapshot(controlName, controls[controlName].ZIndex, controls.Keys.ToArray(), editingState);
+    }
+
+    private void RestoreLayerOrderSnapshot(LayerOrderSnapshot order)
+    {
+        SetIsRestoringSnapshotVisuals(true);
+        try
+        {
+            ApplyLayerOrderSnapshot(order);
+        }
+        finally
+        {
+            SetIsRestoringSnapshotVisuals(false);
+            NotifyUndoRedoCommands();
+        }
+    }
+
+    private void ApplyLayerOrderSnapshot(LayerOrderSnapshot order)
+    {
+        var document = CurrentDocument!;
+        if (document.EditingBoModeState == order.EditingState)
+        {
+            var items = document.Controls.ToDictionary(item => item.Name, StringComparer.Ordinal);
+            var source = items[order.ControlName];
+            source.Config.ZIndex = order.ZIndex;
+            ReorderCurrentDocumentControls(order.Order, items);
+            UpdateLayerListsAfterDrop(source);
+            RefreshSelectedLayerOrderDisplay(source);
+            var patch = new FrontedDesignerGeometryPatchRequestedEventArgs(
+                [source], rebuildLayerPanel: true, rebuildInteractionLayer: false, updateSelection: true, zIndexChanged: true);
+            DesignerGeometryPatchRequested?.Invoke(this, patch);
+            if (!patch.Applied) ScheduleValidationAndPreviewRender("LayerOrderRestore");
+        }
+        else
+        {
+            // 切换 BO 状态不产生历史条目。撤销应写回原状态，保持当前编辑状态不变。
+            var config = _designConverter.ToConfig(document);
+            var controls = order.EditingState == FrontedCanvasBoModeState.Bo3
+                ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls
+                : config.Controls;
+            controls[order.ControlName].ZIndex = order.ZIndex;
+            var restored = order.Order.ToDictionary(name => name, name => controls[name], StringComparer.Ordinal);
+            if (order.EditingState == FrontedCanvasBoModeState.Bo3)
+                config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls = restored;
+            else
+                config.Controls = restored;
+        }
+
+        document.IsDirty = true;
+        RefreshDirtyState();
     }
 
     private static bool CanCopyControl(FrontedControlDesignItem? item)
@@ -238,7 +433,7 @@ public partial class FrontedDesignerWindowViewModel
     }
 
     private void RestoreSnapshot(
-        string snapshot,
+        DesignerHistorySnapshot snapshot,
         FrontedDesignerSnapshotRestoreMode mode,
         string traceOperation = "RestoreSnapshot")
     {
@@ -247,11 +442,23 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
+        if (snapshot is GeometryHistorySnapshot geometry)
+        {
+            RestoreGeometrySnapshot(geometry);
+            return;
+        }
+
+        if (snapshot is LayerOrderSnapshot layerOrder)
+        {
+            RestoreLayerOrderSnapshot(layerOrder);
+            return;
+        }
+
         var total = StartDesignerPerfTrace();
         var selectedName = SelectedDesignItem?.Name;
         var windowTypeName = CurrentDocument.WindowTypeName;
         var canvasName = CurrentDocument.CanvasName;
-        var restoreSnapshot = DeserializeUndoSnapshot(snapshot);
+        var restoreSnapshot = DeserializeUndoSnapshot(((DocumentHistorySnapshot)snapshot).Json);
         var config = restoreSnapshot?.CanvasConfig;
         var behaviorDocument = restoreSnapshot?.BehaviorDocument;
         LogDesignerPerf(traceOperation, "restore snapshot deserialize", Elapsed(total));
@@ -277,7 +484,8 @@ public partial class FrontedDesignerWindowViewModel
             var document = _designConverter.FromConfig(
                 windowTypeName,
                 canvasName,
-                config);
+                config,
+                CurrentDocument.EditingBoModeState);
             LogDesignerPerf(traceOperation, "design document rebuild", Elapsed(total));
             document.IsDirty = true;
             CurrentDocument = document;
@@ -336,7 +544,7 @@ public partial class FrontedDesignerWindowViewModel
         }
     }
 
-    private static FrontedDesignerUndoSnapshot? DeserializeUndoSnapshot(string snapshot)
+    private static FrontedDesignerUndoSnapshot? DeserializeUndoSnapshot(byte[] snapshot)
     {
         try
         {
@@ -434,10 +642,6 @@ public partial class FrontedDesignerWindowViewModel
             {
                 RebuildFilteredDesignItems();
             }
-            else
-            {
-                RebuildLayerGroups();
-            }
 
             var selectedItem = selectedName is null
                 ? null
@@ -449,7 +653,6 @@ public partial class FrontedDesignerWindowViewModel
             }
             else
             {
-                NormalizeSelectionState();
                 RefreshSelectedControlDisplay();
             }
 

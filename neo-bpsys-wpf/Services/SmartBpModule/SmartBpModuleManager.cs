@@ -20,8 +20,42 @@ namespace neo_bpsys_wpf.Services.SmartBpModule;
 /// <summary>
 /// 负责加载、校验、安装和持久化 SmartBP 模块。
 /// </summary>
-public sealed partial class SmartBpModuleManager
+public sealed partial class SmartBpModuleManager : IDisposable
 {
+    private readonly SemaphoreSlim _moduleLoadGate = new(1, 1);
+    private volatile bool _hasRuntimeLoadStarted;
+    private int _disposed;
+
+    /// <summary>在宿主退出时释放模块拥有的容器和订阅，不卸载程序集或正在使用的原生 DLL。</summary>
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        if (!_moduleLoadGate.Wait(0))
+        {
+            // Stop an already-created module immediately, even while migration I/O is pending.
+            // The loader still owns field cleanup in its finally block.
+            (Volatile.Read(ref _entryPoint) as IDisposable)?.Dispose();
+            return;
+        }
+        try { ReleaseModule(); }
+        finally { _moduleLoadGate.Release(); }
+    }
+
+    private void ReleaseModule()
+    {
+        if (_postGameRecognitionProgressSource is not null)
+            _postGameRecognitionProgressSource.ProgressChanged -= OnPostGameRecognitionProgressChanged;
+        try { (_entryPoint as IDisposable)?.Dispose(); }
+        finally
+        {
+            _entryPoint = null;
+            LoadedModuleVersion = null;
+            ModuleContent = null;
+            _featureCommands = [];
+            _postGameRecognitionProgressSource = null;
+        }
+    }
+
     private const string GitHubReleaseDownloadBaseUrl = "https://github.com/PLFJY/neo-bpsys-wpf/releases/download";
     private const string ModuleManifestAssetName = "SmartBpModuleManifest.json";
     private const string ModuleManifestFallbackBaseUrl = "https://smartbp-module-manifest.plfjy.top/";
@@ -47,7 +81,11 @@ public sealed partial class SmartBpModuleManager
     private static readonly HashSet<string> ManagedAssetRootNames = new(StringComparer.OrdinalIgnoreCase)
     {
         "OCRModels",
-        "AI"
+        "tessdata",
+        "AI",
+        "Runtime/Paddle/cuda",
+        "Runtime/Paddle/Downloads",
+        "PaddleRuntimeDownload"
     };
 
     private readonly IServiceProvider _serviceProvider;
@@ -145,6 +183,9 @@ public sealed partial class SmartBpModuleManager
     /// </summary>
     public string ModuleRoot { get; private set; }
 
+    /// <summary>获取本次成功加载时已验证的模块版本；无需再次读取模块清单。</summary>
+    public string? LoadedModuleVersion { get; private set; }
+
     /// <summary>
     /// 获取模块是否已加载且版本未过时。
     /// 版本过旧时返回 <see langword="false"/>，使全局表现为模块未加载。
@@ -155,7 +196,7 @@ public sealed partial class SmartBpModuleManager
     /// 获取模块程序集是否已物理加载（不考虑版本是否过时）。
     /// 仅用于内部安装/替换流程中判断是否需要暂存到下次重启。
     /// </summary>
-    private bool IsModulePhysicallyLoaded => _entryPoint != null && ModuleContent != null;
+    private bool IsModulePhysicallyLoaded => _hasRuntimeLoadStarted;
 
     /// <summary>
     /// 获取已加载模块的版本是否低于远程发布标签要求的版本。
@@ -186,6 +227,9 @@ public sealed partial class SmartBpModuleManager
     /// 获取最近一次模块加载或校验失败消息。
     /// </summary>
     public string LastFailureMessage { get; private set; } = string.Empty;
+
+    /// <summary>获取模块文件是否不完整或启动恢复失败，需要重新安装修复。</summary>
+    public bool IsModuleRepairRequired { get; private set; }
 
     /// <summary>
     /// 获取最近一次模块压缩包导入是否已暂存且需要重启应用才能完成。
@@ -442,11 +486,12 @@ public sealed partial class SmartBpModuleManager
             return false;
         }
 
-        if (!ValidateModuleDirectory(
-                normalizedSource,
-                allowDevelopmentDirectory: false,
-                out var sourceManifest,
-                out var sourceValidationError))
+        var (sourceValid, sourceManifest, sourceValidationError) = await Task.Run(() =>
+        {
+            var valid = ValidateModuleDirectoryCore(normalizedSource, false, out var manifest, out var error, verifyHashes: true);
+            return (valid, manifest, error);
+        });
+        if (!sourceValid)
         {
             LastFailureMessage = sourceValidationError;
             _logger.LogWarning(
@@ -458,14 +503,18 @@ public sealed partial class SmartBpModuleManager
 
         try
         {
+            await Task.Run(() => EnsureMigrationTargetIsModuleOrEmpty(normalizedTarget));
             AbandonPendingModuleOperation(existingPending, "new path migration requested");
-            await CopyModuleRootForMigrationAsync(normalizedSource, normalizedTarget);
             WriteMovePendingState(new SmartBpModuleMovePendingState
             {
                 SourceRoot = normalizedSource,
                 TargetRoot = normalizedTarget,
+                InstallKind = "PathMigrationPending",
                 CreatedAt = DateTimeOffset.UtcNow
             });
+
+            // 先发布操作意图；复制中断时下次启动仍知道完整来源，不能把半成品当作安装结果。
+            await CopyModuleRootForMigrationAsync(normalizedSource, normalizedTarget);
 
             WriteState(new SmartBpModuleState
             {

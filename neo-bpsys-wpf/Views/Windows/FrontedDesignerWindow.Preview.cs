@@ -33,6 +33,7 @@ public partial class FrontedDesignerWindow
         object? sender,
         FrontedDesignerPreviewRenderRequestedEventArgs e)
     {
+        if (!_isLoaded) return;
         _pendingPreviewRenderArgs = e;
         if (_previewRenderScheduled)
         {
@@ -40,13 +41,14 @@ public partial class FrontedDesignerWindow
         }
 
         _previewRenderScheduled = true;
-        Dispatcher.BeginInvoke(
+        _previewRenderOperation = Dispatcher.BeginInvoke(
             new Action(ExecutePendingPreviewRender),
             DispatcherPriority.Background);
     }
 
     private void ExecutePendingPreviewRender()
     {
+        _previewRenderOperation = null;
         _previewRenderScheduled = false;
         var args = _pendingPreviewRenderArgs;
         _pendingPreviewRenderArgs = null;
@@ -75,6 +77,8 @@ public partial class FrontedDesignerWindow
 
         try
         {
+            // 完整渲染会替换控件；旧动画 session 的 BaseValues/overlay 仍引用旧视觉对象。
+            _viewModel?.ClearBehaviorPreviewAnimationScope();
             ConfigureDesignSurface(e.Config.CanvasWidth, e.Config.CanvasHeight);
             LogDesignerPerf("PreviewRender", "configure surface", Elapsed(total));
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
@@ -132,9 +136,10 @@ public partial class FrontedDesignerWindow
     private void ClearPreviewCanvas()
     {
         _viewModel?.ClearActiveSnapGuides();
+        _viewModel?.ClearBehaviorPreviewAnimationScope();
+        FrontedRenderer.ClearGeneratedControls(PreviewCanvas);
         PreviewCanvas.Children.Clear();
         _previewElementsByControlName.Clear();
-        _viewModel?.ClearBehaviorPreviewAnimationScope();
         PreviewCanvas.Background = null;
         ConfigureDesignSurface(640, 360);
         InteractionLayer.Children.Clear();
@@ -189,6 +194,14 @@ public partial class FrontedDesignerWindow
         if (e.RebuildLayerPanel || e.ZIndexChanged)
         {
             ReorderPreviewChildrenToDocument();
+            foreach (var (item, index) in _viewModel.CurrentDocument.Controls.Select((item, index) => (item, index)))
+            {
+                if (_hitboxes.TryGetValue(item, out var hitbox))
+                {
+                    Panel.SetZIndex(hitbox, FrontedDesignerEditorVisualHelper.GetHitboxZIndex(
+                        item.Config.ZIndex, index, ReferenceEquals(item, _viewModel.SelectedDesignItem)));
+                }
+            }
         }
 
         if (e.RebuildInteractionLayer)
@@ -243,15 +256,8 @@ public partial class FrontedDesignerWindow
         Canvas.SetLeft(layoutCarrier, item.Config.Left);
         Canvas.SetTop(layoutCarrier, item.Config.Top);
 
-        if (item.Config.Width.HasValue)
-        {
-            element.Width = item.Config.Width.Value;
-        }
-
-        if (item.Config.Height.HasValue)
-        {
-            element.Height = item.Config.Height.Value;
-        }
+        element.Width = item.Config.Width ?? double.NaN;
+        element.Height = item.Config.Height ?? double.NaN;
 
         if (item.Config is BorderedImageFrontedControlConfig imageConfig)
         {
@@ -324,14 +330,12 @@ public partial class FrontedDesignerWindow
             .Cast<UIElement>()
             .ToList();
 
-        foreach (var child in generatedChildren)
+        for (var index = 0; index < generatedChildren.Count; index++)
         {
+            var child = generatedChildren[index];
+            if (PreviewCanvas.Children.IndexOf(child) == index) continue;
             PreviewCanvas.Children.Remove(child);
-        }
-
-        foreach (var child in generatedChildren)
-        {
-            PreviewCanvas.Children.Add(child);
+            PreviewCanvas.Children.Insert(index, child);
         }
     }
 
@@ -366,10 +370,12 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        Dispatcher.BeginInvoke(
+        if (_fitScrollResetOperation is { Status: DispatcherOperationStatus.Pending }) return;
+        _fitScrollResetOperation = Dispatcher.BeginInvoke(
             DispatcherPriority.Loaded,
             new Action(() =>
             {
+                _fitScrollResetOperation = null;
                 PreviewScrollViewer.ScrollToHorizontalOffset(0D);
                 PreviewScrollViewer.ScrollToVerticalOffset(0D);
             }));
@@ -412,15 +418,8 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        if (config.ImageWidth.HasValue)
-        {
-            innerImage.Width = config.ImageWidth.Value;
-        }
-
-        if (config.ImageHeight.HasValue)
-        {
-            innerImage.Height = config.ImageHeight.Value;
-        }
+        innerImage.Width = config.ImageWidth ?? double.NaN;
+        innerImage.Height = config.ImageHeight ?? double.NaN;
     }
 
     private void UpdatePreviewElement(FrontedControlDesignItem item, bool syncLinkedOverlays = true)

@@ -22,8 +22,26 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     ISmartBpSceneGateService sceneGate,
     ISmartBpOcrBpRecognitionService ocrRecognition,
     SmartBpHistoricalFrameReviewService historicalReview,
-    ISmartBpReconciliationService reconciliation) : ISmartBpAutoRecognitionCoordinator
+    ISmartBpReconciliationService reconciliation) : ISmartBpAutoRecognitionCoordinator, IDisposable
 {
+    private readonly CancellationTokenSource _lifetimeCancellation = new();
+    private bool _disposed;
+
+    /// <summary>取消模块识别任务并释放模块拥有的运行令牌和历史帧。</summary>
+    public void Dispose()
+    {
+        lock (_cancellationLock)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _lifetimeCancellation.Cancel();
+            _runCancellation?.Cancel();
+            _runCancellation?.Dispose();
+            _runCancellation = null;
+            _lifetimeCancellation.Dispose();
+        }
+        frameRingBuffer.Reset();
+    }
     private readonly SemaphoreSlim _tickGate = new(1, 1);
     private readonly object _cancellationLock = new();
     private CancellationTokenSource? _runCancellation;
@@ -42,23 +60,31 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
     public void SampleFrame(BitmapSource frame)
     {
         ArgumentNullException.ThrowIfNull(frame);
-        var sequence = Interlocked.Increment(ref _frameSequence);
-        frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
+        lock (_cancellationLock)
+        {
+            if (_disposed) return;
+            var sequence = Interlocked.Increment(ref _frameSequence);
+            frameRingBuffer.AddFrame(sequence, frame, DateTimeOffset.Now);
+        }
     }
 
     /// <inheritdoc />
     public void ResetCaptureContext()
     {
-        CancelCurrentAutomaticTick();
-        frameRingBuffer.Reset();
-        _lastSnapshotFingerprint = null;
-        _stableSnapshotCount = 0;
+        lock (_cancellationLock)
+        {
+            CancelCurrentAutomaticTick();
+            frameRingBuffer.Reset();
+            _lastSnapshotFingerprint = null;
+            _stableSnapshotCount = 0;
+        }
     }
 
     public Task StartAsync(CancellationToken cancellationToken = default)
     {
         lock (_cancellationLock)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             _runCancellation?.Cancel();
             _runCancellation?.Dispose();
             _runCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -66,6 +92,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         _lastSnapshotFingerprint = null;
         _stableSnapshotCount = 0;
         ClearPostBpLatch();
+        frameRingBuffer.Reset();
         return Task.CompletedTask;
     }
 
@@ -77,6 +104,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             _currentTickCancellation?.Cancel();
         }
         ClearPostBpLatch();
+        frameRingBuffer.Reset();
         return Task.CompletedTask;
     }
 
@@ -88,6 +116,7 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             _runCancellation = null;
         }
         ClearPostBpLatch();
+        frameRingBuffer.Reset();
         return Task.CompletedTask;
     }
 
@@ -139,11 +168,17 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
         CancellationTokenSource linked;
         lock (_cancellationLock)
         {
+            if (_disposed)
+            {
+                _tickGate.Release();
+                return Failure("Recognition coordinator is disposed.");
+            }
             linked = linkToAutomaticRunCancellation
                 ? CancellationTokenSource.CreateLinkedTokenSource(
                     cancellationToken,
-                    _runCancellation?.Token ?? CancellationToken.None)
-                : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    _runCancellation?.Token ?? CancellationToken.None,
+                    _lifetimeCancellation.Token)
+                : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetimeCancellation.Token);
             if (linkToAutomaticRunCancellation)
                 _currentTickCancellation = linked;
         }
@@ -156,7 +191,11 @@ internal sealed class SmartBpAutoRecognitionCoordinator(
             var captureTimestamp = DateTimeOffset.Now;
             if (!isDebugPreview && !isDryRun && _hasDetectedPostBp)
                 return CreateLatchedPostBpResult(sequence);
-            frameRingBuffer.AddFrame(sequence, frame, captureTimestamp);
+            lock (_cancellationLock)
+            {
+                tickToken.ThrowIfCancellationRequested();
+                frameRingBuffer.AddFrame(sequence, frame, captureTimestamp);
+            }
             var guidanceSnapshot = guidance.GetRuntimeSnapshot();
             var request = debugMode == SmartBpRecognitionDebugMode.FullStrategy
                 ? BuildFullStrategyDebugRequest(CreateCurrentFrameState("未知"))

@@ -40,7 +40,12 @@ public partial class GameDataPageViewModel : ViewModelBase
             AutoFillGameDataCommand.NotifyCanExecuteChanged();
         };
         _smartBpFeatureService.PostGameRecognitionProgressChanged += (_, e) =>
-            System.Windows.Application.Current?.Dispatcher.Invoke(() => ApplyProgress(e.Progress));
+        {
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher is null || dispatcher.HasShutdownStarted || dispatcher.HasShutdownFinished) return;
+            if (dispatcher.CheckAccess()) ApplyProgress(e.Progress);
+            else dispatcher.BeginInvoke(() => ApplyProgress(e.Progress), System.Windows.Threading.DispatcherPriority.Background);
+        };
         sharedDataService.CurrentGameChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(SurPlayerList));

@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
@@ -43,28 +44,39 @@ public partial class Member : ObservableObjectBase
     public partial Camp Camp { get; set; }
 
     private ImageSource? _image;
+    private readonly RemoteImageLoader _remoteImageLoader = new();
 
     /// <summary>
     /// 选手定妆照
     /// </summary>
+    /// <remarks>HTTP/HTTPS 图片在后台下载和解码，未完成时返回 null，完成后通知绑定更新。</remarks>
     [JsonIgnore]
     public ImageSource? Image
     {
         get
         {
             if (_image != null || ImageUri == null) return _image;
+            if (_remoteImageLoader.TryLoad(ImageUri, image =>
+                {
+                    _image = image;
+                    OnPropertyChanged(nameof(Image));
+                    OnPropertyChanged(nameof(IsImageValid));
+                })) return _image;
             _image = new BitmapImage(new Uri(ImageUri));
             return _image;
         }
         set
         {
-            if (!SetProperty(ref _image, value)) return;
-            if (_imageUri is not null)
+            if (ReferenceEquals(_image, value) && !_remoteImageLoader.HasStarted) return;
+            _remoteImageLoader.Reset();
+            var uriChanged = _imageUri is not null;
+            _imageUri = null;
+            var imageChanged = SetProperty(ref _image, value);
+            if (uriChanged)
             {
-                _imageUri = null;
                 OnPropertyChanged(nameof(ImageUri));
             }
-            OnPropertyChanged(nameof(IsImageValid));
+            if (imageChanged || uriChanged) OnPropertyChanged(nameof(IsImageValid));
         }
     }
 
@@ -80,6 +92,7 @@ public partial class Member : ObservableObjectBase
         set
         {
             if (!SetProperty(ref _imageUri, value)) return;
+            _remoteImageLoader.Reset();
             _image = null;
             OnPropertyChanged(nameof(Image));
             OnPropertyChanged(nameof(IsImageValid));

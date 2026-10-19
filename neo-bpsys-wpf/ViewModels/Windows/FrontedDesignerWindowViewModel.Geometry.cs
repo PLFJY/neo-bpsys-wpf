@@ -221,7 +221,7 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        CaptureUndoSnapshot();
+        CaptureGeometryUndoSnapshot();
         ClearActiveSnapGuides();
 
         // 子控件选中时，键盘微调通过 GeometryTarget 执行。
@@ -494,6 +494,16 @@ public partial class FrontedDesignerWindowViewModel
         };
     }
 
+    /// <summary>
+    /// 提交图层投放，记录撤销历史并就地更新预览层级。
+    /// </summary>
+    /// <param name="source">被拖动的控件。</param>
+    /// <param name="targetZIndex">目标层级。</param>
+    /// <param name="targetItem">用于确定插入位置的目标控件。</param>
+    /// <param name="insertAfter">是否插入到目标控件之后。</param>
+    /// <param name="moveToNewTopLayer">是否移到新建的最上层。</param>
+    /// <param name="moveToNewBottomLayer">是否移到新建的最下层。</param>
+    /// <returns>顺序或层级实际改变时返回 true。</returns>
     public bool CommitLayerDrop(
         FrontedControlDesignItem source,
         int? targetZIndex,
@@ -501,6 +511,25 @@ public partial class FrontedDesignerWindowViewModel
         bool insertAfter,
         bool moveToNewTopLayer = false,
         bool moveToNewBottomLayer = false)
+        => CommitLayerDropCore(source, targetZIndex, targetItem, insertAfter, moveToNewTopLayer, moveToNewBottomLayer, selectSource: true);
+
+    internal bool CommitLayerDragDrop(
+        FrontedControlDesignItem source,
+        int? targetZIndex,
+        FrontedControlDesignItem? targetItem,
+        bool insertAfter,
+        bool moveToNewTopLayer,
+        bool moveToNewBottomLayer)
+        => CommitLayerDropCore(source, targetZIndex, targetItem, insertAfter, moveToNewTopLayer, moveToNewBottomLayer, selectSource: false);
+
+    private bool CommitLayerDropCore(
+        FrontedControlDesignItem source,
+        int? targetZIndex,
+        FrontedControlDesignItem? targetItem,
+        bool insertAfter,
+        bool moveToNewTopLayer,
+        bool moveToNewBottomLayer,
+        bool selectSource)
     {
         if (CurrentDocument is null || !CanReorderLayers || !IsLayerReorderable(source))
         {
@@ -514,6 +543,8 @@ public partial class FrontedDesignerWindowViewModel
             return false;
         }
 
+        if (ReferenceEquals(source, targetItem)) return false;
+
         var reorderableItems = CurrentDocument.Controls
             .Where(IsLayerReorderable)
             .ToList();
@@ -523,7 +554,9 @@ public partial class FrontedDesignerWindowViewModel
             return false;
         }
 
-        var oldSnapshot = CreateSnapshot();
+        var originalOrder = CurrentDocument.Controls.ToArray();
+        var originalZIndex = source.Config.ZIndex;
+        var oldSnapshot = CreateLayerOrderSnapshot(source.Name, CurrentDocument.EditingBoModeState);
         var targetLayer = ResolveDropTargetZIndex(targetZIndex, moveToNewTopLayer, moveToNewBottomLayer);
         var desiredGroups = reorderableItems
             .Where(item => !ReferenceEquals(item, source))
@@ -557,11 +590,9 @@ public partial class FrontedDesignerWindowViewModel
             .ToList();
         RebuildDocumentControlOrder(desiredReorderable);
 
-        var newSnapshot = CreateSnapshot();
-        if (oldSnapshot == newSnapshot)
+        if (originalZIndex == source.Config.ZIndex && originalOrder.SequenceEqual(CurrentDocument.Controls))
         {
-            RebuildFilteredDesignItems();
-            SelectDesignItem(source);
+            if (selectSource) SelectDesignItem(source);
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
             return false;
         }
@@ -579,11 +610,37 @@ public partial class FrontedDesignerWindowViewModel
 
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
-        RebuildFilteredDesignItems();
-        SelectDesignItem(source);
-        ScheduleValidationAndPreviewRender("LayerReorder");
+        UpdateLayerListsAfterDrop(source);
+        if (selectSource) SelectDesignItem(source);
+        RefreshSelectedLayerOrderDisplay(source);
+        var patch = new FrontedDesignerGeometryPatchRequestedEventArgs(
+            [source],
+            rebuildLayerPanel: true,
+            rebuildInteractionLayer: false,
+            updateSelection: true,
+            zIndexChanged: true);
+        DesignerGeometryPatchRequested?.Invoke(this, patch);
+        if (!patch.Applied)
+        {
+            ScheduleValidationAndPreviewRender("LayerReorder");
+        }
         StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Reordered");
         return true;
+    }
+
+    private void RefreshSelectedLayerOrderDisplay(FrontedControlDesignItem source)
+    {
+        RefreshSelectedControlDisplay();
+        if (ReferenceEquals(SelectedDesignItem, source))
+        {
+            var zIndexRow = PropertyEditorItems.FirstOrDefault(row => row.PropertyName == nameof(FrontedControlConfigBase.ZIndex));
+            if (zIndexRow is not null)
+            {
+                zIndexRow.Value = source.Config.ZIndex;
+                zIndexRow.EditText = source.Config.ZIndex.ToString(CultureInfo.InvariantCulture);
+                zIndexRow.DisplayValue = zIndexRow.EditText;
+            }
+        }
     }
 
     public bool CommitLayerNodeDrop(
@@ -611,6 +668,9 @@ public partial class FrontedDesignerWindowViewModel
             moveToNewTopLayer,
             moveToNewBottomLayer);
     }
+    /// <summary>
+    /// 提交一次几何交互，更新现有预览元素并合并调度校验。
+    /// </summary>
     public void CommitDesignItemGeometryEdit()
     {
         if (CurrentDocument is null)
@@ -618,8 +678,15 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        ValidateCurrentDocument();
-        RequestPreviewRenderCurrentDocument();
+        if (IsSubControlSelected)
+        {
+            // 子部件可能改变控件内部结构；其运行时更新仍由控件初始化负责。
+            ScheduleValidationAndPreviewRender("SubControlGeometryCommit");
+            return;
+        }
+
+        RequestDesignerGeometryPatch(GetMovableSelectedDesignItems(), updateSelection: true);
+        ScheduleValidationOnly("GeometryCommit");
     }
     private void OnDesignItemGeometryChanged(bool renderPreview, bool refreshPropertyGrid = true)
     {

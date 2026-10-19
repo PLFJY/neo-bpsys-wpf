@@ -50,6 +50,16 @@ WebRenderer sidecar 的 `RemoteAssetFetcher` 是受 IPC、内容类型、大小�
 
 当 `GetCurrentFrame()` 发现没有启动捕获时，它通过 Dispatcher 异步弹提示并导航到 SmartBP 页面。
 
+StopCapture 在帧锁下清空最新帧并更新捕获世代，旧 WGC/BitBlt 回调不能在停止或换源后重新写回缓存。WGC 回调与 staging 资源销毁使用同一资源锁，帧池与会话在该锁外 Dispose，避免等待正在退出的回调。Direct3D 设备跨会话复用，只在 DI 释放捕获服务时销毁。
+
+前台行为 HostManager 按 Window ID 协调同步附加/分离，异步文档加载不持有普通锁；只有最新 Attach 请求可以注册宿主，Detach 和 Dispose 会使旧请求失效。FrontedWindowBase 用异步 gate 协调自身 Attach/Detach，隐藏会取消未完成的附加，真正关闭还会取消排队中的布局加载。分离异常在任务内部记录，停止循环失败仍会执行 Detach；已释放宿主的循环 finally 不得重新 Reset 并创建动画 session。
+
+## 队伍在线图片
+
+`Team.Logo` 和 `Member.Image` 对 HTTP/HTTPS URI 只启动一次异步加载，首次读取在图片未就绪时返回 `null`。`RemoteImageLoader` 在后台执行下载和 WIC 解码，使用 `OnLoad` 并冻结图片，再回到首次读取时的 Dispatcher 发布 `PropertyChanged`。`Player` 继续通过成员图片通知刷新三个 `PictureShown*` 派生属性，因此 JSON 导入、选手上场和换边首次显示定妆照都不会在 getter 中等待网络或解码。
+
+修改 URI、显式设置图片或重新导入 Logo 时会取消旧请求；旧结果不能覆盖新值。异步完成直接更新图片缓存，不调用会清空 URI 的公开图片 setter，原 JSON 图片地址保持可导出。失败后记录日志并保持空图片，不在绑定读取时无限重试；重新设置来源或重新导入后可以再次加载。本地文件和 pack URI 延续原加载方式。
+
 ## DispatcherTimer 与后台 Timer
 
 项目中多个 UI 相关周期任务使用 `DispatcherTimer`：
@@ -67,14 +77,14 @@ WebRenderer sidecar 的 `RemoteAssetFetcher` 是受 IPC、内容类型、大小�
 
 ## OCR 与锁
 
-`OcrService` 有两把锁：
+`PaddleOcrProvider` 有两把锁：
 
 | 锁 | 保护内容 |
 | --- | --- |
-| `_ocrLock` | PaddleOCR 推理实例 `_ocr` 的运行、切换、重建 |
+| `_ocrLock` | PaddleOCR Predictor 的创建、运行、切换、重建和释放 |
 | `_downloadLock` | 模型下载状态、取消令牌、进度字段 |
 
-`RecognizeTextCore` 在 `_ocrLock` 内运行推理；失败时尝试重建当前 OCR predictor 并重试一次。下载模型、删除模型、切换模型都要避免和推理实例生命周期竞争。
+`RecognizeTextCore` 在 `_ocrLock` 内运行推理；失败时尝试重建当前 OCR predictor 并重试一次。模型切换的原生构造也在同一锁内，避免新 Predictor 初始化与旧实例推理并发使用 Paddle/oneDNN 状态；模型偏好设置通知在锁外发布。下载模型、删除模型、切换模型都要避免和推理实例生命周期竞争。
 
 不要在持有 `_ocrLock` 时调用可能需要 UI 线程或长期等待用户交互的代码。
 
@@ -83,12 +93,14 @@ WebRenderer sidecar 的 `RemoteAssetFetcher` 是受 IPC、内容类型、大小�
 `AutoFillGameDataAsync` 用 `Task.Run` 执行捕获帧裁切和 OCR：
 
 ```csharp
-var recognizedData = await Task.Run(
-    () => CaptureAndRecognizeGameData(cancellationToken),
+var result = await Task.Run(
+    () => CaptureAndRecognizeGameData(frame, captureMs, cancellationToken),
     cancellationToken);
 ```
 
-后台部分不要直接操作 UI 对象。它读取的是已冻结的 `BitmapSource` 和 OpenCvSharp `Mat`。识别完成后写回 `CurrentGame` 数据，调用方通常来自 UI 命令；如果未来从纯后台线程触发写回，需要重新检查绑定对象和集合更新线程。
+服务层对全部入口共用防重复执行状态。无论调用方是否在后台线程，准备、错误/无结果弹窗、调试快照发布和对局回填统一回到创建服务时的 UI Dispatcher；等待预热时保留 UI 同步上下文，不使用 `ConfigureAwait(false)` 后直接创建 WPF 弹窗。错误通知自身失败也会记录并在服务边界收口，避免从异步按钮命令抛出第二个异常。进度订阅用异步 Dispatcher 投递，不同步阻塞 OCR 线程。
+
+后台部分读取点击时取得的冻结 `BitmapSource`，不在预热后重新获取另一帧。回填前重新检查取消状态、对局引用、局次和阵营引用；切局或换边后丢弃旧结果，不能把旧截图写入新对局。调用方取消只取消自身对共享预热的等待，不中断其他请求可能复用的预热任务。
 
 旧版 `.bpui` 转换同样通过 `Task.Run` 执行解压、资源复制、SkiaSharp 图片压缩、布局转换和重新打包。转换器本身不访问 WPF 对象；调用方在 `await` 完成后才在 Dispatcher 线程显示警告、刷新包列表或激活布局包。
 

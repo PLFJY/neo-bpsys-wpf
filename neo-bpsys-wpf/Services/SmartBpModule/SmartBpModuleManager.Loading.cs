@@ -28,18 +28,28 @@ public sealed partial class SmartBpModuleManager
     /// <returns>成功加载时返回 <see langword="true"/>。</returns>
     public async Task<bool> TryLoadPersistedModuleAsync()
     {
+        if (Volatile.Read(ref _disposed) != 0 || IsModulePhysicallyLoaded) return IsModuleLoaded;
         var state = ReadState();
         var pending = ReadMovePendingState();
         if (!string.IsNullOrWhiteSpace(pending?.PreparedRoot))
         {
-            TryCompletePendingArchiveImport(pending);
+            if (!await Task.Run(() => TryCompletePendingArchiveImport(pending)))
+            {
+                // 重启已经尝试过；继续要求重启无法修复磁盘/权限错误，保留标记并允许重新安装。
+                IsRestartRequiredForPendingModuleImport = false;
+                IsModuleRepairRequired = true;
+                ModuleStateChanged?.Invoke(this, EventArgs.Empty);
+                return false;
+            }
+            IsRestartRequiredForPendingModuleImport = false;
             state = ReadState();
             pending = ReadMovePendingState();
         }
 
         if (pending != null)
         {
-            TryCopyManagedAssetsBeforeTargetLoad(pending);
+            await Task.Run(() => TryRecoverPendingModuleMigration(pending));
+            await Task.Run(() => TryCopyManagedAssetsBeforeTargetLoad(pending));
         }
 
         var moduleRoot = !string.IsNullOrWhiteSpace(pending?.TargetRoot)
@@ -71,6 +81,22 @@ public sealed partial class SmartBpModuleManager
     /// <returns>成功加载时返回 <see langword="true"/>。</returns>
     public async Task<bool> LoadModuleFromDirectoryAsync(string moduleRoot, string installKind = "LocalDirectory")
     {
+        if (Volatile.Read(ref _disposed) != 0 || !await _moduleLoadGate.WaitAsync(0)) return false;
+        try
+        {
+            if (Volatile.Read(ref _disposed) != 0) return false;
+            if (IsModulePhysicallyLoaded) return IsModuleLoaded;
+            return await LoadModuleCoreAsync(moduleRoot, installKind);
+        }
+        finally
+        {
+            if (Volatile.Read(ref _disposed) != 0) ReleaseModule();
+            _moduleLoadGate.Release();
+        }
+    }
+
+    private async Task<bool> LoadModuleCoreAsync(string moduleRoot, string installKind)
+    {
         _logger.LogInformation(
             "Loading SmartBP module from directory. ModuleRoot={ModuleRoot}, InstallKind={InstallKind}",
             moduleRoot,
@@ -79,18 +105,30 @@ public sealed partial class SmartBpModuleManager
         _isModuleVersionOutdated = false;
         RequiredModuleVersion = null;
 
-        if (!ValidateModuleDirectory(moduleRoot, allowDevelopmentDirectory: IsDebugBuild(), out var manifest, out var error))
+        var (valid, manifest, error) = await Task.Run(() =>
+        {
+            var valid = ValidateModuleDirectoryCore(moduleRoot, IsDebugBuild(), out var manifest, out var error, verifyHashes: true);
+            return (valid, manifest, error);
+        });
+        if (Volatile.Read(ref _disposed) != 0) return false;
+        if (!valid)
         {
             LastFailureMessage = error;
+            IsModuleRepairRequired = Directory.Exists(moduleRoot);
             _logger.LogWarning("SmartBP module validation failed: {Error}", error);
+            ModuleStateChanged?.Invoke(this, EventArgs.Empty);
             return false;
         }
+        IsModuleRepairRequired = false;
 
         // 远程版本检查不再阻塞加载流程：ABI 兼容性已由 ValidateModuleDirectory 硬性校验，
         // 本地模块版本是否过时只作为更新提示，在加载成功后异步通知。
+        moduleRoot = Path.GetFullPath(moduleRoot);
         var entryAssembly = Path.Combine(moduleRoot, SmartBpModuleConstants.EntryAssemblyName);
         try
         {
+            _hasRuntimeLoadStarted = true;
+            ModuleRoot = moduleRoot;
             var loadContext = new AssemblyLoadContext($"SmartBpModule-{Guid.NewGuid():N}", isCollectible: false);
             RegisterModuleNativeSearchDirectories(moduleRoot, _logger);
             loadContext.Resolving += (_, name) =>
@@ -168,7 +206,7 @@ public sealed partial class SmartBpModuleManager
                         "Loading SmartBP module native dependency. LibraryName={LibraryName}, Candidate={Candidate}",
                         libraryName,
                         candidate);
-                    return NativeLibrary.Load(candidate);
+                    return LoadModuleNativeLibrary(candidate);
                 }
                 catch (Exception ex)
                 {
@@ -222,6 +260,7 @@ public sealed partial class SmartBpModuleManager
                 return false;
 
             _entryPoint = entryPoint;
+            if (Volatile.Read(ref _disposed) != 0) return false;
 
             // CreateSmartBpContent 创建 WPF UI 元素（InitializeComponent/BAML 解析），
             // 必须在 UI 线程执行。
@@ -233,7 +272,7 @@ public sealed partial class SmartBpModuleManager
                 _postGameRecognitionProgressSource.ProgressChanged += OnPostGameRecognitionProgressChanged;
             _logger.LogInformation("SmartBP module content created. FeatureCommandCount={FeatureCommandCount}", _featureCommands.Count);
             LastFailureMessage = string.Empty;
-            await MigrateLegacyOcrModelsOnceAsync(moduleRoot);
+            await Task.Run(() => MigrateLegacyOcrModelsOnceAsync(moduleRoot));
             WriteState(new SmartBpModuleState
             {
                 ModuleRoot = moduleRoot,
@@ -245,7 +284,8 @@ public sealed partial class SmartBpModuleManager
                 LastLoadedAt = DateTimeOffset.UtcNow,
                 LegacyOcrModelMigration = ReadState()?.LegacyOcrModelMigration ?? new SmartBpLegacyOcrModelMigrationState { Completed = true, Reason = "Completed" }
             });
-            CompletePendingModuleRootMigration(moduleRoot);
+            await Task.Run(() => CompletePendingModuleRootMigration(moduleRoot));
+            LoadedModuleVersion = manifest?.ModuleVersion;
             ModuleStateChanged?.Invoke(this, EventArgs.Empty);
             // 加载成功后异步检查远程版本是否过时；不阻塞加载流程，结果通过事件通知。
             _ = NotifyModuleVersionOutdatedIfNeededAsync(manifest?.ModuleVersion);
@@ -253,8 +293,11 @@ public sealed partial class SmartBpModuleManager
         }
         catch (Exception ex)
         {
+            ReleaseModule();
             LastFailureMessage = FormatExceptionForUser(ex);
+            IsModuleRepairRequired = true;
             _logger.LogError(ex, "Failed to load SmartBP module from {ModuleRoot}", moduleRoot);
+            ModuleStateChanged?.Invoke(this, EventArgs.Empty);
             return false;
         }
     }

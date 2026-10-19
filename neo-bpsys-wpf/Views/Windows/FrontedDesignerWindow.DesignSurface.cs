@@ -44,9 +44,21 @@ public partial class FrontedDesignerWindow
     private void RebuildInteractionLayer()
     {
         _viewModel?.ClearActiveSnapGuides();
-        InteractionLayer.Children.Clear();
+        var controls = _viewModel?.CurrentDocument?.Controls;
+        var currentItems = controls?.Where(item => item.IsSelectableInEditor).ToHashSet() ?? [];
+        foreach (var item in _hitboxes.Keys.Where(item => !currentItems.Contains(item)).ToArray())
+        {
+            InteractionLayer.Children.Remove(_hitboxes[item]);
+            _hitboxes.Remove(item);
+        }
+
+        var retainedHitboxes = _hitboxes.Values.Cast<UIElement>().ToHashSet();
+        for (var index = InteractionLayer.Children.Count - 1; index >= 0; index--)
+        {
+            if (!retainedHitboxes.Contains(InteractionLayer.Children[index]))
+                InteractionLayer.Children.RemoveAt(index);
+        }
         _snapGuideLines.Clear();
-        _hitboxes.Clear();
         _resizeHandles.Clear();
         _multiSelectionOutlines.Clear();
         _marqueeSelectionPreviewOutlines.Clear();
@@ -74,9 +86,22 @@ public partial class FrontedDesignerWindow
                 continue;
             }
 
-            var hitbox = CreateHitbox(entry.Item, entry.Index);
-            _hitboxes[entry.Item] = hitbox;
-            InteractionLayer.Children.Add(hitbox);
+            if (!_hitboxes.TryGetValue(entry.Item, out var hitbox))
+            {
+                hitbox = CreateHitbox(entry.Item, entry.Index);
+                _hitboxes[entry.Item] = hitbox;
+                InteractionLayer.Children.Add(hitbox);
+            }
+            else
+            {
+                var bounds = ResolveItemBounds(entry.Item);
+                hitbox.Width = bounds.Width;
+                hitbox.Height = bounds.Height;
+                Canvas.SetLeft(hitbox, bounds.Left);
+                Canvas.SetTop(hitbox, bounds.Top);
+                Panel.SetZIndex(hitbox, FrontedDesignerEditorVisualHelper.GetHitboxZIndex(
+                    entry.Item.Config.ZIndex, entry.Index, ReferenceEquals(entry.Item, _viewModel.SelectedDesignItem)));
+            }
         }
 
         if (_viewModel.SelectedDesignItems.Count > 0)

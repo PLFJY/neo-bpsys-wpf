@@ -197,7 +197,7 @@ internal sealed class FrontedDesignerSnapshotDiff(
 
 internal static class FrontedDesignerSnapshotRestorePlanner
 {
-    private static readonly string[] GeometryProperties =
+    private static readonly HashSet<string> GeometryProperties =
     [
         nameof(FrontedControlConfigBase.Left),
         nameof(FrontedControlConfigBase.Top),
@@ -217,7 +217,7 @@ internal static class FrontedDesignerSnapshotRestorePlanner
             || Math.Abs(current.CanvasHeight - target.CanvasHeight) >= 0.0001D
             || !string.Equals(current.BackgroundImage, target.BackgroundImage, StringComparison.Ordinal)
             || current.EnableBoModeStates != target.EnableBoModeStates
-            || !JsonEquivalent(current.BoModeStates, target.BoModeStates)
+            || !BoModeStatesEqual(current.BoModeStates, target.BoModeStates)
             || !JsonEquivalent(current.RequiredPlugins, target.RequiredPlugins))
         {
             return Fail("canvas/window config changed");
@@ -267,40 +267,64 @@ internal static class FrontedDesignerSnapshotRestorePlanner
         return new FrontedDesignerSnapshotDiff(false, false, false, reason);
     }
 
+    private static bool BoModeStatesEqual(IReadOnlyDictionary<string, FrontedCanvasStateConfig> current,
+        IReadOnlyDictionary<string, FrontedCanvasStateConfig> target)
+    {
+        if (current.Count != target.Count) return false;
+        foreach (var (key, state) in current)
+        {
+            if (!target.TryGetValue(key, out var other) || state.BackgroundImage != other.BackgroundImage
+                || !JsonEquivalent(state.RequiredPlugins, other.RequiredPlugins)
+                || !state.Controls.Keys.SequenceEqual(other.Controls.Keys, StringComparer.Ordinal)) return false;
+            foreach (var (name, config) in state.Controls)
+            {
+                var targetConfig = other.Controls[name];
+                // 默认序列化 Dictionary<string, FrontedControlConfigBase> 会遗漏 Text 等派生字段。
+                // 非当前 BO 状态不会被几何补丁写回，必须完整比较实际配置类型。
+                if (config.GetType() != targetConfig.GetType()
+                    || !JsonElement.DeepEquals(JsonSerializer.SerializeToElement(config, config.GetType()),
+                        JsonSerializer.SerializeToElement(targetConfig, targetConfig.GetType()))) return false;
+            }
+        }
+        return true;
+    }
+
     private static bool JsonEquivalentWithoutGeometry(
         FrontedControlConfigBase current,
         FrontedControlConfigBase target)
     {
-        return string.Equals(
-            CanonicalNonGeometryJson(current),
-            CanonicalNonGeometryJson(target),
-            StringComparison.Ordinal);
+        var currentJson = JsonSerializer.SerializeToElement(current, current.GetType());
+        var targetJson = JsonSerializer.SerializeToElement(target, target.GetType());
+        var currentProperties = currentJson.EnumerateObject();
+        var targetProperties = targetJson.EnumerateObject();
+        while (true)
+        {
+            var hasCurrent = MoveNextNonGeometryProperty(ref currentProperties);
+            var hasTarget = MoveNextNonGeometryProperty(ref targetProperties);
+            if (!hasCurrent || !hasTarget) return hasCurrent == hasTarget;
+            if (!currentProperties.Current.NameEquals(targetProperties.Current.Name)
+                || !JsonElement.DeepEquals(currentProperties.Current.Value, targetProperties.Current.Value))
+            {
+                return false;
+            }
+        }
     }
 
-    private static string CanonicalNonGeometryJson(FrontedControlConfigBase config)
+    private static bool MoveNextNonGeometryProperty(ref JsonElement.ObjectEnumerator properties)
     {
-        var json = JsonSerializer.Serialize(config, config.GetType());
-        var node = JsonNode.Parse(json)?.AsObject();
-        if (node is null)
+        while (properties.MoveNext())
         {
-            IAppHost.TryGetService<ILogger<FrontedDesignerWindowViewModel>>()
-                ?.LogError("Failed to parse fronted control config JSON.");
-            throw new InvalidOperationException("Failed to parse fronted control config JSON.");
-        }
-        foreach (var property in GeometryProperties)
-        {
-            node.Remove(property);
+            if (!GeometryProperties.Contains(properties.Current.Name)) return true;
         }
 
-        return node.ToJsonString();
+        return false;
     }
 
     private static bool JsonEquivalent<T>(T current, T target)
     {
-        return string.Equals(
-            JsonSerializer.Serialize(current),
-            JsonSerializer.Serialize(target),
-            StringComparison.Ordinal);
+        return JsonElement.DeepEquals(
+            JsonSerializer.SerializeToElement(current),
+            JsonSerializer.SerializeToElement(target));
     }
 
 }

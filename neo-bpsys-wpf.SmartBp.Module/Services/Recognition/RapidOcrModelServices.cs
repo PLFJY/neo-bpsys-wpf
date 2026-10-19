@@ -184,11 +184,17 @@ internal sealed class RapidOcrModelAssetManager(
         }
         finally
         {
-            if (Directory.Exists(temporaryRoot)
-                && !Directory.EnumerateFiles(temporaryRoot, "*.download.part", SearchOption.AllDirectories).Any())
-                Directory.Delete(temporaryRoot, true);
-            _downloadCts?.Dispose();
-            _downloadCts = null;
+            try
+            {
+                if (Directory.Exists(temporaryRoot)
+                    && !Directory.EnumerateFiles(temporaryRoot, "*.download.part", SearchOption.AllDirectories).Any())
+                    Directory.Delete(temporaryRoot, true);
+            }
+            finally
+            {
+                _downloadCts?.Dispose();
+                _downloadCts = null;
+            }
         }
     }
 
@@ -365,8 +371,9 @@ internal sealed class RapidOcrModelAssetManager(
 
     public void Dispose()
     {
-        _downloadCts?.Cancel();
-        _downloadCts?.Dispose();
+        // The active install task owns disposal after its last access to Token.
+        try { _downloadCts?.Cancel(); }
+        catch (ObjectDisposedException) { }
     }
 
     private sealed record RapidOcrInstallManifest(

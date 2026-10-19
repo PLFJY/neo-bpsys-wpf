@@ -368,6 +368,12 @@ public partial class FrontedDesignerWindowViewModel
             ? primaryItem
             : selected.FirstOrDefault();
 
+        if (ReferenceEquals(SelectedDesignItem, primary)
+            && SelectedDesignItems.SequenceEqual(selected))
+        {
+            return;
+        }
+
         SetSelectedDesignItems(selected, primary);
     }
 
@@ -464,6 +470,11 @@ public partial class FrontedDesignerWindowViewModel
             ? primaryItem
             : selected.FirstOrDefault();
 
+        if (ReferenceEquals(SelectedDesignItem, primary) && SelectedDesignItems.SequenceEqual(selected))
+        {
+            return;
+        }
+
         _isApplyingDesignSelection = true;
         try
         {
@@ -473,10 +484,12 @@ public partial class FrontedDesignerWindowViewModel
                 SelectedDesignItems.Add(item);
             }
 
+            var primaryChanged = !ReferenceEquals(SelectedDesignItem, primary);
             SelectedDesignItem = primary;
-            if (ReferenceEquals(SelectedDesignItem, primary))
+            if (!primaryChanged)
             {
-                ApplyDesignSelectionFlags();
+                // 主选中项不变时 setter 不通知，但多选交集与行为面板仍需更新。
+                OnSelectedDesignItemChanged(primary);
             }
 
             OnPropertyChanged(nameof(SelectedDesignItems));
@@ -675,6 +688,53 @@ public partial class FrontedDesignerWindowViewModel
         RefreshLayerNodeSelection();
     }
 
+    private void UpdateLayerListsAfterDrop(FrontedControlDesignItem source)
+    {
+        if (CurrentDocument is null) return;
+
+        var desiredItems = CurrentDocument.Controls
+            .Where(item => item.IsSelectableInEditor && MatchesControlFilter(item, ControlFilterText?.Trim()))
+            .OrderByDescending(item => item.Config.ZIndex)
+            .ToArray();
+        for (var index = 0; index < desiredItems.Length; index++)
+        {
+            var oldIndex = FilteredDesignItems.IndexOf(desiredItems[index]);
+            if (oldIndex == index) continue;
+            if (oldIndex >= 0) FilteredDesignItems.Move(oldIndex, index);
+            else FilteredDesignItems.Insert(index, desiredItems[index]);
+        }
+
+        var oldGroup = LayerGroups.FirstOrDefault(group => group.Items.Any(node => ReferenceEquals(node.ControlItem, source)));
+        var oldNode = oldGroup?.Items.First(node => ReferenceEquals(node.ControlItem, source));
+        var targetGroup = LayerGroups.FirstOrDefault(group => group.ZIndex == source.Config.ZIndex);
+        if (targetGroup is null)
+        {
+            targetGroup = new FrontedLayerGroup
+            {
+                ZIndex = source.Config.ZIndex,
+                DisplayName = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Layer")} {source.Config.ZIndex}"
+            };
+            var groupIndex = LayerGroups.TakeWhile(group => group.ZIndex > targetGroup.ZIndex).Count();
+            LayerGroups.Insert(groupIndex, targetGroup);
+        }
+
+        var targetIndex = desiredItems.Where(item => item.Config.ZIndex == source.Config.ZIndex)
+            .TakeWhile(item => !ReferenceEquals(item, source)).Count();
+        if (ReferenceEquals(oldGroup, targetGroup) && oldNode is not null)
+        {
+            var oldIndex = targetGroup.Items.IndexOf(oldNode);
+            if (oldIndex != targetIndex) targetGroup.Items.Move(oldIndex, targetIndex);
+        }
+        else
+        {
+            if (oldNode is not null) oldGroup!.Items.Remove(oldNode);
+            targetGroup.Items.Insert(targetIndex, CreateControlLayerNode(source));
+            if (oldGroup is { Items.Count: 0 }) LayerGroups.Remove(oldGroup);
+        }
+
+        RefreshLayerNodeSelection();
+    }
+
     private DesignerLayerNode CreateControlLayerNode(FrontedControlDesignItem item)
     {
         var node = new DesignerLayerNode
@@ -734,6 +794,26 @@ public partial class FrontedDesignerWindowViewModel
                 });
             }
         }
+    }
+
+    private void RefreshEditedLayerNodes()
+    {
+        var selected = SelectedDesignItems.ToHashSet();
+        if (SelectedDesignItem is { } primary) selected.Add(primary);
+        foreach (var node in LayerGroups.SelectMany(group => group.Items).Where(node => node.ControlItem is not null && selected.Contains(node.ControlItem)))
+        {
+            var updated = new DesignerLayerNode();
+            AppendChildLayerNodes(updated, node.ControlItem!);
+            var unchanged = node.Children.Count == updated.Children.Count
+                && node.Children.Zip(updated.Children).All(pair =>
+                    pair.First.Kind == pair.Second.Kind && pair.First.PartId == pair.Second.PartId
+                    && pair.First.CollectionId == pair.Second.CollectionId && pair.First.ItemKey == pair.Second.ItemKey
+                    && pair.First.CanSelect == pair.Second.CanSelect && pair.First.DisplayName == pair.Second.DisplayName);
+            if (unchanged) continue;
+            node.Children.Clear();
+            foreach (var child in updated.Children) node.Children.Add(child);
+        }
+        RefreshLayerNodeSelection();
     }
 
     private void RefreshLayerNodeSelection()

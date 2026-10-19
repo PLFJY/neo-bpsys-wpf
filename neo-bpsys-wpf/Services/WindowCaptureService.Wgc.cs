@@ -89,34 +89,40 @@ public partial class WindowCaptureService
     {
         try
         {
-            EnsureCaptureDevice();
-
-            _captureItem = item;
-            _currentCaptureSize = item.Size;
-
-            // 使用 BGRA8 便于后续直接转换为 WPF Bgra32。
-            _framePool = Direct3D11CaptureFramePool.Create(
-                _winrtDevice!,
-                DirectXPixelFormat.B8G8R8A8UIntNormalized,
-                2,
-                item.Size);
-
-            _captureSession = _framePool.CreateCaptureSession(item);
-
-            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+            lock (_captureResourceLock)
             {
-                //隐藏鼠标指针
-                _captureSession.IsCursorCaptureEnabled = false;
+                ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+                EnsureCaptureDevice();
+
+                _captureItem = item;
+                _captureDispatcher = Dispatcher.CurrentDispatcher;
+                item.Closed += OnCaptureItemClosed;
+                _currentCaptureSize = item.Size;
+
+                // 使用 BGRA8 便于后续直接转换为 WPF Bgra32。
+                _framePool = Direct3D11CaptureFramePool.Create(
+                    _winrtDevice!,
+                    DirectXPixelFormat.B8G8R8A8UIntNormalized,
+                    2,
+                    item.Size);
+
+                _captureSession = _framePool.CreateCaptureSession(item);
+
+                if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+                {
+                    //隐藏鼠标指针
+                    _captureSession.IsCursorCaptureEnabled = false;
+                }
+                if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 20348))
+                {
+                    //隐藏边框
+                    _captureSession.IsBorderRequired = false;
+                }
+                // 通过 FrameArrived 事件拉取每一帧。
+                _framePool.FrameArrived += OnFrameArrived;
+                IsCapturing = true;
+                _captureSession.StartCapture();
             }
-            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 20348))
-            {
-                //隐藏边框
-                _captureSession.IsBorderRequired = false;
-            }
-            // 通过 FrameArrived 事件拉取每一帧。
-            _framePool.FrameArrived += OnFrameArrived;
-            _captureSession.StartCapture();
-            IsCapturing = true;
 
             return true;
         }
@@ -133,6 +139,18 @@ public partial class WindowCaptureService
         }
     }
 
+    private void OnCaptureItemClosed(GraphicsCaptureItem sender, object args)
+    {
+        var dispatcher = _captureDispatcher;
+        if (dispatcher is null || dispatcher.HasShutdownStarted) return;
+        dispatcher.BeginInvoke(new Action(() =>
+        {
+            if (!ReferenceEquals(sender, _captureItem)) return;
+            try { StopCapture(); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to stop a closed capture target."); }
+        }));
+    }
+
     /// <summary>
     /// 确保捕获设备已创建。
     /// </summary>
@@ -145,8 +163,20 @@ public partial class WindowCaptureService
         }
 
         // WinRT 设备供 WGC 使用，SharpDX 设备供图像读回处理使用。
-        _winrtDevice = Direct3D11Helper.CreateDevice();
-        _d3dDevice = Direct3D11Helper.CreateSharpDXDevice(_winrtDevice);
+        var winrtDevice = Direct3D11Helper.CreateDevice();
+        try
+        {
+            var device = Direct3D11Helper.CreateSharpDXDevice(winrtDevice);
+            _winrtDevice?.Dispose();
+            _d3dDevice?.Dispose();
+            _winrtDevice = winrtDevice;
+            _d3dDevice = device;
+        }
+        catch
+        {
+            winrtDevice.Dispose();
+            throw;
+        }
     }
 
     /// <summary>
@@ -156,85 +186,91 @@ public partial class WindowCaptureService
     /// <param name="args">事件参数（当前未使用）。</param>
     private void OnFrameArrived(Direct3D11CaptureFramePool sender, object args)
     {
-        // 防御性检查：设备异常时本帧直接跳过，避免连锁异常。
-        if (_d3dDevice is null || _winrtDevice is null)
+        lock (_captureResourceLock)
         {
-            return;
-        }
-
-        // 尺寸变化时需要重建 FramePool；先记录，再在 finally 里统一处理。
-        var shouldRecreate = false;
-
-        try
-        {
-            // 读取当前帧。using 确保帧对象及时释放。
-            using var frame = sender.TryGetNextFrame();
-            var contentSize = frame.ContentSize;
-            if (contentSize.Width <= 0 || contentSize.Height <= 0)
+            if (!IsCapturing || !ReferenceEquals(sender, _framePool)) return;
+            var generation = Volatile.Read(ref _captureGeneration);
+            // 防御性检查：设备异常时本帧直接跳过，避免连锁异常。
+            if (_d3dDevice is null || _winrtDevice is null)
             {
                 return;
             }
 
-            // 目标窗口大小变化时，原 FramePool 尺寸不再匹配，需要重建。
-            if (contentSize.Width != _currentCaptureSize.Width || contentSize.Height != _currentCaptureSize.Height)
+            // 尺寸变化时需要重建 FramePool；先记录，再在 finally 里统一处理。
+            var shouldRecreate = false;
+
+            try
             {
-                _currentCaptureSize = contentSize;
-                shouldRecreate = true;
-            }
-
-            // 将 WinRT surface 包装为 SharpDX texture，便于执行 Direct3D 复制。
-            using var sourceTexture = Direct3D11Helper.CreateSharpDXTexture2D(frame.Surface);
-            // 复用 staging 纹理：尺寸不变时跨帧复用，避免每帧分配新的 D3D staging 资源。
-            // 尺寸变化时释放旧纹理并重建。
-            if (_stagingTexture is null
-                || _stagingWidth != contentSize.Width
-                || _stagingHeight != contentSize.Height)
-            {
-                _stagingTexture?.Dispose();
-                _stagingTexture = CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
-                _stagingWidth = contentSize.Width;
-                _stagingHeight = contentSize.Height;
-            }
-
-            var stagingTexture = _stagingTexture;
-
-            // 先把帧数据复制到 staging 资源。
-            _d3dDevice.ImmediateContext.CopyResource(sourceTexture, stagingTexture);
-
-            // 再将纹理转换为 WPF 可直接显示的 BitmapSource。
-            var frameBitmap = CreateBitmapSourceFromTexture(stagingTexture, contentSize.Width, contentSize.Height);
-            // WGC 采集窗口时可能包含非客户区；若有 HWND 上下文则裁到客户区。
-            frameBitmap = CropToClientAreaIfNeeded(frameBitmap);
-            if (frameBitmap is not null)
-            {
-                // 写缓存和读取缓存共用锁，保证并发安全。
-                lock (_frameLock)
+                // 读取当前帧。using 确保帧对象及时释放。
+                using var frame = sender.TryGetNextFrame();
+                var contentSize = frame.ContentSize;
+                if (contentSize.Width <= 0 || contentSize.Height <= 0)
                 {
-                    _currentFrame = frameBitmap;
+                    return;
+                }
+
+                // 目标窗口大小变化时，原 FramePool 尺寸不再匹配，需要重建。
+                if (contentSize.Width != _currentCaptureSize.Width || contentSize.Height != _currentCaptureSize.Height)
+                {
+                    _currentCaptureSize = contentSize;
+                    shouldRecreate = true;
+                }
+
+                // 将 WinRT surface 包装为 SharpDX texture，便于执行 Direct3D 复制。
+                using var sourceTexture = Direct3D11Helper.CreateSharpDXTexture2D(frame.Surface);
+                // 复用 staging 纹理：尺寸不变时跨帧复用，避免每帧分配新的 D3D staging 资源。
+                // 尺寸变化时释放旧纹理并重建。
+                if (_stagingTexture is null
+                    || _stagingWidth != contentSize.Width
+                    || _stagingHeight != contentSize.Height)
+                {
+                    _stagingTexture?.Dispose();
+                    _stagingTexture = CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
+                    _stagingWidth = contentSize.Width;
+                    _stagingHeight = contentSize.Height;
+                }
+
+                var stagingTexture = _stagingTexture;
+
+                // 先把帧数据复制到 staging 资源。
+                _d3dDevice.ImmediateContext.CopyResource(sourceTexture, stagingTexture);
+
+                // 再将纹理转换为 WPF 可直接显示的 BitmapSource。
+                var frameBitmap = CreateBitmapSourceFromTexture(stagingTexture, contentSize.Width, contentSize.Height);
+                // WGC 采集窗口时可能包含非客户区；若有 HWND 上下文则裁到客户区。
+                frameBitmap = CropToClientAreaIfNeeded(frameBitmap);
+                if (frameBitmap is not null)
+                {
+                    // 写缓存和读取缓存共用锁，保证并发安全。
+                    lock (_frameLock)
+                    {
+                        if (IsCapturing && generation == Volatile.Read(ref _captureGeneration))
+                            _currentFrame = frameBitmap;
+                    }
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            // 单帧异常不终止整个捕获会话，只记录调试日志继续下一帧。
-            _logger.LogDebug(ex, "Failed to process a captured frame.");
-        }
-        finally
-        {
-            if (shouldRecreate && _framePool is not null)
+            catch (Exception ex)
             {
-                try
+                // 单帧异常不终止整个捕获会话，只记录调试日志继续下一帧。
+                _logger.LogDebug(ex, "Failed to process a captured frame.");
+            }
+            finally
+            {
+                if (shouldRecreate && IsCapturing && ReferenceEquals(sender, _framePool))
                 {
-                    // 尺寸变化后重建帧池，确保后续帧尺寸与资源匹配。
-                    _framePool.Recreate(
-                        _winrtDevice,
-                        DirectXPixelFormat.B8G8R8A8UIntNormalized,
-                        2,
-                        _currentCaptureSize);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug(ex, "Failed to recreate frame pool on size change.");
+                    try
+                    {
+                        // 尺寸变化后重建帧池，确保后续帧尺寸与资源匹配。
+                        _framePool.Recreate(
+                            _winrtDevice,
+                            DirectXPixelFormat.B8G8R8A8UIntNormalized,
+                            2,
+                            _currentCaptureSize);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Failed to recreate frame pool on size change.");
+                    }
                 }
             }
         }

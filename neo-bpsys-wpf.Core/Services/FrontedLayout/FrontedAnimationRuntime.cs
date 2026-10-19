@@ -76,7 +76,7 @@ public sealed class FrontedAnimationRuntime(
         {
             lock (_gate)
             {
-                if (!_sessions.TryGetValue(root, out var session))
+                if (!_sessions.Remove(root, out var session))
                 {
                     return;
                 }
@@ -86,8 +86,8 @@ public sealed class FrontedAnimationRuntime(
                 {
                     try
                     {
-                        cts.Cancel();
-                        cts.Dispose();
+                        try { cts.Cancel(); }
+                        finally { cts.Dispose(); }
                     }
                     catch (ObjectDisposedException)
                     {
@@ -106,7 +106,6 @@ public sealed class FrontedAnimationRuntime(
                 session.Conflicts.Clear();
                 session.BaseValues.Clear();
                 session.Overlays.Clear();
-                _sessions.Remove(root);
             }
         });
     }
@@ -117,6 +116,7 @@ public sealed class FrontedAnimationRuntime(
         CancellationToken cancellationToken)
     {
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken, cancellationToken);
+        linkedCts.Token.ThrowIfCancellationRequested();
         var effectiveContext = context.WithCancellationToken(linkedCts.Token);
         var controlTarget = targetResolver.Resolve(FrontedAnimationTargetReference.Parse(action.Target), effectiveContext);
         if (controlTarget is null)

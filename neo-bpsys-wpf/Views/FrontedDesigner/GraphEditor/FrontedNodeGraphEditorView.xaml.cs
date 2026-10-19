@@ -53,14 +53,14 @@ public partial class FrontedNodeGraphEditorView : UserControl
     {
         if (_subscribedViewModel is not null)
         {
-            _subscribedViewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
+            PropertyChangedEventManager.RemoveHandler(_subscribedViewModel, ViewModel_OnPropertyChanged, string.Empty);
             _subscribedViewModel = null;
         }
 
         if (DataContext is FrontedNodeGraphEditorViewModel viewModel)
         {
             _subscribedViewModel = viewModel;
-            viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
+            PropertyChangedEventManager.AddHandler(viewModel, ViewModel_OnPropertyChanged, string.Empty);
             UpdatePreviewVisual(viewModel.PreviewRoot);
         }
 

@@ -111,8 +111,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _displayNamesByWindowId = new(StringComparer.Ordinal);
     private readonly Dictionary<string, FrontedV3PropertyDefinition> _schemaPropertiesByPath = new(StringComparer.Ordinal);
-    private readonly Stack<string> _undoStack = new();
-    private readonly Stack<string> _redoStack = new();
+    private readonly Dictionary<string, IReadOnlyList<BatchPropertyTarget>> _batchPropertyTargets = new(StringComparer.Ordinal);
+    private readonly Stack<DesignerHistorySnapshot> _undoStack = new();
+    private readonly Stack<DesignerHistorySnapshot> _redoStack = new();
     private readonly List<PendingImportedResource> _pendingImportedResources = [];
     private FrontedDesignerClipboardPayload? _copiedControl;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
@@ -125,6 +126,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _isUpdatingBoModeStateUi;
     private bool _preserveUndoRedoDuringDocumentSwap;
     private bool _scheduledValidationAndPreviewPending;
+    private DispatcherOperation? _scheduledDesignerWorkOperation;
     private bool _scheduledValidationRequested;
     private bool _scheduledPreviewRequested;
     private bool _clearRestoreVisualsAfterScheduledPreview;
@@ -518,6 +520,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     ];
 
     public bool IsRebuildingPropertyGrid => _isRebuildingPropertyGrid;
+
+    /// <summary>
+    /// 指示选择集合尚在更新；View 在最终的集合通知中统一重建交互层。
+    /// </summary>
+    internal bool IsUpdatingDesignSelection => _isApplyingDesignSelection;
 
     [ObservableProperty]
     public partial FrontedDesignerWindowOption? SelectedWindow { get; set; }
@@ -1105,7 +1112,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         BehaviorPanel.SetSelectedControl(SelectedDesignItems.Count > 1 ? null : value);
         RefreshSelectedControlDisplay();
         RebuildAnimationPartEditorItems();
-        RebuildPropertyEditorItems();
+        // 选择不修改布局；复用最近校验结果，避免选中一行时重新校验全部图片。
+        RebuildPropertyEditorItems(_lastValidationMessages);
         RefreshLayerNodeSelection();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
         CopySelectedControlCommand.NotifyCanExecuteChanged();

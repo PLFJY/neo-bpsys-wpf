@@ -30,7 +30,7 @@ public sealed partial class PaddleOcrProvider
     /// </summary>
     public void StartLoadingPreferredModel()
     {
-        if (_isModelLoading || _ocr != null)
+        if (_disposed || _isModelLoading || _ocr != null)
             return;
         _ = Task.Run(TryLoadPreferredModel);
     }
@@ -82,6 +82,7 @@ public sealed partial class PaddleOcrProvider
 
         lock (_downloadLock)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (IsDownloading)
             {
                 throw new InvalidOperationException(L("SmartBpOcrDownloadAlreadyInProgress"));
@@ -274,63 +275,75 @@ public sealed partial class PaddleOcrProvider
     public bool TrySwitchOcrModel(string modelKey, out string errorMessage)
     {
         errorMessage = string.Empty;
-
-        if (!SmartBpOcrModelRegistry.TryGet(modelKey, out var definition))
+        // Predictor 的创建也会使用 Paddle/oneDNN 的原生状态，必须与推理、重建和释放串行。
+        lock (_ocrLock)
         {
-            errorMessage = Lf("SmartBpOcrUnsupportedModelFormat", modelKey);
-            return false;
-        }
+            if (_disposed) return false;
 
-        if (!SmartBpOcrModelRegistry.IsModelInstalled(modelKey))
-        {
-            errorMessage = L("SmartBpOcrModelFilesIncomplete");
-            return false;
-        }
-
-        try
-        {
-            var fullModel = BuildLocalFullModel(modelKey, definition);
-            var deviceConfig = CreatePaddleDevice();
-
-            // 记录真实 Predictor 创建的后端信息，补全 "DLL 加载成功" 与 "模型在 GPU 上可用" 之间的日志断点。
-            _logger.LogInformation(
-                "Creating PaddleOcrAll predictor. Model={Model}; Backend={Backend}; CudaDeviceId={DeviceId}; NativeModule={Module}",
-                modelKey,
-                _runtimeState.ActiveBackend,
-                _runtimeState.ActiveCudaDeviceId,
-                _runtimeState.LoadedNativeModulePath);
-
-            var nextOcr = new PaddleOcrAll(fullModel, deviceConfig);
-
-            lock (_ocrLock)
+            if (!SmartBpOcrModelRegistry.TryGet(modelKey, out var definition))
             {
+                errorMessage = Lf("SmartBpOcrUnsupportedModelFormat", modelKey);
+                return false;
+            }
+
+            if (!SmartBpOcrModelRegistry.IsModelInstalled(modelKey))
+            {
+                errorMessage = L("SmartBpOcrModelFilesIncomplete");
+                return false;
+            }
+
+            try
+            {
+                var fullModel = BuildLocalFullModel(modelKey, definition);
+                var deviceConfig = CreatePaddleDevice();
+
+                // 记录真实 Predictor 创建的后端信息，补全 "DLL 加载成功" 与 "模型在 GPU 上可用" 之间的日志断点。
+                _logger.LogInformation(
+                    "Creating PaddleOcrAll predictor. Model={Model}; Backend={Backend}; CudaDeviceId={DeviceId}; NativeModule={Module}",
+                    modelKey,
+                    _runtimeState.ActiveBackend,
+                    _runtimeState.ActiveCudaDeviceId,
+                    _runtimeState.LoadedNativeModulePath);
+
+                var nextOcr = new PaddleOcrAll(fullModel, deviceConfig);
+
                 _ocr?.Dispose();
                 _ocr = nextOcr;
                 _ocr.AllowRotateDetection = false;
                 _ocr.Enable180Classification = false;
-            }
 
-            // PaddleOcrAll 构造成功 = det/cls/rec 三个 Predictor 均在当前后端成功创建。
-            // 仅此时才标记后端已验证，避免 UI 在 Predictor 实际不可用时宣称 CUDA 已启用。
-            if (_runtimeState is PaddleRuntimeState concreteState)
+                // PaddleOcrAll 构造成功 = det/cls/rec 三个 Predictor 均在当前后端成功创建。
+                // 仅此时才标记后端已验证，避免 UI 在 Predictor 实际不可用时宣称 CUDA 已启用。
+                if (_runtimeState is PaddleRuntimeState concreteState)
+                {
+                    concreteState.SetPaddleBackendVerified(true);
+                }
+
+                _missingModelWarningShown = 0;
+                CurrentOcrModelKey = modelKey;
+            }
+            catch (Exception ex)
             {
-                concreteState.SetPaddleBackendVerified(true);
+                // Predictor 构造失败：标记后端未验证，并记录诊断信息。
+                // 不在此处设置 ForceCpuForNextLaunch（构造失败可能是模型问题而非 CUDA runtime 问题），
+                // 仅在 RecordCudaFailureIfNeeded 判定为确定性 CUDA runtime 故障时才触发一次性回退。
+                if (_runtimeState is PaddleRuntimeState concreteState)
+                {
+                    concreteState.SetPaddleBackendVerified(false);
+                }
+                errorMessage = Lf("SmartBpOcrLoadFailedFormat", ex.Message);
+                return false;
             }
-
-            _missingModelWarningShown = 0;
-            CurrentOcrModelKey = modelKey;
+        }
+        // 设置通知可能回到 UI，必须在释放原生运行锁后发布。
+        try
+        {
             PersistCurrentModel(modelKey);
             return true;
         }
         catch (Exception ex)
         {
-            // Predictor 构造失败：标记后端未验证，并记录诊断信息。
-            // 不在此处设置 ForceCpuForNextLaunch（构造失败可能是模型问题而非 CUDA runtime 问题），
-            // 仅在 RecordCudaFailureIfNeeded 判定为确定性 CUDA runtime 故障时才触发一次性回退。
-            if (_runtimeState is PaddleRuntimeState concreteState)
-            {
-                concreteState.SetPaddleBackendVerified(false);
-            }
+            _logger.LogError(ex, "Failed to persist selected OCR model: {ModelKey}", modelKey);
             errorMessage = Lf("SmartBpOcrLoadFailedFormat", ex.Message);
             return false;
         }

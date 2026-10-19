@@ -81,7 +81,7 @@ public partial class FrontedDesignerWindowViewModel
         {
             BehaviorPanel.CurrentDocument.WindowType = CurrentDocument?.WindowTypeName;
             BehaviorPanel.CurrentDocument.CanvasName = CurrentDocument?.CanvasName;
-            await _behaviorService.SaveDocumentAsync(BehaviorPanel.CurrentDocument).ConfigureAwait(false);
+            await _behaviorService.SaveDocumentAsync(BehaviorPanel.CurrentDocument);
             AreBehaviorsDirty = false;
             RefreshDirtyState();
             return true;
@@ -123,6 +123,8 @@ public partial class FrontedDesignerWindowViewModel
         BehaviorPanel.SetSelectedControl(SelectedDesignItem);
     }
 
+    /// <summary>将当前预览视觉树设为动画目标作用域。</summary>
+    /// <param name="previewRoot">预览根元素。</param>
     public void UpdateBehaviorPreviewAnimationScope(FrameworkElement previewRoot)
     {
         _previewAnimationScope?.Update(
@@ -134,8 +136,37 @@ public partial class FrontedDesignerWindowViewModel
             BehaviorPanel.CurrentDocument);
     }
 
+    /// <summary>仅同步当前选择的动画 Self 身份，不扫描整个预览树。</summary>
+    internal void UpdateBehaviorPreviewSelection() => _previewAnimationScope?.UpdateSelection(SelectedDesignItem);
+
+    /// <summary>释放预览动画会话并清除预览视觉树引用。</summary>
     public void ClearBehaviorPreviewAnimationScope()
     {
-        _previewAnimationScope?.Clear();
+        try
+        {
+            if (_previewAnimationScope?.Root is { } root)
+                _animationRuntime?.Release(root);
+        }
+        finally { _previewAnimationScope?.Clear(); }
+    }
+
+    /// <summary>结束关闭窗口的预览会话，取消未完成的布局加载并释放预览作用域。</summary>
+    public void EndDesignerPreviewSession()
+    {
+        _scheduledDesignerWorkOperation?.Abort();
+        _scheduledDesignerWorkOperation = null;
+        _scheduledValidationAndPreviewPending = false;
+        _scheduledValidationRequested = false;
+        _scheduledPreviewRequested = false;
+        _clearRestoreVisualsAfterScheduledPreview = false;
+        try
+        {
+            ++_reloadLayoutVersion;
+            var cancellation = _reloadLayoutCancellation;
+            _reloadLayoutCancellation = null;
+            try { cancellation?.Cancel(); }
+            finally { cancellation?.Dispose(); }
+        }
+        finally { ClearBehaviorPreviewAnimationScope(); }
     }
 }

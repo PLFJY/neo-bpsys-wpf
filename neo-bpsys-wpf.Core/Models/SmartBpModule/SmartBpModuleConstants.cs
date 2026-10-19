@@ -25,6 +25,9 @@ public static class SmartBpModuleConstants
     /// </summary>
     public const string EntryAssemblyName = "neo-bpsys-wpf.SmartBp.Module.dll";
 
+    /// <summary>本地和远程模块 JSON 清单的最大 UTF-8 字节数（8 MiB）。</summary>
+    public const int MaxManifestBytes = 8 * 1024 * 1024;
+
     /// <summary>
     /// SmartBP 赛后数据自动回填功能命令标识符。
     /// </summary>

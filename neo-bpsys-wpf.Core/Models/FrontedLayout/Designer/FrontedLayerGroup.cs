@@ -8,6 +8,12 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 /// </summary>
 public class FrontedLayerGroup : ObservableObject
 {
+    /// <summary>初始化图层分组，并随条目增减更新控件数量。</summary>
+    public FrontedLayerGroup()
+    {
+        Items.CollectionChanged += (_, _) => OnPropertyChanged(nameof(Count));
+    }
+
     private bool _isExpanded = true;
     private bool _isDropTarget;
 

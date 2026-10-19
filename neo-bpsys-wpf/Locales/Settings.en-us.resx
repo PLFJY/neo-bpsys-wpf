@@ -306,6 +306,12 @@
   <data name="SmartBpModuleReinstall" xml:space="preserve">
     <value>Reinstall</value>
   </data>
+  <data name="SmartBpModuleRepairAndInstall" xml:space="preserve">
+    <value>Download again and repair</value>
+  </data>
+  <data name="SmartBpModuleIncompleteDescription" xml:space="preserve">
+    <value>SmartBP module files are missing, damaged, or incompletely installed. Download and install again to repair the module. Existing OCR models will be kept.</value>
+  </data>
   <data name="SmartBpModuleUpdateAndInstall" xml:space="preserve">
     <value>Update and install</value>
   </data>

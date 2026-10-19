@@ -52,7 +52,7 @@ public sealed partial class SmartBpModuleManager
         => PostGameRecognitionProgressChanged?.Invoke(sender, e);
 
     /// <summary>
-    /// 校验模块目录。
+    /// 校验模块目录的兼容性与文件大小；完整 SHA-256 校验由加载、安装和迁移流程在后台执行。
     /// </summary>
     /// <param name="moduleRoot">模块根目录。</param>
     /// <param name="allowDevelopmentDirectory">是否允许调试开发目录。</param>
@@ -64,6 +64,34 @@ public sealed partial class SmartBpModuleManager
         bool allowDevelopmentDirectory,
         out SmartBpModuleManifest? manifest,
         out string error)
+        => ValidateModuleDirectoryCore(moduleRoot, allowDevelopmentDirectory, out manifest, out error, verifyHashes: false);
+
+    private bool ValidateModuleDirectoryCore(
+        string moduleRoot,
+        bool allowDevelopmentDirectory,
+        out SmartBpModuleManifest? manifest,
+        out string error,
+        bool verifyHashes)
+    {
+        try
+        {
+            return ValidateModuleDirectoryContents(moduleRoot, allowDevelopmentDirectory, out manifest, out error, verifyHashes);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or JsonException or ArgumentException or NotSupportedException)
+        {
+            manifest = null;
+            error = $"Module integrity check failed: {FormatExceptionForUser(ex)}";
+            _logger.LogWarning(ex, "Failed to inspect SmartBP module files. ModuleRoot={ModuleRoot}", moduleRoot);
+            return false;
+        }
+    }
+
+    private bool ValidateModuleDirectoryContents(
+        string moduleRoot,
+        bool allowDevelopmentDirectory,
+        out SmartBpModuleManifest? manifest,
+        out string error,
+        bool verifyHashes)
     {
         manifest = null;
         error = string.Empty;
@@ -75,7 +103,7 @@ public sealed partial class SmartBpModuleManager
         }
 
         var entryAssembly = Path.Combine(moduleRoot, SmartBpModuleConstants.EntryAssemblyName);
-        if (!File.Exists(entryAssembly))
+        if (!File.Exists(entryAssembly) || new FileInfo(entryAssembly).Length == 0)
         {
             error = "Module entry assembly is missing.";
             _logger.LogDebug("SmartBP module directory validation failed: {Error} EntryAssembly={EntryAssembly}", error, entryAssembly);
@@ -92,7 +120,13 @@ public sealed partial class SmartBpModuleManager
             return allowDevelopmentDirectory;
         }
 
-        manifest = JsonSerializer.Deserialize<SmartBpModuleManifest>(File.ReadAllText(componentPath), JsonOptions);
+        using (var stream = new FileStream(componentPath, FileMode.Open, FileAccess.Read, FileShare.Read,
+                   bufferSize: 16 * 1024, FileOptions.SequentialScan))
+        {
+            if (stream.Length > SmartBpModuleConstants.MaxManifestBytes)
+                throw new InvalidDataException("Module manifest exceeds the 8 MiB size limit.");
+            manifest = JsonSerializer.Deserialize<SmartBpModuleManifest>(stream, JsonOptions);
+        }
         if (manifest == null || manifest.ComponentId != SmartBpModuleConstants.ComponentId)
         {
             error = "ComponentId mismatch.";
@@ -117,6 +151,9 @@ public sealed partial class SmartBpModuleManager
                 SmartBpModuleConstants.RuntimeAbiVersion);
             return false;
         }
+
+        if (!ValidateModuleFileIntegrity(moduleRoot, manifest.Integrity, out error, verifyHashes))
+            return false;
 
         _logger.LogDebug(
             "SmartBP module directory validation succeeded. ModuleRoot={ModuleRoot}, ModuleVersion={ModuleVersion}, RuntimeAbiVersion={RuntimeAbiVersion}, Rid={Rid}",

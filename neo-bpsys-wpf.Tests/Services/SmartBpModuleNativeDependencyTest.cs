@@ -49,6 +49,24 @@ public sealed class SmartBpModuleNativeDependencyTest : IDisposable
         Assert.Null(actual);
     }
 
+    /// <summary>验证 Tesseract 的 x64 布局可用，且其他平台或架构的同名库不会被选中。</summary>
+    [Fact]
+    public void FindModuleUnmanagedLibraryPath_UsesTesseractX64AndRejectsForeignRuntimeAssets()
+    {
+        foreach (var rid in new[] { "win-arm64", "win-x86", "linux-x64" })
+        {
+            var foreignRoot = Path.Combine(_root, "runtimes", rid, "native");
+            Directory.CreateDirectory(foreignRoot);
+            File.WriteAllBytes(Path.Combine(foreignRoot, "tesseract50.dll"), []);
+        }
+        Assert.Null(SmartBpModuleManager.FindModuleUnmanagedLibraryPath(_root, "tesseract50"));
+
+        var expected = Path.Combine(_root, "x64", "tesseract50.dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(expected)!);
+        File.WriteAllBytes(expected, []);
+        Assert.Equal(expected, SmartBpModuleManager.FindModuleUnmanagedLibraryPath(_root, "tesseract50"));
+    }
+
     [Fact]
     public void FindModuleUnmanagedLibraryPath_FindsModuleOwnedPaddleCpuRuntime()
     {

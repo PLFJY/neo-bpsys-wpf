@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -49,8 +50,9 @@ public class TeamColorAndShapeTest
         Assert.Equal("#80ABCDEF", target.ColorHex);
     }
 
+    /// <summary>等待导入完成后验证旧 JSON 使用目标队伍的默认颜色。</summary>
     [Fact]
-    public void TeamJsonImportUsesTargetDefaultWhenColorIsMissing()
+    public async Task TeamJsonImportUsesTargetDefaultWhenColorIsMissing()
     {
         var target = new Team(Camp.Hun, TeamType.AwayTeam) { ColorHex = "#FF000000" };
         var filePath = WriteTeamJson("""{"Name":"Away","ImageUri":"","SurMemberList":[],"HunMemberList":[]}""");
@@ -59,7 +61,7 @@ public class TeamColorAndShapeTest
         {
             var viewModel = CreateTeamInfoViewModel(target, filePath);
 
-            viewModel.ImportInfoFromJsonCommand.Execute(null);
+            await viewModel.ImportInfoFromJsonCommand.ExecuteAsync(null);
 
             Assert.Equal(Team.DefaultAwayColorHex, target.ColorHex);
         }
@@ -69,8 +71,9 @@ public class TeamColorAndShapeTest
         }
     }
 
+    /// <summary>等待导入完成后验证显式颜色保持原值。</summary>
     [Fact]
-    public void TeamJsonImportPreservesExplicitColor()
+    public async Task TeamJsonImportPreservesExplicitColor()
     {
         var target = new Team(Camp.Hun, TeamType.AwayTeam);
         var filePath = WriteTeamJson("""{"Name":"Away","ImageUri":"","ColorHex":"#80123456","SurMemberList":[],"HunMemberList":[]}""");
@@ -79,7 +82,7 @@ public class TeamColorAndShapeTest
         {
             var viewModel = CreateTeamInfoViewModel(target, filePath);
 
-            viewModel.ImportInfoFromJsonCommand.Execute(null);
+            await viewModel.ImportInfoFromJsonCommand.ExecuteAsync(null);
 
             Assert.Equal("#80123456", target.ColorHex);
         }

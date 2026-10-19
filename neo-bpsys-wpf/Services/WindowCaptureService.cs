@@ -26,8 +26,11 @@ namespace neo_bpsys_wpf.Services;
 /// 窗口捕获服务。
 /// 该服务统一负责窗口枚举、WGC 捕获生命周期管理、最新帧缓存以及预览窗口展示。
 /// </summary>
-public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, INavigationService navigationService) : IWindowCaptureService
+public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, INavigationService navigationService) : IWindowCaptureService, IDisposable
 {
+    private readonly Lock _captureResourceLock = new();
+    private int _captureGeneration;
+    private int _disposed;
     private const int WgcMinimumBuild = 17134; // Windows 10 1803
     private const int WgcHwndInteropMinimumBuild = 18362; // Windows 10 1903
 
@@ -52,6 +55,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
 
     // 当前捕获目标（窗口/显示器）对应的 GraphicsCaptureItem。
     private GraphicsCaptureItem? _captureItem;
+    private Dispatcher? _captureDispatcher;
 
     // 用于检测尺寸变化，尺寸变化后要重建 FramePool。
     private SizeInt32 _currentCaptureSize;
@@ -178,6 +182,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     /// <returns>启动成功返回 <see langword="true"/>；失败返回 <see langword="false"/>。</returns>
     public bool StartCapture(WindowInfo? window, CaptureMethod captureMethod)
     {
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         // 没有选中窗口时直接失败，比后续空引用更可控、更易理解。
         if (window is null)
         {
@@ -203,6 +208,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     /// <returns>启动成功返回 <see langword="true"/>；用户取消或失败返回 <see langword="false"/>。</returns>
     public async Task<bool> StartCaptureWithPickerAsync()
     {
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         // WGC 是系统能力，先判断支持性，避免后续调用抛平台异常。
         if (!IsWgcApiAvailable())
         {
@@ -232,6 +238,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
             // 用户点击取消属于正常流程，不作为异常处理。
             if (item == null)
                 return false;
+            if (Volatile.Read(ref _disposed) != 0) return false;
 
             StopCapture();
             // Picker 返回的 GraphicsCaptureItem 不直接暴露 HWND；
@@ -324,7 +331,11 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         };
         _previewTimer.Tick += (_, _) =>
         {
-            if (!IsCapturing) _previewWindow.Close();
+            if (!IsCapturing)
+            {
+                _previewWindow?.Close();
+                return;
+            }
             var frame = GetCurrentFrame();
             if (frame != null && _previewImage != null)
             {
@@ -334,8 +345,9 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         };
         _previewTimer.Start();
 
-        _previewWindow.Closed += (_, _) =>
+        _previewWindow.Closed += (sender, _) =>
         {
+            if (!ReferenceEquals(_previewWindow, sender)) return;
             // 关闭窗口时及时解绑/回收，避免定时器继续引用 UI 对象造成泄漏。
             if (_previewTimer is not null)
             {
@@ -355,7 +367,28 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     /// </summary>
     public void StopCapture()
     {
-        _previewWindow?.Close();
+        lock (_frameLock)
+        {
+            Interlocked.Increment(ref _captureGeneration);
+            IsCapturing = false;
+            _currentFrame = null;
+        }
+        _previewTimer?.Stop();
+        _previewTimer = null;
+        var previewWindow = _previewWindow;
+        _previewWindow = null;
+        _previewImage = null;
+        if (previewWindow is not null)
+        {
+            void ClosePreview()
+            {
+                try { previewWindow.Close(); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to close capture preview."); }
+            }
+            if (previewWindow.Dispatcher.CheckAccess()) ClosePreview();
+            else if (!previewWindow.Dispatcher.HasShutdownStarted)
+                previewWindow.Dispatcher.BeginInvoke(new Action(ClosePreview));
+        }
         if (_bitbltTimer != null)
         {
             // 停止并解绑 BitBlt 定时器，防止停止后仍持续抓帧。
@@ -367,28 +400,51 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         _bitbltTargetHwnd = HWND.Zero;
         _captureTargetHwnd = HWND.Zero;
 
-        if (_framePool != null)
+        Direct3D11CaptureFramePool? framePool;
+        GraphicsCaptureSession? captureSession;
+        lock (_captureResourceLock)
         {
-            // 先解订阅事件，避免对象释放后仍触发回调。
-            _framePool.FrameArrived -= OnFrameArrived;
+            framePool = _framePool;
+            captureSession = _captureSession;
+            if (framePool != null)
+            {
+                // 先解订阅事件，避免对象释放后仍触发回调。
+                framePool.FrameArrived -= OnFrameArrived;
+            }
+
+            // 捕获相关对象内部持有原生资源，显式释放可更快归还系统资源。
+            _captureSession = null;
+
+            _framePool = null;
+
+            if (_captureItem is not null) _captureItem.Closed -= OnCaptureItemClosed;
+            _captureItem = null;
+            _captureDispatcher = null;
+
+            // 释放复用的 staging 资源，避免停止捕获后仍持有 D3D 纹理和大缓冲区。
+            _stagingTexture?.Dispose();
+            _stagingTexture = null;
+            _stagingBuffer = null;
+            _stagingWidth = 0;
+            _stagingHeight = 0;
+
         }
+        // Callbacks already in flight now see a different pool. Dispose outside the callback lock.
+        captureSession?.Dispose();
+        framePool?.Dispose();
+    }
 
-        // 捕获相关对象内部持有原生资源，显式释放可更快归还系统资源。
-        _captureSession?.Dispose();
-        _captureSession = null;
-
-        _framePool?.Dispose();
-        _framePool = null;
-
-        _captureItem = null;
-
-        // 释放复用的 staging 资源，避免停止捕获后仍持有 D3D 纹理和大缓冲区。
-        _stagingTexture?.Dispose();
-        _stagingTexture = null;
-        _stagingBuffer = null;
-        _stagingWidth = 0;
-        _stagingHeight = 0;
-
-        IsCapturing = false;
+    /// <summary>结束服务生命周期，释放跨捕获会话复用的 Direct3D 设备。</summary>
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        StopCapture();
+        lock (_captureResourceLock)
+        {
+            _d3dDevice?.Dispose();
+            _d3dDevice = null;
+            _winrtDevice?.Dispose();
+            _winrtDevice = null;
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -68,7 +69,7 @@ public static class FrontedEffectHostFactory
 
     internal static FrameworkElement ResolveLayoutCarrier(FrameworkElement element)
     {
-        var host = FindEffectHost(element);
+        FrameworkElement? host = element is FrontedV3ControlHost ? element : FindEffectHost(element);
         if (host is null)
         {
             return element;

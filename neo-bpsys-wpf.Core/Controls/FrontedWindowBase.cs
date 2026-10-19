@@ -38,6 +38,12 @@ public class FrontedWindowBase : Window
     private bool _allowServiceClose;
     private FrontedWindowConfig? _lastRenderedConfig;
     private readonly SemaphoreSlim _layoutLoadGate = new(1, 1);
+    private readonly SemaphoreSlim _behaviorLifecycleGate = new(1, 1);
+    private readonly CancellationTokenSource _windowLifetime = new();
+    private CancellationTokenSource? _behaviorAttachCancellation;
+    private Task _pendingBehaviorDetach = Task.CompletedTask;
+    private int _behaviorGeneration;
+    private bool _isClosed;
 
     private bool _isInternalContentChange = false;
 
@@ -304,7 +310,7 @@ public class FrontedWindowBase : Window
     /// <returns>内容渲染或复用完成后完成的任务。</returns>
     public async Task LoadOrReloadContentAsync(bool force = false)
     {
-        if (!_isV3LayoutHost
+        if (_isClosed || !_isV3LayoutHost
             || _v3CanonicalWindowId is null
             || _layoutService is null
             || _renderer is null
@@ -314,9 +320,13 @@ public class FrontedWindowBase : Window
             return;
         }
 
-        await _layoutLoadGate.WaitAsync();
+        var token = _windowLifetime.Token;
+        var entered = false;
         try
         {
+            await _layoutLoadGate.WaitAsync(token);
+            entered = true;
+            token.ThrowIfCancellationRequested();
             if (!force && IsContentRendered && !IsLayoutDirty)
             {
                 if (!IsBehaviorAttached)
@@ -327,7 +337,7 @@ public class FrontedWindowBase : Window
                 return;
             }
 
-            var config = await _layoutService.LoadWindowConfigAsync(_v3CanonicalWindowId);
+            var config = await _layoutService.LoadWindowConfigAsync(_v3CanonicalWindowId, token);
             if (config is null)
             {
                 _logger?.LogWarning(
@@ -338,6 +348,7 @@ public class FrontedWindowBase : Window
 
             await RunOnDispatcherAsync(async () =>
             {
+                token.ThrowIfCancellationRequested();
                 ApplyCanvasSettings(config.CanvasSettings);
                 var settings = _settingsHostService?.Settings;
                 _v3DisplayName = FrontedWindowDisplayNameResolver.ResolveDisplayName(
@@ -347,6 +358,7 @@ public class FrontedWindowBase : Window
                     GetV3DisplayNameFallback());
                 RefreshV3WindowTitle();
                 await DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason.LayoutReloaded);
+                token.ThrowIfCancellationRequested();
                 _renderer.RenderToCanvas(_baseCanvas, config, new FrontedRenderContext
                 {
                     WindowId = _v3CanonicalWindowId,
@@ -360,6 +372,9 @@ public class FrontedWindowBase : Window
                 await AttachBehaviorRuntimeAsync();
             });
         }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+        }
         catch (Exception ex)
         {
             _logger?.LogError(
@@ -369,7 +384,7 @@ public class FrontedWindowBase : Window
         }
         finally
         {
-            _layoutLoadGate.Release();
+            if (entered) _layoutLoadGate.Release();
         }
     }
 
@@ -396,7 +411,7 @@ public class FrontedWindowBase : Window
     /// <returns>行为运行时附加完成后完成的任务。</returns>
     public async Task AttachBehaviorRuntimeAsync()
     {
-        if (!_isV3LayoutHost
+        if (_isClosed || !_isV3LayoutHost
             || _v3CanonicalWindowId is null
             || _sharedDataService is null
             || _baseCanvas is null
@@ -410,17 +425,36 @@ public class FrontedWindowBase : Window
 
         await RunOnDispatcherAsync(async () =>
         {
-            await _behaviorRuntime.AttachAsync(new FrontedBehaviorRuntimeContext
+            var generation = _behaviorGeneration;
+            await _pendingBehaviorDetach;
+            await _behaviorLifecycleGate.WaitAsync();
+            try
             {
-                WindowId = _v3CanonicalWindowId,
-                WindowType = _v3CanonicalWindowId,
-                RootCanvas = _baseCanvas,
-                WindowConfig = _lastRenderedConfig,
-                SharedDataService = _sharedDataService,
-                IsDesignerPreview = false,
-                Logger = _logger
-            });
-            IsBehaviorAttached = true;
+                if (_isClosed || !IsVisible || generation != _behaviorGeneration || IsBehaviorAttached) return;
+                using var cancellation = new CancellationTokenSource();
+                _behaviorAttachCancellation = cancellation;
+                try
+                {
+                    await _behaviorRuntime.AttachAsync(new FrontedBehaviorRuntimeContext
+                    {
+                        WindowId = _v3CanonicalWindowId,
+                        WindowType = _v3CanonicalWindowId,
+                        RootCanvas = _baseCanvas,
+                        WindowConfig = _lastRenderedConfig,
+                        SharedDataService = _sharedDataService,
+                        IsDesignerPreview = false,
+                        Logger = _logger
+                    }, cancellation.Token);
+                    IsBehaviorAttached = !_isClosed && IsVisible && generation == _behaviorGeneration;
+                    if (!IsBehaviorAttached) await _behaviorRuntime.DetachAsync(_v3CanonicalWindowId);
+                }
+                catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+                {
+                    await _behaviorRuntime.DetachAsync(_v3CanonicalWindowId);
+                }
+                finally { _behaviorAttachCancellation = null; }
+            }
+            finally { _behaviorLifecycleGate.Release(); }
         });
     }
 
@@ -515,6 +549,9 @@ public class FrontedWindowBase : Window
 
     private void OnV3HostClosed(object? sender, EventArgs e)
     {
+        _isClosed = true;
+        _windowLifetime.Cancel();
+        _windowLifetime.Dispose();
         UnsubscribeBoModeChanged();
         if (_isApplicationThemeSubscribed)
         {
@@ -665,16 +702,38 @@ public class FrontedWindowBase : Window
         _ = DetachBehaviorRuntimeAsync(reason);
     }
 
-    private async Task DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason reason = FrontedBehaviorStopReason.WindowHidden)
+    private Task DetachBehaviorRuntimeAsync(FrontedBehaviorStopReason reason = FrontedBehaviorStopReason.WindowHidden)
     {
-        if (_v3CanonicalWindowId is null || _behaviorRuntime is null || !IsBehaviorAttached)
+        ++_behaviorGeneration;
+        _behaviorAttachCancellation?.Cancel();
+        return _pendingBehaviorDetach = DetachBehaviorRuntimeCoreAsync(reason);
+    }
+
+    private async Task DetachBehaviorRuntimeCoreAsync(FrontedBehaviorStopReason reason)
+    {
+        if (_v3CanonicalWindowId is null || _behaviorRuntime is null)
         {
             return;
         }
-
-        await _behaviorRuntime.StopLoopBehaviorsAsync(_v3CanonicalWindowId, reason);
-        await _behaviorRuntime.DetachAsync(_v3CanonicalWindowId);
-        IsBehaviorAttached = false;
+        await _behaviorLifecycleGate.WaitAsync();
+        try
+        {
+            try
+            {
+                if (IsBehaviorAttached)
+                    await _behaviorRuntime.StopLoopBehaviorsAsync(_v3CanonicalWindowId, reason);
+            }
+            finally
+            {
+                await _behaviorRuntime.DetachAsync(_v3CanonicalWindowId);
+                IsBehaviorAttached = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to detach behavior runtime for {WindowId}.", _v3CanonicalWindowId);
+        }
+        finally { _behaviorLifecycleGate.Release(); }
     }
 
     private Task RunOnDispatcherAsync(Func<Task> action)

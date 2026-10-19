@@ -15,8 +15,11 @@ namespace neo_bpsys_wpf.SmartBp.Module;
 /// <summary>
 /// SmartBP 运行时模块入口。
 /// </summary>
-public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutorialRegistrationContributor
+public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutorialRegistrationContributor, IDisposable
 {
+    private readonly object _gate = new();
+    private bool _disposed;
+    private PostGameRecognitionProgressSourceAdapter? _progressAdapter;
     private ServiceProvider? _serviceProvider;
 
     /// <inheritdoc />
@@ -32,43 +35,67 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
     /// <inheritdoc />
     public object CreateSmartBpContent(IServiceProvider hostServices)
     {
-        var logger = hostServices.GetService<ILogger<SmartBpModuleEntryPoint>>();
-        logger?.LogInformation("Creating SmartBP module content.");
-        _serviceProvider ??= BuildServices(hostServices);
-        // 在创建任何 OCR 服务前完成 Paddle native runtime 的选择与加载。
-        // 参照原 App.OnStartup 的 bootstrap，但所有权归 Module。
-        // forceCpuOcr 恒为 false：移除 --force-cpu-ocr 强制机制，靠 bootstrap 探测回退。
-        _serviceProvider.GetRequiredService<IPaddleRuntimeBootstrapper>().Bootstrap(forceCpu: false);
-        var view = ActivatorUtilities.CreateInstance<SmartBpModuleContentView>(_serviceProvider);
-        view.DataContext = _serviceProvider.GetRequiredService<SmartBpModuleContentViewModel>();
-        logger?.LogInformation("SmartBP module content created.");
-        return view;
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var logger = hostServices.GetService<ILogger<SmartBpModuleEntryPoint>>();
+            logger?.LogInformation("Creating SmartBP module content.");
+            _serviceProvider ??= BuildServices(hostServices);
+            // 在创建任何 OCR 服务前完成 Paddle native runtime 的选择与加载。
+            // 参照原 App.OnStartup 的 bootstrap，但所有权归 Module。
+            // forceCpuOcr 恒为 false：移除 --force-cpu-ocr 强制机制，靠 bootstrap 探测回退。
+            _serviceProvider.GetRequiredService<IPaddleRuntimeBootstrapper>().Bootstrap(forceCpu: false);
+            var view = ActivatorUtilities.CreateInstance<SmartBpModuleContentView>(_serviceProvider);
+            view.DataContext = _serviceProvider.GetRequiredService<SmartBpModuleContentViewModel>();
+            logger?.LogInformation("SmartBP module content created.");
+            return view;
+        }
+    }
+
+    /// <summary>释放模块内部服务和进度适配器；宿主桥接服务仍由宿主拥有。</summary>
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _progressAdapter?.Dispose();
+            _progressAdapter = null;
+            try { _serviceProvider?.Dispose(); }
+            finally { _serviceProvider = null; }
+        }
     }
 
     /// <inheritdoc />
     public IReadOnlyList<SmartBpFeatureCommand> GetFeatureCommands()
     {
-        if (_serviceProvider == null)
-            return [];
+        lock (_gate)
+        {
+            if (_serviceProvider == null)
+                return [];
 
-        var service = _serviceProvider.GetRequiredService<ISmartBpService>();
-        return
-        [
-            new SmartBpFeatureCommand(
-                SmartBpModuleConstants.AutoFillGameDataCommandId,
-                "AutoDetectAndFillPostGameData",
-                service.AutoFillGameDataAsync)
-        ];
+            var service = _serviceProvider.GetRequiredService<ISmartBpService>();
+            return
+            [
+                new SmartBpFeatureCommand(
+                    SmartBpModuleConstants.AutoFillGameDataCommandId,
+                    "AutoDetectAndFillPostGameData",
+                    service.AutoFillGameDataAsync)
+            ];
+        }
     }
 
     /// <inheritdoc />
     public ISmartBpPostGameRecognitionProgressSource? GetPostGameRecognitionProgressSource()
     {
-        if (_serviceProvider == null)
-            return null;
+        lock (_gate)
+        {
+            if (_serviceProvider == null)
+                return null;
 
-        var inner = _serviceProvider.GetRequiredService<IPostGameRecognitionProgressSource>();
-        return PostGameRecognitionProgressSourceAdapter.Create(inner);
+            var inner = _serviceProvider.GetRequiredService<IPostGameRecognitionProgressSource>();
+            return _progressAdapter ??= PostGameRecognitionProgressSourceAdapter.Create(inner);
+        }
     }
 
     /// <summary>
@@ -78,6 +105,8 @@ public sealed class SmartBpModuleEntryPoint : ISmartBpModuleEntryPoint, ITutoria
     /// <returns>模块内部服务容器。</returns>
     private static ServiceProvider BuildServices(IServiceProvider hostServices)
     {
+        // 在任何 Provider 或 UI 访问静态模型注册表前绑定本次实际加载的模块目录。
+        SmartBpOcrModelRegistry.ConfigurePathProvider(hostServices.GetRequiredService<ISmartBpOcrModelPathProvider>());
         var services = new ServiceCollection();
         var loggerFactory = hostServices.GetRequiredService<ILoggerFactory>();
 

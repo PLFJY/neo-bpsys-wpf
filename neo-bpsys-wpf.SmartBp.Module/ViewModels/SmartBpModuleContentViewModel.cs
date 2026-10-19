@@ -23,8 +23,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 /// <summary>
 /// SmartBP 页面视图模型，管理窗口捕获、OCR 模型下载/切换/删除、识别区域配置等 SmartBP 核心功能。
 /// </summary>
-public partial class SmartBpModuleContentViewModel : ViewModelBase
+public partial class SmartBpModuleContentViewModel : ViewModelBase, IDisposable
 {
+    private int _disposed;
     // WGC API 可用最低版本：Windows 10 1803。
     private const int WgcMinimumBuild = 17134; // Windows 10 1803
 
@@ -139,8 +140,8 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         _paddleRuntimeState = paddleRuntimeState;
         _settingsHostService = settingsHostService;
         _globalRestartService = globalRestartService;
-        _gameDataRecognitionDebugState.SnapshotChanged += (_, _) => BeginOnUiThread(RefreshGameDataRecognitionDebugText);
-        _postGameRecognitionProgressSource.ProgressChanged += (_, e) => BeginOnUiThread(() => ApplyPostGameRecognitionProgress(e.Progress));
+        _gameDataRecognitionDebugState.SnapshotChanged += OnRecognitionSnapshotChanged;
+        _postGameRecognitionProgressSource.ProgressChanged += OnRecognitionProgressChanged;
         RefreshGameDataRecognitionDebugText();
         ApplyPostGameRecognitionProgress(_postGameRecognitionProgressSource.CurrentProgress);
         InitializeRecognition();
@@ -165,13 +166,58 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
 
         // 在 UI 空闲后触发后台模型加载，避免与 View 渲染竞争 loader lock。
         Application.Current?.Dispatcher?.BeginInvoke(
-            new Action(() => _ocrService.StartLoadingPreferredModel()),
+            new Action(() => { if (Volatile.Read(ref _disposed) == 0) _ocrService.StartLoadingPreferredModel(); }),
             DispatcherPriority.ApplicationIdle);
 
         // 订阅语言变化：WPFLocalizeExtension 在 Culture 切换时触发 PropertyChanged("Culture")。
         // SmartBP ViewModel 中大量字符串（CudaStatusText、OcrProviders、OcrModelList、PaddleOcrStatus 等）
         // 是初始化时一次性本地化并缓存的，语言切换后必须重新计算，否则会滞留旧语言文本。
         LocalizeDictionary.Instance.PropertyChanged += OnLocalizeCultureChanged;
+    }
+
+    private void OnRecognitionSnapshotChanged(object? sender, EventArgs e) => BeginOnUiThread(RefreshGameDataRecognitionDebugText);
+
+    private void OnRecognitionProgressChanged(object? sender, PostGameRecognitionProgressEventArgs e) =>
+        BeginOnUiThread(() => ApplyPostGameRecognitionProgress(e.Progress));
+
+    /// <summary>释放模块页面拥有的事件订阅和计时器；不释放宿主服务或 OCR Provider。</summary>
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        LocalizeDictionary.Instance.PropertyChanged -= OnLocalizeCultureChanged;
+        if (_ocrService is null) return; // Design-time instance.
+        _gameDataRecognitionDebugState.SnapshotChanged -= OnRecognitionSnapshotChanged;
+        _postGameRecognitionProgressSource.ProgressChanged -= OnRecognitionProgressChanged;
+        _ocrService.DownloadStateChanged -= OcrService_DownloadStateChanged;
+        _ocrService.ModelLoadStateChanged -= OcrService_ModelLoadStateChanged;
+        _rapidOcrModelAssetManager.StateChanged -= OnRapidOcrAssetStateChanged;
+        _tesseractDataAssetManager.StateChanged -= OnTesseractAssetStateChanged;
+        _debugLog.MessageWritten -= OnDebugMessageWritten;
+        _paddleRuntimeState.StateChanged -= OnPaddleRuntimeStateChanged;
+        _paddleRuntimeComponentService.DownloadStateChanged -= OnPaddleDownloadStateChanged;
+        _paddleCudaPrerequisiteSetupService.StatusChanged -= OnPaddlePrerequisiteStateChanged;
+        _cudaProgressTimer?.Stop();
+        _cudaProgressTimer = null;
+        _globalRestartService.RestartRequiredStateChanged -= OnRestartRequiredStateChanged;
+        _previewTimer.Stop();
+        _frameSamplingTimer.Stop();
+        _debugLogFlushTimer?.Stop();
+        try { _cudaDownloadCts?.Cancel(); }
+        catch (ObjectDisposedException) { }
+        try { _tesseractDataAssetManager.Cancel(); }
+        catch (ObjectDisposedException) { }
+        _autoRecognitionGlobalControl.Update(false);
+        _autoRecognitionCoordinator.StopAsync().GetAwaiter().GetResult();
+        _autoRecognitionCoordinator.ResetCaptureContext();
+        lock (_debugLogBufferLock) _debugLogBuffer.Clear();
+        var debugWindow = _recognitionDebugLogWindow;
+        _recognitionDebugLogWindow = null;
+        if (debugWindow is not null)
+        {
+            if (debugWindow.Dispatcher.CheckAccess()) debugWindow.Close();
+            else if (!debugWindow.Dispatcher.HasShutdownStarted)
+                debugWindow.Dispatcher.BeginInvoke(new Action(debugWindow.Close));
+        }
     }
 
     /// <summary>
@@ -410,6 +456,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
         }
 
         _windowCaptureService.StopCapture();
+        _autoRecognitionCoordinator.ResetCaptureContext();
         RefreshCommandStates();
     }
 
@@ -690,15 +737,18 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     /// 在 WPF UI 线程执行绑定属性更新。
     /// </summary>
     /// <param name="action">要执行的 UI 更新。</param>
-    private static void RunOnUiThread(Action action)
+    private void RunOnUiThread(Action action)
     {
+        if (Volatile.Read(ref _disposed) != 0) return;
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher?.HasShutdownStarted == true) return;
         if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
         {
             action();
             return;
         }
 
-        Application.Current.Dispatcher.Invoke(action);
+        dispatcher!.Invoke(() => { if (Volatile.Read(ref _disposed) == 0) action(); });
     }
 
     /// <summary>
@@ -707,8 +757,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
     /// 导致与 Windows loader lock 死锁。
     /// </summary>
     /// <param name="action">要执行的 UI 更新。</param>
-    private static void BeginOnUiThread(Action action)
+    private void BeginOnUiThread(Action action)
     {
+        if (Volatile.Read(ref _disposed) != 0) return;
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher?.HasShutdownStarted == true) return;
         if (Application.Current?.Dispatcher == null)
         {
             action();
@@ -721,7 +774,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase
             return;
         }
 
-        Application.Current.Dispatcher.BeginInvoke(action);
+        dispatcher!.BeginInvoke(() => { if (Volatile.Read(ref _disposed) == 0) action(); });
     }
 
     partial void OnSelectedOcrModelChanged(OcrModelSelection? value)

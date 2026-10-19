@@ -333,10 +333,13 @@ public partial class FrontedDesignerWindowViewModel
             }
         }
 
-        // 多选编辑：通过相同 OptionsPath 和 Schema Storage 写入所有同类型选中控件。
-        var editTargets = GetPropertyEditTargets(item.PropertyName);
+        // 共有属性使用各目标自己的 Schema Storage，避免跨控件类型时写入主选中项的存储路径。
+        var editTargets = _batchPropertyTargets.TryGetValue(item.PropertyName, out var batchTargets)
+            ? batchTargets
+            : GetPropertyEditTargets(item.PropertyName)
+                .Select(target => new BatchPropertyTarget(target, schemaProperty)).ToArray();
         var changedTargets = editTargets
-            .Where(target => !ValuesEqual(schemaProperty.GetValue(target.Config), convertedValue))
+            .Where(target => !ValuesEqual(target.Property.GetValue(target.Item.Config), convertedValue))
             .ToList();
 
         if (changedTargets.Count == 0)
@@ -347,10 +350,13 @@ public partial class FrontedDesignerWindowViewModel
             return true;
         }
 
-        CaptureUndoSnapshot();
+        if (IsGeometryProperty(item.PropertyName) && _selectedTarget.Kind == FrontedV3DesignSelectionKind.Root)
+            CaptureGeometryUndoSnapshot();
+        else
+            CaptureUndoSnapshot();
         foreach (var target in changedTargets)
         {
-            schemaProperty.SetValue(target.Config, convertedValue);
+            target.Property.SetValue(target.Item.Config, convertedValue);
         }
 
         CurrentDocument.IsDirty = true;
@@ -365,12 +371,11 @@ public partial class FrontedDesignerWindowViewModel
         {
             foreach (var target in changedTargets)
             {
-                SyncLinkedOverlays(target);
+                SyncLinkedOverlays(target.Item);
             }
         }
 
         FinishPropertyEdit(item.PropertyName, refreshPropertyGrid);
-        OnDesignItemGeometryChanged(renderPreview: true, refreshPropertyGrid: refreshPropertyGrid);
         return true;
     }
 
@@ -530,17 +535,18 @@ public partial class FrontedDesignerWindowViewModel
 
         return true;
     }
-    private void RebuildPropertyEditorItems()
+    private void RebuildPropertyEditorItems(IReadOnlyList<FrontedLayoutValidationMessage>? validationMessages = null)
     {
         _isRebuildingPropertyGrid = true;
         OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         try
         {
-            PropertyEditorItems.Clear();
             _schemaPropertiesByPath.Clear();
+            _batchPropertyTargets.Clear();
 
             if (CurrentDocument is null || SelectedDesignItem is null)
             {
+                PropertyEditorItems.Clear();
                 return;
             }
 
@@ -548,11 +554,7 @@ public partial class FrontedDesignerWindowViewModel
             // 属性行由 SelectedTarget.Properties 构造，属性编辑通过 Storage 写入。
             if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root } subTarget)
             {
-                foreach (var row in BuildSchemaPropertyEditorItems(subTarget))
-                {
-                    PropertyEditorItems.Add(row);
-                }
-
+                UpdatePropertyEditorItems(BuildSchemaPropertyEditorItems(subTarget).ToArray());
                 return;
             }
 
@@ -561,15 +563,16 @@ public partial class FrontedDesignerWindowViewModel
             // SelectedTarget 为 null 时（Missing Plugin：Registry 中未注册）同样走 BuildFromSchema，
             // 由 AddMissingPluginRows 显示诊断行，不再回退到旧反射路径扫描 Config 公共属性。
             IEnumerable<FrontedPropertyEditorItem> rows;
+            validationMessages ??= _validator.Validate(CurrentDocument);
             if (_selectedTarget is { Kind: FrontedV3DesignSelectionKind.Root } rootTarget)
             {
                 rows = _propertyGridBuilder.BuildFromSchema(
                     CurrentDocument,
                     SelectedDesignItem,
-                    _validator,
                     _referenceScanner,
                     rootTarget.Properties,
-                    _schemaPropertiesByPath);
+                    _schemaPropertiesByPath,
+                    validationMessages);
             }
             else
             {
@@ -578,15 +581,25 @@ public partial class FrontedDesignerWindowViewModel
                 rows = _propertyGridBuilder.BuildFromSchema(
                     CurrentDocument,
                     SelectedDesignItem,
-                    _validator,
                     _referenceScanner,
                     Array.Empty<FrontedV3PropertyDefinition>(),
-                    _schemaPropertiesByPath);
+                    _schemaPropertiesByPath,
+                    validationMessages);
             }
 
-            foreach (var row in rows)
+            string? currentGroup = null;
+            string? currentSection = null;
+            var updatedRows = new List<FrontedPropertyEditorItem>();
+            foreach (var row in FilterMultiSelectionPropertyRows(rows))
             {
                 ApplyMultiSelectionPropertyRowState(row);
+                // 筛选可能移除了原来的组首行，标题应跟随第一条实际显示的属性。
+                var isGroupChanged = row.GroupName != currentGroup;
+                row.IsGroupHeaderVisible = isGroupChanged;
+                row.IsSectionHeaderVisible = !string.IsNullOrWhiteSpace(row.SectionName)
+                    && (isGroupChanged || row.SectionName != currentSection);
+                currentGroup = row.GroupName;
+                currentSection = row.SectionName;
                 if (_propertyEditErrors.TryGetValue(row.PropertyName, out var editError))
                 {
                     if (_propertyEditBuffers.TryGetValue(row.PropertyName, out var editBuffer))
@@ -604,14 +617,74 @@ public partial class FrontedDesignerWindowViewModel
                         .ToArray();
                 }
 
-                PropertyEditorItems.Add(row);
+                updatedRows.Add(row);
             }
+            UpdatePropertyEditorItems(updatedRows);
         }
         finally
         {
             _isRebuildingPropertyGrid = false;
             OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         }
+    }
+
+    private void UpdatePropertyEditorItems(IReadOnlyList<FrontedPropertyEditorItem> rows)
+    {
+        var existingByPath = PropertyEditorItems.ToDictionary(row => row.PropertyName, StringComparer.Ordinal);
+        for (var index = 0; index < rows.Count; index++)
+        {
+            var next = rows[index];
+            if (existingByPath.TryGetValue(next.PropertyName, out var existing)
+                && existing.PropertyType == next.PropertyType && existing.EditorKind == next.EditorKind)
+            {
+                CopyPropertyEditorRow(existing, next);
+                var oldIndex = PropertyEditorItems.IndexOf(existing);
+                if (oldIndex != index) PropertyEditorItems.Move(oldIndex, index);
+            }
+            else
+            {
+                PropertyEditorItems.Insert(index, next);
+            }
+        }
+
+        while (PropertyEditorItems.Count > rows.Count)
+            PropertyEditorItems.RemoveAt(PropertyEditorItems.Count - 1);
+    }
+
+    private static void CopyPropertyEditorRow(FrontedPropertyEditorItem target, FrontedPropertyEditorItem source)
+    {
+        target.DisplayName = source.DisplayName;
+        target.Description = source.Description;
+        target.IsReadOnly = source.IsReadOnly;
+        target.IsEditingDisabled = source.IsEditingDisabled;
+        target.IsRequired = source.IsRequired;
+        target.GroupName = source.GroupName;
+        target.GroupDisplayName = source.GroupDisplayName;
+        target.IsGroupHeaderVisible = source.IsGroupHeaderVisible;
+        target.SectionName = source.SectionName;
+        target.SectionDisplayName = source.SectionDisplayName;
+        target.IsSectionHeaderVisible = source.IsSectionHeaderVisible;
+        target.CanBrowseBinding = source.CanBrowseBinding;
+        target.CanBrowseResource = source.CanBrowseResource;
+        target.IsMultiSelectionMixedValue = source.IsMultiSelectionMixedValue;
+        target.IsMultiSelectionBatchEditable = source.IsMultiSelectionBatchEditable;
+        target.RequiresExplicitCommit = source.RequiresExplicitCommit;
+        target.CanToggleInheritance = source.CanToggleInheritance;
+        target.IsInheritedFromParent = source.IsInheritedFromParent;
+        target.BrowseButtonText = source.BrowseButtonText;
+        target.BrowseDialogTitle = source.BrowseDialogTitle;
+        target.BindingTargetKind = source.BindingTargetKind;
+        target.ExpectedBindingTypeName = source.ExpectedBindingTypeName;
+        if (!target.AllowedBindingTypeNames.SequenceEqual(source.AllowedBindingTypeNames))
+            target.AllowedBindingTypeNames = source.AllowedBindingTypeNames;
+        if (!PropertyEditorOptionsEqual(target.Options, source.Options)) target.Options = source.Options;
+        target.Value = source.Value;
+        target.DisplayValue = source.DisplayValue;
+        target.EditText = source.EditText;
+        if (!target.ValidationErrors.SequenceEqual(source.ValidationErrors)) target.ValidationErrors = source.ValidationErrors;
+        if (!target.ValidationMessages.SequenceEqual(source.ValidationMessages)) target.ValidationMessages = source.ValidationMessages;
+        target.HasEditError = source.HasEditError;
+        target.EditError = source.EditError;
     }
 
     /// <summary>
@@ -830,18 +903,11 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        if (!CanBatchEditSelectedProperty(row))
-        {
-            row.IsMultiSelectionBatchEditable = false;
-            ClearMultiSelectionPropertyRow(row, makeReadOnly: true);
-            return;
-        }
-
         row.IsMultiSelectionBatchEditable = true;
         if (!TryGetCommonSelectedPropertyValue(row.PropertyName, out var commonValue))
         {
             row.IsMultiSelectionMixedValue = true;
-            ClearMultiSelectionPropertyRow(row, makeReadOnly: false);
+            ClearMultiSelectionPropertyRow(row);
             return;
         }
 
@@ -851,61 +917,93 @@ public partial class FrontedDesignerWindowViewModel
         row.EditText = GetCommittedEditText(row, commonValue);
     }
 
-    private bool CanBatchEditSelectedProperty(FrontedPropertyEditorItem row)
+    private sealed record BatchPropertyTarget(FrontedControlDesignItem Item, FrontedV3PropertyDefinition Property);
+
+    private IEnumerable<FrontedPropertyEditorItem> FilterMultiSelectionPropertyRows(
+        IEnumerable<FrontedPropertyEditorItem> rows)
     {
         if (SelectedDesignItem is null || SelectedDesignItems.Count <= 1)
         {
-            return true;
+            return rows;
         }
 
-        if (row.IsReadOnly
+        var otherSelections = new List<(FrontedControlDesignItem Item, IReadOnlyDictionary<string, FrontedV3PropertyDefinition> Schema)>();
+        var schemasByType = new Dictionary<string, IReadOnlyDictionary<string, FrontedV3PropertyDefinition>>(StringComparer.Ordinal);
+        foreach (var item in SelectedDesignItems)
+        {
+            if (!item.IsEditableInEditor || !item.IsSelectableInEditor)
+            {
+                return [];
+            }
+
+            if (ReferenceEquals(item, SelectedDesignItem))
+            {
+                continue;
+            }
+
+            if (!schemasByType.TryGetValue(item.Config.ControlType, out var schema))
+            {
+                var selection = _selectionBuilder.BuildRootSelection(item);
+                if (selection is null) return [];
+                schema = selection.Properties.ToDictionary(property => property.OptionsPath, StringComparer.Ordinal);
+                schemasByType.Add(item.Config.ControlType, schema);
+            }
+
+            otherSelections.Add((item, schema));
+        }
+
+        var commonRows = new List<FrontedPropertyEditorItem>();
+        foreach (var row in rows)
+        {
+            if (!IsBatchEditablePropertyRow(row)
+                || !_schemaPropertiesByPath.TryGetValue(row.PropertyName, out var property))
+            {
+                continue;
+            }
+
+            var targets = new List<BatchPropertyTarget> { new(SelectedDesignItem, property) };
+            foreach (var other in otherSelections)
+            {
+                if (!other.Schema.TryGetValue(row.PropertyName, out var otherProperty)
+                    || !_propertyGridBuilder.CanShareBatchPropertyEditor(other.Item, otherProperty, row, out var otherOptions)
+                    || !PropertyEditorOptionsEqual(row.Options, otherOptions))
+                {
+                    break;
+                }
+
+                targets.Add(new BatchPropertyTarget(other.Item, otherProperty));
+            }
+
+            if (targets.Count == SelectedDesignItems.Count)
+            {
+                _batchPropertyTargets[row.PropertyName] = targets;
+                commonRows.Add(row);
+            }
+        }
+
+        return commonRows;
+    }
+
+    private static bool PropertyEditorOptionsEqual(IReadOnlyList<object>? left, IReadOnlyList<object>? right)
+    {
+        if (ReferenceEquals(left, right)) return true;
+        static object? Value(object option) => option is FrontedPropertyEditorOption editorOption ? editorOption.Value : option;
+        return left is null || right is null
+            ? left is null && right is null
+            : left.Count == right.Count && left.Zip(right).All(pair => ValuesEqual(Value(pair.First), Value(pair.Second)));
+    }
+
+    private static bool IsBatchEditablePropertyRow(FrontedPropertyEditorItem row)
+    {
+        return !(row.IsReadOnly
+            || row.IsEditingDisabled
             || row.EditorKind == FrontedPropertyEditorKind.ReadOnly
             || row.PropertyName == nameof(FrontedControlDesignItem.Name)
             || row.CanBrowseBinding
             || row.CanBrowseResource
             || row.EditorKind == FrontedPropertyEditorKind.TextBinding
             || IsMultiSelectionIsolatedProperty(row.PropertyName))
-        {
-            return false;
-        }
-
-        var controlType = SelectedDesignItem.Config.ControlType;
-
-        // Schema 驱动路径：通过 Schema Storage 检查属性是否可批量编辑，不通过反射。
-        if (_schemaPropertiesByPath.TryGetValue(row.PropertyName, out var schemaProperty))
-        {
-            return SelectedDesignItems.All(item =>
-            {
-                if (!item.IsEditableInEditor
-                    || !item.IsSelectableInEditor
-                    || !string.Equals(item.Config.ControlType, controlType, StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
-                return !schemaProperty.Metadata.IsReadOnly
-                       && IsBatchEditablePropertyType(schemaProperty.PropertyType);
-            });
-        }
-
-        // 反射回退（无 Schema 的边缘情况）。
-        return SelectedDesignItems.All(item =>
-        {
-            if (!item.IsEditableInEditor
-                || !item.IsSelectableInEditor
-                || !string.Equals(item.Config.ControlType, controlType, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            var property = item.Config.GetType().GetProperty(
-                row.PropertyName,
-                BindingFlags.Instance | BindingFlags.Public);
-            return property is not null
-                   && property.CanRead
-                   && property.CanWrite
-                   && IsBatchEditablePropertyType(property.PropertyType);
-        });
+            && IsBatchEditablePropertyType(row.PropertyType);
     }
 
     private bool TryGetCommonSelectedPropertyValue(string propertyName, out object? commonValue)
@@ -916,9 +1014,12 @@ public partial class FrontedDesignerWindowViewModel
         // Schema 驱动路径：通过 Schema Storage 读取值，不通过反射。
         if (_schemaPropertiesByPath.TryGetValue(propertyName, out var schemaProperty))
         {
-            foreach (var item in SelectedDesignItems)
+            var targets = _batchPropertyTargets.TryGetValue(propertyName, out var batchTargets)
+                ? batchTargets
+                : SelectedDesignItems.Select(item => new BatchPropertyTarget(item, schemaProperty)).ToArray();
+            foreach (var target in targets)
             {
-                var value = schemaProperty.GetValue(item.Config);
+                var value = target.Property.GetValue(target.Item.Config);
                 if (!hasValue)
                 {
                     commonValue = value;
@@ -965,18 +1066,11 @@ public partial class FrontedDesignerWindowViewModel
         return hasValue;
     }
 
-    private static void ClearMultiSelectionPropertyRow(FrontedPropertyEditorItem row, bool makeReadOnly)
+    private static void ClearMultiSelectionPropertyRow(FrontedPropertyEditorItem row)
     {
         row.Value = null;
         row.DisplayValue = string.Empty;
         row.EditText = string.Empty;
-        if (makeReadOnly)
-        {
-            row.EditorKind = FrontedPropertyEditorKind.ReadOnly;
-            row.IsReadOnly = true;
-            row.CanBrowseBinding = false;
-            row.CanBrowseResource = false;
-        }
     }
 
     private static bool IsMultiSelectionIsolatedProperty(string propertyName)
@@ -1049,7 +1143,25 @@ public partial class FrontedDesignerWindowViewModel
     {
         ClearPropertyEditError(propertyName);
         RefreshDirtyState();
-        RebuildFilteredDesignItems();
+        if (IsGeometryProperty(propertyName) && _selectedTarget?.Kind == FrontedV3DesignSelectionKind.Root)
+        {
+            var targets = _batchPropertyTargets.TryGetValue(propertyName, out var batch)
+                ? batch.Select(target => target.Item).ToArray()
+                : SelectedDesignItem is { } selected ? [selected] : Array.Empty<FrontedControlDesignItem>();
+            RequestDesignerGeometryPatch(targets, updateSelection: true);
+            if (refreshPropertyGrid)
+            {
+                RefreshGeometryPropertyValues();
+                ScheduleValidationOnly("GeometryPropertyEdit");
+            }
+            else ValidateCurrentDocument(refreshPropertyGrid: false);
+            return;
+        }
+
+        if (propertyName is nameof(FrontedControlDesignItem.Name) or nameof(FrontedControlConfigBase.ZIndex))
+            RebuildFilteredDesignItems();
+        else
+            RefreshEditedLayerNodes();
         ValidateCurrentDocument(refreshPropertyGrid);
         RequestPreviewRenderCurrentDocument();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();

@@ -109,6 +109,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     {
         CreateSnapshot();
         _isDragging = true;
+        _hasMovedNodes = false;
     }
 
     /// <summary>
@@ -121,6 +122,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     {
         var dx = x - node.X;
         var dy = y - node.Y;
+        if (dx == 0 && dy == 0) return;
 
         var nodesToMove = SelectedNodes.Contains(node) && SelectedNodes.Count > 1
             ? (IReadOnlyList<FrontedNodeEditorViewModel>)[.. SelectedNodes]
@@ -130,11 +132,11 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         {
             n.X = Math.Max(0, n.X + dx);
             n.Y = Math.Max(0, n.Y + dy);
-            foreach (var connection in Connections.Where(connection => connection.Source == n || connection.Target == n))
-            {
-                connection.Refresh();
-            }
         }
+        var movedNodes = nodesToMove.ToHashSet();
+        foreach (var connection in Connections)
+            if (movedNodes.Contains(connection.Source) || movedNodes.Contains(connection.Target)) connection.Refresh();
+        _hasMovedNodes = true;
         UpdateCanvasSize();
         Changed();
     }
@@ -144,7 +146,10 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     /// </summary>
     public void EndMoveNodes()
     {
+        if (!_isDragging) return;
         _isDragging = false;
+        if (_hasMovedNodes) Changed();
+        _hasMovedNodes = false;
     }
 
 }

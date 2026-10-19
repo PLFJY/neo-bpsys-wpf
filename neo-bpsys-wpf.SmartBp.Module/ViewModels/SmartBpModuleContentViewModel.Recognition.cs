@@ -22,6 +22,40 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class SmartBpModuleContentViewModel
 {
+    private void OnRapidOcrAssetStateChanged(object? sender, SmartBpDownloadState state) => RunOnUiThread(() =>
+    {
+        IsRapidOcrDownloading = state.IsDownloading;
+        IsRapidOcrDownloadPaused = state.IsPaused;
+        RapidOcrDownloadProgress = state.Progress ?? 0;
+        RapidOcrDownloadDetail = state.IsDownloading || !string.IsNullOrWhiteSpace(state.ErrorMessage)
+            ? FormatDownloadState(state)
+            : string.Empty;
+        if (!string.IsNullOrWhiteSpace(state.ErrorMessage)) LastError = RapidOcrDownloadDetail;
+        if (!state.IsDownloading) _ = RefreshRapidOcrStatusAsync();
+    });
+
+    private void OnTesseractAssetStateChanged(object? sender, SmartBpDownloadState state) => RunOnUiThread(() =>
+    {
+        IsTesseractDataDownloading = state.IsDownloading;
+        IsTesseractDownloadPaused = state.IsPaused;
+        TesseractDownloadProgress = state.Progress ?? 0;
+        TesseractDownloadDetail = FormatDownloadState(state);
+        if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
+            LastError = TesseractDownloadDetail;
+        if (!state.IsDownloading) _ = RefreshTesseractDataStatusAsync();
+    });
+
+    private void OnDebugMessageWritten(object? sender, SmartBpDebugMessageEventArgs message)
+    {
+        if (Volatile.Read(ref _disposed) != 0) return;
+        lock (_debugLogBufferLock)
+        {
+            if (Volatile.Read(ref _disposed) != 0) return;
+            _debugLogBuffer.AppendFormat("[{0:HH:mm:ss.fff}] [{1}] {2}{3}",
+                message.Timestamp, message.Source, message.Message, Environment.NewLine);
+        }
+    }
+
     private readonly DispatcherTimer _previewTimer = new();
     private readonly DispatcherTimer _frameSamplingTimer = new();
     private int _recognitionBusy;
@@ -419,43 +453,24 @@ public partial class SmartBpModuleContentViewModel
             Math.Clamp(_recognitionSettingsService.Settings.RecognitionSamplingIntervalMilliseconds, 50, 1000));
         _frameSamplingTimer.Tick += (_, _) =>
         {
-            if (!IsPreviewLoopRunning || !_windowCaptureService.IsCapturing)
+            if (!_windowCaptureService.IsCapturing)
+            {
+                _autoRecognitionCoordinator.ResetCaptureContext();
+                return;
+            }
+            if (!IsPreviewLoopRunning)
                 return;
             var sampledFrame = _windowCaptureService.GetCurrentFrame();
             if (sampledFrame is not null)
                 _autoRecognitionCoordinator.SampleFrame(sampledFrame);
         };
-        _rapidOcrModelAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
-        {
-            IsRapidOcrDownloading = state.IsDownloading;
-            IsRapidOcrDownloadPaused = state.IsPaused;
-            RapidOcrDownloadProgress = state.Progress ?? 0;
-            RapidOcrDownloadDetail = state.IsDownloading || !string.IsNullOrWhiteSpace(state.ErrorMessage)
-                ? FormatDownloadState(state)
-                : string.Empty;
-            if (!string.IsNullOrWhiteSpace(state.ErrorMessage)) LastError = RapidOcrDownloadDetail;
-            if (!state.IsDownloading) _ = RefreshRapidOcrStatusAsync();
-        });
-        _debugLog.MessageWritten += (_, message) =>
-        {
-            lock (_debugLogBufferLock)
-                _debugLogBuffer.AppendFormat("[{0:HH:mm:ss.fff}] [{1}] {2}{3}",
-                    message.Timestamp, message.Source, message.Message, Environment.NewLine);
-        };
+        _rapidOcrModelAssetManager.StateChanged += OnRapidOcrAssetStateChanged;
+        _debugLog.MessageWritten += OnDebugMessageWritten;
         _debugLogFlushTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
         _debugLogFlushTimer.Tick += (_, _) => FlushDebugLogBuffer();
         _debugLogFlushTimer.Start();
         _debugLog.Write("SmartBP", "Recognition diagnostics initialized.");
-        _tesseractDataAssetManager.StateChanged += (_, state) => RunOnUiThread(() =>
-        {
-            IsTesseractDataDownloading = state.IsDownloading;
-            IsTesseractDownloadPaused = state.IsPaused;
-            TesseractDownloadProgress = state.Progress ?? 0;
-            TesseractDownloadDetail = FormatDownloadState(state);
-            if (!string.IsNullOrWhiteSpace(state.ErrorMessage))
-                LastError = TesseractDownloadDetail;
-            if (!state.IsDownloading) _ = RefreshTesseractDataStatusAsync();
-        });
+        _tesseractDataAssetManager.StateChanged += OnTesseractAssetStateChanged;
         _ = LoadRegionProfileAsync();
     }
 
@@ -723,6 +738,7 @@ public partial class SmartBpModuleContentViewModel
     /// <summary>将缓冲的日志消息写入 <see cref="DebugLogText"/> 并清空缓冲区。</summary>
     private void FlushDebugLogBuffer()
     {
+        if (Volatile.Read(ref _disposed) != 0) return;
         string batch;
         lock (_debugLogBufferLock)
         {
@@ -1041,6 +1057,7 @@ public partial class SmartBpModuleContentViewModel
     private async Task RefreshTesseractDataStatusAsync()
     {
         var status = await _tesseractDataAssetManager.GetStatusAsync();
+        if (Volatile.Read(ref _disposed) != 0) return;
         foreach (var option in TesseractLanguageOptions)
             option.IsInstalled = status.InstalledLanguages.Contains(option.Language, StringComparer.OrdinalIgnoreCase);
         RefreshOcrProviderStatuses();
@@ -1054,7 +1071,9 @@ public partial class SmartBpModuleContentViewModel
     {
         try
         {
-            RapidOcrModelProfiles = await _rapidOcrModelAssetManager.GetAvailableProfilesAsync();
+            var profiles = await _rapidOcrModelAssetManager.GetAvailableProfilesAsync();
+            if (Volatile.Read(ref _disposed) != 0) return;
+            RapidOcrModelProfiles = profiles;
             SelectedRapidOcrModelProfile = RapidOcrModelProfiles.FirstOrDefault(profile =>
                 profile.Id == _recognitionSettingsService.Settings.SelectedRapidOcrModelId)
                 ?? RapidOcrModelProfiles.FirstOrDefault();
@@ -1138,6 +1157,7 @@ public partial class SmartBpModuleContentViewModel
         try
         {
             var status = await _rapidOcrModelAssetManager.GetStatusAsync();
+            if (Volatile.Read(ref _disposed) != 0) return;
             RapidOcrModelDirectory = status.ModelDirectory;
             RapidOcrInstalledVersion = status.InstalledVersion ?? ResolveLocalizedOrRaw("SmartBpRapidOcrVersionUnknown");
             RapidOcrLatestVersion = status.LatestVersion ?? "-";
@@ -1237,6 +1257,7 @@ public partial class SmartBpModuleContentViewModel
 
     private async Task RunAutomaticCurrentFrameCoreAsync()
     {
+        if (Volatile.Read(ref _disposed) != 0) return;
         if (!_windowCaptureService.IsCapturing)
         {
             await StopAutomaticRecognitionForCaptureIssueAsync("SmartBpRecognitionPausedCaptureStopped");

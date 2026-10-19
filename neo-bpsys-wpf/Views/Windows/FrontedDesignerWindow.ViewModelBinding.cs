@@ -55,6 +55,8 @@ public partial class FrontedDesignerWindow
         {
             if (propertyGridViewModel.IsRebuildingPropertyGrid)
             {
+                _propertyAutoCommitTimer?.Stop();
+                _pendingAutoCommitEditor = null;
                 SuppressPropertyEditorCommitForLayoutPass();
             }
             else
@@ -76,8 +78,11 @@ public partial class FrontedDesignerWindow
                 return;
             }
 
-            RebuildInteractionLayer();
-            _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
+            if (_viewModel?.IsUpdatingDesignSelection != true)
+            {
+                RebuildInteractionLayer();
+            }
+            _viewModel?.UpdateBehaviorPreviewSelection();
             FocusDesignSurface();
 
             if (_initialLayoutLoaded
@@ -100,10 +105,10 @@ public partial class FrontedDesignerWindow
             FocusDesignSurface();
         }
 
-        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedTarget)
-            || e.PropertyName == nameof(FrontedDesignerWindowViewModel.IsSubControlSelected))
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedTarget))
         {
-            if (_viewModel?.IsRestoringSnapshotVisuals == true)
+            if (_viewModel?.IsRestoringSnapshotVisuals == true
+                || _viewModel?.IsUpdatingDesignSelection == true)
             {
                 return;
             }

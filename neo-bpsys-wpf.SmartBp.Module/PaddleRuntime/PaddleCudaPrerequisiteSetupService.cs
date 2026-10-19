@@ -78,9 +78,15 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
     }
 
     /// <inheritdoc />
-    public async Task InstallAsync(PaddleRuntimePackageInfo package, CancellationToken cancellationToken)
+    public Task InstallAsync(PaddleRuntimePackageInfo package, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(package);
+        // 缓存命中时第一个异步等待可能同步完成；多 GB 安装包校验不能留在调用方 UI 线程。
+        return Task.Run(() => InstallCoreAsync(package, cancellationToken), cancellationToken);
+    }
+
+    private async Task InstallCoreAsync(PaddleRuntimePackageInfo package, CancellationToken cancellationToken)
+    {
         if (!string.Equals(package.CudaVersion, "11.8", StringComparison.Ordinal) || !package.CudnnVersion.StartsWith("8.9", StringComparison.Ordinal))
         {
             SetStatus(new(PaddleCudaPrerequisiteInstallStatus.Invalid, false, 0, null, null, "This Paddle package requires an unsupported CUDA prerequisite version."));
