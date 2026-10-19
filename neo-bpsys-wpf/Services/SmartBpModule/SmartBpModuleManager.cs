@@ -84,6 +84,7 @@ public sealed partial class SmartBpModuleManager : IDisposable
         "tessdata",
         "AI",
         "Runtime/Paddle/cuda",
+        "Runtime/Paddle/Dependencies",
         "Runtime/Paddle/Downloads",
         "PaddleRuntimeDownload"
     };

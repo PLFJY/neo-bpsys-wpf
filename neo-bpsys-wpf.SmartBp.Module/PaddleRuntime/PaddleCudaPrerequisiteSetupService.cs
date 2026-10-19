@@ -2,48 +2,33 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 
 namespace neo_bpsys_wpf.SmartBp.Module.PaddleRuntime;
 
 /// <summary>
-/// 安装并检测系统级 CUDA 11.8 与 cuDNN 8.9。Paddle native DLL 仍归 SmartBP 模块管理；
-/// CUDA Toolkit 及其 PATH 则属于系统级 NVIDIA 前置条件。
+/// 优先复用完整且版本匹配的系统 CUDA/cuDNN；否则将官方运行库安装到 SmartBP 模块目录。
+/// 不运行系统安装器、不修改环境变量、不复制 NVIDIA 驱动。
 /// </summary>
 public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisiteSetupService
 {
-    private const string CudaEnvironmentName = "CUDA_PATH_V11_8";
-    private const string CudaRuntimeFileName = "cudart64_110.dll";
-    private const string CudaInstallerFileName = "cuda_11.8.0_522.06_windows.exe";
-    private const string CudaInstallerMd5 = "894c61ba173d26dc667e95ee734d3c5a";
-    private const string CudnnVersion = "8.9.6.50";
-    private const string CudnnFileName = "cudnn-windows-x86_64-8.9.6.50_cuda11-archive.zip";
-    private const string CudnnSha256 = "f7a013f9181c863d68e67083813ecc87c0f781ef7481467fa20095373798de50";
-    private const string CudnnVersionMarkerFileName = ".neo-bpsys-wpf-cudnn-version";
-    private static readonly string[] CudnnRequiredFileNames =
-    [
-        "cudnn64_8.dll",
-        "cudnn_adv_infer64_8.dll",
-        "cudnn_adv_train64_8.dll",
-        "cudnn_cnn_infer64_8.dll",
-        "cudnn_cnn_train64_8.dll",
-        "cudnn_ops_infer64_8.dll",
-        "cudnn_ops_train64_8.dll"
-    ];
-    private static readonly Uri CudaInstallerUri = new("https://developer.download.nvidia.com/compute/cuda/11.8.0/local_installers/" + CudaInstallerFileName);
-    private static readonly Uri CudnnUri = new("https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/windows-x86_64/" + CudnnFileName);
+    private const string InstallManifestFileName = "install.json";
+    private static readonly DependencyProfile[] Profiles = ReadProfiles();
     private readonly ILogger<PaddleCudaPrerequisiteSetupService> _logger;
     private readonly IFileDownloadService _fileDownloadService;
+    private readonly string _dependencyRoot;
     private readonly string _downloadCacheDirectory;
     private readonly SemaphoreSlim _setupLock = new(1, 1);
     private PaddleCudaPrerequisiteSetupStatus _status;
     private IFileDownloadOperation? _currentDownload;
 
-    /// <summary>初始化系统 CUDA 前置条件安装服务。</summary>
+    /// <summary>初始化 CUDA/cuDNN 依赖管理服务。</summary>
     /// <param name="logger">日志记录器。</param>
     /// <param name="moduleStorage">SmartBP 模块存储路径提供器。</param>
     /// <param name="fileDownloadService">统一文件下载服务。</param>
+    /// <exception cref="ArgumentNullException">任一参数为 null。</exception>
     public PaddleCudaPrerequisiteSetupService(
         ILogger<PaddleCudaPrerequisiteSetupService> logger,
         ISmartBpModuleStorageProvider moduleStorage,
@@ -52,321 +37,350 @@ public sealed class PaddleCudaPrerequisiteSetupService : IPaddleCudaPrerequisite
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ArgumentNullException.ThrowIfNull(moduleStorage);
         _fileDownloadService = fileDownloadService ?? throw new ArgumentNullException(nameof(fileDownloadService));
+        _dependencyRoot = Path.GetFullPath(Path.Combine(moduleStorage.PaddleRuntimeRoot, "Dependencies"));
         _downloadCacheDirectory = Path.Combine(moduleStorage.PaddleRuntimeRoot, "Downloads", "NVIDIA");
-        _status = new PaddleCudaPrerequisiteSetupStatus(GetInstallStatus(), false, 0, null, null, null);
+        // 无包参数入口保留 11.8 语义；设备相关的调用必须传入明确的 Paddle 包。
+        _status = new(GetInstallStatus(Profiles[0]), false, 0, null, null, null);
     }
 
     /// <inheritdoc />
     public PaddleCudaPrerequisiteSetupStatus Status => _status;
-
     /// <inheritdoc />
     public event EventHandler? StatusChanged;
-
     /// <inheritdoc />
     public void PauseDownload() => _currentDownload?.Pause();
-
     /// <inheritdoc />
     public void ResumeDownload() => _currentDownload?.Resume();
+    /// <inheritdoc />
+    public IReadOnlyList<string> GetDllSearchDirectories() => GetDllSearchDirectories(Profiles[0]);
 
     /// <inheritdoc />
-    public IReadOnlyList<string> GetDllSearchDirectories()
+    public PaddleCudaPrerequisiteInstallStatus GetInstallStatus(PaddleRuntimePackageInfo package)
     {
-        var binDirectory = GetCudaBinDirectory();
-        return binDirectory is not null && GetInstallStatus() == PaddleCudaPrerequisiteInstallStatus.Installed
-            ? [binDirectory]
-            : [];
+        ArgumentNullException.ThrowIfNull(package);
+        var profile = ResolveProfile(package);
+        return profile is null ? PaddleCudaPrerequisiteInstallStatus.Invalid : GetInstallStatus(profile);
+    }
+
+    /// <inheritdoc />
+    public IReadOnlyList<string> GetDllSearchDirectories(PaddleRuntimePackageInfo package)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        var profile = ResolveProfile(package);
+        return profile is null ? [] : GetDllSearchDirectories(profile);
     }
 
     /// <inheritdoc />
     public Task InstallAsync(PaddleRuntimePackageInfo package, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(package);
-        // 缓存命中时第一个异步等待可能同步完成；多 GB 安装包校验不能留在调用方 UI 线程。
+        // 缓存校验和解压即使同步命中，也不能留在调用方的 WPF UI 线程。
         return Task.Run(() => InstallCoreAsync(package, cancellationToken), cancellationToken);
     }
 
     private async Task InstallCoreAsync(PaddleRuntimePackageInfo package, CancellationToken cancellationToken)
     {
-        if (!string.Equals(package.CudaVersion, "11.8", StringComparison.Ordinal) || !package.CudnnVersion.StartsWith("8.9", StringComparison.Ordinal))
-        {
-            SetStatus(new(PaddleCudaPrerequisiteInstallStatus.Invalid, false, 0, null, null, "This Paddle package requires an unsupported CUDA prerequisite version."));
-            return;
-        }
-
-        if (GetInstallStatus() == PaddleCudaPrerequisiteInstallStatus.Installed)
-        {
-            SetStatus(new(PaddleCudaPrerequisiteInstallStatus.Installed, false, 100, null, null, null));
-            return;
-        }
-
         if (!await _setupLock.WaitAsync(0, cancellationToken).ConfigureAwait(false)) return;
-
-        var tempDirectory = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_SmartBpCuda_" + Guid.NewGuid().ToString("N"));
+        DependencyProfile? profile = null;
+        string? stagingDirectory = null;
         try
         {
-            Directory.CreateDirectory(tempDirectory);
-            if (GetCudaBinDirectory() is null)
+            profile = ResolveProfile(package) ?? throw new InvalidOperationException(
+                $"Unsupported prerequisites for {package.PackageId}: CUDA {package.CudaVersion}, cuDNN {package.CudnnVersion}. Supported combinations: CUDA 11.8 / cuDNN 8.9; CUDA 12.9 / cuDNN 9.10.");
+            if (GetInstallStatus(profile) == PaddleCudaPrerequisiteInstallStatus.Installed)
             {
-                var installerPath = await GetOrDownloadCachedPackageAsync(
-                    CudaInstallerUri,
-                    CudaInstallerFileName,
-                    CudaInstallerMd5,
-                    HasExpectedMd5,
-                    "DownloadingCudaToolkit",
-                    "VerifyingCudaToolkit",
-                    cancellationToken).ConfigureAwait(false);
-                SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, "InstallingCudaToolkit", null));
-                await RunElevatedAsync(installerPath, "-n", showWindow: true, cancellationToken).ConfigureAwait(false);
+                _logger.LogInformation("Reusing CUDA dependencies. Profile={Profile}, Directories={Directories}",
+                    profile.Id, string.Join(";", GetDllSearchDirectories(profile)));
+                SetStatus(new(PaddleCudaPrerequisiteInstallStatus.Installed, false, 100, null, null, null));
+                return;
             }
 
-            var cudaBin = GetCudaBinDirectory() ?? throw new InvalidOperationException("CUDA 11.8 installation did not create CUDA_PATH_V11_8.");
-            var cudnnArchivePath = await GetOrDownloadCachedPackageAsync(
-                CudnnUri,
-                CudnnFileName,
-                CudnnSha256,
-                HasExpectedSha256,
-                "DownloadingCuDnn",
-                "VerifyingCuDnn",
-                cancellationToken).ConfigureAwait(false);
-            SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, "InstallingCuDnn", null));
-            await InstallCuDnnElevatedAsync(cudnnArchivePath, cudaBin, tempDirectory, cancellationToken).ConfigureAwait(false);
+            var finalDirectory = GetInstallDirectory(profile);
+            stagingDirectory = finalDirectory + ".tmp." + Guid.NewGuid().ToString("N");
+            var nativeDirectory = Path.Combine(stagingDirectory, "native");
+            Directory.CreateDirectory(nativeDirectory);
+            _logger.LogInformation("Installing module-local CUDA dependencies. PackageId={PackageId}, Profile={Profile}, Directory={Directory}",
+                package.PackageId, profile.Id, finalDirectory);
+            foreach (var asset in profile.Archives)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var archivePath = await GetOrDownloadCachedPackageAsync(asset, cancellationToken).ConfigureAwait(false);
+                SetBusy(asset.Id == "cudnn" ? "InstallingCuDnn" : "InstallingCudaToolkit");
+                await ExtractArchiveAsync(asset, archivePath, stagingDirectory, cancellationToken).ConfigureAwait(false);
+            }
 
-            SetStatus(new(GetInstallStatus(), false, 100, null, null, null));
+            var files = profile.Archives.SelectMany(asset => asset.RequiredDlls)
+                .Select(name => new InstalledFile(name, new FileInfo(Path.Combine(nativeDirectory, name)).Length)).ToArray();
+            if (files.Any(file => file.Size <= 0)) throw new InvalidDataException("A CUDA dependency DLL is empty.");
+            var manifest = new DependencyInstallManifest(1, GetContractHash(profile), files);
+            await File.WriteAllTextAsync(Path.Combine(stagingDirectory, InstallManifestFileName),
+                JsonSerializer.Serialize(manifest), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+            CommitInstallation(stagingDirectory, finalDirectory);
+            stagingDirectory = null;
+            var finalStatus = GetInstallStatus(profile);
+            if (finalStatus != PaddleCudaPrerequisiteInstallStatus.Installed)
+                throw new InvalidDataException($"CUDA dependency installation verification failed: {profile.Id}.");
+            SetStatus(new(finalStatus, false, 100, null, null, null));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            SetStatus(new(GetInstallStatus(), false, 0, null, null, "Installation cancelled."));
+            SetStatus(new(profile is null ? PaddleCudaPrerequisiteInstallStatus.Invalid : GetInstallStatus(profile),
+                false, 0, null, null, "Installation cancelled."));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "System CUDA prerequisite installation failed.");
-            SetStatus(new(GetInstallStatus(), false, 0, null, null, ex.Message));
+            _logger.LogError(ex, "CUDA dependency setup failed. PackageId={PackageId}", package.PackageId);
+            SetStatus(new(profile is null ? PaddleCudaPrerequisiteInstallStatus.Invalid : GetInstallStatus(profile),
+                false, 0, null, null, ex.Message));
         }
         finally
         {
-            TryDeleteDirectory(tempDirectory);
+            if (stagingDirectory is not null) TryDeleteOwnedDirectory(stagingDirectory);
             _setupLock.Release();
         }
     }
 
-    private async Task<string> GetOrDownloadCachedPackageAsync(
-        Uri source,
-        string fileName,
-        string expectedHash,
-        Func<string, string, bool> hasExpectedHash,
-        string downloadStep,
-        string verifyStep,
-        CancellationToken cancellationToken)
+    private async Task<string> GetOrDownloadCachedPackageAsync(DependencyArchive asset, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(_downloadCacheDirectory);
-        var cachedPath = Path.Combine(_downloadCacheDirectory, fileName);
+        var source = new Uri(asset.Url);
+        var cachedPath = Path.Combine(_downloadCacheDirectory, Path.GetFileName(source.AbsolutePath));
+        var isCudnn = asset.Id == "cudnn";
+        var verifyStep = isCudnn ? "VerifyingCuDnn" : "VerifyingCudaToolkit";
         if (File.Exists(cachedPath))
         {
-            SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, verifyStep, null));
-            if (hasExpectedHash(cachedPath, expectedHash))
+            SetBusy(verifyStep);
+            if (await VerifyArchiveAsync(cachedPath, asset, cancellationToken).ConfigureAwait(false))
             {
-                _logger.LogInformation("Reusing verified NVIDIA dependency download cache. Path={CachePath}", cachedPath);
+                _logger.LogInformation("Reusing verified NVIDIA download cache. Path={CachePath}", cachedPath);
                 return cachedPath;
             }
-
-            _logger.LogWarning("Discarding NVIDIA dependency download cache because hash verification failed. Path={CachePath}", cachedPath);
+            _logger.LogWarning("Removing corrupt NVIDIA download cache. Path={CachePath}", cachedPath);
             File.Delete(cachedPath);
         }
 
-        var legacyPath = FindVerifiedLegacyDownload(fileName, expectedHash, hasExpectedHash, verifyStep);
-        if (legacyPath is not null)
-        {
-            try
-            {
-                File.Move(legacyPath, cachedPath, overwrite: true);
-                _logger.LogInformation(
-                    "Migrated verified legacy NVIDIA dependency download into the SmartBP cache. Source={SourcePath}, Destination={CachePath}",
-                    legacyPath,
-                    cachedPath);
-                return cachedPath;
-            }
-            catch (IOException ex)
-            {
-                _logger.LogDebug(ex, "Could not move verified legacy NVIDIA dependency download; reusing it in place. Path={LegacyPath}", legacyPath);
-                return legacyPath;
-            }
-        }
-
-        try
-        {
-            SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, downloadStep, null));
-            await DownloadAsync(source, cachedPath, cancellationToken).ConfigureAwait(false);
-            SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, verifyStep, null));
-            if (!hasExpectedHash(cachedPath, expectedHash))
-                throw new InvalidDataException("Downloaded NVIDIA installer integrity verification failed.");
-
-            return cachedPath;
-        }
-        catch
-        {
-            TryDeleteFile(cachedPath);
-            throw;
-        }
-    }
-
-    private string? FindVerifiedLegacyDownload(
-        string fileName,
-        string expectedHash,
-        Func<string, string, bool> hasExpectedHash,
-        string verifyStep)
-    {
-        try
-        {
-            foreach (var directory in Directory.EnumerateDirectories(Path.GetTempPath(), "neo-bpsys-wpf_SmartBpCuda_*")
-                         .OrderByDescending(Directory.GetLastWriteTimeUtc))
-            {
-                var candidate = Path.Combine(directory, fileName);
-                if (!File.Exists(candidate))
-                    continue;
-
-                SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, verifyStep, null));
-                if (hasExpectedHash(candidate, expectedHash))
-                    return candidate;
-            }
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            _logger.LogDebug(ex, "Legacy NVIDIA dependency download discovery failed.");
-        }
-
-        return null;
-    }
-
-    private async Task DownloadAsync(Uri source, string destination, CancellationToken cancellationToken)
-    {
-        var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(source, destination)
-        {
-            UserAgent = "neo-bpsys-wpf"
-        });
+        SetBusy(isCudnn ? "DownloadingCuDnn" : "DownloadingCudaToolkit");
+        var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(source, cachedPath) { UserAgent = "neo-bpsys-wpf" });
         _currentDownload = operation;
         operation.StateChanged += OnStateChanged;
-        try
-        {
-            await operation.StartAsync(cancellationToken).ConfigureAwait(false);
-        }
+        try { await operation.StartAsync(cancellationToken).ConfigureAwait(false); }
         finally
         {
             operation.StateChanged -= OnStateChanged;
-            if (ReferenceEquals(_currentDownload, operation))
-                _currentDownload = null;
+            _currentDownload = null;
         }
-
-        void OnStateChanged(object? sender, EventArgs args)
+        SetBusy(verifyStep);
+        if (!await VerifyArchiveAsync(cachedPath, asset, cancellationToken).ConfigureAwait(false))
         {
-            SetStatus(_status with
+            File.Delete(cachedPath);
+            throw new InvalidDataException($"NVIDIA dependency archive integrity verification failed: {asset.Id}.");
+        }
+        return cachedPath;
+
+        void OnStateChanged(object? sender, EventArgs args) => SetStatus(_status with
+        {
+            DownloadProgress = operation.Progress.Percentage ?? 0,
+            DownloadSpeed = operation.State == FileDownloadState.Paused ? 0 : operation.Progress.BytesPerSecond,
+            IsPaused = operation.State == FileDownloadState.Paused
+        });
+    }
+
+    private static async Task<bool> VerifyArchiveAsync(string path, DependencyArchive asset, CancellationToken cancellationToken)
+    {
+        if (new FileInfo(path).Length != asset.Size) return false;
+        await using var stream = File.OpenRead(path);
+        var hash = await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
+        return string.Equals(Convert.ToHexString(hash), asset.Sha256, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task ExtractArchiveAsync(DependencyArchive asset, string archivePath, string stagingDirectory, CancellationToken cancellationToken)
+    {
+        using var archive = ZipFile.OpenRead(archivePath);
+        var extracted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in archive.Entries)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var segments = entry.FullName.Replace('\\', '/').Split('/');
+            if (Path.IsPathRooted(entry.FullName) || segments.Any(segment => segment is "." or ".." || segment.Contains(':')))
+                throw new InvalidDataException($"Unsafe NVIDIA archive entry: {entry.FullName}");
+            var name = segments[^1];
+            string? destination = null;
+            if (asset.RequiredDlls.Contains(name, StringComparer.OrdinalIgnoreCase))
             {
-                DownloadProgress = operation.Progress.Percentage ?? 0,
-                DownloadSpeed = operation.State == FileDownloadState.Paused
-                    ? 0
-                    : operation.Progress.BytesPerSecond,
-                IsPaused = operation.State == FileDownloadState.Paused
-            });
+                if (segments.Length != 3 || segments[1] != "bin" || !extracted.Add(name))
+                    throw new InvalidDataException($"Unexpected NVIDIA DLL entry: {entry.FullName}");
+                destination = Path.Combine(stagingDirectory, "native", name);
+            }
+            else if (segments.Length == 2 && (name.StartsWith("LICENSE", StringComparison.OrdinalIgnoreCase)
+                || name.StartsWith("EULA", StringComparison.OrdinalIgnoreCase)))
+                destination = Path.Combine(stagingDirectory, "licenses", asset.Id, name);
+            if (destination is null) continue;
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            await using var input = entry.Open();
+            await using var output = new FileStream(destination, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            await input.CopyToAsync(output, cancellationToken).ConfigureAwait(false);
         }
+        if (asset.RequiredDlls.Any(name => !extracted.Contains(name)))
+            throw new InvalidDataException($"NVIDIA archive is missing required DLLs: {asset.Id}.");
     }
 
-    private async Task InstallCuDnnElevatedAsync(string archivePath, string cudaBin, string tempDirectory, CancellationToken cancellationToken)
+    private void CommitInstallation(string stagingDirectory, string finalDirectory)
     {
-        var scriptPath = Path.Combine(tempDirectory, "install-cudnn.ps1");
-        var errorPath = Path.Combine(tempDirectory, "install-cudnn-error.txt");
-        var archiveLiteral = archivePath.Replace("'", "''");
-        var cudaBinLiteral = cudaBin.Replace("'", "''");
-        var errorLiteral = errorPath.Replace("'", "''");
-        var markerLiteral = Path.Combine(cudaBin, CudnnVersionMarkerFileName).Replace("'", "''");
-        var script = "param()\n$ErrorActionPreference='Stop'\ntry {\n" +
-            "$extract=Join-Path $env:TEMP ('neo-bpsys-wpf-cudnn-'+[guid]::NewGuid().ToString('N'))\n" +
-            "Expand-Archive -LiteralPath '" + archiveLiteral + "' -DestinationPath $extract -Force\n" +
-            "Get-ChildItem -LiteralPath $extract -Recurse -Filter *.dll | Copy-Item -Destination '" + cudaBinLiteral + "' -Force\n" +
-            "$machinePath=[Environment]::GetEnvironmentVariable('Path','Machine')\n" +
-            "if (($machinePath -split ';' | Where-Object { $_ -ieq '" + cudaBinLiteral + "' }).Count -eq 0) { [Environment]::SetEnvironmentVariable('Path', ($machinePath.TrimEnd(';')+';'+'" + cudaBinLiteral + "'), 'Machine') }\n" +
-            "Remove-Item -LiteralPath $extract -Recurse -Force\n" +
-            "Set-Content -LiteralPath '" + markerLiteral + "' -Value '" + CudnnVersion + "' -Encoding ASCII -NoNewline\n" +
-            "} catch {\n$_ | Out-String | Set-Content -LiteralPath '" + errorLiteral + "' -Encoding UTF8\nexit 1\n}\n";
-        await File.WriteAllTextAsync(scriptPath, script, cancellationToken).ConfigureAwait(false);
+        var backup = finalDirectory + ".backup." + Guid.NewGuid().ToString("N");
+        if (Directory.Exists(finalDirectory)) Directory.Move(finalDirectory, backup);
+        try { Directory.Move(stagingDirectory, finalDirectory); }
+        catch
+        {
+            if (Directory.Exists(backup)) Directory.Move(backup, finalDirectory);
+            throw;
+        }
+        TryDeleteOwnedDirectory(backup);
+    }
+
+    private PaddleCudaPrerequisiteInstallStatus GetInstallStatus(DependencyProfile profile)
+        => FindSystemDirectories(profile).Count > 0 ? PaddleCudaPrerequisiteInstallStatus.Installed : GetLocalInstallStatus(profile);
+
+    private IReadOnlyList<string> GetDllSearchDirectories(DependencyProfile profile)
+    {
+        var systemDirectories = FindSystemDirectories(profile);
+        if (systemDirectories.Count > 0) return systemDirectories;
+        return GetLocalInstallStatus(profile) == PaddleCudaPrerequisiteInstallStatus.Installed
+            ? [Path.Combine(GetInstallDirectory(profile), "native")] : [];
+    }
+
+    private PaddleCudaPrerequisiteInstallStatus GetLocalInstallStatus(DependencyProfile profile)
+    {
+        var directory = GetInstallDirectory(profile);
+        if (!Directory.Exists(directory)) return PaddleCudaPrerequisiteInstallStatus.NotInstalled;
         try
         {
-            await RunElevatedAsync(
-                "powershell.exe",
-                "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"" + scriptPath + "\"",
-                showWindow: false,
-                cancellationToken).ConfigureAwait(false);
+            var manifestPath = Path.Combine(directory, InstallManifestFileName);
+            if (!File.Exists(manifestPath)) return PaddleCudaPrerequisiteInstallStatus.Invalid;
+            var manifest = JsonSerializer.Deserialize<DependencyInstallManifest>(File.ReadAllText(manifestPath));
+            var expectedNames = profile.Archives.SelectMany(asset => asset.RequiredDlls).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (manifest is null || manifest.Version != 1 || manifest.ContractHash != GetContractHash(profile)
+                || manifest.Files is null || manifest.Files.Length != expectedNames.Count)
+                return PaddleCudaPrerequisiteInstallStatus.Invalid;
+            foreach (var file in manifest.Files)
+            {
+                if (file is null || !expectedNames.Remove(file.Name) || file.Size <= 0) return PaddleCudaPrerequisiteInstallStatus.Invalid;
+                var path = Path.Combine(directory, "native", file.Name);
+                if (!File.Exists(path) || new FileInfo(path).Length != file.Size) return PaddleCudaPrerequisiteInstallStatus.Invalid;
+            }
+            return PaddleCudaPrerequisiteInstallStatus.Installed;
         }
-        catch (InvalidOperationException ex) when (File.Exists(errorPath))
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
         {
-            var detail = (await File.ReadAllTextAsync(errorPath, cancellationToken).ConfigureAwait(false)).Trim();
-            throw new InvalidOperationException($"cuDNN installation failed: {detail}", ex);
-        }
-    }
-
-    private static async Task RunElevatedAsync(
-        string fileName,
-        string arguments,
-        bool showWindow,
-        CancellationToken cancellationToken)
-    {
-        using var process = Process.Start(new ProcessStartInfo(fileName, arguments)
-        {
-            UseShellExecute = true,
-            Verb = "runas",
-            WindowStyle = showWindow ? ProcessWindowStyle.Normal : ProcessWindowStyle.Hidden
-        })
-            ?? throw new InvalidOperationException("Unable to start elevated installer.");
-        await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-        if (process.ExitCode != 0) throw new InvalidOperationException($"Installer exited with code {process.ExitCode}.");
-    }
-
-    private PaddleCudaPrerequisiteInstallStatus GetInstallStatus()
-    {
-        var binDirectory = GetCudaBinDirectory();
-        if (binDirectory is null) return PaddleCudaPrerequisiteInstallStatus.NotInstalled;
-        if (!File.Exists(Path.Combine(binDirectory, CudaRuntimeFileName))
-            || CudnnRequiredFileNames.Any(fileName => !File.Exists(Path.Combine(binDirectory, fileName))))
-        {
+            _logger.LogDebug(ex, "Module-local CUDA dependency record is invalid. Profile={Profile}", profile.Id);
             return PaddleCudaPrerequisiteInstallStatus.Invalid;
         }
+    }
 
-        var markerPath = Path.Combine(binDirectory, CudnnVersionMarkerFileName);
+    private IReadOnlyList<string> FindSystemDirectories(DependencyProfile profile)
+    {
+        var candidates = new List<string>();
+        foreach (var target in new[] { EnvironmentVariableTarget.Machine, EnvironmentVariableTarget.User, EnvironmentVariableTarget.Process })
+        {
+            foreach (var key in new[] { "CUDA_PATH_V" + profile.CudaVersion.Replace('.', '_'), "CUDA_PATH", "CUDNN_PATH" })
+            {
+                var root = Environment.GetEnvironmentVariable(key, target);
+                if (!string.IsNullOrWhiteSpace(root) && Path.IsPathFullyQualified(root))
+                {
+                    candidates.Add(Path.Combine(root, "bin"));
+                    candidates.Add(root);
+                }
+            }
+            candidates.AddRange((Environment.GetEnvironmentVariable("PATH", target) ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        }
+        // 仅使用环境变量明确发布的绝对路径；模块私有目录不算系统安装。
+        var directories = candidates.Select(path => path.Trim('"')).Where(Path.IsPathFullyQualified)
+            .Where(path => !IsOwnedDirectory(path)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        var cudaFiles = profile.Archives.Where(asset => asset.Id != "cudnn").SelectMany(asset => asset.RequiredDlls).ToArray();
+        var runtimeName = cudaFiles.First(name => name.StartsWith("cudart64_", StringComparison.Ordinal));
+        // NVIDIA cudart 的 Win32 文件版本是 6.14.11.11080 / 6.14.11.12090，
+        // 并不是 Toolkit 的 11.8 / 12.9；按官方 DLL 中实际存在的版本资源匹配。
+        var cudaFileVersion = Version.Parse(profile.CudaRuntimeFileVersion);
+        var cudaBin = directories.FirstOrDefault(directory => HasAllFiles(directory, cudaFiles)
+            && ReadFileVersion(Path.Combine(directory, runtimeName)) == cudaFileVersion);
+        if (cudaBin is null) return [];
+        var cudnnFiles = profile.Archives.Single(asset => asset.Id == "cudnn").RequiredDlls;
+        var minimumCudnnVersion = Version.Parse(profile.CudnnRuntimeVersion);
+        var cudnnBin = directories.Prepend(cudaBin).FirstOrDefault(directory => HasAllFiles(directory, cudnnFiles)
+            && ReadFileVersion(Path.Combine(directory, cudnnFiles[0])) is { } version
+            && version.Major == minimumCudnnVersion.Major && version.Minor == minimumCudnnVersion.Minor
+            && version >= minimumCudnnVersion
+            && cudnnFiles.All(name => ReadFileVersion(Path.Combine(directory, name)) == version));
+        return cudnnBin is null ? [] : new[] { cudaBin, cudnnBin }.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+    }
+
+    private static bool HasAllFiles(string directory, IEnumerable<string> names) => names.All(name => File.Exists(Path.Combine(directory, name)));
+
+    private static Version? ReadFileVersion(string path)
+    {
         try
         {
-            return File.Exists(markerPath)
-                   && string.Equals(File.ReadAllText(markerPath).Trim(), CudnnVersion, StringComparison.Ordinal)
-                ? PaddleCudaPrerequisiteInstallStatus.Installed
-                : PaddleCudaPrerequisiteInstallStatus.Invalid;
+            var info = FileVersionInfo.GetVersionInfo(path);
+            return new Version(info.FileMajorPart, info.FileMinorPart, info.FileBuildPart, info.FilePrivatePart);
         }
-        catch (IOException)
-        {
-            return PaddleCudaPrerequisiteInstallStatus.Invalid;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return PaddleCudaPrerequisiteInstallStatus.Invalid;
-        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException) { return null; }
     }
 
-    private static string? GetCudaBinDirectory()
+    private static DependencyProfile? ResolveProfile(PaddleRuntimePackageInfo package)
+        => Profiles.FirstOrDefault(profile => profile.CudaVersion == package.CudaVersion
+            && (package.CudnnVersion == profile.CudnnVersion
+                || (profile.CudaVersion == "11.8" ? package.CudnnVersion.StartsWith("8.9", StringComparison.Ordinal)
+                    : package.CudnnVersion.StartsWith(profile.CudnnVersion + ".", StringComparison.Ordinal))));
+
+    private string GetInstallDirectory(DependencyProfile profile) => Path.Combine(_dependencyRoot, profile.Id);
+    private static string GetContractHash(DependencyProfile profile) => Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(profile)));
+
+    private static DependencyProfile[] ReadProfiles()
     {
-        var root = Environment.GetEnvironmentVariable(CudaEnvironmentName, EnvironmentVariableTarget.Machine)
-            ?? Environment.GetEnvironmentVariable(CudaEnvironmentName);
-        var bin = string.IsNullOrWhiteSpace(root) ? null : Path.Combine(root, "bin");
-        return bin is not null && Directory.Exists(bin) ? bin : null;
+        using var stream = typeof(PaddleCudaPrerequisiteSetupService).Assembly.GetManifestResourceStream(
+            "neo_bpsys_wpf.PaddleRuntime.PaddleCudaDependencies.json")
+            ?? throw new InvalidDataException("Missing embedded CUDA dependency manifest.");
+        return JsonSerializer.Deserialize<DependencyProfile[]>(stream)
+            ?? throw new InvalidDataException("Invalid embedded CUDA dependency manifest.");
     }
 
-    private static bool HasExpectedSha256(string path, string expected) => HasExpectedHash(path, expected, SHA256.Create());
-    private static bool HasExpectedMd5(string path, string expected) => HasExpectedHash(path, expected, MD5.Create());
-    private static bool HasExpectedHash(string path, string expected, HashAlgorithm algorithm)
+    private bool IsOwnedDirectory(string path) => string.Equals(Path.GetFullPath(path), _dependencyRoot, StringComparison.OrdinalIgnoreCase)
+        || Path.GetFullPath(path).StartsWith(_dependencyRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+
+    private void TryDeleteOwnedDirectory(string path)
     {
-        using (algorithm)
-        {
-            using var stream = File.OpenRead(path);
-            return string.Equals(Convert.ToHexString(algorithm.ComputeHash(stream)), expected, StringComparison.OrdinalIgnoreCase);
-        }
+        if (!IsOwnedDirectory(path) || string.Equals(Path.GetFullPath(path), _dependencyRoot, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("CUDA cleanup path is outside the dependency directory.");
+        try { if (Directory.Exists(path)) Directory.Delete(path, true); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        { _logger.LogDebug(ex, "CUDA dependency staging cleanup failed. Path={Path}", path); }
     }
 
+    private void SetBusy(string step) => SetStatus(new(PaddleCudaPrerequisiteInstallStatus.NotInstalled, true, 0, null, step, null));
     private void SetStatus(PaddleCudaPrerequisiteSetupStatus status) { _status = status; StatusChanged?.Invoke(this, EventArgs.Empty); }
-    private void TryDeleteFile(string path) { try { if (File.Exists(path)) File.Delete(path); } catch (Exception ex) { _logger.LogDebug(ex, "Temporary NVIDIA dependency download cleanup failed."); } }
-    private void TryDeleteDirectory(string path) { try { if (Directory.Exists(path)) Directory.Delete(path, true); } catch (Exception ex) { _logger.LogDebug(ex, "Temporary CUDA installer cleanup failed."); } }
+
+    /// <summary>固定的运行库版本组合。</summary>
+    /// <param name="Id">模块内安装目录名。</param>
+    /// <param name="CudaVersion">CUDA 主次版本。</param>
+    /// <param name="CudaRuntimeFileVersion">官方 cudart 的 Win32 文件版本资源。</param>
+    /// <param name="CudnnVersion">Paddle 包声明的 cuDNN 主次版本。</param>
+    /// <param name="CudnnRuntimeVersion">最低系统 cuDNN 版本及私有分发版本。</param>
+    /// <param name="Archives">固定的官方下载契约。</param>
+    private sealed record DependencyProfile(string Id, string CudaVersion, string CudaRuntimeFileVersion, string CudnnVersion, string CudnnRuntimeVersion, DependencyArchive[] Archives);
+    /// <summary>一个经过固定 SHA-256 校验的官方归档。</summary>
+    /// <param name="Id">组件标识。</param>
+    /// <param name="Url">官方下载地址。</param>
+    /// <param name="Sha256">官方 SHA-256。</param>
+    /// <param name="Size">官方归档字节数。</param>
+    /// <param name="RequiredDlls">从 bin 目录提取的 x64 DLL 白名单。</param>
+    private sealed record DependencyArchive(string Id, string Url, string Sha256, long Size, string[] RequiredDlls);
+    /// <summary>可随模块目录移动的相对路径安装记录。</summary>
+    /// <param name="Version">记录格式版本。</param>
+    /// <param name="ContractHash">固定依赖契约指纹。</param>
+    /// <param name="Files">成功安装的 DLL 清单。</param>
+    private sealed record DependencyInstallManifest(int Version, string ContractHash, InstalledFile[] Files);
+    /// <summary>已安装文件的相对名称和大小。</summary>
+    /// <param name="Name">DLL 文件名。</param>
+    /// <param name="Size">文件字节数。</param>
+    private sealed record InstalledFile(string Name, long Size);
 }

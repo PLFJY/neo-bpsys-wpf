@@ -147,8 +147,10 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             await File.WriteAllTextAsync(paddleModel, "downloaded-paddle");
             var cudaDll = Path.Combine(targetRoot, "Runtime", "Paddle", "cuda", "1.0", "package", "native", "dependency.dll");
             var cudaCache = Path.Combine(targetRoot, "Runtime", "Paddle", "Downloads", "NVIDIA", "installer.exe");
+            var cudaDependency = Path.Combine(targetRoot, "Runtime", "Paddle", "Dependencies", "cuda11.8-cudnn8.9.6.50", "native", "cudart64_110.dll");
+            var cudnnDependency = Path.Combine(targetRoot, "Runtime", "Paddle", "Dependencies", "cuda11.8-cudnn8.9.6.50", "native", "cudnn64_8.dll");
             var partialPackage = Path.Combine(targetRoot, "PaddleRuntimeDownload", "package.nupkg.download.part");
-            foreach (var path in new[] { cudaDll, cudaCache, partialPackage })
+            foreach (var path in new[] { cudaDll, cudaCache, cudaDependency, cudnnDependency, partialPackage })
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 await File.WriteAllTextAsync(path, "user-downloaded-content");
@@ -158,7 +160,7 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
 
             Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
             Assert.Equal("downloaded-paddle", await File.ReadAllTextAsync(paddleModel));
-            foreach (var path in new[] { cudaDll, cudaCache, partialPackage })
+            foreach (var path in new[] { cudaDll, cudaCache, cudaDependency, cudnnDependency, partialPackage })
                 Assert.Equal("user-downloaded-content", await File.ReadAllTextAsync(path));
         }, TimeSpan.FromSeconds(30));
     }
@@ -175,6 +177,9 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             var tesseractData = Path.Combine(targetRoot, "OCRModels", "Tesseract", "tessdata", "chi_sim.traineddata");
             Directory.CreateDirectory(Path.GetDirectoryName(tesseractData)!);
             await File.WriteAllTextAsync(tesseractData, "downloaded-tesseract");
+            var cudaDependency = Path.Combine(targetRoot, "Runtime", "Paddle", "Dependencies", "cuda11.8-cudnn8.9.6.50", "native", "cudart64_110.dll");
+            Directory.CreateDirectory(Path.GetDirectoryName(cudaDependency)!);
+            await File.WriteAllTextAsync(cudaDependency, "downloaded-cuda");
             Directory.CreateDirectory(AppConstants.AppDataPath);
             await File.WriteAllTextAsync(
                 SmartBpModuleManager.StateFilePath,
@@ -198,6 +203,7 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
 
             Assert.Contains("\"ModuleVersion\": \"2.0.0\"", await File.ReadAllTextAsync(Path.Combine(targetRoot, "component.json")));
             Assert.Equal("downloaded-tesseract", await File.ReadAllTextAsync(tesseractData));
+            Assert.Equal("downloaded-cuda", await File.ReadAllTextAsync(cudaDependency));
             Assert.False(File.Exists(SmartBpModuleManager.MovePendingFilePath));
         }, TimeSpan.FromSeconds(30));
     }
@@ -712,6 +718,20 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
             var packagedOcrAsset = Path.Combine(moduleRoot, "OCRModels", "packaged", "model.txt");
             Directory.CreateDirectory(Path.GetDirectoryName(packagedOcrAsset)!);
             File.WriteAllText(packagedOcrAsset, "packaged-ocr");
+            // 同名归档内容不能覆盖用户已有的 CUDA/Paddle 运行库或下载缓存。
+            foreach (var relativePath in new[]
+            {
+                "Runtime/Paddle/cuda/1.0/package/native/dependency.dll",
+                "Runtime/Paddle/Dependencies/cuda11.8-cudnn8.9.6.50/native/cudart64_110.dll",
+                "Runtime/Paddle/Dependencies/cuda11.8-cudnn8.9.6.50/native/cudnn64_8.dll",
+                "Runtime/Paddle/Downloads/NVIDIA/installer.exe",
+                "PaddleRuntimeDownload/package.nupkg.download.part"
+            })
+            {
+                var packagedAsset = Path.Combine(moduleRoot, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(packagedAsset)!);
+                File.WriteAllText(packagedAsset, "packaged-runtime");
+            }
         }
 
         File.WriteAllText(
@@ -736,7 +756,8 @@ public sealed class SmartBpModuleArchiveImportTest : IDisposable
         {
             Version = 1,
             Files = Directory.EnumerateFiles(moduleRoot, "*", SearchOption.AllDirectories)
-                .Where(file => file != manifestPath && !Path.GetRelativePath(moduleRoot, file).StartsWith("OCRModels" + Path.DirectorySeparatorChar))
+                .Where(file => file != manifestPath && !new[] { "OCRModels/", "Runtime/Paddle/cuda/", "Runtime/Paddle/Dependencies/", "Runtime/Paddle/Downloads/", "PaddleRuntimeDownload/" }
+                    .Any(root => Path.GetRelativePath(moduleRoot, file).Replace('\\', '/').StartsWith(root, StringComparison.OrdinalIgnoreCase)))
                 .Select(file => new SmartBpModuleFile
                 {
                     Path = Path.GetRelativePath(moduleRoot, file).Replace('\\', '/'),

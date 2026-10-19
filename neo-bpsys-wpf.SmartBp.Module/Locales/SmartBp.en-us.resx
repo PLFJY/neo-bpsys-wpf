@@ -961,7 +961,7 @@
     <value>Downloading</value>
   </data>
   <data name="CudaStatusModuleRuntimeMissing" xml:space="preserve">
-    <value>System CUDA/cuDNN is ready; the current SmartBP module is missing the Paddle CUDA runtime</value>
+    <value>CUDA/cuDNN is ready; the current SmartBP module is missing the Paddle CUDA runtime</value>
   </data>
   <data name="CudaStagePreparing" xml:space="preserve">
     <value>Preparing the CUDA dependency installation...</value>
@@ -970,22 +970,22 @@
     <value>Downloading the Paddle CUDA runtime...</value>
   </data>
   <data name="CudaStageDownloadingCudaToolkit" xml:space="preserve">
-    <value>Downloading the NVIDIA CUDA 11.8 installer...</value>
+    <value>Downloading NVIDIA CUDA {0} runtime libraries...</value>
   </data>
   <data name="CudaStageVerifyingCudaToolkit" xml:space="preserve">
-    <value>Verifying the integrity of the NVIDIA CUDA 11.8 installer...</value>
+    <value>Verifying NVIDIA CUDA {0} runtime libraries...</value>
   </data>
   <data name="CudaStageInstallingCudaToolkit" xml:space="preserve">
-    <value>Opening the NVIDIA CUDA 11.8 graphical installer. Approve the UAC prompt and complete the installation in the installer; the app will wait and detect the result automatically...</value>
+    <value>Extracting CUDA {0} runtime libraries into the SmartBP module directory...</value>
   </data>
   <data name="CudaStageDownloadingCuDnn" xml:space="preserve">
-    <value>Downloading NVIDIA cuDNN 8.9.6...</value>
+    <value>Downloading NVIDIA cuDNN {1}...</value>
   </data>
   <data name="CudaStageVerifyingCuDnn" xml:space="preserve">
-    <value>Verifying the integrity of the NVIDIA cuDNN 8.9.6 package...</value>
+    <value>Verifying the NVIDIA cuDNN {1} archive...</value>
   </data>
   <data name="CudaStageInstallingCuDnn" xml:space="preserve">
-    <value>Installing cuDNN 8.9.6 and updating the system PATH. Approve the UAC prompt...</value>
+    <value>Extracting cuDNN {1} into the SmartBP module directory...</value>
   </data>
   <data name="CudaInstallErrorDetails" xml:space="preserve">
     <value>CUDA installation failed: {0}</value>
@@ -1021,7 +1021,7 @@
     <value>Download CUDA Runtime Dependency</value>
   </data>
   <data name="CudaDependencyRequiredHint" xml:space="preserve">
-    <value>Install NVIDIA CUDA 11.8 and cuDNN dependencies (about 4 GB; UAC approval is required) before enabling hardware acceleration</value>
+    <value>Uses matching system CUDA {0} / cuDNN {1} when available; otherwise downloads them into the SmartBP module directory. No system installation or UAC approval is required. The NVIDIA display driver must still be installed on Windows.</value>
   </data>
   <data name="CudaStatusDependencyReady" xml:space="preserve">
     <value>Dependency ready, hardware acceleration can be enabled</value>

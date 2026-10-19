@@ -248,6 +248,7 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase, IDisposable
         try
         {
             RefreshCudaStatus();
+            OnPropertyChanged(nameof(CudaDependencyRequiredHint));
             RefreshCudaUnsupportedReason();
             RefreshCudaDownloadStageText();
             RefreshCudaInstallationErrorText();

@@ -71,6 +71,10 @@ manifest 中的 `Asset.Name`、`Asset.Url`、`Asset.Size` 和 `Asset.Sha256` 指
 
 构造 `UpdaterService` 时会清理残留 installer 和 sha256 文件。
 
+软件更新保留已安装的 CUDA 依赖：自动更新运行 lite 安装包，不先卸载模块；lite 与 full 安装脚本均显式排除任意层级的 `Runtime/Paddle/cuda`、`Runtime/Paddle/Dependencies`、`Runtime/Paddle/Downloads` 和 `PaddleRuntimeDownload`，即使发布目录误带同名内容，也不通过安装包写入这些目录。
+
+full 安装包优先沿用状态文件中已有、可写且安全的模块根目录，其次读取宿主注册表记录，最后才使用默认目录；静默更新同样遵循此规则。状态文件按 UTF-8 读取并解析标准 JSON 字符串转义（含 Unicode 代理对），full 安装器也以 UTF-8 写入，避免中文或其他非 ASCII 模块路径被误判为不存在。这样不会因为默认路径重置而让已有 CUDA 依赖失去引用。模块内更新由模块管理器保留整组目录，即使新归档携带冲突文件，也以已安装内容为准。系统 CUDA/cuDNN 不属于应用安装器的文件范围。
+
 ## 镜像设置
 
 应用更新、插件市场和 SmartBP 模块下载都使用 `DownloadMirrorPresets.GhProxyMirrorList` 作为 UI 候选；空字符串表示直连。设置页、插件市场设置和 SmartBP 模块下载高级选项共用 `Settings.GhProxyMirror` 持久化字段，切换后会重置插件市场镜像缓存。三个入口均可测试候选镜像延迟；测试完成后自动选中延迟最低的成功项，全部失败时保留原选择。
