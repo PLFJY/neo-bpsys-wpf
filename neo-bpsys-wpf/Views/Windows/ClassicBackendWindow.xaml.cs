@@ -59,6 +59,8 @@ public partial class ClassicBackendWindow : FluentWindow
         TalentRoot.DataContext = talentPageViewModel;
         ScoreRoot.DataContext = scorePageViewModel;
         ScorePreviewDrawerRoot.DataContext = scorePageViewModel;
+        scorePageViewModel.PropertyChanged += OnScorePagePropertyChanged;
+        Closed += (_, _) => scorePageViewModel.PropertyChanged -= OnScorePagePropertyChanged;
         GameDataRoot.DataContext = gameDataPageViewModel;
 
         infoBarService.SetInfoBarControl(InfoBar);
@@ -184,9 +186,21 @@ public partial class ClassicBackendWindow : FluentWindow
 
     private void ToggleScorePreviewDrawer_Click(object sender, RoutedEventArgs e)
     {
+        if (ScorePreviewDrawerRoot.DataContext is ScorePageViewModel { IsFreeMode: true })
+            return;
+
         ScorePreviewDrawerRoot.Visibility = ScorePreviewDrawerRoot.Visibility == Visibility.Visible
             ? Visibility.Collapsed
             : Visibility.Visible;
+    }
+
+    private void OnScorePagePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ScorePageViewModel.IsFreeMode)
+            && sender is ScorePageViewModel { IsFreeMode: true })
+        {
+            ScorePreviewDrawerRoot.Visibility = Visibility.Collapsed;
+        }
     }
 
     private void CloseScorePreviewDrawer_Click(object sender, RoutedEventArgs e)
