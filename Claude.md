@@ -1,7 +1,3 @@
 # Claude.md
 
-This repository uses `AGENTS.md` as the canonical agent instruction file.
-
-Please read [AGENTS.md](AGENTS.md) first, then use the developer docs under [`docs/`](docs/).
-
-@AGENTS.md
+本仓库的 Agent 指令以 [AGENTS.md](AGENTS.md) 为准；按需文档入口见 [docs/README.md](docs/README.md)。

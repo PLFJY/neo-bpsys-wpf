@@ -1,19 +1,8 @@
-# 内存基线与诊断方案
+# 内存基线与生命周期诊断
 
-本目录文档面向维护者，记录内存回归验证方案、基线测量步骤和已知引用链。本文档对应内存治理任务包的阶段 0 输出。
+本文为按需诊断操作手册，不是未完成修复计划。区分对象持续保留、有界缓存、瞬时大分配与 sidecar 常驻；Working Set 高并不能单独证明泄漏。
 
-## 目标
-
-区分以下四类内存问题，避免伪装修复：
-
-| 类型 | 特征 | 修复方向 |
-| --- | --- | --- |
-| 真正的对象泄漏 | 对象按次数累积，GC Heap 阶梯增长 | 解除强引用链 |
-| 有上限但过大的常驻缓存 | 条目数稳定但总字节超预算 | 引入字节预算与 LRU |
-| 高频大对象分配 | Working Set 膨胀，LOH 分配速率高 | 复用缓冲、减少分配 |
-| WebRenderer 子进程常驻 | sidecar 进程独立内存 | 主进程与 sidecar 分开报告 |
-
-## 诊断属性（阶段 0 新增）
+## 可用诊断属性
 
 以下 `internal` 属性仅供诊断和测试使用，不改变生产生命周期，不会反向持有任何缓存对象。在已有锁下读取，按需计算，不缓存计算结果。
 
@@ -37,186 +26,45 @@
 
 字节估算公式：`PixelWidth * PixelHeight * ceil(BitsPerPixel / 8)`，使用 `long` 避免溢出，无法识别格式时按 4 bytes/pixel 保守计算，`null` 条目按 0 计算。
 
-## 工具准备
 
-### 安装 dotnet 工具
+## 采集准备
 
-```powershell
-dotnet tool install -g dotnet-counters
-dotnet tool install -g dotnet-gcdump
-```
-
-### 构建 Release x64
-
-```powershell
-dotnet build neo-bpsys-wpf.slnx -c Release -p:Platform=x64
-```
-
-不要使用 Preview 或 Debug 的内存数字与旧版 Release 直接比较。当前 Preview 为 `Optimize=false`。
-
-## 场景 A：Designer v3 生命周期
-
-### 复现步骤
-
-连续执行五轮：
-
-1. 启动应用，等待主窗口和后台页面加载完成。
-2. 通过后台页面或入口打开 `FrontedDesignerWindow`。
-3. 等待布局和教程加载完成（日志出现 `Designer sequence result` 或 `Initial preview render completed`）。
-4. 关闭 `FrontedDesignerWindow`。
-5. 等待 5 秒，让 Dispatcher 完成异步清理。
-
-### 采集命令
-
-在第一轮打开前采集基线：
+使用与问题相同的构建配置、架构、布局与插件。Preview 的 Optimize=false，不与 Release 数字直接比较。工具需自行具备 dotnet-counters / dotnet-gcdump；未安装时可用 dotnet tool install -g 安装。构建入口见[构建与版本](build-release-and-versioning.md)。
 
 ```powershell
 $mainPid = (Get-Process neo-bpsys-wpf).Id
+dotnet-counters monitor -p $mainPid System.Runtime
 dotnet-gcdump collect -p $mainPid -o before-designer.gcdump
-dotnet-counters monitor -p $mainPid System.Runtime
+# 完成下述重复场景、等待现有异步清理收口后采集
+dotnet-gcdump collect -p $mainPid -o after-designer.gcdump
 ```
 
-在第五轮关闭后采集对比：
+快照在 PerfView / Visual Studio 中比较存活对象与根引用链，同时记录 GC Heap、LOH 分配、Private Bytes、Working Set；不靠固定多等几秒或只看峰值判断。真实设备的持续捕获、OCR/CUDA 和大型插件控件仍需单独测量。
+
+## 场景与当前应检查的边界
+
+| 场景 | 操作与证据 | 当前约束 / 源码 |
+| --- | --- | --- |
+| Designer | 连续五轮打开、编辑、关闭；比较 Window/VM、Canvas、历史和动画树是否按轮累积 | [编辑器关闭与预览释放](../frontend/fronted-designer-editor.md)；Language 事件解除、DispatcherOperation 取消、单例 PreviewAnimationScope 清空 |
+| 教程 | 多窗口触发教程后关闭，查看 owner 是否仍被协调器持有 | [TutorialPlaybackCoordinator](../../neo-bpsys-wpf.ProductTour/TutorialPlaybackCoordinator.cs) 的弱 owner/会话清理，不再沿用旧报告的永久 Dictionary<Window,...> 假设 |
+| 图片/染色 | 切三组包、背景及颜色，观察条目数与估算解码字节 | [素材缓存](../resources/resources-localization-and-assets.md)：256 项/128 MiB 与 32 项/64 MiB LRU，核对驱逐后是否仍有活跃视觉引用 |
+| 捕获 | WGC/BitBlt 启停、换源、目标关闭，检查旧帧与回调 | [线程与捕获生命周期](../architecture/threading-dispatcher-and-async.md)：帧锁、世代、停止清空；复用设备仅在服务退出释放 |
+| SmartBP | 自动识别启停、换局、模块退出，区分历史帧和 native runtime | [SmartBP](../business/smartbp-and-ocr.md)：192 MiB 估算帧预算（允许当前单帧超限）、容器结束释放 Provider，ALC/native 预加载仍为进程寿命 |
+| Behavior | 重载、Hide/Show、关闭与 Attach 交错 | [Behavior](../frontend/fronted-behavior-system.md)：旧请求失效、所有图阶段取消、Dispose 后不 Reset 复活 session |
+| WebRenderer | 分别记录主进程与 sidecar；反复 bootstrap/换包 | [WebRuntimeValue.cs](../../Built-inPlugins/neo-bpsys-wpf.WebRenderer/Services/WebRuntimeValue.cs) 的资产 active 集合、generation 与异步编码收口；不把旧已修复竞态写成当前已知泄漏 |
+
+## Web sidecar 独立采集
+
+默认 StartWithApplication=false，未使用时没有 sidecar。旧用户保存的 true 保持有效。PID 优先从 WebRendererSidecarService.Status.ProcessId 获取，也可查进程：
 
 ```powershell
-dotnet-gcdump collect -p $mainPid -o after-designer-5rounds.gcdump
-```
-
-### 检查项
-
-使用 PerfView 或 Visual Studio 打开两个 `.gcdump` 对比：
-
-- `FrontedDesignerWindow` 实例是否仍然存活（预期：不存活）。
-- `FrontedDesignerWindowViewModel` 是否仍然存活（预期：不存活）。
-- Visual Tree、预览 Canvas、Undo 栈是否被一起保留。
-- 每轮关闭后 GC Heap 是否阶梯增长。
-
-### 预期引用链（阶段 1 修复目标）
-
-当前代码中，以下两条强引用链会阻止已关闭窗口被 GC：
-
-1. `ISettingsHostService`（Singleton）→ `LanguageSettingChanged` 事件 → `FrontedDesignerWindow` 实例。
-   - 构造函数订阅：`settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;`
-   - `OnClosed` 中没有显式取消订阅。
-2. `TutorialPlaybackCoordinator`（Singleton）→ `_playbackGates` 字典 → `Window` 作为 key。
-   - `ResolvePlaybackScope(owner)` 返回 `Window`。
-   - 执行结束后没有从 `_playbackGates` 删除 key。
-
-## 场景 B：资源和染色缓存
-
-### 复现步骤
-
-1. 启动应用。
-2. 依次加载多个布局包（至少 3 个不同包）。
-3. 在每个布局中切换多个图片和背景染色配置。
-4. 触发背景染色动画（如 BO 呼吸效果）。
-5. 记录缓存诊断属性。
-
-### 采集命令
-
-由于诊断属性是 `internal`，需要在测试或调试构建中通过 `InternalsVisibleTo` 访问。在生产环境可通过 `.gcdump` 直接观察字典大小：
-
-```powershell
-$mainPid = (Get-Process neo-bpsys-wpf).Id
-dotnet-gcdump collect -p $mainPid -o after-layout-switch.gcdump
-```
-
-在 `.gcdump` 中查找：
-
-- `FrontedResourceResolver._imageCache` 的条目数。
-- `BackgroundImageTintProcessor._cache` 的条目数。
-- 估算解码字节数。
-
-### 当前理论上限
-
-| 缓存 | 条目上限 | 单条目最大字节 | 理论最大字节 |
-| --- | ---: | ---: | ---: |
-| `FrontedResourceResolver._imageCache` | 256 | 1024×1024×4 = 4 MiB | 约 1 GiB |
-| `BackgroundImageTintProcessor._cache` | 32 | 全尺寸 BGRA 位图 | 视原图尺寸而定 |
-
-### 已知问题（阶段 2 修复目标）
-
-1. `FrontedResourceResolver`：
-   - 只限制张数（256），不限制解码后像素字节。
-   - `Queue<ImageCacheKey>` 不是真正 LRU，命中不会更新顺序。
-   - 256 张 1024 长边图片可能占用数百 MB。
-
-2. `BackgroundImageTintProcessor`：
-   - 只限制张数（32），不限制染色位图字节。
-   - Cache key 包含高精度 `double strength`，动画每约 16ms 更新一次会产生大量不同 key。
-   - 中间动画帧不应全部进入长期缓存。
-
-## 场景 C：WebRenderer
-
-### 复现步骤
-
-1. 启动应用（默认 `StartWithApplication = false`，sidecar 不自动启动；用户可在管理页手动启动或开启随应用启动）。
-2. 记录主进程 PID 和 sidecar PID。
-3. 分别记录两个进程的内存。
-4. 切换多个布局包，观察 `_ready` 等集合是否无限增长。
-
-### 采集命令
-
-```powershell
-$mainPid = (Get-Process neo-bpsys-wpf).Id
-# sidecar 进程名为 dotnet 或 neo-bpsys-wpf.WebRenderer.Host
-$sidecarPid = (Get-Process -Name "neo-bpsys-wpf.WebRenderer.Host" -ErrorAction SilentlyContinue).Id
-# 或通过 WebRendererSidecarService.Status.ProcessId 获取
-
-# 分别采集
-dotnet-counters monitor -p $mainPid System.Runtime
+$sidecarPid = (Get-Process -Name 'neo-bpsys-wpf.WebRenderer.Host' -ErrorAction SilentlyContinue).Id
 dotnet-counters monitor -p $sidecarPid System.Runtime
-dotnet-gcdump collect -p $mainPid -o main-after-webrenderer.gcdump
 dotnet-gcdump collect -p $sidecarPid -o sidecar-baseline.gcdump
 ```
 
-不要把两个进程的内存混成一个数字。
+主进程与 sidecar 分开报告；下载缓存、浏览器进程和 OS 图形资源也不等同于托管堆。stop/restart 只终止当前会话所属 sidecar，不误杀其他 dotnet 进程。
 
-### 检查项
+## 验证方法
 
-- 主进程 `WebRuntimeAssetRegistry._ready` 条目数。
-- 主进程 `WebRuntimeAssetRegistry._pending` 条目数。
-- 主进程 `WebRuntimeAssetRegistry._remote` 条目数。
-- sidecar 进程 Working Set 和 Private Bytes。
-
-### 已知问题（阶段 3 修复目标）
-
-1. `WebRuntimeAssetRegistry` 使用引用相等比较并强引用 `ImageSource`：
-   - `_ready`、`_pending`、`_failures`、`_remote` 四个集合。
-   - `ReplaceRemoteSources` 只清理远程资源，本地文件和 Frozen Bitmap 不会随 active snapshot 清除。
-2. 异步编码竞态：布局切换后旧编码任务完成可能把图片插回 `_ready`。
-3. `StartWithApplication` 默认为 `false`（阶段 5 修复），新安装不自动启动 sidecar 进程；已有 `Settings.json` 的旧用户保留原值。
-
-## 引用链优先级排序
-
-按影响从高到低：
-
-### 优先级 1：真实对象泄漏
-
-- **TutorialPlaybackCoordinator._playbackGates**：Singleton 持有 `Window` 作为 Dictionary key，执行结束后不删除。影响所有触发过教程的窗口。
-- **FrontedDesignerWindow 语言事件**：Singleton `ISettingsHostService` 通过事件反向持有已关闭窗口。每次开关 Designer 都会累积一个窗口实例。
-
-### 优先级 2：受控但过大的缓存
-
-- **FrontedResourceResolver._imageCache**：256 张图片无字节上限，Singleton 长期存在。
-- **BackgroundImageTintProcessor._cache**：32 张染色位图无字节上限，动画中间帧全部缓存。
-
-### 优先级 3：异步任务回写
-
-- **WebRuntimeAssetRegistry.CompleteEncoding**：布局切换后旧编码任务完成会把图片插回 `_ready`，没有验证 source 是否仍 active。
-
-### 优先级 4：高频大对象分配
-
-- **WindowCaptureService.OnFrameArrived**：每帧创建新的 staging texture、`byte[]`、`BitmapSource`。1080p BGRA 一帧约 8 MiB，高帧率下分配速率极高。
-
-### 优先级 5：子进程常驻
-
-- **WebRenderer sidecar**：默认 `StartWithApplication = false`（阶段 5 修复），新安装不自动启动 sidecar 进程；已有 `Settings.json` 的旧用户保留原值。
-
-## 验证原则
-
-- 验证对象是否释放时，使用 `WeakReference`，不要在生产 Singleton 中建立"被监测对象列表"。
-- 不要新增常驻轮询 Timer。
-- 不要为了测试改变生产生命周期。
-- 不要在 Release 中输出高频日志。
-- 主进程与 sidecar 内存必须分开报告。
+验证回收可临时使用 WeakReference 与现有会话完成信号、Dispatcher 排空；不要在生产 singleton 保存监测对象列表或新增常驻轮询 Timer。不要为测试改变生产生命周期。按[测试资产政策](testing-guidelines.md)选择必要回归，开发测量先运行后清理，不把某次环境的结果当当前性能承诺。崩溃/卡死转储收集见[故障诊断](../diagnostics/crash-collection.md)。

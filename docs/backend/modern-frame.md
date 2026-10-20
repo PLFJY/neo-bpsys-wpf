@@ -8,7 +8,7 @@
 - 为 `ModernNavigationView` Top 模式承载类标签页内容。
 - 为 `PluginPage`、`FrontManagePage` 等局部内容切换提供带动画的轻量宿主。
 
-当前环节已经由 `ModernNavigationView` 在 `MainWindow.RootNavigation`、`PluginPage` 和 `FrontManagePage` 的局部标签页内部使用 `ModernFrame`。
+当前已由 `ModernNavigationView` 在 `MainWindow.RootNavigation`、`PluginPage` 和 `FrontManagePage` 的局部标签页内部使用 `ModernFrame`。
 
 ## 内容与创建
 
@@ -87,3 +87,5 @@ scrolling:ModernScroll.Ownership="Self"
 ```
 
 `Frame` 强制保持外层 frame/page 滚动；`Self` 表示该区域拥有自己的滚动语义。显式 self-scroll 的控件仍应通过 `NestedSmoothScrollBehavior.IsEnabled="True"` 获得平滑滚动。frame 级 `ModernScrollViewer` 只处理页面级滚轮；滚轮来源位于已打开的 `ComboBox` 下拉框、`Popup` / `ContextMenu`、`PopupRoot` 或显式 self-scroll 区域时，frame 不会在预览环节抢占该事件，也不会滚动背后的页面。
+
+滚轮策略和嵌套交接以[平滑滚动](modern-smooth-scrolling.md)为准；本文只规定内容宿主选择与导航置顶时序。源码入口：[ModernFrame.cs](../../neo-bpsys-wpf/Controls/Modern/Frame/ModernFrame.cs)。

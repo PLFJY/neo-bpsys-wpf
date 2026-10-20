@@ -8,23 +8,12 @@
 
 入口在 `neo-bpsys-wpf/App.xaml.cs`：
 
-1. 设置控制台日志编码为 UTF-8。
-2. 设置应用生命周期为 `Initializing`。
-3. 以 `AppConstants.AppName` 创建单实例 `Mutex`；如果已有实例，弹窗提示并关闭。
-4. 创建 `IAppHost.Host`：
-   - `Host.CreateDefaultBuilder()`
-   - `ConfigureLogging(...)`（含 `FileLoggerProvider` 注册）
-   - `ConfigureServices(ConfigureServices)`
-   - `Build()`
-5. 调用 `base.OnStartup(e)`。
-6. 设置 WPF 动画目标帧率为 100。
-7. 从 DI 获取 logger，记录启动日志。
-8. 加载配置：`ISettingsHostService.LoadConfig()`。
-9. 根据配置应用日志级别。
-10. 初始化部分资源图标、主题、语言。
-11. `IAppHost.Host.StartAsync()`，触发 hosted service。
-12. 设置生命周期为 `Running`。
-13. 启动更新检查使用 `#if !DEBUG && !PREVIEW`，Debug 和 Preview 不编译此启动更新检查分支。
+1. 检查 64 位进程，设置 UTF-8 控制台编码与 Initializing 状态，获取单实例 Mutex。已有实例时优先转发启动参数中的 BPUI 路径，成功转发后退出；否则提示已运行并退出。
+2. 获取诊断 Mutex（最多等待 45 秒），初始化文件日志与 run-state，再创建 Generic Host：ConfigureLogging、ConfigureServices（含插件 Initialize）、Build。日志在 Host build 前已可记录失败。
+3. 调用 base.OnStartup，设置动画帧率；进入 StartingOffline，加载 Config（含显式 legacy 启动迁移），检查文件关联，应用日志级别及教程调试状态，建立设置/业务事件订阅。
+4. 进入 StartingOnline，初始化图标、主题与语言；await Host.StartAsync，由 ApplicationHostService 选择后台 Shell。
+5. 刷新活动包自定义窗口注册，启动 BPUI 文件激活监听，异步处理初始包路径；启动受异常保护的公告同步，发送 AppStarted，再进入 Running。
+6. 启动更新检查受 !DEBUG && !PREVIEW 条件编译控制。文件激活与包导入契约见 [BPUI](../frontend/bpui-package-v3.md)，公告流程见[远程公告](remote-announcements.md)。
 
 退出时 `OnExit` 先记录 ShutdownRequested，再发送 `AppStopping`，有期限地同步等待 Host 停止并释放；成功完成后才记录 ShutdownCompleted 和关闭日志，再归档。异常和超时不标记正常完成。重启新进程通过独立诊断 Mutex 等待旧进程完成归档。
 
@@ -33,8 +22,8 @@
 ```mermaid
 flowchart TD
     A[WPF OnStartup] --> B[单实例 Mutex]
-    B --> C[CreateDefaultBuilder]
-    C --> D[FileLoggerProvider 和 Microsoft Logging]
+    B --> C[诊断 Mutex / 文件日志 / run-state]
+    C --> D[CreateDefaultBuilder / ConfigureLogging]
     D --> E[ConfigureServices]
     E --> F[注册宿主服务/页面/前台窗口]
     F --> G[PluginService.InitializePlugins]
@@ -42,19 +31,20 @@ flowchart TD
     H --> I[加载 Config.json]
     I --> J[主题/语言/资源初始化]
     J --> K[Host.StartAsync]
-    K --> L[ApplicationHostService 显示 MainWindow]
-    L --> M[预加载部分后台页面]
+    K --> L[ApplicationHostService 选择后台模式]
+    L --> M[Modern 显示 MainWindow 并导航 Home]
+    L --> N[Classic 显示 ClassicBackendWindow]
 ```
 
 `App` 继承 `AppBase`。`AppBase` 提供 `Restart()`、`ShutDown()`、`AppStarted`、`AppStopping` 和 `CurrentLifetime` 抽象。`IAppHost.Host` 是 Core 层暴露的静态 Host 引用，插件和部分后台代码通过它访问 DI 容器。
 
 ## WPF + Generic Host
 
-`App.Services.xaml.cs` 是服务注册中心。这里将 WPF 页面、窗口和业务服务都放入 Microsoft DI 容器。主窗口通过 `INavigationWindow` 注册为单例，构造时注入导航、InfoBar、Snackbar、设置服务和 logger。
+`App.Services.xaml.cs` 是服务注册中心。这里将 WPF 页面、窗口和业务服务都放入 Microsoft DI 容器。Modern 主窗口通过 `INavigationWindow` 注册为单例，构造时注入导航、InfoBar、Snackbar、设置服务和 logger。
 
 当前大多数 View、ViewModel、Service 是 singleton。维护时不要随意改生命周期，因为 WPF 绑定、导航页面缓存、前台窗口状态和共享数据都依赖这种长期实例模型。
 
-实验性 Web Renderer 作为插件注册的 `IHostedService` 在主窗口建立后启动自己的 sidecar。它的异常、runtime 缺失和端口占用均为 fail-safe 状态，不影响 WPF Host 生命周期。
+实验性 Web Renderer 作为插件注册 IHostedService，根据插件设置和启动参数决定是否启动 sidecar，默认不随应用启动。它的异常、runtime 缺失和端口占用均为 fail-safe 状态，不影响 WPF Host 生命周期。
 
 SmartBP 是特殊边界：宿主 DI 只注册页面壳、`SmartBpModuleManager`、`ISmartBpFeatureService` 和 OCR 模型路径提供器。真实 SmartBP 页面内容由模块程序集在成功加载后通过 `ISmartBpModuleEntryPoint` 创建，宿主不直接引用模块实现类型。
 
@@ -96,9 +86,9 @@ Application.Current.Resources["CurrentLanguage"] =
 
 `ApplicationHostService` 是 `IHostedService`。Host 启动后它会：
 
-1. 解析 `INavigationWindow`，显示 `MainWindow`。
-2. 预加载 `PickPage`、`BanSurPage`、`BanHunPage`，代码注释说明是为了提前加载使用 `CharaSelector` 的页面，减少使用时卡顿。
-3. 导航回 `HomePage`。
+1. 注册教程标记，读取 IsClassicMode。
+2. Classic 模式解析并显示 ClassicBackendWindow 后返回。
+3. Modern 模式解析 INavigationWindow，显示 MainWindow 并导航 HomePage。Pick/Ban 预加载目前只在注释中，不执行。
 
 这是 UI 启动链的一部分，不是后台服务进程。
 
@@ -110,6 +100,6 @@ Application.Current.Resources["CurrentLanguage"] =
 PluginService.InitializePlugins(context, services);
 ```
 
-插件的 `Initialize(context, services)` 能注册后台页面、插件前台窗口 descriptor、Designer v3 插件控件、自定义服务等。这些注册必须发生在 `Host.Build()` 前，否则 DI 容器已经冻结，插件无法参与 WPF-UI 页面提供器、窗口构造和服务解析。
+插件的 `Initialize(context, services)` 能注册后台页面、前台窗口 registration、Designer v3 插件控件、自定义服务等。这些注册必须发生在 `Host.Build()` 前，否则 DI 容器已经冻结，插件无法参与 WPF-UI 页面提供器、窗口构造和服务解析。
 
 因此插件安装/更新后通常需要重启应用。插件包被复制到插件目录不等于它已经进入当前进程的 DI 容器。

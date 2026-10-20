@@ -74,10 +74,14 @@ public partial class FrontedResourceBrowserWindowViewModel : ViewModelBase
             string.Equals(resource.SelectedPath, initialPath, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// 选择本地图片。超限图片交由调用方按实际用途提供压缩确认，浏览器不解码其缩略图。
+    /// </summary>
+    /// <param name="path">本地图片文件路径。</param>
     public void UseAbsoluteFile(string path)
     {
         var validation = _imageSafetyService.ValidateFile(path, FrontedImagePurpose.UiElement);
-        if (!validation.IsValid)
+        if (!validation.IsValid && validation.ErrorCode is not ("ImageTooLarge" or "ImageTooManyPixels"))
         {
             ValidationMessage = validation.ErrorCode ?? "InvalidImageResource";
             return;

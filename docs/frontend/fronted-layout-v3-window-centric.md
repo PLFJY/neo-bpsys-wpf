@@ -1,10 +1,8 @@
-# Fronted Layout v3 Window-centric
+# Window-centric 布局数据与读取契约
 
-内置布局方案是 `PackageId = builtin` 的普通活动包，布局根目录是应用运行时 `Resources/FrontedLayouts`。启用 package manager 后，活动包是权威来源，活动包为 `builtin` 时也不得回退旧用户布局存储。
+本文负责 FrontedWindowConfig、磁盘路径与布局读写。窗口身份/实例生命周期见[窗口运行时](frontend-windows-and-layout.md)，包内 manifest、资源 URI 和导入导出限制见 [BPUI](bpui-package-v3.md)。
 
-激活任意包都会完整重载已创建 v3 窗口的 WindowSettings、CanvasSettings、控件、资源和 behavior runtime。`AllowsTransparency` 变化时只静默重启对应已创建窗口，未创建窗口不会因此被创建。
-
-Fronted Layout v3 现在只以前台窗口为布局管理单位，不再把 Canvas 暴露为用户、Designer、FrontManagePage 或 `.bpui` package 的管理单位。
+源码入口：[配置模型](../../neo-bpsys-wpf.Core/Models/FrontedLayout/FrontedWindowConfig.cs)、[布局服务](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutService.cs)、[包管理器](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageManager.cs)、[路径映射](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedV3LayoutWindowPathHelper.cs)。
 
 ## 运行时结构
 
@@ -18,7 +16,7 @@ FrontedWindowBase
 
 `BaseCanvas` 是内部实现细节。它只用于 renderer、behavior target resolver 和临时转换 helper 的 root canvas，不出现在布局路径、包 manifest、FrontManagePage 卡片或 Designer 选择器中。传统固定 XAML 前台窗口继续按原窗口逻辑创建，不强制使用 BaseCanvas。
 
-`AllowsTransparency` 必须在 WPF window source 初始化前应用。已显示窗口 reload layout 时不会直接修改 `AllowsTransparency`；如果配置变化，需要重开窗口或等待下次创建生效。`ViewBox` 负责缩放，控件坐标不因窗口大小变化而被重写。
+`AllowsTransparency` 必须在 WPF source 初始化前应用；变化时由窗口服务静默重建受影响实例，具体流程见窗口运行时。`ViewBox` 负责缩放，控件坐标不因窗口大小变化而被重写。
 
 ## 配置模型
 
@@ -55,26 +53,13 @@ FrontedWindowBase
 
 窗口宽高由 `WindowSettings.WindowWidth` / `WindowHeight` 独立保存，内部设计画布尺寸由 `CanvasSettings.CanvasWidth` / `CanvasHeight` 保存。普通读取、保存、包导入和包导出必须保留 WindowSettings；只有 legacy canvas-centric 转换缺少窗口尺寸时，才以 Canvas 设计尺寸初始化窗口尺寸。ViewBox 负责把固定设计坐标缩放到窗口内容区域，控件坐标不会随窗口 resize 被重写。
 
-`FrontedCanvasConfig` 只允许作为 legacy converter、旧测试断言或临时转换 helper 使用。新的 LayoutService、Designer、runtime 和 package 主路径应读写 `FrontedWindowConfig`。
+持久化主路径读写 `FrontedWindowConfig`；编辑器和 renderer 的内部 Canvas 适配不构成另一个磁盘格式。
 
-## Naming rule: do not use generic IsActive
+## 状态与显示名称
 
-`IsActive` 只保留给内部框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。
+CanvasSettings root/default 表示 BO5；启用 EnableBoModeStates 且存在 BoModeStates["Bo3"] 时，BO3 使用独立 BackgroundImage、RequiredPlugins 和 Controls。启用但缺失 BO3 state 时运行时回退 root 并记录 warning。不要在普通保存中用当前状态覆盖另一状态。
 
-不要把 `IsActive` 用作 layout、package、settings 或业务数据字段。请使用明确语义名称：
-
-- `IsActivePackage`
-- `IsCurrentPackage`
-- `IsVisible`
-- `IsBadgeVisible`
-- `IsEnabled`
-- `IsSelected`
-- `IsExpanded`
-- `IsVisibleInFrontManage`
-
-旧 `.bpui` 包可能在 `TextSettings` 中包含 `IsActive`，原因是旧设置类继承了 `ObservableRecipient` 并把框架激活状态泄漏进序列化。该字段不是文本样式启用标记，LegacyConverter 必须忽略它。
-
-`Visibility` 绑定必须使用 `IsVisible` 或具体的可见性语义属性，不得绑定泛名 `IsActive`。
+JSON 根级 DisplayNames 保存 zh_Hans、en_US、ja_JP 等译名，解析顺序为当前语言、简体中文、美国英语、日语，最后 Window ID；历史 JSON 缺字段继续使用既有资源回退。保存保持文档自身字典，不从选择器补齐空值。业务布尔命名见[命名规范](../naming-rules.md)。
 
 ## 路径
 
@@ -99,17 +84,15 @@ plugin:{PackageId}/{LocalId}      → FrontedLayouts/plugin/{PackageId}/{LocalId
 ```text
 FrontedLayouts/{CanonicalId}.json
 FrontedBehaviors/{CanonicalId}.behaviors.json
-Resources/...
+resources/...
 manifest.json
 ```
 
 manifest 使用 window-centric layout model 标记，layout entry 只记录 Window 和 Path，不记录 Canvas。缺插件窗口或缺插件控件的数据文件必须保留；Registry 没有 registration 时不显示该窗口，但 importer/exporter/package manager 不删除未知 window layout 或 behavior 文件。
 
-## Registry 和窗口
+## 管理范围
 
-Registry 使用强类型 registration 模型，基类 `FrontedWindowRegistration` 只暴露 `Id`（Canonical ID）、`LocalId`、`PackageId`、`IsBuiltIn`、`DisplayName`、`Kind`。`Kind` 只有 `Xaml` / `V3Layout` 两种，由派生类 `FrontedXamlWindowRegistration` / `FrontedV3LayoutWindowRegistration` 固定返回。FrontManagePage 只从 registry 获取可管理窗口，来源分组（BuiltIn / Plugin / External）由 UI 层基于 `IsBuiltIn + PackageId` 推导，顺序使用 DI 注册顺序或 UI 按 `LocalId` 排序；基类不再有 `GroupKey` / `DisplayOrder` / `I18nDisplayNames`。
-
-`WidgetsWindow` 已删除。`MapBpCanvas` / MapV1 已删除且不注册。旧 `BpOverViewCanvas` 迁移为 `BpOverviewWindow`，旧 `MapV2Canvas` 迁移为 `MapV2Window`。这两个窗口都是 registration + `FrontedWindowBase` host 驱动，不创建独立 XAML。
+管理对象只有 Window；注册、canonical identity 和自定义窗口作用域统一见[窗口运行时](frontend-windows-and-layout.md)。custom:{PackageId}/{WindowId} 映射为 FrontedLayouts/custom/{PackageId}/{WindowId}.json。BaseCanvas 不作为外部注册、选择、路径或 manifest 维度。
 
 ## Behavior
 
@@ -119,7 +102,7 @@ Behavior 文件是 window-level：
 FrontedBehaviors/{WindowTypeName}.behaviors.json
 ```
 
-runtime host key 使用 Window scope。`FrontedBehaviorDocument.CanvasName` 如果暂时保留，固定写 `BaseCanvas`；UI、路径、runtime key 和 manifest 不使用 CanvasName。TargetResolver 仍从内部 BaseCanvas root 搜索 `BehaviorGuid`。
+runtime host key 使用 Window scope。FrontedBehaviorDocument.CanvasName 是内部兼容字段，固定写 `BaseCanvas`；UI、路径、runtime key 和 manifest 不使用 CanvasName。TargetResolver 仍从内部 BaseCanvas root 搜索 `BehaviorGuid`。
 
 ## 活动包读取规则
 
@@ -127,29 +110,12 @@ runtime host key 使用 Window scope。`FrontedBehaviorDocument.CanvasName` 如�
 
 - 内置 v3 窗口：活动包 → 内置资源（`Resources/FrontedLayouts`）→ 空模板
 - 插件 v3 窗口：活动包 → 空模板
+- custom 窗口：活动包内声明与布局；通常无同身份内置资源，缺失时空模板
 
-活动包缺布局、JSON 无效或 schema 无法通过验证时，按上述优先级继续回退；JSON `null` 视为损坏。不再读取旧用户布局存储或插件默认布局（`FrontedLayoutSource.PluginDefault` / `MissingOrError` 枚举值已删除）。`builtin` 是 package id，不是兜底路径。
+活动包缺布局、JSON 读取/反序列化失败时，按上述优先级继续回退；JSON `null` 视为损坏。不再读取旧用户布局存储或插件默认布局（`FrontedLayoutSource.PluginDefault` / `MissingOrError` 枚举值已删除）。`builtin` 是 package id，不是兜底路径。
 
-legacy canvas 与 `FrontedCanvasConfig` 只能在启动迁移、旧 `.bpui` 转换和测试辅助中出现。主路径模型是 `FrontedWindowConfig`，public model 不再暴露 `FromCanvasConfig`、`ToCanvasConfig` 或 `SyncWindowSizeToCanvas`。
+布局服务本身检查大小、深度及反序列化结果，不执行完整 Designer 语义校验；不要把上述读取回退描述为所有 schema 错误都已被拦截。保存通过 EnsureWritableActivePackageAsync：普通包直接写入，builtin 首次写入先复制成可编辑包并激活；不写 loose FrontedLayouts。
 
-## Legacy 转换
+## 历史输入与内部适配
 
-Legacy `.bpui` 和旧 `Config.json` 继续支持，但输出新 `FrontedWindowConfig`。旧窗口尺寸、透明、背景色和位置映射到 `WindowSettings`；旧 Canvas 宽高、背景图和 BO 状态映射到 `CanvasSettings`；控件布局和 RequiredPlugins 映射到 `ControlLayout`。
-
-Legacy `WidgetsWindow` 映射规则：
-
-| 旧布局 | 新输出 |
-| --- | --- |
-| `WidgetsWindow/MapBpCanvas` | 跳过并记录 Info，MapV1 不再支持 |
-| `WidgetsWindow/BpOverViewCanvas` | `BpOverviewWindow.json` |
-| `WidgetsWindow/MapV2Canvas` | `MapV2Window.json` |
-
-MapV1 跳过不能导致导入失败。资源复制、`bpui://` 路径改写、TextSettings 迁移、GlobalScoreRow 聚合、BO5 overtime 消费和缺失插件 placeholder 规则继续保留。
-
-## Legacy conversion messages
-
-Legacy conversion diagnostics use stable message codes and localized text.
-
-Map BP V1 note: Legacy Map BP V1 was removed in Designer v3 and is intentionally skipped during conversion. This is a compatibility note, not a conversion failure.
-
-Technical messages should preserve code and args for debugging, but the UI must show localized user-facing text.
+启动 legacy 配置和旧 BPUI 由[迁移规则](legacy-fronted-layout-migration.md)描述，普通 runtime 不读 legacy loose 文件。FrontedCanvasConfig 虽不再是持久化主模型，仍用于 FrontedLayoutDesignConverter、设计文档、renderer 的内部适配及 legacy helper；不能误称这些当前调用也已删除。WindowConfig 不公开 FromCanvasConfig/ToCanvasConfig/SyncWindowSizeToCanvas 等旧主路径 helper。

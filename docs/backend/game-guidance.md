@@ -2,6 +2,8 @@
 
 首次启动导览和页面 Product Tour 见 [product-tour-and-onboarding.md](product-tour-and-onboarding.md)。Product Tour 可以引导用户点击“开启对局引导”并等待相关 signal，但不替代 `GameGuidanceService`，也不重写对局引导的规则推进、计时器、导航和高亮业务逻辑。
 
+源码入口：[GameGuidanceService](../../neo-bpsys-wpf/Services/GameGuidanceService.cs)、[GameRule.json](../../neo-bpsys-wpf/GameRule.json)。
+
 ## 核心服务
 
 `GameGuidanceService` 实现对局引导功能。它依赖：
@@ -69,9 +71,7 @@
 
 选中地图时，共享服务关闭呼吸灯总开关并发布所有地图的边框隐藏状态，无需等到推进下一步。
 
-`MoveToStepAsync` 用于 SmartBP 手动强制同步等明确允许直接定位的路径，成功时返回 `null`，失败时返回错误文本。SmartBP 自动落后追赶禁止调用该接口，正常追赶只能通过 `NextStepAsync` 按工作流逐步前进。安全角色证据修正较早的同槽 `CommittedEmpty` 时只补充角色，不移动 Guidance。自动回退是低优先级的明显超前纠偏：仅当 Guidance 至少领先槽位目标两个工作流步骤、当前 Action 与目标 Action 不同，且目标槽位存在安全 `Selected` 强证据时，才逐次调用 `PrevStepAsync` 回到最早未满足的前置步骤；随后仍逐步前进，不直接定位。它和 `StartGuidance`、`NextStepAsync`、`PrevStepAsync`、`StopGuidance`、`CompleteGuidance` 都会在存在 WPF `Application.Current.Dispatcher` 时切回 UI Dispatcher 执行，避免后台识别线程直接修改 WPF 导航、计时器、消息和事件状态。
-
-SmartBP 不会在每个 OCR Tick 都执行追赶。它将当前步骤和槽位推导目标表示为 `Action + 规范化 Indexes` 的值对象；只有两者不相等、目标之前存在宿主 `Pending` 槽位洞、目标 `Pending`/`CommittedEmpty` 槽位出现新的已选角色证据、`DistributeChara` 存在实际补位/交换操作，或 Guidance 尚未启动时才进入自动 Reconciliation。仅仅看到同 Action 前一组槽位选满，或主程序已经提交这些槽位，都不会推断到下一组；必须存在下一组槽位证据，或由中间其他 Action 的已完成槽位证明已经跨过。中间 Ban 未完成时保留在前一 Pick 组，下一 Pick 槽真正出现后才允许把中间明确空 Ban 作为前置步骤逐步提交。位置已对齐且没有待补槽位时不会调用 `NextStepAsync`，也不会安排历史回看 OCR；Guidance 已经超过目标时也不安排历史回看，优先原地等待或按严格条件纠偏。
+MoveToStepAsync 成功返回 null、失败返回错误文本，是允许直接定位的服务入口。Start/Next/Prev/Stop/Complete 及定位在存在 Application Dispatcher 时由服务层切回 UI，调用方不能从 OCR 线程直接写导航、计时器与共享状态。自动追赶只能逐步调用 Next/Prev；手动同步可直接定位。具体槽位目标、历史补偿与纠偏阈值统一见 [SmartBP](../business/smartbp-and-ocr.md)，避免在 Guidance 文档复制另一套对账算法。
 
 ## 行为事件 payload
 

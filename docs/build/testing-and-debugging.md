@@ -2,7 +2,7 @@
 
 ## 测试现状
 
-`neo-bpsys-wpf.Tests` 使用 xUnit v3、Moq 和 `Microsoft.NET.Test.Sdk`，引用主 WPF 项目。现有测试覆盖 SmartBP 识别规则与状态协调、比分、v3 布局、BPUI 包安全及插件契约。测试维护边界见 [testing-guidelines.md](testing-guidelines.md)。
+`neo-bpsys-wpf.Tests` 使用 xunit.v3（当前包版本 4.0.2）、Moq 和 Microsoft.NET.Test.Sdk，引用主 WPF、SmartBP、SDK、示例插件、生成器及 WebRenderer/Host 项目。现有测试覆盖 SmartBP 识别规则与状态协调、比分、v3 布局、BPUI 包安全及插件契约。测试维护边界见 [testing-guidelines.md](testing-guidelines.md)。
 
 当前 .NET 10 SDK 可直接构建后使用 xUnit runner：
 
@@ -13,17 +13,13 @@ dotnet .\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\neo-bpsys-wpf.T
 
 文档变更通常不需要 full build。改服务、注册、项目文件或资源复制规则时应至少运行相关测试或 `dotnet build`。
 
-## 可以优先补的测试
+## 按变更选择验证
 
-| 区域 | 可测内容 |
-| --- | --- |
-| SmartBP 文本处理 | `CleanDigitsOnly`、名称规范化、5 数字解析 |
-| SmartBP 区域配置 | 默认配置生成、导入导出、校验失败 |
-| 插件 API 兼容性 | 版本格式、过低、过高、兼容 |
-| 插件市场 | SHA-256 规范化/比较、README 相对链接重写 |
-| 设置 | 配置读写、字体/字重 converter、路径替换 |
+先复用现有 Models / Services / ViewModels / Infrastructure 中的相关行为测试；普通 UI 用构建和实际操作，复杂输入可写一次性验证并运行后清理。永久新增仅按[测试策略](testing-guidelines.md)准入，不把纯函数或小修复自动列为补测任务。
 
-涉及真实 WPF 窗口、OCR 推理和 OBS 捕获的测试成本高，适合拆出纯函数或服务边界后再做。
+.NET 10 下若 dotnet test 进入旧 VSTest/MTP 入口而失败，使用上面的既有 xUnit 可执行 runner；构建与运行串行，避免锁住输出文件。ARM64 开发机涉及 x64 native/sidecar 时用已安装的 x64 .NET runtime 执行并记录环境；不将依赖缺失报告为通过。WPF 测试必须复用 WpfTestThread。
+
+定向运行可在 DLL 后追加 -class '*FrontedLayoutPackageImporterTest' 等 runner 参数。测试选择应保护外部行为、数据/ABI 与关键状态机，不冻结当前类结构或方法存在性。
 
 ## 日志
 
@@ -109,4 +105,4 @@ git diff --check
 git diff --stat
 ```
 
-代码改动按风险增加验证：纯函数跑单测；WPF/DI/项目文件跑 build；插件打包改动跑 `dotnet publish -p:CreateZip=true` 验证。
+代码改动按风险增加验证：复用对应行为测试；WPF/DI/项目文件至少 build；插件打包改动跑 `dotnet publish -p:CreateZip=true` 验证。

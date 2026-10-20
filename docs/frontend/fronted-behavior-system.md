@@ -2,6 +2,8 @@
 
 本文描述 Designer v3 前台行为动画的当前架构。行为文档属于活动布局包，正常运行时只读取活动包中的 v3 behavior 文件。
 
+源码入口：[HostManager](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedBehaviorRuntimeHostManager.cs)、[Host](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedBehaviorRuntimeHost.cs)、[动画 runtime](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedAnimationRuntime.cs)、[行为模型](../../neo-bpsys-wpf.Core/Models/FrontedLayout/Behaviors)。插件注册与 publisher 示例统一见 [SDK](../plugin/plugin-development.md)，本文负责事件消费、图与生命周期。
+
 ## Behavior animation runtime
 
 每个窗口的行为文件位于：
@@ -58,7 +60,13 @@ StartGraph
   -> cleanup
 ```
 
-同一行为重新触发时，runtime 会停止旧实例并启动新实例。窗口关闭、布局重载、活动包切换或行为被删除时必须取消循环并清理动画状态。
+Loop 的 LoopPolicy 默认 RepeatCount=-1（无限）、IntervalMs=0、ReentryPolicy=IgnoreIfRunning、StopMode=RunStopGraph、ResetOnStop=true。重复触发按策略处理：IgnoreIfRunning 不重启，InterruptPrevious 取消旧生命周期并启动新实例；Queue/AllowParallel 虽是公开枚举值，当前 Host 仅 warning 并忽略重入，不实现排队或并行。AutoReverse 字段当前未被 runtime 消费，不应描述为可用反向循环。
+
+停止模式区分 StopImmediately、CompleteCurrentIteration、RunStopGraph、HoldCurrentState。前两种需结合当前图阶段取消/完成；RunStopGraph 先取消活动 Start/Loop 再执行停止图，Hold 保留当前结果且不 reset。StopGraph 无 start、校验失败或执行完成时抑制 reset，避免用基础值覆盖停止图结果或掩盖错误；ResetOnStop 也不能在宿主 Dispose 后创建新 session。LoopGraph 失败停止循环，不能形成无间隔重试。
+
+窗口关闭、布局重载、活动包切换或行为被删除时取消所有图阶段并清理动画状态；业务 StopTrigger 与整个宿主 lifetime 取消不可混为同一个停止事件。
+
+HostManager 只允许同一窗口最新 Attach 请求注册；Detach/Dispose 使尚在异步加载的旧请求失效。宿主释放要取消全部图阶段、退订事件并清理 session；loop finally 与迟到动画动作不得在 Dispose 后 Reset 并复活 session。窗口侧协调用于 Hide/Show/关闭，见[窗口运行时](frontend-windows-and-layout.md)。
 
 ## Transition lifecycle
 
@@ -77,7 +85,7 @@ package/
     └── BpWindow.behaviors.json
 ```
 
-导出器复制活动包中的 behavior 文件；导入器、package manager 和删除流程将 behavior 文件与布局包一起处理。legacy `.bpui` 转换不在普通 v3 runtime 中增加 legacy behavior fallback。
+导出器复制请求选定源包（缺省活动包）的 behavior 文件；导入器、package manager 和删除流程将 behavior 文件与布局包一起处理。legacy `.bpui` 转换不在普通 v3 runtime 中增加 legacy behavior fallback。
 
 ## Designer integration
 
@@ -101,7 +109,7 @@ ExitGraph / EnterGraph 使用 `TransitionTrigger.EventType`，Loop 的 StartGrap
 
 属性动画必须通过已注册 adapter。新增可动画属性时，应实现或扩展 `IAnimatablePropertyAdapter`，并保证捕获基础值、设置值、动画和 reset 的语义一致。
 
-`GaussianBlurRadius` 是像素单位、最小为 0 的可动画属性。静态半径由控件外观中的 `GaussianBlurRadius` 保存；两者都只作用于既有的 `FrontedEffectHost`：语义子元素保留自己的 `Effect`，先完成子元素渲染及其 Effect，再由宿主的 WPF `BlurEffect` 应用高斯模糊。模糊不会改变 DesiredSize 或 RenderSize，但可扩展到布局边界外，并可能被父级 `ClipToBounds` 裁剪。
+`GaussianBlurRadius` 是像素单位、最小为 0 的可动画属性。静态半径由控件外观中的 `GaussianBlurRadius` 保存；效果经 V3 Host 创建的独立包装链应用，不覆盖内容自身 Effect：内容先渲染，再高斯模糊、发光、阴影。缺插件 placeholder 使用 renderer 的效果包装。模糊不会改变 DesiredSize 或 RenderSize，但可扩展到布局边界外，并可能被父级 `ClipToBounds` 裁剪。
 
 `flow.parallel` 使用 `BranchCount` 保存并行任务数，默认值为 `3`，允许范围为 `1` 到 `20`。分支输出使用稳定端口名 `Branch1` 到 `Branch20`；运行时仅执行当前数量范围内已连接的分支，并在全部完成后从 `Out` 继续。旧图未保存 `BranchCount` 时继续按 3 个分支处理。设计器减小任务数时会移除超出新范围的分支连接，避免保存不可见连线。
 

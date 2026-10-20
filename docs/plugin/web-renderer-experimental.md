@@ -14,17 +14,7 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 
 安装流程状态机：`Idle` → `FetchingRelease` → `Downloading`（可进入 `Paused` 并恢复）→ `Verifying` → `Installing` → `AwaitingRestart`（或 `Failed`）。任何阶段的错误都会回写到管理页引导区域，不会中止主 WPF 应用。
 
-默认地址为 `http://127.0.0.1:19527`，可使用：
-
-```text
---web-host <IPv4>
---web-port <1-65535>
---web-no-start
---web-transition-exit-timeout-ms <1-30000>
---web-transition-enter-timeout-ms <1-30000>
-```
-
-默认监听 localhost。实验性 LAN 模式可以使用 `--web-host 0.0.0.0`，此模式没有访问认证，同一网络中的设备可读取页面与实时展示数据；请只在受信任网络使用，并通过系统防火墙限制端口。sidecar 提供 `/`、`/health`、`/render/{encodedFullWindowType}`、`/api/windows`、`/api/bootstrap/{encodedFullWindowType}`、`/bpui-assets/{resourceToken}`、`/remote-assets/{token}` 和 `/ws`。`/assets/*.js` 与 `/assets/*.css` 仅用于 Vite 生成的 Web 客户端静态文件；`.bpui` 图片、字体等授权资源仅使用 `/bpui-assets/{resourceToken}`，在线图片仅使用 `/remote-assets/{token}`，这些 URL 前缀互不复用。
+启动参数、运行依赖安装与部署命令见[插件构建运行指南](../../Built-inPlugins/neo-bpsys-wpf.WebRenderer/README.md)。默认仅 localhost；LAN 模式无访问认证，同网设备可读取实时展示数据，须由部署者限制网络访问。
 
 资源 URL 是每次 bootstrap 创建的随机 token；浏览器不会获得物理路径。插件只授权当前活动包、`local`、内置 `Resources/...` 和已知应用字体，拒绝绝对路径、跨包引用及编码路径穿越。切换包或 Designer 保存布局时会重新发送 bootstrap，页面通过 WebSocket 刷新。未知内置控件与没有 Web adapter 的 `plugin:*` 控件会显示诊断占位；纯 Binding 文本显示绑定路径占位。
 
@@ -44,24 +34,12 @@ Image 与 BorderedImage 按 WPF 的语义树分离外层布局、内容 viewport
 
 ## 在线队伍图片
 
-队伍 JSON 中的 HTTP/HTTPS Logo 与选手定妆照保留为 URI。WPF 继续通过 `BitmapImage.UriSource` 加载；主程序只发布规范化 URI 的不可变描述符，不下载图片、不读取图片字节，也不在 UI 线程等待网络。真实链路为：
+在线图片存在两条实际路径，不能混为一条：
 
-```text
-Team/Member JSON ImageUri
-→ BitmapImage.UriSource
-→ CurrentGame.SurTeam.Logo / CurrentGame.HunTeam.Logo
-  或 CurrentGame.SurPlayerList[0..3].PictureShown / CurrentGame.HunPlayer.PictureShown
-→ BindingPathObserver
-→ WebRuntimeValueFactory
-→ WebRuntimeAssetRegistry
-→ remoteAsset.fetch IPC
-→ sidecar RemoteAssetFetcher/cache
-→ remoteAsset.resolved/failed IPC
-→ runtime snapshot/bindingPatch IPC
-→ RuntimeStore
-→ ImageRenderer
-→ DynamicImage
-```
+- Team.Logo / Member.Image 当前经 Core RemoteImageLoader 在后台下载、OnLoad 解码并冻结，再在 Dispatcher 发布。getter 首次返回 null；完成后 WebRuntimeAssetRegistry 将无 UriSource 的冻结位图按 FrozenBitmap 异步编码。WPF 模型本身会下载图片，不再是旧文档的“主进程完全不读图片字节”。
+- 对仍携带 HTTP/HTTPS UriSource 的 BitmapImage，registry 分类为 RemoteHttp，发布规范化 URI 描述符，经 remoteAsset.fetch IPC 由 sidecar 的 RemoteAssetFetcher 下载；下列缓存、重定向与地址校验属于此路径，不能宣称已自动覆盖第一条 Core 下载链。
+
+源码：[RemoteImageLoader](../../neo-bpsys-wpf.Core/Helpers/RemoteImageLoader.cs)、[WebRuntimeValue 的分类与注册](../../Built-inPlugins/neo-bpsys-wpf.WebRenderer/Services/WebRuntimeValue.cs)。这两条路径的安全/诊断策略差异需要在相关代码任务中单独评估，这里分别描述两条实际边界。
 
 没有选择角色时，`PictureShown` 使用 `Member.Image`；选择角色后使用 `Character.HalfImage`；清除角色后重新使用当前 Member 的在线定妆照。两个队伍 Logo、四名求生者与一名监管者都走同一套绑定和资源链路，不含控件特判。
 
@@ -89,26 +67,8 @@ BackgroundTint 使用独立 Web Worker 和 OffscreenCanvas 对当前 Canvas 背�
 
 OBS 可添加 Browser Source 并填入本机 URL 或指定窗口的 `/render/{encodedFullWindowType}` URL；浏览器字体栅格化与 WPF 可能略有不同。`plugin:*` 控件只有提供受控 Web adapter 才能渲染，否则显示诊断占位。
 
-## 部署验收
+## 构建与部署入口
 
-从仓库根目录运行以下命令可验证从干净构建到最终主程序插件目录的完整静态产物链路：
+运行依赖安装、启动选项、完整产物检查与真实 IPC 验收统一见[插件 README](../../Built-inPlugins/neo-bpsys-wpf.WebRenderer/README.md)。Debug 的可选省略与正式构建的失败规则以[构建发布规范](../build/build-release-and-versioning.md)为准；构建 Web 客户端需要 pnpm 与 Node.js，运行 sidecar 不需要 Node.js。
 
-```powershell
-.\tools\Test-WebRendererDeployment.ps1 -Configuration Release
-```
-
-脚本会在 `build/web-renderer-deployment-validation/app/Plugins/top.plfjy.bpsys.WebRenderer/Host/wwwroot/index.html` 检查最终入口页与所有引用资源，启动该目录中的 sidecar 并验证 HTTP 响应、缓存头和 build id。随后它会临时修改并自动还原 Web 样式源文件，第二次构建后确认新的 build id、hash 文件替换和旧文件清理。
-
-常见问题：端口被占用时更换端口后保存重启；缺少 ASP.NET Core Runtime 10 (x64) 时按后台提示安装；Web 页面无法更新时确认活动包已保存并刷新页面。禁用或移除该插件后，主程序与 WPF 前台继续按原有方式运行，不依赖 sidecar 或 Node.js。
-
-构建期同样不依赖 Node.js：WebRenderer 前端由 Host sidecar 的 MSBuild target 调用 `pnpm` 构建，需要 pnpm + Node.js。若构建机未安装 pnpm/Node.js 或前端构建失败，MSBuild 不会中断主程序构建，而是发出警告并跳过该插件的打包（不复制到 `Plugins\`），主程序及其它内置插件照常构建。这与运行期「主程序不依赖 sidecar 或 Node.js」保持一致。
-
-停止、重启和保存后重启是互斥操作。停止会先请求 sidecar 关闭、关闭 IPC 会话并等待进程退出；超过关闭时限才终止当前会话所启动的 sidecar 进程树。sidecar 会优先加入 Windows Job Object；parent PID 及其启动时间监视是 Job 不可用时的兜底。管理页在操作期间禁用相关命令，并在成功、失败、取消或超时后恢复可操作状态。
-
-真实 IPC 与布局验收使用：
-
-```powershell
-.\tools\Test-WebRendererIpc.ps1 -Configuration Debug
-```
-
-该脚本发布并启动真实主程序，要求 sidecar 到达 `Ready`，验证 `BpWindow` 的真实 bootstrap、AnimationParts/overlay DOM 身份与 headless Edge 截图，并输出 health、windows、bootstrap 摘要、浏览器控制台和 DOM 证据。
+停止、重启与保存后重启互斥：先请求 sidecar 退出并关闭 IPC，超时才终止本会话所属进程树。优先 Windows Job Object，parent PID + 启动时间监视为兜底。成功、失败、取消或超时后均恢复管理命令。WebTransitionGateway 保存 CancellationTokenRegistration，完成/取消时非阻塞注销，覆盖预先取消与回调重入；超时仍由调用方 Cancel/fail-open，不能让已完成会话被长寿命令牌持有。

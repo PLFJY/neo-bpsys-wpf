@@ -1,6 +1,8 @@
-# 插件系统
+# 插件宿主系统
 
-前台行为过滤使用显式事件 payload 和稳定控件身份，不提供临时行为标签。后台引导高亮事件不暴露给前台行为触发器，插件前台动画应使用 `Guidance.StepChanged`。布局 package manager 存在时，活动包（包括 `builtin`）是布局和包资源的权威来源。
+本文面向宿主维护者，负责发现、加载、DI、目录、市场和信任边界。插件作者的 manifest、公开构造函数兼容、V3 控件/Part/Options、窗口与事件示例以 [Plugin SDK](plugin-development.md) 为准；不在此复制第二套开发教程。
+
+源码入口：[PluginService](../../neo-bpsys-wpf/Services/PluginService.cs)、[PluginBase](../../neo-bpsys-wpf.Core/Abstractions/PluginBase.cs)、[注册扩展](../../neo-bpsys-wpf.Core/Extensions/Registry)、[SDK 打包目标](../../neo-bpsys-wpf.PluginSdk/neo-bpsys-wpf.PluginSdk.targets)。
 
 ## 设计原则
 
@@ -19,44 +21,9 @@
 
 宿主启动时会先处理 `.new`，把暂存更新覆盖移动到正式插件目录，然后删除 `.new`。
 
-## manifest.yml
+## 版本与 manifest
 
-每个插件目录必须包含 `manifest.yml`。核心字段见 `PluginManifest`：
-
-| 字段 | 说明 |
-| --- | --- |
-| `id` | 插件唯一 ID |
-| `name` | 显示名称 |
-| `description` | 描述 |
-| `entranceAssembly` | 入口程序集 |
-| `url` | 项目地址，可选 |
-| `version` | 插件自身版本 |
-| `apiVersion` | 插件 API 版本 |
-| `author` | 作者 |
-| `icon` | 图标路径，默认 `icon.png` |
-
-插件 API 版本和 PluginSdk 源码引用版本是两个概念：
-
-| 名称 | 用途 |
-| --- | --- |
-| 插件 API 版本 | `manifest.yml` 的 `apiVersion`，用于宿主兼容性检查 |
-| PluginSdk 源码引用版本 | 插件项目通过 `ProjectReference` 引用的 `neo-bpsys-wpf.PluginSdk` 所在仓库提交，用于编译期 API 和打包目标 |
-
-v3 起不再发布或推荐使用 PluginSdk NuGet 包。插件作者应 clone 本仓库，在插件解决方案中包含 `neo-bpsys-wpf.PluginSdk` 项目，并显式引用同一份源码。不要把 `apiVersion` 和 SDK 源码提交不一致当成版本错误；真正的宿主兼容性仍由 `manifest.yml` 的 `apiVersion` 判断。
-
-## 插件开发引用方式
-
-v3 插件项目应手动包含 SDK 源码，而不是引用 NuGet 包。参考 `neo-bpsys-wpf.ExamplePlugin`：
-
-```xml
-<ItemGroup>
-  <ProjectReference Include="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
-</ItemGroup>
-
-<Import Project="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
-```
-
-`ProjectReference` 提供插件 API 编译引用，`Import` 提供 `CreateZip` 打包 target。插件仓库若独立维护，建议把本仓库作为 submodule、sparse checkout 或固定提交的源码目录引入，并在升级 SDK 时同步验证宿主版本、`apiVersion` 和插件 zip 输出。
+manifest.yml 的 apiVersion 用于宿主兼容检查；version 是插件自身版本，亦用于包依赖最低版本和市场更新。SDK 源码引用提交提供编译 API/targets，不等于 apiVersion。v3 使用 ProjectReference + 显式 Import，不再发布 SDK NuGet 包。完整 schema 和作者接入见 [SDK](plugin-development.md)。
 
 ## 加载流程
 
@@ -90,171 +57,11 @@ v3 插件项目应手动包含 SDK 源码，而不是引用 NuGet 包。参考 `
 
 `Assembly.LoadFrom` 使用入口程序集路径加载插件。依赖解析依赖 .NET 默认加载上下文、插件输出目录和宿主已有程序集；插件包漏掉自身直接依赖时，常见表现是入口程序集加载失败或 `Initialize` 中类型解析失败。
 
-## Designer v3 插件前台控件
+## 前台扩展与宿主边界
 
-插件前台系统围绕 Designer v3 / FrontedLayout v3 工作，使用统一 V3 Control API。旧的前台控件注入 API（`IFrontedControl`、`IFrontedControlPluginContributor`、`FrontedPluginControlDescriptor`、`AddFrontedPluginControlContributor<T>()` 等）已移除；插件前台能力分为 Designer v3 插件控件、Plugin XAML Window 和 Plugin v3 Layout Window。`.bpui` 导入遇到缺失插件窗口或插件控件时会保留 layout、资源和依赖元数据，不再物理删除缺失插件控件。
+窗口身份和 registration 模型以[窗口运行时](../frontend/frontend-windows-and-layout.md)为准。插件在 Initialize 作用域注册 V3 控件、XAML/v3 窗口及语义事件；PackageId 自动绑定 manifest.id，不由插件伪造来源。固定 Part、PartCollection 与 Options 是 [SDK](plugin-development.md) 的公开模型，宿主应复用 schema/storage 和统一 Host，不重新引入 contributor/descriptor 注入方案。
 
-插件控件的 `ControlType`（Canonical Control Type）命名规则：
-
-```text
-plugin:<PackageId>/<ControlId>
-```
-
-示例：
-
-```text
-plugin:plfjy.ExamplePlugin/TeamCard
-```
-
-`PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlId` 在插件内唯一。完整 `ControlType` 是稳定序列化 schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。`.bpui v3` 中的 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 规则见 [bpui-package-v3.md](../frontend/bpui-package-v3.md)。
-
-### 创建与注册控件
-
-插件控件必须继承 `FrontedV3ControlBase`（定义在 Core 程序集，命名空间 `neo_bpsys_wpf.Core.Abstractions.Services`）并标注 `[FrontedV3Control("ControlId")]`：
-
-```csharp
-[FrontedV3Control("TeamCard")]
-public partial class TeamCardControl : FrontedV3ControlBase
-{
-    public TeamCardControl()
-    {
-        InitializeComponent();
-    }
-
-    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
-    {
-        DataContext = context.Options;
-    }
-}
-```
-
-注册：
-
-```csharp
-services.AddFrontedV3Control<TeamCardControl>();
-```
-
-`AddFrontedV3Control<TControl>()` 只接受控件类型一个参数。`PackageId` 由宿主在插件初始化作用域内自动注入，控件作者不得传入 `CanonicalControlType`、`Config factory`、`CreateControl delegate` 或 `Property descriptor list`。`ControlId` 只接受安全的局部标识：非空、非纯空白，且不含 `/`、`\`、`:`，也不允许直接传入完整的 canonical ID。`IsBuiltIn` 仅供宿主注册代码设置为 `true`；插件设置该值为 `true` 会被拒绝。
-
-### 声明属性
-
-属性通过控件类上的 `public static readonly FrontedV3Property<T>` 字段声明，框架在注册时反射发现并校验：
-
-```csharp
-public static readonly FrontedV3Property<string> TextColorProperty =
-    new("Appearance.TextColor", FrontedV3Storage.ExtensionData("TextColor"));
-
-public static readonly FrontedV3Property<string> TeamNameProperty =
-    new("Content.TeamName", FrontedV3Storage.ExtensionData("TeamName"));
-```
-
-`OptionsPath`（如 `Appearance.TextColor`）只是 Designer 属性网格与 StyleTransfer 的逻辑路径，**不进入 JSON**；实际读写位置由 `Storage` 访问器决定。`FrontedV3Storage` 提供三种存储访问器：
-
-| 存储访问器 | 用途 | JSON 位置 |
-| --- | --- | --- |
-| `FrontedV3Storage.ExtensionData("key")` | 插件控件默认存储，读写 `PluginFrontedControlConfig.ExtensionData` 字典 | 序列化后平铺到 JSON 根级字段 |
-| `FrontedV3Storage.ClrProperty("PropertyName")` | 内置控件使用，反射读写 Config 的 CLR 属性 | 由 Config 类的 JSON 序列化决定 |
-| `FrontedV3Storage.CollectionItemProperty(...)` | 读写 PartCollection 集合项的 CLR 属性 | 由集合项的 JSON 序列化决定 |
-
-存储访问器不得覆盖根级保留字段（`Left`/`Top`/`Width`/`Height`/`ZIndex`/`Visibility`/`BehaviorGuid`/`GaussianBlur`/`ControlType`），该校验在注册时完成。
-
-### Options 动态代理视图
-
-`Options` 是由属性 Schema 构建的动态代理视图，**不进入 JSON**，**不缓存独立值**。XAML 中将 `DataContext` 设置为 `Options`，绑定路径 `{Binding Appearance.TextColor}` 通过 `ICustomTypeDescriptor` 发现动态属性，最终委托到对应存储访问器，直接读写当前 Config 的根级字段。
-
-### 根布局由 Host 管理
-
-控件 **不** 管理自身的 Canvas 坐标（`Left`/`Top`/`Width`/`Height`/`ZIndex`/`Visibility`/`GaussianBlur`），这些由 `FrontedV3ControlHost` 统一负责。运行时结构为 `Canvas → FrontedV3ControlHost → FrontedV3ControlBase`。控件只负责矩形区域内的视觉内容。
-
-### 固定 Part 与 PartCollection
-
-固定 Part 系统管理控件内部固定区域（如 BorderedImage 的内层 Image），通过 `public static readonly FrontedV3Part` 字段声明，XAML 中用 `fronted:FrontedV3.PartId="Logo"` 标记 Part Visual。PartCollection 系统管理模板或动态集合（如 GlobalScoreRow 的 Cells），通过 `public static readonly FrontedV3Parts` 字段声明，支持 `FixedTemplate`、`Dynamic`、`ReadOnly` 三种策略。详见 [fronted-designer-v3.md](../frontend/fronted-designer-v3.md)。
-
-### StyleTransfer
-
-`FrontedV3StyleTransferService` 提供父-子继承与同 peer 传播。Peer 传播仅匹配完全相同的 `CanonicalControlType`；默认仅传播 `Appearance` 语义的属性；`DataIdentity` 语义（MapKey、TeamType、BindingPath、ControlName 等）和根级保留字段**永远不传播**。属性语义通过 `FrontedV3PropertyMetadata.Semantic` 声明，默认为 `Other`（不参与传播）。
-
-### 缺失插件数据不会丢失
-
-运行时读取布局时，`plugin:*` 控件即使插件未安装也会反序列化为 `PluginFrontedControlConfig`，并通过 `JsonExtensionData` 保留插件专属属性，确保可读取、保存和 roundtrip。缺失插件时：
-
-- `ExtensionData` 原样保留，不会丢失。
-- Designer 显示 Missing Plugin placeholder，根控件仍可选择、移动、缩放和删除。
-- 运行时默认跳过该控件并记录 warning，不让前台窗口崩溃。
-- 导出会继续保留控件 JSON、`ExtensionData` 和依赖元数据。
-- 不会写入任何默认值掩盖缺失。
-- 安装插件并重启后，schema 恢复可用。
-
-### 插件控件属性建议
-
-1. 插件专属属性使用 `FrontedV3Property<T>` + `FrontedV3Storage.ExtensionData("key")` 声明，值存储到 `ExtensionData` 字典并序列化为 JSON 根级字段。
-2. 布局 JSON 不保存可执行状态。
-3. 避免保存绝对本地路径；图片等资源优先使用 `.bpui` 支持的资源 URI。
-4. `BindingPath` 保存原始不变量路径，不本地化。
-5. 不要使用泛名 `IsActive` 表示控件业务状态、可见性或启用状态；`IsActive` 只保留给内部框架/运行时激活语义，尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`。请使用 `IsVisible`、`IsEnabled`、`IsSelected`、`IsExpanded` 或更具体的名称。
-
-## Naming rule: do not use generic IsActive
-
-`IsActive` is reserved for internal framework/runtime activation semantics, especially CommunityToolkit.Mvvm `ObservableRecipient.IsActive`.
-
-Do not use `IsActive` for layout/package/settings/business data.
-
-Use explicit names:
-- `IsActivePackage`
-- `IsCurrentPackage`
-- `IsVisible`
-- `IsBadgeVisible`
-- `IsEnabled`
-- `IsSelected`
-- `IsExpanded`
-- `IsVisibleInFrontManage`
-
-Legacy note:
-Old `.bpui` packages may contain `IsActive` inside `TextSettings` because old settings classes inherited `ObservableRecipient`.
-That field is serialization leakage and must be ignored by LegacyConverter.
-
-Visibility bindings must use `IsVisible` or a specific visibility-oriented property. Do not bind `Visibility` to generic `IsActive`.
-
-运行时读取布局时，`plugin:*` 控件即使插件未安装也会反序列化为 `PluginFrontedControlConfig`，并通过 `JsonExtensionData` 保留插件专属属性，确保可读取、保存和 roundtrip。插件已注册时，宿主通过 `FrontedV3ControlRegistry` 查找 `FrontedV3ControlRegistration`，由 `FrontedV3ControlHost` 创建控件实例并应用根布局。如果插件缺失，Designer 显示 Missing Plugin placeholder，前台 renderer 跳过该控件并记录 warning；未知非插件 `ControlType` 仍按无效内置控件处理并报错。
-
-## 插件前台窗口 v3
-
-插件窗口通过两个公开 API 注册，对应 `FrontedWindowRegistration` 派生类型：`services.AddFrontedWindow<TWindow, TViewModel>()` 注册 XAML 窗口（`FrontedXamlWindowRegistration`，含 `WindowType`），`services.AddFrontedV3LayoutWindow("WindowId", isBuiltIn: false)` 注册 v3 layout 窗口（`FrontedV3LayoutWindowRegistration`，无额外字段）。`FrontedWindowRegistrationKind` 枚举只有 `Xaml` / `V3Layout`。Registry 接口提供 `GetWindows()`、`GetManageableWindows()`、`GetV3LayoutWindows()`、`TryGet()`。
-
-标识模型（Canonical ID）：
-
-| 名称 | 说明 |
-| --- | --- |
-| Canonical ID | 窗口身份；内置为 `BpWindow`，插件 v3 layout 为 `plugin:{PackageId}/{LocalWindowId}`，XAML 窗口为 Attribute ID（插件为 `plugin:{PackageId}/{AttributeId}`，宿主直接注册的为 `{AttributeId}`；推荐 GUID 但不强制） |
-| `PackageId` | 插件 `manifest.yml` 的 `id`，由宿主自动注入 |
-
-XAML 窗口（`FrontedWindowRegistrationKind.Xaml`）由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。v3 Layout 窗口（`FrontedWindowRegistrationKind.V3Layout`）使用宿主标准 `FrontedWindowBase` layout host；加载优先级为活动包 → 空模板，宿主不从插件安装目录加载默认 v3 Layout。该选择不由 `manifest.yml` 指定。Canvas/BaseCanvas 只是运行时实现细节，不出现在插件布局路径或 manifest 中。
-
-示例（插件控件完整声明）：
-
-```csharp
-[FrontedV3Control("TeamCard")]
-public partial class TeamCardControl : FrontedV3ControlBase
-{
-    public static readonly FrontedV3Property<string> TextColorProperty =
-        new("Appearance.TextColor", FrontedV3Storage.ExtensionData("TextColor"));
-
-    public static readonly FrontedV3Property<string> TeamNameProperty =
-        new("Content.TeamName", FrontedV3Storage.ExtensionData("TeamName"));
-
-    public TeamCardControl()
-    {
-        InitializeComponent();
-    }
-
-    protected override void OnInitializeFrontedV3(FrontedV3ControlContext context)
-    {
-        DataContext = context.Options;
-    }
-}
-```
-
-插件不再需要手写 typed Config 类。`ControlType` 由 `[FrontedV3Control]` 特性自动推导为 `plugin:{PackageId}/{ControlId}`，插件专属属性通过 `FrontedV3Property<T>` + `FrontedV3Storage.ExtensionData("key")` 声明，值存储到 `PluginFrontedControlConfig.ExtensionData` 字典并序列化为 JSON 根级字段（如 `TextColor`、`TeamName`）。
+缺插件的 layout/behavior 配置、ExtensionData、依赖和资源保留，待安装重启恢复；runtime 不创建误导观众的占位，Designer 才显示可编辑的缺插件占位。依赖扫描与导入规则见 [BPUI](../frontend/bpui-package-v3.md)，事件消费规则见 [Behavior](../frontend/fronted-behavior-system.md)。
 
 ## 重启要求
 
@@ -296,15 +103,12 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 
 ## 内置插件
 
-主项目 csproj 中通过 `BuiltinPlugin` 构建并复制 `TeamJsonMaker` 到输出/发布目录的 `Plugins\top.plfjy.bpsys.TeamJsonMaker`。它和用户插件使用同一加载机制，只是来源路径不同。
+主项目通过 BuiltinPlugin/MSBuild 复制内置插件，均走同一 PluginService 加载路径。[TeamJsonMaker](../../Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/README.md)、[GameStopwatch](../../Built-inPlugins/neo-bpsys-wpf.GameStopwatch/README.md)、[FocusKeeper](../../Built-inPlugins/neo-bpsys-wpf.FocusKeeper/README.md) 分别保留数据、计时和原生 Hook 说明；WebRenderer 的独立 sidecar 与构建入口见[架构](web-renderer-experimental.md)。
 
-`ExamplePlugin`（插件 ID `plfjy.ExamplePlugin`）是全功能参考插件，整合了原先的 `ExampleFrontedControls`，作为插件前台控件、插件前台窗口、Designer v3 集成和 `.bpui` 依赖管理的完整示例。该插件注册示例控件（如 `plugin:plfjy.ExamplePlugin/TeamCard`），主项目在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件全流程作者体验，不是发行功能。
+ExamplePlugin（plfjy.ExamplePlugin）是综合 SDK 示例，Debug 才加入输出，Release/Beta/Preview 默认不包含；不是发行功能。当前插件集合与条件以[主项目](../../neo-bpsys-wpf/neo-bpsys-wpf.csproj)为准。
 
-`top.plfjy.bpsys.WebRenderer` 是所有配置都会复制的实验性内置插件。它携带独立 framework-dependent Web sidecar，不向 WPF 宿主引入 `Microsoft.AspNetCore.App` 依赖；详见 [web-renderer-experimental.md](web-renderer-experimental.md)。
+Designer 保存和包导出时，依赖 MinVersion 使用已加载插件 manifest 的自身 version，不是宿主 API 版本；精确合并、缺失/过低版本及安装队列恢复规则以 [BPUI](../frontend/bpui-package-v3.md)为准。
 
-Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导；导入本身仍可成功并保留缺失插件内容。安装引导会在下载 / 安装队列结束后校验所有待处理插件都已安装或暂存；失败项会显示插件 ID 和错误信息，未完成项不会被当作成功。
-
-`.bpui` 只传输布局、资源和依赖元数据，不传输插件 DLL、安装包或脚本。插件安装仍必须走现有插件系统 / 插件市场流程，并在需要时通过重启让 Host build 前的 DI 注入生效。
 
 ## 加载失败检查清单
 

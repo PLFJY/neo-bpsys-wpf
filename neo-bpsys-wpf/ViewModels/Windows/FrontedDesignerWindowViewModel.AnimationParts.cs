@@ -146,7 +146,7 @@ public partial class FrontedDesignerWindowViewModel
         && AnimationPartEditBuffer is { HasErrors: false };
 
     [RelayCommand(CanExecute = nameof(CanApplyAnimationPartEdit))]
-    private void ApplyAnimationPartEdit()
+    private async Task ApplyAnimationPartEdit()
     {
         if (CurrentDocument is null
             || SelectedDesignItem is null
@@ -160,6 +160,21 @@ public partial class FrontedDesignerWindowViewModel
         if (AnimationPartEditBuffer.HasErrors)
         {
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.AnimationParts.Validation.FixErrors");
+            return;
+        }
+
+        var editor = AnimationPartEditBuffer;
+        var selectedPart = SelectedAnimationPart;
+        if (editor.IsImage
+            && IsAbsoluteFilePath(editor.ImagePath)
+            && !await StoreLocalAnimationPartImageAsync(editor.ImagePath))
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(AnimationPartEditBuffer, editor)
+            || !ReferenceEquals(SelectedAnimationPart, selectedPart))
+        {
             return;
         }
 
@@ -255,54 +270,55 @@ public partial class FrontedDesignerWindowViewModel
 
     /// <summary>
     /// 在导入本地图片到资源存储前进行预校验，校验失败时返回本地化的错误消息。
-    /// 与 <see cref="FrontedLocalResourceStore.StoreImageWithResult"/> 内部使用的
-    /// <see cref="FrontedImagePurpose.Background"/> 限制保持一致。
+    /// 与资源存储和运行时使用的图片用途限制保持一致。
     /// </summary>
     /// <param name="sourcePath">本地图片的绝对路径。</param>
+    /// <param name="purpose">图片的实际用途。</param>
     /// <returns>校验失败时返回错误消息；校验通过或未注入校验服务时返回 <see langword="null"/>。</returns>
-    private string? ValidateLocalImageForStorage(string sourcePath)
+    private string? ValidateLocalImageForStorage(string sourcePath, FrontedImagePurpose purpose)
     {
         if (_imageSafetyService is null)
         {
             return null;
         }
 
-        var validation = _imageSafetyService.ValidateFile(sourcePath, FrontedImagePurpose.Background);
+        var validation = _imageSafetyService.ValidateFile(sourcePath, purpose);
         if (validation.IsValid)
         {
             return null;
         }
 
-        return BuildImageValidationFailureMessage(validation);
+        return BuildImageValidationFailureMessage(validation, purpose);
     }
 
     private async Task<(FrontedLocalResourceStoreResult? Result, string? ErrorMessage)> StoreLocalImageWithOptionalCompressionAsync(
-        string sourcePath)
+        string sourcePath,
+        FrontedImagePurpose purpose)
     {
         if (_localResourceStore is null)
         {
             return (null, "Local resource store is unavailable.");
         }
 
-        var validation = _imageSafetyService?.ValidateFile(sourcePath, FrontedImagePurpose.Background);
+        var validation = _imageSafetyService?.ValidateFile(sourcePath, purpose);
         var compressOversizedImage = false;
         if (validation is { IsValid: false })
         {
             if (validation.ErrorCode is not ("ImageTooLarge" or "ImageTooManyPixels"))
             {
-                return (null, BuildImageValidationFailureMessage(validation));
+                return (null, BuildImageValidationFailureMessage(validation, purpose));
             }
 
             var compress = await MessageBoxHelper.ShowConfirmAsync(
                 string.Format(
                     I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionMessage"),
-                    BuildImageValidationFailureMessage(validation)),
+                    BuildImageValidationFailureMessage(validation, purpose)),
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageCompressionTitle"),
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "CompressAndApplyImage"),
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
             if (!compress)
             {
-                return (null, BuildImageValidationFailureMessage(validation));
+                return (null, BuildImageValidationFailureMessage(validation, purpose));
             }
 
             compressOversizedImage = true;
@@ -311,7 +327,7 @@ public partial class FrontedDesignerWindowViewModel
         try
         {
             return (await Task.Run(
-                () => _localResourceStore.StoreImageWithResult(sourcePath, compressOversizedImage)), null);
+                () => _localResourceStore.StoreImageWithResult(sourcePath, purpose, compressOversizedImage)), null);
         }
         catch (Exception ex)
         {
@@ -325,8 +341,11 @@ public partial class FrontedDesignerWindowViewModel
     /// 返回包含实际值与目标压缩值的友好提示。
     /// </summary>
     /// <param name="validation">图片校验结果。</param>
+    /// <param name="purpose">图片的实际用途。</param>
     /// <returns>用于错误提示的本地化消息。</returns>
-    private static string BuildImageValidationFailureMessage(FrontedImageValidationResult validation)
+    private static string BuildImageValidationFailureMessage(
+        FrontedImageValidationResult validation,
+        FrontedImagePurpose purpose)
     {
         if (validation is { IsValid: false, ErrorCode: "ImageTooLarge" })
         {
@@ -334,7 +353,9 @@ public partial class FrontedDesignerWindowViewModel
                 CultureInfo.CurrentCulture,
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageFileTooLarge"),
                 FormatFileSize(validation.FileBytes),
-                FormatFileSize(FrontedLayoutLimits.MaxBackgroundImageBytes));
+                FormatFileSize(purpose == FrontedImagePurpose.Background
+                    ? FrontedLayoutLimits.MaxBackgroundImageBytes
+                    : FrontedLayoutLimits.MaxUiImageBytes));
         }
 
         if (validation is { IsValid: false, ErrorCode: "ImageTooManyPixels" })
@@ -344,7 +365,9 @@ public partial class FrontedDesignerWindowViewModel
                 I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImageDimensionsTooLarge"),
                 validation.PixelWidth,
                 validation.PixelHeight,
-                FrontedLayoutLimits.MaxBackgroundImageLongSide);
+                purpose == FrontedImagePurpose.Background
+                    ? FrontedLayoutLimits.MaxBackgroundImageLongSide
+                    : FrontedLayoutLimits.MaxUiImageLongSide);
         }
 
         return validation.ErrorMessage ?? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture");
@@ -389,7 +412,7 @@ public partial class FrontedDesignerWindowViewModel
             return false;
         }
 
-        var validationMessage = ValidateLocalImageForStorage(sourcePath);
+        var validationMessage = ValidateLocalImageForStorage(sourcePath, FrontedImagePurpose.UiElement);
         if (validationMessage is not null)
         {
             StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
@@ -398,7 +421,7 @@ public partial class FrontedDesignerWindowViewModel
 
         try
         {
-            var result = _localResourceStore.StoreImageWithResult(sourcePath);
+            var result = _localResourceStore.StoreImageWithResult(sourcePath, FrontedImagePurpose.UiElement);
             editor.ImagePath = result.ResourceUri;
             RecordPendingImportedResource(result, "AnimationPart ImagePath", wasApplied: true);
             return true;
@@ -423,7 +446,7 @@ public partial class FrontedDesignerWindowViewModel
             return false;
         }
 
-        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(sourcePath);
+        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(sourcePath, FrontedImagePurpose.UiElement);
         if (result is null)
         {
             StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {errorMessage}";

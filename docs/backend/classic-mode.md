@@ -2,6 +2,8 @@
 
 Classic Mode 是操作密集型的导播台后台 Shell。它只重排现有后台 View 和控件，不复制业务状态，不新增 Pick / Ban / Score 专用业务 ViewModel，也不重写 Team、GameData、Fronted Designer v3 或前台窗口逻辑。
 
+源码入口：[ClassicBackendWindow](../../neo-bpsys-wpf/Views/Windows/ClassicBackendWindow.xaml.cs)、[ApplicationHostService](../../neo-bpsys-wpf/Services/ApplicationHostService.cs)、[NavigationService](../../neo-bpsys-wpf/Services/NavigationService.cs)。
+
 ## 定位
 
 Classic Mode 复用现有页面 ViewModel、共享服务和 `CurrentGame` 状态。`ClassicBackendWindow` 可以直接注入现有 VM 给不同区域设置 `DataContext`，但不要创建 `ClassicPickViewModel`、`ClassicBanViewModel`、`ClassicScoreViewModel` 或类似第二套业务状态。
@@ -10,7 +12,7 @@ Classic Mode 复用现有页面 ViewModel、共享服务和 `CurrentGame` 状态
 
 ## 导航边界
 
-Modern 后台使用 `MainWindow` + WPF-UI `NavigationView`。Classic Mode 启动时不显示 `MainWindow`，也不执行 Modern 页面预加载。
+Modern 后台使用 MainWindow + 项目自定义 ModernNavigationView，内部由 ModernFrame 承载内容；WPF-UI 的导航接口与菜单数据类型仍作为兼容边界。详见[后台导航](backend-pages-and-navigation.md)。Classic Mode 启动时不显示 `MainWindow`，也不进入 Modern 导航链。
 
 Classic Mode 下项目内 `NavigationService.Navigate(...)`、`GoBack()` 和层级导航应对页面切换 no-op，避免访问未设置的 `NavigationView`。这只阻断页面切换，不应阻断 `GameGuidanceService` 的引导流程：计时器启动、Ban 位数量设置和 `HighlightMessage` 广播仍然必须继续执行。
 

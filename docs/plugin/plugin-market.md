@@ -79,7 +79,7 @@ README 加载后会重写相对链接和相对图片地址，避免 WPF Markdown
 
 ## 与 `.bpui` 布局包的关系
 
-起，`.bpui v3` 导入发现缺失插件控件或插件版本低于依赖 `MinVersion` 时，`FrontManagePage` 会按插件 `PackageId` 聚合依赖并查询插件市场索引。UI 会展示缺失 / 需更新插件、最低版本、已安装版本、受影响控件和市场可用状态，并让用户显式选择：
+`.bpui v3` 导入发现缺失插件控件或插件版本低于依赖 `MinVersion` 时，`FrontManagePage` 会按插件 `PackageId` 聚合依赖并查询插件市场索引。UI 会展示缺失 / 需更新插件、最低版本、已安装版本、受影响控件和市场可用状态，并让用户显式选择：
 
 1. 从插件市场安装或更新可用插件。
 2. 继续导入并保留缺失或不满足版本的插件窗口布局 / 控件配置。
@@ -87,4 +87,8 @@ README 加载后会重写相对链接和相对图片地址，避免 WPF Markdown
 
 安装 / 更新仍复用插件市场下载队列：市场条目的下载地址解析、GitHub 镜像、SHA-256 校验和解压流程仍由 `PluginMarketService` 负责；已解压插件包的 manifest 校验、API 兼容性检查和 `.new` 暂存更新由共用安装服务处理。布局导入不会静默安装插件，也不会在安装后把插件当作当前进程已加载继续导入；当前插件系统需要重启，用户可重启后重新导入，也可先继续导入并保留缺失插件配置，等插件可用后恢复完整渲染。
 
-`.bpui` 包不得包含插件 DLL、插件 zip、安装包或可执行脚本。布局包只保存 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 这样的依赖元数据，插件安装仍必须走插件系统 / 插件市场流程并要求用户确认。起，导入器会直接拒绝包含 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 或 `.jar` 的 `.bpui`。
+`.bpui` 包不得包含插件 DLL、插件 zip、安装包或可执行脚本。布局包只保存 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 这样的依赖元数据，插件安装仍必须走插件系统 / 插件市场流程并要求用户确认。导入器会直接拒绝包含 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 或 `.jar` 的 `.bpui`。
+
+依赖安装引导在队列结束后须校验每项插件已安装或已暂存；失败显示插件 ID 与错误，未完成项不能当成功。安装到磁盘仍不代表当前进程已加载。
+
+源码入口：[PluginMarketService](../../neo-bpsys-wpf/Services/PluginMarketService.cs)、[市场页面安装消费](../../neo-bpsys-wpf/ViewModels/Pages/PluginPageViewModel.Market.cs)。依赖格式与缺失插件保留以 [BPUI](../frontend/bpui-package-v3.md)为准。
