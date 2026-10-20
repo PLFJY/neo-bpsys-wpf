@@ -56,6 +56,7 @@ public partial class MainWindowViewModel :
     };
 
     private readonly IGameGuidanceService _gameGuidanceService;
+    private readonly IInfoBarService _infoBarService;
     private readonly ITutorialSignalService _tutorialSignalService;
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly ISmartBpAutoRecognitionGlobalControl _smartBpAutoRecognitionGlobalControl;
@@ -113,6 +114,7 @@ public partial class MainWindowViewModel :
     public MainWindowViewModel(
         ISharedDataService sharedDataService,
         IGameGuidanceService gameGuidanceService,
+        IInfoBarService infoBarService,
         IFilePickerService filePickerService,
         ISettingsHostService settingsHostService,
         IContentDialogService contentDialogService,
@@ -124,6 +126,7 @@ public partial class MainWindowViewModel :
     {
         _sharedDataService = sharedDataService;
         _gameGuidanceService = gameGuidanceService;
+        _infoBarService = infoBarService;
         _filePickerService = filePickerService;
         _settingsHostService = settingsHostService;
         _contentDialogService = contentDialogService;
@@ -301,9 +304,9 @@ public partial class MainWindowViewModel :
         try
         {
             await _sharedDataService.ImportGameAsync(filePath);
-            await MessageBoxHelper.ShowInfoAsync(
-                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImportSuccessfullyFrom")}\n{filePath}",
-                I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImportInfo"));
+            _infoBarService
+                .ShowSuccessInfoBar(
+                $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "ImportSuccessfullyFrom")}\n{filePath}");
             _logger.LogInformation("Import game info successfully from {FilePath}", filePath);
         }
         catch (JsonException ex)

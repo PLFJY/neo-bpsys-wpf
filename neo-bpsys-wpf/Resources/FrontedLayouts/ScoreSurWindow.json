@@ -1,6 +1,10 @@
 {
   "Version": 3,
-  "DisplayNames": { "zh_Hans": "求生者游戏内比分窗口", "en_US": "Survivor Score in Game Window", "ja_JP": "サバイバー小スコアウィンドウ" },
+  "DisplayNames": {
+    "zh_Hans": "求生者游戏内比分窗口",
+    "en_US": "Survivor Score in Game Window",
+    "ja_JP": "サバイバー小スコアウィンドウ"
+  },
   "WindowSettings": {
     "WindowWidth": 480,
     "WindowHeight": 152,
@@ -96,9 +100,9 @@
         "FontSize": 32,
         "ControlType": "Text",
         "Left": 178.5,
-        "Top": 34,
+        "Top": 15,
         "Width": 187.5,
-        "Height": 32,
+        "Height": 65,
         "ZIndex": 2,
         "Visibility": "Visible",
         "BindingPath": null,

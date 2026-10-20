@@ -1,6 +1,10 @@
 {
   "Version": 3,
-  "DisplayNames": { "zh_Hans": "监管者游戏内比分窗口", "en_US": "Hunter Score in Game Window", "ja_JP": "ハンター小スコアウィンドウ" },
+  "DisplayNames": {
+    "zh_Hans": "监管者游戏内比分窗口",
+    "en_US": "Hunter Score in Game Window",
+    "ja_JP": "ハンター小スコアウィンドウ"
+  },
   "WindowSettings": {
     "WindowWidth": 480,
     "WindowHeight": 152,
@@ -51,9 +55,9 @@
         "FontSize": 32,
         "ControlType": "Text",
         "Left": 111,
-        "Top": 33,
+        "Top": 14.5,
         "Width": 195,
-        "Height": 32,
+        "Height": 62.5,
         "ZIndex": 2,
         "Visibility": "Visible",
         "BindingPath": null,
