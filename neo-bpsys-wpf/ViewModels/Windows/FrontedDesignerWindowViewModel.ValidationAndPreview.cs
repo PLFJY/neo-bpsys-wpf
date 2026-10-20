@@ -142,6 +142,7 @@ public partial class FrontedDesignerWindowViewModel
     {
         ControlFilterText = string.Empty;
         CurrentDocument = null;
+        _currentWindowDisplayNames.Clear();
         SelectDesignItem(null);
         ResetBehaviorDocument();
         ApplyValidationMessages([message]);

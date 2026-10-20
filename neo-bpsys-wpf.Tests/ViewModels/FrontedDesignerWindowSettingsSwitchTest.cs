@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.Tests.Infrastructure;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -18,16 +19,23 @@ using Xunit;
 namespace neo_bpsys_wpf.Tests.ViewModels;
 
 /// <summary>
-/// 验证设计器切换窗口时保存旧布局的窗口尺寸契约。
+/// 验证设计器切换窗口时保存布局的窗口元数据契约。
 /// </summary>
 public sealed class FrontedDesignerWindowSettingsSwitchTest
 {
     /// <summary>
-    /// 保存旧窗口布局时，其窗口尺寸与画布尺寸仍分别使用旧窗口的数据。
+    /// 保存旧窗口布局时，保留自身的译名和尺寸；加载新窗口后使用新窗口的译名。
     /// </summary>
+    /// <param name="source">旧窗口布局的来源。</param>
+    /// <param name="hasDisplayNames">旧窗口是否声明译名。</param>
     /// <returns>断言完成时结束的任务。</returns>
-    [Fact]
-    public async Task SavingCurrentLayoutDuringWindowSwitchPreservesItsWindowSize()
+    [Theory]
+    [InlineData(FrontedLayoutSource.BuiltIn, true)]
+    [InlineData(FrontedLayoutSource.User, true)]
+    [InlineData(FrontedLayoutSource.User, false)]
+    public async Task SavingCurrentLayoutDuringWindowSwitchPreservesItsWindowMetadata(
+        FrontedLayoutSource source,
+        bool hasDisplayNames)
     {
         await WpfTestThread.RunAsync(async () =>
         {
@@ -45,25 +53,47 @@ public sealed class FrontedDesignerWindowSettingsSwitchTest
             ]);
 
             var layout = new Mock<IFrontedLayoutService>();
+            var displayNames = hasDisplayNames
+                ? new Dictionary<string, string>
+                {
+                    ["zh_Hans"] = "求生者比分",
+                    ["en_US"] = "Survivor score",
+                    ["ja_JP"] = "サバイバースコア"
+                }
+                : new Dictionary<string, string>();
             layout.Setup(x => x.LoadWindowConfigWithMetadataAsync("ScoreSurWindow", It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new FrontedLayoutLoadResult
                 {
                     Config = new FrontedWindowConfig
                     {
+                        DisplayNames = displayNames,
                         WindowSettings = new FrontedWindowSettings { WindowWidth = 480, WindowHeight = 152 },
                         CanvasSettings = new FrontedCanvasSettings { CanvasWidth = 480, CanvasHeight = 152 }
                     },
-                    Source = FrontedLayoutSource.User,
+                    Source = source,
                     Path = "ScoreSurWindow.json"
                 });
+            var bpDisplayNames = new Dictionary<string, string> { ["en_US"] = "Draft" };
+            layout.Setup(x => x.LoadWindowConfigWithMetadataAsync("BpWindow", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new FrontedLayoutLoadResult
+                {
+                    Config = new FrontedWindowConfig { DisplayNames = bpDisplayNames },
+                    Source = FrontedLayoutSource.User,
+                    Path = "BpWindow.json"
+                });
             FrontedWindowConfig? savedConfig = null;
+            string? savedWindowId = null;
             layout.Setup(x => x.SaveWindowConfigAsync(
-                    "ScoreSurWindow", It.IsAny<FrontedWindowConfig>(), It.IsAny<CancellationToken>()))
-                .Callback<string, FrontedWindowConfig, CancellationToken>((_, config, _) => savedConfig = config)
+                    It.IsAny<string>(), It.IsAny<FrontedWindowConfig>(), It.IsAny<CancellationToken>()))
+                .Callback<string, FrontedWindowConfig, CancellationToken>((windowId, config, _) =>
+                {
+                    savedWindowId = windowId;
+                    savedConfig = config;
+                })
                 .Returns(Task.CompletedTask);
 
             var behaviors = new Mock<IFrontedBehaviorService>();
-            behaviors.Setup(x => x.LoadDocumentAsync("ScoreSurWindow", It.IsAny<CancellationToken>()))
+            behaviors.Setup(x => x.LoadDocumentAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new FrontedBehaviorDocument());
             var localization = new Mock<IFrontedDesignerLocalizationService>();
             var viewModel = new FrontedDesignerWindowViewModel(
@@ -98,10 +128,19 @@ public sealed class FrontedDesignerWindowSettingsSwitchTest
             Assert.True(await viewModel.SaveCurrentLayoutAsync());
 
             Assert.NotNull(savedConfig);
+            Assert.Equal("ScoreSurWindow", savedWindowId);
+            Assert.Equal(displayNames, savedConfig.DisplayNames);
             Assert.Equal(480, savedConfig.WindowSettings.WindowWidth);
             Assert.Equal(152, savedConfig.WindowSettings.WindowHeight);
             Assert.Equal(480, savedConfig.CanvasSettings.CanvasWidth);
             Assert.Equal(152, savedConfig.CanvasSettings.CanvasHeight);
+
+            await viewModel.ReloadLayoutCoreAsync();
+            Assert.NotNull(viewModel.CurrentDocument);
+            viewModel.CurrentDocument.IsDirty = true;
+            Assert.True(await viewModel.SaveCurrentLayoutAsync());
+            Assert.Equal("BpWindow", savedWindowId);
+            Assert.Equal(bpDisplayNames, savedConfig.DisplayNames);
         });
     }
 }

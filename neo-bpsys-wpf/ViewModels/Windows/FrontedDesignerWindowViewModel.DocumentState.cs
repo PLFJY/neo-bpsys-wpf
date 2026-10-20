@@ -101,6 +101,7 @@ public partial class FrontedDesignerWindowViewModel
         {
             return new FrontedWindowConfig
             {
+                DisplayNames = new Dictionary<string, string>(_currentWindowDisplayNames, StringComparer.Ordinal),
                 WindowSettings = CloneWindowSettings(_currentWindowSettings)
             };
         }
@@ -108,6 +109,7 @@ public partial class FrontedDesignerWindowViewModel
         var canvasConfig = _designConverter.ToConfig(CurrentDocument);
         canvasConfig.Version = 3;
         var windowConfig = FrontedWindowConfigCanvasAdapter.FromCanvasConfig(canvasConfig);
+        windowConfig.DisplayNames = new Dictionary<string, string>(_currentWindowDisplayNames, StringComparer.Ordinal);
         windowConfig.WindowSettings = CloneWindowSettings(_currentWindowSettings);
         return windowConfig;
     }
