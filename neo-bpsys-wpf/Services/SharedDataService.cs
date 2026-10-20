@@ -29,6 +29,7 @@ namespace neo_bpsys_wpf.Services;
 public partial class SharedDataService : ISharedDataService
 {
     private readonly ISettingsHostService _settingsHostService;
+    private readonly IInfoBarService _infobarService;
     private readonly ILogger<SharedDataService> _logger;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -38,9 +39,13 @@ public partial class SharedDataService : ISharedDataService
 
     #region 初始化
 
-    public SharedDataService(ISettingsHostService settingsHostService, ILogger<SharedDataService> logger)
+    public SharedDataService(
+        ISettingsHostService settingsHostService,
+        IInfoBarService infoBarService,
+        ILogger<SharedDataService> logger)
     {
         _settingsHostService = settingsHostService;
+        _infobarService = infoBarService;
         _logger = logger;
 
         HomeTeam = new Team(Camp.Sur, TeamType.HomeTeam);
@@ -195,9 +200,8 @@ public partial class SharedDataService : ISharedDataService
         CurrentGame =
             new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary, matchScore: matchScore);
 
-        _ = MessageBoxHelper.ShowInfoAsync(
-            $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
-            I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "CreateTip"), I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"));
+        _infobarService
+            .ShowSuccessInfoBar($"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "NewGameHasBeenCreated")}\n{CurrentGame.Guid}");
     }
 
     public async Task ImportGameAsync(string filePath)
@@ -408,7 +412,7 @@ public partial class SharedDataService : ISharedDataService
     }
 
     #endregion
-    
+
     #region 角色字典
 
     /// <summary>
