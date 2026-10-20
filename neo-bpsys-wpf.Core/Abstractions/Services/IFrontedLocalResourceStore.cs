@@ -1,3 +1,5 @@
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
+
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
@@ -14,6 +16,22 @@ public interface IFrontedLocalResourceStore
     /// 复制本地图片并返回便于编辑器会话清理的详细信息。
     /// </summary>
     FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath, bool compressOversizedImage = false);
+
+    /// <summary>
+    /// 按图片实际用途校验并复制本地图片，可在临时副本中压缩超限图片。
+    /// </summary>
+    /// <param name="sourcePath">本地图片文件路径。</param>
+    /// <param name="purpose">图片用途，决定体积和尺寸限制。</param>
+    /// <param name="compressOversizedImage">是否已获用户确认，允许压缩超限图片。</param>
+    /// <returns>资源 URI、物理路径及复制和压缩结果。</returns>
+    /// <exception cref="System.ArgumentException">源路径为空。</exception>
+    /// <exception cref="System.IO.FileNotFoundException">源文件不存在。</exception>
+    /// <exception cref="System.NotSupportedException">图片格式不受支持。</exception>
+    /// <exception cref="System.IO.InvalidDataException">图片校验或压缩失败。</exception>
+    FrontedLocalResourceStoreResult StoreImageWithResult(
+        string sourcePath,
+        FrontedImagePurpose purpose,
+        bool compressOversizedImage = false);
 
     /// <summary>
     /// 将本地 bpui 资源 URI 解析为其物理文件路径。

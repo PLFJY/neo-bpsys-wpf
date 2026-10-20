@@ -55,7 +55,17 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
         return StoreImageWithResult(sourcePath).ResourceUri;
     }
 
+    /// <inheritdoc />
     public FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath, bool compressOversizedImage = false)
+    {
+        return StoreImageWithResult(sourcePath, FrontedImagePurpose.Background, compressOversizedImage);
+    }
+
+    /// <inheritdoc />
+    public FrontedLocalResourceStoreResult StoreImageWithResult(
+        string sourcePath,
+        FrontedImagePurpose purpose,
+        bool compressOversizedImage = false)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
@@ -79,7 +89,7 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
         string? temporaryPath = null;
         try
         {
-            var validation = _imageSafetyService.ValidateFile(workingPath, FrontedImagePurpose.Background);
+            var validation = _imageSafetyService.ValidateFile(workingPath, purpose);
             if (!validation.IsValid)
             {
                 if (compressOversizedImage
@@ -88,7 +98,7 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
                     temporaryPath = CreateTemporaryImageCopy(fullSourcePath, extension);
                     var compression = _imageCompressionService.CompressIfNeeded(
                         temporaryPath,
-                        FrontedImagePurpose.Background);
+                        purpose);
                     if (!compression.WasCompressed)
                     {
                         throw new InvalidDataException(compression.ErrorCode ?? "ImageCompressionLimitNotReached");
@@ -96,7 +106,7 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
 
                     workingPath = temporaryPath;
                     wasCompressed = true;
-                    validation = _imageSafetyService.ValidateFile(workingPath, FrontedImagePurpose.Background);
+                    validation = _imageSafetyService.ValidateFile(workingPath, purpose);
                 }
 
                 if (!validation.IsValid)

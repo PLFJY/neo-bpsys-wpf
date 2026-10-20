@@ -323,7 +323,7 @@ public partial class FrontedDesignerWindowViewModel
             return false;
         }
 
-        var validationMessage = ValidateLocalImageForStorage(sourcePath);
+        var validationMessage = ValidateLocalImageForStorage(sourcePath, FrontedImagePurpose.Background);
         if (validationMessage is not null)
         {
             CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {validationMessage}";
@@ -352,7 +352,7 @@ public partial class FrontedDesignerWindowViewModel
     /// <returns>文件导入并应用时返回 <see langword="true"/>。</returns>
     public async Task<bool> StoreLocalBackgroundImageAsync(string sourcePath)
     {
-        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(sourcePath);
+        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(sourcePath, FrontedImagePurpose.Background);
         if (result is null)
         {
             CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "FailedToApplyPicture")}: {errorMessage}";
@@ -411,7 +411,7 @@ public partial class FrontedDesignerWindowViewModel
                 return false;
             }
 
-            var validationMessage = ValidateLocalImageForStorage(selectedResourcePath);
+            var validationMessage = ValidateLocalImageForStorage(selectedResourcePath, FrontedImagePurpose.UiElement);
             if (validationMessage is not null)
             {
                 SetPropertyEditError(
@@ -423,7 +423,7 @@ public partial class FrontedDesignerWindowViewModel
 
             try
             {
-                var result = _localResourceStore.StoreImageWithResult(selectedResourcePath);
+                var result = _localResourceStore.StoreImageWithResult(selectedResourcePath, FrontedImagePurpose.UiElement);
                 var applied = ApplyPropertyEdit(item, result.ResourceUri);
                 RecordPendingImportedResource(result, item.PropertyName, applied);
                 return applied;
@@ -460,7 +460,7 @@ public partial class FrontedDesignerWindowViewModel
             return ApplyPropertyEdit(item, selectedResourcePath);
         }
 
-        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(selectedResourcePath);
+        var (result, errorMessage) = await StoreLocalImageWithOptionalCompressionAsync(selectedResourcePath, FrontedImagePurpose.UiElement);
         if (result is null)
         {
             SetPropertyEditError(

@@ -57,7 +57,7 @@ Designer v3 中通过 Resource Browser 选择 Canvas 背景、`ScoreGlobalWindow
 
 起，图片进入本地资源、包导入、包导出或 resolver 解码前都会走安全校验。支持扩展名为 png、jpg、jpeg、bmp、gif、webp、ico、tif、tiff。Canvas 背景图最大 2.5 MiB、长边 4096、像素 4096×4096；控件 UI 图片最大 1 MiB、长边 2048、像素 2048×2048。超限或无法安全解码的图片默认会被拒绝：本地资源不会复制，`BackgroundImage` / 编辑缓冲不会更新，resolver 运行时返回 `null` 并记录 warning，预览和前台不会因为坏图崩溃。Resource Browser 缩略图也使用安全解码，超限图片不做完整加载。通过队伍 Logo、成员照片或 Designer v3 的本地选图、资源浏览器、路径输入并应用超限图片时，会额外提供“压缩并应用”选项；用户确认后仅在临时副本中使用 SkiaSharp 等比缩放、重编码，原图片保持不变，压缩成功后才写入本地资源或应用到队伍信息。
 
-`ImagePath`、`PickingBorderImagePath`、`BanLockImagePath`、`BorderImagePath`、`LockImageSource` 等控件级图片字段以及队伍 LOGO 按普通 UI 图片限制校验；`BackgroundImage` 按背景图限制校验。Designer 的 Resource Browser 选择普通图片控件静态图时写入 `ImagePath`，不会写入 `BindingPath`。
+`ImagePath`、`PickingBorderImagePath`、`BanLockImagePath`、`BorderImagePath`、`LockImageSource` 等控件级图片字段、动画图片部件以及队伍 LOGO 按普通 UI 图片限制校验；`BackgroundImage` 按背景图限制校验。Designer 的 Resource Browser 选择普通图片控件静态图时写入 `ImagePath`，不会写入 `BindingPath`。资源浏览器允许选中体积或尺寸超限的本地图片，但不加载其缩略图；应用选择后，由图片属性、画布背景或动画部件的导入流程按实际用途提示压缩，并以同一用途执行压缩、存储与运行时校验。动画图片部件直接输入绝对路径后点击应用，也通过该导入流程保存为本地资源 URI。既有未指定用途的本地资源存储 API 保留背景图限制。
 
 推荐本地资源目录：
 
