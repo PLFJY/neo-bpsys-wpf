@@ -96,6 +96,7 @@ public partial class FrontedDesignerWindowViewModel
                 FrontedWindowConfigCanvasAdapter.ToCanvasConfig(windowConfig));
 
             _currentWindowSettings = CloneWindowSettings(windowConfig.WindowSettings);
+            _currentWindowDisplayNames = new Dictionary<string, string>(windowConfig.DisplayNames, StringComparer.Ordinal);
             ControlFilterText = string.Empty;
             CurrentDocument = document;
             CurrentDocument.IsDirty = false;
@@ -202,10 +203,7 @@ public partial class FrontedDesignerWindowViewModel
 
             if (shouldSaveLayout)
             {
-                var config = _designConverter.ToConfig(CurrentDocument);
-                config.Version = 3;
-                var windowConfig = FrontedWindowConfigCanvasAdapter.FromCanvasConfig(config);
-                windowConfig.WindowSettings = CloneWindowSettings(_currentWindowSettings);
+                var windowConfig = CreateConfigFromCurrentDocument();
                 await _layoutService.SaveWindowConfigAsync(
                     CurrentDocument.WindowTypeName,
                     windowConfig);

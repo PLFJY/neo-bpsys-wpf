@@ -141,6 +141,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
     private FrontedWindowSettings _currentWindowSettings = new();
+    private Dictionary<string, string> _currentWindowDisplayNames = new(StringComparer.Ordinal);
     private FrontedDesignerLayoutCatalogEntry? _selectedCatalogEntry;
 
 #pragma warning disable CS8618

@@ -739,6 +739,8 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}.json
 
 设计器保存写入当前活动 layout package；当前活动项为内置方案时，保存会先复制出一个可写的用户布局方案并激活它。旧 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json` 目录（包含旧多 Canvas 层级）仅作为 legacy 迁移残留存在，不再通过设计器菜单暴露。Reset to Built-in 会删除用户窗口布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。打开布局包目录统一在 `FrontManagePage` 的 `Layout Packages` 管理区执行。
 
+根级 `DisplayNames` 随当前加载的窗口文档保留，保存布局时原样写回，包括从内置方案首次保存为用户方案的情况。切换窗口时，尚未保存的旧文档仍使用自身的译名；不从窗口选择器或内置资源补全空字典。
+
 `.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 
 `AllowsTransparency` 和 `BackgroundColor` 是 `WindowSettings`，不是普通控件属性，也不属于 `CanvasSettings`。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或非法时运行时回退为 Transparent 并记录 warning。由于 WPF 透明窗口行为必须在 source 初始化前应用，设计器保存 `AllowsTransparency` 后不弹出应用重启提示；如果目标前台窗口已经创建，`FrontedWindowService` 会静默重启该窗口实例。未创建过的窗口无需操作，下一次 `ShowWindow` 会按最新设置创建。
