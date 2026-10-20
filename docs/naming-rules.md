@@ -41,6 +41,8 @@
 
 其余均为名词在前，例如 `SurPick`（求生者选择）。
 
-## 与框架激活语义的关系
+## 布尔状态与框架激活
 
-`IsActive` 专用于内部框架/运行时的激活语义（尤其是 CommunityToolkit.Mvvm `ObservableRecipient.IsActive`），不得用于布局/包/设置/业务数据。详见 [AGENTS.md](../AGENTS.md) 的「命名规则：请勿使用通用的 IsActive」章节。
+IsActive 仅用于内部框架/运行时激活（尤其 ObservableRecipient.IsActive），不得用于布局、包、设置、业务状态、绑定或 behavior payload；Visibility 不得绑定泛名 IsActive。按语义使用 IsActivePackage、IsCurrentPackage、IsVisible、IsBadgeVisible、IsVisibleInFrontManage、IsEnabled、IsSelected 或 IsExpanded。
+
+历史 TextSettings.IsActive 的序列化泄漏及忽略规则属于[迁移契约](frontend/legacy-fronted-layout-migration.md)，不是样式启用字段。

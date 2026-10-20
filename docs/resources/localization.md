@@ -159,7 +159,7 @@ I18nHelper.GetLocalizedStringFromAnyHostDictionary("SomeKey", culture)
 
 ### 审计测试
 
-`neo-bpsys-wpf.Tests/Services/I18nResourceAuditTest.cs` 包含 23 项审计测试，覆盖：
+`neo-bpsys-wpf.Tests/Services/I18nResourceAuditTest.cs` 记录现有迁移与资源行为验证。测试准入以[测试政策](../build/testing-guidelines.md)为准，不因文档罗列而新增源码匹配或结构门禁；现有范围包括：
 
 - 迁移完整性（key-map 总数、每条 key 存在于目标字典、无本地化孤儿 key、无 key 丢失）
 - 字典归属（每个 key 仅一个宿主 owner、无空字典、Common 不重复进入功能字典）
@@ -175,7 +175,8 @@ I18nHelper.GetLocalizedStringFromAnyHostDictionary("SomeKey", culture)
 ### 运行审计
 
 ```powershell
-dotnet test .\neo-bpsys-wpf.slnx --filter "FullyQualifiedName~I18nResourceAuditTest"
+dotnet build .\neo-bpsys-wpf.Tests\neo-bpsys-wpf.Tests.csproj -p:WebRendererSkipWebBuild=true
+dotnet .\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\neo-bpsys-wpf.Tests.dll -class '*I18nResourceAuditTest'
 ```
 
 ## 禁止事项
@@ -185,3 +186,7 @@ dotnet test .\neo-bpsys-wpf.slnx --filter "FullyQualifiedName~I18nResourceAuditT
 3. **禁止使用 `PublicResXFileCodeGenerator` 或 designer 类**：资源通过 `I18nHelper` 或 `lex:Loc` 访问。
 4. **禁止跨模块引用**：模块不得引用宿主 `Locales.*` 字典，反之亦然。
 5. **禁止在 `Common` 放入仅被一个域使用的 key**：`Common` 只收录真正跨域共用的键。
+
+## 布局显示与保存值
+
+Designer 的属性、组、类型、枚举选项、Binding/Resource Browser 与校验标签分别使用 Designer.Property.*、PropertyGroup.*、ControlType.*、Option.*、Binding.*、Editor.*、Validation.* 等 key，由 IFrontedDesignerLocalizationService 隔离 Core 与 WPF。显示本地化不改变 JSON 字段、ControlType、名称、BindingPath、URI 或 FontFamily 原值。窗口包内 DisplayNames 的回退及缺字段兼容见[布局契约](../frontend/fronted-layout-v3-window-centric.md)。

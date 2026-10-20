@@ -1,134 +1,80 @@
-# neo-bpsys-wpf 内部开发文档
+# 内部开发文档导航
 
-本目录是 `PLFJY/neo-bpsys-wpf` 的内部开发文档，面向维护者、插件作者和 AI coding agent。它不替代公开的 VuePress 用户文档；公开文档主要解释“怎么使用”，本目录主要解释“代码为什么这样组织、改哪里、改动时注意什么”。
+本目录面向维护者与 Coding Agent，记录当前实现、稳定契约和代码入口；普通用户说明见根 README。术语和全局安全约束以 [AGENTS.md](../AGENTS.md) 为准。
 
-## 软件框架和技术栈
+## 按需读取
 
-| 项 | 内容 |
+1. 先读 AGENTS，再定位任务对应的源码与接口；不预读整个 docs。
+2. 从下表选择该模块的一份主维护文档。
+3. 触及格式、公开 ABI、迁移、持久化或安全时，再读对应规范。
+4. 源码 Tour、历史审计表和专项诊断仅按需查。文档与代码不一致时检查合法兼容路径，不能猜测后删除旧契约。
+
+## 架构与业务
+
+| 工作范围 | 主文档 / 职责 |
 | --- | --- |
-| 框架 | .NET 10.0 WPF（`net10.0-windows10.0.20348`） |
-| UI 库 | [WPF-UI](https://wpfui.lepo.co/) |
-| IOC 容器 | [Microsoft.Extensions.DependencyInjection](https://learn.microsoft.com/zh-cn/dotnet/core/extensions/dependency-injection-usage) |
-| 拼音库 | [hyjiacan.pinyin4net](https://gitee.com/hyjiacan/Pinyin4Net) |
-| MVVM | [CommunityToolkit.Mvvm](https://learn.microsoft.com/zh-cn/dotnet/communitytoolkit/mvvm/) |
-| 文件下载 | `IFileDownloadService`（统一封装 `Downloader` 的暂停、原生进度与自动断点续传） |
+| 项目与源码定位 | [模块地图](architecture/module-overview.md)；[项目定位与术语](architecture/project-positioning.md)供初次了解 |
+| Host / DI / 启停 / 日志 | [运行时架构](architecture/runtime-architecture.md) |
+| CurrentGame / Team / Ban / Pick / 状态传播 | [共享数据与状态流](architecture/shared-data-and-state.md)，含数据流图与引用替换 |
+| Dispatcher / 下载回调 / 捕获 / 异步清理 | [线程与异步](architecture/threading-dispatcher-and-async.md) |
+| 远程公告 | [公告同步与缓存](architecture/remote-announcements.md) |
+| SmartBP / OCR / Provider / 追赶与应用 | [SmartBP](business/smartbp-and-ocr.md) |
+| 比分计算 / Free 隔离 / 旧记录兼容 | [ScoreV2](business/score-system-v2.md) |
+| 当前能力与真实缺口 | [已知边界](known-limitations-and-roadmap.md) |
 
-构建与版本细节见 [build/build-release-and-versioning.md](build/build-release-and-versioning.md)。
+## 前台与 Designer
 
-## 开发工具
+各文档负责不同契约，不要求成组通读。
 
-Visual Studio 2026、JetBrains Rider。
-
-Xaml Styler 插件仅适用于 Visual Studio——Rider 整理出来的格式不一样，不方便跟踪更改。
-
-## 文档索引
-
-建议先读：
-
-### 架构（architecture/）
-
-| 文档 | 内容 |
+| 工作范围 | 权威文档 |
 | --- | --- |
-| [project-positioning.md](architecture/project-positioning.md) | 项目定位、社区名称、后台/前台术语 |
-| [runtime-architecture.md](architecture/runtime-architecture.md) | 启动流程、Generic Host、DI、日志、插件初始化时机 |
-| [module-overview.md](architecture/module-overview.md) | 解决方案内各项目和目录的职责 |
-| [data-flow.md](architecture/data-flow.md) | Core 模型、SharedDataService 和 WPF 绑定系统的数据流架构与示例 |
-| [shared-data-and-state.md](architecture/shared-data-and-state.md) | 共享状态、CurrentGame、队伍、Ban、倒计时和前台绑定 |
-| [remote-announcements.md](architecture/remote-announcements.md) | 远程公告启动同步、缓存、已读状态和 MainWindow 公告层 |
-| [threading-dispatcher-and-async.md](architecture/threading-dispatcher-and-async.md) | WPF UI 线程、Dispatcher、下载/OCR/捕获回调 |
+| 注册 / canonical identity / 创建显示 / 重载关闭 | [前台窗口运行时](frontend/frontend-windows-and-layout.md) |
+| WindowConfig / BO state / 路径与活动包读写 | [Window-centric 布局](frontend/fronted-layout-v3-window-centric.md) |
+| 渲染所有权 / 控件名称与 GUID / 内置控件 / 绑定 | [V3 控件运行时](frontend/fronted-designer-v3.md) |
+| 选择缩放 / Property Grid / Browser / Undo / 保存安全与性能 | [独立编辑器](frontend/fronted-designer-editor.md) |
+| 触发事件 / 图执行 / Loop / Transition / 动画持久化 | [Behavior](frontend/fronted-behavior-system.md) |
+| manifest / 包身份 / URI / 依赖 / ZIP 安全 / 导入导出 | [BPUI 包规范](frontend/bpui-package-v3.md) |
+| 旧 Config 与 BPUI 转换 / 字段映射 / 启动迁移 | [Legacy 迁移](frontend/legacy-fronted-layout-migration.md) |
 
-### 前台窗口与布局（frontend/）
+## 后台、插件与资源
 
-| 文档 | 内容 |
+| 工作范围 | 主文档 / 职责 |
 | --- | --- |
-| [frontend-windows-and-layout.md](frontend/frontend-windows-and-layout.md) | 前台窗口、OBS 捕获、v3 布局、插件前台窗口 |
-| [fronted-window-system-deep-dive.md](frontend/fronted-window-system-deep-dive.md) | 前台窗口启动链路、注册、创建、配置读取、配置应用与生命周期的源码级解析 |
-| [fronted-layout-v3-window-centric.md](frontend/fronted-layout-v3-window-centric.md) | Fronted Layout v3 Window-centric schema、路径、BaseCanvas、behavior、package 和 legacy 转换规则 |
-| [fronted-designer-v3.md](frontend/fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和实现历史 |
-| [fronted-designer-editor.md](frontend/fronted-designer-editor.md) | Designer v3 独立编辑器技术设计，包括 Window-centric 选择、JSON key = 控件名、透明 hitbox、Property Grid、Binding/Resource Browser 和保存策略 |
-| [fronted-designer-performance-review.md](frontend/fronted-designer-performance-review.md) | v3 设计器性能审查、交互与历史内存优化、实测范围及后续维护约束 |
-| [fronted-behavior-system.md](frontend/fronted-behavior-system.md) | Fronted Behavior Graph System 设计 — BehaviorGuid、window-level behaviors 文件结构、事件总线候选来源和实现说明 |
-| [bpui-package-v3.md](frontend/bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |
-| [legacy-fronted-layout-migration.md](frontend/legacy-fronted-layout-migration.md) | 旧 `Config.json` 前台字段和旧 `.bpui` 到 Designer v3 布局的迁移规则 |
-| [legacy-v3-control-blueprint-map.md](frontend/legacy-v3-control-blueprint-map.md) | Legacy v3 控件蓝图映射审计，记录旧 XAML 名称到新模型的聚合状态 |
+| 后台注册与宿主入口 | [后台页面与导航](backend/backend-pages-and-navigation.md) |
+| Modern 菜单与 LocalTabs | [ModernNavigationView](backend/modern-navigation-view.md) |
+| Page 承载 / journal / 转场 / 默认滚动宿主 | [ModernFrame](backend/modern-frame.md) |
+| 滚轮 / 触摸 / Self ownership / Guidance 目标滚动 | [平滑滚动](backend/modern-smooth-scrolling.md) |
+| Classic Shell / 共享 VM / 弹窗生命周期 | [Classic](backend/classic-mode.md) |
+| BP 规则 / 步骤推进 / Guidance 事件 | [GameGuidance](backend/game-guidance.md) |
+| 教学包 / Flow / Signal / 状态版本 | [ProductTour](backend/product-tour-and-onboarding.md)，与比赛推进服务分开 |
+| 插件作者公开 API / 示例 / ABI 兼容 | [Plugin SDK](plugin/plugin-development.md) |
+| 插件宿主发现、加载、DI 与信任模型 | [插件系统](plugin/plugin-system.md) |
+| 市场索引、镜像、队列与安装消费 | [插件市场](plugin/plugin-market.md) |
+| Web sidecar 协议与资产安全 | [WebRenderer 架构](plugin/web-renderer-experimental.md)；构建运行见[插件 README](../Built-inPlugins/neo-bpsys-wpf.WebRenderer/README.md) |
+| resx / 字典 / i18n 调用 / 文化回退 | [本地化](resources/localization.md) |
+| 图片 / 字体 / 输出文件与缓存 | [素材资源](resources/resources-localization-and-assets.md) |
+| Settings / AppData / 模块路径与迁移 | [设置与用户数据](resources/settings-paths-and-data.md) |
+| 布尔状态、游戏术语与代码命名 | [命名规范](naming-rules.md) |
+| 跨模块 WPF 故障模式 | [WPF 陷阱](wpf-ui-pitfalls.md) |
 
-### 后台页面与导航（backend/）
+## 构建与验证
 
-| 文档 | 内容 |
+| 需要做什么 | 文档 |
 | --- | --- |
-| [backend-pages-and-navigation.md](backend/backend-pages-and-navigation.md) | 后台页面注册、WPF-UI 导航约定 |
-| [classic-mode.md](backend/classic-mode.md) | Classic Mode 导播台定位、弹窗入口、导航边界、间距和重启规范 |
-| [modern-frame.md](backend/modern-frame.md) | ModernFrame 项目本地现代内容宿主的设计与目标，不依赖 iNKORE 包 |
-| [modern-navigation-view.md](backend/modern-navigation-view.md) | ModernNavigationView 作为 `MainWindow.RootNavigation` 兼容替换的定位与行为 |
-| [modern-smooth-scrolling.md](backend/modern-smooth-scrolling.md) | 项目本地 Modern 平滑滚动基础设施、opt-in 边界和后续 GameGuidance 复用方式 |
-| [game-guidance.md](backend/game-guidance.md) | 引导式 BP 的规则文件和工作流 |
-| [product-tour-and-onboarding.md](backend/product-tour-and-onboarding.md) | 首次导览、页面教程包、Product Tour overlay、教程状态和 Signal 边界 |
+| 构建产物 / 发布 / 版本体系 | [构建与版本](build/build-release-and-versioning.md) |
+| 永久测试准入、临时验证清理、WPF 测试约束 | [测试资产政策](build/testing-guidelines.md) |
+| runner 命令 / 日志 / native 依赖 / 实际调试 | [验证与调试](build/testing-and-debugging.md) |
+| 更新、下载、校验和重启机制 | [Updater](build/updater-and-downloads.md) |
+| 维护者手动分支工作流 / 提交格式 | [仓库管理](build/repository-management.md) / [Commit 约定](build/commit-convention.md)；不授予 Agent Git 写操作许可 |
+| 异常退出 / 日志 / WER / 私密 Dump | [故障收集](diagnostics/crash-collection.md) |
 
-### 业务流程（business/）
+## 仅按需参考
 
-| 文档 | 内容 |
-| --- | --- |
-| [smartbp-and-ocr.md](business/smartbp-and-ocr.md) | SmartBP、赛后数据 OCR、模型和区域配置 |
-| [score-system-v2.md](business/score-system-v2.md) | Score System v2 的 `Core.Models.Game` 持有比分状态、小比分（MinorScore）计算规则、前台绑定和兼容策略 |
+- [前台源码阅读地图](frontend/fronted-window-system-deep-dive.md)：沿调用链定位，不是第二份运行时规格。
+- [历史控件蓝图映射](frontend/reference/legacy-v3-control-blueprint-map.md)：固定旧 release 的命名/属性差异证据，仅修改迁移时查阅。
+- [内存与生命周期诊断](build/memory-baseline-and-diagnostics.md)：复现场景和分进程采集，不是待完成阶段计划。
+- 内置插件 [TeamJsonMaker](../Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/README.md)、[GameStopwatch](../Built-inPlugins/neo-bpsys-wpf.GameStopwatch/README.md)、[FocusKeeper](../Built-inPlugins/neo-bpsys-wpf.FocusKeeper/README.md) 保留各自独立数据或原生生命周期说明。
 
-### 插件（plugin/）
+## 维护方式
 
-| 文档 | 内容 |
-| --- | --- |
-| [plugin-system.md](plugin/plugin-system.md) | 插件生命周期、能力、安全边界、打包 |
-| [plugin-market.md](plugin/plugin-market.md) | 插件市场、镜像、下载队列、SHA-256 校验 |
-| [plugin-development.md](plugin/plugin-development.md) | 插件开发完整指南：manifest、SDK 引用、后台页面、Designer v3 控件、前台窗口、标识模型、迁移说明 |
-| [web-renderer-experimental.md](plugin/web-renderer-experimental.md) | 实验性 Web Renderer sidecar、runtime 前置条件和 IPC 边界 |
-
-### 资源与本地化（resources/）
-
-| 文档 | 内容 |
-| --- | --- |
-| [resources-localization-and-assets.md](resources/resources-localization-and-assets.md) | Resources、Assets、字体、resx、本地化和素材添加 |
-| [localization.md](resources/localization.md) | 本地化资源按功能域拆分、字典选择、XAML/C# 引用模式、模块归属、文化与回退、审计方法 |
-| [settings-paths-and-data.md](resources/settings-paths-and-data.md) | AppData、Documents 输出、设置模型 |
-
-### 构建与测试（build/）
-
-| 文档 | 内容 |
-| --- | --- |
-| [build-release-and-versioning.md](build/build-release-and-versioning.md) | 构建、安装包、版本号、配置 |
-| [version-iteration-rules.md](build/version-iteration-rules.md) | 版本号迭代原则（首位/第二位/第三位/构建元数据的跟进规则） |
-| [updater-and-downloads.md](build/updater-and-downloads.md) | 应用更新、镜像、安装包校验、三类下载差异 |
-| [testing-and-debugging.md](build/testing-and-debugging.md) | 测试现状、日志、SmartBP/OCR/插件调试 |
-| [testing-guidelines.md](build/testing-guidelines.md) | 单元测试边界、XAML smoke test 规则、UI 变更时如何处理脆弱测试 |
-| [异常退出与本地 Dump 收集](diagnostics/crash-collection.md) | 全局异常、运行状态、日志保留和用户手动启用 Windows WER |
-| [memory-baseline-and-diagnostics.md](build/memory-baseline-and-diagnostics.md) | 内存回归验证方案、基线测量步骤和已知引用链 |
-| [commit-convention.md](build/commit-convention.md) | Commit 提交规范、类型列表（feat/fix/refactor/docs 等）、BREAKING CHANGE 用法 |
-| [repository-management.md](build/repository-management.md) | 仓库分支管理流程：main/dev 分支结构、PR 合并、feature 分支、squash merge |
-
-### 跨切关注点（根级）
-
-| 文档 | 内容 |
-| --- | --- |
-| [known-limitations-and-roadmap.md](known-limitations-and-roadmap.md) | 已知边界、TODO、不要误判的路线图提醒 |
-| [wpf-ui-pitfalls.md](wpf-ui-pitfalls.md) | WPF-UI、DI、i18n、图标、资源和透明窗口坑点 |
-| [naming-rules.md](naming-rules.md) | 命名规范：大/小驼峰、游戏术语表、Ban 动词在前约定 |
-
----
-
-## 按主题快速阅读
-
-| 主题 | 建议文档 |
-| --- | --- |
-| 架构入门 | `architecture/project-positioning.md`、`architecture/runtime-architecture.md`、`architecture/module-overview.md` |
-| 数据流 / 共享状态 | `architecture/data-flow.md`、`architecture/shared-data-and-state.md` |
-| UI / 前台 / 后台 | `frontend/frontend-windows-and-layout.md`、`frontend/fronted-layout-v3-window-centric.md`、`frontend/fronted-designer-v3.md`、`frontend/fronted-designer-editor.md`、`frontend/fronted-behavior-system.md`、`frontend/bpui-package-v3.md`、`backend/backend-pages-and-navigation.md`、`backend/classic-mode.md`、`backend/modern-smooth-scrolling.md`、`wpf-ui-pitfalls.md` |
-| 业务流程 | `backend/game-guidance.md`、`backend/product-tour-and-onboarding.md`、`business/smartbp-and-ocr.md`、`architecture/shared-data-and-state.md`、`business/score-system-v2.md` |
-| 插件 | `plugin/plugin-system.md`、`plugin/plugin-market.md`、`plugin/plugin-development.md` |
-| 资源 / 本地化 | `resources/resources-localization-and-assets.md`、`resources/settings-paths-and-data.md`、`frontend/bpui-package-v3.md` |
-| 构建 / 打包 / 更新 / 调试 | `build/build-release-and-versioning.md`、`build/version-iteration-rules.md`、`frontend/bpui-package-v3.md`、`build/updater-and-downloads.md`、`build/testing-and-debugging.md`、`build/testing-guidelines.md` |
-| 贡献流程 | `build/commit-convention.md`、`build/repository-management.md`、`naming-rules.md` |
-
-## 阅读方式
-
-1. 先确认术语。此项目在社区中常称为“第五人格 BP 展示工具”，但架构上也可以理解为非官方第五人格赛事的直播导播辅助系统。
-2. 再按改动区域查文档。改前台窗口看 `frontend/frontend-windows-and-layout.md`，改插件看 `plugin/plugin-system.md` 和 `plugin/plugin-development.md`。
-3. 遇到文档和代码不一致时，以代码为准，并在同一提交中修正文档。
-
-文档中的判断尽量来自当前代码。标注“推断”的内容表示它是从代码结构、注释或调用关系得出的维护建议，不应被当成外部权威规则。
+只更新实际受影响的权威文档；公共 API、格式和兼容规则不能为精简丢失。已有模块优先补原文，新文档须有独立长期用途。同一规范用链接引用，不跨文件复制；源码链接必须有效。当前行为取代过时说明，不无限追加“新版补充”。完成的计划、Bug Fix 流程与验收结果留在 PR/commit/对话，不默认新建报告，也不把 Agent 调查记录存入仓库。

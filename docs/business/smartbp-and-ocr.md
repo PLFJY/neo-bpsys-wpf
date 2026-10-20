@@ -2,6 +2,8 @@
 
 线程和后台任务注意事项见 [threading-dispatcher-and-async.md](../architecture/threading-dispatcher-and-async.md)。SmartBP 默认配置和资源文件见 [resources-localization-and-assets.md](../resources/resources-localization-and-assets.md)。
 
+本文负责 OCR/识别、状态协调与应用契约；模块资产发布见[构建发布](../build/build-release-and-versioning.md)，用户目录见[设置路径](../resources/settings-paths-and-data.md)。源码入口：[模块服务](../../neo-bpsys-wpf.SmartBp.Module/Services)、[模块加载器](../../neo-bpsys-wpf/Services/SmartBpModule)、[共享角色操作接口](../../neo-bpsys-wpf.Core/Abstractions/Services/ICharacterSelectionService.cs)。
+
 ## 架构概览
 
 SmartBP 是面向第五人格赛事的直播导播辅助系统中的智能 BP 识别与赛后数据回填子系统。它采用**模块分离架构**：主应用只保留 SmartBP 页面壳、安装覆盖层、模块加载器、状态模型和功能命令抽象；真正的 SmartBP UI、OCR 引擎、OpenCvSharp 等重型依赖全部位于 `neo-bpsys-wpf.SmartBp.Module` 独立项目中。
@@ -10,15 +12,15 @@ SmartBP 是面向第五人格赛事的直播导播辅助系统中的智能 BP �
 neo-bpsys-wpf (主应用)
 ├── Views/Pages/SmartBpPage.xaml          ← 页面壳 + 模块未加载覆盖层
 ├── ViewModels/Pages/SmartBpPageViewModel  ← 模块加载/安装/版本管理
-├── Core/Models/SmartBpModule/             ← 模块 manifest、状态、命令抽象
-└── Core/Abstractions/Services/ISmartBpService.cs  ← 服务契约（宿主侧）
+├── ../neo-bpsys-wpf.Core/Models/SmartBpModule/             ← 模块 manifest、状态、命令抽象
+└── ../neo-bpsys-wpf.Core/Abstractions/Services/ISmartBpService.cs  ← 服务契约（宿主侧）
 
 neo-bpsys-wpf.SmartBp.Module (SmartBP 模块)
 ├── SmartBpModuleEntryPoint.cs             ← 模块入口，实现 ISmartBpModuleEntryPoint
 │   ├── CreateSmartBpContent() → 构建 DI 容器并返回 SmartBpModuleContentView
 │   └── GetFeatureCommands()   → 暴露 AutoFillGameData 命令
 ├── Services/
-│   ├── SmartBpService.cs                  ← 赛后数据 OCR 回填（宿主侧服务）
+│   ├── SmartBpService.cs                  ← 模块内赛后数据 OCR 回填
 │   ├── Recognition/
 │   │   ├── SmartBpOcrRecognitionServices.cs  ← OCR BP 识别全流程
 │   │   ├── SmartBpSceneGateService.cs        ← 场景门禁
@@ -96,11 +98,10 @@ SmartBP 后台页面 (`SmartBpPage.xaml`) 是一个 WPF `Page`，包含两层结
 - OCR 模型下载/切换/删除
 - 赛后数据区域配置编辑器（通过 `RegionEditorWindow`）
 - OCR BP 自动识别启停、设置与 debug 日志展示
-- 自动识别启停与 debug 日志展示
 
 ## OCR 模型管理
 
-SmartBP 重型运行时不再随默认安装包进入主应用发布目录。主应用只保留 SmartBP 页面壳、安装覆盖层、模块加载器、状态模型和功能命令抽象；真实 SmartBP UI、`SmartBpService`、`OcrService`、OpenCvSharp、PaddleOCR、PaddleInference 和 OCR 模型下载逻辑位于 `neo-bpsys-wpf.SmartBp.Module`。当前代码库和构建流水线以 .NET 10 为基线。
+模型与 native runtime 由独立模块拥有；官方发布资产生成、安装器排除目录及版本体系见[构建发布](../build/build-release-and-versioning.md)。
 
 模块安装状态保存到：
 

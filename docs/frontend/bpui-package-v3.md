@@ -2,6 +2,8 @@
 
 本文定义 Designer v3 使用的 `.bpui v3` 前台布局包格式。它是导入、导出、包管理、资源复制、热切换和 legacy 转换的规格依据。当前 v3 包导出、导入安装、激活复制和删除已实现，legacy `.bpui` 到 Designer v3 `.bpui` 的导入前转换也已实现。
 
+源码入口：[manifest 模型](../../neo-bpsys-wpf.Core/Models/FrontedLayout/PackageModels/FrontedLayoutPackageManifest.cs)、[导入校验](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageImporter.Validation.cs)、[归档安全](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageImporter.Archive.cs)、[导出器](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageExporter.cs)、[包管理器](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageManager.cs)、[限制常量](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutLimits.cs)。
+
 ## 1. 目的
 
 `.bpui v3` 是可携带的 Fronted Designer v3 布局包。它用于在不同机器、不同导播项目或不同布局作者之间迁移前台窗口布局，而不是备份整个软件配置。
@@ -18,52 +20,16 @@
 `.bpui v3` 必须服务于 Designer v3 的现有模型：
 
 1. 布局文件对应 `FrontedLayouts/{WindowTypeName}.json`。
-2. 运行时加载优先级：内置 v3 窗口为活动包 → 内置资源 → 空模板；插件 v3 窗口为活动包 → 空模板。导入时不重写普通 v3 layout JSON，未知扩展字段保留；未注册插件窗口和控件的 layout/behavior/manifest entry 原样保留，不因当前 Registry 缺失而删除。
+2. 运行时加载优先级：内置 v3 窗口为活动包 → 内置资源 → 空模板；插件 v3 窗口为活动包 → 空模板。普通导入保持原始 layout 文件，未知扩展字段随文件保留（用户选择压缩时另有显式暂存重写）；未注册插件窗口和控件的 layout/behavior/manifest entry 原样保留，不因当前 Registry 缺失而删除。
 3. 前台窗口由 v3 renderer 根据 JSON 创建控件。
 4. 每个 v3 layout window 运行时固定生成 `ViewBox -> Canvas BaseCanvas`，Canvas 不再是包路径、manifest 或管理单位。
 5. 包内资源通过 URI 解析，不依赖全局 `Config.json` 中的自定义 UI 设置。
 
 Window-centric layout schema 使用 `WindowSettings`、`CanvasSettings` 和 `ControlLayout` 三段结构。默认/BO5 使用 root canvas settings；启用 `EnableBoModeStates` 后，`BoModeStates["Bo3"]` 可携带独立 BO3 `BackgroundImage`、`RequiredPlugins` 和 `Controls`。包导入、导出和资源重写必须保留完整 schema，包括 BO3 state、控件 `Visibility`、缺失插件控件和插件 `ExtensionData`。preview-only `BackgroundImageVariants` 已移除，v3 包不再生成或迁移该字段。
 
-## 2. legacy `.bpui` 格式摘要
+## 2. legacy 格式识别
 
-旧 `.bpui` 导入导出位于 `SettingPageViewModel.UiPackage.cs`，文件选择位于 `FilePickerService.cs`。旧包本质上是一个 zip，典型结构为：
-
-```text
-legacy.bpui
-├── Config.json
-├── CustomUi/
-└── FrontElementsConfig/
-```
-
-旧导出行为：
-
-1. 先保存一次全局设置，确保 `Config.json` 中的路径已规范化。
-2. 把 `%APPDATA%/neo-bpsys-wpf/Config.json` 复制到临时包根目录。
-3. 从 `Settings` 对象中递归收集有效自定义 UI 图片路径。
-4. 把这些图片复制到 `CustomUi/`。
-5. 遍历旧前台 Canvas（legacy 多 Canvas 概念），把 `%APPDATA%/neo-bpsys-wpf/{WindowTypeName}Config-{CanvasName}.json` 复制到 `FrontElementsConfig/`。v3 中每个窗口只有一个固定 BaseCanvas。
-6. 将临时目录压缩成 `.bpui`。
-
-旧导入行为：
-
-1. 选择 `.bpui` 或 `.zip`。
-2. 解压到临时目录。
-3. 用包内 `Config.json` 覆盖 AppData 的全局 `Config.json`。
-4. 把 `CustomUi/` 文件复制到 `%APPDATA%/neo-bpsys-wpf/CustomUi`。
-5. 把 `FrontElementsConfig/` 文件复制到 `%APPDATA%/neo-bpsys-wpf`。
-6. 提示导入完成后重启应用。
-
-旧格式不适合 Designer v3，原因包括：
-
-1. 它覆盖全局设置，布局导入会影响与前台布局无关的软件配置。
-2. 它把前台 UI、自定义图片和普通应用设置耦合在同一个 `Config.json` 中。
-3. 它没有 manifest，无法声明包身份、版本、作者、内容清单和校验信息。
-4. 它没有清晰的包身份，无法区分两个同名资源属于哪个布局包。
-5. 它不能干净隔离包内资源，资源可能互相覆盖或遗留。
-6. 它不能表达 v3 的 `FrontedLayouts/{Window}.json` Window-centric 文件结构。
-7. 它不适合热切换布局包。
-8. 它通常要求重启，即使布局重载已经足够。
+旧包是含 Config.json、CustomUi/、FrontElementsConfig/ 的 ZIP。旧 SettingPageViewModel.UiPackage.cs 导入/导出入口已移除；当前只通过显式转换读取旧数据，绝不覆盖全局设置。检测、默认蓝图、字段映射、图片压缩与启动迁移统一见[旧前台布局迁移](legacy-fronted-layout-migration.md)。保留旧格式识别不能恢复旧覆盖式导入。
 
 ## 3. 新 `.bpui v3` 文件身份
 
@@ -132,7 +98,7 @@ package.bpui
 必需内容：
 
 1. `manifest.json`。
-2. `layouts/` 下至少一个布局 JSON。
+2. `FrontedLayouts/` 下至少一个布局 JSON（内置/插件或声明的 custom window）。
 
 可选内容：
 
@@ -231,12 +197,14 @@ manifest 可选的 `CreatedVersion` 保存生成包时的完整应用版本（�
 | `MinVersion` | 根级字段，表示能使用该包的最低应用版本。 |
 | `LayoutSchemaVersion` | 必需，当前 `FrontedWindowConfig` layout schema 版本为 `3`。 |
 | `PluginDependencies` | 可选，包级插件依赖摘要，用于导入预检 UI。完整规则见第 8 节。 |
-| `Content.Layouts` | 必需，列出包内布局。至少一项。 |
+| `Content.Layouts` | 内置/插件窗口清单；与 CustomWindows 合计至少一项。 |
 | `Content.CustomWindows` | 可选，列出包作用域内的用户自定义 v3 窗口。 |
 | `Content.Resources` | 可选，列出包内资源、类型、URI 和可选 hash。 |
 | `Content.Preview` | 可选，预览图信息。 |
-| `ImportPolicy.OverwriteExistingUserLayouts` | 可选，建议值为 `Ask`，表示激活时是否覆盖同名用户布局需要询问。 |
-| `ImportPolicy.RequireRestart` | 可选，布局-only 包应为 `false`。 |
+| `ImportPolicy.OverwriteExistingUserLayouts` | 保留的策略元数据，默认 `Ask`；当前导入/激活实现不读取它，不能用它保证覆盖前确认。 |
+| `ImportPolicy.RequireRestart` | 保留的策略元数据，默认 `false`；当前实现不据此安排重启。 |
+
+表中的格式/模型/版本固定值是输出契约。当前反序列化模型对缺省的 Format、FormatVersion、LayoutModel、LayoutSchemaVersion 分别使用上述默认值，校验比较反序列化后的值，并不逐项要求原始 JSON 显式出现这些 key；不能借此推断旧 canvas-centric 内容可用。
 
 版本概念必须分离：
 
@@ -285,7 +253,7 @@ FrontedLayouts/{WindowTypeName}.json
 
 JSON 结构保持 Window-centric 三段模式：
 
-1. `WindowSettings` 保存窗口尺寸、位置、透明、背景色、Topmost 和 `ViewboxStretch`。
+1. `WindowSettings` 保存窗口尺寸、位置、透明、背景色、Topmost 和 `ViewboxStretch`。布局/行为 JSON 的具体字段模型见[布局契约](fronted-layout-v3-window-centric.md)和 [Behavior](fronted-behavior-system.md)。
 2. `CanvasSettings` 保存内部 `BaseCanvas` 尺寸、背景图和 BO state；不包含 `BackgroundColor`。
 3. `ControlLayout.RequiredPlugins` 保存控件依赖。
 4. `ControlLayout.Controls` 中的 JSON key 就是控件名，不把控件包进数组。
@@ -338,7 +306,7 @@ JSON 结构保持 Window-centric 三段模式：
 
 ## 8. 插件前台控件依赖
 
-`.bpui` 支持 Designer v3 插件控件和插件 Layout 窗口依赖。布局 JSON 可读取 `plugin:*` 控件并保留插件专属属性，已安装插件可通过 descriptor/contributor API 注册运行时控件；缺失插件控件在 Designer 显示占位符、在前台 runtime 中跳过并记录 warning。导入遇到缺失插件窗口或控件时保留 layout、资源和依赖元数据，不再删除缺失控件。插件市场安装 / 更新引导仍可用，但不会静默安装。
+`.bpui` 支持 Designer v3 插件控件和插件 Layout 窗口依赖。布局 JSON 可读取 `plugin:*` 控件并保留插件专属属性，已安装插件通过统一 V3 Control API 注册运行时控件（公开 API 见 [SDK](../plugin/plugin-development.md)）；缺失插件控件在 Designer 显示占位符、在前台 runtime 中跳过并记录 warning。导入遇到缺失插件窗口或控件时保留 layout、资源和依赖元数据，不再删除缺失控件。插件市场安装 / 更新引导仍可用，但不会静默安装。
 
 ### 8.1 ControlType 命名标准
 
@@ -619,7 +587,7 @@ Designer v3 字体属性导入 `.ttf`、`.otf`、`.ttc` 时直接写入当前可
 ```text
 %APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/
 ├── manifest.json
-├── layouts/
+├── FrontedLayouts/
 └── resources/
 ```
 
@@ -650,7 +618,7 @@ bpui://{PackageId}/resources/images/bg.png
 3. 应用 pack `pack://application:,,,/...`。
 4. 导出前临时存在的 `bpui://local/...`。导出时必须重写为导出包的 `PackageId`。
 
-第一版导入校验应拒绝跨包 `bpui://OtherPackageId/...` 引用。
+导入校验拒绝跨包 `bpui://OtherPackageId/...` 引用。
 
 删除包时：
 
@@ -663,10 +631,10 @@ bpui://{PackageId}/resources/images/bg.png
 删除当前激活包时：
 
 1. 提示用户确认。
-2. 如果确认，先切换活动包到 `builtin` 或无活动包。
-3. 移除 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts` 中由该包激活出来的用户布局。
+2. 如果确认，先切换活动包到 builtin。
+3. 不修改旧 loose FrontedLayouts；活动包数据本来就保存在包目录。
 4. 删除包目录。
-5. 如可行，刷新已打开的前台窗口。
+5. 刷新已创建的前台窗口与自定义窗口注册。
 6. 如果用户取消，不做任何修改。
 
 导入已有 `PackageId` 的包时：
@@ -692,195 +660,35 @@ bpui://{PackageId}/resources/images/bg.png
 8. 替换已有包前必须先完成校验。
 9. 导入过程必须使用 staging 目录，不能直接覆盖目标包目录。
 
-## 13. Canvas Background GUI 标准
+## 13. 布局字段保存边界
 
-当前 Designer 使用 Canvas Settings 编辑内部 `BaseCanvas` 设计尺寸和背景。它应支持：
+完整 JSON 模型见[布局契约](fronted-layout-v3-window-centric.md)，编辑交互见[编辑器](fronted-designer-editor.md)。导入、导出、复制必须保留 WindowSettings（独立于设计尺寸）、CanvasSettings、BO3 state、DisplayNames、ControlLayout、Visibility 与插件扩展字段。仅 legacy canvas-centric 转换缺窗口尺寸时允许以设计尺寸初始化；普通读写不能覆盖已有窗口尺寸。背景图参与资源扫描、重写和 hash 校验；透明度是窗口设置，不是控件属性。
 
-1. `CanvasWidth`。
-2. `CanvasHeight`。
-3. `BackgroundImage`。
-4. 清除背景图。
-5. 浏览资源。
-6. 选择本地图片。
-7. 立即预览背景变化。
 
-规则：
 
-1. Canvas 背景不是普通控件。
-2. 它属于当前 `FrontedWindowConfig.CanvasSettings`。
-3. UI 应放在 Canvas Settings 面板或等价的编辑器区域。
-4. 它参与 dirty state、undo/redo、validation、save 和 package export。
-5. 选择本地图片时，应复制到本地资源并写为 `bpui://local/...`。
-6. 导入包资源应写为 `bpui://{PackageId}/...`。
-7. 内置资源可以继续使用 `Resources/...`。
-8. `BackgroundImage` 应通过资源 resolver 校验。
 
-窗口宽高由 `WindowSettings.WindowWidth` / `WindowHeight` 独立保存，Canvas 设计尺寸由 `CanvasSettings.CanvasWidth` / `CanvasHeight` 保存。导入、导出和安装包时必须保留包内 layout JSON 的 WindowSettings；只有 legacy canvas-centric 转换缺少窗口尺寸时，才用 Canvas 尺寸初始化 WindowSettings。
 
-## 14. 窗口透明选项标准
+## 16. 已安装包与活动状态
 
-“允许窗口透明”开关是窗口级选项，不是控件级属性。
+普通包安装在 %APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/，包含 manifest.json、FrontedLayouts/、可选 FrontedBehaviors/ 和 resources/。不得写成旧方案中的 layouts/。
 
-显示位置：
+active-package.json 位于 FrontedLayoutPackages 根，保存 PackageId 与 ActivatedAt；缺失默认 builtin。builtin 映射应用内置 Resources/FrontedLayouts，是只读方案；local 是资源命名空间，不是可激活方案。具体读取优先级只在[布局契约](fronted-layout-v3-window-centric.md)维护。
 
-1. Designer 的 `WindowSettings` 区域。
-2. 它作用于整个 Window，不属于内部 `BaseCanvas`。
+## 17. 激活、编辑、复制与删除
 
-示例：
+- 激活普通包保存 active state，后续读写直接进入该包，不复制到全局 loose FrontedLayouts。切回 builtin 只改活动状态，不删除其他包或 legacy 文件。
+- UI 切包前通过 PrepareDesignerForPackageChangeAsync 处理未保存文档，再停止旧循环、刷新 custom registrations、重载已创建窗口；透明窗口重建见[窗口运行时](frontend-windows-and-layout.md)。布局切换本身不要求重启应用。
+- 普通包直接可写；builtin 首次保存先复制为本地化“用户布局方案 {i}”及安全 user-layout-scheme-{i} 身份，激活后写入，不能覆盖发布资源。
+- 复制普通包深拷贝目录，重写 manifest 身份、名称、描述、时间与 Content，同时重写自身资源 URI、custom 窗口 canonical ID、路径和行为 WindowType。重命名/改描述仅改 Name/Description，不改变 PackageId、目录或 URI。
+- 删除普通包删除整个隔离目录；活动包先切回 builtin。builtin/local 不可通过普通包删除。未知插件窗口或控件不能因 registry 缺失而删除。
 
-```json
-{
-  "Version": 3,
-  "WindowSettings": {
-    "AllowsTransparency": true,
-    "BackgroundColor": "#00000000"
-  }
-}
-```
+## 18. 导出
 
-`Text` 和 `LocalizedText` 的动态内容使用 `TextBinding`，不使用基类 `BindingPath`。`Sources` 是有序列表，顺序对应 `StringFormat` 的 `{0}`、`{1}` 等占位符；`StringFormat` 为空时按 `JoinSeparator` 连接。没有有效 source 时回退到静态 `Text` 或 `LocalizationKey`。该模型只适用于这两个文本控件，图片、可见性和业务控件仍使用各自现有的 `BindingPath`。
+FrontManagePage 的导出对话框填写 PackageId、Name、Description、Author、MinVersion 等，输出存在时确认覆盖。UI 固定导出所选包的全部布局；服务层 ExportScope.CurrentWindow 仍保留，不能因 UI 未暴露就删除 API。
 
-`BackgroundColor` 使用 `#AARRGGBB`，表示窗口级背景色覆盖；为空或非法时运行时回退为 Transparent 并记录 warning。背景色是普通 `Window.Background`，可在已创建前台窗口上立即应用。WPF 的 `AllowsTransparency` / 透明窗口行为必须在 window source 初始化前设置；该值变化时不提示重启应用，而是由 `FrontedWindowService` 对已经创建的目标前台窗口执行静默实例重启。
+Exporter 优先使用请求 SourcePackageId，缺省使用当前活动包；枚举该源包的 FrontedLayouts，不切换活动包，也不拼入其他包或 loose store。custom 窗口必须由源 manifest 声明，导出时换为目标包身份。不要把运行时“用户包缺内置窗口时回退 builtin”的规则套到导出快照。
 
-窗口级热重启流程：
-
-1. 用户切换 `AllowTransparency`。
-2. 保存最新 `WindowSettings`。
-3. 若目标窗口从未创建，不创建窗口，也不显示提示；下一次 `ShowWindow` 会使用最新设置。
-4. 若目标窗口已创建但隐藏，关闭旧实例并从 `FrontedWindowService` 字典移除；下一次显示时重新创建。
-5. 若目标窗口可见，先发布 hidden，真正关闭旧实例并移除字典，再创建新实例，Show 前应用最新设置，Show 后重新加载 layout 内容并发布 shown。
-6. 不调用 `AppBase.Current.Restart()`，不显示应用重启提示。
-
-## 15. FrontManagePage Tab 布局标准
-
-新版 v3 布局包管理页应位于 `FrontManagePage`，并使用顶部 tabs。不要通过 `SettingPage` 管理 v3 包。
-
-当前 tabs：
-
-| Tab | 内容 |
-| --- | --- |
-| `Frontend Windows` | 现有前台窗口打开、关闭、管理功能，并保留 `FrontedDesignerWindow` 入口。 |
-| `Layout Packages` | 新增 v3 `.bpui` 包导入、导出、激活、删除和查看。 |
-
-`SettingPage` 中旧 `.bpui` 导入导出属于 legacy 行为。新的 Designer v3 布局包应通过 `FrontManagePage` 的 `Layout Packages` tab 管理。旧 SettingPage 流程可以暂时保留，待新管理器完成后再弃用。
-
-## 16. Layout Package Manager 标准
-
-包管理器必备能力：
-
-1. 列出已安装包。
-2. 包含系统内置选项。
-3. 导入 `.bpui v3`。
-4. 删除已安装包。
-5. 激活或热切换包。
-6. 导出包。
-7. 显示 manifest 字段。
-8. 显示校验状态。
-9. 需要时打开包目录。
-
-系统内置选项：
-
-| 字段 | 值 |
-| --- | --- |
-| `PackageId` | `builtin` |
-| `Name` | 本地化显示，例如 `内置布局方案` / `Built-in Layout Scheme` |
-| 是否可删除 | 否 |
-| 来源 | 应用 `Resources/FrontedLayouts` |
-
-已安装包路径：
-
-```text
-%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/
-├── manifest.json
-├── layouts/
-└── resources/
-```
-
-活动包状态推荐保存到：
-
-```text
-%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/active-package.json
-```
-
-示例：
-
-```json
-{
-  "PackageId": "plfjy.default-layout.2026",
-  "ActivatedAt": "2026-05-31T10:00:00Z"
-}
-```
-
-## 17. 布局方案激活与编辑行为
-
-`.bpui v3` 安装包在安装后也是可编辑布局方案。`builtin` 是唯一只读方案；`local` 只作为 `bpui://local/...` 资源命名空间，不是可激活布局方案。
-
-激活普通包：
-
-1. 校验已安装包。
-2. 保存 `active-package.json`。
-3. 后续读取和保存都使用包内 `layouts/`。
-4. 如可行，刷新已打开的前台窗口。
-5. 仅布局变更不要求重启。
-
-当前限制：如果独立 Designer 窗口已打开且存在未保存改动，包管理页切换方案不会清空或覆盖任何方案目录，但仍建议先保存或关闭 Designer；后续可补充 save / discard / cancel 提示。
-
-激活 `builtin`：
-
-1. 清空活动包状态，或设置 `PackageId = builtin`。
-2. 运行时读取应用内置 `Resources/FrontedLayouts`。
-3. 不删除普通包，不清理 legacy `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/`。
-4. 如可行，刷新已打开的前台窗口。
-
-保存布局：
-
-1. 如果活动包是普通包，直接写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/layouts/...`。
-2. 如果活动包是 `builtin`，先复制内置布局生成本地可编辑方案，默认名使用本地化 `UserLayoutSchemeNameFormat`，例如 `用户布局方案 {i}` / `User Layout Scheme {i}` / `ユーザーレイアウト方案 {i}`，并递增 `i` 避免名称和 `PackageId` 冲突。
-3. 自动创建的方案使用安全 `PackageId`，例如 `user-layout-scheme-{i}`。
-4. 保存完成后激活新方案，后续读写都落在该方案目录。
-
-复制布局方案：
-
-1. 可从 `builtin` 或普通已安装包复制。
-2. 从 `builtin` 复制时，源为 `Resources/FrontedLayouts`。
-3. 从普通包复制时，深拷贝包目录并重写 manifest 的 `PackageId`、`Name`、`Description`、`CreatedAt` 和 `Content`。
-4. 不允许把 `local` 当作普通方案复制、激活或删除。
-
-## 18. 导出 manifest 对话框标准
-
-导出布局包时应打开 manifest 字段对话框。
-
-字段：
-
-1. `PackageId`。
-2. `Name`。
-3. `Description`。
-4. `Author`。
-5. `MinVersion`。
-6. Export Scope：
-   - 当前实现固定为 `All Frontend Layouts`，不再在导出对话框中显示导出范围。
-7. 可选 `Cover image`。
-8. 可选 `README`。
-
-校验：
-
-1. `PackageId` 必填且必须安全。
-2. `Name` 必填。
-3. `MinVersion` 可选但推荐填写。
-4. 输出文件已存在时必须确认覆盖。
-
-导出行为：
-
-1. 选择输出 `.bpui`。
-2. 填写 manifest 字段。
-3. 选择导出范围。
-4. 从用户布局 store 收集选中布局。
-5. 如果用户布局不存在，full export 或 current window export 可以允许使用内置 fallback。
-6. 收集布局引用资源。
-7. 将绝对路径、`bpui://local/...` 或其他可复制包资源复制到导出包 `resources/`。
-8. 将复制后的引用重写为 `bpui://{PackageId}/...`。
-9. 生成 `manifest.json`。
-10. 压缩为 `.bpui`。
+收集布局、BO 状态、behavior 与实际引用资源，将绝对路径、bpui://local 和可复制包资源写入目标 resources/，重写为目标包 URI；Resources/... 和应用 pack 资源保持原样。保留缺插件数据，汇总控件/窗口/事件依赖，生成 manifest 后打包 ZIP；资源缺失或安全校验失败必须报告。不能打包全局 Config.json。
 
 ## 19. 导入行为标准
 
@@ -895,12 +703,12 @@ bpui://{PackageId}/resources/images/bg.png
 7. 校验 `LayoutSchemaVersion`。
 8. 校验 manifest 列出的布局文件存在。
 9. 校验每个 layout `Version == 3`。
-10. 合并 manifest `PluginDependencies`、Canvas `RequiredPlugins` 和实际插件 `ControlType` 扫描结果，执行插件依赖预检。
+10. 合并 manifest PluginDependencies、各状态 RequiredPlugins、实际插件 ControlType 及所有 behavior 触发事件扫描结果，执行插件依赖预检。
 11. 校验资源存在。
 12. 校验没有跨包引用。
 13. 如果有插件依赖未满足，进入第 8.4 节的安装 / 继续保留 / 取消流程。
 14. 如果 `PackageId` 已存在，询问是否替换或更新。
-15. 用户确认后，在校验成功的前提下原子替换包目录。
+15. 用户确认后，校验成功才进入替换。当前 ImportStagingAsync 先 Directory.Delete 旧安装目录，再 Directory.Move staging 到目标；没有旧包备份或回滚，移动失败可能丢失原安装目录。校验先行不等于原子替换，此风险见[已知边界](../known-limitations-and-roadmap.md)。
 16. 不覆盖全局 `Config.json`。
 17. layout-only 且无新增插件安装时不要求重启。
 18. 可在导入完成后询问是否立即激活。
@@ -919,7 +727,7 @@ v3 `.bpui` 包不得包含：
 8. 缓存。
 9. 用户账号、路径、窗口位置等普通设置。
 
-如果未来支持插件拥有的前台窗口布局，包可以包含插件窗口的 layout JSON，并在 manifest 中声明依赖插件；但包仍不得包含插件 DLL。导入布局包不得静默安装或启用插件，必须通过插件系统 / 插件市场流程完成用户确认、来源展示、版本检查和 hash / signature 校验（如果支持）。
+包已支持插件 v3 窗口的 layout JSON，并在 manifest 中声明依赖插件；但包仍不得包含插件 DLL。导入布局包不得静默安装或启用插件，必须通过插件系统 / 插件市场流程完成用户确认、来源展示、版本检查和 hash / signature 校验（如果支持）。
 
 ## 21. 校验规则
 
@@ -934,43 +742,26 @@ v3 `.bpui` 包不得包含：
 | layout JSON 无效 | Error |
 | 控件名重复 | Error |
 | manifest 声明资源缺失 | Error 或按导入模式降为 Warning |
-| 跨包 `bpui://OtherPackageId/...` 引用 | 第一版 Error |
-| manifest 未知字段 | Warning 并忽略 |
+| 跨包 `bpui://OtherPackageId/...` 引用 | Error |
+| manifest 未知字段 | 按模型反序列化忽略；当前不保证逐字段 Warning |
 | layout 未知内置 `ControlType` | Error。 |
 | 插件 `ControlType` 格式无效 | Error，例如 `plugin:TeamCard` 或空 `PackageId`。 |
 | 插件 `ControlType` 格式有效但依赖未满足 | RequiresPlugin / Warning，按导入选择进入安装、继续保留或取消流程。 |
 
-layout 层校验仍应遵守现有 Designer v3 规则：Canvas 尺寸必须有效，`Version` 必须为 3，root-level 控件 key 是控件名，运行时关键控件名不能静默丢失。
+layout 层须保持有效尺寸、Version=3 和控件 key 身份。当前重复控件 key 的原始读取缺口见[已知边界](../known-limitations-and-roadmap.md)，不能将下面的校验要求当成所有入口已完整实现。
 
 Window-centric root-level 保留字段包括 `Version`、`WindowSettings`、`CanvasSettings` 和 `ControlLayout`。旧 canvas helper 中的 `CanvasWidth`、`CanvasHeight`、`BackgroundImage` 和 `RequiredPlugins` 只作为 legacy/临时转换字段处理；导入、导出、设计器和校验器都应把 `RequiredPlugins` 视为布局元数据，不能作为控件名。
 
 Shape 控件使用 `ControlType: "Rectangle"` 或 `"Polygon"`。共享字段包括 `FillMode`、静态/绑定纯色配置、可分别绑定的渐变起始色与结束色、`GradientAngle`、`StrokeColor` 和 `StrokeThickness`。Polygon 的 `Points` 是 `{ "X": 0..1, "Y": 0..1 }` 数组，至少包含三个有效顶点；运行时将归一化坐标乘以控件宽高。
 
-v3 导入器执行硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，普通单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning。导入器还会在解压入口拒绝插件目录、插件二进制和可执行脚本，例如 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 和 `.jar`。布局包可以携带图片、字体、JSON、Markdown 等布局资源，但不能携带插件可执行内容。
+v3 导入器执行硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，普通单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning；包内布局（含 custom）最多 100 个、资源清单最多 500 项。导入器还会在解压入口拒绝插件目录、插件二进制和可执行脚本，例如 `Plugins/`、`Plugin/`、`.dll`、`.exe`、`.msi`、`.ps1`、`.bat`、`.cmd`、`.sh`、`.vbs`、`.js` 和 `.jar`。布局包可以携带图片、字体、JSON、Markdown 等布局资源，但不能携带插件可执行内容。
 
-图片资源在复制或导入前会校验扩展名、文件大小和像素尺寸。Canvas 背景图限制为 1 MiB、长边 4096、像素 4096×4096；普通 UI 图片限制为 512 KiB、长边 2048、像素 2048×2048；包内未知用途图片按包资源入口限制处理并仍需能安全解码。超限图片会整体拒绝，不会复制进包或生成 `bpui://` URI。
+图片资源在复制或导入前会校验扩展名、文件大小和像素尺寸。Canvas 背景图限制为 2.5 MiB、长边 4096、像素 4096×4096；普通 UI 图片限制为 1 MiB、长边 2048、像素 2048×2048；包内未知用途图片按包资源入口限制处理并仍需能安全解码。普通导入默认拒绝超限图片；UI 汇总后可由用户明确选择“压缩后导入”，只在暂存副本重编码并更新 manifest SHA256，源包不变。未确认时不复制或生成 URI。
 
 字体资源允许 `.ttf`、`.otf` 和 `.ttc`。导出时 manifest `Content.Resources` 中写 `Kind = "Font"`，导入校验按字体扩展名和包内路径安全处理，不走图片解码限制。
 
-## 22. legacy 关系和当前实现
+## 22. legacy 转换边界
 
-legacy `.bpui` 导入和 legacy 本地启动迁移共享同一转换核心。`.bpui` 输入源从解压目录的 `Config.json`、`FrontElementsConfig/*.json` 和 `CustomUi/` 读取；本地启动输入源从 AppData 根目录的 `Config.json`、`*Config-*.json` 和 `CustomUi/` 读取。两者使用同一布局映射、控件 blueprint、文本样式、资源复制/重写、窗口设置和 validator。启动迁移不会创建临时 `.bpui`，生成的 v3 package directory 直接通过 package importer 安装并激活。
+启动迁移和旧包导入共用 legacy 输入抽象与转换核心。启动输入来自 AppData 的 Config.json、*Config-*.json、CustomUi；归档输入来自解压目录的 Config.json、FrontElementsConfig 与 CustomUi。均以旧默认值和显式蓝图从零生成，不 clone 当前内置 v3 JSON。转换输出再经普通 importer 安装；layout-only 转换不覆盖全局 Config、不要求重启。
 
-旧 SettingPage `.bpui` 导入导出是 legacy。新的 v3 package manager 已替代它用于 Designer v3 布局。
-
-legacy 包检测：
-
-1. 没有有效 `manifest.json`。
-2. 存在 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。
-
-`FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转换。转换器会安全解压旧 zip 到 staging，复制 `CustomUi/` 资源到 `resources/images/`，生成 `manifest.json`，并从当前内置 v3 布局起步应用旧 `ElementInfo` 几何覆盖。旧 `Config.json` 只读取明确可映射的前台图片字段，不会写入 `%APPDATA%/neo-bpsys-wpf/Config.json`，也不会复制到新包或 AppData。未知旧布局文件只产生 warning 并跳过；如果没有任何可映射布局，转换失败并显示错误。转换后的包再走现有 v3 importer，因此安装、重复 PackageId 替换、资源隔离和激活行为与普通 v3 包一致。
-
-当前 `.bpui v3` 包的完整功能已实现：导出（含 manifest 对话框、全部前台布局、资源收集/重写）、导入安装、激活复制、删除、legacy 转换，以及插件控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件保留、插件市场安装引导等全流程支持。
-
-## Legacy conversion messages
-
-Legacy conversion diagnostics use stable message codes and localized text.
-
-Map BP V1 note: Legacy Map BP V1 was removed in Designer v3 and is intentionally skipped during conversion. This is a compatibility note, not a conversion failure.
-
-Technical messages should preserve code and args for debugging, but the UI must show localized user-facing text.
+字段映射、旧 archive 的更大预算、可压缩图片、警告/诊断分级和失败恢复统一见[迁移规范](legacy-fronted-layout-migration.md)。manifest-based v3 不启用读取期 legacy 猜测。

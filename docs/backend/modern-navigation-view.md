@@ -48,7 +48,7 @@ new NavigationViewItem(info.Name, info.Icon, info.PageType)
 
 ## 本地化
 
-后台页面注册中的 `BackendPageInfo.Name` 通常是类似 `HomePage` 的本地化 key。`ModernNavigationView` 遇到字符串内容时会先调用 `I18nHelper.GetLocalizedString(key)`，解析不到时才显示原始字符串。
+后台页面注册中的 `BackendPageInfo.Name` 通常是类似 `HomePage` 的本地化 key。`ModernNavigationView` 遇到字符串内容时会先调用 `I18nHelper.GetLocalizedString(GetNavigationDictionary(key), key)`，解析不到时才显示原始字符串。
 
 控件 Loaded 后会监听 `WPFLocalizeExtension` 的语言变化通知，并刷新已适配 entry 的显示文本。`MainWindowViewModel` 不需要提前本地化菜单名称。
 
@@ -106,14 +106,13 @@ pane toggle 使用项目本地 `ModernPaneToggleButtonStyle`，参考 iNKORE/Win
 
 当前 Top 模式只实现本项目需要的本地标签形态，参考 iNKORE `nvSample7` 的选择和推荐转场模型，但适配到本项目已有的内部 frame 导航模型。未复制 iNKORE 完整 `NavigationView` 的 overflow、层级、测量和 flyout 实现。
 
-本环节不实现：
+当前不实现：
 
 - Top overflow
 - 层级 flyout
 - settings item
 - autosuggest
 - breadcrumb
-- `FrontManagePage` 标签页迁移，将在后续版本中提供当前实现
 - `MessageBox` / `ContentDialog` 迁移
 
 ## 导航行为
@@ -171,3 +170,5 @@ new NavigationViewItem("LayoutPackages", SymbolRegular.AppsList24, typeof(Fronte
 布局包列表的双击激活逻辑随 `FrontedLayoutPackagesView` 迁移，避免 `FrontManagePage` 访问子视图内部命名元素。这里的 Fronted 仍指 WPF 前台输出窗口，不是 Web frontend。
 
 子视图迁移时如果需要覆写 WPF-UI 控件或 WPF 控件的局部 `Style`，必须使用 `BasedOn="{StaticResource {x:Type ...}}"` 继承默认样式，例如 `ui:Button`、`ui:HyperlinkButton`、`ui:TextBox`、`ListBoxItem` 等。不要为了单元测试宿主缺少资源而写没有 `BasedOn` 的裸控件 `Style`；测试或子视图资源应补齐主题/控件字典，运行时 XAML 必须保留默认控件模板、状态和主题资源链。纯 `Border` 等无默认控件模板的轻量元素不适用这条 `BasedOn` 约束，但能用普通属性/Converter 表达显隐时优先避免写裸 `Style`。
+
+源码入口：[ModernNavigationView.xaml.cs](../../neo-bpsys-wpf/Controls/Modern/Navigation/ModernNavigationView.xaml.cs)。内容合法承载与滚动宿主契约分别见[ModernFrame](modern-frame.md)和[平滑滚动](modern-smooth-scrolling.md)，避免在导航适配层复制另一套策略。

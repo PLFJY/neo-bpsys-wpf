@@ -34,17 +34,11 @@ services.AddBackendPage<MyPage, MyPageViewModel>();
 
 插件页面通常用 `External`，除非明确要进入某个宿主内部区域。
 
-## WPF-UI 导航假设
+## 导航宿主与创建
 
-主窗口构造时：
+MainWindow 的 RootNavigation 使用项目自定义 [ModernNavigationView](modern-navigation-view.md)，内部由 [ModernFrame](modern-frame.md) 承载 Page；WPF-UI INavigationService、NavigationViewItem 和图标类型仍为兼容 API，不等于运行时仍使用原 NavigationView 控件。MainWindow 构造时调用 navigationService.SetNavigationControl(RootNavigation)，菜单由 DI 注册表提供。
 
-```csharp
-navigationService.SetNavigationControl(RootNavigation);
-```
-
-并在 XAML 中绑定 `MenuItems` / `FooterMenuItems`。页面实例来自 WPF-UI 的 page provider 和 DI。不要在导航时手动 `new Page()`；那会绕开 DataContext、单例状态和服务注入。
-
-`ApplicationHostService` 启动后会预加载部分页面，再回到 Home。这个行为意味着页面构造不应做耗时或不可重复的副作用。
+不要导航时手动 new Page，页面与 VM 已由 DI 以 singleton 注册。ApplicationHostService 根据 IsClassicMode 选择 ClassicBackendWindow 或 Modern MainWindow；Modern 显示后导航 Home。源码里的 Pick/Ban 预加载仅为注释，不会执行。Classic 页管理弹窗与共享状态边界见[classic-mode.md](classic-mode.md)。
 
 ## 图标
 

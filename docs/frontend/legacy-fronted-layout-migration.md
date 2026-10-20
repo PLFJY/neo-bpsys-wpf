@@ -1,6 +1,8 @@
 # 旧前台布局迁移
 
-Designer v3 layout package 是当前前台窗口自定义的唯一运行时来源。旧 `Config.json` 中的前台窗口字段已经从 active `Settings.cs` 移除，只保留为 legacy DTO，用于启动迁移和旧 `.bpui` 转换。
+本文负责仍有效的历史输入、转换映射与启动迁移，非普通运行时读取路径。源码入口：[启动迁移](../../neo-bpsys-wpf/Services)、[共享转换核心](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedLayoutPackageLegacyConverter.cs)及同名前缀的分部文件。
+
+Designer v3 layout package 是当前前台窗口自定义的运行时来源。旧 `Config.json` 中的前台窗口字段已经从 active `Settings.cs` 移除，只保留为 legacy DTO，用于启动迁移和旧 `.bpui` 转换。
 
 ## 迁移入口
 
@@ -61,13 +63,15 @@ legacy 兼容只允许存在于启动迁移服务和显式 legacy `.bpui` 转换
 
 - `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` loose 用户布局；
 - legacy canvas layout path；
-- `Resources/FrontedLayouts` 作为非 `builtin` 包 fallback；
+- 绕过包管理器把当前内置布局当成 legacy 蓝图默认值；
 - 插件默认布局 fallback；
 - `FrontedWindowConfig` 上的 canvas-centric public helper。
 
+内置窗口在普通 LayoutService 中仍可从用户包回退到 builtin；这是[当前读取契约](fronted-layout-v3-window-centric.md)的一部分，不是 legacy 兼容入口。
+
 ## 旧 `.bpui`
 
-旧 `.bpui` 不带 v3 `manifest.json`，通常包含 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。导入时应走 legacy 转换器：转换器从当前内置 v3 layout 起步，复制安全资源，应用可映射的背景图、旧 `TextSettings` 文本样式和旧 `ElementInfo` 几何，再生成干净的 v3 `.bpui` 包。
+旧 `.bpui` 不带 v3 `manifest.json`，通常包含 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。导入时应走 legacy 转换器：转换器从旧 XAML 默认值与显式 LegacyControlBlueprint 从零生成布局，不读取或 clone 当前内置 v3 JSON；随后复制安全资源，应用可映射的背景图、旧 `TextSettings` 文本样式和旧 `ElementInfo` 几何，再生成干净的 v3 `.bpui` 包。
 
 旧几何迁移按“精确控件名、窗口限定别名、聚合控件、已知旧 overlay 消费、规范化匹配、技术候选诊断”顺序处理。`ScoreGlobalWindow/BaseCanvas` 已显式兼容旧全局比分命名：
 
@@ -95,3 +99,7 @@ legacy 兼容只允许存在于启动迁移服务和显式 legacy `.bpui` 转换
 旧 `WidgetsWindow/MapV2Canvas` 会转换为 `MapV2Window`。`MapV2Display` 已提供地图名、队名、阵营文字三组字体/颜色/字号配置，以及 `PickingBorderImagePath`、`PickingBorderFillColor`。普通 `Image` 和 `BorderedImage` 也使用相同的 `PickingBorderFillColor` 表达 opacity-mask 的填充色。旧 `MapBpV2_*` 文本样式和 picking border 图片/颜色可以写入这些 v3 字段，不再需要提示“MapV2Display 无 v3 image/color config”。CutScene 的非对称队名文字区域使用通用 `Text.ContentMargin*` 保存内部内容偏移；缺失这些字段的既有 v3 包保持原有视觉。
 
 manifest-based v3 `.bpui` 仍禁止包含 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。
+
+## 历史映射参考
+
+需要对照旧版每个命名控件、属性近似与聚合来源时查[历史蓝图映射表](reference/legacy-v3-control-blueprint-map.md)。该表固定于旧 release，是迁移审计证据，不要求普通控件开发同步维护，也不能替代当前转换器和迁移测试。

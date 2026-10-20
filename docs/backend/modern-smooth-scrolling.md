@@ -1,6 +1,6 @@
 # Modern smooth scrolling
 
-本环节只提供项目本地的平滑滚动基础设施，不全局替换现有 `ScrollViewer`，也不引入 iNKORE NuGet 依赖。
+本文负责项目本地的平滑滚动基础设施，不全局替换现有 `ScrollViewer`，也不引入 iNKORE NuGet 依赖。
 
 ## 组件
 
@@ -9,7 +9,7 @@
 - `NestedSmoothScrollBehavior`：附加到显式 self-scroll 的 `ListBox`、`ListView`、`DataGrid`、`TreeView`、`ScrollViewer` 或包含内部 `ScrollViewer` 的控件，使该控件自己的滚动宿主保持平滑滚动。
 - `ComboBoxDropdownSmoothScrollBehavior`：附加到 `ComboBox`，在下拉 `Popup` 创建后本地接管下拉内部滚轮，使下拉列表平滑滚动，并阻止页面背景跟随滚动。
 - `ModernScroll.Ownership`：显式声明滚动归属，`Auto`/`Frame` 表示页面内容默认由 frame/page 滚动，`Self` 表示该区域拥有自己的滚动语义。
-- `ScrollAnimationHelper`：提供 `SmoothScrollToVerticalOffset`，用于后续代码以同一套动画逻辑执行程序化纵向滚动。
+- `ScrollAnimationHelper`：提供 `SmoothScrollToVerticalOffset`，复用同一动画逻辑执行程序化纵向滚动。
 - `ScrollViewerSearchHelper`：安全查找最近且可滚动的祖先 `ScrollViewer`，只依赖 WPF 视觉树/逻辑树，不依赖 WPF-UI 或 iNKORE 内部结构。
 - `WheelScrollEventGuard`：集中判断滚轮事件是否属于下拉框、弹出层或显式 self-scroll 区域，避免外层页面滚动宿主抢走明确归属给子控件的滚轮。
 
@@ -47,12 +47,7 @@
 
 自动化覆盖分数增量、长输入流的目标上界、反向、边界、倍率、系统行数/整屏设置、时间戳回绕、Self/Frame 归属、嵌套交接、修饰键、弹出层保护和卸载清理。WPF 行为测试使用统一 `WpfTestThread`，不依赖真实触控板。
 
-当前 xUnit 4 测试项目可先构建，再直接运行生成的测试程序（.NET 10 SDK 的旧 VSTest `dotnet test` 入口不适用）。构建与运行应串行，避免运行中的程序集锁住构建输出：
-
-```powershell
-dotnet build .\neo-bpsys-wpf.Tests\neo-bpsys-wpf.Tests.csproj
-& .\neo-bpsys-wpf.Tests\bin\Debug\net10.0-windows10.0.20348\neo-bpsys-wpf.Tests.exe -noLogo -noColor -class '*WheelScrollPolicyTest' -class '*ModernWheelScrollTest' -class '*ModernFrameTest' -class '*GuidanceScrollHelperTest'
-```
+执行入口统一见[验证与调试](../build/testing-and-debugging.md)；定向选择 WheelScrollPolicyTest、ModernWheelScrollTest、ModernFrameTest、GuidanceScrollHelperTest。
 
 Windows 11 真机仍需分别验证精密触控板、触摸屏和普通鼠标：
 
@@ -82,4 +77,4 @@ GameGuidance 自动滚动是纯 View 层能力，不改变 `GameGuidanceService`
 
 `ModernFrame` 新导航会先同步把 frame 级 `PART_ContentScrollHost` 置顶，并取消该宿主上的旧纵向动画；它不会延迟到 dispatcher 空闲、timer 或转场完成后执行。这样 GameGuidance 导航完成后再广播 `HighlightMessage` 时，`GuidanceAutoScrollScope` 的后续目标滚动不会被 frame 置顶覆盖。直接 presenter 和显式 self-scroll 子区域不参与 frame 级置顶。
 
-该机制不添加页面级 `ScrollViewer` 包裹，不依赖 WPF-UI `NavigationView`、未来 `ModernFrame`、iNKORE 或固定模板部件名。当前 WPF-UI 页面宿主和未来 `ModernFrame` 只要在目标祖先链上提供可滚动容器，都可以被同一套查找逻辑使用；页面内已有手动 `ScrollViewer` 时会优先使用最近的那个。
+该机制不添加页面级 ScrollViewer，也不依赖导航控件的模板结构。当前 ModernFrame 已提供页面滚动宿主，查找逻辑沿目标祖先链选择最近的可滚动容器；显式 self-scroll 区域仍遵守自身归属。

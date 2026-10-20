@@ -16,7 +16,7 @@ README 中的定位是：基于 .NET WPF、面向第五人格民间赛直播的 
 | 前台窗口 | 独立 WPF 输出窗口，供 OBS 或其他直播软件捕获 |
 | 数据中心 | 队伍、对局、角色、比分、计时器、全局 Ban 等共享状态 |
 | 引导式 BP | 根据 `GameRule.json` 逐步导航到后台页面并高亮操作区域 |
-| SmartBP/OCR | 目前成熟的是赛后数据 OCR 自动回填；全流程自动 BP/自动切屏仍是 TODO |
+| SmartBP/OCR | 赛后 OCR 可用，BP 状态识别、可选应用和引导追赶已接入；自动导播/切屏仍未实现 |
 | 插件系统 | 允许第三方扩展后台页面、插件前台窗口、Designer v3 控件和服务 |
 
 ## 后台与前台
@@ -26,11 +26,11 @@ README 中的定位是：基于 .NET WPF、面向第五人格民间赛直播的 
 | 术语 | 代码含义 |
 | --- | --- |
 | 后台 / backend | 主 WPF 控制窗口，主要是 `MainWindow`、后台页面和 ViewModel |
-| 后台页面 | `Views/Pages/*` 下的 WPF `Page`，通过 WPF-UI `NavigationView` 展示 |
-| 前台窗口 / FrontedWindow | `Views/Windows/*` 下的独立 WPF 输出窗口，用于 OBS 捕获 |
+| 后台页面 | `Views/Pages/*` 下的 WPF `Page`，Modern 模式由自定义 ModernNavigationView / ModernFrame 展示 |
+| 前台窗口 / FrontedWindow | 通过 registry 创建的独立 WPF 输出窗口，内置 v3 使用通用配置 host，用于 OBS 捕获 |
 | 宿主 | 主应用 `neo-bpsys-wpf`，负责构建 Host、注册服务、加载插件 |
 
-维护时不要引入 Web frontend 的假设，例如路由、浏览器 DOM、CSS 构建链等。这里的前台输出是 WPF 窗口、Canvas、绑定和资源字典。
+维护 WPF 前台时不要引入 DOM/CSS/浏览器路由假设。WebRenderer 是独立的实验性插件输出，不能据此重新解释 FrontedWindow。
 
 ## 用户场景
 

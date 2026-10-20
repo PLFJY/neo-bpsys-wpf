@@ -52,7 +52,17 @@
 
 判断 pending 时必须比较版本。已完成或已被 flow 覆盖的 package，如果当前定义版本更高，仍应重新视为 pending。`Suppressed` 不写入状态，也不排队。
 
-状态文件不保存“跳过”第三态。用户点击跳过只表示当前运行返回 `TutorialRunResult.Skipped` 并停止后续自动衔接；写入持久状态时按“已处理完成”归一。首次 Welcome 被跳过时，`Flow.FirstRun.StandardBp` 和 `IncludedPackageIds` 内的 package 都标记为 `Completed`，避免首次总导览包含的页面 package 后续再次弹出。普通 flow 完整完成时，会把 `IncludedPackageIds` 内的 package 标记为 `CoveredByFlow`；flow 运行中被用户跳过时，flow 和 included package 都标记为 `Completed`。
+持久化只记录 Completed / CoveredByFlow，不另存 Skipped；但当前会话跳过与永久跳过必须区分，不能把所有 Skip 都归一为完成。
+
+| 场景 | 运行结果 / 持久化 |
+| --- | --- |
+| SkipForCurrentSession | Skipped；仅当前会话停止，不写永久完成 |
+| 普通页面永久跳过 | SkippedPermanently；非 EmbeddedInFlow 时 package 写 Completed |
+| Flow 正常完成 | flow 写 Completed，IncludedPackageIds 写 CoveredByFlow |
+| Flow 内永久跳过 | flow 与 included package 写 Completed |
+| 首次 Welcome 永久跳过 | OnboardingCoordinator.MarkFirstRunHandledAsync：flow 写 Completed，included package 写 CoveredByFlow 与 SourceFlowId |
+
+源码入口：[TutorialService](../../neo-bpsys-wpf.ProductTour/TutorialService.cs)、[OnboardingCoordinator](../../neo-bpsys-wpf.ProductTour/OnboardingCoordinator.cs)、[状态存储](../../neo-bpsys-wpf.ProductTour/TutorialStateStore.cs)。ChildWindowHandoff 等结果仍按运行器自身状态规则处理，不能把 UI 消失推断为永久完成。
 
 ## 启动链路
 

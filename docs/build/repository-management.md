@@ -1,5 +1,7 @@
 # 仓库分支管理流程规范
 
+本文的 checkout、rebase、merge、push 等是维护者手动操作示例，不授予 Coding Agent 自动执行许可。Agent 必须遵守根 [AGENTS.md](../../AGENTS.md) 的工作区保护与明确授权要求；不擅自切分支、暂存清理、提交、推送或创建 PR。
+
 ## 1. 分支结构说明
 
 - **main 分支**：主分支，存放稳定发布版本，仅通过 PR 合并更新。

@@ -2,7 +2,9 @@
 
 本项目用于开发 `neo-bpsys-wpf` 插件。v3 起 PluginSdk 不再作为 NuGet 包发布；插件作者应 clone `neo-bpsys-wpf` 仓库，并在插件项目中通过 `ProjectReference` 引用本项目源码。3.0 版本起，插件 API 版本为 `3.0.0.0`，前台窗口注册使用强类型 registration 模型，前台控件注册使用统一 V3 Control API（`FrontedV3ControlBase` + `[FrontedV3Control]` + `AddFrontedV3Control<T>()`）；旧 contributor/descriptor 注入 API 与旧控件架构（`IFrontedControl`、`IFrontedControlPluginContributor`、`FrontedPluginControlDescriptor`、`AddFrontedPluginControlContributor<T>()` 等）已移除，旧插件需要迁移到新 API。
 
-完整参考示例请查看 `neo-bpsys-wpf.ExamplePlugin` 项目（插件 ID `plfjy.ExamplePlugin`），它是一个综合示例，演示了所有当前插件能力。
+本文是插件作者的公开 SDK 契约与示例入口；宿主发现、加载与安全模型见[插件系统](plugin-system.md)。源码入口：[Core 注册扩展](../../neo-bpsys-wpf.Core/Extensions/Registry)、[V3 模型](../../neo-bpsys-wpf.Core/Models/FrontedLayout/V3)、[PluginBase](../../neo-bpsys-wpf.Core/Abstractions/PluginBase.cs)。
+
+完整参考示例请查看 [neo-bpsys-wpf.ExamplePlugin](../../neo-bpsys-wpf.ExamplePlugin) 项目（插件 ID `plfjy.ExamplePlugin`），它是一个综合示例，演示了所有当前插件能力。
 
 ## manifest.yml
 
@@ -189,6 +191,8 @@ public static readonly FrontedV3Parts CellsCollection =
 - `DataIdentity` 语义（MapKey、TeamType、BindingPath、ControlName 等）和根级保留字段（`Left`/`Top`/`ZIndex` 等）**永远不传播**。
 - 属性语义通过 `FrontedV3PropertyMetadata Semantic` 声明，默认为 `Other`（不参与传播）。
 
+RootSize、PartLayout、Behaviors、Effects 语义仅在 profile 显式开启时传播；Other 与 DataIdentity 永远不传播。继承模式由 FrontedV3PropertyMetadata.Inheritance 声明：None、ParentFallback（动态回退）、CopyFromParentOnCreate（创建后独立）、LockedToParent（禁止 override）。
+
 ### 缺失插件行为
 
 当插件缺失时：
@@ -228,7 +232,7 @@ public partial class ExampleXamlWindow : FrontedWindowBase
 services.AddFrontedWindow<ExampleXamlWindow, ExampleXamlWindowViewModel>();
 ```
 
-`AddFrontedWindow<TWindow, TViewModel>` 会读取 Attribute 上的 `Id` 作为 runtime ID（LocalId），注册 ViewModel 和 Window，并在创建时设置 DataContext。PackageId 仅表示来源，不参与 v3 layout / Designer。`FrontedWindowInfo` 旧的 canvas 构造函数仍保留但参数会被忽略，Canvas 注入能力不会恢复。
+`AddFrontedWindow<TWindow, TViewModel>` 读取 Attribute Id 作为 LocalId；插件作用域内的 runtime Canonical ID 为 `plugin:{PackageId}/{LocalId}`，注册 ViewModel 和 Window，并在创建时设置 DataContext。XAML 窗口不参与 v3 layout / Designer，但 PackageId 参与其运行时 canonical identity。`FrontedWindowInfo` 旧的 canvas 构造函数仍保留但参数会被忽略，Canvas 注入能力不会恢复。
 
 ### v3 Layout Window
 
@@ -266,9 +270,9 @@ v3 Layout Window 不要求默认 JSON 存在。无默认 JSON 时使用 `Fronted
 插件 XAML 窗口: plugin:{PackageId}/{AttributeId}
 ```
 
-`FrontedWindowInfo.Id` 是稳定的窗口 Local ID。推荐新插件使用 GUID，以降低与历史插件发生冲突的可能；但为了兼容既有社区插件，不强制 GUID。允许任何通过 Window Local ID 安全校验的稳定字符串（不含 `/`、`\`、`:`、控制字符或前后空白）。插件 XAML 窗口的 Canonical ID 为 `plugin:{PackageId}/{AttributeId}`，宿主直接注册的 XAML 窗口为 `{AttributeId}`。XAML 窗口不参与 v3 layout、Designer 或 `.bpui` layout entry。PackageId 仅表示来源，不参与 v3 layout / Designer。
+`FrontedWindowInfo.Id` 是稳定的窗口 Local ID。推荐新插件使用 GUID，以降低与历史插件发生冲突的可能；但为了兼容既有社区插件，不强制 GUID。允许任何通过 Window Local ID 安全校验的稳定字符串（不含 `/`、`\`、`:`、控制字符或前后空白）。插件 XAML 窗口的 Canonical ID 为 `plugin:{PackageId}/{AttributeId}`，宿主直接注册的 XAML 窗口为 `{AttributeId}`。XAML 窗口不参与 v3 layout、Designer 或 `.bpui` layout entry。PackageId 参与插件 XAML 的运行时身份；XAML 本身不参与 v3 layout / Designer。
 
-`.bpui` 契约保持不变：`FormatVersion=3`、`LayoutSchemaVersion=3`、所有 JSON 字段名不变，`Content.Layouts[].Window` 使用 Canonical ID。导入再导出不会重写 Canonical ID。
+`.bpui` 契约保持不变：`FormatVersion=3`、`LayoutSchemaVersion=3`、所有 JSON 字段名不变，`Content.Layouts[].Window` 使用 Canonical ID。插件窗口导入/导出保持其 Canonical ID；包作用域 custom 窗口导出/复制时随目标包身份重写，规则见 [BPUI](../frontend/bpui-package-v3.md)。
 
 用户 layout 安全路径示例：
 
