@@ -18,10 +18,46 @@ internal sealed record GameDataDigitOneVisualEvidence(
     double Confidence);
 
 /// <summary>
-/// 检查已知数字单元格中心是否存在符合数字 1 的高窄亮色笔画。
+/// 定位数字单元格的亮色文字和空值横杠，并提供数字 1 的辅助形态证据。
 /// </summary>
 internal static class GameDataCellVisualAnalyzer
 {
+    /// <summary>
+    /// 在表格切片中定位亮色文字，排除触边背景和贯穿整格的分隔线。
+    /// 只返回裁剪几何及横杠形态，不根据笔画猜测数字值。
+    /// </summary>
+    /// <param name="cell">包含完整数字和周围边距的单元格。</param>
+    /// <param name="bounds">文字边界（单元格坐标系）。</param>
+    /// <param name="isEmptyMarker">文字是否仅为位于中央的短横杠。</param>
+    /// <returns>存在完整且居中的文字前景时返回 <see langword="true"/>。</returns>
+    internal static bool TryLocateText(Mat cell, out Rect bounds, out bool isEmptyMarker)
+    {
+        bounds = default;
+        isEmptyMarker = false;
+        if (cell.Empty()) return false;
+        using var gray = new Mat();
+        if (cell.Channels() == 1) cell.CopyTo(gray);
+        else Cv2.CvtColor(cell, gray, cell.Channels() == 4 ? ColorConversionCodes.BGRA2GRAY : ColorConversionCodes.BGR2GRAY);
+
+        Cv2.MeanStdDev(gray, out var mean, out var deviation);
+        using var mask = new Mat();
+        Cv2.Threshold(gray, mask, Math.Clamp(mean.Val0 + Math.Max(24, deviation.Val0), 110, 210), 255, ThresholdTypes.Binary);
+        Cv2.FindContours(mask, out Point[][] contours, out _, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
+        var boxes = contours.Select(Cv2.BoundingRect).Where(box =>
+            box.X > 0 && box.Y > 0 && box.Right < cell.Width && box.Bottom < cell.Height &&
+            box.Width < cell.Width * .85 && box.Height >= 1 && box.Width >= 2 && box.Width * box.Height >= 3 &&
+            Math.Abs(box.Y + box.Height / 2d - cell.Height / 2d) < cell.Height * .32).ToArray();
+        if (boxes.Length == 0) return false;
+        var left = boxes.Min(box => box.Left);
+        var top = boxes.Min(box => box.Top);
+        bounds = new Rect(left, top, boxes.Max(box => box.Right) - left, boxes.Max(box => box.Bottom) - top);
+        if (Math.Abs(bounds.X + bounds.Width / 2d - cell.Width / 2d) > cell.Width * .25)
+            return false;
+        isEmptyMarker = boxes.Length == 1 && bounds.Width >= bounds.Height * 3 &&
+            bounds.Height <= cell.Height * .15 && bounds.Width <= cell.Width * .4;
+        return isEmptyMarker || bounds.Height >= cell.Height * .28;
+    }
+
     /// <summary>
     /// 尝试提取数字 1 的高窄亮色连通区域。该结果不能单独作为 OCR 值使用。
     /// </summary>

@@ -67,7 +67,10 @@ internal sealed record PostGameOcrPerformanceSnapshot(
     int SingleCellVariantCallCount,
     long VisualAnalysisMs,
     long TotalMs,
-    string Source)
+    string Source,
+    long CellVerificationMs,
+    int CellVerificationCallCount,
+    int CellVerificationVariantCallCount)
 {
     /// <summary>
     /// 将快照格式化为单行汇总日志文本。
@@ -79,6 +82,7 @@ internal sealed record PostGameOcrPerformanceSnapshot(
                $"frame={FrameWidth}x{FrameHeight}; table_roi={TableRoiWidth}x{TableRoiHeight}; " +
                $"capture_ms={CaptureMs}; bitmap_to_mat_ms={BitmapToMatMs}; primary_ocr_ms={PrimaryOcrMs}; primary_parse_ms={PrimaryParseMs}; " +
                $"primary_lines={PrimaryLineCount}; parsed_rows={ParsedRowCount}; initial_missing={InitialMissingCellCount}; " +
+               $"cell_verification_ms={CellVerificationMs}; cell_verification_calls={CellVerificationCallCount}; cell_verification_variants={CellVerificationVariantCallCount}; " +
                $"grid_ocr_ms={SecondaryGridOcrMs}; grid_ocr_calls={SecondaryGridOcrCallCount}; remaining_missing={RemainingMissingCellCount}; " +
                $"single_cell_ms={SingleCellOcrMs}; single_cell_calls={SingleCellOcrCallCount}; single_cell_variants={SingleCellVariantCallCount}; " +
                $"visual_ms={VisualAnalysisMs}; total_ms={TotalMs}.";
@@ -112,6 +116,9 @@ internal static class PostGameOcrThresholds
     /// </summary>
     public const double SingleVariantMinimumConfidence = 0.88;
 
+    /// <summary>即使有多变体投票，干净数字候选也必须达到的最低置信度。</summary>
+    public const double SupportedVariantMinimumConfidence = 0.5;
+
     /// <summary>数字网格整块二次 OCR 最多生成的变体数（original/clahe，必要时 +binary）。</summary>
     public const int MaxNumericGridVariants = 3;
 
@@ -133,7 +140,7 @@ public enum PostGameRecognitionStage
     Preparing,
     /// <summary>主表格 OCR：对赛后数据表格 ROI 执行首次识别。</summary>
     PrimaryOcr,
-    /// <summary>数字网格整块二次 OCR。</summary>
+    /// <summary>数字格切片复核及必要的数字网格整块二次 OCR。</summary>
     GridOcr,
     /// <summary>渐进式单格补救。</summary>
     SingleCell,

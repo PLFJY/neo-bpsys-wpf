@@ -9,7 +9,7 @@ using System.Threading;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// 赛后数据 OCR 流水线。封装表格 ROI 裁剪、主 OCR、数字网格整块二次 OCR、
+/// 赛后数据 OCR 流水线。封装表格 ROI 裁剪、主 OCR、数字格切片复核、数字网格整块二次 OCR、
 /// 渐进式单格补救以及 OCR 预热，并产出结构化性能快照。
 /// </summary>
 internal sealed class PostGameOcrEngine
@@ -119,8 +119,11 @@ internal sealed class PostGameOcrEngine
         var initialMissing = parsed.MissingCells.Count;
         _debugLog.Write("post-game", $"primary finished: source={source}; lines={primaryLines.Count}; rows={parsed.Rows.Count}; initial_missing={initialMissing}.");
 
-        if (initialMissing > 0)
+        if (parsed.Layout != null)
             StageProgress?.Invoke(45, PostGameRecognitionStage.GridOcr);
+        var (verificationMs, verificationCalls, verificationVariants) = RunCellVerification(
+            fullFrame, primaryLines, parsed, cancellationToken, out parsed, out primaryLines);
+
         var (gridMs, gridCalls) = RunNumericGridRecovery(fullFrame, primaryLines, parsed, cancellationToken, out parsed, out primaryLines, out var remainingAfterGrid);
 
         if (remainingAfterGrid > 0)
@@ -153,7 +156,10 @@ internal sealed class PostGameOcrEngine
             singleVariants,
             visualMs,
             totalMs,
-            source);
+            source,
+            verificationMs,
+            verificationCalls,
+            verificationVariants);
 
         _logger.LogInformation("{Summary}", snapshot.ToSummaryLine());
         _debugLog.Write("post-game", snapshot.ToSummaryLine());
@@ -210,6 +216,69 @@ internal sealed class PostGameOcrEngine
             _debugLog.Write("post-game", $"parser: {diagnostic}");
 
         return (lines, parsed, ocrSw.ElapsedMilliseconds, parseSw.ElapsedMilliseconds, primaryOcrCalls, roiRect.Width, roiRect.Height, source);
+    }
+
+    private (long Ms, int Calls, int Variants) RunCellVerification(
+        Mat fullFrame, List<OcrTextLine> lines, GameDataTableParseResult parsed, CancellationToken cancellationToken,
+        out GameDataTableParseResult finalParsed, out List<OcrTextLine> finalLines)
+    {
+        finalParsed = parsed;
+        finalLines = new List<OcrTextLine>(lines);
+        if (parsed.Layout is not { } layout) return (0, 0, 0);
+        var sw = Stopwatch.StartNew();
+        var calls = 0;
+        var variants = 0;
+        var visualMs = 0L;
+        var visualSw = new Stopwatch();
+        // 以本帧数字的实际高度确定切片大小，避免固定 34px 在不同分辨率下截断笔画。
+        var heights = lines.Where(line => line.CenterX >= layout.ColumnCenters[0] - layout.EstimatedColumnWidth * .25 &&
+                GameDataCellOcrCandidateSelector.TryNormalizeNumericText(line.Text, out _, out var exact) && exact)
+            .Select(line => line.BoundingBox.Height).Order().ToArray();
+        if (heights.Length == 0) return (0, 0, 0);
+        var width = Math.Max(12, (int)Math.Round(layout.EstimatedColumnWidth * .65));
+        var height = Math.Max(12, (int)Math.Round(Math.Min(heights[heights.Length / 2] * 1.6, layout.EstimatedRowHeight * .65)));
+        foreach (var row in parsed.Rows)
+        {
+            for (var column = 0; column < layout.ColumnCenters.Count; column++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var cell = new GameDataTableMissingCell(row.RowIndex, column, layout.ColumnCenters[column], layout.RowCenters[row.RowIndex]);
+                var searchRect = CreateGameDataCellCrop(fullFrame, cell.ExpectedCenterX, cell.ExpectedCenterY, width, height);
+                using var search = new Mat(fullFrame, searchRect);
+                if (!GameDataCellVisualAnalyzer.TryLocateText(search, out var bounds, out var emptyMarker)) continue;
+                // 横杠形态仅确认空格，不能单独推翻已有的数字证据。
+                if (emptyMarker && row.Values[column].Length > 0) continue;
+                var padding = Math.Max(2, (int)Math.Round(bounds.Height * .18));
+                // 细窄的 1 也保留约一个字高的横向上下文，避免字符模型把过窄输入压成空白。
+                var horizontalPadding = Math.Max(padding, (int)Math.Round(bounds.Height * .5));
+                var crop = ClampRect(new Rect(searchRect.X + bounds.X - horizontalPadding, searchRect.Y + bounds.Y - padding,
+                    bounds.Width + horizontalPadding * 2, bounds.Height + padding * 2), fullFrame.Width, fullFrame.Height);
+                GameDataCellOcrSelection? selection = null;
+                if (!emptyMarker)
+                {
+                    calls++;
+                    selection = TryRecognizeSingleCellProgressive(fullFrame, cell, cancellationToken,
+                        ref variants, ref visualMs, visualSw, crop, row.Values[column]);
+                    // 已有值发生变化时必须取得至少两个变体支持，不能让单次高分误识别覆盖原值。
+                    if (selection == null || !IsPlausibleValue(selection.Value, row.RowIndex, column) ||
+                        row.Values[column].Length > 0 && selection.Value != row.Values[column] && selection.SupportCount < 2)
+                    {
+                        _debugLog.Write("post-game", $"cell verification rejected: row={row.RowIndex}; column={column}; previous=[{row.Values[column]}]; crop={crop}.");
+                        continue;
+                    }
+                }
+                var value = emptyMarker ? "-" : selection!.Value;
+                // 替换同一格的旧证据；追加候选会被 Parser 的“首值优先”规则忽略。
+                finalLines.RemoveAll(line => searchRect.Contains(new Point((int)line.CenterX, (int)line.CenterY)));
+                finalLines.Add(new OcrTextLine(value, selection?.Confidence ?? 1,
+                    crop, cell.ExpectedCenterX, cell.ExpectedCenterY, selection?.Provider ?? "OpenCV/empty-marker"));
+                _debugLog.Write("post-game", $"cell verification accepted: row={row.RowIndex}; column={column}; previous=[{row.Values[column]}]; value=[{value}]; crop={crop}; support={selection?.SupportCount ?? 0}.");
+            }
+        }
+        finalParsed = GameDataTableOcrParser.Parse(finalLines);
+        sw.Stop();
+        _debugLog.Write("post-game", $"cell verification finished: calls={calls}; variants={variants}; remaining_missing={finalParsed.MissingCells.Count}; elapsed_ms={sw.ElapsedMilliseconds}.");
+        return (sw.ElapsedMilliseconds, calls, variants);
     }
 
     private (long Ms, int Calls) RunNumericGridRecovery(
@@ -282,7 +351,7 @@ internal sealed class PostGameOcrEngine
 
         _debugLog.Write("post-game", $"single-cell fallback: remaining_missing={parsed.MissingCells.Count}; mode=progressive-variants.");
         var sw = Stopwatch.StartNew();
-        var visualSw = Stopwatch.StartNew();
+        var visualSw = new Stopwatch();
         var visualMs = 0L;
         var callCount = 0;
         var variantCalls = 0;
@@ -313,8 +382,6 @@ internal sealed class PostGameOcrEngine
             _debugLog.Write("post-game", $"numeric fallback accepted: row={cell.RowIndex}; column={cell.ColumnIndex}; value=[{selection.Value}]; confidence={selection.Confidence:0.000}; support={selection.SupportCount}; provider={selection.Provider}.");
         }
 
-        visualSw.Stop();
-        visualMs += visualSw.ElapsedMilliseconds;
         sw.Stop();
 
         finalParsed = GameDataTableOcrParser.Parse(finalLines);
@@ -325,7 +392,7 @@ internal sealed class PostGameOcrEngine
     }
 
     /// <summary>
-    /// 对单个缺失格执行渐进式变体识别：original → CLAHE → Otsu → 数字 1 精修 → 形态证据。
+    /// 对单个数字格执行渐进式变体识别：original → CLAHE → Otsu → 数字 1 精修 → 形态证据。
     /// 极高置信首票或两个一致变体可提前结束，避免无条件运行全部变体。
     /// </summary>
     /// <param name="fullFrame">完整捕获画面。</param>
@@ -334,6 +401,8 @@ internal sealed class PostGameOcrEngine
     /// <param name="variantCalls">变体 OCR 调用累计数。</param>
     /// <param name="visualMs">形态分析累计耗时（毫秒）。</param>
     /// <param name="visualSw">形态分析计时器。</param>
+    /// <param name="textCrop">已定位的文字裁剪区域；未提供时使用缺失格的粗裁剪。</param>
+    /// <param name="previousValue">已有数字值；更改此值时须获得多个变体支持。</param>
     /// <returns>接受的数字候选；未通过安全规则时返回 <see langword="null"/>。</returns>
     private GameDataCellOcrSelection? TryRecognizeSingleCellProgressive(
         Mat fullFrame,
@@ -341,9 +410,11 @@ internal sealed class PostGameOcrEngine
         CancellationToken cancellationToken,
         ref int variantCalls,
         ref long visualMs,
-        Stopwatch visualSw)
+        Stopwatch visualSw,
+        Rect? textCrop = null,
+        string? previousValue = null)
     {
-        var cropRect = CreateGameDataCellCrop(fullFrame, cell.ExpectedCenterX, cell.ExpectedCenterY, CellCropWidth, CellCropHeight);
+        var cropRect = textCrop ?? CreateGameDataCellCrop(fullFrame, cell.ExpectedCenterX, cell.ExpectedCenterY, CellCropWidth, CellCropHeight);
         using var cellMat = new Mat(fullFrame, cropRect);
         var candidates = new List<GameDataCellOcrCandidate>();
         var disposables = new List<Mat>();
@@ -359,7 +430,8 @@ internal sealed class PostGameOcrEngine
             if (c1 != null)
             {
                 candidates.Add(c1);
-                if (TryEarlyAcceptFirstVariant(c1, cell) is { } early)
+                if (TryEarlyAcceptFirstVariant(c1, cell) is { } early &&
+                    (string.IsNullOrEmpty(previousValue) || early.Value == previousValue))
                     return early;
             }
 
@@ -368,7 +440,8 @@ internal sealed class PostGameOcrEngine
             var c2 = RecognizeSingleCellVariant(mainVariants[1].Image, mainVariants[1].Name, cell);
             if (c2 != null)
                 candidates.Add(c2);
-            if (GameDataCellOcrCandidateSelector.Select(candidates) is { } sel2)
+            if (GameDataCellOcrCandidateSelector.Select(candidates) is { } sel2 &&
+                (string.IsNullOrEmpty(previousValue) || sel2.Value == previousValue || sel2.SupportCount >= 2))
                 return sel2;
 
             // 变体 3：Otsu。

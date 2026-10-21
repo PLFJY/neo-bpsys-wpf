@@ -150,7 +150,7 @@ public class CharacterSelector : Control
         DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSelectedItemChanged));
 
     /// <summary>
-    /// 当 <see cref="SelectedItem"/> 变化时，将 <see cref="Text"/> 同步为选中项的 Key（角色名）。
+    /// 当 <see cref="SelectedItem"/> 变为角色项时，将 <see cref="Text"/> 同步为选中项的 Key（角色名）。
     /// 这修复了 ComboBox 在 IsEditable 模式下通过 SelectedValue 间接设置 SelectedItem 时，
     /// TextBox 退化为显示 SelectedItem.ToString()（即 "[守墓人, neo_bpsys_wpf.Core.Models.Character]"）的问题。
     /// 使用 <see cref="Dispatcher.BeginInvoke"/> 延迟到 ComboBox 内部文本更新之后执行，
@@ -158,7 +158,7 @@ public class CharacterSelector : Control
     /// </summary>
     private static void OnSelectedItemChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not CharacterSelector selector) return;
+        if (d is not CharacterSelector selector || e.NewValue is not KeyValuePair<string, Character>) return;
         selector.ScheduleTextSync();
     }
 
@@ -259,17 +259,13 @@ public class CharacterSelector : Control
     /// <summary>
     /// 将 <see cref="Text"/> 同步为当前 <see cref="SelectedItem"/> 的 Key（角色名）。
     /// 与按空格搜索时手动设置 <c>Text = Key</c> 的既有逻辑保持一致。
+    /// 输入新搜索词也会使选中项变为 null，此时保留 ComboBox 的编辑文本，避免延迟同步吞掉输入。
     /// </summary>
     private void SyncTextFromSelectedItem()
     {
-        switch (SelectedItem)
+        if (SelectedItem is KeyValuePair<string, Character> kvp)
         {
-            case KeyValuePair<string, Character> kvp:
-                Text = kvp.Key;
-                break;
-            case null:
-                Text = string.Empty;
-                break;
+            Text = kvp.Key;
         }
     }
 
