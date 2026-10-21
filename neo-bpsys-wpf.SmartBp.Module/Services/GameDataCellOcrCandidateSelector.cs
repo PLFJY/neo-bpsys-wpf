@@ -60,7 +60,8 @@ internal static class GameDataCellOcrCandidateSelector
                 Value = group.Key,
                 SupportCount = group.Select(item => item.Candidate.Variant).Distinct(StringComparer.Ordinal).Count(),
                 BestExact = group
-                    .Where(item => item.IsExact)
+                    .Where(item => item.IsExact && item.Candidate.Provider != "OpenCV/shape" &&
+                        item.Candidate.Confidence >= PostGameOcrThresholds.SupportedVariantMinimumConfidence)
                     .OrderByDescending(item => item.Candidate.Confidence)
                     .Select(item => item.Candidate)
                     .FirstOrDefault()

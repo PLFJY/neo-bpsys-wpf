@@ -383,9 +383,11 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 
 ## 图像预处理
 
-赛后数据回填先对完整捕获帧执行一次可返回文本边界框的 OCR。解析器以 `玩家名（角色名）` 文本建立有效行，按 Y 坐标排序；再取角色文本右侧的数字/空值标记，按 X 坐标推断五个统计列、按最近 Y 坐标归属行。名称左侧的等级、天赋数字不会进入数据列，也不会参与玩家或角色解析。
+赛后数据回填先对内置表格 ROI 执行一次可返回文本边界框的 OCR；名称行不足时才完整扫描捕获帧。解析器以 `玩家名（角色名）` 文本建立有效行，按 Y 坐标排序；再取角色文本右侧、且位于玩家行纵向范围内的数字/空值标记，按 X 坐标建立五列初始分组，用各组实际中心的中位数修正非等宽列，并按行内文字中心的中位数定位数据行。纵向范围由首行名称上边界和末行名称下方的实际行距确定，范围外的标题、角标及底部按钮数字不参与列中心计算。名称左侧的等级、天赋数字不会进入数据列，也不会参与玩家或角色解析。
 
-只有整表解析确认缺失的数据格会进入局部识别。局部图像固定来自当前显式选择的 OCR Provider，不会静默切换引擎；Paddle 使用不经过检测器的单区域字符识别，其他 Provider 使用各自的单文本区域模式。每个变体的原始文本、规范化数字、置信度、投票数和最终接受/拒绝结果都会写入统一识别日志窗口。
+建立几何布局后，对每个数据格切片复核，包括已经识别出数字或横杠的格子。切片大小取自本帧列距、行距和数字字高；图像前景定位排除分隔线，保留完整笔画及字符模型所需的留白，避免固定像素裁剪截断数字。局部图像固定来自当前显式选择的 OCR Provider，不会静默切换引擎；Paddle 使用不经过检测器的单区域字符识别，其他 Provider 使用各自的单文本区域模式。只有达到接受条件的数字才替换同格旧证据，改判已有数字还须至少两个变体支持；多变体投票也要求至少一份干净数字达到最低置信度。居中的短横杠只确认空值，不能独立推翻已有数字，也不会转换为零。
+
+复核后仍缺失的数据格才进入数字网格二次 OCR 和渐进式单格补识别。每个变体的原始文本、规范化数字、置信度、投票数、切片范围及最终接受/拒绝结果都会写入统一识别日志窗口；性能汇总分别记录切片复核、网格扫描和单格补识别的耗时及调用数。
 
 ## 调试点
 
@@ -393,7 +395,7 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 
 1. OCR 不工作先看是否已下载并切换模型。
 2. 捕获不到数据先看窗口捕获服务是否处于 capturing。
-3. 查看全流程 BP 调试选项中的赛后调试表格和统一识别日志窗口：其中列出 OCR 原始文本、边界框、行聚类、列归属、被排除的名称列文本，以及 `numeric fallback candidate/accepted/rejected` 局部识别结果。
+3. 查看全流程 BP 调试选项中的赛后调试表格和统一识别日志窗口：其中列出 OCR 原始文本、边界框、行聚类、列归属、被排除的名称列文本，以及 `cell verification accepted/rejected` 切片复核和 `numeric fallback candidate/accepted/rejected` 补识别结果。
 4. 角色匹配失败时看日志中的 `SmartBp Match failed` 和 OCR 原始名称。
 
 ### BP 状态识别
@@ -418,8 +420,8 @@ SmartBP 自动识别曾提供 Pure AI、AI+OCR、AI+AI OCR、业务 AI 融合和
 | `SmartBp AutoFill skipped: OCR model is not ready.` | 未选择或未安装 OCR 模型 |
 | `SmartBp AutoFill skipped: capture is not running.` | 窗口捕获未启动 |
 | `SmartBp OCR Survivor` / `SmartBp OCR Hunter` | 行识别结果和原始 OCR 文本 |
-| `SmartBp OCR RowData batch` | 整行数字条带一次 OCR 的结果 |
-| `SmartBp OCR RowData fallback` | 批量识别失败后的逐列 OCR 回退结果 |
+| `cell verification accepted/rejected` | 数据格切片复核的旧值、候选、裁剪范围和投票结果 |
+| `post-game OCR summary` | 赛后 OCR 各阶段耗时、调用数和缺失格数 |
 | `SmartBp Match success` | 求生者角色匹配成功，含 exact/fuzzy 模式 |
 | `SmartBp Match failed` | 识别角色无法映射到当前对局求生者 |
 | `OCR run failed, trying to rebuild OCR predictor and retry once.` | PaddleOCR 推理失败，正在重建后重试 |

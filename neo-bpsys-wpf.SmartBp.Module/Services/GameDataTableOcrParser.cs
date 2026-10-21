@@ -24,6 +24,8 @@ internal static partial class GameDataTableOcrParser
             .Select(item => new NameCandidate(
                 item.Line.CenterY,
                 item.Line.BoundingBox.Right,
+                item.Line.BoundingBox.Top,
+                item.Line.BoundingBox.Height,
                 item.Match.Groups[1].Value.Trim(),
                 item.Match.Groups[2].Value.Trim(),
                 item.Line.Text))
@@ -47,8 +49,17 @@ internal static partial class GameDataTableOcrParser
             diagnostics.Add($"ignored name-column text raw=[{line.Text}] x={line.CenterX:0.#} y={line.CenterY:0.#}");
         }
 
+        // 只有玩家行范围内的文字才能参与统计列推断；页面标题、角标和底部按钮的数字不是数据格。
+        var dataTopY = names[0].TopY;
+        var dataBottomY = names[^1].CenterY + (names.Length > 1
+            ? Median(names.Zip(names.Skip(1), (previous, current) => current.CenterY - previous.CenterY).ToArray()) * .75
+            : names[0].Height * 3);
+        foreach (var line in lines.Where(line => line.CenterX > dataStartX &&
+                     (line.CenterY < dataTopY || line.CenterY > dataBottomY) && DigitsRegex().IsMatch(line.Text)))
+            diagnostics.Add($"ignored outside-row text raw=[{line.Text}] x={line.CenterX:0.#} y={line.CenterY:0.#}; row_bounds={dataTopY:0.#}..{dataBottomY:0.#}");
+
         var numeric = lines
-            .Where(line => line.CenterX > dataStartX)
+            .Where(line => line.CenterX > dataStartX && line.CenterY >= dataTopY && line.CenterY <= dataBottomY)
             .Select(line => new NumericCandidate(line, DigitsRegex().Match(line.Text).Value))
             .Where(item => !string.IsNullOrEmpty(item.Digits) || IsEmptyCellMarker(item.Line.Text))
             .ToArray();
@@ -64,19 +75,29 @@ internal static partial class GameDataTableOcrParser
         var expectedCenters = Enumerable.Range(0, 5)
             .Select(column => left + step * column)
             .ToArray();
+        // 等间距只用于建立初始分组；游戏各统计列并非严格等宽，切片必须使用实际文字的中心。
+        for (var column = 0; column < expectedCenters.Length; column++)
+        {
+            var members = numeric.Where(item => step > 1 &&
+                Math.Clamp((int)Math.Round((item.Line.CenterX - left) / step), 0, 4) == column)
+                .Select(item => item.Line.CenterX).ToArray();
+            if (members.Length > 0)
+                expectedCenters[column] = Median(members);
+        }
         var expectedRowCenters = names
-            .Select((name, rowIndex) => numeric
+            .Select((name, rowIndex) => Median(numeric
                 .Where(item => FindNearestRow(names, item.Line.CenterY) == rowIndex)
                 .Select(item => item.Line.CenterY)
                 .DefaultIfEmpty(name.CenterY + 24)
-                .Average())
+                .ToArray()))
             .ToArray();
         diagnostics.Add($"data grid inferred left={left:0.#}; right={right:0.#}; step={step:0.#}; expected_centers=[{string.Join(",", expectedCenters.Select(value => value.ToString("0.#")))}]");
 
         foreach (var item in numeric)
         {
             var rowIndex = FindNearestRow(names, item.Line.CenterY);
-            var columnIndex = step <= 1 ? 0 : Math.Clamp((int)Math.Round((item.Line.CenterX - left) / step), 0, 4);
+            var columnIndex = Enumerable.Range(0, expectedCenters.Length)
+                .MinBy(column => Math.Abs(item.Line.CenterX - expectedCenters[column]));
             if (rowIndex < 0)
                 continue;
 
@@ -142,7 +163,7 @@ internal static partial class GameDataTableOcrParser
 
         var columnWidth = step > 1 ? step : 1d;
         var rowHeight = rowCenters.Length >= 2
-            ? rowCenters.Zip(rowCenters.Skip(1), (previous, current) => current - previous).Average()
+            ? Median(rowCenters.Zip(rowCenters.Skip(1), (previous, current) => current - previous).ToArray())
             : 30d;
         if (rowHeight <= 0)
             rowHeight = 30d;
@@ -198,6 +219,13 @@ internal static partial class GameDataTableOcrParser
 
     private static string NormalizeParentheses(string text) => text.Replace('（', '(').Replace('）', ')').Trim();
 
+    private static double Median(double[] values)
+    {
+        Array.Sort(values);
+        var middle = values.Length / 2;
+        return values.Length % 2 == 0 ? (values[middle - 1] + values[middle]) / 2 : values[middle];
+    }
+
     [GeneratedRegex(@"^([^()]+?)\(([^()]+)\)$")]
     private static partial Regex PlayerAndCharacterRegex();
 
@@ -206,7 +234,7 @@ internal static partial class GameDataTableOcrParser
 
     private static bool IsEmptyCellMarker(string text) => text.Trim() is "-" or "—" or "–";
 
-    private sealed record NameCandidate(double CenterY, double RightX, string PlayerName, string CharacterName, string RawText);
+    private sealed record NameCandidate(double CenterY, double RightX, int TopY, int Height, string PlayerName, string CharacterName, string RawText);
     private sealed record NumericCandidate(OcrTextLine Line, string Digits);
 }
 
