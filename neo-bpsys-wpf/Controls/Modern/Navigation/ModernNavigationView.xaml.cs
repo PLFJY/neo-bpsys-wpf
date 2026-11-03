@@ -207,6 +207,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
     private readonly ObservableCollection<object> _menuItems = [];
     private readonly ObservableCollection<object> _footerMenuItems = [];
     private readonly Stack<ModernNavigationEntry?> _selectedEntryBackStack = new();
+    private readonly HashSet<Type> _visitedPageTypes = [];
     private INavigationViewPageProvider? _pageProvider;
     private IServiceProvider? _serviceProvider;
     private INotifyCollectionChanged? _menuItemsSourceCollection;
@@ -1022,8 +1023,20 @@ public partial class ModernNavigationView : UserControl, INavigationView
         }
 
         var transitionInfo = GetNavigationTransitionInfo(entry);
+        // 页面实例由 DI 缓存；再次进入已加载页面时跳过入场动画，避免为轻量切换重复渲染旧页面快照。
+        var isFirstVisit = _visitedPageTypes.Add(pageType);
+        if (transitionInfo is null && !isFirstVisit)
+        {
+            transitionInfo = new SuppressNavigationTransitionInfo();
+        }
+
         if (!PART_Frame.Navigate(page, transitionInfo))
         {
+            if (isFirstVisit)
+            {
+                _visitedPageTypes.Remove(pageType);
+            }
+
             return false;
         }
 

@@ -61,6 +61,8 @@ public partial class MainWindowViewModel :
     private readonly ILogger<MainWindowViewModel> _logger;
     private readonly ISmartBpAutoRecognitionGlobalControl _smartBpAutoRecognitionGlobalControl;
     private readonly IGlobalRestartService _globalRestartService;
+    private bool _isThemeApplying;
+    private bool _themeChangePending;
 
     /// <summary>主窗口公告中心。</summary>
     public AnnouncementCenterViewModel AnnouncementCenter { get; }
@@ -226,8 +228,28 @@ public partial class MainWindowViewModel :
     [RelayCommand]
     private async Task ThemeSwitchAsync()
     {
-        await Task.Delay(60);
-        ApplicationThemeManager.Apply(ApplicationTheme);
+        // 主题资源字典切换是同步重活；快速连点只保留最近一次待处理切换，避免排队多次字典替换。
+        if (_isThemeApplying)
+        {
+            _themeChangePending = true;
+            return;
+        }
+
+        _isThemeApplying = true;
+        try
+        {
+            do
+            {
+                _themeChangePending = false;
+                await Task.Delay(60);
+                ApplicationThemeManager.Apply(ApplicationTheme);
+            }
+            while (_themeChangePending);
+        }
+        finally
+        {
+            _isThemeApplying = false;
+        }
     }
 
     [RelayCommand]

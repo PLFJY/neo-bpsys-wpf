@@ -393,9 +393,22 @@ public partial class Team : ObservableObjectBase
 
     private static void ReplaceCollection<T>(ObservableCollection<T> target, IEnumerable<T> source)
     {
-        target.Clear();
-        foreach (var item in source)
-            target.Add(item);
+        var items = source as IReadOnlyList<T> ?? source.ToList();
+        var sharedCount = Math.Min(target.Count, items.Count);
+        for (var i = 0; i < sharedCount; i++)
+        {
+            target[i] = items[i];
+        }
+
+        for (var i = sharedCount; i < items.Count; i++)
+        {
+            target.Add(items[i]);
+        }
+
+        while (target.Count > items.Count)
+        {
+            target.RemoveAt(target.Count - 1);
+        }
     }
 
     private static string GetDefaultColorHex(TeamType teamType) =>
@@ -483,4 +496,35 @@ public partial class Team : ObservableObjectBase
     /// 重置比分
     /// </summary>
     public void ResetScore() => Score.Reset();
+
+    partial void OnGlobalBannedSurListChanged(ObservableCollection<Character?> value)
+    {
+        EnsureFixedBanList(value, AppConstants.GlobalBanSurCount, Enums.Camp.Sur);
+    }
+
+    partial void OnGlobalBannedHunListChanged(ObservableCollection<Character?> value)
+    {
+        EnsureFixedBanList(value, AppConstants.GlobalBanHunCount, Enums.Camp.Hun);
+    }
+
+    private static void EnsureFixedBanList(
+        ObservableCollection<Character?>? collection,
+        int expectedCount,
+        Enums.Camp camp)
+    {
+        if (collection is null)
+        {
+            return;
+        }
+
+        while (collection.Count < expectedCount)
+        {
+            collection.Add(new Character(camp));
+        }
+
+        while (collection.Count > expectedCount)
+        {
+            collection.RemoveAt(collection.Count - 1);
+        }
+    }
 }

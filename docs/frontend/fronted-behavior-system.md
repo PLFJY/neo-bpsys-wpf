@@ -74,6 +74,8 @@ HostManager 只允许同一窗口最新 Attach 请求注册；Detach/Dispose 使
 
 Transition 的顺序固定为 `ExitGraph -> commit -> EnterGraph`。其中 `commit` 是实际比赛状态变更点，必须在 WPF UI Dispatcher 上执行；SmartBP 等后台识别线程只能通过 `ICharacterSelectionService` / `IFrontedTransitionOrchestrator` 调用服务层，由服务层负责切回 UI 线程，不能直接修改 `CurrentGame`。
 
+转场编排按到达顺序串行执行：快速连续的角色分配/交换等业务操作不会并发运行多组 `ExitGraph/EnterGraph`，避免不同转场互相取消后把控件留在中间透明度或可见性状态。业务层仍可通过命令的并发限制对重复点击做第一层防抖，框架串行化是最后保证。
+
 ## Behavior package files
 
 ```text

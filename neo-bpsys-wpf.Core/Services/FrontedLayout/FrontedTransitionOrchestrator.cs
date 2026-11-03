@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -14,6 +15,7 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
     private readonly FrontedBehaviorRuntimeHostManager _hostManager;
     private readonly ILogger<FrontedTransitionOrchestrator> _logger;
     private readonly Dispatcher _uiDispatcher;
+    private readonly SemaphoreSlim _transitionGate = new(1, 1);
 
     /// <summary>
     /// 初始化 <see cref="FrontedTransitionOrchestrator"/> 的新实例。
@@ -50,6 +52,24 @@ public sealed class FrontedTransitionOrchestrator : IFrontedTransitionOrchestrat
         ArgumentNullException.ThrowIfNull(requests);
         ArgumentNullException.ThrowIfNull(commitAsync);
 
+        // 转场共享同一组行为宿主和动画会话。快速连续操作若并发执行，会互相取消 Exit/Enter 图，
+        // 使部分控件停留在中间透明度/可见性状态；这里按到达顺序串行化整段转场。
+        await _transitionGate.WaitAsync(cancellationToken);
+        try
+        {
+            await RunTransitionSerializedAsync(requests, commitAsync, cancellationToken);
+        }
+        finally
+        {
+            _transitionGate.Release();
+        }
+    }
+
+    private async Task RunTransitionSerializedAsync(
+        IReadOnlyList<FrontedTransitionRequest> requests,
+        Func<Task> commitAsync,
+        CancellationToken cancellationToken)
+    {
         var executions = requests
             .SelectMany(request => _hostManager.CreateTransitionExecutions(request, cancellationToken))
             .ToArray();
