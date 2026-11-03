@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+# 需要向 dev 分支推送 rebase 结果，显式声明最小写权限。
+permissions:
+  contents: write
+
 jobs:
   sync-dev-branch:
     runs-on: windows-latest

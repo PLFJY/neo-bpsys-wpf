@@ -30,8 +30,10 @@ public sealed partial class FocusKeeperPageViewModel : ViewModelBase
 
     /// <summary>初始化视图模型。</summary>
     /// <param name="service">焦点保持服务。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> 为 <see langword="null"/>。</exception>
     public FocusKeeperPageViewModel(IFocusKeeperService service)
     {
+        ArgumentNullException.ThrowIfNull(service);
         _service = service;
         _service.PropertyChanged += OnServicePropertyChanged;
         SyncFromService();

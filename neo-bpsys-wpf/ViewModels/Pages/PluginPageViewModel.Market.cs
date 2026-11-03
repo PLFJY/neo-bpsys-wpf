@@ -760,7 +760,7 @@ public partial class PluginPageViewModel
                 Manifest = manifest,
                 IsLocal = true,
                 PluginFolderPath = pluginFolderPath,
-                RealIconPath = Path.Combine(Path.GetFullPath(pluginFolderPath), manifest.Icon),
+                RealIconPath = PluginIconPathResolver.Resolve(pluginFolderPath, manifest.Icon),
                 IsRestartRequired = true
             });
         }

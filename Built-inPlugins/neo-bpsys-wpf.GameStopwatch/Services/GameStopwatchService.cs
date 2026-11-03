@@ -104,8 +104,9 @@ public sealed class GameStopwatchService : IGameStopwatchService
             if (!File.Exists(_settingsPath)) return;
             var settings = JsonSerializer.Deserialize<StopwatchSettings>(File.ReadAllText(_settingsPath));
             if (settings is null) return;
-            _textColor = settings.TextColor;
-            _fontFamilyName = settings.FontFamilyName;
+            // 手工编辑的 Settings.json 可能把文本字段写成 null；回退默认值，避免颜色/字体解析在绑定 getter 中抛异常。
+            _textColor = string.IsNullOrWhiteSpace(settings.TextColor) ? _textColor : settings.TextColor;
+            _fontFamilyName = string.IsNullOrWhiteSpace(settings.FontFamilyName) ? _fontFamilyName : settings.FontFamilyName;
             _fontSize = Math.Clamp(settings.FontSize, 12, 300);
             _windowSize = settings.WindowSize is null ? 320 : Math.Clamp(settings.WindowSize.Value, 80, 4096);
         }

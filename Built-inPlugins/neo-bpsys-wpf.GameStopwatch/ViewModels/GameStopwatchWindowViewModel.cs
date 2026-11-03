@@ -7,12 +7,14 @@ namespace neo_bpsys_wpf.GameStopwatch.ViewModels;
 public sealed class GameStopwatchWindowViewModel : ViewModelBase
 {
     private readonly IGameStopwatchService _service;
+    private Brush _textBrush;
 
     /// <summary>初始化窗口视图模型。</summary>
     /// <param name="service">秒表服务。</param>
     public GameStopwatchWindowViewModel(IGameStopwatchService service)
     {
         _service = service;
+        _textBrush = CreateBrush(_service.TextColor);
         _service.PropertyChanged += ServicePropertyChanged;
     }
 
@@ -29,10 +31,15 @@ public sealed class GameStopwatchWindowViewModel : ViewModelBase
     public double WindowSize => _service.WindowSize;
 
     /// <summary>获取当前文字画刷。</summary>
-    public Brush TextBrush => CreateBrush(_service.TextColor);
+    public Brush TextBrush => _textBrush;
 
     private void ServicePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(IGameStopwatchService.TextColor))
+        {
+            _textBrush = CreateBrush(_service.TextColor);
+        }
+
         OnPropertyChanged(e.PropertyName switch
         {
             nameof(IGameStopwatchService.TextColor) => nameof(TextBrush),
@@ -43,16 +50,27 @@ public sealed class GameStopwatchWindowViewModel : ViewModelBase
         });
     }
 
-    private static Brush CreateBrush(string value)
+    private static Brush CreateBrush(string? value)
     {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Brushes.White;
+        }
+
         try
         {
-            var brush = (SolidColorBrush)new BrushConverter().ConvertFromString(value)!;
+            if (ColorConverter.ConvertFromString(value) is not Color color)
+            {
+                return Brushes.White;
+            }
+
+            var brush = new SolidColorBrush(color);
             brush.Freeze();
             return brush;
         }
-        catch (FormatException)
+        catch (Exception)
         {
+            // 配置中的颜色可能来自旧版本或被手工修改；解析失败时回退到白色而不是中断渲染。
             return Brushes.White;
         }
     }

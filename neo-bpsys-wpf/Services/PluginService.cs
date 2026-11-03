@@ -108,7 +108,7 @@ public class PluginService : IPluginService
                 Manifest = manifest,
                 IsLocal = true,
                 PluginFolderPath = Path.GetFullPath(pluginDir),
-                RealIconPath = Path.Combine(Path.GetFullPath(pluginDir), manifest.Icon),
+                RealIconPath = PluginIconPathResolver.Resolve(pluginDir, manifest.Icon),
                 IsBuiltIn = Path.GetFullPath(pluginDir).Contains(AppConstants.BuiltInPluginPath)
             };
             if (info.IsUninstalling)

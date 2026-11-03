@@ -80,6 +80,19 @@ public sealed class WebRendererInfrastructureTest
         Assert.Null(options.ValidationError);
     }
 
+    /// <summary>持久化设置中的非法端口应回退默认端口并给出校验错误，避免 sidecar 绑定随机端口。</summary>
+    [Fact]
+    public void LaunchOptionsRejectInvalidPersistedPort()
+    {
+        var options = WebRendererLaunchOptions.FromConfiguration(
+            new ConfigurationBuilder().Build(),
+            new WebRendererPluginSettings { Port = 0 });
+
+        Assert.Equal("127.0.0.1", options.Address);
+        Assert.Equal(19527, options.Port);
+        Assert.NotNull(options.ValidationError);
+    }
+
     /// <summary>
     /// 显式 LAN 模式接受全网卡监听地址，且命令行禁用启动仍有效。
     /// </summary>

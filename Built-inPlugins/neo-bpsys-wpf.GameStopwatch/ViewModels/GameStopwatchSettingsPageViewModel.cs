@@ -14,6 +14,8 @@ public sealed partial class GameStopwatchSettingsPageViewModel : ViewModelBase
 
     private readonly IGameStopwatchService _service;
     private readonly IFrontedWindowService _frontedWindowService;
+    private Color _textColor;
+    private FontFamily? _selectedFontFamily;
 
     /// <summary>初始化设置页视图模型。</summary>
     /// <param name="service">秒表服务。</param>
@@ -25,11 +27,21 @@ public sealed partial class GameStopwatchSettingsPageViewModel : ViewModelBase
         _service = service;
         _frontedWindowService = frontedWindowService;
         FontFamilies = new ObservableCollection<FontFamily>(Fonts.SystemFontFamilies.OrderBy(x => x.Source, StringComparer.CurrentCultureIgnoreCase));
-        SelectedFontFamily = FontFamilies.FirstOrDefault(x => string.Equals(x.Source, _service.FontFamilyName, StringComparison.OrdinalIgnoreCase))
-            ?? FontFamilies.FirstOrDefault();
+        _textColor = ParseColor(_service.TextColor);
+        SelectedFontFamily = FindFontFamily(_service.FontFamilyName) ?? FontFamilies.FirstOrDefault();
         _service.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(IGameStopwatchService.TextColor)) OnPropertyChanged(nameof(TextColor));
+            if (e.PropertyName == nameof(IGameStopwatchService.TextColor))
+            {
+                _textColor = ParseColor(_service.TextColor);
+                OnPropertyChanged(nameof(TextColor));
+            }
+
+            if (e.PropertyName == nameof(IGameStopwatchService.FontFamilyName))
+            {
+                SyncSelectedFontFamily();
+            }
+
             if (e.PropertyName == nameof(IGameStopwatchService.FontSize)) OnPropertyChanged(nameof(FontSize));
             if (e.PropertyName == nameof(IGameStopwatchService.WindowSize)) OnPropertyChanged(nameof(WindowSize));
         };
@@ -41,11 +53,12 @@ public sealed partial class GameStopwatchSettingsPageViewModel : ViewModelBase
     /// <summary>获取或设置文字颜色。</summary>
     public Color TextColor
     {
-        get => ParseColor(_service.TextColor);
+        get => _textColor;
         set => _service.TextColor = value.ToString();
     }
 
     /// <summary>获取或设置字号。</summary>
+    /// <remarks>非法范围由 <see cref="IGameStopwatchService"/> 统一钳制。</remarks>
     public double FontSize
     {
         get => _service.FontSize;
@@ -59,13 +72,19 @@ public sealed partial class GameStopwatchSettingsPageViewModel : ViewModelBase
         set => _service.WindowSize = value;
     }
 
-    /// <summary>获取或设置字体。</summary>
+    /// <summary>获取或设置字体。设置为 <see langword="null"/> 时保持当前字体不变。</summary>
     public FontFamily? SelectedFontFamily
     {
-        get => field;
+        get => _selectedFontFamily;
         set
         {
-            if (SetProperty(ref field, value) && value is not null) _service.FontFamilyName = value.Source;
+            // 下拉框清空选择时不应把服务置为无效状态；保持当前字体并忽略 null。
+            if (value is null)
+            {
+                return;
+            }
+
+            if (SetProperty(ref _selectedFontFamily, value)) _service.FontFamilyName = value.Source;
         }
     }
 
@@ -95,9 +114,43 @@ public sealed partial class GameStopwatchSettingsPageViewModel : ViewModelBase
         window.Activate();
     }
 
-    private static Color ParseColor(string value)
+    private void SyncSelectedFontFamily()
     {
-        try { return (Color)ColorConverter.ConvertFromString(value)!; }
-        catch (FormatException) { return Colors.White; }
+        var match = FindFontFamily(_service.FontFamilyName);
+        if (match is null || string.Equals(match.Source, SelectedFontFamily?.Source, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        SetProperty(ref _selectedFontFamily, match, nameof(SelectedFontFamily));
+    }
+
+    private FontFamily? FindFontFamily(string? familyName)
+    {
+        if (string.IsNullOrWhiteSpace(familyName))
+        {
+            return null;
+        }
+
+        return FontFamilies.FirstOrDefault(
+            x => string.Equals(x.Source, familyName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static Color ParseColor(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return Colors.White;
+        }
+
+        try
+        {
+            return ColorConverter.ConvertFromString(value) is Color color ? color : Colors.White;
+        }
+        catch (Exception)
+        {
+            // 颜色配置可能来自旧版本或被手工修改；解析失败时回退到白色。
+            return Colors.White;
+        }
     }
 }
