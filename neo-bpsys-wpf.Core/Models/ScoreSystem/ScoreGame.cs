@@ -28,6 +28,8 @@ public partial class ScoreGame : ObservableObjectBase
     [JsonConstructor]
     public ScoreGame(ScoreGameKey key, ScoreHalf firstHalf, ScoreHalf secondHalf)
     {
+        ArgumentNullException.ThrowIfNull(firstHalf);
+        ArgumentNullException.ThrowIfNull(secondHalf);
         _key = key;
         _firstHalf = firstHalf;
         _secondHalf = secondHalf;
@@ -53,6 +55,7 @@ public partial class ScoreGame : ObservableObjectBase
         get => _firstHalf;
         set
         {
+            ArgumentNullException.ThrowIfNull(value);
             if (_firstHalf == value)
                 return;
 
@@ -71,6 +74,7 @@ public partial class ScoreGame : ObservableObjectBase
         get => _secondHalf;
         set
         {
+            ArgumentNullException.ThrowIfNull(value);
             if (_secondHalf == value)
                 return;
 

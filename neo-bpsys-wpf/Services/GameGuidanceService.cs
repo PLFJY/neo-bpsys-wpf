@@ -134,7 +134,7 @@ public class GameGuidanceService(
     /// <returns></returns>
     /// <exception cref="FileNotFoundException"></exception>
     /// <exception cref="GuidanceNotSupportedException"></exception>
-    private GameProperty? ReadGamePropertyFromFileAsync(GameProgress gameProgress)
+    private GameProperty? ReadGamePropertyFromFile(GameProgress gameProgress)
     {
         if (!File.Exists(_guidanceFilePath))
         {
@@ -167,11 +167,12 @@ public class GameGuidanceService(
         if (IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString(AppI18nDictionaries.Game, "GameAlreadyStarted"));
+            return null;
         }
 
         try
         {
-            _currentGameProperty = ReadGamePropertyFromFileAsync(_sharedDataService.CurrentGame.GameProgress);
+            _currentGameProperty = ReadGamePropertyFromFile(_sharedDataService.CurrentGame.GameProgress);
         }
         catch (GuidanceNotSupportedException)
         {

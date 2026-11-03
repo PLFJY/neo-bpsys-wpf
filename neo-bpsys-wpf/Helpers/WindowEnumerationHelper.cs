@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 namespace neo_bpsys_wpf.Helpers;
 
@@ -108,11 +108,11 @@ static class WindowEnumerationHelper
     }
 
     [DllImport("dwmapi.dll")]
-    static extern int DwmGetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE dwAttribute, out bool pvAttribute, int cbAttribute);
+    static extern int DwmGetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE dwAttribute, out int pvAttribute, int cbAttribute);
 
     public static bool IsWindowValidForCapture(IntPtr hwnd)
     {
-        if (hwnd.ToInt32() == 0)
+        if (hwnd == IntPtr.Zero)
         {
             return false;
         }
@@ -144,9 +144,9 @@ static class WindowEnumerationHelper
             return false;
         }
 
-        var cloaked = false;
-        var hrTemp = DwmGetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.Cloaked, out cloaked, Marshal.SizeOf<bool>());
-        if (hrTemp == 0 && cloaked)
+        var cloaked = 0;
+        var hrTemp = DwmGetWindowAttribute(hwnd, DWMWINDOWATTRIBUTE.Cloaked, out cloaked, Marshal.SizeOf<int>());
+        if (hrTemp == 0 && cloaked != 0)
         {
             return false;
         }

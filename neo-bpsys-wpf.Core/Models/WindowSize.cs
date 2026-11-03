@@ -58,9 +58,8 @@ public partial class WindowSize: ObservableObjectBase
     /// <inheritdoc />
     public override int GetHashCode()
     {
-        return HashCode.Combine(
-            (int)(Width * 100), 
-            (int)(Height * 100)
-        );
+        // Equals 使用 0.01 容差且不满足传递性，无法构造与之完全一致的细粒度哈希；
+        // 返回常量哈希保证“相等对象哈希必相等”的契约，排序/比较优先使用 Equals。
+        return 0;
     }
 }

@@ -317,6 +317,9 @@ public partial class TeamInfoPageViewModel
         [RelayCommand]
         private void SwitchMemberState(Member member)
         {
+            // ToggleButton.IsChecked 使用 TwoWay 绑定到 IsOnField：点击时 ToggleButton 会先切换
+            // IsChecked（同步写回 IsOnField），再执行本命令。因此这里必须按“切换后的目标状态”
+            // 同步队伍集合，不能再用当前值反向判断，否则选手永远无法上场。
             if (member.IsOnField)
             {
                 member.IsOnField = CurrentTeam.MemberOnField(member);
@@ -324,7 +327,9 @@ public partial class TeamInfoPageViewModel
             else
             {
                 CurrentTeam.MemberOffField(member);
+                member.IsOnField = false;
             }
+
             RefreshCanMemberOnFieldState(member.Camp);
             _tutorialSignalService.Publish(
                 TutorialSignalIds.MemberStateChanged,

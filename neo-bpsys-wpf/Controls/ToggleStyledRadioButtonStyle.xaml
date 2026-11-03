@@ -34,7 +34,13 @@
                                             <Condition Property="IsChecked" Value="True" />
                                             <Condition Property="IsEnabled" Value="True" />
                                         </MultiTrigger.Conditions>
-                                        <Setter Property="Background" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                        <!--
+                                            必须使用主题的“选中背景”画刷：Wpf.Ui 的 Accent 管理器只更新
+                                            SystemAccentColorPrimary 颜色与 ToggleButtonBackgroundChecked 等画刷，
+                                            SystemAccentColorPrimaryBrush 是加载时固化的旧画刷（默认蓝色），
+                                            直接引用会导致选中态与主题强调色/其他 ToggleButton 不一致。
+                                        -->
+                                        <Setter Property="Background" Value="{DynamicResource ToggleButtonBackgroundChecked}" />
                                     </MultiTrigger>
                                 </Style.Triggers>
                             </Style>

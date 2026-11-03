@@ -51,7 +51,12 @@ public sealed class EntranceNavigationTransitionInfo : ModernNavigationTransitio
 
     private static void EnsureTranslateTransform(FrameworkElement element)
     {
-        element.RenderTransform = new TranslateTransform();
+        // 复用已有 TranslateTransform，避免每次导航重置后续动画状态。
+        // 其他类型的 Transform 不在本方法处理，必须保持原有行为以免破坏既有 Transform 动画路径。
+        if (element.RenderTransform is not TranslateTransform)
+        {
+            element.RenderTransform = new TranslateTransform();
+        }
     }
 
     private static DoubleAnimationUsingKeyFrames CreateTranslateAnimation(PropertyPath path, double from, double to, TimeSpan duration, KeySpline keySpline)

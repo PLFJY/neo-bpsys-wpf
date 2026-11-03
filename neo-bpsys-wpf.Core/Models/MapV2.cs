@@ -142,7 +142,13 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     {
         get
         {
-            _imageSourceNormal ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, MapName.ToString());
+            var mapName = MapName?.ToString();
+            if (string.IsNullOrWhiteSpace(mapName))
+            {
+                return null;
+            }
+
+            _imageSourceNormal ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, mapName);
             if(_imageSourceBanned == null)
             {
                 _imageSourceBanned ??= _imageSourceNormal?.ToGrayKeepAlpha();

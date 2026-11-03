@@ -49,6 +49,8 @@ public partial class FrontedDesignerWindow
         window.Closed -= ValidationDetailsWindow_OnClosed;
         if (!window.IsVisible)
         {
+            // 窗口不可见时也必须释放引用，否则窗口对象会一直被字段持有。
+            _validationDetailsWindow = null;
             return;
         }
 

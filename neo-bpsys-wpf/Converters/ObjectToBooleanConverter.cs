@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Converters;
@@ -18,7 +18,8 @@ public class ObjectToBooleanConverter : IValueConverter
     /// <returns>value 与 parameter 相等时返回 true，否则返回 false</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value.Equals(parameter); // 利用模型重写的 Equals 方法
+        // 绑定源可能为 null；使用静态 Equals 避免空引用，同时保留模型重写的 Equals 语义。
+        return object.Equals(value, parameter);
     }
 
     /// <summary>

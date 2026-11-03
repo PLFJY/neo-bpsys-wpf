@@ -89,9 +89,10 @@ public partial class FrontedDesignerWindow
 
         HideLayerInsertionPreview();
         _layerDropTarget = target;
+        var controls = _viewModel?.CurrentDocument?.Controls;
         var zIndex = target.ZIndex ?? (target.NewTop
-            ? (_viewModel?.CurrentDocument?.Controls.Max(item => item.Config.ZIndex) ?? 0) + 1
-            : (_viewModel?.CurrentDocument?.Controls.Min(item => item.Config.ZIndex) ?? 0) - 1);
+            ? (controls is { Count: > 0 } ? controls.Max(item => item.Config.ZIndex) : 0) + 1
+            : (controls is { Count: > 0 } ? controls.Min(item => item.Config.ZIndex) : 0) - 1);
         var label = new TextBlock { Text = source.DisplayName, FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
         var metadata = new TextBlock
         {

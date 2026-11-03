@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Converters;
@@ -27,7 +27,11 @@ public class IndexToButtonContentConverter : IValueConverter
     /// <returns>按钮应显示的序号，无法确定时返回 DoNothing</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var controlIndex = (int)value;
+        if (value is not int controlIndex)
+        {
+            return Binding.DoNothing;
+        }
+
         var buttonContent = GetButtonContent(controlIndex);
         return buttonContent ?? Binding.DoNothing;
     }

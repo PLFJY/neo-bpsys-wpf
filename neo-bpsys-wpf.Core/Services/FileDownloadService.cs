@@ -205,10 +205,12 @@ public sealed class FileDownloadService : IFileDownloadService
             {
                 if (_state is FileDownloadState.Completed or FileDownloadState.Canceled or FileDownloadState.Failed)
                     return;
+                _state = FileDownloadState.Canceled;
                 _lifetimeCancellation.Cancel();
                 downloader = _downloader;
             }
 
+            RaiseStateChanged();
             downloader?.CancelAsync();
         }
 

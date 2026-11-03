@@ -20,6 +20,11 @@ public class GameProgressToStringConverter : IMultiValueConverter
     /// <returns>格式化后的对局进度文本，输入无效时返回 DoNothing</returns>
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (values is not { Length: >= 2 })
+        {
+            return Binding.DoNothing;
+        }
+
         if (values[0] is not GameProgress gameProgress || values[1] is not bool isBo3Mode)
         {
             return Binding.DoNothing;

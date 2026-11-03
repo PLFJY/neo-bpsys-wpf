@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Converters;
@@ -18,7 +18,7 @@ public class StringToDoubleConverter : IValueConverter
     /// <returns>值的字符串表示</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value.ToString() ?? string.Empty;
+        return value?.ToString() ?? string.Empty;
     }
 
     /// <summary>

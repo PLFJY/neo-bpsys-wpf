@@ -75,7 +75,8 @@ public class PluginService : IPluginService
         // 预处理插件信息
         foreach (var pluginDir in pluginDirs)
         {
-            if (string.IsNullOrWhiteSpace(pluginDir) || pluginDir == ".new")
+            if (string.IsNullOrWhiteSpace(pluginDir)
+                || string.Equals(Path.GetFileName(pluginDir), ".new", StringComparison.OrdinalIgnoreCase))
                 continue;
             var manifestPath = Path.Combine(pluginDir, PluginManifestFileName);
             if (!File.Exists(manifestPath))
@@ -182,13 +183,12 @@ public class PluginService : IPluginService
                     continue;
                 }
 
-                entranceObj.PluginConfigFolder = pluginDir;
+                entranceObj.Info = info;
+                // 插件的可写配置目录固定位于 AppData\PluginConfigs 下；不能先在安装目录创建再覆盖，
+                // 否则会在插件安装目录留下一个无效目录，且真正的配置目录可能不存在。
+                entranceObj.PluginConfigFolder = Path.Combine(AppConstants.PluginConfigsPath, info.Manifest.Id);
                 if (!Directory.Exists(entranceObj.PluginConfigFolder))
                     Directory.CreateDirectory(entranceObj.PluginConfigFolder);
-
-
-                entranceObj.Info = info;
-                entranceObj.PluginConfigFolder = Path.Combine(AppConstants.PluginConfigsPath, info.Manifest.Id);
                 using (FrontedPluginRegistrationContext.BeginScope(info.Manifest.Id))
                 {
                     entranceObj.Initialize(context, services);

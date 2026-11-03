@@ -14,6 +14,7 @@ internal sealed class RemoteImageLoader
 {
     private static readonly HttpClient Client = new() { Timeout = TimeSpan.FromSeconds(30) };
     private CancellationTokenSource? _request;
+    private Uri? _currentUri;
     private bool _started;
 
     internal bool HasStarted => _started;
@@ -26,14 +27,18 @@ internal sealed class RemoteImageLoader
             return false;
         }
 
-        if (!_started)
+        if (_started && _currentUri == uri)
         {
-            _started = true;
-            var request = new CancellationTokenSource();
-            _request = request;
-            _ = LoadAsync(uri, Dispatcher.CurrentDispatcher, request, apply);
+            return true;
         }
 
+        // 图片源发生变化时取消旧请求并重新加载；旧请求的 finished 回调不会覆盖新值。
+        _request?.Cancel();
+        _started = true;
+        _currentUri = uri;
+        var request = new CancellationTokenSource();
+        _request = request;
+        _ = LoadAsync(uri, Dispatcher.CurrentDispatcher, request, apply);
         return true;
     }
 
@@ -41,6 +46,7 @@ internal sealed class RemoteImageLoader
     {
         _request?.Cancel();
         _request = null;
+        _currentUri = null;
         _started = false;
     }
 

@@ -58,6 +58,8 @@ public sealed class TutorialSignalService : ITutorialSignalService
             {
                 waiters.Remove(waiter);
             }
+
+            RemoveEmptyWaiterList(signalId, waiters);
         }
 
         foreach (var waiter in matched)
@@ -87,11 +89,25 @@ public sealed class TutorialSignalService : ITutorialSignalService
             lock (waiters)
             {
                 waiters.Remove(waiter);
+                RemoveEmptyWaiterList(signalId, waiters);
             }
 
             waiter.Source.TrySetCanceled(linked.Token);
         });
 
         return await waiter.Source.Task.ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 等待者列表为空时从字典移除对应键，避免大量不同 signalId 让字典无限增长。
+    /// </summary>
+    /// <param name="signalId">信号标识。</param>
+    /// <param name="waiters">该信号对应的等待者列表。</param>
+    private void RemoveEmptyWaiterList(string signalId, List<SignalWaiter> waiters)
+    {
+        if (waiters.Count == 0)
+        {
+            _waiters.TryRemove(new KeyValuePair<string, List<SignalWaiter>>(signalId, waiters));
+        }
     }
 }

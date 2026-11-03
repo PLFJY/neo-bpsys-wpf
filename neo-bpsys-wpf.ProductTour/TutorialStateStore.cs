@@ -78,8 +78,31 @@ public sealed class TutorialStateStore : ITutorialStateStore
             Directory.CreateDirectory(directory);
         }
 
-        await using var stream = File.Create(_statePath);
-        await JsonSerializer.SerializeAsync(stream, state, _jsonOptions, cancellationToken).ConfigureAwait(false);
+        // 先写临时文件再原子替换，避免序列化中途异常/取消留下半截 JSON 导致教程进度丢失。
+        var temporaryPath = _statePath + ".tmp";
+        try
+        {
+            await using (var stream = File.Create(temporaryPath))
+            {
+                await JsonSerializer.SerializeAsync(stream, state, _jsonOptions, cancellationToken).ConfigureAwait(false);
+            }
+
+            File.Move(temporaryPath, _statePath, overwrite: true);
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(temporaryPath))
+                {
+                    File.Delete(temporaryPath);
+                }
+            }
+            catch
+            {
+                // 临时文件清理失败不影响已完成的保存结果。
+            }
+        }
     }
 
     /// <inheritdoc />

@@ -12,6 +12,9 @@ public sealed class GitHubDownloadUrlResolver(
 {
     private readonly Dictionary<string, string> _cache = new(StringComparer.Ordinal);
 
+    // 共享 HttpClient，避免每次镜像探测都创建新连接池造成套接字耗尽。
+    private static readonly HttpClient MirrorProbeClient = new() { Timeout = TimeSpan.FromSeconds(5) };
+
     /// <inheritdoc />
     public async Task<string> ResolveAsync(string url, CancellationToken cancellationToken = default)
     {
@@ -32,8 +35,7 @@ public sealed class GitHubDownloadUrlResolver(
         {
             try
             {
-                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-                using var response = await client.GetAsync(mirror + url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                using var response = await MirrorProbeClient.GetAsync(mirror + url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                 if (!response.IsSuccessStatusCode) continue;
                 lock (_cache) _cache[cacheKey] = mirror;
                 return mirror + url;

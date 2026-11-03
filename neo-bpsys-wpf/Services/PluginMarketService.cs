@@ -569,6 +569,8 @@ public class PluginMarketService : IPluginMarketService
             lock (_downloadLock)
                 IsDownloadFinished = _completedDownloadResults.Count > 0;
             CleanupDownloadArtifacts(downloadSessionPath);
+            if (File.Exists(tempArchivePath))
+                File.Delete(tempArchivePath);
             UpdateQueueItem(request.QueueItem, queueItem =>
             {
                 queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;
