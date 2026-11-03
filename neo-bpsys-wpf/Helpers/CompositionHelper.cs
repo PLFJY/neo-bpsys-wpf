@@ -55,8 +55,17 @@ namespace Composition.WindowsRuntimeHelpers
         [ComVisible(true)]
         interface ICompositorDesktopInterop
         {
+            /// <summary>
+            /// 为指定桌面窗口创建 CompositionTarget。
+            /// </summary>
+            /// <param name="hwnd">目标窗口句柄。</param>
+            /// <param name="isTopmost">是否为最顶层窗口。</param>
+            /// <returns>创建的 CompositionTarget。</returns>
             Windows.UI.Composition.Desktop.DesktopWindowTarget CreateDesktopWindowTarget(
                 IntPtr hwnd,
+                bool isTopmost);
+        }
+
         /// <summary>
         /// 为指定桌面窗口创建 CompositionTarget。
         /// </summary>
@@ -64,9 +73,6 @@ namespace Composition.WindowsRuntimeHelpers
         /// <param name="hwnd">目标窗口句柄。</param>
         /// <param name="isTopmost">是否为最顶层窗口。</param>
         /// <returns>创建的 CompositionTarget。</returns>
-                bool isTopmost);
-        }
-
         public static CompositionTarget CreateDesktopWindowTarget(this Compositor compositor, IntPtr hwnd, bool isTopmost)
         {
             var desktopInterop = (ICompositorDesktopInterop)((object)compositor);
