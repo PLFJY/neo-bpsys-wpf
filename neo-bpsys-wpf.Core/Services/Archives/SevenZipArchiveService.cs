@@ -313,21 +313,13 @@ public sealed class SevenZipArchiveService : IArchiveService
             // 验证路径安全性(与原实现的 GetSafeDestinationPath 等价)
             ValidateEntryPath(entryPath, normalizedDestination);
 
-            // 检查 Attributes 字段是否含 SymLink 或 reparse point 标记
-            var attributes = ExtractFieldValue(block, "Attributes");
-            if (attributes is not null)
+            // 检查条目是否为符号链接/重解析点。7-Zip 26.x 在 Attributes 中用字母标记类型
+            // （文件链接为 "AL"、目录链接为 "DL"），不会输出 SymLink/ReparsePoint 文本；
+            // 部分版本或归档格式则改用 Symbolic Link 字段，因此两种来源都要识别。
+            if (IsLinkLikeEntry(block, ExtractFieldValue(block, "Attributes")))
             {
-                if (attributes.Contains("SymLink", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new IOException(
-                        $"Archive entry is a symbolic link and was rejected: {entryPath}");
-                }
-
-                if (attributes.Contains("ReparsePoint", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new IOException(
-                        $"Archive entry is a reparse point and was rejected: {entryPath}");
-                }
+                throw new IOException(
+                    $"Archive entry is a symbolic link or reparse point and was rejected: {entryPath}");
             }
         }
     }
@@ -340,6 +332,31 @@ public sealed class SevenZipArchiveService : IArchiveService
         var pattern = $@"^{Regex.Escape(fieldName)}\s*=\s*(.*)$";
         var match = Regex.Match(block, pattern, RegexOptions.Multiline);
         return match.Success ? match.Groups[1].Value.Trim() : null;
+    }
+
+    /// <summary>
+    /// 判断 7z 列表块是否表示符号链接或重解析点条目。
+    /// 7-Zip 26.x 在 <c>Attributes</c> 末尾追加 <c>L</c> 表示链接(文件链接 <c>AL</c>、目录链接 <c>DL</c>)，
+    /// POSIX 来源的归档则使用 <c>lrwx...</c> 形式；部分版本或归档格式还会输出
+    /// <c>SymLink</c>/<c>ReparsePoint</c> 文本或 <c>Symbolic Link</c> 字段。
+    /// </summary>
+    /// <param name="block">7z l -slt 输出中的单个条目块。</param>
+    /// <param name="attributes">该条目的 Attributes 字段值;字段缺失时为 <see langword="null"/>。</param>
+    /// <returns>条目是符号链接或重解析点时返回 <see langword="true"/>。</returns>
+    private static bool IsLinkLikeEntry(string block, string? attributes)
+    {
+        if (attributes is not null)
+        {
+            if (attributes.Contains("SymLink", StringComparison.OrdinalIgnoreCase) ||
+                attributes.Contains("ReparsePoint", StringComparison.OrdinalIgnoreCase) ||
+                attributes.Contains('L') ||
+                attributes.Contains("lrwx", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return ExtractFieldValue(block, "Symbolic Link") is not null;
     }
 
     /// <summary>

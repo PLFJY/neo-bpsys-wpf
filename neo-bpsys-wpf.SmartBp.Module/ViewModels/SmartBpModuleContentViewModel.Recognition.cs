@@ -1243,7 +1243,7 @@ public partial class SmartBpModuleContentViewModel
     {
         if (string.IsNullOrWhiteSpace(RapidOcrModelDirectory)) return;
         Directory.CreateDirectory(RapidOcrModelDirectory);
-        Process.Start(new ProcessStartInfo("explorer.exe", RapidOcrModelDirectory) { UseShellExecute = true });
+        OpenFolderInExplorer(RapidOcrModelDirectory);
     }
     private async Task RecognizeCurrentFrameCoreAsync()
     {
@@ -1992,7 +1992,22 @@ public partial class SmartBpModuleContentViewModel
         var path = status.DataPath;
         if (string.IsNullOrWhiteSpace(path)) return;
         Directory.CreateDirectory(path);
-        Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+        OpenFolderInExplorer(path);
+    }
+
+    /// <summary>
+    /// 使用 explorer.exe 打开指定目录。目录路径可能包含空格（例如用户名），必须作为单个带引号的参数传递，
+    /// 否则 explorer 会把路径拆成多个参数导致打开失败。
+    /// </summary>
+    /// <param name="path">要打开的目录路径。</param>
+    private static void OpenFolderInExplorer(string path)
+    {
+        // Windows 文件名不允许双引号，无需转义内嵌引号；若路径以反斜杠结尾，
+        // 按命令行规则再补一个反斜杠，避免结尾反斜杠把包裹参数的引号转义掉。
+        var argument = path.EndsWith(Path.DirectorySeparatorChar)
+            ? path + Path.DirectorySeparatorChar
+            : path;
+        Process.Start(new ProcessStartInfo("explorer.exe", $"\"{argument}\"") { UseShellExecute = true });
     }
 
     private void RefreshOcrProviderStatuses()

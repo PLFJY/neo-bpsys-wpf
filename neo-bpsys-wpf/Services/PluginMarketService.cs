@@ -455,11 +455,12 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     private async Task ProcessQueuedDownloadAsync(QueuedPluginDownloadRequest request)
     {
+        // PluginId 来自远端插件市场索引，属于不可信输入，不能作为路径片段参与拼接；
+        // QueueId 是本进程生成的 Guid，用它隔离每次下载会话，避免目录穿越与递归删除越界。
         var downloadSessionPath = Path.Combine(
             AppConstants.AppTempPath,
             "PluginMarket",
             "Sessions",
-            request.QueueItem.PluginId,
             request.QueueItem.QueueId);
         var downloadCacheKey = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{request.Item.Id}\n{request.Item.Version}\n{request.Item.Sha256}\n{request.Item.ResolvedDownloadUrl}")));

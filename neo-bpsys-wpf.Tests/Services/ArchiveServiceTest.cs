@@ -184,6 +184,20 @@ public sealed class ArchiveServiceTest : IDisposable
         Assert.True(Directory.Exists(Path.Combine(neo_bpsys_wpf.Core.AppConstants.PluginPath, "test.plugin.7z")));
     }
 
+    [Fact]
+    public void PluginInstallService_InstallFromArchive_RejectsTraversalManifestId()
+    {
+        var archivePath = Path.Combine(_root, "plugin-traversal.zip");
+        CreatePluginArchive(archivePath, ArchiveFormat.Zip, @"..\..\evil-plugin");
+        var extractPath = Path.Combine(_root, "plugin-traversal");
+
+        Assert.Throws<Exception>(() => CreatePluginInstallService().InstallFromArchive(archivePath, extractPath));
+
+        var escapedPath = Path.GetFullPath(
+            Path.Combine(neo_bpsys_wpf.Core.AppConstants.PluginPath, @"..\..\evil-plugin"));
+        Assert.False(Directory.Exists(escapedPath));
+    }
+
     public void Dispose()
     {
         foreach (var pluginId in new[] { "test.plugin.zip", "test.plugin.7z" })

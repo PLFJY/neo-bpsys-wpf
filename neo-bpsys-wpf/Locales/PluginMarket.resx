@@ -37,6 +37,9 @@
   <data name="ManifestNotValid">
     <value>清单内容无效</value>
   </data>
+  <data name="ManifestIdInvalid">
+    <value>插件清单中的插件 ID 无效：不能为空，不能是绝对路径，也不能包含路径分隔符或非法文件名字符</value>
+  </data>
   <data name="PluginStatus">
     <value>插件状态：</value>
   </data>

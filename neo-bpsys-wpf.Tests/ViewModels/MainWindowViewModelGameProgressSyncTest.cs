@@ -79,6 +79,7 @@ public sealed class MainWindowViewModelGameProgressSyncTest
         new(
             sharedDataService,
             new Mock<IGameGuidanceService>().Object,
+            new Mock<IInfoBarService>().Object,
             new Mock<IFilePickerService>().Object,
             new Mock<ISettingsHostService>().Object,
             new Mock<IContentDialogService>().Object,
@@ -92,6 +93,7 @@ public sealed class MainWindowViewModelGameProgressSyncTest
     {
         var service = new Mock<IRemoteAnnouncementService>();
         service.SetupGet(value => value.Announcements).Returns(Array.Empty<RemoteAnnouncement>());
+        service.SetupGet(value => value.SeenAnnouncementIds).Returns(Array.Empty<string>());
         var settings = new Mock<ISettingsHostService>();
         settings.SetupGet(value => value.Settings).Returns(new Settings());
         return new AnnouncementCenterViewModel(service.Object, settings.Object,

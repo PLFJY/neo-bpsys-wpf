@@ -37,6 +37,9 @@
   <data name="ManifestNotValid">
     <value>Manifest is not valid</value>
   </data>
+  <data name="ManifestIdInvalid">
+    <value>The plugin ID in the manifest is invalid: it must not be empty, must not be an absolute path, and must not contain path separators or invalid file name characters</value>
+  </data>
   <data name="PluginStatus">
     <value>Plugin status: </value>
   </data>

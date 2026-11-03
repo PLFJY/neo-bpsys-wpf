@@ -37,6 +37,9 @@
   <data name="ManifestNotValid">
     <value>マニフェストが無効です</value>
   </data>
+  <data name="ManifestIdInvalid">
+    <value>マニフェストのプラグイン ID が無効です。空でなく、絶対パスでなく、パス区切り文字や無効なファイル名文字を含まない必要があります</value>
+  </data>
   <data name="PluginStatus">
     <value>プラグイン状態：</value>
   </data>
