@@ -30,6 +30,13 @@ public sealed class WebRendererRuntimeReleaseFeed
     public static readonly string KnownFallbackUrl =
         $"https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/{KnownFallbackVersion}/aspnetcore-runtime-{KnownFallbackVersion}-win-x64.exe";
 
+    /// <summary>
+    /// <see cref="KnownFallbackVersion"/> 对应官方 installer 的 SHA-512 校验值。
+    /// 取自 Microsoft 官方 release metadata；离线 fallback 也必须能完成完整性校验后才能执行安装。
+    /// </summary>
+    public const string KnownFallbackSha512 =
+        "7958E154C27CF2809227D0BA318B85FF3100DF3802E529667ED01A7162CEE632D48F4B02E9180E3DE352C87EF4460FF53AB3556A45745EB50793881DF6332FA9";
+
     private static readonly HttpClient SharedHttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(30)
@@ -49,11 +56,11 @@ public sealed class WebRendererRuntimeReleaseFeed
     /// <summary>
     /// 获取 fallback 下载信息（不发起网络请求）。
     /// </summary>
-    /// <returns>基于 <see cref="KnownFallbackVersion"/> 与 <see cref="KnownFallbackUrl"/> 的下载信息，无 hash 校验。</returns>
+    /// <returns>基于 <see cref="KnownFallbackVersion"/>、<see cref="KnownFallbackUrl"/> 与 <see cref="KnownFallbackSha512"/> 的下载信息。</returns>
     public WebRendererRuntimeReleaseInfo GetFallback()
     {
         _logger.LogWarning("Using fallback ASP.NET Core runtime release info: {Version}", KnownFallbackVersion);
-        return new WebRendererRuntimeReleaseInfo(KnownFallbackVersion, KnownFallbackUrl, null);
+        return new WebRendererRuntimeReleaseInfo(KnownFallbackVersion, KnownFallbackUrl, KnownFallbackSha512);
     }
 
     /// <summary>

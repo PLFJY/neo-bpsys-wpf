@@ -467,6 +467,59 @@ public sealed class FrontedLayoutPackageImporterTest
         };
     }
 
+    /// <summary>
+    /// 扩展名带 Windows 尾部空格的条目（落盘后会被归一为 .dll）必须被拒绝导入，
+    /// 避免绕过可执行载荷黑名单。
+    /// </summary>
+    [Fact]
+    public async Task Import_RejectsAmbiguousExecutableEntryName()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "ambiguous.bpui");
+            using (var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+                {
+                    PackageId = "basic-package",
+                    Name = "Basic Package",
+                    Content = new FrontedLayoutPackageManifestContent
+                    {
+                        Layouts =
+                        [
+                            new FrontedLayoutPackageLayoutEntry
+                            {
+                                Window = "BpWindow",
+                                Path = "FrontedLayouts/BpWindow.json"
+                            }
+                        ]
+                    }
+                }));
+                WriteZipEntry(archive, "FrontedLayouts/BpWindow.json", """
+                    {
+                      "Version": 3,
+                      "CanvasSettings": { "CanvasWidth": 100, "CanvasHeight": 100 },
+                      "ControlLayout": { "RequiredPlugins": [], "Controls": {} }
+                    }
+                    """);
+                WriteZipEntry(archive, "payload.dll ", "MZ");
+            }
+
+            var importer = CreateImporter(Path.Combine(root, "packages"), Path.Combine(root, "temp"));
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
     private static void CreateBpuiArchiveWithLayout(string archivePath, string layoutJson)
     {
         using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);

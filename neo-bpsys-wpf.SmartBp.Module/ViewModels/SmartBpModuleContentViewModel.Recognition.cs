@@ -1996,18 +1996,19 @@ public partial class SmartBpModuleContentViewModel
     }
 
     /// <summary>
-    /// 使用 explorer.exe 打开指定目录。目录路径可能包含空格（例如用户名），必须作为单个带引号的参数传递，
-    /// 否则 explorer 会把路径拆成多个参数导致打开失败。
+    /// 使用 explorer.exe 打开指定目录。目录路径作为单个 <see cref="ProcessStartInfo.ArgumentList"/>
+    /// 参数传递，由运行时按 Windows 命令行规则转义，避免路径中的空格或特殊字符被拆分。
     /// </summary>
     /// <param name="path">要打开的目录路径。</param>
     private static void OpenFolderInExplorer(string path)
     {
-        // Windows 文件名不允许双引号，无需转义内嵌引号；若路径以反斜杠结尾，
-        // 按命令行规则再补一个反斜杠，避免结尾反斜杠把包裹参数的引号转义掉。
-        var argument = path.EndsWith(Path.DirectorySeparatorChar)
-            ? path + Path.DirectorySeparatorChar
-            : path;
-        Process.Start(new ProcessStartInfo("explorer.exe", $"\"{argument}\"") { UseShellExecute = true });
+        var startInfo = new ProcessStartInfo("explorer.exe")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add(path);
+        Process.Start(startInfo);
     }
 
     private void RefreshOcrProviderStatuses()

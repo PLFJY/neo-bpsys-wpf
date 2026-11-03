@@ -367,15 +367,45 @@ public partial class App : AppBase
     }
 
     /// <summary>
-    /// 对命令行参数进行转义，使其在 <see cref="ProcessStartInfo.Arguments"/> 中保持原义。
+    /// 对命令行参数进行转义，使其经 <see cref="ProcessStartInfo.Arguments"/> 传递后仍保持原义。
+    /// 实现遵循 <c>CommandLineToArgvW</c> 的解析规则：把参数用双引号包裹，
+    /// 并对引号前的反斜杠与参数结尾的反斜杠按 2n / 2n+1 规则成倍转义。
     /// </summary>
     /// <param name="arg">原始参数。</param>
-    /// <returns>转义后的参数。</returns>
+    /// <returns>转义后的参数文本。</returns>
     private static string QuoteArgument(string arg)
     {
-        if (string.IsNullOrEmpty(arg)) return "\"\"";
-        if (arg.IndexOfAny(new[] { ' ', '\t', '"' }) < 0) return arg;
-        return "\"" + arg.Replace("\"", "\\\"") + "\"";
+        if (arg.Length == 0) return "\"\"";
+        if (arg.IndexOfAny([' ', '\t', '\n', '\v', '"']) < 0) return arg;
+
+        var builder = new StringBuilder(arg.Length + 2);
+        builder.Append('"');
+        var backslashes = 0;
+        foreach (var character in arg)
+        {
+            if (character == '\\')
+            {
+                backslashes++;
+                continue;
+            }
+
+            if (character == '"')
+            {
+                builder.Append('\\', (backslashes * 2) + 1);
+                builder.Append('"');
+            }
+            else
+            {
+                builder.Append('\\', backslashes);
+                builder.Append(character);
+            }
+
+            backslashes = 0;
+        }
+
+        builder.Append('\\', backslashes * 2);
+        builder.Append('"');
+        return builder.ToString();
     }
 
     /// <summary>
