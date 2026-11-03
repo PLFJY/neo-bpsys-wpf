@@ -12,6 +12,8 @@ public class BackgroundImageTintProcessor
     private const int MaxCacheEntries = 32;
     /// <summary>染色缓存解码后像素字节上限。与 <see cref="MaxCacheEntries"/> 共同限制缓存规模，先触发的先驱逐。</summary>
     private const long MaxCacheBytes = 64L * 1024 * 1024;
+    /// <summary>启用行级并行处理的像素数阈值；普通 1080p 区域保持串行，仅超大区域才并行以避免调度开销。</summary>
+    private const long ParallelPixelThreshold = 2_500_000L;
 
     private readonly FrontedRenderCache<TintCacheKey, BitmapSource> _cache =
         new(MaxCacheEntries, MaxCacheBytes, EstimateBitmapBytes);
@@ -69,6 +71,7 @@ public class BackgroundImageTintProcessor
         // 与区域、Canvas 尺寸和归一化模式无关。缓存键忽略这些输入后，同源同色的不同染色区域
         // （以及不同窗口中的同类控件）可以复用同一张整图染色结果。
         var regionSensitive = mode == BackgroundTintMode.BaseColorWithTexture;
+        var restrictToRegion = regionSensitive && options.RestrictProcessingToRegion;
         var key = regionSensitive
             ? new TintCacheKey(
                 sourceKey ?? string.Empty,
@@ -88,7 +91,8 @@ public class BackgroundImageTintProcessor
                 normalization.Region.Y,
                 normalization.Region.Width,
                 normalization.Region.Height,
-                normalization.PolygonHash)
+                normalization.PolygonHash,
+                restrictToRegion)
             : new TintCacheKey(
                 sourceKey ?? string.Empty,
                 tint.R,
@@ -107,7 +111,8 @@ public class BackgroundImageTintProcessor
                 0D,
                 0D,
                 0D,
-                0);
+                0,
+                false);
 
         if (_cache.TryGet(key, out var cached))
         {
@@ -120,48 +125,77 @@ public class BackgroundImageTintProcessor
         var stride = converted.PixelWidth * 4;
         var pixels = new byte[stride * converted.PixelHeight];
         converted.CopyPixels(pixels, stride, 0);
+        var bounds = restrictToRegion
+            ? GetPixelBounds(normalization, converted.PixelWidth, converted.PixelHeight)
+            : new PixelBounds(0, 0, converted.PixelWidth, converted.PixelHeight);
         var meanLuminance = mode == BackgroundTintMode.BaseColorWithTexture
-            ? CalculateMeanLuminance(pixels, converted.PixelWidth, converted.PixelHeight, normalization)
+            ? CalculateMeanLuminance(pixels, converted.PixelWidth, converted.PixelHeight, normalization, bounds, restrictToRegion)
             : 0D;
 
-        for (var offset = 0; offset < pixels.Length; offset += 4)
+        // 区域限制模式下只遍历可见区域；区域外保留源图像素，由宿主裁剪，视觉结果与整图处理后裁剪一致。
+        void ProcessRow(int y)
         {
-            var sourceB = pixels[offset];
-            var sourceG = pixels[offset + 1];
-            var sourceR = pixels[offset + 2];
-            byte targetR;
-            byte targetG;
-            byte targetB;
+            var rowOffset = y * stride;
+            for (var x = bounds.Left; x < bounds.Right; x++)
+            {
+                var offset = rowOffset + (x * 4);
+                var sourceB = pixels[offset];
+                var sourceG = pixels[offset + 1];
+                var sourceR = pixels[offset + 2];
+                byte targetR;
+                byte targetG;
+                byte targetB;
 
-            if (mode == BackgroundTintMode.Multiply)
-            {
-                targetR = Multiply(sourceR, tint.R);
-                targetG = Multiply(sourceG, tint.G);
-                targetB = Multiply(sourceB, tint.B);
-            }
-            else if (mode == BackgroundTintMode.BaseColorWithTexture)
-            {
-                var luminance = CalculateLuminance(sourceR, sourceG, sourceB);
-                var detail = (luminance - meanLuminance) * textureStrength;
-                targetR = ClampToByte(tint.R + detail);
-                targetG = ClampToByte(tint.G + detail);
-                targetB = ClampToByte(tint.B + detail);
-            }
-            else
-            {
-                var luminance = (byte)Math.Clamp(
-                    Math.Round(CalculateLuminance(sourceR, sourceG, sourceB)),
-                    0D,
-                    255D);
-                targetR = Multiply(luminance, tint.R);
-                targetG = Multiply(luminance, tint.G);
-                targetB = Multiply(luminance, tint.B);
-            }
+                if (mode == BackgroundTintMode.Multiply)
+                {
+                    targetR = Multiply(sourceR, tint.R);
+                    targetG = Multiply(sourceG, tint.G);
+                    targetB = Multiply(sourceB, tint.B);
+                }
+                else if (mode == BackgroundTintMode.BaseColorWithTexture)
+                {
+                    var luminance = CalculateLuminance(sourceR, sourceG, sourceB);
+                    var detail = (luminance - meanLuminance) * textureStrength;
+                    targetR = ClampToByte(tint.R + detail);
+                    targetG = ClampToByte(tint.G + detail);
+                    targetB = ClampToByte(tint.B + detail);
+                }
+                else
+                {
+                    var luminance = (byte)Math.Clamp(
+                        Math.Round(CalculateLuminance(sourceR, sourceG, sourceB)),
+                        0D,
+                        255D);
+                    targetR = Multiply(luminance, tint.R);
+                    targetG = Multiply(luminance, tint.G);
+                    targetB = Multiply(luminance, tint.B);
+                }
 
-            pixels[offset] = Interpolate(sourceB, targetB, strength);
-            pixels[offset + 1] = Interpolate(sourceG, targetG, strength);
-            pixels[offset + 2] = Interpolate(sourceR, targetR, strength);
-            // Preserve source alpha exactly.
+                pixels[offset] = Interpolate(sourceB, targetB, strength);
+                pixels[offset + 1] = Interpolate(sourceG, targetG, strength);
+                pixels[offset + 2] = Interpolate(sourceR, targetR, strength);
+                // Preserve source alpha exactly inside the processed region.
+            }
+        }
+
+        var pixelCount = (long)(bounds.Right - bounds.Left) * (bounds.Bottom - bounds.Top);
+        if (pixelCount >= ParallelPixelThreshold)
+        {
+            // 大面积整图染色在后台线程执行，按行并行可显著缩短缓存填充时间；小图保持串行避免调度开销。
+            System.Threading.Tasks.Parallel.For(bounds.Top, bounds.Bottom, ProcessRow);
+        }
+        else
+        {
+            for (var y = bounds.Top; y < bounds.Bottom; y++)
+            {
+                ProcessRow(y);
+            }
+        }
+
+        if (restrictToRegion)
+        {
+            // 区域外像素不参与可见渲染；清零 alpha 避免裁剪边缘出现未染色源图残影。
+            ClearOutsideBounds(pixels, stride, converted.PixelWidth, converted.PixelHeight, bounds);
         }
 
         var result = BitmapSource.Create(
@@ -246,15 +280,24 @@ public class BackgroundImageTintProcessor
         byte[] pixels,
         int pixelWidth,
         int pixelHeight,
-        NormalizedProcessingOptions options)
+        NormalizedProcessingOptions options,
+        PixelBounds bounds,
+        bool restrictToRegion)
     {
         var total = 0D;
         var count = 0;
-        for (var y = 0; y < pixelHeight; y++)
+        // WholeImage 归一化仍需要全图均值；其余模式下区域外像素不可见，只需统计可见区域。
+        var restrictMeanToBounds = restrictToRegion
+            && options.Mode != BackgroundTintNormalizationMode.WholeImage;
+        var top = restrictMeanToBounds ? bounds.Top : 0;
+        var bottom = restrictMeanToBounds ? bounds.Bottom : pixelHeight;
+        var left = restrictMeanToBounds ? bounds.Left : 0;
+        var right = restrictMeanToBounds ? bounds.Right : pixelWidth;
+        for (var y = top; y < bottom; y++)
         {
-            for (var x = 0; x < pixelWidth; x++)
+            for (var x = left; x < right; x++)
             {
-                var offset = (y * pixelWidth + x) * 4;
+                var offset = ((y * pixelWidth) + x) * 4;
                 if (pixels[offset + 3] == 0 || !IncludesPixel(x, y, pixelWidth, pixelHeight, options))
                 {
                     continue;
@@ -328,6 +371,55 @@ public class BackgroundImageTintProcessor
         }
 
         return inside;
+    }
+
+    private static void ClearOutsideBounds(
+        byte[] pixels,
+        int stride,
+        int pixelWidth,
+        int pixelHeight,
+        PixelBounds bounds)
+    {
+        var rowBytes = pixelWidth * 4;
+        for (var y = 0; y < pixelHeight; y++)
+        {
+            var rowOffset = y * stride;
+            if (y < bounds.Top || y >= bounds.Bottom)
+            {
+                Array.Clear(pixels, rowOffset, rowBytes);
+                continue;
+            }
+
+            if (bounds.Left > 0)
+            {
+                Array.Clear(pixels, rowOffset, bounds.Left * 4);
+            }
+
+            if (bounds.Right < pixelWidth)
+            {
+                Array.Clear(pixels, rowOffset + (bounds.Right * 4), (pixelWidth - bounds.Right) * 4);
+            }
+        }
+    }
+
+    private static PixelBounds GetPixelBounds(
+        NormalizedProcessingOptions options,
+        int pixelWidth,
+        int pixelHeight)
+    {
+        var canvasWidth = options.CanvasWidth > 0D ? options.CanvasWidth : pixelWidth;
+        var canvasHeight = options.CanvasHeight > 0D ? options.CanvasHeight : pixelHeight;
+        var region = options.Region;
+        var left = (int)Math.Floor(region.X / canvasWidth * pixelWidth);
+        var top = (int)Math.Floor(region.Y / canvasHeight * pixelHeight);
+        var right = (int)Math.Ceiling((region.X + region.Width) / canvasWidth * pixelWidth);
+        var bottom = (int)Math.Ceiling((region.Y + region.Height) / canvasHeight * pixelHeight);
+
+        left = Math.Clamp(left, 0, pixelWidth - 1);
+        top = Math.Clamp(top, 0, pixelHeight - 1);
+        right = Math.Clamp(right, left + 1, pixelWidth);
+        bottom = Math.Clamp(bottom, top + 1, pixelHeight);
+        return new PixelBounds(left, top, right, bottom);
     }
 
     private static NormalizedProcessingOptions NormalizeOptions(
@@ -428,5 +520,8 @@ public class BackgroundImageTintProcessor
         double RegionY,
         double RegionWidth,
         double RegionHeight,
-        int PolygonHash);
+        int PolygonHash,
+        bool RestrictToRegion);
+
+    private readonly record struct PixelBounds(int Left, int Top, int Right, int Bottom);
 }

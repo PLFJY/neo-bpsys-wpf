@@ -203,7 +203,8 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             Opacity = Math.Clamp(config.Opacity, 0D, 1D),
             BlurRadius = NormalizeRadius(config.BlurRadius),
             ShadowDepth = config.Kind == FrontedVisualEffectKind.Glow ? 0D : Math.Max(0D, config.ShadowDepth),
-            Direction = config.Direction
+            Direction = config.Direction,
+            RenderingBias = RenderingBias.Performance
         };
     }
 

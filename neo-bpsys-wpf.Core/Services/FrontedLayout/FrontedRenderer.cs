@@ -316,6 +316,12 @@ public class FrontedRenderer(
 
         var brush = new ImageBrush(imageSource) { Stretch = Stretch.Fill };
         RenderOptions.SetBitmapScalingMode(brush, BitmapScalingMode.HighQuality);
+        if (brush.CanFreeze)
+        {
+            // 背景画刷创建后不再变化，冻结可减少 WPF 变更跟踪与跨线程复制开销。
+            brush.Freeze();
+        }
+
         return brush;
     }
 }

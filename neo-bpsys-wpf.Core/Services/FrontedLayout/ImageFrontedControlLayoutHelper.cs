@@ -57,10 +57,33 @@ internal static class ImageFrontedControlLayoutHelper
 
         if (!string.IsNullOrWhiteSpace(config.ImagePath))
         {
-            image.Source = context.ResourceResolver.ResolveImage(
-                config.ImagePath,
-                FrontedImagePurpose.UiElement);
+            var decodePixelWidth = ResolveDecodePixelWidth(config);
+            image.Source = decodePixelWidth > 0 && context.ResourceResolver is FrontedResourceResolver sizedResolver
+                // 静态图片在控件尺寸已知时按显示尺寸解码，避免完整解码大图后再由 WPF 降采样。
+                ? sizedResolver.ResolveImage(config.ImagePath, FrontedImagePurpose.UiElement, decodePixelWidth)
+                : context.ResourceResolver.ResolveImage(
+                    config.ImagePath,
+                    FrontedImagePurpose.UiElement);
         }
+    }
+
+    private static int ResolveDecodePixelWidth(ImageFrontedControlConfig config)
+    {
+        // Auto 模式按图片原始尺寸布局，没有可靠的目标尺寸；其余模式使用控件设计尺寸并保留 2 倍超采样。
+        if (config.SizingMode == ImageSizingMode.Auto)
+        {
+            return 0;
+        }
+
+        var width = config.Width is > 0 && double.IsFinite(config.Width.Value) ? config.Width.Value : 0D;
+        var height = config.Height is > 0 && double.IsFinite(config.Height.Value) ? config.Height.Value : 0D;
+        var target = Math.Max(width, height) * 2D;
+        if (!double.IsFinite(target) || target < 32D)
+        {
+            return 0;
+        }
+
+        return (int)Math.Clamp(Math.Ceiling(target), 32D, 4096D);
     }
 
     public static Grid CreateImageLayerRoot(
@@ -288,6 +311,12 @@ internal static class ImageFrontedControlLayoutHelper
 
         var brush = new ImageBrush(imageSource) { Stretch = stretch };
         RenderOptions.SetBitmapScalingMode(brush, BitmapScalingMode.HighQuality);
+        if (brush.CanFreeze)
+        {
+            // 锁图/选择边框等 overlay 画刷在控件生命周期内不变，冻结后减少变更通知开销。
+            brush.Freeze();
+        }
+
         return brush;
     }
 

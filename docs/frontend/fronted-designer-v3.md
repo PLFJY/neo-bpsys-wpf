@@ -232,6 +232,10 @@ Designer v3 内置 `Rectangle` 和 `Polygon`。两者共享 Shape 填充配置�
 - [FrontedBrushCache](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedBrushCache.cs) 缓存冻结纯色画刷，形状填充、文本前景色与进度文本颜色绑定复用它；渐变与动画中间画刷不进入该缓存。
 - 背景局部染色（[BackgroundTintControlHost](../../neo-bpsys-wpf.Core/Services/FrontedLayout/BackgroundTintControlHost.cs)）首次渲染同步，之后在运行时宿主上使用后台 latest-wins 计算；控件不可见时只记录脏状态，恢复可见后补算。Designer 预览保持同步。
 - 染色缓存键只在 `BaseColorWithTexture` 模式下包含可见区域与多边形归一化信息；`Multiply` 与亮度模式的结果与区域无关，因此同源同色的不同区域和不同窗口可复用同一张整图结果（[BackgroundImageTintProcessor](../../neo-bpsys-wpf.Core/Services/FrontedLayout/BackgroundImageTintProcessor.cs)）。
+- `BaseColorWithTexture` 的运行时宿主会将像素处理限制在可见矩形内（`RestrictProcessingToRegion`）；区域外像素清为透明并由宿主裁剪，不改变可见结果。
+- 静态 `ImagePath` 控件在尺寸已知时通过 `FrontedResourceResolver.ResolveImage(path, purpose, decodePixelWidth)` 按显示尺寸解码，避免大图完整解码后再降采样；缓存键包含解码宽度。
+- 高斯模糊与阴影/发光使用 `RenderingBias.Performance`；模糊半径仍是布局配置值，不改变视觉层级。
+- WebRenderer runtime 的普通属性变化只重算被标记的绑定路径；资源变化、行为事件和首次快照仍执行完整重算。
 - 昂贵属性的动画按成本分级：`TintStrength`/`TextureStrength` 使用约 50ms 的量化关键帧，不再按 60fps 触发整图 CPU 重算；`TintColor` 动画仍一次性落到目标色，避免逐帧染色。
 
-新增组件时优先复用上述边界：绑定变化只更新轻量属性或标脏，昂贵产物走缓存/后台计算；不要为每次属性变化重建整个控件树。图片按显示尺寸解码、效果静态缓存与 WebRenderer 增量下发属于后续独立优化项，不在本契约内改变现有布局 JSON 或视觉默认值。
+新增组件时优先复用上述边界：绑定变化只更新轻量属性或标脏，昂贵产物走缓存/后台计算；不要为每次属性变化重建整个控件树。效果缓存（BitmapCache）与 WebRenderer 客户端协议级 diff 暂不纳入本契约，避免改变现有布局 JSON、视觉默认值或网页协议语义。

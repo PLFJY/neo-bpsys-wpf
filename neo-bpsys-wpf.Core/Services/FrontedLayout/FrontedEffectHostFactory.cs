@@ -146,7 +146,8 @@ public static class FrontedEffectHostFactory
                     Color = ParseEffectColor(config.GlowColor, Colors.White),
                     BlurRadius = Math.Max(0D, config.GlowRadius),
                     ShadowDepth = 0D,
-                    Opacity = Math.Clamp(config.GlowOpacity, 0D, 1D)
+                    Opacity = Math.Clamp(config.GlowOpacity, 0D, 1D),
+                    RenderingBias = RenderingBias.Performance
                 }
             };
             glowBorder.Child = inner;
@@ -163,7 +164,8 @@ public static class FrontedEffectHostFactory
                     BlurRadius = Math.Max(0D, config.ShadowRadius),
                     ShadowDepth = Math.Max(0D, config.ShadowDepth),
                     Direction = config.ShadowDirection,
-                    Opacity = Math.Clamp(config.ShadowOpacity, 0D, 1D)
+                    Opacity = Math.Clamp(config.ShadowOpacity, 0D, 1D),
+                    RenderingBias = RenderingBias.Performance
                 }
             };
             shadowBorder.Child = inner;

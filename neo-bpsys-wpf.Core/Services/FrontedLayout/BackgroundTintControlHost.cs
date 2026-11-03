@@ -343,7 +343,9 @@ public sealed class BackgroundTintControlHost : Grid
             CanvasRegion = _canvasRegion,
             CanvasWidth = _canvasWidth,
             CanvasHeight = _canvasHeight,
-            PolygonPoints = _polygonPoints
+            PolygonPoints = _polygonPoints,
+            // 宿主始终把染色结果裁剪到可见区域；BaseColorWithTexture 模式只处理该区域即可。
+            RestrictProcessingToRegion = true
         };
         return true;
     }

@@ -34,6 +34,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     private readonly Dictionary<string, BindingPathObserver> _observers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WebRuntimeValue> _values = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WebRuntimeAsset> _stableAssets = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _dirtyPaths = new(StringComparer.Ordinal);
     private readonly Dictionary<Guid, IReadOnlyList<string>> _pathsByBehaviorGuid = [];
     private readonly Dictionary<string, WebControlProjection> _controlProjections = new(StringComparer.Ordinal);
     private readonly List<WebRuntimeCommitBarrier> _commitBarriers = [];
@@ -44,6 +45,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
     private CultureInfo _localizationCulture = CultureInfo.InvariantCulture;
     private int _clientCount;
     private bool _recalculationQueued;
+    private bool _forceFullRecalculation;
 
     /// <summary>发生可发送的完整快照或增量更新时触发。</summary>
     public event EventHandler<WebRendererRuntimeUpdate>? Updated;
@@ -91,7 +93,7 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             _generation = snapshot.Generation;
             _assets.ResetRemoteSession();
             var paths = snapshot.Windows.Where(window => window.Layout is not null).SelectMany(window => EnumeratePaths(window.Layout!)).Where(path => !string.IsNullOrWhiteSpace(path)).ToHashSet(StringComparer.Ordinal);
-            foreach (var path in paths) _observers.Add(path, new BindingPathObserver(_sharedData, path, OnPathChanged));
+            foreach (var path in paths) _observers.Add(path, new BindingPathObserver(_sharedData, path, () => OnPathChanged(path)));
             foreach (var control in snapshot.Windows
                          .Where(window => window.Layout is not null)
                          .SelectMany(window => window.Layout!.ControlLayout.Controls.Values)
@@ -158,21 +160,43 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         foreach (var observer in _observers.Values) observer.Dispose();
         _values.Clear();
         _stableAssets.Clear();
+        _dirtyPaths.Clear();
+        _forceFullRecalculation = false;
         _assets.ReplaceReferences([]);
         CompleteCommitBarriersLocked(isStable: false);
     }
 
-    private void OnPathChanged() => QueueRecalculation();
-    private void OnAssetStateChanged(object? sender, EventArgs args)
+    private void OnPathChanged(string path)
     {
+        lock (_gate)
+        {
+            _dirtyPaths.Add(path);
+        }
+
         QueueRecalculation();
     }
+
+    private void OnAssetStateChanged(object? sender, EventArgs args)
+    {
+        lock (_gate)
+        {
+            _forceFullRecalculation = true;
+        }
+
+        QueueRecalculation();
+    }
+
     private void OnEventPublished(object? sender, FrontedBehaviorEvent args)
     {
         lock (_gate) if (_clientCount > 0)
         {
             var message = WebBehaviorEventMessage.From(args, diagnostic => _logger?.LogWarning("{Diagnostic}", diagnostic));
             BehaviorEventPublished?.Invoke(this, message);
+        }
+        lock (_gate)
+        {
+            // 行为事件可能间接改变多个共享数据路径，事件回调不提供路径集合，退化为完整重算。
+            _forceFullRecalculation = true;
         }
         QueueRecalculation();
     }
@@ -260,11 +284,24 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
         _recalculationVersion++;
         var changed = new Dictionary<string, WebRuntimeValue>(StringComparer.Ordinal);
         var diagnostics = new List<WebRuntimeDiagnostic>();
-        var activeImages = new HashSet<ImageSource>(ReferenceEqualityComparer.Instance);
+        // 普通属性变化只重算被标记的路径；快照、资源变化和行为事件退化为完整重算。
+        var fullRecalculation = snapshot || _forceFullRecalculation || _dirtyPaths.Count == 0;
+        _forceFullRecalculation = false;
+        HashSet<string>? dirtyPaths = null;
+        if (!fullRecalculation)
+        {
+            dirtyPaths = new HashSet<string>(_dirtyPaths, StringComparer.Ordinal);
+        }
+        _dirtyPaths.Clear();
+
         foreach (var pair in _observers)
         {
+            if (dirtyPaths is not null && !dirtyPaths.Contains(pair.Key))
+            {
+                continue;
+            }
+
             var result = pair.Value.Resolve();
-            if (result.Value is ImageSource image) activeImages.Add(image);
             WebRuntimeDiagnostic? conversionDiagnostic = null;
             var value = result.Diagnostic is null && pair.Key == "CurrentGame.GameProgress" && result.Value is GameProgress progress && _gameProgressProvider is not null
                 ? new WebRuntimeValue("gameProgress", _gameProgressProvider.Create(progress, ResolveBo3Mode(), ResolveCulture()), typeof(GameProgress).FullName)
@@ -280,6 +317,15 @@ public sealed class WebRendererRuntimeStatePublisher : IDisposable
             else if (value.State == WebRuntimeValueStates.Null)
             {
                 _stableAssets.Remove(pair.Key);
+            }
+        }
+
+        var activeImages = new HashSet<ImageSource>(ReferenceEqualityComparer.Instance);
+        foreach (var value in _values.Values)
+        {
+            if (value.Value is ImageSource image)
+            {
+                activeImages.Add(image);
             }
         }
         _assets.ReplaceActiveSources(activeImages);

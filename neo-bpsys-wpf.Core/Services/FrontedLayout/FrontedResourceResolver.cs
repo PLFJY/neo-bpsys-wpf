@@ -157,6 +157,27 @@ public class FrontedResourceResolver : IFrontedResourceResolver
     public ImageSource? ResolveImage(
         string? path,
         FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource)
+        => ResolveImageCore(path, purpose, 0);
+
+    /// <summary>
+    /// 按目标像素宽度解析图片，并在解码阶段缩小过大的源图。
+    /// </summary>
+    /// <param name="path">图片路径。</param>
+    /// <param name="purpose">图片用途。</param>
+    /// <param name="decodePixelWidth">期望解码宽度；小于等于 0 时按原始尺寸解码。</param>
+    /// <returns>解析成功时返回冻结的图片源；失败时返回 <see langword="null"/>。</returns>
+    /// <remarks>
+    /// 该重载用于前台图片控件：控件尺寸已知时按显示尺寸（含一定超采样余量）解码，
+    /// 避免把大尺寸原图完整解码进内存并让 WPF 每帧做高质量降采样。缓存键包含解码宽度，
+    /// 不同显示尺寸不会错误复用同一份位图。
+    /// </remarks>
+    public ImageSource? ResolveImage(string? path, FrontedImagePurpose purpose, int decodePixelWidth)
+        => ResolveImageCore(path, purpose, Math.Max(0, decodePixelWidth));
+
+    private ImageSource? ResolveImageCore(
+        string? path,
+        FrontedImagePurpose purpose,
+        int decodePixelWidth)
     {
         var resolvedPath = ResolveImagePath(path);
         if (resolvedPath is null)
@@ -169,7 +190,7 @@ public class FrontedResourceResolver : IFrontedResourceResolver
             return null;
         }
 
-        if (!TryCreateImageCacheKey(resolvedPath, purpose, out var cacheKey))
+        if (!TryCreateImageCacheKey(resolvedPath, purpose, decodePixelWidth, out var cacheKey))
         {
             return null;
         }
@@ -202,10 +223,15 @@ public class FrontedResourceResolver : IFrontedResourceResolver
 
         try
         {
+            var effectiveDecodePixelWidth = ResolveEffectiveDecodePixelWidth(resolvedPath, decodePixelWidth);
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.UriSource = new Uri(resolvedPath, UriKind.Absolute);
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            if (effectiveDecodePixelWidth > 0)
+            {
+                bitmap.DecodePixelWidth = effectiveDecodePixelWidth;
+            }
             bitmap.EndInit();
             bitmap.Freeze();
             CacheImage(cacheKey, bitmap);
@@ -283,9 +309,32 @@ public class FrontedResourceResolver : IFrontedResourceResolver
         return (long)bitmap.PixelWidth * bitmap.PixelHeight * ((bitsPerPixel + 7) / 8);
     }
 
+    private static int ResolveEffectiveDecodePixelWidth(string resolvedPath, int requestedWidth)
+    {
+        if (requestedWidth <= 0)
+        {
+            return 0;
+        }
+
+        try
+        {
+            // 只为真正的降采样设置 DecodePixelWidth；小于目标的图标按原尺寸解码，避免反向放大解码内存。
+            var frame = BitmapFrame.Create(
+                new Uri(resolvedPath, UriKind.Absolute),
+                BitmapCreateOptions.DelayCreation,
+                BitmapCacheOption.None);
+            return frame.PixelWidth <= requestedWidth ? 0 : requestedWidth;
+        }
+        catch
+        {
+            return requestedWidth;
+        }
+    }
+
     private static bool TryCreateImageCacheKey(
         string resolvedPath,
         FrontedImagePurpose purpose,
+        int decodePixelWidth,
         out ImageCacheKey key)
     {
         key = default;
@@ -301,7 +350,8 @@ public class FrontedResourceResolver : IFrontedResourceResolver
                 Path.GetFullPath(resolvedPath),
                 purpose,
                 info.Length,
-                info.LastWriteTimeUtc.Ticks);
+                info.LastWriteTimeUtc.Ticks,
+                decodePixelWidth);
             return true;
         }
         catch
@@ -358,5 +408,6 @@ public class FrontedResourceResolver : IFrontedResourceResolver
         string Path,
         FrontedImagePurpose Purpose,
         long FileBytes,
-        long LastWriteTicks);
+        long LastWriteTicks,
+        int DecodePixelWidth);
 }
