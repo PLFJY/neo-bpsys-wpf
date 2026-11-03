@@ -14,8 +14,10 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using System.Windows.Data;
 using Wpf.Ui.Controls;
 using Member = neo_bpsys_wpf.Core.Models.Member;
@@ -121,10 +123,17 @@ public partial class TeamInfoPageViewModel
 
         private Color _teamColorPickerValue = Colors.White;
         private bool _syncingTeamColorEditor;
+        private DispatcherTimer? _teamColorCommitTimer;
+        private Color? _pendingTeamColor;
 
         /// <summary>
         /// 获取或设置队伍颜色选择器的当前颜色值。
         /// </summary>
+        /// <remarks>
+        /// 色盘拖动会高频产生颜色值。这里只在选择器上即时预览，实际写入共享队伍颜色由
+        /// <see cref="_teamColorCommitTimer"/> 合并为一次更新，避免每次鼠标移动都触发所有前台窗口
+        /// 的染色与绑定量计算。
+        /// </remarks>
         public Color TeamColorPickerValue
         {
             get => _teamColorPickerValue;
@@ -133,9 +142,64 @@ public partial class TeamInfoPageViewModel
                 if (!SetProperty(ref _teamColorPickerValue, value) || _syncingTeamColorEditor)
                     return;
 
-                CurrentTeam.ColorHex = value.ToArgbHexString();
-                SyncTeamColorEditor();
+                TeamColorHexEditText = value.ToArgbHexString();
+                ScheduleTeamColorCommit(value);
             }
+        }
+
+        private void ScheduleTeamColorCommit(Color color)
+        {
+            // 无 WPF Application 的测试/Designer 环境保持同步语义，避免依赖消息循环。
+            if (Application.Current?.Dispatcher is null)
+            {
+                CommitTeamColor(color);
+                return;
+            }
+
+            _pendingTeamColor = color;
+            if (_teamColorCommitTimer is null)
+            {
+                _teamColorCommitTimer = new DispatcherTimer(
+                    TimeSpan.FromMilliseconds(80),
+                    DispatcherPriority.Background,
+                    TeamColorCommitTimerOnTick,
+                    Dispatcher.CurrentDispatcher);
+                _teamColorCommitTimer.Start();
+            }
+            else
+            {
+                _teamColorCommitTimer.Stop();
+                _teamColorCommitTimer.Start();
+            }
+        }
+
+        private void TeamColorCommitTimerOnTick(object? sender, EventArgs e)
+        {
+            _teamColorCommitTimer?.Stop();
+            if (_pendingTeamColor is not { } color)
+            {
+                return;
+            }
+
+            _pendingTeamColor = null;
+            CommitTeamColor(color);
+        }
+
+        private void CommitTeamColor(Color color)
+        {
+            if (_syncingTeamColorEditor)
+            {
+                return;
+            }
+
+            CurrentTeam.ColorHex = color.ToArgbHexString();
+            SyncTeamColorEditor();
+        }
+
+        private void CancelPendingTeamColorCommit()
+        {
+            _teamColorCommitTimer?.Stop();
+            _pendingTeamColor = null;
         }
 
         [RelayCommand]
@@ -154,6 +218,7 @@ public partial class TeamInfoPageViewModel
                 return;
             }
 
+            CancelPendingTeamColorCommit();
             CurrentTeam.ColorHex = normalized;
             SyncTeamColorEditor();
         }
@@ -164,6 +229,7 @@ public partial class TeamInfoPageViewModel
             var defaultColor = CurrentTeam.TeamType == Core.Enums.TeamType.AwayTeam
                 ? Team.DefaultAwayColorHex
                 : Team.DefaultHomeColorHex;
+            CancelPendingTeamColorCommit();
             CurrentTeam.ColorHex = defaultColor;
             SyncTeamColorEditor();
         }
@@ -171,7 +237,11 @@ public partial class TeamInfoPageViewModel
         private void CurrentTeamOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Team.ColorHex))
+            {
+                // 外部来源（导入、重置、对局切换）覆盖颜色时丢弃尚未提交的色盘值。
+                CancelPendingTeamColorCommit();
                 SyncTeamColorEditor();
+            }
         }
 
         private void SyncTeamColorEditor()

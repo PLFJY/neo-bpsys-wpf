@@ -44,7 +44,9 @@ internal static class BackgroundTintFrontedControlFactoryHelper
             config.Height is > 0 && double.IsFinite(config.Height.Value) ? config.Height.Value : 1D,
             normalizationMode,
             polygonPoints,
-            context.Logger)
+            context.Logger,
+            // 运行时前台窗口在首次渲染后把后续染色放到后台线程；Designer 预览保持同步以稳定编辑时序。
+            useAsyncTint: !context.IsDesignerPreview)
         {
             Name = name
         };

@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.ComponentModel;
@@ -706,20 +707,9 @@ public class GameProgressTextFrontedControl : FrontedV3ControlBase
                 return null;
             }
 
-            if (ColorHelper.TryNormalizeHex(colorHex, out var normalized))
-            {
-                try
-                {
-                    var converter = System.ComponentModel.TypeDescriptor.GetConverter(typeof(Brush));
-                    return converter.ConvertFromString(normalized) as Brush;
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-
-            return null;
+            return ColorHelper.TryParseColor(colorHex, out var color)
+                ? FrontedBrushCache.GetSolid(color)
+                : null;
         }
 
         private static void TryApplyBrush(string color, Action<Brush> apply)

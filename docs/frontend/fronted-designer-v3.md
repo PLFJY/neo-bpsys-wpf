@@ -222,3 +222,16 @@ Designer v3 内置 `Rectangle` 和 `Polygon`。两者共享 Shape 填充配置�
 ## 业务文本本地化
 
 `GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。默认是单行文本（`DisplayMode = Inline`）；正式预设包括单行、双行、横排局数、横排半场、竖排、竖排双行、竖排局数、竖排半场。`DisplayLanguage = FollowApp` 时按 `WPFLocalizeExtension` 的当前应用语言生成文本，中文应用语言下应显示中文局数和半场文案。`MapNameText` 默认把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名（地图 key 归属 `Locales.Game`），也可以通过 `BindingPath` 指向其他地图字段，例如当前对局的 picked / banned map 数据；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 经 `I18nHelper.GetLocalizedStringFromAnyHostDictionary` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
+
+## 渲染调度与派生缓存
+
+共享数据的高频变化（颜色选择器拖动、连续比分/进度更新）不能每次都在 UI 线程重复做全量渲染工作。当前运行时边界如下：
+
+- [FrontedRenderScheduler](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedRenderScheduler.cs) 以控件为键合并同一帧内的多次更新；没有应用 Dispatcher 时退化为同步执行，保证 Designer/测试不需要消息循环。
+- [FrontedRenderCache](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedRenderCache.cs) 是带条目数与字节预算的 LRU，供可复用的派生结果使用；值应为冻结后的 WPF Freezable。
+- [FrontedBrushCache](../../neo-bpsys-wpf.Core/Services/FrontedLayout/FrontedBrushCache.cs) 缓存冻结纯色画刷，形状填充、文本前景色与进度文本颜色绑定复用它；渐变与动画中间画刷不进入该缓存。
+- 背景局部染色（[BackgroundTintControlHost](../../neo-bpsys-wpf.Core/Services/FrontedLayout/BackgroundTintControlHost.cs)）首次渲染同步，之后在运行时宿主上使用后台 latest-wins 计算；控件不可见时只记录脏状态，恢复可见后补算。Designer 预览保持同步。
+- 染色缓存键只在 `BaseColorWithTexture` 模式下包含可见区域与多边形归一化信息；`Multiply` 与亮度模式的结果与区域无关，因此同源同色的不同区域和不同窗口可复用同一张整图结果（[BackgroundImageTintProcessor](../../neo-bpsys-wpf.Core/Services/FrontedLayout/BackgroundImageTintProcessor.cs)）。
+- 昂贵属性的动画按成本分级：`TintStrength`/`TextureStrength` 使用约 50ms 的量化关键帧，不再按 60fps 触发整图 CPU 重算；`TintColor` 动画仍一次性落到目标色，避免逐帧染色。
+
+新增组件时优先复用上述边界：绑定变化只更新轻量属性或标脏，昂贵产物走缓存/后台计算；不要为每次属性变化重建整个控件树。图片按显示尺寸解码、效果静态缓存与 WebRenderer 增量下发属于后续独立优化项，不在本契约内改变现有布局 JSON 或视觉默认值。

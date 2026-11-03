@@ -118,7 +118,7 @@ internal static class ShapeFillBrushFactory
         Color fallback,
         FrontedControlBuildContext context,
         string propertyName) =>
-        new(ParseColor(value, fallback, context, propertyName));
+        FrontedBrushCache.GetSolid(ParseColor(value, fallback, context, propertyName));
 
     private static Color ParseColor(
         string? value,
@@ -144,11 +144,11 @@ internal static class ShapeFillBrushFactory
         {
             if (ColorHelper.TryParseColor(value as string, out var color))
             {
-                return new SolidColorBrush(color);
+                return FrontedBrushCache.GetSolid(color);
             }
 
             logger?.LogWarning("Invalid bound shape fill color: {Value}", value);
-            return new SolidColorBrush(Colors.White);
+            return FrontedBrushCache.GetSolid(Colors.White);
         }
 
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

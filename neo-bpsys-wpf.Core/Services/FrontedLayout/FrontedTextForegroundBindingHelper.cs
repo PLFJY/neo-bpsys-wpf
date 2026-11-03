@@ -80,14 +80,14 @@ public static class FrontedTextForegroundBindingHelper
     {
         if (ColorHelper.TryParseColor(value, out var color))
         {
-            return new SolidColorBrush(color);
+            return FrontedBrushCache.GetSolid(color);
         }
 
         logger?.LogWarning(
             "Invalid text color. Property: {PropertyName}, Value: {Value}",
             propertyName,
             value);
-        return new SolidColorBrush(fallback);
+        return FrontedBrushCache.GetSolid(fallback);
     }
 
     private sealed class HexToBrushConverter(ILogger? logger) : IValueConverter
@@ -96,11 +96,11 @@ public static class FrontedTextForegroundBindingHelper
         {
             if (ColorHelper.TryParseColor(value as string, out var color))
             {
-                return new SolidColorBrush(color);
+                return FrontedBrushCache.GetSolid(color);
             }
 
             logger?.LogWarning("Invalid bound text foreground color: {Value}", value);
-            return parameter is Brush fallback ? fallback : new SolidColorBrush(Colors.White);
+            return parameter is Brush fallback ? fallback : FrontedBrushCache.GetSolid(Colors.White);
         }
 
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

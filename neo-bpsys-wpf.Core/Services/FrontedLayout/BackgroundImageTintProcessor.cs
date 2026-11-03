@@ -12,11 +12,9 @@ public class BackgroundImageTintProcessor
     private const int MaxCacheEntries = 32;
     /// <summary>染色缓存解码后像素字节上限。与 <see cref="MaxCacheEntries"/> 共同限制缓存规模，先触发的先驱逐。</summary>
     private const long MaxCacheBytes = 64L * 1024 * 1024;
-    private readonly object _cacheLock = new();
-    private readonly Dictionary<TintCacheKey, BitmapSource> _cache = [];
-    private readonly LinkedList<TintCacheKey> _cacheOrder = new();
-    private readonly Dictionary<TintCacheKey, LinkedListNode<TintCacheKey>> _cacheNodes = new();
-    private long _currentCacheBytes;
+
+    private readonly FrontedRenderCache<TintCacheKey, BitmapSource> _cache =
+        new(MaxCacheEntries, MaxCacheBytes, EstimateBitmapBytes);
 
     public BitmapSource? CreateTinted(
         ImageSource source,
@@ -67,38 +65,53 @@ public class BackgroundImageTintProcessor
             ? Math.Clamp(options.TextureStrength, 0D, 1D)
             : 0.45D;
         var normalization = NormalizeOptions(options, bitmap.PixelWidth, bitmap.PixelHeight);
-        var key = new TintCacheKey(
-            sourceKey ?? string.Empty,
-            tint.R,
-            tint.G,
-            tint.B,
-            mode,
-            strength,
-            textureStrength,
-            bitmap.PixelWidth,
-            bitmap.PixelHeight,
-            RuntimeHelpers.GetHashCode(bitmap),
-            normalization.Mode,
-            normalization.CanvasWidth,
-            normalization.CanvasHeight,
-            normalization.Region.X,
-            normalization.Region.Y,
-            normalization.Region.Width,
-            normalization.Region.Height,
-            normalization.PolygonHash);
-        lock (_cacheLock)
-        {
-            if (_cache.TryGetValue(key, out var cached))
-            {
-                // LRU: 命中时把条目移动到链表末尾（最近使用），保证稳定帧不会被中间动画帧驱逐。
-                if (_cacheNodes.TryGetValue(key, out var node))
-                {
-                    _cacheOrder.Remove(node);
-                    _cacheOrder.AddLast(node);
-                }
+        // 只有 BaseColorWithTexture 模式的输出依赖可见区域的局部平均亮度；其余模式逐像素计算，
+        // 与区域、Canvas 尺寸和归一化模式无关。缓存键忽略这些输入后，同源同色的不同染色区域
+        // （以及不同窗口中的同类控件）可以复用同一张整图染色结果。
+        var regionSensitive = mode == BackgroundTintMode.BaseColorWithTexture;
+        var key = regionSensitive
+            ? new TintCacheKey(
+                sourceKey ?? string.Empty,
+                tint.R,
+                tint.G,
+                tint.B,
+                mode,
+                strength,
+                textureStrength,
+                bitmap.PixelWidth,
+                bitmap.PixelHeight,
+                RuntimeHelpers.GetHashCode(bitmap),
+                normalization.Mode,
+                normalization.CanvasWidth,
+                normalization.CanvasHeight,
+                normalization.Region.X,
+                normalization.Region.Y,
+                normalization.Region.Width,
+                normalization.Region.Height,
+                normalization.PolygonHash)
+            : new TintCacheKey(
+                sourceKey ?? string.Empty,
+                tint.R,
+                tint.G,
+                tint.B,
+                mode,
+                strength,
+                0D,
+                bitmap.PixelWidth,
+                bitmap.PixelHeight,
+                RuntimeHelpers.GetHashCode(bitmap),
+                BackgroundTintNormalizationMode.WholeImage,
+                bitmap.PixelWidth,
+                bitmap.PixelHeight,
+                0D,
+                0D,
+                0D,
+                0D,
+                0);
 
-                return cached;
-            }
+        if (_cache.TryGet(key, out var cached))
+        {
+            return cached;
         }
 
         var converted = bitmap.Format == PixelFormats.Bgra32
@@ -161,7 +174,7 @@ public class BackgroundImageTintProcessor
             pixels,
             stride);
         result.Freeze();
-        Cache(key, result);
+        _cache.Set(key, result);
         return result;
     }
 
@@ -194,85 +207,18 @@ public class BackgroundImageTintProcessor
         }
     }
 
-    private void Cache(TintCacheKey key, BitmapSource value)
-    {
-        lock (_cacheLock)
-        {
-            if (_cache.TryGetValue(key, out var existing))
-            {
-                // 已存在的条目被覆盖：先扣除旧值字节数，再更新 LRU 位置。
-                _currentCacheBytes -= EstimateBitmapBytes(existing);
-                _cache[key] = value;
-                _currentCacheBytes += EstimateBitmapBytes(value);
-                if (_cacheNodes.TryGetValue(key, out var node))
-                {
-                    _cacheOrder.Remove(node);
-                    _cacheOrder.AddLast(node);
-                }
-            }
-            else
-            {
-                _cache[key] = value;
-                _currentCacheBytes += EstimateBitmapBytes(value);
-                var node = _cacheOrder.AddLast(key);
-                _cacheNodes[key] = node;
-            }
-
-            // 双限制驱逐：条目数或字节预算任一超限，从链表头部（最久未使用）开始驱逐。
-            while ((_cache.Count > MaxCacheEntries || _currentCacheBytes > MaxCacheBytes)
-                   && _cacheOrder.First is { } firstNode)
-            {
-                var oldestKey = firstNode.Value;
-                var oldestBitmap = _cache[oldestKey];
-                _currentCacheBytes -= EstimateBitmapBytes(oldestBitmap);
-                _cache.Remove(oldestKey);
-                _cacheNodes.Remove(oldestKey);
-                _cacheOrder.RemoveFirst();
-            }
-
-            // 字节估算可能因 PixelFormat 差异产生小量偏差，防止长期漂移导致负数。
-            if (_currentCacheBytes < 0)
-            {
-                _currentCacheBytes = 0;
-            }
-        }
-    }
-
     /// <summary>获取当前染色缓存条目数。仅供诊断使用，不改变生产生命周期。</summary>
     /// <returns>当前缓存中的条目数量。</returns>
-    /// <remarks>该属性在已有锁下读取，不会反向持有任何缓存对象。</remarks>
-    internal int CachedEntryCount
-    {
-        get
-        {
-            lock (_cacheLock)
-            {
-                return _cache.Count;
-            }
-        }
-    }
+    /// <remarks>该属性线程安全，不会反向持有任何缓存对象。</remarks>
+    internal int CachedEntryCount => _cache.Count;
 
     /// <summary>估算当前染色缓存占用的解码字节数。仅供诊断使用。</summary>
     /// <returns>缓存中所有染色位图的像素字节总和；无法识别格式的条目按 0 计算。</returns>
     /// <remarks>
     /// 估算公式为 <c>PixelWidth * PixelHeight * ceil(BitsPerPixel / 8)</c>。
-    /// 该属性在已有锁下读取，使用 <see cref="long"/> 避免溢出，不改变生产生命周期。
+    /// 该属性线程安全，使用 <see cref="long"/> 避免溢出，不改变生产生命周期。
     /// </remarks>
-    internal long EstimatedCachedBytes
-    {
-        get
-        {
-            lock (_cacheLock)
-            {
-                long total = 0;
-                foreach (var bitmap in _cache.Values)
-                {
-                    total += EstimateBitmapBytes(bitmap);
-                }
-                return total;
-            }
-        }
-    }
+    internal long EstimatedCachedBytes => _cache.EstimatedBytes;
 
     private static long EstimateBitmapBytes(BitmapSource? bitmap)
     {
