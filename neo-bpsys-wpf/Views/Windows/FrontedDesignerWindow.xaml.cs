@@ -62,6 +62,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly Dictionary<int, FrameworkElement> _polygonVertexHandles = new();
     private readonly List<Line> _snapGuideLines = [];
     private readonly List<Border> _multiSelectionOutlines = [];
+    private readonly List<Border> _multiSelectionOutlinePool = [];
     private readonly Dictionary<FrontedControlDesignItem, Border> _marqueeSelectionPreviewOutlines = [];
     private readonly Dictionary<FrontedControlDesignItem, long> _marqueeSelectionEntryOrders = [];
     private readonly Dictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> _originalSelectedBounds = new();

@@ -919,13 +919,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return false;
             }
 
-            var selected = GetSelectedOperationDesignItems();
-            return selected.Count > 0
-                   && selected.All(item => item.IsSelectableInEditor && item.IsEditableInEditor);
+            if (SelectedDesignItems.Count > 0)
+            {
+                return SelectedDesignItems.All(item => item.IsSelectableInEditor && item.IsEditableInEditor);
+            }
+
+            return SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
         }
     }
 
-    public bool CanCopySelectedControl => GetSelectedCopyableDesignItems().Count > 0;
+    public bool CanCopySelectedControl
+    {
+        get
+        {
+            if (SelectedDesignItems.Count > 0)
+            {
+                return SelectedDesignItems.Any(CanCopyControl);
+            }
+
+            return CanCopyControl(SelectedDesignItem);
+        }
+    }
 
     public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 

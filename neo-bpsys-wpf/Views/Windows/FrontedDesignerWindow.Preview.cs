@@ -167,7 +167,9 @@ public partial class FrontedDesignerWindow
         }
 
         PreviewCanvas.UpdateLayout();
-        RebuildInteractionLayer();
+        // 选择集合变更时 View 已重建交互层；这里只同步当前选中项的装饰器，
+        // 避免每次属性刷新都重新遍历全部控件 hitbox。
+        UpdateSelectedInteractionVisuals();
         UpdateSelectedPreviewElement();
         _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
     }
@@ -317,6 +319,8 @@ public partial class FrontedDesignerWindow
         _hitboxes.Clear();
         _resizeHandles.Clear();
         _polygonVertexHandles.Clear();
+        _multiSelectionOutlines.Clear();
+        _multiSelectionOutlinePool.Clear();
         _selectionOutline = null;
         _parentSelectionOutline = null;
         _selectionLabel = null;

@@ -126,6 +126,49 @@ public partial class FrontedDesignerWindowViewModel
         NotifyUndoRedoCommands();
     }
 
+    /// <summary>
+    /// 为批量删除捕获轻量结构快照；仅当被删控件没有行为状态且数量较大时使用，
+    /// 避免删除大量普通控件时同步序列化整份布局与行为文档。
+    /// </summary>
+    /// <param name="items">即将删除的控件。</param>
+    public void CaptureDeleteUndoSnapshot(IReadOnlyList<FrontedControlDesignItem> items)
+    {
+        if (CurrentDocument is null || items.Count < 8)
+        {
+            CaptureUndoSnapshot();
+            return;
+        }
+
+        var behaviorGuids = items
+            .Select(item => item.Config.BehaviorGuid)
+            .Where(guid => guid != Guid.Empty)
+            .ToHashSet();
+        var behaviorDocument = BehaviorPanel.CurrentDocument;
+        if (behaviorGuids.Count > 0
+            && behaviorDocument.ControlBehaviorSets.Any(set => behaviorGuids.Contains(set.BehaviorGuid)))
+        {
+            CaptureUndoSnapshot();
+            return;
+        }
+
+        var indices = new int[items.Count];
+        for (var index = 0; index < items.Count; index++)
+        {
+            var documentIndex = CurrentDocument.Controls.IndexOf(items[index]);
+            if (documentIndex < 0)
+            {
+                CaptureUndoSnapshot();
+                return;
+            }
+
+            indices[index] = documentIndex;
+        }
+
+        PushUndoSnapshot(new ControlsPresenceHistorySnapshot(items.ToArray(), indices, RestoreItems: true));
+        _redoStack.Clear();
+        NotifyUndoRedoCommands();
+    }
+
     private static void PushLimited(Stack<DesignerHistorySnapshot> stack, DesignerHistorySnapshot snapshot)
     {
         stack.Push(snapshot);
@@ -156,6 +199,7 @@ public partial class FrontedDesignerWindowViewModel
     private static long EstimateSnapshotBytes(DesignerHistorySnapshot snapshot) => snapshot switch
     {
         DocumentHistorySnapshot document => document.Json.LongLength,
+        ControlsPresenceHistorySnapshot presence => 8L * presence.Items.Length,
         GeometryHistorySnapshot geometry => 64L * geometry.Items.Length,
         LayerOrderSnapshot order => 16L * order.Order.Length,
         _ => 0
@@ -187,6 +231,14 @@ public partial class FrontedDesignerWindowViewModel
     private abstract record DesignerHistorySnapshot;
 
     private sealed record DocumentHistorySnapshot(byte[] Json) : DesignerHistorySnapshot;
+
+    /// <summary>
+    /// 仅记录被删除/恢复控件引用和原位置的轻量结构快照，避免大选择删除时序列化整份文档。
+    /// </summary>
+    private sealed record ControlsPresenceHistorySnapshot(
+        FrontedControlDesignItem[] Items,
+        int[] Indices,
+        bool RestoreItems) : DesignerHistorySnapshot;
 
     private readonly record struct ItemGeometrySnapshot(string Name, double Left, double Top, double? Width, double? Height);
 
@@ -230,6 +282,66 @@ public partial class FrontedDesignerWindowViewModel
         var config = _designConverter.ToConfig(CurrentDocument);
         return state == FrontedCanvasBoModeState.Bo3
             ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls : config.Controls;
+    }
+
+    private void RestoreControlsPresenceSnapshot(ControlsPresenceHistorySnapshot snapshot)
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        if (snapshot.RestoreItems)
+        {
+            var existing = CurrentDocument.Controls.ToHashSet();
+            var restoredItems = new List<FrontedControlDesignItem>(snapshot.Items.Length);
+            foreach (var (item, index) in snapshot.Items
+                         .Select((item, index) => (item, index))
+                         .OrderBy(entry => entry.index))
+            {
+                if (existing.Contains(item))
+                {
+                    continue;
+                }
+
+                CurrentDocument.Controls.Insert(Math.Clamp(index, 0, CurrentDocument.Controls.Count), item);
+                existing.Add(item);
+                restoredItems.Add(item);
+            }
+
+            CurrentDocument.IsDirty = true;
+            RefreshDirtyState();
+            if (restoredItems.Count > 0)
+            {
+                AddFilteredDesignItems(restoredItems);
+                SelectDesignItems(restoredItems, restoredItems[^1]);
+                ScheduleValidationOnly("UndoDelete");
+                RequestControlsChanged(restoredItems, []);
+            }
+        }
+        else
+        {
+            var removedSet = snapshot.Items.ToHashSet();
+            var removedItems = CurrentDocument.Controls.Where(removedSet.Contains).ToArray();
+            if (removedItems.Length > 0)
+            {
+                var remainingItems = CurrentDocument.Controls.Where(item => !removedSet.Contains(item)).ToArray();
+                CurrentDocument.Controls.Clear();
+                foreach (var remainingItem in remainingItems)
+                {
+                    CurrentDocument.Controls.Add(remainingItem);
+                }
+
+                CurrentDocument.IsDirty = true;
+                RefreshDirtyState();
+                SelectDesignItem(null);
+                RemoveFilteredDesignItems(removedItems);
+                ScheduleValidationOnly("RedoDelete");
+                RequestControlsChanged([], removedItems);
+            }
+        }
+
+        NotifyUndoRedoCommands();
     }
 
     private void RestoreGeometrySnapshot(GeometryHistorySnapshot snapshot)
@@ -288,6 +400,11 @@ public partial class FrontedDesignerWindowViewModel
 
     private DesignerHistorySnapshot? CreateInverseSnapshot(DesignerHistorySnapshot snapshot)
     {
+        if (snapshot is ControlsPresenceHistorySnapshot presence)
+        {
+            return presence with { RestoreItems = !presence.RestoreItems };
+        }
+
         if (snapshot is GeometryHistorySnapshot geometry)
             return CreateGeometrySnapshot(geometry.Items.Select(item => item.Name), geometry.EditingState);
         if (snapshot is not LayerOrderSnapshot layerOrder) return CreateSnapshot();
@@ -451,6 +568,12 @@ public partial class FrontedDesignerWindowViewModel
         if (snapshot is LayerOrderSnapshot layerOrder)
         {
             RestoreLayerOrderSnapshot(layerOrder);
+            return;
+        }
+
+        if (snapshot is ControlsPresenceHistorySnapshot presence)
+        {
+            RestoreControlsPresenceSnapshot(presence);
             return;
         }
 

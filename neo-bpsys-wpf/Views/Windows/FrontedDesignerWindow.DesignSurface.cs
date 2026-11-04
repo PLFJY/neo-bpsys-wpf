@@ -60,6 +60,7 @@ public partial class FrontedDesignerWindow
         }
         _snapGuideLines.Clear();
         _resizeHandles.Clear();
+        _multiSelectionOutlinePool.AddRange(_multiSelectionOutlines);
         _multiSelectionOutlines.Clear();
         _marqueeSelectionPreviewOutlines.Clear();
         _marqueeSelectionEntryOrders.Clear();
@@ -123,6 +124,7 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        var multiSelectionBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue;
         foreach (var item in _viewModel.SelectedDesignItems)
         {
             if (ReferenceEquals(item, _viewModel.SelectedDesignItem))
@@ -130,7 +132,7 @@ public partial class FrontedDesignerWindow
                 continue;
             }
 
-            AddMultiSelectionOutline(item);
+            AddMultiSelectionOutline(item, multiSelectionBrush);
         }
 
         if (_viewModel.SelectedDesignItem is not null)
@@ -139,18 +141,29 @@ public partial class FrontedDesignerWindow
         }
     }
 
-    private void AddMultiSelectionOutline(FrontedControlDesignItem item)
+    private void AddMultiSelectionOutline(FrontedControlDesignItem item, Brush borderBrush)
     {
         var bounds = ResolveItemBounds(item);
-        var outline = new Border
+        Border outline;
+        if (_multiSelectionOutlinePool.Count > 0)
         {
-            Width = bounds.Width,
-            Height = bounds.Height,
-            BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
-            BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
-            Opacity = 0.65D,
-            IsHitTestVisible = false
-        };
+            outline = _multiSelectionOutlinePool[^1];
+            _multiSelectionOutlinePool.RemoveAt(_multiSelectionOutlinePool.Count - 1);
+            outline.BorderBrush = borderBrush;
+        }
+        else
+        {
+            outline = new Border
+            {
+                BorderBrush = borderBrush,
+                BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
+                Opacity = 0.65D,
+                IsHitTestVisible = false
+            };
+        }
+
+        outline.Width = bounds.Width;
+        outline.Height = bounds.Height;
         Canvas.SetLeft(outline, bounds.Left);
         Canvas.SetTop(outline, bounds.Top);
         Panel.SetZIndex(outline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex - 1);

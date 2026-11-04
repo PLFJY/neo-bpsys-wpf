@@ -709,6 +709,62 @@ public partial class FrontedDesignerWindowViewModel
         }
     }
 
+    /// <summary>
+    /// 批量增量加入筛选/图层节点，避免多选粘贴时重建整个图层面板。
+    /// </summary>
+    private void AddFilteredDesignItems(IReadOnlyList<FrontedControlDesignItem> items)
+    {
+        var filter = ControlFilterText?.Trim();
+        foreach (var item in items)
+        {
+            if (!item.IsSelectableInEditor || !MatchesControlFilter(item, filter))
+            {
+                continue;
+            }
+
+            FilteredDesignItems.Insert(GetFilteredInsertIndex(item), item);
+            InsertLayerNode(item);
+        }
+
+        RefreshLayerNodeSelection();
+    }
+
+    /// <summary>
+    /// 批量增量移除筛选/图层节点，避免多选删除时重建整个图层面板。
+    /// </summary>
+    private void RemoveFilteredDesignItems(IReadOnlyList<FrontedControlDesignItem> items)
+    {
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        var removedSet = items.ToHashSet();
+        var remainingItems = FilteredDesignItems.Where(item => !removedSet.Contains(item)).ToArray();
+        FilteredDesignItems.Clear();
+        foreach (var remainingItem in remainingItems)
+        {
+            FilteredDesignItems.Add(remainingItem);
+        }
+
+        foreach (var group in LayerGroups.ToArray())
+        {
+            foreach (var node in group.Items
+                         .Where(node => node.ControlItem is not null && removedSet.Contains(node.ControlItem))
+                         .ToArray())
+            {
+                group.Items.Remove(node);
+            }
+
+            if (group.Items.Count == 0)
+            {
+                LayerGroups.Remove(group);
+            }
+        }
+
+        RefreshLayerNodeSelection();
+    }
+
     private void RefreshFilteredDesignItemPosition(FrontedControlDesignItem item)
     {
         RemoveFilteredDesignItem(item);
@@ -718,6 +774,10 @@ public partial class FrontedDesignerWindowViewModel
     private void RebuildLayerGroups()
     {
         LayerGroups.Clear();
+        var documentOrder = CurrentDocument?.Controls
+            .Select((item, index) => (item, index))
+            .ToDictionary(pair => pair.item, pair => pair.index)
+            ?? [];
         foreach (var group in FilteredDesignItems
                      .GroupBy(item => item.Config.ZIndex)
                      .OrderByDescending(group => group.Key))
@@ -728,7 +788,7 @@ public partial class FrontedDesignerWindowViewModel
                 DisplayName = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Layer")} {group.Key}"
             };
 
-            foreach (var item in group.OrderBy(item => CurrentDocument?.Controls.IndexOf(item) ?? 0))
+            foreach (var item in group.OrderBy(item => documentOrder.GetValueOrDefault(item)))
             {
                 layerGroup.Items.Add(CreateControlLayerNode(item));
             }
@@ -870,9 +930,10 @@ public partial class FrontedDesignerWindowViewModel
     private void RefreshLayerNodeSelection()
     {
         DesignerLayerNode? selectedNode = null;
+        var selectedItems = SelectedDesignItems.ToHashSet();
         foreach (var node in LayerGroups.SelectMany(group => group.Items))
         {
-            var isSelected = IsSelectedLayerNode(node);
+            var isSelected = IsSelectedLayerNode(node, selectedItems);
             node.IsSelected = isSelected;
             if (isSelected && selectedNode is null)
             {
@@ -881,7 +942,7 @@ public partial class FrontedDesignerWindowViewModel
 
             foreach (var child in node.Children)
             {
-                var childSelected = IsSelectedLayerNode(child);
+                var childSelected = IsSelectedLayerNode(child, selectedItems);
                 child.IsSelected = childSelected;
                 if (childSelected && selectedNode is null)
                 {
@@ -893,11 +954,13 @@ public partial class FrontedDesignerWindowViewModel
         SelectedLayerNode = selectedNode;
     }
 
-    private bool IsSelectedLayerNode(DesignerLayerNode node)
+    private bool IsSelectedLayerNode(
+        DesignerLayerNode node,
+        IReadOnlySet<FrontedControlDesignItem> selectedItems)
     {
         return node.Kind switch
         {
-            DesignerLayerNodeKind.Control => node.ControlItem is not null && SelectedDesignItems.Contains(node.ControlItem),
+            DesignerLayerNodeKind.Control => node.ControlItem is not null && selectedItems.Contains(node.ControlItem),
             DesignerLayerNodeKind.Part => _selectedTarget is { Kind: FrontedV3DesignSelectionKind.FixedPart } target
                 && ReferenceEquals(target.DesignItem, node.ControlItem)
                 && target.SubTarget is FrontedV3FixedPartTarget partTarget
@@ -962,8 +1025,9 @@ public partial class FrontedDesignerWindowViewModel
             SelectedDesignItem = null;
         }
 
+        var documentItems = CurrentDocument.Controls.ToHashSet();
         var retainedSelection = SelectedDesignItems
-            .Where(item => CurrentDocument.Controls.Contains(item))
+            .Where(documentItems.Contains)
             .Distinct()
             .ToList();
         if (SelectedDesignItem is not null && !retainedSelection.Contains(SelectedDesignItem))
@@ -977,9 +1041,10 @@ public partial class FrontedDesignerWindowViewModel
             SelectedDesignItems.Add(item);
         }
 
+        var retainedSet = retainedSelection.ToHashSet();
         foreach (var control in CurrentDocument.Controls)
         {
-            control.IsSelected = SelectedDesignItems.Contains(control);
+            control.IsSelected = retainedSet.Contains(control);
             if (control.IsSelected)
             {
                 _lastSelectedDesignItem = control;

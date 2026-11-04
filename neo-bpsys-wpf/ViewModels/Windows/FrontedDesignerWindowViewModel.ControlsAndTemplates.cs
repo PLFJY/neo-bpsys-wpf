@@ -201,8 +201,8 @@ public partial class FrontedDesignerWindowViewModel
         }
         else
         {
-            // 多项粘贴只重建一次筛选/图层列表，避免每个控件都触发一次 LayerGroups 重建。
-            RebuildFilteredDesignItems();
+            // 多项粘贴只增量更新筛选/图层节点，避免重建整个图层面板。
+            AddFilteredDesignItems(pastedItems);
         }
 
         LogDesignerPerf("Paste", "filtered list update", Elapsed(total));
@@ -253,12 +253,30 @@ public partial class FrontedDesignerWindowViewModel
 
         var total = StartDesignerPerfTrace();
         LogDesignerPerf("Delete", "start");
-        CaptureUndoSnapshot();
+        CaptureDeleteUndoSnapshot(selectedItems);
         LogDesignerPerf("Delete", "undo snapshot capture", Elapsed(total));
+
+        if (selectedItems.Count == 1)
+        {
+            CurrentDocument.Controls.Remove(selectedItems[0]);
+        }
+        else
+        {
+            // 大量多选删除避免 ObservableCollection.Remove 的逐项线性查找与移位：
+            // 先一次筛选剩余项，再原地 Clear/Add，保持集合实例不变。
+            var selectedSet = selectedItems.ToHashSet();
+            var remainingItems = CurrentDocument.Controls
+                .Where(item => !selectedSet.Contains(item))
+                .ToArray();
+            CurrentDocument.Controls.Clear();
+            foreach (var remainingItem in remainingItems)
+            {
+                CurrentDocument.Controls.Add(remainingItem);
+            }
+        }
 
         foreach (var item in selectedItems)
         {
-            CurrentDocument.Controls.Remove(item);
             if (item.Config.BehaviorGuid != Guid.Empty)
             {
                 BehaviorPanel.RemoveBehaviors(item.Config.BehaviorGuid);
@@ -276,8 +294,8 @@ public partial class FrontedDesignerWindowViewModel
         }
         else
         {
-            // 多项删除只重建一次筛选/图层列表。
-            RebuildFilteredDesignItems();
+            // 多项删除只增量移除图层节点，不再重建整个图层面板。
+            RemoveFilteredDesignItems(selectedItems);
         }
 
         LogDesignerPerf("Delete", "filtered list update", Elapsed(total));
