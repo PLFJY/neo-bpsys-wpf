@@ -23,8 +23,8 @@ public class SnackbarService(ILogger<SnackbarService> logger) : ISnackbarService
     /// <param name="contentPresenter"><see cref="SnackbarPresenter"/>控件</param>
     public void SetSnackbarPresenter(SnackbarPresenter contentPresenter)
     {
+        ArgumentNullException.ThrowIfNull(contentPresenter);
         _presenter = contentPresenter;
-
     }
 
     /// <summary>
@@ -50,6 +50,12 @@ public class SnackbarService(ILogger<SnackbarService> logger) : ISnackbarService
             _logger.LogError("SnackbarPresenter was never set before Show() was called.");
             throw new InvalidOperationException("The SnackbarPresenter was never set");
         }
+
+        if (timeout < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeout), timeout, "Snackbar timeout cannot be negative.");
+        }
+
         _snackbar ??= new Snackbar(_presenter);
         _snackbar.SetCurrentValue(Snackbar.TitleProperty, (object)title);
         _snackbar.SetCurrentValue(ContentControl.ContentProperty, (object)content);

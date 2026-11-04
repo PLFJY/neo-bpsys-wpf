@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Core.Models;
 
@@ -24,5 +24,13 @@ public abstract class PluginBase
     /// <summary>
     /// 当前插件的信息
     /// </summary>
-    public PluginInfo Info { get; set; } = null!;
+    /// <exception cref="ArgumentNullException">尝试将信息设置为 <see langword="null"/>。</exception>
+    /// <exception cref="InvalidOperationException">宿主尚未设置插件信息时读取。</exception>
+    public PluginInfo Info
+    {
+        get => _info ?? throw new InvalidOperationException("PluginInfo has not been assigned by the host.");
+        set => _info = value ?? throw new ArgumentNullException(nameof(value));
+    }
+
+    private PluginInfo? _info;
 }

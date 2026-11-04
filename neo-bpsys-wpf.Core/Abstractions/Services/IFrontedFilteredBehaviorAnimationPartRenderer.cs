@@ -1,4 +1,6 @@
-using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+﻿using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using System;
+using System.Collections.Generic;
 using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
@@ -9,6 +11,7 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <remarks>
 /// 用于局部刷新单个控件时避免遍历并重建全部动画部件；不支持该能力时调用方回退
 /// <see cref="IFrontedBehaviorAnimationPartRenderer.ApplyAnimationParts(FrameworkElement, FrontedBehaviorDocument)"/>。
+/// 实现必须在拥有 <c>root</c> 的 UI Dispatcher 线程调用，并校验根元素与行为文档非空。
 /// </remarks>
 public interface IFrontedFilteredBehaviorAnimationPartRenderer
 {

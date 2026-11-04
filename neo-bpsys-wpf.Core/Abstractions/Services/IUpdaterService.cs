@@ -1,4 +1,4 @@
-﻿using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -44,10 +44,10 @@ public interface IUpdaterService
     /// </summary>
     bool IsFindPreRelease { get; set; }
     /// <summary>
-    /// 检查更新
+    /// 下载当前可用更新安装包。
     /// </summary>
-    /// <param name="mirror">ghproxy镜像链接</param>
-    /// <returns>异步任务</returns>
+    /// <param name="mirror">可选的 ghproxy 镜像地址；为空时使用设置中的镜像。</param>
+    /// <returns>异步任务。</returns>
     Task DownloadUpdate(string mirror = "");
     /// <summary>
     /// 取消当前更新下载。

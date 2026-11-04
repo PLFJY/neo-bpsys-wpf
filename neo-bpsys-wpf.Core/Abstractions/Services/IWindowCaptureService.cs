@@ -8,12 +8,17 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <summary>
 /// 窗口捕获服务
 /// </summary>
+/// <remarks>
+/// 该服务面向 Windows/WPF 运行时设计。实现应持有并释放非托管捕获资源，并在
+/// <see cref="GetCurrentFrame"/> 返回前对帧调用 <c>Freeze()</c>，确保帧可跨 Dispatcher 线程读取。
+/// 调用方仍应在不再使用该服务时释放宿主（实现通常同时实现 <see cref="IDisposable"/>）。
+/// </remarks>
 public interface IWindowCaptureService
 {
     /// <summary>
     /// 获取当前可用于捕获的窗口列表。
     /// </summary>
-    /// <returns>窗口信息列表。</returns>
+    /// <returns>窗口信息列表；由实现返回独立快照。</returns>
     List<WindowInfo> ListActiveWindows();
 
     /// <summary>

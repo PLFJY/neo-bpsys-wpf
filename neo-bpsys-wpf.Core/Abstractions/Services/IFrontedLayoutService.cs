@@ -14,7 +14,7 @@ public interface IFrontedLayoutService
     /// <param name="cancellationToken">取消令牌。</param>
     /// <returns>
     /// 加载的配置。当激活包、内置资源均缺失或损坏时返回内存空模板，永不返回 <see langword="null"/>。
-    /// 当 JSON 反序列化结果为 <c>null</c> 时视为损坏，抛出 <see cref="System.IO.InvalidDataException"/>。
+    /// 取消操作会抛出 <see cref="OperationCanceledException"/>。
     /// </returns>
     Task<FrontedWindowConfig> LoadWindowConfigAsync(
         string canonicalWindowId,
