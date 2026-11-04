@@ -51,7 +51,7 @@ public partial class FrontedDesignerWindow
             || (e.Added.Count == 0 && e.Removed.Count == 0)
             || e.Config is not { } config
             || _lastPreviewRenderArgs is not { Context: { } context }
-            || _renderer is not FrontedRenderer renderer)
+            || _renderer is not IFrontedIncrementalRenderer renderer)
         {
             RequestFullPreviewFallback();
             return;
@@ -61,28 +61,31 @@ public partial class FrontedDesignerWindow
         var needsFallback = false;
         try
         {
-            foreach (var item in e.Removed)
+            if (e.Removed.Count > 0)
             {
-                if (renderer.RemoveControl(PreviewCanvas, item.Name))
-                {
-                    changed = true;
-                }
-                else
+                var removedNames = e.Removed.Select(item => item.Name).Distinct(StringComparer.Ordinal).ToArray();
+                if (renderer.RemoveControls(PreviewCanvas, removedNames) != removedNames.Length)
                 {
                     // 控件未在预览树中找到时无法确认视觉已清除，回退完整渲染。
                     needsFallback = true;
                 }
+                else
+                {
+                    changed = true;
+                }
             }
 
-            foreach (var item in e.Added)
+            if (!needsFallback && e.Added.Count > 0)
             {
-                if (!renderer.AddControl(PreviewCanvas, config, context, item.Name))
+                var addedNames = e.Added.Select(item => item.Name).Distinct(StringComparer.Ordinal).ToArray();
+                if (renderer.AddControls(PreviewCanvas, config, context, addedNames) != addedNames.Length)
                 {
                     needsFallback = true;
-                    break;
                 }
-
-                changed = true;
+                else
+                {
+                    changed = true;
+                }
             }
         }
         catch (Exception ex)
@@ -102,7 +105,8 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        CompleteIncrementalPreviewUpdate();
+        // 新增/删除只影响对应控件 host；现有其他控件动画部件无需重新应用。
+        CompleteIncrementalPreviewUpdate(applyAnimationParts: false);
     }
 
     private void OnControlRefreshRequested(
@@ -113,27 +117,18 @@ public partial class FrontedDesignerWindow
             || e.Controls.Count == 0
             || e.Config is not { } config
             || _lastPreviewRenderArgs is not { Context: { } context }
-            || _renderer is not FrontedRenderer renderer)
+            || _renderer is not IFrontedIncrementalRenderer renderer)
         {
             RequestFullPreviewFallback();
             return;
         }
 
-        var refreshed = false;
         var refreshFailed = false;
         try
         {
-            foreach (var item in e.Controls)
-            {
-                if (renderer.RefreshControl(PreviewCanvas, config, context, item.Name))
-                {
-                    refreshed = true;
-                }
-                else
-                {
-                    refreshFailed = true;
-                }
-            }
+            var names = e.Controls.Select(item => item.Name).Distinct(StringComparer.Ordinal).ToArray();
+            var refreshedCount = renderer.RefreshControls(PreviewCanvas, config, context, names);
+            refreshFailed = refreshedCount != names.Length;
         }
         catch (Exception ex)
         {
@@ -141,21 +136,34 @@ public partial class FrontedDesignerWindow
             refreshFailed = true;
         }
 
-        if (refreshFailed || !refreshed)
+        if (refreshFailed)
         {
             RequestFullPreviewFallback();
             return;
         }
 
-        CompleteIncrementalPreviewUpdate();
+        var behaviorGuids = e.Controls
+            .Select(item => item.Config.BehaviorGuid)
+            .Where(guid => guid != Guid.Empty)
+            .ToHashSet();
+        CompleteIncrementalPreviewUpdate(behaviorGuids);
     }
 
-    private void CompleteIncrementalPreviewUpdate()
+    private void CompleteIncrementalPreviewUpdate(
+        IReadOnlySet<Guid>? behaviorGuids = null,
+        bool applyAnimationParts = true)
     {
         PopulatePreviewElementRegistry();
-        if (_viewModel?.BehaviorPanel.CurrentDocument is { } behaviorDocument)
+        if (applyAnimationParts && _viewModel?.BehaviorPanel.CurrentDocument is { } behaviorDocument)
         {
-            _animationPartRenderer?.ApplyAnimationParts(PreviewCanvas, behaviorDocument);
+            if (_animationPartRenderer is IFrontedFilteredBehaviorAnimationPartRenderer concreteRenderer)
+            {
+                concreteRenderer.ApplyAnimationParts(PreviewCanvas, behaviorDocument, behaviorGuids);
+            }
+            else
+            {
+                _animationPartRenderer?.ApplyAnimationParts(PreviewCanvas, behaviorDocument);
+            }
         }
 
         PreviewCanvas.UpdateLayout();

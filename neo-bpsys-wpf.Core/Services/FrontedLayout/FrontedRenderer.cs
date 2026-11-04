@@ -18,7 +18,7 @@ public class FrontedRenderer(
     ISharedDataService sharedDataService,
     IFrontedResourceResolver resourceResolver,
     IFrontedV3ControlRegistry v3ControlRegistry,
-    ILogger<FrontedRenderer> logger) : IFrontedRenderer
+    ILogger<FrontedRenderer> logger) : IFrontedRenderer, IFrontedIncrementalRenderer
 {
     internal const string MissingPluginPlaceholderTitle = "Missing Plugin";
 
@@ -101,12 +101,59 @@ public class FrontedRenderer(
             config,
             context.SharedDataServiceOverride ?? sharedDataService,
             logger);
-        if (!runtimeState.Controls.TryGetValue(controlName, out var controlConfig))
+        var buildContext = CreateBuildContext(runtimeState, context);
+        return RefreshControlCore(canvas, runtimeState, buildContext, context, controlName);
+    }
+
+    /// <summary>
+    /// 批量刷新指定控件的预览视觉，只解析一次画布运行时状态。
+    /// </summary>
+    /// <param name="canvas">目标 Canvas。</param>
+    /// <param name="config">当前画布配置。</param>
+    /// <param name="context">渲染上下文。</param>
+    /// <param name="controlNames">要刷新的控件名集合。</param>
+    /// <returns>成功刷新的控件数量。</returns>
+    public int RefreshControls(
+        Canvas canvas,
+        FrontedCanvasConfig config,
+        FrontedRenderContext context,
+        IEnumerable<string> controlNames)
+    {
+        ArgumentNullException.ThrowIfNull(canvas);
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(controlNames);
+
+        var runtimeState = FrontedCanvasRuntimeStateResolver.Resolve(
+            config,
+            context.SharedDataServiceOverride ?? sharedDataService,
+            logger);
+        var buildContext = CreateBuildContext(runtimeState, context);
+        var refreshedCount = 0;
+        foreach (var controlName in controlNames.Distinct(StringComparer.Ordinal))
+        {
+            if (RefreshControlCore(canvas, runtimeState, buildContext, context, controlName))
+            {
+                refreshedCount++;
+            }
+        }
+
+        return refreshedCount;
+    }
+
+    private bool RefreshControlCore(
+        Canvas canvas,
+        FrontedCanvasRuntimeState runtimeState,
+        FrontedControlBuildContext buildContext,
+        FrontedRenderContext context,
+        string controlName)
+    {
+        if (string.IsNullOrWhiteSpace(controlName)
+            || !runtimeState.Controls.TryGetValue(controlName, out var controlConfig))
         {
             return false;
         }
 
-        var buildContext = CreateBuildContext(runtimeState, context);
         var existing = FindGeneratedElement(canvas, controlName);
         var insertionIndex = canvas.Children.Count;
         if (existing is not null)
@@ -160,12 +207,67 @@ public class FrontedRenderer(
             config,
             context.SharedDataServiceOverride ?? sharedDataService,
             logger);
-        if (!runtimeState.Controls.TryGetValue(controlName, out var controlConfig))
+        var buildContext = CreateBuildContext(runtimeState, context);
+        return AddControlCore(canvas, runtimeState, buildContext, context, controlName);
+    }
+
+    /// <summary>
+    /// 批量向现有预览 Canvas 增量添加控件，只解析一次画布运行时状态。
+    /// </summary>
+    /// <param name="canvas">目标 Canvas。</param>
+    /// <param name="config">当前画布配置。</param>
+    /// <param name="context">渲染上下文。</param>
+    /// <param name="controlNames">要添加的控件名集合。</param>
+    /// <returns>成功添加/刷新的控件数量。</returns>
+    public int AddControls(
+        Canvas canvas,
+        FrontedCanvasConfig config,
+        FrontedRenderContext context,
+        IEnumerable<string> controlNames)
+    {
+        ArgumentNullException.ThrowIfNull(canvas);
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(controlNames);
+
+        var runtimeState = FrontedCanvasRuntimeStateResolver.Resolve(
+            config,
+            context.SharedDataServiceOverride ?? sharedDataService,
+            logger);
+        var buildContext = CreateBuildContext(runtimeState, context);
+        var knownOrderedNames = runtimeState.Controls
+            .OrderBy(pair => pair.Value.ZIndex)
+            .Select(pair => pair.Key)
+            .ToList();
+        var addedCount = 0;
+        foreach (var controlName in controlNames.Distinct(StringComparer.Ordinal))
+        {
+            var added = FindGeneratedElement(canvas, controlName) is not null
+                ? RefreshControlCore(canvas, runtimeState, buildContext, context, controlName)
+                : AddControlCore(canvas, runtimeState, buildContext, context, controlName, knownOrderedNames);
+            if (added)
+            {
+                addedCount++;
+            }
+        }
+
+        return addedCount;
+    }
+
+    private bool AddControlCore(
+        Canvas canvas,
+        FrontedCanvasRuntimeState runtimeState,
+        FrontedControlBuildContext buildContext,
+        FrontedRenderContext context,
+        string controlName,
+        IReadOnlyList<string>? knownOrderedNames = null)
+    {
+        if (string.IsNullOrWhiteSpace(controlName)
+            || !runtimeState.Controls.TryGetValue(controlName, out var controlConfig))
         {
             return false;
         }
 
-        var buildContext = CreateBuildContext(runtimeState, context);
         var visual = TryCreateRenderedControl(canvas, controlName, controlConfig, buildContext, context);
         if (visual is null)
         {
@@ -173,11 +275,19 @@ public class FrontedRenderer(
         }
 
         Panel.SetZIndex(visual, controlConfig.ZIndex);
-        var orderedNames = runtimeState.Controls
+        var orderedNames = knownOrderedNames ?? runtimeState.Controls
             .OrderBy(pair => pair.Value.ZIndex)
             .Select(pair => pair.Key)
             .ToList();
-        var controlOrder = orderedNames.IndexOf(controlName);
+        var controlOrder = -1;
+        for (var index = 0; index < orderedNames.Count; index++)
+        {
+            if (string.Equals(orderedNames[index], controlName, StringComparison.Ordinal))
+            {
+                controlOrder = index;
+                break;
+            }
+        }
         var insertIndex = canvas.Children.Count;
         if (controlOrder >= 0)
         {
@@ -219,6 +329,29 @@ public class FrontedRenderer(
 
         RemoveGeneratedElement(canvas, existing);
         return true;
+    }
+
+    /// <summary>
+    /// 批量从现有预览 Canvas 增量移除控件。
+    /// </summary>
+    /// <param name="canvas">目标 Canvas。</param>
+    /// <param name="controlNames">要移除的控件名集合。</param>
+    /// <returns>实际移除的控件数量。</returns>
+    public int RemoveControls(Canvas canvas, IEnumerable<string> controlNames)
+    {
+        ArgumentNullException.ThrowIfNull(canvas);
+        ArgumentNullException.ThrowIfNull(controlNames);
+
+        var removedCount = 0;
+        foreach (var controlName in controlNames.Distinct(StringComparer.Ordinal))
+        {
+            if (RemoveControl(canvas, controlName))
+            {
+                removedCount++;
+            }
+        }
+
+        return removedCount;
     }
 
     private FrontedControlBuildContext CreateBuildContext(

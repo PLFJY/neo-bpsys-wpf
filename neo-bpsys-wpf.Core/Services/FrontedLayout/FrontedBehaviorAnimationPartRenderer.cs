@@ -16,17 +16,32 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// 行为拥有的生成动画部件的默认渲染器。
 /// </summary>
 public sealed class FrontedBehaviorAnimationPartRenderer(
-    IFrontedResourceResolver resourceResolver) : IFrontedBehaviorAnimationPartRenderer
+    IFrontedResourceResolver resourceResolver)
+    : IFrontedBehaviorAnimationPartRenderer, IFrontedFilteredBehaviorAnimationPartRenderer
 {
     /// <inheritdoc />
-    public void ApplyAnimationParts(FrameworkElement root, FrontedBehaviorDocument behaviorDocument)
+    public void ApplyAnimationParts(FrameworkElement root, FrontedBehaviorDocument behaviorDocument) =>
+        ApplyAnimationParts(root, behaviorDocument, behaviorGuids: null);
+
+    /// <summary>
+    /// 只应用指定行为 GUID 的动画部件；未提供集合时应用全部行为。
+    /// </summary>
+    /// <param name="root">已渲染的前台根元素。</param>
+    /// <param name="behaviorDocument">行为文档。</param>
+    /// <param name="behaviorGuids">需要应用的行为 GUID 集合；为 <see langword="null"/> 时应用全部。</param>
+    public void ApplyAnimationParts(
+        FrameworkElement root,
+        FrontedBehaviorDocument behaviorDocument,
+        IReadOnlySet<Guid>? behaviorGuids)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(behaviorDocument);
 
         foreach (var set in behaviorDocument.ControlBehaviorSets)
         {
-            if (set.BehaviorGuid == Guid.Empty || set.AnimationParts.Count == 0)
+            if (set.BehaviorGuid == Guid.Empty
+                || set.AnimationParts.Count == 0
+                || (behaviorGuids is not null && !behaviorGuids.Contains(set.BehaviorGuid)))
             {
                 continue;
             }

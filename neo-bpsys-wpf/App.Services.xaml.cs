@@ -210,8 +210,12 @@ public partial class App
         services.AddBuiltInFrontedV3Control<MapV2DisplayFrontedControl, MapV2DisplayControlConfig>(() => new MapV2DisplayControlConfig { MapKey = "ArmsFactory" });
         services.AddSingleton<IFrontedV3ControlRegistry, FrontedV3ControlRegistry>();
         services.AddSingleton<IFrontedLayoutService, FrontedLayoutService>();
-        services.AddSingleton<IFrontedRenderer, FrontedRenderer>();
-        services.AddSingleton<IFrontedBehaviorAnimationPartRenderer, FrontedBehaviorAnimationPartRenderer>();
+        services.AddSingleton<FrontedRenderer>();
+        services.AddSingleton<IFrontedRenderer>(sp => sp.GetRequiredService<FrontedRenderer>());
+        services.AddSingleton<IFrontedIncrementalRenderer>(sp => sp.GetRequiredService<FrontedRenderer>());
+        services.AddSingleton<FrontedBehaviorAnimationPartRenderer>();
+        services.AddSingleton<IFrontedBehaviorAnimationPartRenderer>(sp => sp.GetRequiredService<FrontedBehaviorAnimationPartRenderer>());
+        services.AddSingleton<IFrontedFilteredBehaviorAnimationPartRenderer>(sp => sp.GetRequiredService<FrontedBehaviorAnimationPartRenderer>());
         services.AddSingleton<FrontedLayoutReferenceScanner>();
         services.AddSingleton<FrontedLayoutDesignConverter>();
         services.AddSingleton<FrontedLayoutValidator>();
