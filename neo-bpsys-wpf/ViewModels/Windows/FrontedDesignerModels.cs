@@ -65,7 +65,7 @@ internal sealed record PendingImportedResource(
     DateTimeOffset ImportedAt,
     string SourceContext);
 
-public sealed class FrontedDesignerClipboardPayload(
+public sealed class FrontedDesignerClipboardEntry(
     string sourceName,
     string controlType,
     string configJson,
@@ -79,21 +79,74 @@ public sealed class FrontedDesignerClipboardPayload(
 
     public Type ConfigType { get; } = configType;
 
-    public static FrontedDesignerClipboardPayload Create(FrontedControlDesignItem item)
-    {
-        var configType = item.Config.GetType();
-        return new FrontedDesignerClipboardPayload(
-            item.Name,
-            item.Config.ControlType,
-            JsonSerializer.Serialize(item.Config, configType),
-            configType);
-    }
-
     public FrontedControlConfigBase CreateConfig()
     {
         return (FrontedControlConfigBase?)JsonSerializer.Deserialize(ConfigJson, ConfigType)
                ?? throw new InvalidOperationException("Failed to deserialize copied control config.");
     }
+}
+
+public sealed class FrontedDesignerClipboardPayload
+{
+    public FrontedDesignerClipboardPayload(IReadOnlyList<FrontedDesignerClipboardEntry> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        if (entries.Count == 0)
+        {
+            throw new ArgumentException("Clipboard payload must contain at least one control.", nameof(entries));
+        }
+
+        Entries = entries;
+    }
+
+    /// <summary>兼容旧单项构造方式的载荷，仅用于外部迁移；新代码应使用 <see cref="Create(IEnumerable{FrontedControlDesignItem})"/>。</summary>
+    public FrontedDesignerClipboardPayload(
+        string sourceName,
+        string controlType,
+        string configJson,
+        Type configType)
+        : this([new FrontedDesignerClipboardEntry(sourceName, controlType, configJson, configType)])
+    {
+    }
+
+    public IReadOnlyList<FrontedDesignerClipboardEntry> Entries { get; }
+
+    public int Count => Entries.Count;
+
+    /// <summary>兼容旧调用：单项载荷的源名称。</summary>
+    public string SourceName => Entries[0].SourceName;
+
+    /// <summary>兼容旧调用：单项载荷的控件类型。</summary>
+    public string ControlType => Entries[0].ControlType;
+
+    /// <summary>兼容旧调用：单项载荷的配置 JSON。</summary>
+    public string ConfigJson => Entries[0].ConfigJson;
+
+    /// <summary>兼容旧调用：单项载荷的配置类型。</summary>
+    public Type ConfigType => Entries[0].ConfigType;
+
+    public static FrontedDesignerClipboardPayload Create(FrontedControlDesignItem item) =>
+        Create([item]);
+
+    public static FrontedDesignerClipboardPayload Create(IEnumerable<FrontedControlDesignItem> items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        var entries = new List<FrontedDesignerClipboardEntry>();
+        foreach (var item in items)
+        {
+            var configType = item.Config.GetType();
+            entries.Add(new FrontedDesignerClipboardEntry(
+                item.Name,
+                item.Config.ControlType,
+                JsonSerializer.Serialize(item.Config, configType),
+                configType));
+        }
+
+        return new FrontedDesignerClipboardPayload(entries);
+    }
+
+    /// <summary>兼容旧调用：反序列化首个条目。</summary>
+    public FrontedControlConfigBase CreateConfig() => Entries[0].CreateConfig();
 }
 
 public sealed class FrontedCanvasBoModeStateOption(

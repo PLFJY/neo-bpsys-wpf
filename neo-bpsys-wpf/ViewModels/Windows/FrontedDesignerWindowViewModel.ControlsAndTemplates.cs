@@ -99,13 +99,13 @@ public partial class FrontedDesignerWindowViewModel
     }
 
     /// <summary>
-    /// 将选中的可编辑控件复制到 Designer 控件剪贴板。
+    /// 将选中的所有可编辑控件复制到 Designer 控件剪贴板。
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanCopySelectedControl))]
     private void CopySelectedControl()
     {
-        var selected = SelectedDesignItem;
-        if (selected is null || !CanCopyControl(selected))
+        var selected = GetSelectedCopyableDesignItems();
+        if (selected.Count == 0)
         {
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotCopyControl");
             return;
@@ -113,7 +113,24 @@ public partial class FrontedDesignerWindowViewModel
 
         _copiedControl = FrontedDesignerClipboardPayload.Create(selected);
         PasteControlCommand.NotifyCanExecuteChanged();
-        StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CopyControl");
+        StatusMessage = selected.Count == 1
+            ? I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CopyControl")
+            : $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CopyControl")} ({selected.Count})";
+    }
+
+    private List<FrontedControlDesignItem> GetSelectedCopyableDesignItems()
+    {
+        return GetSelectedOperationDesignItems().Where(CanCopyControl).ToList();
+    }
+
+    private List<FrontedControlDesignItem> GetSelectedOperationDesignItems()
+    {
+        if (SelectedDesignItems.Count > 0)
+        {
+            return SelectedDesignItems.Distinct().ToList();
+        }
+
+        return SelectedDesignItem is { } selected ? [selected] : [];
     }
 
     /// <summary>
@@ -128,75 +145,98 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        if (CurrentDocument.Controls.Count + 1 > FrontedLayoutLimits.MaxControlsPerCanvas)
+        var copiedControls = _copiedControl;
+        var pasteCount = copiedControls.Count;
+        if (CurrentDocument.Controls.Count + pasteCount > FrontedLayoutLimits.MaxControlsPerCanvas)
         {
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ControlCountLimitReached");
             return;
         }
 
-        var copiedControl = _copiedControl;
-        if (copiedControl is null)
-        {
-            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotPasteControl");
-            return;
-        }
-
         var total = StartDesignerPerfTrace();
         LogDesignerPerf("Paste", "start");
-        var clonedConfig = copiedControl.CreateConfig();
-        clonedConfig.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
-        LogDesignerPerf("Paste", "clone config", Elapsed(total));
-        clonedConfig.Left += 10D;
-        clonedConfig.Top += 10D;
-        clonedConfig.ZIndex = CurrentDocument.Controls.Count == 0
-            ? clonedConfig.ZIndex
-            : CurrentDocument.Controls.Max(control => control.Config.ZIndex) + 1;
-
-        var item = new FrontedControlDesignItem
-        {
-            Name = GeneratePasteName(copiedControl.SourceName, copiedControl.ControlType, CurrentDocument),
-            Config = clonedConfig,
-            IsSelectableInEditor = true,
-            IsEditableInEditor = true
-        };
-        LogDesignerPerf("Paste", "name/z-index preparation", Elapsed(total));
+        int? maxZIndex = CurrentDocument.Controls.Count == 0
+            ? null
+            : CurrentDocument.Controls.Max(control => control.Config.ZIndex);
+        var pastedItems = new List<FrontedControlDesignItem>(pasteCount);
 
         CaptureUndoSnapshot();
         LogDesignerPerf("Paste", "undo snapshot capture", Elapsed(total));
-        CurrentDocument.Controls.Add(item);
-        LogDesignerPerf("Paste", "add control", Elapsed(total));
+        for (var index = 0; index < pasteCount; index++)
+        {
+            var entry = copiedControls.Entries[index];
+            var clonedConfig = entry.CreateConfig();
+            clonedConfig.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
+            clonedConfig.Left += 10D;
+            clonedConfig.Top += 10D;
+            clonedConfig.ZIndex = maxZIndex is { } maximum
+                ? maximum + 1 + index
+                : clonedConfig.ZIndex + index;
+
+            var item = new FrontedControlDesignItem
+            {
+                Name = GeneratePasteName(entry.SourceName, entry.ControlType, CurrentDocument),
+                Config = clonedConfig,
+                IsSelectableInEditor = true,
+                IsEditableInEditor = true
+            };
+            CurrentDocument.Controls.Add(item);
+            pastedItems.Add(item);
+        }
+
+        LogDesignerPerf("Paste", "clone/add controls", Elapsed(total));
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
-        AddFilteredDesignItemIfVisible(item);
+        if (pastedItems.Count == 1)
+        {
+            AddFilteredDesignItemIfVisible(pastedItems[0]);
+        }
+        else
+        {
+            // 多项粘贴只重建一次筛选/图层列表，避免每个控件都触发一次 LayerGroups 重建。
+            RebuildFilteredDesignItems();
+        }
+
         LogDesignerPerf("Paste", "filtered list update", Elapsed(total));
-        SelectDesignItem(item);
+        SelectDesignItems(pastedItems, pastedItems[^1]);
         LogDesignerPerf("Paste", "selection update", Elapsed(total));
         ScheduleValidationAndPreviewRender("Paste");
         LogDesignerPerf("Paste", "validation scheduling", Elapsed(total));
-        LogDesignerPerf("Paste", "preview render scheduling", Elapsed(total));
-        StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PasteControl")}: {item.Name}";
+        StatusMessage = pastedItems.Count == 1
+            ? $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PasteControl")}: {pastedItems[0].Name}"
+            : $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PasteControl")} ({pastedItems.Count})";
         LogDesignerPerf("Paste", "total", Elapsed(total));
     }
 
     /// <summary>
-    /// 在完成引用和运行时关键检查后删除选中的可编辑控件。
+    /// 在完成引用和运行时关键检查后删除选中的全部可编辑控件。
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanDeleteSelectedControl))]
     private void DeleteSelectedControl()
     {
-        if (CurrentDocument is null || SelectedDesignItem is null)
+        if (CurrentDocument is null)
         {
             return;
         }
 
-        if (!SelectedDesignItem.IsEditableInEditor || !SelectedDesignItem.IsSelectableInEditor)
+        var selectedItems = GetSelectedOperationDesignItems();
+        if (selectedItems.Count == 0)
+        {
+            return;
+        }
+
+        if (selectedItems.Any(item => !item.IsEditableInEditor || !item.IsSelectableInEditor))
         {
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotDeleteReferencedControl");
             return;
         }
 
+        var selectedNames = selectedItems.Select(item => item.Name).ToHashSet(StringComparer.Ordinal);
         _referenceScanner.SetControls(CurrentDocument.Controls);
-        if (_referenceScanner.GetIncomingReferences(SelectedDesignItem.Name).Count > 0)
+        var referencedByOutsideSelection = selectedItems
+            .SelectMany(item => _referenceScanner.GetIncomingReferences(item.Name))
+            .Any(reference => !selectedNames.Contains(reference.SourceControlName));
+        if (referencedByOutsideSelection)
         {
             StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "CannotDeleteReferencedControl");
             return;
@@ -206,28 +246,36 @@ public partial class FrontedDesignerWindowViewModel
         LogDesignerPerf("Delete", "start");
         CaptureUndoSnapshot();
         LogDesignerPerf("Delete", "undo snapshot capture", Elapsed(total));
-        var deletedName = SelectedDesignItem.Name;
-        var deletedItem = SelectedDesignItem;
-        var deletedBehaviorGuid = deletedItem.Config.BehaviorGuid;
-        CurrentDocument.Controls.Remove(SelectedDesignItem);
-        if (deletedBehaviorGuid != Guid.Empty)
+
+        foreach (var item in selectedItems)
         {
-            BehaviorPanel.RemoveBehaviors(deletedBehaviorGuid);
-            _behaviorService.RemoveBehaviors(deletedBehaviorGuid);
+            CurrentDocument.Controls.Remove(item);
+            if (item.Config.BehaviorGuid != Guid.Empty)
+            {
+                BehaviorPanel.RemoveBehaviors(item.Config.BehaviorGuid);
+                _behaviorService.RemoveBehaviors(item.Config.BehaviorGuid);
+            }
         }
 
-        LogDesignerPerf("Delete", "remove control", Elapsed(total));
+        LogDesignerPerf("Delete", "remove controls", Elapsed(total));
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
         SelectDesignItem(null);
-        RemoveFilteredDesignItem(deletedItem);
+        if (selectedItems.Count == 1)
+        {
+            RemoveFilteredDesignItem(selectedItems[0]);
+        }
+        else
+        {
+            // 多项删除只重建一次筛选/图层列表。
+            RebuildFilteredDesignItems();
+        }
+
         LogDesignerPerf("Delete", "filtered list update", Elapsed(total));
-        RebuildPropertyEditorItems();
-        LogDesignerPerf("Delete", "selection/property update", Elapsed(total));
         ScheduleValidationAndPreviewRender("Delete");
-        LogDesignerPerf("Delete", "validation scheduling", Elapsed(total));
-        LogDesignerPerf("Delete", "preview render scheduling", Elapsed(total));
-        StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DeleteSelectedControl")}: {deletedName}";
+        StatusMessage = selectedItems.Count == 1
+            ? $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DeleteSelectedControl")}: {selectedItems[0].Name}"
+            : $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DeleteSelectedControl")} ({selectedItems.Count})";
         LogDesignerPerf("Delete", "total", Elapsed(total));
     }
 

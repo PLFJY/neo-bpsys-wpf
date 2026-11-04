@@ -419,20 +419,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// <returns>译名加载和界面刷新完成后结束的任务。</returns>
     public async Task RefreshWindowDisplayNamesAsync()
     {
-        foreach (var entry in _layoutCatalog.GetEntries())
+        // 各窗口配置互相独立，并行读取避免设计器打开时串行等待全部布局 JSON。
+        var loaded = await Task.WhenAll(_layoutCatalog.GetEntries().Select(async entry =>
         {
             try
             {
                 var config = await _layoutService.LoadWindowConfigAsync(entry.CanonicalWindowId);
-                if (config.DisplayNames.Count > 0)
-                {
-                    _displayNamesByWindowId[entry.CanonicalWindowId] =
-                        new Dictionary<string, string>(config.DisplayNames, StringComparer.Ordinal);
-                }
-                else
-                {
-                    _displayNamesByWindowId.Remove(entry.CanonicalWindowId);
-                }
+                return (Entry: entry, DisplayNames: config.DisplayNames.Count > 0
+                    ? new Dictionary<string, string>(config.DisplayNames, StringComparer.Ordinal)
+                    : null);
             }
             catch (Exception ex)
             {
@@ -440,7 +435,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     ex,
                     "Failed to preload display names for designer window {WindowTypeName}.",
                     entry.CanonicalWindowId);
-                _displayNamesByWindowId.Remove(entry.CanonicalWindowId);
+                return (Entry: entry, DisplayNames: null);
+            }
+        }));
+
+        foreach (var item in loaded)
+        {
+            if (item.DisplayNames is null)
+            {
+                _displayNamesByWindowId.Remove(item.Entry.CanonicalWindowId);
+            }
+            else
+            {
+                _displayNamesByWindowId[item.Entry.CanonicalWindowId] = item.DisplayNames;
             }
         }
 
@@ -893,11 +900,22 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         && SelectedPolygonVertexIndex >= 0
         && SelectedPolygonVertexIndex < polygon.Points.Count;
 
-    public bool CanDeleteSelectedControl =>
-        SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
+    public bool CanDeleteSelectedControl
+    {
+        get
+        {
+            if (CurrentDocument is null)
+            {
+                return false;
+            }
 
-    public bool CanCopySelectedControl =>
-        CanCopyControl(SelectedDesignItem);
+            var selected = GetSelectedOperationDesignItems();
+            return selected.Count > 0
+                   && selected.All(item => item.IsSelectableInEditor && item.IsEditableInEditor);
+        }
+    }
+
+    public bool CanCopySelectedControl => GetSelectedCopyableDesignItems().Count > 0;
 
     public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 
