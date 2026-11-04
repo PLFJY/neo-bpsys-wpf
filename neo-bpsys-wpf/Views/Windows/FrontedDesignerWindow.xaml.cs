@@ -44,6 +44,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly ILogger<FrontedDesignerWindow>? _logger;
     private readonly ISettingsHostService? _settingsHostService;
     private DispatcherTimer? _propertyAutoCommitTimer;
+    private DispatcherTimer? _previewRenderDebounceTimer;
     private FrameworkElement? _pendingAutoCommitEditor;
     private bool _isLoaded;
     private DispatcherOperation? _previewRenderOperation;
@@ -103,6 +104,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private double _layerAutoScrollVelocity;
     private Point? _lastLayerDragPosition;
     private FrontedDesignerPreviewRenderRequestedEventArgs? _pendingPreviewRenderArgs;
+    private FrontedDesignerPreviewRenderRequestedEventArgs? _lastPreviewRenderArgs;
     private readonly CancellationTokenSource _tutorialLifetime = new();
     private readonly TaskCompletionSource _initialPreviewReady =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -126,6 +128,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         InitializeComponent();
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
         InitializePropertyAutoCommitTimer();
+        InitializePreviewRenderDebounceTimer();
     }
 
     public FrontedDesignerWindow(
@@ -154,6 +157,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         InitializeComponent();
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
         InitializePropertyAutoCommitTimer();
+        InitializePreviewRenderDebounceTimer();
         DataContext = viewModel;
         Loaded += OnLoaded;
         Closed += OnClosed;
@@ -203,13 +207,20 @@ public partial class FrontedDesignerWindow : FluentWindow
             DesignerDiagnostic(LogLevel.Information, "Designer initialization started.");
             TutorialSignalPublisher.Publish(TutorialSignalIds.DesignerV3Opened);
             AttachViewModel();
-            await RefreshWindowCatalogAsync();
+            // 首次打开先加载布局，避免等待全部窗口的译名配置；译名随后异步补齐。
+            await RefreshWindowCatalogAsync(loadDisplayNames: false);
             token.ThrowIfCancellationRequested();
             DesignerDiagnostic(LogLevel.Information, "Designer window catalog loaded.");
             DesignerDiagnostic(LogLevel.Information, "Designer initial layout loading started.");
             await LoadInitialLayoutAsync();
             token.ThrowIfCancellationRequested();
             DesignerDiagnostic(LogLevel.Information, "Designer initial layout loaded.");
+            if (_viewModel is not null)
+            {
+                await _viewModel.RefreshWindowDisplayNamesAsync().WaitAsync(token);
+                DesignerDiagnostic(LogLevel.Information, "Designer window display names loaded.");
+            }
+
             QueueDesignerTutorial();
             DesignerDiagnostic(LogLevel.Information, "Designer tutorial queued; awaiting result.");
             var tutorialResult = await _designerTutorialTask!;
@@ -231,8 +242,9 @@ public partial class FrontedDesignerWindow : FluentWindow
     /// 重新读取当前注册表中的窗口目录和布局显示名称，并保持窗口选择器状态一致。
     /// </summary>
     /// <param name="reloadSelectedLayout">是否在目录刷新后从当前活动包重新加载所选布局。</param>
+    /// <param name="loadDisplayNames">是否等待所有窗口译名加载完成；首次打开可传 <see langword="false"/> 以先显示布局。</param>
     /// <returns>目录刷新完成后结束的任务。</returns>
-    public async Task RefreshWindowCatalogAsync(bool reloadSelectedLayout = false)
+    public async Task RefreshWindowCatalogAsync(bool reloadSelectedLayout = false, bool loadDisplayNames = true)
     {
         if (_viewModel is null)
         {
@@ -242,7 +254,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         _suppressSelectorReload = true;
         try
         {
-            await _viewModel.RefreshWindowDisplayNamesAsync().WaitAsync(_tutorialLifetime.Token);
+            if (loadDisplayNames)
+            {
+                await _viewModel.RefreshWindowDisplayNamesAsync().WaitAsync(_tutorialLifetime.Token);
+            }
+
             _lastAcceptedWindow = _viewModel.SelectedWindow;
             if (reloadSelectedLayout)
             {
@@ -309,6 +325,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         _previewRenderScheduled = false;
         _propertyAutoCommitTimer?.Stop();
         _pendingAutoCommitEditor = null;
+        _previewRenderDebounceTimer?.Stop();
+        _previewRenderDebounceTimer = null;
         _layerSelectionOperation?.Abort();
         _layerSelectionOperation = null;
         ResetPendingLayerPointer();
@@ -319,6 +337,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (_viewModel is not null)
         {
             _viewModel.PreviewRenderRequested -= OnPreviewRenderRequested;
+            _viewModel.ControlRefreshRequested -= OnControlRefreshRequested;
+            _viewModel.ControlsChangedRequested -= OnControlsChangedRequested;
             _viewModel.DesignerGeometryPatchRequested -= OnDesignerGeometryPatchRequested;
             _viewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
             _viewModel.PropertyEditorItems.CollectionChanged -= PropertyEditorItems_OnCollectionChanged;

@@ -645,7 +645,8 @@ public partial class FrontedDesignerWindowViewModel
 
         var insertIndex = GetFilteredInsertIndex(item);
         FilteredDesignItems.Insert(insertIndex, item);
-        RebuildLayerGroups();
+        InsertLayerNode(item);
+        RefreshLayerNodeSelection();
     }
 
     private void RemoveFilteredDesignItem(FrontedControlDesignItem item)
@@ -654,7 +655,57 @@ public partial class FrontedDesignerWindowViewModel
         if (index >= 0)
         {
             FilteredDesignItems.RemoveAt(index);
-            RebuildLayerGroups();
+            RemoveLayerNode(item);
+            RefreshLayerNodeSelection();
+        }
+    }
+
+    /// <summary>
+    /// 向现有图层组增量插入一个控件节点，避免新增/粘贴单个控件时重建整个图层列表。
+    /// </summary>
+    private void InsertLayerNode(FrontedControlDesignItem item)
+    {
+        var group = LayerGroups.FirstOrDefault(candidate => candidate.ZIndex == item.Config.ZIndex);
+        if (group is null)
+        {
+            group = new FrontedLayerGroup
+            {
+                ZIndex = item.Config.ZIndex,
+                DisplayName = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.Layer")} {item.Config.ZIndex}"
+            };
+            var groupIndex = LayerGroups.TakeWhile(candidate => candidate.ZIndex > group.ZIndex).Count();
+            LayerGroups.Insert(groupIndex, group);
+        }
+
+        var documentIndex = CurrentDocument?.Controls.IndexOf(item) ?? int.MaxValue;
+        var nodeIndex = group.Items
+            .TakeWhile(node => node.ControlItem is not { } control
+                || (CurrentDocument?.Controls.IndexOf(control) ?? int.MaxValue) <= documentIndex)
+            .Count();
+        group.Items.Insert(nodeIndex, CreateControlLayerNode(item));
+    }
+
+    /// <summary>
+    /// 从图层组中增量移除控件节点，并清理空组，避免删除单个控件时重建整个图层列表。
+    /// </summary>
+    private void RemoveLayerNode(FrontedControlDesignItem item)
+    {
+        var group = LayerGroups.FirstOrDefault(candidate =>
+            candidate.Items.Any(node => ReferenceEquals(node.ControlItem, item)));
+        if (group is null)
+        {
+            return;
+        }
+
+        var node = group.Items.FirstOrDefault(candidate => ReferenceEquals(candidate.ControlItem, item));
+        if (node is not null)
+        {
+            group.Items.Remove(node);
+        }
+
+        if (group.Items.Count == 0)
+        {
+            LayerGroups.Remove(group);
         }
     }
 

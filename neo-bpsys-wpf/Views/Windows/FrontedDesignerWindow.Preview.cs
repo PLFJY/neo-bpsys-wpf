@@ -29,6 +29,153 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// </summary>
 public partial class FrontedDesignerWindow
 {
+    private void InitializePreviewRenderDebounceTimer()
+    {
+        _previewRenderDebounceTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            // 属性编辑、粘贴/删除可能在同一帧内连续请求预览；合并为最后一次完整渲染。
+            Interval = TimeSpan.FromMilliseconds(80)
+        };
+        _previewRenderDebounceTimer.Tick += (_, _) =>
+        {
+            _previewRenderDebounceTimer?.Stop();
+            ExecutePendingPreviewRender();
+        };
+    }
+
+    private void OnControlsChangedRequested(
+        object? sender,
+        FrontedDesignerControlsChangedRequestedEventArgs e)
+    {
+        if (!_isLoaded
+            || (e.Added.Count == 0 && e.Removed.Count == 0)
+            || e.Config is not { } config
+            || _lastPreviewRenderArgs is not { Context: { } context }
+            || _renderer is not FrontedRenderer renderer)
+        {
+            RequestFullPreviewFallback();
+            return;
+        }
+
+        var changed = false;
+        var needsFallback = false;
+        try
+        {
+            foreach (var item in e.Removed)
+            {
+                if (renderer.RemoveControl(PreviewCanvas, item.Name))
+                {
+                    changed = true;
+                }
+                else
+                {
+                    // 控件未在预览树中找到时无法确认视觉已清除，回退完整渲染。
+                    needsFallback = true;
+                }
+            }
+
+            foreach (var item in e.Added)
+            {
+                if (!renderer.AddControl(PreviewCanvas, config, context, item.Name))
+                {
+                    needsFallback = true;
+                    break;
+                }
+
+                changed = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Designer preview control add/remove failed; falling back to full render.");
+            needsFallback = true;
+        }
+
+        if (needsFallback)
+        {
+            RequestFullPreviewFallback();
+            return;
+        }
+
+        if (!changed)
+        {
+            return;
+        }
+
+        CompleteIncrementalPreviewUpdate();
+    }
+
+    private void OnControlRefreshRequested(
+        object? sender,
+        FrontedDesignerControlRefreshRequestedEventArgs e)
+    {
+        if (!_isLoaded
+            || e.Controls.Count == 0
+            || e.Config is not { } config
+            || _lastPreviewRenderArgs is not { Context: { } context }
+            || _renderer is not FrontedRenderer renderer)
+        {
+            RequestFullPreviewFallback();
+            return;
+        }
+
+        var refreshed = false;
+        var refreshFailed = false;
+        try
+        {
+            foreach (var item in e.Controls)
+            {
+                if (renderer.RefreshControl(PreviewCanvas, config, context, item.Name))
+                {
+                    refreshed = true;
+                }
+                else
+                {
+                    refreshFailed = true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Designer preview control refresh failed; falling back to full render.");
+            refreshFailed = true;
+        }
+
+        if (refreshFailed || !refreshed)
+        {
+            RequestFullPreviewFallback();
+            return;
+        }
+
+        CompleteIncrementalPreviewUpdate();
+    }
+
+    private void CompleteIncrementalPreviewUpdate()
+    {
+        PopulatePreviewElementRegistry();
+        if (_viewModel?.BehaviorPanel.CurrentDocument is { } behaviorDocument)
+        {
+            _animationPartRenderer?.ApplyAnimationParts(PreviewCanvas, behaviorDocument);
+        }
+
+        PreviewCanvas.UpdateLayout();
+        RebuildInteractionLayer();
+        UpdateSelectedPreviewElement();
+        _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
+    }
+
+    private void RequestFullPreviewFallback()
+    {
+        if (_viewModel is not null)
+        {
+            _viewModel.RequestFullPreviewRefresh();
+        }
+        else if (_lastPreviewRenderArgs is not null)
+        {
+            OnPreviewRenderRequested(this, _lastPreviewRenderArgs);
+        }
+    }
+
     private void OnPreviewRenderRequested(
         object? sender,
         FrontedDesignerPreviewRenderRequestedEventArgs e)
@@ -37,10 +184,24 @@ public partial class FrontedDesignerWindow
         _pendingPreviewRenderArgs = e;
         if (_previewRenderScheduled)
         {
+            // 连续编辑时延后到下一次停顿再渲染，避免在输入/拖动过程中反复全量重建预览。
+            if (_previewRenderDebounceTimer is not null)
+            {
+                _previewRenderDebounceTimer.Stop();
+                _previewRenderDebounceTimer.Start();
+            }
+
             return;
         }
 
         _previewRenderScheduled = true;
+        if (_previewRenderDebounceTimer is not null)
+        {
+            _previewRenderDebounceTimer.Stop();
+            _previewRenderDebounceTimer.Start();
+            return;
+        }
+
         _previewRenderOperation = Dispatcher.BeginInvoke(
             new Action(ExecutePendingPreviewRender),
             DispatcherPriority.Background);
@@ -62,6 +223,7 @@ public partial class FrontedDesignerWindow
 
     private void RenderPreview(FrontedDesignerPreviewRenderRequestedEventArgs e)
     {
+        _lastPreviewRenderArgs = e;
         var total = StartDesignerPerfTrace();
         var isInitialPreview = !_initialPreviewReady.Task.IsCompleted;
         if (isInitialPreview)

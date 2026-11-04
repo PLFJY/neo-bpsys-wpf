@@ -192,6 +192,38 @@ public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(
     public FrontedRenderContext? Context { get; } = context;
 }
 
+/// <summary>
+/// Designer 属性编辑等局部变更请求只刷新指定控件的预览视觉。
+/// </summary>
+public sealed class FrontedDesignerControlRefreshRequestedEventArgs(
+    IReadOnlyList<FrontedControlDesignItem> controls,
+    FrontedCanvasConfig? config) : EventArgs
+{
+    /// <summary>获取需要局部刷新的设计项。</summary>
+    public IReadOnlyList<FrontedControlDesignItem> Controls { get; } = controls;
+
+    /// <summary>获取变更后的当前画布配置。</summary>
+    public FrontedCanvasConfig? Config { get; } = config;
+}
+
+/// <summary>
+/// Designer 新增/删除控件请求增量更新预览视觉。
+/// </summary>
+public sealed class FrontedDesignerControlsChangedRequestedEventArgs(
+    IReadOnlyList<FrontedControlDesignItem> added,
+    IReadOnlyList<FrontedControlDesignItem> removed,
+    FrontedCanvasConfig? config) : EventArgs
+{
+    /// <summary>获取新增的设计项。</summary>
+    public IReadOnlyList<FrontedControlDesignItem> Added { get; } = added;
+
+    /// <summary>获取移除的设计项。</summary>
+    public IReadOnlyList<FrontedControlDesignItem> Removed { get; } = removed;
+
+    /// <summary>获取变更后的当前画布配置。</summary>
+    public FrontedCanvasConfig? Config { get; } = config;
+}
+
 internal sealed class FrontedDesignerUndoSnapshot
 {
     /// <summary>

@@ -90,11 +90,19 @@ public partial class FrontedDesignerWindowViewModel
         CurrentDocument.Controls.Add(item);
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
-        ControlFilterText = string.Empty;
-        RebuildFilteredDesignItems();
+        if (string.IsNullOrWhiteSpace(ControlFilterText))
+        {
+            AddFilteredDesignItemIfVisible(item);
+        }
+        else
+        {
+            ControlFilterText = string.Empty;
+            RebuildFilteredDesignItems();
+        }
+
         SelectDesignItem(item);
-        ValidateCurrentDocument();
-        RequestPreviewRenderCurrentDocument();
+        ScheduleValidationOnly("AddControl");
+        RequestControlsChanged([item], []);
         StatusMessage = $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "AddedControl")}: {item.Name}";
     }
 
@@ -200,7 +208,8 @@ public partial class FrontedDesignerWindowViewModel
         LogDesignerPerf("Paste", "filtered list update", Elapsed(total));
         SelectDesignItems(pastedItems, pastedItems[^1]);
         LogDesignerPerf("Paste", "selection update", Elapsed(total));
-        ScheduleValidationAndPreviewRender("Paste");
+        ScheduleValidationOnly("Paste");
+        RequestControlsChanged(pastedItems, []);
         LogDesignerPerf("Paste", "validation scheduling", Elapsed(total));
         StatusMessage = pastedItems.Count == 1
             ? $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "PasteControl")}: {pastedItems[0].Name}"
@@ -272,7 +281,8 @@ public partial class FrontedDesignerWindowViewModel
         }
 
         LogDesignerPerf("Delete", "filtered list update", Elapsed(total));
-        ScheduleValidationAndPreviewRender("Delete");
+        ScheduleValidationOnly("Delete");
+        RequestControlsChanged([], selectedItems);
         StatusMessage = selectedItems.Count == 1
             ? $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DeleteSelectedControl")}: {selectedItems[0].Name}"
             : $"{I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DeleteSelectedControl")} ({selectedItems.Count})";
@@ -353,7 +363,26 @@ public partial class FrontedDesignerWindowViewModel
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
         RefreshDirtyState();
-        RequestPreviewRenderCurrentDocument();
+        if (SelectedDesignItem is { } selectedItem)
+        {
+            RequestControlRefresh([selectedItem]);
+        }
+        else
+        {
+            RequestPreviewRenderCurrentDocument();
+        }
+    }
+
+    private void RequestPreviewRefreshForSelectedControl()
+    {
+        if (SelectedDesignItem is { } selectedItem)
+        {
+            RequestControlRefresh([selectedItem]);
+        }
+        else
+        {
+            RequestPreviewRenderCurrentDocument();
+        }
     }
 
     /// <summary>
@@ -467,6 +496,7 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
+        var refreshItems = peerDesignItems.Append(sourceDesignItem).Distinct().ToArray();
         CaptureUndoSnapshot();
         StyleTransferService.TransferPeerStyle(
             sourceRegistration,
@@ -477,7 +507,7 @@ public partial class FrontedDesignerWindowViewModel
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
         RefreshDirtyState();
-        RequestPreviewRenderCurrentDocument();
+        RequestControlRefresh(refreshItems);
         ApplyAppearanceToSameTypeCommand.NotifyCanExecuteChanged();
     }
 
@@ -620,7 +650,7 @@ public partial class FrontedDesignerWindowViewModel
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
         RefreshDirtyState();
-        RequestPreviewRenderCurrentDocument();
+        RequestPreviewRefreshForSelectedControl();
     }
 
     /// <summary>
@@ -703,7 +733,7 @@ public partial class FrontedDesignerWindowViewModel
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
         RefreshDirtyState();
-        RequestPreviewRenderCurrentDocument();
+        RequestPreviewRefreshForSelectedControl();
     }
 
     /// <summary>
@@ -770,7 +800,7 @@ public partial class FrontedDesignerWindowViewModel
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
         RefreshDirtyState();
-        RequestPreviewRenderCurrentDocument();
+        RequestPreviewRefreshForSelectedControl();
     }
 
     /// <summary>
@@ -903,7 +933,7 @@ public partial class FrontedDesignerWindowViewModel
         CurrentDocument.IsDirty = true;
         RebuildPropertyEditorItems();
         RefreshDirtyState();
-        RequestPreviewRenderCurrentDocument();
+        RequestPreviewRefreshForSelectedControl();
     }
 
     /// <summary>

@@ -563,7 +563,8 @@ public partial class FrontedDesignerWindowViewModel
             // SelectedTarget 为 null 时（Missing Plugin：Registry 中未注册）同样走 BuildFromSchema，
             // 由 AddMissingPluginRows 显示诊断行，不再回退到旧反射路径扫描 Config 公共属性。
             IEnumerable<FrontedPropertyEditorItem> rows;
-            validationMessages ??= _validator.Validate(CurrentDocument);
+            // 选择/局部编辑不重新执行整份文档校验；使用最近一次校验结果，随后由调度校验刷新。
+            validationMessages ??= _lastValidationMessages;
             if (_selectedTarget is { Kind: FrontedV3DesignSelectionKind.Root } rootTarget)
             {
                 rows = _propertyGridBuilder.BuildFromSchema(
@@ -1158,12 +1159,35 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        if (propertyName is nameof(FrontedControlDesignItem.Name) or nameof(FrontedControlConfigBase.ZIndex))
+        var refreshTargets = _batchPropertyTargets.TryGetValue(propertyName, out var batchTargets)
+            ? batchTargets.Select(target => target.Item).Distinct().ToArray()
+            : SelectedDesignItem is { } selectedItem ? [selectedItem] : Array.Empty<FrontedControlDesignItem>();
+        var requiresFullPreview = propertyName is nameof(FrontedControlDesignItem.Name) or nameof(FrontedControlConfigBase.ZIndex);
+        if (requiresFullPreview)
             RebuildFilteredDesignItems();
         else
             RefreshEditedLayerNodes();
-        ValidateCurrentDocument(refreshPropertyGrid);
-        RequestPreviewRenderCurrentDocument();
+        // 非几何属性提交不再同步执行整份文档校验；属性面板使用最近一次校验结果，校验随后合并调度。
+        if (refreshPropertyGrid)
+        {
+            RebuildPropertyEditorItems();
+        }
+
+        ScheduleValidationOnly("PropertyEdit");
+        if (requiresFullPreview)
+        {
+            RequestPreviewRenderCurrentDocument();
+        }
+        else if (refreshTargets.Length == 0)
+        {
+            RequestPreviewRenderCurrentDocument();
+        }
+        else
+        {
+            // 非几何属性只重建受影响控件的视觉，避免每次编辑都清空并重建整个预览画布。
+            RequestControlRefresh(refreshTargets);
+        }
+
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
     }
 

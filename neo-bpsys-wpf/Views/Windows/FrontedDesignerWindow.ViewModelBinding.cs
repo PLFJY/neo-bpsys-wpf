@@ -43,6 +43,8 @@ public partial class FrontedDesignerWindow
 
         _viewModel = viewModel;
         _viewModel.PreviewRenderRequested += OnPreviewRenderRequested;
+        _viewModel.ControlRefreshRequested += OnControlRefreshRequested;
+        _viewModel.ControlsChangedRequested += OnControlsChangedRequested;
         _viewModel.DesignerGeometryPatchRequested += OnDesignerGeometryPatchRequested;
         _viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
         _viewModel.PropertyEditorItems.CollectionChanged += PropertyEditorItems_OnCollectionChanged;

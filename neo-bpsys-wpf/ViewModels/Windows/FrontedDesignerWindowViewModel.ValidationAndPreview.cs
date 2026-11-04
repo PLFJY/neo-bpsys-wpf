@@ -305,6 +305,42 @@ public partial class FrontedDesignerWindowViewModel
             }
         }
     }
+    private void RequestControlRefresh(IReadOnlyList<FrontedControlDesignItem> controls)
+    {
+        if (controls.Count == 0 || CurrentDocument is null)
+        {
+            return;
+        }
+
+        var config = _designConverter.ToConfig(CurrentDocument);
+        ControlRefreshRequested?.Invoke(
+            this,
+            new FrontedDesignerControlRefreshRequestedEventArgs(controls, config));
+    }
+
+    private void RequestControlsChanged(
+        IReadOnlyList<FrontedControlDesignItem> added,
+        IReadOnlyList<FrontedControlDesignItem> removed)
+    {
+        if ((added.Count == 0 && removed.Count == 0) || CurrentDocument is null)
+        {
+            return;
+        }
+
+        var config = _designConverter.ToConfig(CurrentDocument);
+        ControlsChangedRequested?.Invoke(
+            this,
+            new FrontedDesignerControlsChangedRequestedEventArgs(added, removed, config));
+    }
+
+    /// <summary>
+    /// 请求使用当前文档和当前行为文档重新完整渲染预览；供视图在增量刷新失败时回退。
+    /// </summary>
+    public void RequestFullPreviewRefresh()
+    {
+        RequestPreviewRenderCurrentDocument();
+    }
+
     private void RequestPreviewRender(FrontedCanvasConfig? config, FrontedDesignerLayoutCatalogEntry? entry)
     {
         PreviewRenderRequested?.Invoke(

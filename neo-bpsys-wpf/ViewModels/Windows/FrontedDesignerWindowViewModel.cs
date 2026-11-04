@@ -389,6 +389,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public event EventHandler<FrontedDesignerPreviewRenderRequestedEventArgs>? PreviewRenderRequested;
 
     /// <summary>
+    /// 属性编辑等局部变更请求只刷新指定控件的预览视觉时触发。
+    /// </summary>
+    public event EventHandler<FrontedDesignerControlRefreshRequestedEventArgs>? ControlRefreshRequested;
+
+    /// <summary>
+    /// 新增/删除控件请求增量更新预览视觉时触发。
+    /// </summary>
+    public event EventHandler<FrontedDesignerControlsChangedRequestedEventArgs>? ControlsChangedRequested;
+
+    /// <summary>
     /// 撤销/重做恢复可通过修补现有预览元素完成时触发。
     /// </summary>
     public event EventHandler<FrontedDesignerGeometryPatchRequestedEventArgs>? DesignerGeometryPatchRequested;

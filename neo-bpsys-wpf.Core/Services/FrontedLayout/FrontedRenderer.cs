@@ -62,7 +62,169 @@ public class FrontedRenderer(
         canvas.Height = runtimeState.CanvasHeight;
         canvas.Background = CreateBackground(runtimeState.BackgroundImage);
 
-        var buildContext = new FrontedControlBuildContext
+        var buildContext = CreateBuildContext(runtimeState, context);
+        foreach (var (name, controlConfig) in runtimeState.Controls.OrderBy(x => x.Value.ZIndex))
+        {
+            if (TryCreateRenderedControl(canvas, name, controlConfig, buildContext, context) is { } visual)
+            {
+                canvas.Children.Add(visual);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 只刷新指定控件的预览视觉，用于属性编辑等局部变更。
+    /// </summary>
+    /// <param name="canvas">目标 Canvas。</param>
+    /// <param name="config">当前画布配置。</param>
+    /// <param name="context">渲染上下文。</param>
+    /// <param name="controlName">要刷新的控件名。</param>
+    /// <returns>成功替换控件视觉时为 <see langword="true"/>；控件不存在或类型不支持时为 <see langword="false"/>。</returns>
+    /// <remarks>
+    /// 背景、Canvas 尺寸和其他控件保持不变；调用方应在局部刷新失败时回退到完整渲染。
+    /// </remarks>
+    public bool RefreshControl(
+        Canvas canvas,
+        FrontedCanvasConfig config,
+        FrontedRenderContext context,
+        string controlName)
+    {
+        ArgumentNullException.ThrowIfNull(canvas);
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(context);
+        if (string.IsNullOrWhiteSpace(controlName))
+        {
+            return false;
+        }
+
+        var runtimeState = FrontedCanvasRuntimeStateResolver.Resolve(
+            config,
+            context.SharedDataServiceOverride ?? sharedDataService,
+            logger);
+        if (!runtimeState.Controls.TryGetValue(controlName, out var controlConfig))
+        {
+            return false;
+        }
+
+        var buildContext = CreateBuildContext(runtimeState, context);
+        var existing = FindGeneratedElement(canvas, controlName);
+        var insertionIndex = canvas.Children.Count;
+        if (existing is not null)
+        {
+            var existingDirectChild = FindDirectChild(canvas, existing);
+            if (existingDirectChild is not null)
+            {
+                insertionIndex = canvas.Children.IndexOf(existingDirectChild);
+            }
+
+            RemoveGeneratedElement(canvas, existing);
+        }
+
+        var visual = TryCreateRenderedControl(canvas, controlName, controlConfig, buildContext, context);
+        if (visual is null)
+        {
+            return false;
+        }
+
+        Panel.SetZIndex(visual, controlConfig.ZIndex);
+        canvas.Children.Insert(Math.Clamp(insertionIndex, 0, canvas.Children.Count), visual);
+        return true;
+    }
+
+    /// <summary>
+    /// 向现有预览 Canvas 增量添加一个控件，用于粘贴/新增控件。
+    /// </summary>
+    /// <param name="canvas">目标 Canvas。</param>
+    /// <param name="config">当前画布配置。</param>
+    /// <param name="context">渲染上下文。</param>
+    /// <param name="controlName">控件名。</param>
+    /// <returns>成功添加时为 <see langword="true"/>。</returns>
+    public bool AddControl(
+        Canvas canvas,
+        FrontedCanvasConfig config,
+        FrontedRenderContext context,
+        string controlName)
+    {
+        ArgumentNullException.ThrowIfNull(canvas);
+        if (string.IsNullOrWhiteSpace(controlName))
+        {
+            return false;
+        }
+
+        if (FindGeneratedElement(canvas, controlName) is not null)
+        {
+            return RefreshControl(canvas, config, context, controlName);
+        }
+
+        var runtimeState = FrontedCanvasRuntimeStateResolver.Resolve(
+            config,
+            context.SharedDataServiceOverride ?? sharedDataService,
+            logger);
+        if (!runtimeState.Controls.TryGetValue(controlName, out var controlConfig))
+        {
+            return false;
+        }
+
+        var buildContext = CreateBuildContext(runtimeState, context);
+        var visual = TryCreateRenderedControl(canvas, controlName, controlConfig, buildContext, context);
+        if (visual is null)
+        {
+            return false;
+        }
+
+        Panel.SetZIndex(visual, controlConfig.ZIndex);
+        var orderedNames = runtimeState.Controls
+            .OrderBy(pair => pair.Value.ZIndex)
+            .Select(pair => pair.Key)
+            .ToList();
+        var controlOrder = orderedNames.IndexOf(controlName);
+        var insertIndex = canvas.Children.Count;
+        if (controlOrder >= 0)
+        {
+            var beforeNames = orderedNames.Take(controlOrder).ToHashSet(StringComparer.Ordinal);
+            insertIndex = 0;
+            foreach (var child in canvas.Children.OfType<FrameworkElement>())
+            {
+                var childName = FrontedRendererProperties.GetRegisteredName(child);
+                if (beforeNames.Contains(childName))
+                {
+                    insertIndex++;
+                }
+            }
+        }
+
+        canvas.Children.Insert(Math.Clamp(insertIndex, 0, canvas.Children.Count), visual);
+        return true;
+    }
+
+    /// <summary>
+    /// 从现有预览 Canvas 增量移除一个控件，用于删除控件。
+    /// </summary>
+    /// <param name="canvas">目标 Canvas。</param>
+    /// <param name="controlName">控件名。</param>
+    /// <returns>找到并移除控件时为 <see langword="true"/>。</returns>
+    public bool RemoveControl(Canvas canvas, string controlName)
+    {
+        ArgumentNullException.ThrowIfNull(canvas);
+        if (string.IsNullOrWhiteSpace(controlName))
+        {
+            return false;
+        }
+
+        var existing = FindGeneratedElement(canvas, controlName);
+        if (existing is null)
+        {
+            return false;
+        }
+
+        RemoveGeneratedElement(canvas, existing);
+        return true;
+    }
+
+    private FrontedControlBuildContext CreateBuildContext(
+        FrontedCanvasRuntimeState runtimeState,
+        FrontedRenderContext context) =>
+        new()
         {
             Services = services,
             SharedDataService = context.SharedDataServiceOverride ?? sharedDataService,
@@ -80,68 +242,137 @@ public class FrontedRenderer(
             Logger = logger
         };
 
-        var renderedElements = new Dictionary<string, FrameworkElement>(StringComparer.Ordinal);
-        foreach (var (name, controlConfig) in runtimeState.Controls.OrderBy(x => x.Value.ZIndex))
+    private FrameworkElement? TryCreateRenderedControl(
+        Canvas canvas,
+        string name,
+        FrontedControlConfigBase controlConfig,
+        FrontedControlBuildContext buildContext,
+        FrontedRenderContext context)
+    {
+        // V3 是唯一的控件创建路径：所有控件经 FrontedV3ControlHost 包装，
+        // Host 唯一负责根布局（Left/Top/ZIndex/Width/Height/Visibility/GaussianBlur）。
+        if (v3ControlRegistry.TryGetRegistration(controlConfig.ControlType, out var v3Registration))
         {
-            // V3 是唯一的控件创建路径：所有控件经 FrontedV3ControlHost 包装，
-            // Host 唯一负责根布局（Left/Top/ZIndex/Width/Height/Visibility/GaussianBlur）。
-            if (v3ControlRegistry.TryGetRegistration(controlConfig.ControlType, out var v3Registration))
+            var host = new FrontedV3ControlHost(v3Registration, controlConfig, context.IsDesignerPreview);
+            var v3Context = new FrontedV3ControlContext
             {
-                var host = new FrontedV3ControlHost(v3Registration, controlConfig, context.IsDesignerPreview);
-                var v3Context = new FrontedV3ControlContext
-                {
-                    Services = buildContext.Services,
-                    SharedDataService = buildContext.SharedDataService,
-                    CharacterPresentation = buildContext.CharacterPresentation,
-                    ResourceResolver = buildContext.ResourceResolver,
-                    WindowId = buildContext.WindowId,
-                    CanvasName = buildContext.CanvasName,
-                    CanvasBackgroundImage = buildContext.CanvasBackgroundImage,
-                    CanvasWidth = buildContext.CanvasWidth,
-                    CanvasHeight = buildContext.CanvasHeight,
-                    Config = controlConfig,
-                    // ControlName 用于动画部件注册等运行时身份场景（如 MapV2 的 PickingBorder RegisteredName）。
-                    // 必须传入与 Canvas 注册名一致的值，否则多个同类型控件会产生空名称冲突与动画目标错绑。
-                    ControlName = name,
-                    Options = FrontedV3OptionsView.Create(controlConfig, v3Registration.Properties),
-                    IsDesignerPreview = buildContext.IsDesignerPreview,
-                    Logger = buildContext.Logger
-                };
-                host.TryInitialize(v3Context, logger);
-                RegisterGeneratedName(canvas, name, host);
-                canvas.Children.Add(host);
-                renderedElements[name] = host;
-                continue;
-            }
-
-            // 未注册的插件控件：Designer 保留为可选占位，前台窗口跳过。
-            if (FrontedPluginControlType.IsPluginControlType(controlConfig.ControlType))
-            {
-                if (context.RenderMissingPluginPlaceholders)
-                {
-                    var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
-                    placeholder.Visibility = MapVisibility(controlConfig.Visibility);
-                    FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
-                    FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
-                    RegisterGeneratedName(canvas, name, placeholder);
-                    var placeholderHost = FrontedEffectHostFactory.Wrap(placeholder);
-                    ApplyStaticEffects(placeholderHost, controlConfig);
-                    canvas.Children.Add(placeholderHost);
-                    renderedElements[name] = placeholder;
-                    continue;
-                }
-
-                logger.LogWarning(
-                    "Skipping fronted plugin control {ControlName} because ControlType {ControlType} is not registered.",
-                    name,
-                    controlConfig.ControlType);
-                continue;
-            }
-
-            throw new FrontedLayoutConfigException(
-                $"Control '{name}' has no registered factory for ControlType '{controlConfig.ControlType}'.");
+                Services = buildContext.Services,
+                SharedDataService = buildContext.SharedDataService,
+                CharacterPresentation = buildContext.CharacterPresentation,
+                ResourceResolver = buildContext.ResourceResolver,
+                WindowId = buildContext.WindowId,
+                CanvasName = buildContext.CanvasName,
+                CanvasBackgroundImage = buildContext.CanvasBackgroundImage,
+                CanvasWidth = buildContext.CanvasWidth,
+                CanvasHeight = buildContext.CanvasHeight,
+                Config = controlConfig,
+                // ControlName 用于动画部件注册等运行时身份场景（如 MapV2 的 PickingBorder RegisteredName）。
+                // 必须传入与 Canvas 注册名一致的值，否则多个同类型控件会产生空名称冲突与动画目标错绑。
+                ControlName = name,
+                Options = FrontedV3OptionsView.Create(controlConfig, v3Registration.Properties),
+                IsDesignerPreview = buildContext.IsDesignerPreview,
+                Logger = buildContext.Logger
+            };
+            host.TryInitialize(v3Context, logger);
+            RegisterGeneratedName(canvas, name, host);
+            return host;
         }
 
+        // 未注册的插件控件：Designer 保留为可选占位，前台窗口跳过。
+        if (FrontedPluginControlType.IsPluginControlType(controlConfig.ControlType))
+        {
+            if (context.RenderMissingPluginPlaceholders)
+            {
+                var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
+                placeholder.Visibility = MapVisibility(controlConfig.Visibility);
+                FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
+                FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
+                RegisterGeneratedName(canvas, name, placeholder);
+                var placeholderHost = FrontedEffectHostFactory.Wrap(placeholder);
+                ApplyStaticEffects(placeholderHost, controlConfig);
+                return placeholderHost;
+            }
+
+            logger.LogWarning(
+                "Skipping fronted plugin control {ControlName} because ControlType {ControlType} is not registered.",
+                name,
+                controlConfig.ControlType);
+            return null;
+        }
+
+        throw new FrontedLayoutConfigException(
+            $"Control '{name}' has no registered factory for ControlType '{controlConfig.ControlType}'.");
+    }
+
+    private static FrameworkElement? FindGeneratedElement(DependencyObject root, string name)
+    {
+        if (root is FrameworkElement element)
+        {
+            var registeredName = FrontedRendererProperties.GetRegisteredName(element);
+            if (string.Equals(registeredName, name, StringComparison.Ordinal)
+                || string.Equals(element.Name, name, StringComparison.Ordinal))
+            {
+                return element;
+            }
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var index = 0; index < childCount; index++)
+        {
+            if (FindGeneratedElement(VisualTreeHelper.GetChild(root, index), name) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    private static FrameworkElement? FindDirectChild(Canvas canvas, FrameworkElement element)
+    {
+        var current = element;
+        while (current is not null)
+        {
+            if (ReferenceEquals(VisualTreeHelper.GetParent(current), canvas))
+            {
+                return current;
+            }
+
+            current = VisualTreeHelper.GetParent(current) as FrameworkElement;
+        }
+
+        return null;
+    }
+
+    private static void RemoveGeneratedElement(Canvas canvas, FrameworkElement? element)
+    {
+        if (element is null)
+        {
+            return;
+        }
+
+        var directChild = FindDirectChild(canvas, element);
+        if (directChild is null)
+        {
+            return;
+        }
+
+        UnregisterGeneratedNameInSubtree(canvas, directChild);
+        canvas.Children.Remove(directChild);
+    }
+
+    private static void UnregisterGeneratedNameInSubtree(Canvas canvas, DependencyObject root)
+    {
+        if (root is FrameworkElement element)
+        {
+            UnregisterGeneratedName(canvas, element);
+        }
+
+        var childCount = VisualTreeHelper.GetChildrenCount(root);
+        for (var index = 0; index < childCount; index++)
+        {
+            UnregisterGeneratedNameInSubtree(canvas, VisualTreeHelper.GetChild(root, index));
+        }
     }
 
     private static Visibility MapVisibility(FrontedControlVisibility visibility) =>
