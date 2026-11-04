@@ -106,7 +106,7 @@ internal static class ShapeFillBrushFactory
         IValueConverter converter,
         object fallbackValue)
     {
-        var binding = FrontedBindingFactory.Create(path, context.SharedDataService);
+        var binding = FrontedBindingFactory.Create(path, context.SharedDataService, context.CharacterPresentation);
         binding.Converter = converter;
         binding.FallbackValue = fallbackValue;
         binding.TargetNullValue = fallbackValue;

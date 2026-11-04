@@ -5,7 +5,6 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,8 +18,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public partial class CharacterSelectionService(
     ISharedDataService sharedDataService,
-    IFrontedTransitionOrchestrator transitionOrchestrator,
-    IFrontedLayoutService layoutService,
+    ICharacterTransitionQueue characterTransitionQueue,
     ILogger<CharacterSelectionService>? logger = null)
     : ICharacterSelectionService
 {
@@ -188,7 +186,7 @@ public partial class CharacterSelectionService(
         await InvokeOnUiAsync(() => SelectSurvivorOnUiAsync(playerIndex, character, playAnimation, isRecordGlobalBan));
     }
 
-    private async Task SelectSurvivorOnUiAsync(int playerIndex, Character? character, bool playAnimation, bool isRecordGlobalBan)
+    private Task SelectSurvivorOnUiAsync(int playerIndex, Character? character, bool playAnimation, bool isRecordGlobalBan)
     {
         _logger.LogInformation(
             "CharacterSelection SelectSurvivorAsync executing: dispatcherAccess={DispatcherAccess}",
@@ -196,17 +194,15 @@ public partial class CharacterSelectionService(
         if (!playAnimation)
         {
             CommitSurvivorPick(playerIndex, character, isRecordGlobalBan);
-            return;
+            characterTransitionQueue.SynchronizeImmediately();
+            return Task.CompletedTask;
         }
 
+        characterTransitionQueue.EnsureCurrentGame();
         var oldCharacter = sharedDataService.CurrentGame.SurPlayerList[playerIndex].Character;
-        await transitionOrchestrator.RunTransitionAsync(
-            await CreateCharacterPickRequestAsync(Camp.Sur, playerIndex, oldCharacter, character),
-            () =>
-            {
-                CommitSurvivorPick(playerIndex, character, isRecordGlobalBan);
-                return Task.CompletedTask;
-            });
+        CommitSurvivorPick(playerIndex, character, isRecordGlobalBan);
+        characterTransitionQueue.EnqueuePick(Camp.Sur, playerIndex, oldCharacter, character);
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
@@ -220,7 +216,7 @@ public partial class CharacterSelectionService(
         await InvokeOnUiAsync(() => SelectHunterOnUiAsync(character, playAnimation, isRecordGlobalBan));
     }
 
-    private async Task SelectHunterOnUiAsync(Character? character, bool playAnimation, bool isRecordGlobalBan)
+    private Task SelectHunterOnUiAsync(Character? character, bool playAnimation, bool isRecordGlobalBan)
     {
         _logger.LogInformation(
             "CharacterSelection SelectHunterAsync executing: dispatcherAccess={DispatcherAccess}",
@@ -228,17 +224,15 @@ public partial class CharacterSelectionService(
         if (!playAnimation)
         {
             CommitHunterPick(character, isRecordGlobalBan);
-            return;
+            characterTransitionQueue.SynchronizeImmediately();
+            return Task.CompletedTask;
         }
 
+        characterTransitionQueue.EnsureCurrentGame();
         var oldCharacter = sharedDataService.CurrentGame.HunPlayer.Character;
-        await transitionOrchestrator.RunTransitionAsync(
-            await CreateCharacterPickRequestAsync(Camp.Hun, -1, oldCharacter, character),
-            () =>
-            {
-                CommitHunterPick(character, isRecordGlobalBan);
-                return Task.CompletedTask;
-            });
+        CommitHunterPick(character, isRecordGlobalBan);
+        characterTransitionQueue.EnqueuePick(Camp.Hun, -1, oldCharacter, character);
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc/>
@@ -302,6 +296,7 @@ public partial class CharacterSelectionService(
         InvokeOnUiAsync(() =>
         {
             CommitSurvivorPick(playerIndex, null, isRecordGlobalBan: true, BpSlotCommitState.CommittedEmpty);
+            characterTransitionQueue.SynchronizeImmediately();
         });
 
     /// <inheritdoc/>
@@ -309,6 +304,7 @@ public partial class CharacterSelectionService(
         InvokeOnUiAsync(() =>
         {
             CommitHunterPick(null, isRecordGlobalBan: true, BpSlotCommitState.CommittedEmpty);
+            characterTransitionQueue.SynchronizeImmediately();
         });
 
     /// <inheritdoc/>
@@ -323,7 +319,7 @@ public partial class CharacterSelectionService(
         await InvokeOnUiAsync(() => SwapSurvivorsOnUiAsync(sourceIndex, targetIndex, playAnimation));
     }
 
-    private async Task SwapSurvivorsOnUiAsync(int sourceIndex, int targetIndex, bool playAnimation)
+    private Task SwapSurvivorsOnUiAsync(int sourceIndex, int targetIndex, bool playAnimation)
     {
         _logger.LogInformation(
             "CharacterSelection SwapSurvivorsAsync executing: dispatcherAccess={DispatcherAccess}",
@@ -331,27 +327,16 @@ public partial class CharacterSelectionService(
         if (!playAnimation)
         {
             CommitSurvivorSwap(sourceIndex, targetIndex);
-            return;
+            characterTransitionQueue.SynchronizeImmediately();
+            return Task.CompletedTask;
         }
 
-        var sourceGuid = await ResolveBpPickBehaviorGuidAsync(Camp.Sur, sourceIndex);
-        var targetGuid = await ResolveBpPickBehaviorGuidAsync(Camp.Sur, targetIndex);
-        var payload = new Dictionary<string, object?>();
-        AddEventPayload(payload, "SourceIndex", sourceIndex);
-        AddEventPayload(payload, "TargetIndex", targetIndex);
-        AddEventPayload(payload, "SourceBehaviorGuid", sourceGuid);
-        AddEventPayload(payload, "TargetBehaviorGuid", targetGuid);
-
-        await transitionOrchestrator.RunMultiTargetTransitionAsync(
-            [
-                CreateSwapRequest(sourceIndex, sourceGuid, payload),
-                CreateSwapRequest(targetIndex, targetGuid, payload)
-            ],
-            () =>
-            {
-                CommitSurvivorSwap(sourceIndex, targetIndex);
-                return Task.CompletedTask;
-            });
+        characterTransitionQueue.EnsureCurrentGame();
+        var sourceCharacter = sharedDataService.CurrentGame.SurPlayerList[sourceIndex].Character;
+        var targetCharacter = sharedDataService.CurrentGame.SurPlayerList[targetIndex].Character;
+        CommitSurvivorSwap(sourceIndex, targetIndex);
+        characterTransitionQueue.EnqueueSwap(sourceIndex, targetIndex, sourceCharacter, targetCharacter);
+        return Task.CompletedTask;
     }
 
     private void CommitSurvivorPick(
@@ -436,69 +421,6 @@ public partial class CharacterSelectionService(
     }
 
     private bool HasUiAccess() => _uiDispatcher.CheckAccess();
-
-    private async Task<FrontedTransitionRequest> CreateCharacterPickRequestAsync(
-        Camp camp,
-        int playerIndex,
-        Character? oldCharacter,
-        Character? newCharacter)
-    {
-        var targetGuid = await ResolveBpPickBehaviorGuidAsync(camp, playerIndex);
-        var targetDisplayName = GetBpPickControlName(camp, playerIndex);
-        var request = new FrontedTransitionRequest
-        {
-            WindowType = nameof(FrontedWindowType.BpWindow),
-            TransitionType = "Selection.CharacterPick",
-            TargetBehaviorGuid = targetGuid,
-            TargetDisplayName = targetDisplayName
-        };
-        AddEventPayload(request.Payload, "Camp", camp.ToString());
-        AddEventPayload(request.Payload, "PlayerIndex", playerIndex);
-        AddEventPayload(request.Payload, "TargetBehaviorGuid", targetGuid);
-        AddEventPayload(request.Payload, "OldCharacterName", GetCharacterName(oldCharacter));
-        AddEventPayload(request.Payload, "NewCharacterName", GetCharacterName(newCharacter));
-        // Legacy aliases remain readable by existing behavior graphs, but now carry the same canonical name.
-        AddEventPayload(request.Payload, "OldCharacterId", GetCharacterName(oldCharacter));
-        AddEventPayload(request.Payload, "NewCharacterId", GetCharacterName(newCharacter));
-        AddEventPayload(request.Payload, "HasOldCharacter", HasCharacter(oldCharacter));
-        AddEventPayload(request.Payload, "HasNewCharacter", HasCharacter(newCharacter));
-        return request;
-    }
-
-    private static void AddEventPayload(IDictionary<string, object?> payload, string key, object? value)
-    {
-        payload[key] = value;
-        payload[$"Event.{key}"] = value;
-    }
-
-    private static FrontedTransitionRequest CreateSwapRequest(
-        int playerIndex,
-        Guid targetGuid,
-        Dictionary<string, object?> payload)
-    {
-        return new FrontedTransitionRequest
-        {
-            WindowType = nameof(FrontedWindowType.BpWindow),
-            TransitionType = "Selection.CharacterSwap",
-            TargetBehaviorGuid = targetGuid,
-            TargetDisplayName = GetBpPickControlName(Camp.Sur, playerIndex),
-            Payload = new Dictionary<string, object?>(payload)
-        };
-    }
-
-    private async Task<Guid> ResolveBpPickBehaviorGuidAsync(Camp camp, int playerIndex)
-    {
-        var config = await layoutService.LoadWindowConfigAsync(nameof(FrontedWindowType.BpWindow));
-        if (config?.ControlLayout.Controls.TryGetValue(GetBpPickControlName(camp, playerIndex), out var control) == true)
-        {
-            return control.BehaviorGuid;
-        }
-
-        return Guid.Empty;
-    }
-
-    private static string GetBpPickControlName(Camp camp, int playerIndex) =>
-        camp == Camp.Sur ? $"SurPick{playerIndex}" : "HunPick";
 
     private static string? GetCharacterName(Character? character) =>
         HasCharacter(character) ? character!.Name : null;

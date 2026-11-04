@@ -79,7 +79,7 @@ public interface ISmartBpService
 | 本地视觉模型 + llama.cpp BP 状态识别 | 已从 SmartBP 模块移除；BP 状态识别仅支持 OCR Provider |
 | GameGuidance 自动追赶 | 可选；按工作流槽位逐步前进，不跨过未完成的 Ban/Pick 步骤 |
 | 识别结果自动应用 | 可选；仅通过 `ICharacterSelectionService` 应用高置信度且已解析的当前帧角色证据，或在引导落后时由同局短时帧安全补充的遗漏证据 |
-| 手动强制同步 | 对当前帧执行独立全量 OCR；角色无动画写入主程序，再直接定位到当前画面对应步骤 |
+| 手动强制同步 | 对当前帧执行独立全量 OCR；立即写入主程序，前台只播放最终槽位的选角动画，再直接定位到当前画面对应步骤 |
 | 全流程自动 BP 画面切换 | TODO。当前识别结果只进入现有候选操作/应用管线，不实现自动切屏 |
 | MapBP 识别 | 不识别 |
 | 天赋角色操作识别 | 不识别 |
@@ -308,7 +308,7 @@ BanSur[0,1] → PickSur[0,1] → BanSur[2] → PickSur[2]
 强制同步由用户显式触发，对当前捕获帧执行一次独立、完整的四区域 OCR，不读写 SmartBP 累计业务状态：
 
 1. 将本帧明确识别到的四类角色槽位直接通过 `ICharacterSelectionService` 写入主程序。
-2. 所有角色选择、交换操作都传 `playAnimation=false`；强制同步不播放入场动画。
+2. 角色选择、交换操作仍传 `playAnimation=false`，先立即提交主程序状态。整次手动同步通过角色展示队列的显式批量入口压缩动画：丢弃积压的中间交换，仅对前台展示值与最终状态不同的槽位运行既有选角 ExitGraph 和 EnterGraph；纯换位也按两个槽位的选角动画显示。自动追赶仍按正常角色动画入队。
 3. 当前或未来的“未选择”保持 `Pending`；仅目标步骤之前的明确 Empty 可提交为空，避免把尚未选择的后续槽位误判为空操作。
 4. 角色写入后重新读取主程序槽位状态，在当前 phase 对应的同 Action 步骤中寻找最早未完成步骤。例如已选 2 名求生者、已 Ban 3 名求生者、已 Ban 2 名监管者，phase 为 `BanSur`，目标就是 `BanSur[3]`。
 5. Guidance 对齐可直接调用 `MoveToStepAsync()`，不播放逐步追赶过程。角色同步和 Guidance 对齐分别返回结果；phase 无法解析时，明确角色仍保留在主程序中，Guidance 原位保持。

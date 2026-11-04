@@ -72,7 +72,11 @@ HostManager 只允许同一窗口最新 Attach 请求注册；Detach/Dispose 使
 
 `IFrontedTransitionOrchestrator` 串联来源状态退出和目标状态进入动画，并在重入、取消、窗口关闭和包切换时终止旧 transition。Transition 不拥有第二份比赛状态，状态变化仍以 `ISharedDataService` 和显式事件 payload 为权威源。
 
-Transition 的顺序固定为 `ExitGraph -> commit -> EnterGraph`。其中 `commit` 是实际比赛状态变更点，必须在 WPF UI Dispatcher 上执行；SmartBP 等后台识别线程只能通过 `ICharacterSelectionService` / `IFrontedTransitionOrchestrator` 调用服务层，由服务层负责切回 UI 线程，不能直接修改 `CurrentGame`。
+通用 Transition 的顺序为 `ExitGraph -> commit -> EnterGraph`，其中 `commit` 是实际比赛状态变更点，必须在 WPF UI Dispatcher 上执行；SmartBP 等后台识别线程只能通过 `ICharacterSelectionService` / `IFrontedTransitionOrchestrator` 调用服务层，由服务层负责切回 UI 线程，不能直接修改 `CurrentGame`。
+
+角色选择与角色交换另外经过 `FrontedCharacterTransitionQueue`：`CharacterSelectionService` 在 UI Dispatcher 上立即提交权威状态，然后把 BP 前台展示变化入队；此时服务调用即可完成。BP 窗口的角色绑定读取内存中的展示快照，队列在旧展示值上运行 ExitGraph，更新受影响槽位的展示值，再运行 EnterGraph。同一槽位的操作按顺序执行；无共同槽位的操作可以并行，双槽交换统一更新两个展示槽位。此展示快照不持久化，也不参与 SmartBP 判断。其他 Transition 仍沿用上述通用 `ExitGraph -> commit -> EnterGraph` 契约及原有重入策略。
+
+对局或进度切换、BP 窗口宿主分离、无动画角色同步会取消积压的角色展示任务并从权威状态重建展示值。SmartBP 手动强制同步使用显式批量接入点，丢弃中间交换；最终发生变化的槽位以 `Selection.CharacterPick` 运行已有退出和进入图。
 
 转场编排按到达顺序串行执行：快速连续的角色分配/交换等业务操作不会并发运行多组 `ExitGraph/EnterGraph`，避免不同转场互相取消后把控件留在中间透明度或可见性状态。业务层仍可通过命令的并发限制对重复点击做第一层防抖，框架串行化是最后保证。
 

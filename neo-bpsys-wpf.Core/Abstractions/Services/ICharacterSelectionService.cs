@@ -121,6 +121,7 @@ public interface ICharacterSelectionService
     /// <param name="character">选择的角色</param>
     /// <param name="playAnimation">是否播放动画</param>
     /// <param name="isRecordGlobalBan">是否记录全局禁用</param>
+    /// <returns>权威状态提交并排入展示动画后完成；不等待展示动画结束。</returns>
     Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true);
 
     /// <summary>
@@ -129,6 +130,7 @@ public interface ICharacterSelectionService
     /// <param name="character">选择的角色</param>
     /// <param name="playAnimation">是否播放动画</param>
     /// <param name="isRecordGlobalBan">是否记录全局禁用</param>
+    /// <returns>权威状态提交并排入展示动画后完成；不等待展示动画结束。</returns>
     Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true);
 
     /// <summary>
@@ -170,6 +172,7 @@ public interface ICharacterSelectionService
     /// <param name="sourceIndex">源玩家索引</param>
     /// <param name="targetIndex">目标玩家索引</param>
     /// <param name="playAnimation">是否播放动画</param>
+    /// <returns>权威状态提交并排入展示动画后完成；不等待展示动画结束。</returns>
     Task SwapSurvivorsAsync(int sourceIndex, int targetIndex, bool playAnimation = true);
 
     /// <summary>

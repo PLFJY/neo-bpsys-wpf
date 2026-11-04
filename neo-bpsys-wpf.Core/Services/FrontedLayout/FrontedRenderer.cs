@@ -66,6 +66,10 @@ public class FrontedRenderer(
         {
             Services = services,
             SharedDataService = context.SharedDataServiceOverride ?? sharedDataService,
+            CharacterPresentation = !context.IsDesignerPreview && context.SharedDataServiceOverride is null &&
+                                    string.Equals(context.WindowTypeName, "BpWindow", StringComparison.Ordinal)
+                ? services.GetService(typeof(IFrontedCharacterPresentationService)) as IFrontedCharacterPresentationService
+                : null,
             ResourceResolver = resourceResolver,
             WindowId = context.WindowId,
             CanvasName = context.CanvasName,
@@ -88,6 +92,7 @@ public class FrontedRenderer(
                 {
                     Services = buildContext.Services,
                     SharedDataService = buildContext.SharedDataService,
+                    CharacterPresentation = buildContext.CharacterPresentation,
                     ResourceResolver = buildContext.ResourceResolver,
                     WindowId = buildContext.WindowId,
                     CanvasName = buildContext.CanvasName,

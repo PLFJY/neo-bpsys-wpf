@@ -108,6 +108,9 @@ public partial class App
         services.AddSingleton<IFrontedWindowService, FrontedWindowService>();
 
         // 角色选择服务
+        services.AddSingleton<FrontedCharacterTransitionQueue>();
+        services.AddSingleton<ICharacterTransitionQueue>(sp => sp.GetRequiredService<FrontedCharacterTransitionQueue>());
+        services.AddSingleton<IFrontedCharacterPresentationService>(sp => sp.GetRequiredService<FrontedCharacterTransitionQueue>());
         services.AddSingleton<ICharacterSelectionService, CharacterSelectionService>();
 
         //Tool Services

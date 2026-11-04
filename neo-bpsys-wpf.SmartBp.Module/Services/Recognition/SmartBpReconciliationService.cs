@@ -15,6 +15,7 @@ internal sealed class SmartBpReconciliationService(
     IGameGuidanceService guidance,
     SmartBpCandidateOperationBuilder candidateBuilder,
     ISmartBpDetectedOperationApplier applier,
+    ICharacterTransitionQueue transitionQueue,
     ISmartBpRecognitionSettingsService settings) : ISmartBpReconciliationService
 {
     /// <inheritdoc />
@@ -50,7 +51,9 @@ internal sealed class SmartBpReconciliationService(
         }
 
         return mode == SmartBpReconciliationMode.ManualForceSync
-            ? await ForceSyncAsync(observed, snapshot, contextGuid, contextProgress, diagnostics, cancellationToken)
+            ? await transitionQueue.RunManualSyncAsync(
+                () => ForceSyncAsync(observed, snapshot, contextGuid, contextProgress, diagnostics, cancellationToken),
+                cancellationToken)
             : await CatchUpAsync(observed, snapshot, contextGuid, contextProgress, diagnostics, cancellationToken);
     }
 
@@ -314,14 +317,14 @@ internal sealed class SmartBpReconciliationService(
                 characterMessages.AddRange(apply.Messages);
             }
             diagnostics.AddRange(apply.Messages.Select(applyMessage =>
-                $"Force sync slot={operation.Camp}[{operation.SlotIndex}]; playAnimation=false; {applyMessage}"));
+                $"Force sync slot={operation.Camp}[{operation.SlotIndex}]; intermediate animation suppressed; {applyMessage}"));
         }
 
         snapshot = guidance.GetRuntimeSnapshot();
         var target = ResolveHostTarget(snapshot, observed.Phase, selection.GetCurrentBpSlotCommitState());
         if (target is null)
         {
-            var unresolvedMessage = $"Force sync applied current-frame roles without animation; Guidance held because phase '{observed.Phase}' does not identify a workflow step.";
+            var unresolvedMessage = $"Force sync applied current-frame roles with minimal presentation transitions; Guidance held because phase '{observed.Phase}' does not identify a workflow step.";
             diagnostics.Add(unresolvedMessage);
             return new(
                 new(characterApplied, characterSkipped, characterMessages),
@@ -335,7 +338,7 @@ internal sealed class SmartBpReconciliationService(
         string message;
         if (target.StepIndex == previousStep)
         {
-            message = $"Force sync wrote current-frame roles without animation; GameGuidance already points at step {target.StepIndex} {target.Action} [{string.Join(',', target.Indexes)}].";
+            message = $"Force sync wrote current-frame roles with minimal presentation transitions; GameGuidance already points at step {target.StepIndex} {target.Action} [{string.Join(',', target.Indexes)}].";
         }
         else
         {
@@ -344,8 +347,8 @@ internal sealed class SmartBpReconciliationService(
             var finalSnapshot = guidance.GetRuntimeSnapshot();
             moved = finalSnapshot.CurrentStepIndex == target.StepIndex;
             message = moved
-                ? $"Force sync wrote current-frame roles without animation and directly positioned GameGuidance at step {target.StepIndex} {target.Action} [{string.Join(',', target.Indexes)}]."
-                : $"Force sync wrote current-frame roles without animation, but direct GameGuidance positioning failed: {moveResult ?? "target step was not reached"}.";
+                ? $"Force sync wrote current-frame roles with minimal presentation transitions and directly positioned GameGuidance at step {target.StepIndex} {target.Action} [{string.Join(',', target.Indexes)}]."
+                : $"Force sync wrote current-frame roles with minimal presentation transitions, but direct GameGuidance positioning failed: {moveResult ?? "target step was not reached"}.";
         }
         diagnostics.Add(message);
         return new(

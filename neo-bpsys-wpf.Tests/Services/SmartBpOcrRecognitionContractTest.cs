@@ -848,8 +848,7 @@ public sealed class SmartBpOcrRecognitionContractTest
         shared.SetupGet(x => x.HunCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Hun).ToDictionary(x => x.Name)));
         var service = new CharacterSelectionService(
             shared.Object,
-            Mock.Of<IFrontedTransitionOrchestrator>(),
-            Mock.Of<IFrontedLayoutService>());
+            Mock.Of<ICharacterTransitionQueue>());
         return new SmartBpOcrTextResolver(service);
     }
 

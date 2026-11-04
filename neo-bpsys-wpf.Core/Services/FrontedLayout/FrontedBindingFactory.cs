@@ -22,11 +22,19 @@ public static class FrontedBindingFactory
     /// </summary>
     /// <param name="path">相对于 <paramref name="source"/> 的绑定路径。</param>
     /// <param name="source">共享数据根。</param>
+    /// <param name="characterPresentation">BP 窗口可选的角色展示源。</param>
     /// <returns>可直接传给 <see cref="BindingOperations.SetBinding(DependencyObject,DependencyProperty,BindingBase)"/> 的绑定。</returns>
-    public static Binding Create(string path, ISharedDataService source)
+    public static Binding Create(
+        string path,
+        ISharedDataService source,
+        IFrontedCharacterPresentationService? characterPresentation = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(source);
+
+        if (characterPresentation?.TryCreateBinding(path, source, out var characterBinding) == true &&
+            characterBinding is not null)
+            return characterBinding;
 
         if (!FrontedBindingPathParser.ContainsDynamicIndexer(path))
         {
@@ -45,7 +53,7 @@ public static class FrontedBindingFactory
 
         return new Binding(nameof(FrontedDynamicBindingSource.Value))
         {
-            Source = new FrontedDynamicBindingSource(source, parsed),
+            Source = new FrontedDynamicBindingSource(source, parsed, characterPresentation),
             Mode = BindingMode.OneWay
         };
     }
@@ -457,15 +465,23 @@ internal sealed class FrontedDynamicBindingSource : INotifyPropertyChanged
 {
     private readonly object? _root;
     private readonly FrontedBindingPath? _path;
+    private readonly IFrontedCharacterPresentationService? _characterPresentation;
+    private readonly bool _useCharacterPresentation;
     private readonly List<INotifyPropertyChanged> _propertySources = [];
     private readonly List<INotifyCollectionChanged> _collectionSources = [];
     private object? _value = DependencyProperty.UnsetValue;
     private bool _isEvaluating;
 
-    public FrontedDynamicBindingSource(ISharedDataService root, FrontedBindingPath path)
+    public FrontedDynamicBindingSource(
+        ISharedDataService root,
+        FrontedBindingPath path,
+        IFrontedCharacterPresentationService? characterPresentation = null)
     {
         _root = root;
         _path = path;
+        _characterPresentation = characterPresentation;
+        _useCharacterPresentation = path.Segments.OfType<FrontedPropertyPathSegment>()
+            .Any(segment => segment.Name is "Character" or "PictureShown" or "PictureShownWithFullCharacter" or "PictureShownHeader");
         Reevaluate();
     }
 
@@ -516,6 +532,12 @@ internal sealed class FrontedDynamicBindingSource : INotifyPropertyChanged
             Subscribe(current);
             current = segment switch
             {
+                FrontedPropertyPathSegment property when _useCharacterPresentation &&
+                    _characterPresentation is not null && current is neo_bpsys_wpf.Core.Models.Game &&
+                    property.Name == "SurPlayerList" => _characterPresentation.GetSurvivorPlayers(),
+                FrontedPropertyPathSegment property when _useCharacterPresentation &&
+                    _characterPresentation is not null && current is neo_bpsys_wpf.Core.Models.Game &&
+                    property.Name == "HunPlayer" => _characterPresentation.GetHunterPlayer(),
                 FrontedPropertyPathSegment property => FrontedBindingPathValueAccessor.TryReadProperty(current, property.Name, out var propertyValue)
                     ? propertyValue : DependencyProperty.UnsetValue,
                 FrontedLiteralIndexerPathSegment literal => FrontedBindingPathValueAccessor.TryReadIndexer(current, literal.Value, out var literalValue)
