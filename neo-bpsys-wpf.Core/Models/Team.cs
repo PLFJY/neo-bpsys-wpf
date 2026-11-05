@@ -82,7 +82,7 @@ public partial class Team : ObservableObjectBase
                     _logo = image;
                     OnPropertyChanged(nameof(Logo));
                 })) return _logo;
-            _logo = new BitmapImage(new Uri(ImageUri));
+            _logo = ImageHelper.TryLoadTrustedLocalImage(ImageUri, out var localLogo) ? localLogo : null;
             return _logo;
         }
         set

@@ -199,8 +199,9 @@ public class Character : INotifyPropertyChanged
         }
 
         var fileFullName = string.IsNullOrEmpty(ImageFileName)
-            ? null
-            : Path.Combine(AppConstants.ResourcesPath, key.ToString(), ImageFileName);
+            || !ImageHelper.TryResolveResourcePath(key.ToString(), ImageFileName, out var resolvedPortraitPath)
+                ? null
+                : resolvedPortraitPath;
         if (fileFullName is null || !File.Exists(fileFullName))
         {
             NotifyImageLoaded(propertyName, apply, null);
