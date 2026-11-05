@@ -123,6 +123,7 @@ public partial class TeamInfoPageViewModel
 
         private Color _teamColorPickerValue = Colors.White;
         private bool _syncingTeamColorEditor;
+        private bool _committingTeamColor;
         private DispatcherTimer? _teamColorCommitTimer;
         private Color? _pendingTeamColor;
 
@@ -192,8 +193,18 @@ public partial class TeamInfoPageViewModel
                 return;
             }
 
-            CurrentTeam.ColorHex = color.ToArgbHexString();
-            SyncTeamColorEditor();
+            // 这是色盘自身产生的提交，不再把值反向写回选择器。否则每次去抖提交都会触发
+            // Team.ColorHex 的 PropertyChanged，再经 SyncTeamColorEditor 重置色盘；拖动色相时
+            // 选择器会不断被重置并重新渲染，造成明显的 UI 卡顿。
+            _committingTeamColor = true;
+            try
+            {
+                CurrentTeam.ColorHex = color.ToArgbHexString();
+            }
+            finally
+            {
+                _committingTeamColor = false;
+            }
         }
 
         private void CancelPendingTeamColorCommit()
@@ -238,6 +249,12 @@ public partial class TeamInfoPageViewModel
         {
             if (e.PropertyName == nameof(Team.ColorHex))
             {
+                // 色盘自身的去抖提交已经更新过编辑区，不能再重置选择器，否则会打断拖动。
+                if (_committingTeamColor)
+                {
+                    return;
+                }
+
                 // 外部来源（导入、重置、对局切换）覆盖颜色时丢弃尚未提交的色盘值。
                 CancelPendingTeamColorCommit();
                 SyncTeamColorEditor();

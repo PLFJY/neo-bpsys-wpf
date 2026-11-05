@@ -409,12 +409,23 @@ public partial class FrontedDesignerWindow
             item.EditText = FrontedPropertyColorHelper.ToArgbString(item.ColorValue);
             if (!item.RequiresExplicitCommit)
             {
-                ApplyPropertyEditorValue(picker);
+                // 色盘拖动会在每个像素触发一次变化：只在本次拖动开始时捕获一次撤销快照，
+                // 且不重建属性网格，避免序列化整份文档和重建属性行拖慢拖动响应。
+                var isFirstChangeInSession = !ReferenceEquals(_activeColorEditItem, item);
+                ApplyPropertyEditorValue(
+                    picker,
+                    refreshPropertyGrid: false,
+                    captureUndoSnapshot: isFirstChangeInSession);
+                _activeColorEditItem = item;
+                RestartColorEditSessionTimer();
             }
         }
     }
 
-    private bool ApplyPropertyEditorValue(object sender, bool refreshPropertyGrid = true)
+    private bool ApplyPropertyEditorValue(
+        object sender,
+        bool refreshPropertyGrid = true,
+        bool captureUndoSnapshot = true)
     {
         if (IsPropertyEditorCommitSuppressed()
             || _viewModel is null
@@ -430,7 +441,29 @@ public partial class FrontedDesignerWindow
                 ? item.EditText
                 : item.Value;
 
-        return _viewModel.ApplyPropertyEdit(item, value, refreshPropertyGrid);
+        return _viewModel.ApplyPropertyEdit(item, value, refreshPropertyGrid, captureUndoSnapshot);
+    }
+
+    private void RestartColorEditSessionTimer()
+    {
+        if (_colorEditSessionTimer is null)
+        {
+            _colorEditSessionTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
+            _colorEditSessionTimer.Tick += ColorEditSessionTimer_OnTick;
+        }
+
+        // 500ms 内没有新的颜色变化视为本次拖动结束，下一次拖动重新捕获撤销快照。
+        _colorEditSessionTimer.Stop();
+        _colorEditSessionTimer.Start();
+    }
+
+    private void ColorEditSessionTimer_OnTick(object? sender, EventArgs e)
+    {
+        _colorEditSessionTimer?.Stop();
+        _activeColorEditItem = null;
     }
 
     private async Task<bool> ApplyPropertyEditorValueAsync(object sender)

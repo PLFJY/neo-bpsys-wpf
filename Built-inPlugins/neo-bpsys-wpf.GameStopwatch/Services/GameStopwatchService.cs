@@ -9,15 +9,17 @@ namespace neo_bpsys_wpf.GameStopwatch.Services;
 /// <summary>
 /// 使用 WPF DispatcherTimer 刷新比赛秒表的服务。
 /// </summary>
-public sealed class GameStopwatchService : IGameStopwatchService
+public sealed class GameStopwatchService : IGameStopwatchService, IDisposable
 {
     private readonly Stopwatch _stopwatch = new();
     private readonly DispatcherTimer _timer;
+    private readonly DispatcherTimer _settingsSaveTimer;
     private readonly string _settingsPath;
     private string _textColor = "#FFFFFFFF";
     private string _fontFamilyName = "Arial";
     private double _fontSize = 48;
     private double _windowSize = 320;
+    private bool _settingsDirty;
 
     /// <summary>初始化秒表服务。</summary>
     /// <param name="settingsPath">设置文件路径。</param>
@@ -27,6 +29,12 @@ public sealed class GameStopwatchService : IGameStopwatchService
         LoadSettings();
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _timer.Tick += (_, _) => OnPropertyChanged(nameof(DisplayText));
+        _settingsSaveTimer = new DispatcherTimer(
+            TimeSpan.FromMilliseconds(250),
+            DispatcherPriority.Background,
+            (_, _) => FlushSettings(),
+            Dispatcher.CurrentDispatcher);
+        _settingsSaveTimer.Stop();
     }
 
     /// <inheritdoc />
@@ -118,17 +126,50 @@ public sealed class GameStopwatchService : IGameStopwatchService
 
     private void SaveSettings()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
-        File.WriteAllText(_settingsPath, JsonSerializer.Serialize(new StopwatchSettings(
-            _textColor, _fontFamilyName, _fontSize, _windowSize)));
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_settingsPath)!);
+            File.WriteAllText(_settingsPath, JsonSerializer.Serialize(new StopwatchSettings(
+                _textColor, _fontFamilyName, _fontSize, _windowSize)));
+            _settingsDirty = false;
+        }
+        catch (Exception ex)
+        {
+            // 设置写入失败不应打断拖动色盘等交互；保留脏标记，等待下一次重试。
+            _settingsDirty = true;
+            Debug.WriteLine($"[GameStopwatch] 保存设置失败: {ex.Message}");
+        }
+    }
+
+    private void ScheduleSave()
+    {
+        _settingsDirty = true;
+        _settingsSaveTimer.Stop();
+        _settingsSaveTimer.Start();
+    }
+
+    private void FlushSettings()
+    {
+        _settingsSaveTimer.Stop();
+        if (!_settingsDirty) return;
+        SaveSettings();
     }
 
     private void SetSetting<T>(ref T field, T value, string propertyName)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return;
         field = value;
-        SaveSettings();
+        // 色盘拖动会连续产生大量属性变化，合并为一次磁盘写入，避免每次移动都同步读写设置文件。
+        ScheduleSave();
         OnPropertyChanged(propertyName);
+    }
+
+    /// <summary>释放计时器，并立即落盘尚未保存的设置。</summary>
+    public void Dispose()
+    {
+        _timer.Stop();
+        _settingsSaveTimer.Stop();
+        FlushSettings();
     }
 
     private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

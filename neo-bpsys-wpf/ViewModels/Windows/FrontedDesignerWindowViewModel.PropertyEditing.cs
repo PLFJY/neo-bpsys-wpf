@@ -128,7 +128,19 @@ public partial class FrontedDesignerWindowViewModel
         RequestPreviewRenderCurrentDocument();
     }
 
-    public bool ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue, bool refreshPropertyGrid = true)
+    /// <summary>
+    /// 应用属性网格中的一次编辑。
+    /// </summary>
+    /// <param name="item">要编辑的属性行。</param>
+    /// <param name="newValue">待应用的属性值。</param>
+    /// <param name="refreshPropertyGrid">是否在提交后重建属性网格；自动提交场景应传 <see langword="false"/> 以避免输入框失焦。</param>
+    /// <param name="captureUndoSnapshot">是否在写入前捕获撤销快照；连续拖动色盘时只在首个变化捕获一次，避免每次鼠标移动都序列化整份文档。</param>
+    /// <returns>属性已更新时返回 <see langword="true"/>。</returns>
+    public bool ApplyPropertyEdit(
+        FrontedPropertyEditorItem item,
+        object? newValue,
+        bool refreshPropertyGrid = true,
+        bool captureUndoSnapshot = true)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
@@ -165,7 +177,7 @@ public partial class FrontedDesignerWindowViewModel
         if (_schemaPropertiesByPath.TryGetValue(item.PropertyName, out var schemaProperty)
             && _selectedTarget is not null)
         {
-            return ApplySchemaPropertyEdit(item, schemaProperty, newValue, refreshPropertyGrid);
+            return ApplySchemaPropertyEdit(item, schemaProperty, newValue, refreshPropertyGrid, captureUndoSnapshot);
         }
 
         if (item.PropertyName == nameof(FrontedControlDesignItem.Name))
@@ -209,7 +221,10 @@ public partial class FrontedDesignerWindowViewModel
             return true;
         }
 
-        CaptureUndoSnapshot();
+        if (captureUndoSnapshot)
+        {
+            CaptureUndoSnapshot();
+        }
         foreach (var target in changedTargets)
         {
             var targetProperty = target.Config.GetType().GetProperty(
@@ -286,12 +301,15 @@ public partial class FrontedDesignerWindowViewModel
     /// <param name="item">属性行。</param>
     /// <param name="schemaProperty">属性定义。</param>
     /// <param name="newValue">用户输入的新值。</param>
+    /// <param name="refreshPropertyGrid">是否在提交后重建属性网格。</param>
+    /// <param name="captureUndoSnapshot">是否在写入前捕获撤销快照；连续拖动色盘时只在首个变化捕获一次。</param>
     /// <returns>是否成功提交。</returns>
     private bool ApplySchemaPropertyEdit(
         FrontedPropertyEditorItem item,
         FrontedV3PropertyDefinition schemaProperty,
         object? newValue,
-        bool refreshPropertyGrid = true)
+        bool refreshPropertyGrid = true,
+        bool captureUndoSnapshot = true)
     {
         if (_selectedTarget is null || _selectedTarget.DesignItem is not { } designItem)
         {
@@ -350,10 +368,13 @@ public partial class FrontedDesignerWindowViewModel
             return true;
         }
 
-        if (IsGeometryProperty(item.PropertyName) && _selectedTarget.Kind == FrontedV3DesignSelectionKind.Root)
-            CaptureGeometryUndoSnapshot();
-        else
-            CaptureUndoSnapshot();
+        if (captureUndoSnapshot)
+        {
+            if (IsGeometryProperty(item.PropertyName) && _selectedTarget.Kind == FrontedV3DesignSelectionKind.Root)
+                CaptureGeometryUndoSnapshot();
+            else
+                CaptureUndoSnapshot();
+        }
         foreach (var target in changedTargets)
         {
             target.Property.SetValue(target.Item.Config, convertedValue);

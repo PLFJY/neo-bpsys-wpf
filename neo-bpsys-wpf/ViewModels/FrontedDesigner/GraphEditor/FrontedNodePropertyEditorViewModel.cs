@@ -411,7 +411,13 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         {
             OnPropertyChanged(nameof(EventContextFieldValue));
         }
-        _refreshRelatedProperties?.Invoke();
+
+        // 色盘拖动会在每个像素写入一次颜色。颜色只影响自身取值，不会改变其他属性的编辑器类型或选项，
+        // 因此跳过整组属性状态刷新，避免拖动时反复做本地化查询和选项重建。
+        if (!IsColor)
+        {
+            _refreshRelatedProperties?.Invoke();
+        }
     }
 
     private bool ValidateTextValue(string? value, out string normalized)

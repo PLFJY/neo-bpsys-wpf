@@ -45,6 +45,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly ISettingsHostService? _settingsHostService;
     private DispatcherTimer? _propertyAutoCommitTimer;
     private DispatcherTimer? _previewRenderDebounceTimer;
+    private DispatcherTimer? _colorEditSessionTimer;
+    private FrontedPropertyEditorItem? _activeColorEditItem;
     private FrameworkElement? _pendingAutoCommitEditor;
     private bool _isLoaded;
     private DispatcherOperation? _previewRenderOperation;
@@ -326,6 +328,9 @@ public partial class FrontedDesignerWindow : FluentWindow
         _previewRenderScheduled = false;
         _propertyAutoCommitTimer?.Stop();
         _pendingAutoCommitEditor = null;
+        _colorEditSessionTimer?.Stop();
+        _colorEditSessionTimer = null;
+        _activeColorEditItem = null;
         _previewRenderDebounceTimer?.Stop();
         _previewRenderDebounceTimer = null;
         _layerSelectionOperation?.Abort();
