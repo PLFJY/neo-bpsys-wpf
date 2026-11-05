@@ -183,7 +183,13 @@ public sealed class TesseractDataAssetManager(
     private static IEnumerable<string> ParseLanguages(string? languages) =>
         (string.IsNullOrWhiteSpace(languages) ? "chi_sim+eng" : languages)
         .Split(['+', ',', ';', ' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Distinct(StringComparer.OrdinalIgnoreCase);
+        .Where(IsSafeLanguageName)
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .DefaultIfEmpty("chi_sim+eng");
+
+    private static bool IsSafeLanguageName(string language) =>
+        language.Length <= 64
+        && language.All(character => char.IsAsciiLetterOrDigit(character) || character == '_');
 
     private sealed record TesseractManagedLanguage(string Language, string DisplayNameKey, string Url);
 }

@@ -2002,12 +2002,24 @@ public partial class SmartBpModuleContentViewModel
     /// <param name="path">要打开的目录路径。</param>
     private static void OpenFolderInExplorer(string path)
     {
+        if (!Path.IsPathFullyQualified(path))
+        {
+            return;
+        }
+
+        var fullPath = Path.GetFullPath(path);
+        // explorer.exe 会把以 / 或 - 开头的首个参数解析为开关，路径必须是绝对路径。
+        if (fullPath.StartsWith('/') || fullPath.StartsWith('-'))
+        {
+            return;
+        }
+
         var startInfo = new ProcessStartInfo("explorer.exe")
         {
             UseShellExecute = false,
             CreateNoWindow = true
         };
-        startInfo.ArgumentList.Add(path);
+        startInfo.ArgumentList.Add(fullPath);
         Process.Start(startInfo);
     }
 
