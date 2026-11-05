@@ -28,10 +28,19 @@ internal sealed class SmartBpOcrSnapshotDeltaRecognitionService(
         watch.Stop();
 
         var delta = ToDelta(result.BusinessState, request.RequestedFields);
-        var phaseCrop = await Task.Run(() => cropper.CropWithInfo(frame, SmartBpRecognitionRegion.PhaseTop), cancellationToken).ConfigureAwait(false);
-        var crops = new List<SmartBpCroppedFrame>();
-        foreach (var region in contentRegions)
-            crops.Add(await Task.Run(() => cropper.CropWithInfo(frame, region), cancellationToken).ConfigureAwait(false));
+        var (phaseCrop, crops) = await Task.Run(() =>
+        {
+            // 同一帧的所有裁剪放在一个后台任务中，复用 FrameCropper 的整帧 Mat 缓存，
+            // 避免每个区域单独 Task.Run 的线程切换和重复整帧转换。
+            var phase = cropper.CropWithInfo(frame, SmartBpRecognitionRegion.PhaseTop);
+            var contentCrops = new List<SmartBpCroppedFrame>(contentRegions.Length);
+            foreach (var region in contentRegions)
+            {
+                contentCrops.Add(cropper.CropWithInfo(frame, region));
+            }
+
+            return (phase, (IReadOnlyList<SmartBpCroppedFrame>)contentCrops);
+        }, cancellationToken).ConfigureAwait(false);
 
         var diagnostics = new List<string>
         {

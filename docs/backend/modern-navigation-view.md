@@ -100,6 +100,8 @@ Top 模式用于局部标签导航：
 
 菜单项前景色跟随 WPF-UI 动态主题资源。按钮默认、悬停、按下和选中状态使用 NavigationView item 前景色资源；禁用状态使用 WPF-UI 文本禁用色资源。文本和图标都从按钮 `Foreground` 继承，不硬编码黑白颜色，因此主题切换时可以随资源更新。
 
+`PaneBorder` 背景保持透明，不直接铺 `ApplicationBackgroundBrush`。这样 MainWindow 的主题切换遮罩颜色动画可以透过 pane 显示，侧边栏不会再在主题切换时瞬间变色；边框仍使用 `ControlStrokeColorDefaultBrush` 保持分隔。
+
 pane toggle 使用项目本地 `ModernPaneToggleButtonStyle`，参考 iNKORE/WinUI 的 TogglePaneButton：点击区域按 `CompactPaneLength` 占满折叠 pane 宽度，图标居中，默认、悬停、按下和禁用状态使用 WPF-UI 动态主题资源。
 
 主菜单滚动宿主在 pane 折叠时仍使用 `Auto` 垂直滚动条，但会在该 ScrollViewer 作用域内切换为 4px 的本地窄滚动条模板，避免普通 WPF 滚动条挤压或覆盖 compact 图标，同时保留可见滚动指示和鼠标滚轮滚动。pane 展开时恢复默认滚动条样式。后续如需要更接近 iNKORE `ScrollViewerEx`，可以再做 opt-in 的自动隐藏滚动条行为。

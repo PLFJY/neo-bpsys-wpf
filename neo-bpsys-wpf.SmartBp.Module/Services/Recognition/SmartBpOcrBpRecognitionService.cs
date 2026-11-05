@@ -189,10 +189,10 @@ internal sealed class SmartBpOcrBpRecognitionService(
         ICollection<string> diagnostics,
         CancellationToken cancellationToken)
     {
-        var groups = new List<SmartBpOcrRegionText>();
-        foreach (var region in requestedRegions)
+        return await Task.Run(() =>
         {
-            var lines = await Task.Run(() =>
+            var groups = new List<SmartBpOcrRegionText>(requestedRegions.Count);
+            foreach (var region in requestedRegions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var crop = cropper.CropWithInfo(frame, region);
@@ -201,13 +201,12 @@ internal sealed class SmartBpOcrBpRecognitionService(
                 var result = ocr.RecognizeTextLines(bgr).Lines;
                 if (region is SmartBpRecognitionRegion.TopCenterStatus or SmartBpRecognitionRegion.TopLeftStatus)
                     AddStatusCropDiagnostics(diagnostics, crop);
-                return result;
-            }, cancellationToken).ConfigureAwait(false);
-            diagnostics.Add($"provider={ocr.SelectedProvider}; line_count={lines.Count}; OCR per-region fallback={ToRegionId(region)}.");
-            groups.Add(new() { Region = region, Lines = lines });
-        }
+                diagnostics.Add($"provider={ocr.SelectedProvider}; line_count={result.Count}; OCR per-region fallback={ToRegionId(region)}.");
+                groups.Add(new() { Region = region, Lines = result });
+            }
 
-        return groups;
+            return (IReadOnlyList<SmartBpOcrRegionText>)groups;
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<IReadOnlyDictionary<SmartBpRecognitionRegion, Size>> GetRegionDimensionsAsync(
@@ -216,8 +215,12 @@ internal sealed class SmartBpOcrBpRecognitionService(
         CancellationToken cancellationToken) =>
         await Task.Run(() => requestedRegions
             .Distinct()
-            .Select(region => cropper.CropWithInfo(frame, region))
-            .ToDictionary(crop => crop.Region, crop => new Size(crop.Width, crop.Height)), cancellationToken).ConfigureAwait(false);
+            .Select(region =>
+            {
+                var size = cropper.GetRegionPixelSize(frame, region);
+                return (Region: region, Size: new Size(size.Width, size.Height));
+            })
+            .ToDictionary(item => item.Region, item => item.Size), cancellationToken).ConfigureAwait(false);
 
     private static IReadOnlyList<SmartBpRecognitionRegion> BuildRequestedRegions(SmartBpOcrRecognitionRequest request)
     {

@@ -38,7 +38,7 @@ services.AddBackendPage<MyPage, MyPageViewModel>();
 
 MainWindow 的 RootNavigation 使用项目自定义 [ModernNavigationView](modern-navigation-view.md)，内部由 [ModernFrame](modern-frame.md) 承载 Page；WPF-UI INavigationService、NavigationViewItem 和图标类型仍为兼容 API，不等于运行时仍使用原 NavigationView 控件。MainWindow 构造时调用 navigationService.SetNavigationControl(RootNavigation)，菜单由 DI 注册表提供。
 
-不要导航时手动 new Page，页面与 VM 已由 DI 以 singleton 注册。ApplicationHostService 根据 IsClassicMode 选择 ClassicBackendWindow 或 Modern MainWindow；Modern 显示后导航 Home。源码里的 Pick/Ban 预加载仅为注释，不会执行。Classic 页管理弹窗与共享状态边界见[classic-mode.md](classic-mode.md)。
+不要导航时手动 new Page，页面与 VM 已由 DI 以 singleton 注册。ApplicationHostService 根据 IsClassicMode 选择 ClassicBackendWindow 或 Modern MainWindow；Modern 显示后导航 Home。启动遮罩结束后，ApplicationHostService 在 Dispatcher 空闲优先级从 DI 预取 Pick/Ban 等含 CharacterSelector 的页面实例，仅创建缓存、不切换页面，以降低首次导航的同步控件创建卡顿。Classic 页管理弹窗与共享状态边界见[classic-mode.md](classic-mode.md)。
 
 ## 图标
 

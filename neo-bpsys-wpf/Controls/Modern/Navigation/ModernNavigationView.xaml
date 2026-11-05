@@ -392,7 +392,7 @@
             Grid.Row="1"
             Grid.Column="0"
             Width="{Binding ActualPaneLength, ElementName=Root}"
-            Background="{DynamicResource ApplicationBackgroundBrush}"
+            Background="Transparent"
             BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
             BorderThickness="0,0,1,0"
             ClipToBounds="True">

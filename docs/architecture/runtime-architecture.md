@@ -88,7 +88,7 @@ Application.Current.Resources["CurrentLanguage"] =
 
 1. 注册教程标记，读取 IsClassicMode。
 2. Classic 模式解析并显示 ClassicBackendWindow 后返回。
-3. Modern 模式解析 INavigationWindow，显示 MainWindow 并导航 HomePage。Pick/Ban 预加载目前只在注释中，不执行。
+3. Modern 模式解析 INavigationWindow，显示 MainWindow 并导航 HomePage；启动遮罩结束后在 Dispatcher 空闲优先级预创建 Pick/Ban 等含 CharacterSelector 的页面实例，不切换当前页面，避免首次导航时同步创建大量控件造成卡顿。
 
 这是 UI 启动链的一部分，不是后台服务进程。
 

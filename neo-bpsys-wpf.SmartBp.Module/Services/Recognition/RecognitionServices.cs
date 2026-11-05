@@ -18,6 +18,11 @@ namespace neo_bpsys_wpf.SmartBp.Module.Services.Recognition;
 internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStorageProvider storage) : ISmartBpRecognitionRegionProfileService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
+    private readonly object _cacheGate = new();
+    private SmartBpRecognitionLayoutProfile? _cachedProfile;
+    private string? _cachedPath;
+    private DateTime _cachedWriteTimeUtc;
+    private long _cachedLength;
     private string BundledPath => Path.Combine(storage.ModuleRoot, "Resources", "SmartBp", "BpRecognitionLayoutProfile.json");
     private static string UserPath => Path.Combine(AppConstants.AppDataPath, "SmartBp", "BpRecognitionLayoutProfile.json");
 
@@ -25,12 +30,32 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
     {
         var isUserLayout = File.Exists(UserPath);
         var path = isUserLayout ? UserPath : BundledPath;
+        var fileInfo = new FileInfo(path);
+        lock (_cacheGate)
+        {
+            if (_cachedProfile is not null
+                && string.Equals(_cachedPath, path, StringComparison.OrdinalIgnoreCase)
+                && _cachedLength == fileInfo.Length
+                && _cachedWriteTimeUtc == fileInfo.LastWriteTimeUtc)
+            {
+                return _cachedProfile;
+            }
+        }
+
         await using var stream = File.OpenRead(path);
         var profile = await JsonSerializer.DeserializeAsync<SmartBpRecognitionLayoutProfile>(stream, JsonOptions, cancellationToken)
             ?? throw new InvalidDataException("SmartBP recognition layout profile is empty.");
         EnsureStatusRegions(profile);
         Validate(profile);
         profile.RuntimeSource = isUserLayout ? "user-layout" : "default";
+        lock (_cacheGate)
+        {
+            _cachedProfile = profile;
+            _cachedPath = path;
+            _cachedLength = fileInfo.Length;
+            _cachedWriteTimeUtc = fileInfo.LastWriteTimeUtc;
+        }
+
         return profile;
     }
 
@@ -39,14 +64,31 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
         EnsureStatusRegions(profile);
         Validate(profile);
         Directory.CreateDirectory(Path.GetDirectoryName(UserPath)!);
-        await using var stream = File.Create(UserPath);
-        await JsonSerializer.SerializeAsync(stream, profile, JsonOptions, cancellationToken);
+        await using (var stream = File.Create(UserPath))
+        {
+            await JsonSerializer.SerializeAsync(stream, profile, JsonOptions, cancellationToken);
+        }
+
+        var fileInfo = new FileInfo(UserPath);
+        lock (_cacheGate)
+        {
+            _cachedProfile = profile;
+            _cachedPath = UserPath;
+            _cachedLength = fileInfo.Length;
+            _cachedWriteTimeUtc = fileInfo.LastWriteTimeUtc;
+        }
     }
 
     public Task ResetUserOverrideAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (File.Exists(UserPath)) File.Delete(UserPath);
+        lock (_cacheGate)
+        {
+            _cachedProfile = null;
+            _cachedPath = null;
+        }
+
         return Task.CompletedTask;
     }
 
@@ -83,24 +125,57 @@ internal sealed class SmartBpRecognitionRegionProfileService(ISmartBpModuleStora
 /// <summary>
 /// 按当前区域 profile 从前台截图裁剪识别所需的业务区域。
 /// </summary>
-internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionProfileService profileService) : ISmartBpRecognitionFrameCropper
+internal sealed class SmartBpRecognitionFrameCropper(ISmartBpRecognitionRegionProfileService profileService) : ISmartBpRecognitionFrameCropper, IDisposable
 {
+    private readonly object _sourceGate = new();
+    private BitmapSource? _cachedSource;
+    private Mat? _cachedSourceMat;
+
     public BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region) => CropWithInfo(source, region).Image;
+
+    public System.Windows.Size GetRegionPixelSize(BitmapSource source, SmartBpRecognitionRegion region)
+    {
+        var profile = profileService.LoadAsync().GetAwaiter().GetResult();
+        var rect = profile.Regions[ToProfileKey(region)];
+        var pixelRect = ToPixelRect(rect, source.PixelWidth, source.PixelHeight);
+        return new System.Windows.Size(pixelRect.Width, pixelRect.Height);
+    }
+
+    public void Dispose()
+    {
+        lock (_sourceGate)
+        {
+            _cachedSourceMat?.Dispose();
+            _cachedSourceMat = null;
+            _cachedSource = null;
+        }
+    }
 
     public SmartBpCroppedFrame CropWithInfo(BitmapSource source, SmartBpRecognitionRegion region)
     {
         var profile = profileService.LoadAsync().GetAwaiter().GetResult();
         var rect = profile.Regions[ToProfileKey(region)];
-        using var sourceMat = BitmapSourceConverter.ToMat(source);
-        var roi = ToPixelRect(rect, sourceMat.Width, sourceMat.Height);
-        using var cropped = new Mat(sourceMat, roi).Clone();
-        var image = BitmapSourceConverter.ToBitmapSource(cropped);
-        image.Freeze();
-        return new(region, image, roi.X, roi.Y, roi.Width, roi.Height)
+        lock (_sourceGate)
         {
-            LayoutSource = profile.RuntimeSource,
-            NormalizedRectText = $"x={rect.X:0.####}, y={rect.Y:0.####}, w={rect.Width:0.####}, h={rect.Height:0.####}"
-        };
+            // 同一帧要裁剪多个区域；整帧 BitmapSource 转 Mat 只做一次，后续只复制 ROI。
+            if (!ReferenceEquals(_cachedSource, source) || _cachedSourceMat is null)
+            {
+                _cachedSourceMat?.Dispose();
+                _cachedSourceMat = BitmapSourceConverter.ToMat(source);
+                _cachedSource = source;
+            }
+
+            var sourceMat = _cachedSourceMat;
+            var roi = ToPixelRect(rect, sourceMat.Width, sourceMat.Height);
+            using var cropped = new Mat(sourceMat, roi).Clone();
+            var image = BitmapSourceConverter.ToBitmapSource(cropped);
+            image.Freeze();
+            return new(region, image, roi.X, roi.Y, roi.Width, roi.Height)
+            {
+                LayoutSource = profile.RuntimeSource,
+                NormalizedRectText = $"x={rect.X:0.####}, y={rect.Y:0.####}, w={rect.Width:0.####}, h={rect.Height:0.####}"
+            };
+        }
     }
 
     private static Rect ToPixelRect(SmartBpRecognitionRegionRect rect, int width, int height)

@@ -883,6 +883,9 @@ public sealed class SmartBpOcrRecognitionContractTest
             new(region, frame, 0, 0, frame.PixelWidth, frame.PixelHeight);
 
         public BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region) => frame;
+
+        public System.Windows.Size GetRegionPixelSize(BitmapSource source, SmartBpRecognitionRegion region) =>
+            new(frame.PixelWidth, frame.PixelHeight);
     }
 
     private sealed class FakeProvider(SmartBpOcrProviderKind kind, bool ready) : IOcrProvider

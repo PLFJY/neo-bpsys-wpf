@@ -271,9 +271,12 @@ public class SmartBpService : ISmartBpService, IGameDataRecognitionDebugState, I
         using var full = frame.ToBgrMat();
         bitmapToMatSw.Stop();
 
-        _debugLog.Write(
-            "post-game",
-            $"capture: pixel_size={frame.PixelWidth}x{frame.PixelHeight}; provider={_ocrService.SelectedProvider}; configured_provider_details=[{ToLogText(_ocrService.GetProviderStatus(_ocrService.SelectedProvider).Details)}].");
+        if (_debugLog.IsEnabled)
+        {
+            _debugLog.Write(
+                "post-game",
+                $"capture: pixel_size={frame.PixelWidth}x{frame.PixelHeight}; provider={_ocrService.SelectedProvider}; configured_provider_details=[{ToLogText(_ocrService.GetProviderStatus(_ocrService.SelectedProvider).Details)}].");
+        }
 
         var runResult = _postGameOcrEngine.RunAsync(full, captureMs, bitmapToMatSw.ElapsedMilliseconds, cancellationToken)
             .GetAwaiter().GetResult();

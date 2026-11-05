@@ -207,9 +207,34 @@ public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
 
     private IReadOnlyList<RapidOcrRawLine> Detect(Mat image, RapidOcrOptions options)
     {
-        Cv2.ImEncode(".png", image, out var bytes);
-        using var bitmap = SKBitmap.Decode(bytes) ?? throw new InvalidDataException("RapidOCR could not decode the input image.");
+        using var bitmap = ToSKBitmap(image);
         return _engine.Detect(bitmap, options);
+    }
+
+    private static SKBitmap ToSKBitmap(Mat image)
+    {
+        using var bgra = new Mat();
+        switch (image.Channels())
+        {
+            case 1:
+                Cv2.CvtColor(image, bgra, ColorConversionCodes.GRAY2BGRA);
+                break;
+            case 3:
+                Cv2.CvtColor(image, bgra, ColorConversionCodes.BGR2BGRA);
+                break;
+            case 4:
+                image.CopyTo(bgra);
+                break;
+            default:
+                // 非典型通道数回退到编码路径，保证兼容性。
+                Cv2.ImEncode(".png", image, out var fallbackBytes);
+                return SKBitmap.Decode(fallbackBytes)
+                       ?? throw new InvalidDataException("RapidOCR could not decode the input image.");
+        }
+
+        var info = new SKImageInfo(bgra.Width, bgra.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+        using var skImage = SKImage.FromPixelCopy(info, bgra.Data, checked((int)bgra.Step()));
+        return SKBitmap.FromImage(skImage);
     }
 
     private RapidOcrOptions BuildOptions()
@@ -234,6 +259,12 @@ public sealed class RapidOcrNetProvider : IOcrProvider, IDisposable
     private void EnsureInitializedUnsafe()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        // 已初始化后不再每次识别读取模型清单/文件状态；模型更新通过重新创建 Provider 生效。
+        if (!string.IsNullOrEmpty(_initializedKey))
+        {
+            return;
+        }
+
         var paths = _assets.GetInstalledPathsAsync().GetAwaiter().GetResult();
         var key = string.Join('|', paths.DetPath, paths.ClsPath, paths.RecPath, paths.DictPath);
         if (string.Equals(_initializedKey, key, StringComparison.Ordinal)) return;

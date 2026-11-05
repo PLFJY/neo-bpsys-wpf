@@ -17,6 +17,11 @@ internal sealed class RapidOcrModelManifestProvider(
     ISmartBpModuleStorageProvider storage,
     ILogger<RapidOcrModelManifestProvider> logger) : IRapidOcrModelManifestProvider
 {
+    private readonly object _cacheGate = new();
+    private RapidOcrModelManifest? _cachedManifest;
+    private DateTime _cachedWriteTimeUtc;
+    private long _cachedLength;
+
     /// <summary>
     /// 加载并校验 RapidOCR 模型 manifest。
     /// </summary>
@@ -25,6 +30,17 @@ internal sealed class RapidOcrModelManifestProvider(
     public async Task<RapidOcrModelManifest> LoadAsync(CancellationToken cancellationToken = default)
     {
         var path = Path.Combine(storage.ModuleRoot, "Resources", "SmartBp", "RapidOcrModelManifest.json");
+        var fileInfo = new FileInfo(path);
+        lock (_cacheGate)
+        {
+            if (_cachedManifest is not null
+                && _cachedLength == fileInfo.Length
+                && _cachedWriteTimeUtc == fileInfo.LastWriteTimeUtc)
+            {
+                return _cachedManifest;
+            }
+        }
+
         await using var stream = File.OpenRead(path);
         var manifest = await JsonSerializer.DeserializeAsync<RapidOcrModelManifest>(stream,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, cancellationToken).ConfigureAwait(false)
@@ -34,6 +50,13 @@ internal sealed class RapidOcrModelManifestProvider(
                 GetAssets(profile).Any(asset => string.IsNullOrWhiteSpace(asset.FileName) ||
                     !Uri.TryCreate(asset.DownloadUrl, UriKind.Absolute, out _))))
             throw new InvalidDataException("Unsupported or invalid RapidOCR model manifest.");
+        lock (_cacheGate)
+        {
+            _cachedManifest = manifest;
+            _cachedLength = fileInfo.Length;
+            _cachedWriteTimeUtc = fileInfo.LastWriteTimeUtc;
+        }
+
         logger.LogInformation("RapidOCR manifest loaded. Profiles={Count}", manifest.Models.Count);
         return manifest;
     }
