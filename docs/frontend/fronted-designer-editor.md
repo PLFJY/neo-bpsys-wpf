@@ -20,13 +20,13 @@ JSON key / 控件名与 BehaviorGuid 的规则统一见[运行时契约](fronted
 
 ## 预览坐标、选择和几何
 
-结构为 ScrollViewer → PreviewWorkspace → PreviewZoomHost → DesignSurfaceGrid，后者叠放 PreviewCanvas 与 InteractionLayer。两层尺寸来自 CanvasSettings；缩放用 LayoutTransform。鼠标 GetPosition(InteractionLayer) 得到逻辑设计坐标，无需再乘除 ZoomScale；真实窗口外框、标题栏、ActualHeight 不参与计算。工具窗口不默认设置主窗口 Owner 或最大化，避免 owned maximized window 的任务栏联动。
+结构为 ScrollViewer → PreviewWorkspace → PreviewZoomHost → DesignSurfaceGrid，后者叠放 PreviewCanvas 与 InteractionLayer。两层尺寸来自 CanvasSettings；缩放用 LayoutTransform。鼠标 GetPosition(InteractionLayer) 得到逻辑设计坐标，无需再乘除 ZoomScale；真实窗口外框、标题栏、ActualHeight 不参与计算。控件被拖出画布后，DesignSurfaceGrid 按画布与控件实际占用范围的并集动态扩展，两层画布整体平移到正坐标区域，逻辑坐标不变；平移边界、滚动工作区尺寸和 Fit 缩放/居中都以该扩展范围为基准，避免扩展内容在负坐标或高缩放下被视口裁掉。工具窗口不默认设置主窗口 Owner 或最大化，避免 owned maximized window 的任务栏联动。
 
 透明 hitbox 独立于可见像素，空文本、无图片、Hidden/Collapsed 和缺失插件控件仍可选择。空尺寸优先用预览实际尺寸，仍不可用时使用最小 hitbox。命中提升只影响 InteractionLayer，不更改 JSON ZIndex。
 
-- 单击 hitbox 或图层列表选择；在未选中项上按下拖动不抢选中控件焦点。
-- 拖动/八方向 resize 修改当前内存配置；左/上缩放同时调整 Left/Top。Shift、Ctrl、Alt 微调步长分别为 10、1、0.1，普通方向键为 0.5；最终坐标按 0.5 精度规范化。
-- Ctrl+Wheel 手动缩放 25%–200%，Fit 可低于 25%；右键或 Space+左键平移只改变 viewport offset。
+- 单击 hitbox 或图层列表选择；在未选中项上按下拖动不抢选中控件焦点。图层列表支持 Ctrl+单击追加/取消选择，单击层级标题选择该层级全部可编辑控件，双击控件进入内联重命名，层级右键菜单提供删除层级；选中层级/控件使用主题强调色边框。
+- 拖动/八方向 resize 修改当前内存配置；左/上缩放同时调整 Left/Top。多选时每个选中控件都显示自己的八方向手柄，任一 Corner/Edge 手柄都按完整选择集合整体缩放。Shift、Ctrl、Alt 微调步长分别为 10、1、0.1，普通方向键为 0.5；最终坐标按 0.5 精度规范化。控件可拖到画布外（含负坐标和超出画布右/下边界），提交后按并集动态扩展可滚动/可平移范围。
+- Ctrl+Wheel 手动缩放 25%–400%，Fit 可低于 25%；右键或 Space+左键平移只改变 viewport offset，并至少保留 48 px 画布可见，避免画布完全丢失。Fit 同时重置平移并将扩展内容范围中心滚动到视口中央。缩放下拉框可直接输入正的 `float` 百分比（100 表示 100%，也可带 `%` 或 `x`），适应模式也仅显示百分比；超出滑杆 25%–400% 时保留输入值、滑杆停在端点；百分比始终带 `%`，整数完整显示，带小数的值最多显示 3 位有效数字。拖动或点击滑杆时按渲染帧合并更新，点击位置立即生效，释放后补齐精确值。
 - 图片 lock/picking overlay 是内部视觉，不是独立图层或 hitbox。BorderedImage 可在根框与内部 ImageWidth/ImageHeight 之间切换 resize target；Part/PartCollection 通过统一几何目标适配。
 - GlobalScoreRow.Cells 是父行内部固定模板：父移动不改子格相对 X/Y；子格不进入全局层级、复制删除或 ZIndex 拖放。MapV2 的动画内部部件也不作为顶层控件编辑。
 - Rectangle/Polygon 编辑及归一化顶点格式见[控件运行时](fronted-designer-v3.md)。Visibility 改变不删除设计项。
@@ -129,7 +129,7 @@ Designer 真正关闭时取消待执行的预览、选择器、属性提交恢�
 
 根控件拖动、缩放提交和图层重排优先修补现有预览元素，不重新创建所有控件、绑定和图片。几何提交合并调度校验；图层重排只改变顺序和 ZIndex，不重复执行资源校验。重复选择当前条目不刷新选择集合；更新完整选择集合期间，View 在最终通知中统一重建交互层，避免根条目和派生选择属性分别重建。选择本身不修改文档，属性面板复用最近一次校验结果。子部件提交仍通过完整渲染更新内部结构。普通编辑的 Undo/Redo 保留完整布局与行为快照；几何恢复在确认非几何字段与行为未变化后复用设计项和预览树，纯位置/尺寸变更不重建图层列表。非几何比较使用 JSON 元素比较，避免为每个控件构建可变 JSON 树并再次输出字符串；本次校验结果直接供属性网格使用，避免重复全量校验。
 
-图层列表按下鼠标只记录候选条目，点击释放时才选择；超过拖动阈值立即显示指针虚影，拖动期间不加载属性和行为编辑器。目标位置另放一个参与列表布局的半透明条目，两者同时可见；占位仅属于 View，不加入文档、图层模型或撤销历史。进入条目前后、图层空白处或新建顶层/底层区域时更新候选位置，自动滚动时重新命中目标；离开列表、取消或关闭窗口时清理占位。Drop 只提交一次真实移动，保留无关图层节点和视觉实例，调整现有 hitbox 的层级；列表完成落位后通过 Background DispatcherOperation 选择来源控件，该操作在下一次鼠标按下或窗口关闭时取消。
+图层列表按下鼠标只记录候选条目，点击释放时才选择；超过拖动阈值立即显示指针虚影，拖动期间不加载属性和行为编辑器。Ctrl+单击切换条目多选，单击层级标题选择全部控件；双击控件进入内联重命名，Enter/失焦提交、Escape 取消，重命名复用属性编辑的校验、引用阻断和撤销快照。层级标题右键菜单提供删除层级，删除走现有批量删除路径并只捕获一次撤销快照。目标位置另放一个参与列表布局的半透明条目，两者同时可见；占位仅属于 View，不加入文档、图层模型或撤销历史。进入条目前后、图层空白处或新建顶层/底层区域时更新候选位置，自动滚动时重新命中目标；离开列表、取消或关闭窗口时清理占位。Drop 只提交一次真实移动，保留无关图层节点和视觉实例，调整现有 hitbox 的层级；列表完成落位后通过 Background DispatcherOperation 选择来源控件，该操作在下一次鼠标按下或窗口关闭时取消。
 
 图层重排使用独立的内存历史条目，仅保存移动控件的原 ZIndex、完整控件名顺序及所属 BO 状态，避免在松手时序列化全部控件和行为文档。该历史与普通编辑的 JSON 快照共用撤销/重做栈；跨 BO 状态撤销只写回原状态，不切换当前编辑状态，也不覆盖其他控件内容。
 

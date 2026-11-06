@@ -318,6 +318,7 @@ public partial class FrontedDesignerWindowViewModel
 
         var config = designItem.Config;
         object? convertedValue;
+        var wasClamped = false;
         if (schemaProperty.PropertyType == typeof(double)
             || schemaProperty.PropertyType == typeof(double?))
         {
@@ -350,6 +351,13 @@ public partial class FrontedDesignerWindowViewModel
                 return false;
             }
         }
+
+        // Schema 文本属性同样受控件文本长度限制，避免绕过普通属性路径写入超长内容。
+        convertedValue = ClampEditorPropertyValue(
+            item.PropertyName,
+            config.ControlType,
+            convertedValue,
+            out wasClamped);
 
         // 共有属性使用各目标自己的 Schema Storage，避免跨控件类型时写入主选中项的存储路径。
         var editTargets = _batchPropertyTargets.TryGetValue(item.PropertyName, out var batchTargets)
@@ -397,6 +405,11 @@ public partial class FrontedDesignerWindowViewModel
         }
 
         FinishPropertyEdit(item.PropertyName, refreshPropertyGrid);
+        if (wasClamped)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
+        }
+
         return true;
     }
 
@@ -545,6 +558,7 @@ public partial class FrontedDesignerWindowViewModel
 
         CaptureUndoSnapshot();
         SelectedDesignItem.Name = newName;
+        RefreshLayerNodeDisplayName(SelectedDesignItem);
         item.Value = newName;
         item.EditText = newName;
         CurrentDocument.IsDirty = true;
@@ -1194,7 +1208,7 @@ public partial class FrontedDesignerWindowViewModel
             RebuildPropertyEditorItems();
         }
 
-        ScheduleValidationOnly("PropertyEdit");
+        ScheduleValidationOnly("PropertyEdit", refreshPropertyGrid);
         if (requiresFullPreview)
         {
             RequestPreviewRenderCurrentDocument();

@@ -46,6 +46,27 @@ public partial class FrontedDesignerWindow
         }
     }
 
+    private void ZoomSlider_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _viewModel?.BeginZoomSliderInteraction();
+    }
+
+    private void ZoomSlider_OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is Slider slider)
+        {
+            _viewModel?.EndZoomSliderInteraction(slider.Value);
+        }
+    }
+
+    private void ZoomSlider_OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (sender is Slider slider)
+        {
+            _viewModel?.EndZoomSliderInteraction(slider.Value);
+        }
+    }
+
     private void ZoomComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.AddedItems.Count > 0

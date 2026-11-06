@@ -214,18 +214,19 @@ public partial class FrontedDesignerWindowViewModel
 
     private void ScheduleValidationAndPreviewRender(string reason)
     {
-        ScheduleDesignerWork(reason, validate: true, preview: true);
+        ScheduleDesignerWork(reason, validate: true, preview: true, refreshPropertyGrid: true);
     }
 
-    private void ScheduleValidationOnly(string reason)
+    private void ScheduleValidationOnly(string reason, bool refreshPropertyGrid = true)
     {
-        ScheduleDesignerWork(reason, validate: true, preview: false);
+        ScheduleDesignerWork(reason, validate: true, preview: false, refreshPropertyGrid);
     }
 
-    private void ScheduleDesignerWork(string reason, bool validate, bool preview)
+    private void ScheduleDesignerWork(string reason, bool validate, bool preview, bool refreshPropertyGrid)
     {
         _scheduledValidationRequested |= validate;
         _scheduledPreviewRequested |= preview;
+        _scheduledValidationRefreshPropertyGrid |= refreshPropertyGrid;
         if (_scheduledValidationAndPreviewPending)
         {
             if (preview && _scheduledDesignerWorkOperation is { Status: DispatcherOperationStatus.Pending })
@@ -264,9 +265,11 @@ public partial class FrontedDesignerWindowViewModel
         _scheduledValidationAndPreviewPending = false;
         var shouldValidate = _scheduledValidationRequested;
         var shouldPreview = _scheduledPreviewRequested;
+        var shouldRefreshPropertyGrid = _scheduledValidationRefreshPropertyGrid;
         var shouldClearRestoreVisuals = _clearRestoreVisualsAfterScheduledPreview;
         _scheduledValidationRequested = false;
         _scheduledPreviewRequested = false;
+        _scheduledValidationRefreshPropertyGrid = false;
         _clearRestoreVisualsAfterScheduledPreview = false;
 
         if (CurrentDocument is null)
@@ -291,7 +294,7 @@ public partial class FrontedDesignerWindowViewModel
 
             if (shouldValidate)
             {
-                ValidateCurrentDocument();
+                ValidateCurrentDocument(shouldRefreshPropertyGrid);
                 ScheduledDesignerValidationExecutionCount++;
                 LogDesignerPerf("ScheduledDesignerWork", "validation execution", Elapsed(total));
             }

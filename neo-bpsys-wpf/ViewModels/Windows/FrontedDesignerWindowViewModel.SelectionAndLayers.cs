@@ -438,11 +438,258 @@ public partial class FrontedDesignerWindowViewModel
     }
 
     /// <summary>
-    /// 切换图层树节点的展开状态。
+    /// 切换图层树节点的选中状态，供 Ctrl 多选使用。
     /// </summary>
-    /// <param name="node">要展开或折叠的图层节点。</param>
-    public void ToggleLayerNodeExpansion(DesignerLayerNode node)
+    /// <param name="node">要切换选中状态的图层节点。</param>
+    public void ToggleLayerNodeSelection(DesignerLayerNode? node)
     {
+        if (node is null || !node.CanSelect)
+        {
+            return;
+        }
+
+        if (node.Kind == DesignerLayerNodeKind.Control && node.ControlItem is { } item)
+        {
+            ToggleDesignItemSelection(item);
+            return;
+        }
+
+        if (node.ControlItem is not { } parentItem)
+        {
+            SelectLayerNode(node);
+            return;
+        }
+
+        var selection = BuildLayerNodeSelection(node);
+        if (selection is null)
+        {
+            SelectLayerNode(node);
+            return;
+        }
+
+        // Ctrl+单击子目标：同一目标再次点击回退到根选中；否则在保留当前多选集合的
+        // 前提下，把父控件加入选择并切换属性面板目标，避免整组多选被清空。
+        if (IsCurrentLayerTarget(node))
+        {
+            EscapeToRootSelection();
+            return;
+        }
+
+        var selected = SelectedDesignItems.ToList();
+        if (!selected.Contains(parentItem))
+        {
+            selected.Add(parentItem);
+        }
+
+        SetSelectedDesignItems(selected, parentItem);
+        _isApplyingSelectedTarget = true;
+        try
+        {
+            SelectedTarget = selection;
+            RebuildPropertyEditorItems();
+            RefreshLayerNodeSelection();
+        }
+        finally
+        {
+            _isApplyingSelectedTarget = false;
+        }
+    }
+
+    private FrontedV3DesignSelection? BuildLayerNodeSelection(DesignerLayerNode node)
+    {
+        if (node.ControlItem is not { } designItem)
+        {
+            return null;
+        }
+
+        return node.Kind switch
+        {
+            DesignerLayerNodeKind.Part when node.PartId is not null =>
+                _selectionBuilder.BuildFixedPartSelection(designItem, node.PartId),
+            DesignerLayerNodeKind.CollectionItem
+                when node.CollectionId is not null && node.ItemKey is not null =>
+                _selectionBuilder.BuildCollectionItemSelection(designItem, node.CollectionId, node.ItemKey),
+            _ => null
+        };
+    }
+
+    private bool IsCurrentLayerTarget(DesignerLayerNode node)
+    {
+        var target = SelectedTarget;
+        if (target is null || node.ControlItem is null || !ReferenceEquals(target.DesignItem, node.ControlItem))
+        {
+            return false;
+        }
+
+        return node.Kind switch
+        {
+            DesignerLayerNodeKind.Part when target.SubTarget is FrontedV3FixedPartTarget part =>
+                string.Equals(part.PartId, node.PartId, StringComparison.Ordinal),
+            DesignerLayerNodeKind.CollectionItem when target.SubTarget is FrontedV3CollectionItemTarget item =>
+                string.Equals(item.CollectionId, node.CollectionId, StringComparison.Ordinal)
+                && string.Equals(item.ItemKey, node.ItemKey, StringComparison.Ordinal),
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// 选中一个层级下的全部控件；按住 Ctrl 时在现有选择上切换。
+    /// </summary>
+    /// <param name="group">目标层级。</param>
+    /// <param name="toggle">是否切换选中状态而不是替换选择。</param>
+    public void SelectLayerGroup(FrontedLayerGroup? group, bool toggle)
+    {
+        if (group is null || CurrentDocument is null)
+        {
+            return;
+        }
+
+        var items = group.Items
+            .Where(node => node.Kind == DesignerLayerNodeKind.Control && node.ControlItem is not null)
+            .Select(node => node.ControlItem!)
+            .Where(item => item.IsSelectableInEditor && CurrentDocument.Controls.Contains(item))
+            .Distinct()
+            .ToList();
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        if (!toggle)
+        {
+            SelectDesignItems(items, items[0]);
+            return;
+        }
+
+        var selected = SelectedDesignItems.ToHashSet();
+        var allSelected = items.All(selected.Contains);
+        foreach (var item in items)
+        {
+            if (allSelected)
+            {
+                selected.Remove(item);
+            }
+            else
+            {
+                selected.Add(item);
+            }
+        }
+
+        if (selected.Count == 0)
+        {
+            ClearSelection();
+            return;
+        }
+
+        var ordered = CurrentDocument.Controls.Where(selected.Contains).ToList();
+        SetSelectedDesignItems(ordered, ordered.Contains(SelectedDesignItem!) ? SelectedDesignItem : ordered[^1]);
+    }
+
+    /// <summary>
+    /// 删除一个层级下的全部控件，沿用已有的引用检查和撤销快照逻辑。
+    /// </summary>
+    /// <param name="group">要删除的层级。</param>
+    public void DeleteLayerGroup(FrontedLayerGroup? group)
+    {
+        if (group is null || CurrentDocument is null)
+        {
+            return;
+        }
+
+        var items = group.Items
+            .Where(node => node.Kind == DesignerLayerNodeKind.Control && node.ControlItem is not null)
+            .Select(node => node.ControlItem!)
+            .Where(item => item.IsSelectableInEditor && CurrentDocument.Controls.Contains(item))
+            .Distinct()
+            .ToList();
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        var previousItems = SelectedDesignItems.ToArray();
+        var previousPrimary = SelectedDesignItem;
+        SelectDesignItems(items, items[0]);
+        DeleteSelectedControlCommand.Execute(null);
+
+        // 删除可能因跨层级引用被拒绝；此时恢复原选择，避免“没删掉却丢了选择”。
+        if (items.Any(item => CurrentDocument.Controls.Contains(item)))
+        {
+            var restored = previousItems
+                .Where(item => CurrentDocument.Controls.Contains(item))
+                .ToArray();
+            SetSelectedDesignItems(
+                restored,
+                previousPrimary is not null && restored.Contains(previousPrimary) ? previousPrimary : restored.FirstOrDefault());
+        }
+    }
+
+    /// <summary>
+    /// 重命名控件并复用属性面板的名称校验规则。
+    /// </summary>
+    /// <param name="item">要重命名的控件。</param>
+    /// <param name="rawName">用户输入的原始名称。</param>
+    /// <param name="errorMessage">失败时的本地化错误信息。</param>
+    /// <returns>重命名是否成功或无需修改。</returns>
+    public bool TryRenameDesignItem(FrontedControlDesignItem item, string? rawName, out string? errorMessage)
+    {
+        errorMessage = null;
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        if (!item.IsSelectableInEditor || !item.IsEditableInEditor)
+        {
+            errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "InvalidControlName");
+            return false;
+        }
+
+        var oldName = item.Name;
+        var trimmedName = rawName?.Trim() ?? string.Empty;
+        var newName = FrontedTextLimitHelper.Clamp(trimmedName, FrontedLayoutLimits.MaxControlNameLength);
+        var wasClamped = !string.Equals(trimmedName, newName, StringComparison.Ordinal);
+        if (string.Equals(oldName, newName, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(newName) || !ValidControlNameRegex.IsMatch(newName))
+        {
+            errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "InvalidControlName");
+            return false;
+        }
+
+        if (CurrentDocument.Controls
+            .Where(control => !ReferenceEquals(control, item))
+            .Any(control => string.Equals(control.Name, newName, StringComparison.Ordinal)))
+        {
+            errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "DuplicateControlName");
+            return false;
+        }
+
+        _referenceScanner.SetControls(CurrentDocument.Controls);
+        if (_referenceScanner.GetIncomingReferences(oldName).Count > 0)
+        {
+            errorMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "ReferencedControlRenameBlocked");
+            return false;
+        }
+
+        CaptureUndoSnapshot();
+        item.Name = newName;
+        CurrentDocument.IsDirty = true;
+        RefreshDirtyState();
+        RefreshLayerNodeDisplayName(item);
+        RefreshSelectedControlDisplay();
+        RebuildPropertyEditorItems();
+        RebuildFilteredDesignItems();
+        RequestPreviewRenderCurrentDocument();
+        if (wasClamped)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -951,7 +1198,28 @@ public partial class FrontedDesignerWindowViewModel
             }
         }
 
+        foreach (var group in LayerGroups)
+        {
+            group.IsSelected = group.Items.Any(node => node.IsSelected || node.Children.Any(child => child.IsSelected));
+        }
+
         SelectedLayerNode = selectedNode;
+    }
+
+    /// <summary>
+    /// 属性面板重命名控件后同步图层节点显示名，避免图层列表继续显示旧名称。
+    /// </summary>
+    private void RefreshLayerNodeDisplayName(FrontedControlDesignItem item)
+    {
+        foreach (var node in LayerGroups.SelectMany(group => group.Items))
+        {
+            if (node.Kind == DesignerLayerNodeKind.Control
+                && ReferenceEquals(node.ControlItem, item))
+            {
+                node.DisplayName = item.Name;
+                return;
+            }
+        }
     }
 
     private bool IsSelectedLayerNode(

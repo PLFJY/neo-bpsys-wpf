@@ -119,6 +119,8 @@ public partial class App : AppBase
             .Build();
 
         base.OnStartup(e);
+        // ColorPicker 的颜色条类型是内部类型，无法在 XAML 中按类型写样式，启动时按实际类型注册。
+        ColorPickerSliderStyleInitializer.EnsureInitialized();
         //设置动画帧率
         Timeline.DesiredFrameRateProperty.OverrideMetadata(
             typeof(Timeline),

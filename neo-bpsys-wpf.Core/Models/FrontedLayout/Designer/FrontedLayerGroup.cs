@@ -16,6 +16,7 @@ public class FrontedLayerGroup : ObservableObject
 
     private bool _isExpanded = true;
     private bool _isDropTarget;
+    private bool _isSelected;
 
     /// <summary>
     /// 层级序号。
@@ -53,5 +54,14 @@ public class FrontedLayerGroup : ObservableObject
     {
         get => _isDropTarget;
         set => SetProperty(ref _isDropTarget, value);
+    }
+
+    /// <summary>
+    /// 该层级内是否有控件被选中。
+    /// </summary>
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
     }
 }

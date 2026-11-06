@@ -120,6 +120,14 @@ public partial class FrontedDesignerWindow
 
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ZoomScale))
         {
+            // 拖动缩放滑杆时，覆盖层随每个中间值刷新会阻塞布局；释放后统一刷新一次。
+            if (_viewModel?.IsZoomSliderInteracting == true)
+            {
+                return;
+            }
+
+            UpdatePreviewWorkspaceSize();
+            SchedulePreviewPanClamp();
             UpdateSelectedInteractionVisuals();
             UpdateSubControlSelectionVisuals();
             RenderSnapGuides();

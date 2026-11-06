@@ -29,6 +29,16 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// </summary>
 public partial class FrontedDesignerWindow
 {
+    private const double DesignSurfaceOverflowPadding = 240D;
+    private double _designSurfaceOffsetX;
+    private double _designSurfaceOffsetY;
+    private double _designSurfaceCanvasWidth;
+    private double _designSurfaceCanvasHeight;
+    private double _designSurfaceContentWidth;
+    private double _designSurfaceContentHeight;
+    private double _designSurfaceFitWidth;
+    private double _designSurfaceFitHeight;
+
     private void ConfigureDesignSurface(double width, double height)
     {
         DesignSurfaceGrid.Width = width;
@@ -37,8 +47,10 @@ public partial class FrontedDesignerWindow
         PreviewCanvas.Height = height;
         InteractionLayer.Width = width;
         InteractionLayer.Height = height;
+        _viewModel?.UpdateDesignSurfaceContentSize(width, height);
+        UpdateDesignSurfaceExtent();
         UpdatePreviewWorkspaceSize();
-        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight, width, height);
+        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
     }
 
     private void RebuildInteractionLayer()
@@ -62,6 +74,7 @@ public partial class FrontedDesignerWindow
         _resizeHandles.Clear();
         _multiSelectionOutlinePool.AddRange(_multiSelectionOutlines);
         _multiSelectionOutlines.Clear();
+        _multiResizeHandles.Clear();
         _marqueeSelectionPreviewOutlines.Clear();
         _marqueeSelectionEntryOrders.Clear();
         _lastMarqueeEnteredItem = null;
@@ -114,6 +127,112 @@ public partial class FrontedDesignerWindow
         if (_viewModel.IsSubControlSelected)
         {
             AddSubControlSelectionAdorner();
+        }
+
+        UpdateDesignSurfaceExtent();
+    }
+
+    /// <summary>
+    /// 根据画布和控件实际占用范围动态扩展设计表面，使拖到画布外的控件仍可见、可继续操作。
+    /// </summary>
+    private void UpdateDesignSurfaceExtent()
+    {
+        if (_viewModel?.CurrentDocument is null)
+        {
+            // 清空/渲染失败后即使没有文档，也要把上一次文档留下的平移与尺寸重置，
+            // 否则空画布会被旧的 offset/工作区尺寸带偏。
+            var width = DesignSurfaceGrid.Width;
+            var height = DesignSurfaceGrid.Height;
+            if (!double.IsFinite(width) || width <= 0D) width = 1D;
+            if (!double.IsFinite(height) || height <= 0D) height = 1D;
+            _designSurfaceOffsetX = 0D;
+            _designSurfaceOffsetY = 0D;
+            _designSurfaceContentWidth = width;
+            _designSurfaceContentHeight = height;
+            _designSurfaceFitWidth = width;
+            _designSurfaceFitHeight = height;
+            PreviewCanvasOffsetTransform.X = 0D;
+            PreviewCanvasOffsetTransform.Y = 0D;
+            InteractionLayerOffsetTransform.X = 0D;
+            InteractionLayerOffsetTransform.Y = 0D;
+            _viewModel?.UpdateDesignSurfaceContentSize(width, height);
+            _viewModel?.UpdateDesignSurfaceFitSize(width, height);
+            UpdatePreviewWorkspaceSize();
+            return;
+        }
+
+        var canvasWidth = Math.Max(1D, _viewModel.CurrentDocument.CanvasConfig.CanvasWidth);
+        var canvasHeight = Math.Max(1D, _viewModel.CurrentDocument.CanvasConfig.CanvasHeight);
+        _designSurfaceCanvasWidth = canvasWidth;
+        _designSurfaceCanvasHeight = canvasHeight;
+
+        var minX = 0D;
+        var minY = 0D;
+        var maxX = canvasWidth;
+        var maxY = canvasHeight;
+        foreach (var item in _viewModel.CurrentDocument.Controls)
+        {
+            if (!item.IsSelectableInEditor)
+            {
+                continue;
+            }
+
+            var bounds = ResolveItemBounds(item);
+            if (bounds.Width <= 0D || bounds.Height <= 0D)
+            {
+                continue;
+            }
+
+            minX = Math.Min(minX, bounds.Left);
+            minY = Math.Min(minY, bounds.Top);
+            maxX = Math.Max(maxX, bounds.Left + bounds.Width);
+            maxY = Math.Max(maxY, bounds.Top + bounds.Height);
+        }
+
+        var hasOverflow = minX < 0D || minY < 0D || maxX > canvasWidth || maxY > canvasHeight;
+
+        // 适应模式下不能为拖拽预留空白，否则空白会被计入 ScrollViewer extent，
+        // 导致适应后内容比视口略大、出现滚动条并偏离居中位置。退出适应模式后再恢复预留。
+        var padding = hasOverflow && _viewModel?.IsFitMode != true
+            ? DesignSurfaceOverflowPadding
+            : 0D;
+        var contentLeft = minX - padding;
+        var contentTop = minY - padding;
+        var contentWidth = Math.Max(1D, maxX + padding - contentLeft);
+        var contentHeight = Math.Max(1D, maxY + padding - contentTop);
+
+        var contentSizeChanged = !contentWidth.Equals(_designSurfaceContentWidth)
+            || !contentHeight.Equals(_designSurfaceContentHeight);
+        var fitWidth = Math.Max(1D, maxX - minX);
+        var fitHeight = Math.Max(1D, maxY - minY);
+        var fitSizeChanged = !fitWidth.Equals(_designSurfaceFitWidth)
+            || !fitHeight.Equals(_designSurfaceFitHeight);
+        _designSurfaceOffsetX = -contentLeft;
+        _designSurfaceOffsetY = -contentTop;
+        _designSurfaceContentWidth = contentWidth;
+        _designSurfaceContentHeight = contentHeight;
+        _designSurfaceFitWidth = fitWidth;
+        _designSurfaceFitHeight = fitHeight;
+        DesignSurfaceGrid.Width = contentWidth;
+        DesignSurfaceGrid.Height = contentHeight;
+        // 两层画布整体平移到正坐标区域。画布尺寸必须覆盖完整设计表面，不能减去平移量：
+        // Canvas 的背景/子元素会被布局边界裁剪，减去平移量会让画布背景右侧/底部缺一块。
+        PreviewCanvas.Width = Math.Max(1D, contentWidth);
+        PreviewCanvas.Height = Math.Max(1D, contentHeight);
+        InteractionLayer.Width = PreviewCanvas.Width;
+        InteractionLayer.Height = PreviewCanvas.Height;
+        PreviewCanvasOffsetTransform.X = _designSurfaceOffsetX;
+        PreviewCanvasOffsetTransform.Y = _designSurfaceOffsetY;
+        InteractionLayerOffsetTransform.X = _designSurfaceOffsetX;
+        InteractionLayerOffsetTransform.Y = _designSurfaceOffsetY;
+
+        // 适应模式依赖设计表面内容范围；内容变化后立即重算，避免新增画布外控件后仍按旧范围缩放。
+        _viewModel?.UpdateDesignSurfaceContentSize(contentWidth, contentHeight);
+        _viewModel?.UpdateDesignSurfaceFitSize(fitWidth, fitHeight);
+        UpdatePreviewWorkspaceSize();
+        if ((contentSizeChanged || fitSizeChanged) && _viewModel?.IsFitMode == true)
+        {
+            _viewModel.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
         }
     }
 
@@ -169,6 +288,40 @@ public partial class FrontedDesignerWindow
         Panel.SetZIndex(outline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex - 1);
         _multiSelectionOutlines.Add(outline);
         InteractionLayer.Children.Add(outline);
+
+        // 多选时每个控件都提供独立缩放手柄，点击任意一个手柄都会缩放整个选择集合。
+        var handles = new Dictionary<FrontedDesignerResizeHandleKind, Border>();
+        foreach (var handle in Enum.GetValues<FrontedDesignerResizeHandleKind>())
+        {
+            var handleElement = CreateResizeHandle(handle);
+            handles[handle] = handleElement;
+            InteractionLayer.Children.Add(handleElement);
+        }
+
+        _multiResizeHandles[item] = handles;
+        SetMultiSelectionHandlePositions(bounds, handles);
+    }
+
+    private void SetMultiSelectionHandlePositions(
+        FrontedDesignerResolvedBounds bounds,
+        IReadOnlyDictionary<FrontedDesignerResizeHandleKind, Border> handles)
+    {
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.TopLeft, out var topLeft))
+            SetHandlePosition(topLeft, bounds.Left, bounds.Top);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Top, out var top))
+            SetHandlePosition(top, bounds.Left + bounds.Width / 2D, bounds.Top);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.TopRight, out var topRight))
+            SetHandlePosition(topRight, bounds.Left + bounds.Width, bounds.Top);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Left, out var left))
+            SetHandlePosition(left, bounds.Left, bounds.Top + bounds.Height / 2D);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Right, out var right))
+            SetHandlePosition(right, bounds.Left + bounds.Width, bounds.Top + bounds.Height / 2D);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.BottomLeft, out var bottomLeft))
+            SetHandlePosition(bottomLeft, bounds.Left, bounds.Top + bounds.Height);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Bottom, out var bottom))
+            SetHandlePosition(bottom, bounds.Left + bounds.Width / 2D, bounds.Top + bounds.Height);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.BottomRight, out var bottomRight))
+            SetHandlePosition(bottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
     }
 
     private Border CreateHitbox(FrontedControlDesignItem item, int layoutOrder)
@@ -690,6 +843,11 @@ public partial class FrontedDesignerWindow
                 Canvas.SetTop(hitbox, bounds.Top);
             }
 
+            if (_multiResizeHandles.TryGetValue(selectedItem, out var handles))
+            {
+                SetMultiSelectionHandlePositions(bounds, handles);
+            }
+
             outlineIndex++;
         }
     }
@@ -762,7 +920,8 @@ public partial class FrontedDesignerWindow
 
         var topOffset = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale);
         Canvas.SetLeft(_selectionLabel, bounds.Left);
-        Canvas.SetTop(_selectionLabel, Math.Max(0, bounds.Top - topOffset));
+        // 画布外控件可能位于负坐标，不能把标签钳到 0，否则标签会与控件框分离。
+        Canvas.SetTop(_selectionLabel, bounds.Top - topOffset);
     }
 
     private void SetHandlePosition(FrontedDesignerResizeHandleKind handle, double x, double y)
@@ -772,8 +931,31 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        SetHandlePosition(element, x, y);
+    }
+
+    private void SetHandlePosition(Border element, double x, double y)
+    {
+        ApplyHandleZoomCompensation(element);
         Canvas.SetLeft(element, x - element.Width / 2);
         Canvas.SetTop(element, y - element.Height / 2);
+    }
+
+    /// <summary>
+    /// 手柄位于缩放宿主内部，布局尺寸会随 ZoomScale 一起缩放；
+    /// 反向补偿以保持屏幕上约 12px 命中区域、6px 可见方块。
+    /// </summary>
+    private void ApplyHandleZoomCompensation(Border handle)
+    {
+        var zoom = Math.Clamp(_viewModel?.ZoomScale ?? 1D, 0.05D, 4D);
+        handle.Width = FrontedDesignerEditorVisualHelper.HandleHitTargetSize / zoom;
+        handle.Height = FrontedDesignerEditorVisualHelper.HandleHitTargetSize / zoom;
+        if (handle.Child is Border visual)
+        {
+            visual.Width = FrontedDesignerEditorVisualHelper.HandleVisualSize / zoom;
+            visual.Height = FrontedDesignerEditorVisualHelper.HandleVisualSize / zoom;
+            visual.BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.HandleBorderThickness / zoom);
+        }
     }
 
 }

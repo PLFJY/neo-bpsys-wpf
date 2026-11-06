@@ -46,6 +46,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private DispatcherTimer? _propertyAutoCommitTimer;
     private DispatcherTimer? _previewRenderDebounceTimer;
     private DispatcherTimer? _colorEditSessionTimer;
+    private bool _colorEditInputHooked;
     private FrontedPropertyEditorItem? _activeColorEditItem;
     private FrameworkElement? _pendingAutoCommitEditor;
     private bool _isLoaded;
@@ -55,6 +56,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private DispatcherOperation? _propertyCommitResumeOperation;
     private DispatcherOperation? _selectionVisualRefreshOperation;
     private DispatcherOperation? _fitScrollResetOperation;
+    private bool _fitScrollResetRequested;
     private FrontedDesignerWindowViewModel? _viewModel;
     private ValidationDetailsWindow? _validationDetailsWindow;
     private FrontedDesignerHelpWindow? _helpWindow;
@@ -65,6 +67,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly List<Line> _snapGuideLines = [];
     private readonly List<Border> _multiSelectionOutlines = [];
     private readonly List<Border> _multiSelectionOutlinePool = [];
+    private readonly Dictionary<FrontedControlDesignItem, Dictionary<FrontedDesignerResizeHandleKind, Border>> _multiResizeHandles = new();
     private readonly Dictionary<FrontedControlDesignItem, Border> _marqueeSelectionPreviewOutlines = [];
     private readonly Dictionary<FrontedControlDesignItem, long> _marqueeSelectionEntryOrders = [];
     private readonly Dictionary<FrontedControlDesignItem, FrontedDesignerResolvedBounds> _originalSelectedBounds = new();
@@ -321,6 +324,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _selectionVisualRefreshOperation = null;
         _fitScrollResetOperation?.Abort();
         _fitScrollResetOperation = null;
+        _fitScrollResetRequested = false;
         _selectorReloadOperation?.Abort();
         _selectorReloadOperation = null;
         _selectorReloadRequested = false;
@@ -328,9 +332,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         _previewRenderScheduled = false;
         _propertyAutoCommitTimer?.Stop();
         _pendingAutoCommitEditor = null;
-        _colorEditSessionTimer?.Stop();
+        EndColorEditSession();
         _colorEditSessionTimer = null;
-        _activeColorEditItem = null;
         _previewRenderDebounceTimer?.Stop();
         _previewRenderDebounceTimer = null;
         _layerSelectionOperation?.Abort();

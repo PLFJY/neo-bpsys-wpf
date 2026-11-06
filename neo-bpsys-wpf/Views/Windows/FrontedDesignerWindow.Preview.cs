@@ -321,6 +321,9 @@ public partial class FrontedDesignerWindow
         _polygonVertexHandles.Clear();
         _multiSelectionOutlines.Clear();
         _multiSelectionOutlinePool.Clear();
+        _multiResizeHandles.Clear();
+        _childResizeHandles.Clear();
+        _currentSubTargetInfo = null;
         _selectionOutline = null;
         _parentSelectionOutline = null;
         _selectionLabel = null;
@@ -533,8 +536,47 @@ public partial class FrontedDesignerWindow
 
     private void UpdatePreviewWorkspaceSize()
     {
-        PreviewWorkspace.MinWidth = Math.Max(1D, PreviewScrollViewer.ViewportWidth);
-        PreviewWorkspace.MinHeight = Math.Max(1D, PreviewScrollViewer.ViewportHeight);
+        // 工作区至少与视口同大；内容放大后同步扩大，避免居中布局把超出视口的部分放到负坐标而被裁剪。
+        var zoom = _viewModel?.ZoomScale ?? 1D;
+        var contentWidth = Math.Max(1D, _designSurfaceContentWidth) * zoom;
+        var contentHeight = Math.Max(1D, _designSurfaceContentHeight) * zoom;
+        PreviewWorkspace.MinWidth = Math.Max(1D, Math.Max(PreviewScrollViewer.ViewportWidth, contentWidth));
+        PreviewWorkspace.MinHeight = Math.Max(1D, Math.Max(PreviewScrollViewer.ViewportHeight, contentHeight));
+    }
+
+    /// <summary>
+    /// 缩小时 extent/视口会变化，保留的平移量可能把画布推到可视区外；
+    /// 在布局稳定后重新按当前滚动范围夹取平移量。
+    /// </summary>
+    private void SchedulePreviewPanClamp()
+    {
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+        {
+            if (_viewModel is null)
+            {
+                return;
+            }
+
+            var x = ClampViewportPan(
+                PreviewPanTransform.X,
+                PreviewScrollViewer.ExtentWidth,
+                PreviewScrollViewer.ViewportWidth,
+                PreviewScrollViewer.HorizontalOffset);
+            var y = ClampViewportPan(
+                PreviewPanTransform.Y,
+                PreviewScrollViewer.ExtentHeight,
+                PreviewScrollViewer.ViewportHeight,
+                PreviewScrollViewer.VerticalOffset);
+            if (Math.Abs(x - PreviewPanTransform.X) < 0.1D
+                && Math.Abs(y - PreviewPanTransform.Y) < 0.1D)
+            {
+                return;
+            }
+
+            PreviewPanTransform.X = x;
+            PreviewPanTransform.Y = y;
+            PreviewWorkspace.InvalidateVisual();
+        }));
     }
 
     private void ResetPreviewScrollOffsetForFitMode()
@@ -544,15 +586,94 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        if (_fitScrollResetOperation is { Status: DispatcherOperationStatus.Pending }) return;
+        if (_fitScrollResetOperation is { Status: DispatcherOperationStatus.Pending })
+        {
+            // 适应布局期间滚动条显隐/尺寸变化会再次请求居中；不能直接丢弃，
+            // 否则最后一次布局变化后没有机会重新滚动到正确位置。
+            _fitScrollResetRequested = true;
+            return;
+        }
+
+        // 适应后滚动条出现/消失会再次改变视口尺寸；等到布局和滚动条都稳定后再居中，
+        // 否则首次计算使用的是旧视口，必须再点击一次画布才恢复正确位置。
         _fitScrollResetOperation = Dispatcher.BeginInvoke(
-            DispatcherPriority.Loaded,
+            DispatcherPriority.ContextIdle,
             new Action(() =>
             {
                 _fitScrollResetOperation = null;
-                PreviewScrollViewer.ScrollToHorizontalOffset(0D);
-                PreviewScrollViewer.ScrollToVerticalOffset(0D);
+                _fitScrollResetRequested = false;
+                PreviewPanTransform.X = 0D;
+                PreviewPanTransform.Y = 0D;
+                UpdateDesignSurfaceExtent();
+                UpdatePreviewWorkspaceSize();
+
+                // 适应操作后把键盘焦点交回画布。点击画布会触发焦点/布局链，使
+                // 延迟的 ScrollViewer 滚动范围最终生效；这里主动聚焦，避免用户
+                // 必须先点一次画布才能看到正确的适应位置。
+                InteractionLayer.Focus();
+                PreviewScrollViewer.UpdateLayout();
+                CenterPreviewContentInViewport();
+
+                // 滚动条显隐会触发第二次布局，再补一次居中，确保最终位置稳定。
+                Dispatcher.BeginInvoke(
+                    DispatcherPriority.ContextIdle,
+                    new Action(() =>
+                    {
+                        CenterPreviewContentInViewport();
+                        if (_fitScrollResetRequested)
+                        {
+                            ResetPreviewScrollOffsetForFitMode();
+                        }
+                    }));
             }));
+    }
+
+    /// <summary>
+    /// 滚动范围变化后重新居中适应模式下的内容。滚动条显隐、窗口尺寸变化或
+    /// 设计表面重新布局都可能在首次居中之后才更新 extent，必须再对齐一次。
+    /// </summary>
+    private void PreviewScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (_viewModel?.IsFitMode != true)
+        {
+            return;
+        }
+
+        if (Math.Abs(e.ExtentWidthChange) < 0.01D
+            && Math.Abs(e.ExtentHeightChange) < 0.01D)
+        {
+            return;
+        }
+
+        CenterPreviewContentInViewport();
+    }
+
+    /// <summary>
+    /// 将设计表面内容中心滚动到预览视口中心。
+    /// </summary>
+    private void CenterPreviewContentInViewport()
+    {
+        if (_viewModel?.IsFitMode != true)
+        {
+            return;
+        }
+
+        var viewportWidth = PreviewScrollViewer.ViewportWidth;
+        var viewportHeight = PreviewScrollViewer.ViewportHeight;
+        var extentWidth = PreviewScrollViewer.ExtentWidth;
+        var extentHeight = PreviewScrollViewer.ExtentHeight;
+        if (viewportWidth <= 0D || viewportHeight <= 0D
+            || extentWidth <= 0D || extentHeight <= 0D)
+        {
+            return;
+        }
+
+        // 使用 ScrollViewer 实际 extent 居中，兼容滚动条出现后视口变化及
+        // 设计表面为画布外控件扩展出的空白。
+        PreviewScrollViewer.ScrollToHorizontalOffset(
+            Math.Max(0D, (extentWidth - viewportWidth) / 2D));
+        PreviewScrollViewer.ScrollToVerticalOffset(
+            Math.Max(0D, (extentHeight - viewportHeight) / 2D));
     }
 
     private FrontedDesignerResolvedBounds ResolveItemBounds(FrontedControlDesignItem item)

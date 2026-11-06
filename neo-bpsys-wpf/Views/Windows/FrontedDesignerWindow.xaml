@@ -625,13 +625,30 @@
                                                     Padding="8"
                                                     AllowDrop="True"
                                                     Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="4"
                                                     DragOver="LayerGroup_OnDragOver"
                                                     Drop="LayerGroup_OnDrop">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
                                                     <StackPanel>
-                                                        <DockPanel Margin="0,0,0,6" LastChildFill="True">
+                                                        <DockPanel
+                                                            Margin="0,0,0,6"
+                                                            LastChildFill="True"
+                                                            MouseLeftButtonDown="LayerGroupHeader_OnMouseLeftButtonDown">
+                                                            <DockPanel.ContextMenu>
+                                                                <ContextMenu lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer">
+                                                                    <MenuItem Click="LayerGroupDeleteMenuItem_OnClick" Header="{lex:Loc Designer.LayerPanel.DeleteLayer}" />
+                                                                </ContextMenu>
+                                                            </DockPanel.ContextMenu>
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
@@ -664,7 +681,6 @@
                                                                         Padding="8,6"
                                                                         AllowDrop="True"
                                                                         Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                                                                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                                                                         BorderThickness="1"
                                                                         CornerRadius="3"
                                                                         DragOver="LayerItem_OnDragOver"
@@ -682,6 +698,7 @@
                                                                         </Border.ContextMenu>
                                                                         <Border.Style>
                                                                             <Style TargetType="Border">
+                                                                                <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
                                                                                 <Setter Property="Opacity" Value="1" />
                                                                                 <Style.Triggers>
                                                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
@@ -699,11 +716,41 @@
                                                                                 <RowDefinition Height="Auto" />
                                                                                 <RowDefinition Height="Auto" />
                                                                             </Grid.RowDefinitions>
-                                                                            <TextBlock
-                                                                                Grid.Column="0"
-                                                                                FontWeight="SemiBold"
-                                                                                Text="{Binding DisplayName}"
-                                                                                TextTrimming="CharacterEllipsis" />
+                                                                            <Grid Grid.Column="0">
+                                                                                <TextBlock
+                                                                                    FontWeight="SemiBold"
+                                                                                    Text="{Binding DisplayName}"
+                                                                                    TextTrimming="CharacterEllipsis">
+                                                                                    <TextBlock.Style>
+                                                                                        <Style TargetType="TextBlock">
+                                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                                            <Style.Triggers>
+                                                                                                <DataTrigger Binding="{Binding IsRenaming}" Value="True">
+                                                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                                                </DataTrigger>
+                                                                                            </Style.Triggers>
+                                                                                        </Style>
+                                                                                    </TextBlock.Style>
+                                                                                </TextBlock>
+                                                                                <ui:TextBox
+                                                                                    MinWidth="80"
+                                                                                    Padding="4,2"
+                                                                                    FontWeight="SemiBold"
+                                                                                    KeyDown="LayerRenameTextBox_OnKeyDown"
+                                                                                    LostKeyboardFocus="LayerRenameTextBox_OnLostKeyboardFocus"
+                                                                                    Text="{Binding EditingName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                                                    <ui:TextBox.Style>
+                                                                                        <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
+                                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                                            <Style.Triggers>
+                                                                                                <DataTrigger Binding="{Binding IsRenaming}" Value="True">
+                                                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                                                </DataTrigger>
+                                                                                            </Style.Triggers>
+                                                                                        </Style>
+                                                                                    </ui:TextBox.Style>
+                                                                                </ui:TextBox>
+                                                                            </Grid>
                                                                             <Grid
                                                                                 Grid.Row="1"
                                                                                 Grid.Column="0"
@@ -745,17 +792,17 @@
                                                                                             Margin="0,2"
                                                                                             Padding="6,3"
                                                                                             Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                                                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                                                                                             BorderThickness="1"
                                                                                             CornerRadius="2"
                                                                                             MouseLeftButtonDown="LayerItem_OnMouseLeftButtonDown"
                                                                                             Tag="{Binding}">
                                                                                             <Border.Style>
                                                                                                 <Style TargetType="Border">
+                                                                                                    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
                                                                                                     <Setter Property="Opacity" Value="0.85" />
                                                                                                     <Style.Triggers>
                                                                                                         <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                                                                            <Setter Property="BorderBrush" Value="Orange" />
+                                                                                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
                                                                                                             <Setter Property="Opacity" Value="1" />
                                                                                                         </DataTrigger>
                                                                                                     </Style.Triggers>
@@ -878,6 +925,7 @@
                     PreviewMouseRightButtonDown="PreviewScrollViewer_OnPreviewMouseRightButtonDown"
                     PreviewMouseRightButtonUp="PreviewScrollViewer_OnPreviewMouseRightButtonUp"
                     PreviewMouseWheel="PreviewScrollViewer_OnPreviewMouseWheel"
+                    ScrollChanged="PreviewScrollViewer_OnScrollChanged"
                     SizeChanged="PreviewScrollViewer_OnSizeChanged"
                     VerticalScrollBarVisibility="Auto">
                     <Grid
@@ -901,7 +949,7 @@
                                 x:Name="DesignSurfaceGrid"
                                 Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
                                 Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
-                                ClipToBounds="True"
+                                ClipToBounds="False"
                                 Focusable="True"
                                 KeyDown="DesignSurface_OnKeyDown"
                                 MouseLeftButtonDown="DesignSurface_OnMouseLeftButtonDown"
@@ -910,12 +958,17 @@
                                     x:Name="PreviewCanvas"
                                     Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
                                     Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
-                                    ClipToBounds="True"
-                                    SnapsToDevicePixels="True" />
+                                    ClipToBounds="False"
+                                    SnapsToDevicePixels="True">
+                                    <Canvas.RenderTransform>
+                                        <TranslateTransform x:Name="PreviewCanvasOffsetTransform" />
+                                    </Canvas.RenderTransform>
+                                </Canvas>
                                 <Canvas
                                     x:Name="InteractionLayer"
                                     Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
                                     Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
+                                    ClipToBounds="False"
                                     Background="Transparent"
                                     Focusable="True"
                                     IsHitTestVisible="True"
@@ -924,7 +977,11 @@
                                     MouseLeftButtonUp="InteractionLayer_OnMouseLeftButtonUp"
                                     MouseMove="InteractionLayer_OnMouseMove"
                                     MouseRightButtonDown="InteractionLayer_OnMouseRightButtonDown"
-                                    MouseRightButtonUp="InteractionLayer_OnMouseRightButtonUp" />
+                                    MouseRightButtonUp="InteractionLayer_OnMouseRightButtonUp">
+                                    <Canvas.RenderTransform>
+                                        <TranslateTransform x:Name="InteractionLayerOffsetTransform" />
+                                    </Canvas.RenderTransform>
+                                </Canvas>
                             </Grid>
                         </Border>
                     </Grid>
@@ -1964,24 +2021,30 @@
                             Icon="{ui:SymbolIcon Symbol=Info24}"
                             ToolTip="{lex:Loc OpenValidationDetails}" />
                         <ComboBox
-                            Width="90"
+                            Width="112"
                             Margin="8,0,0,0"
                             VerticalAlignment="Center"
                             DisplayMemberPath="DisplayName"
                             IsEditable="True"
                             ItemsSource="{Binding ManualZoomPresets}"
+                            KeyDown="ZoomComboBox_OnKeyDown"
+                            LostKeyboardFocus="ZoomComboBox_OnLostKeyboardFocus"
                             SelectionChanged="ZoomComboBox_OnSelectionChanged"
                             Text="{Binding ZoomEditText, Mode=OneWay}" />
                         <Slider
                             Width="160"
                             Margin="8,0,0,0"
                             VerticalAlignment="Center"
+                            IsMoveToPointEnabled="True"
                             LargeChange="25"
+                            LostMouseCapture="ZoomSlider_OnLostMouseCapture"
                             Maximum="400"
                             Minimum="25"
+                            PreviewMouseLeftButtonDown="ZoomSlider_OnPreviewMouseLeftButtonDown"
+                            PreviewMouseLeftButtonUp="ZoomSlider_OnPreviewMouseLeftButtonUp"
                             SmallChange="1"
                             TickFrequency="25"
-                            Value="{Binding ZoomPercent, Mode=TwoWay}" />
+                            Value="{Binding ZoomSliderPercent, Mode=TwoWay}" />
                         <ui:Button
                             Margin="8,0,0,0"
                             Command="{Binding FitToWindowCommand}"

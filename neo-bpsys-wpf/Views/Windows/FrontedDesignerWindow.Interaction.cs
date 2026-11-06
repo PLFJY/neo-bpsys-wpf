@@ -290,6 +290,7 @@ public partial class FrontedDesignerWindow
         }
 
         ResetPointerInteraction();
+        UpdateDesignSurfaceExtent();
         ScheduleSelectedInteractionVisualRefresh();
         e.Handled = true;
     }
@@ -464,6 +465,7 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        _viewModel?.ResetNudgeUndoSnapshotCoalescing();
         if (mode == InteractionMode.PolygonVertex) _viewModel?.CaptureUndoSnapshot();
         else _viewModel?.CaptureGeometryUndoSnapshot();
         _interactionMode = mode;
@@ -539,12 +541,59 @@ public partial class FrontedDesignerWindow
         var currentPosition = e.GetPosition(PreviewScrollViewer);
         var deltaX = currentPosition.X - _panStartViewportPosition.X;
         var deltaY = currentPosition.Y - _panStartViewportPosition.Y;
-        PreviewPanTransform.X = _panStartTranslationX + deltaX;
-        PreviewPanTransform.Y = _panStartTranslationY + deltaY;
+        // 以 ScrollViewer 的实际视口计算可平移余量。PreviewWorkspace 会被扩展到
+        // 内容尺寸，不能拿它当视口，否则大缩放时 overflow 恒为 0，只剩 48px 可拖动。
+        // 使用 ScrollViewer 的真实滚动范围，而不是 PreviewZoomHost.ActualWidth：
+        // LayoutTransform 下元素布局尺寸与实际滚动范围可能不一致，大缩放时尤其明显。
+        PreviewPanTransform.X = ClampViewportPan(
+            _panStartTranslationX + deltaX,
+            PreviewScrollViewer.ExtentWidth,
+            PreviewScrollViewer.ViewportWidth,
+            PreviewScrollViewer.HorizontalOffset);
+        PreviewPanTransform.Y = ClampViewportPan(
+            _panStartTranslationY + deltaY,
+            PreviewScrollViewer.ExtentHeight,
+            PreviewScrollViewer.ViewportHeight,
+            PreviewScrollViewer.VerticalOffset);
 
         // RenderTransform 不参与 ScrollViewer 的布局失效范围计算。
         // 显式重绘工作区，避免画布边框在旧位置留下残影。
         PreviewWorkspace.InvalidateVisual();
+    }
+
+    /// <summary>
+    /// 限制画布平移范围，确保无论缩放比例如何，画布始终至少有一部分留在可视区域内。
+    /// </summary>
+    /// <param name="value">目标平移量。</param>
+    /// <param name="contentSize">画布缩放后的尺寸。</param>
+    /// <param name="viewportSize">可视区域尺寸。</param>
+    /// <param name="scrollOffset">ScrollViewer 当前滚动偏移。</param>
+    /// <returns>限制后的平移量。</returns>
+    private static double ClampViewportPan(
+        double value,
+        double contentSize,
+        double viewportSize,
+        double scrollOffset)
+    {
+        const double visibleMargin = 48D;
+        if (!double.IsFinite(contentSize) || !double.IsFinite(viewportSize)
+            || !double.IsFinite(scrollOffset)
+            || contentSize <= 0D || viewportSize <= 0D)
+        {
+            return 0D;
+        }
+
+        // 滚动偏移会改变当前可视内容区间，不能再用“内容中心”的对称范围。
+        // 保证滚动窗口内始终至少能看到 visibleMargin 的内容。
+        var minimum = scrollOffset + visibleMargin - contentSize;
+        var maximum = scrollOffset + viewportSize - visibleMargin;
+        if (minimum > maximum)
+        {
+            var center = (minimum + maximum) / 2D;
+            return center;
+        }
+
+        return Math.Clamp(value, minimum, maximum);
     }
 
     private void EndViewportPan()
@@ -857,11 +906,12 @@ public partial class FrontedDesignerWindow
             return null;
         }
 
-        var value = (PreviewScrollViewer.HorizontalOffset
-                     + PreviewScrollViewer.ViewportWidth / 2D
-                     - PreviewPanTransform.X)
-                    / _viewModel.ZoomScale;
-        return double.IsFinite(value) ? value : null;
+        // 通过视觉树转换，自动包含 ZoomHost 的居中布局、LayoutTransform 与设计表面偏移，
+        // 避免手算漏掉这些偏移导致新控件出现在错误位置。
+        var point = PreviewScrollViewer.TranslatePoint(
+            new Point(PreviewScrollViewer.ViewportWidth / 2D, 0D),
+            InteractionLayer);
+        return double.IsFinite(point.X) ? point.X : null;
     }
 
     private double? GetViewportCenterY()
@@ -871,11 +921,10 @@ public partial class FrontedDesignerWindow
             return null;
         }
 
-        var value = (PreviewScrollViewer.VerticalOffset
-                     + PreviewScrollViewer.ViewportHeight / 2D
-                     - PreviewPanTransform.Y)
-                    / _viewModel.ZoomScale;
-        return double.IsFinite(value) ? value : null;
+        var point = PreviewScrollViewer.TranslatePoint(
+            new Point(0D, PreviewScrollViewer.ViewportHeight / 2D),
+            InteractionLayer);
+        return double.IsFinite(point.Y) ? point.Y : null;
     }
 
     private static Cursor GetCursor(FrontedDesignerResizeHandleKind handle)

@@ -109,6 +109,9 @@ public partial class FrontedDesignerWindowViewModel
     /// </summary>
     public void CaptureUndoSnapshot()
     {
+        // 非键盘微调的撤销步骤会打断连续微调；否则 700ms 内的文字编辑/其它操作
+        // 会被错误地合并进同一组方向键撤销记录。
+        ResetNudgeUndoSnapshotCoalescing();
         var snapshot = CreateSnapshot();
         if (snapshot is null)
         {
@@ -248,6 +251,7 @@ public partial class FrontedDesignerWindowViewModel
     /// <summary>为根控件移动和缩放保存所选项几何；子部件继续保存完整快照。</summary>
     internal void CaptureGeometryUndoSnapshot()
     {
+        ResetNudgeUndoSnapshotCoalescing();
         if (CurrentDocument is null || SelectedDesignItem is null) return;
         if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
         {
@@ -268,20 +272,41 @@ public partial class FrontedDesignerWindowViewModel
     private GeometryHistorySnapshot CreateGeometrySnapshot(IEnumerable<string> names, FrontedCanvasBoModeState state)
     {
         var controls = GetGeometrySnapshotControls(state);
-        return new GeometryHistorySnapshot(names.Select(name =>
+        var items = new List<ItemGeometrySnapshot>();
+        foreach (var name in names)
         {
-            var config = controls[name];
-            return new ItemGeometrySnapshot(name, config.Left, config.Top, config.Width, config.Height);
-        }).ToArray(), state);
+            // 文档允许存在重复控件名（校验层只报告错误，不阻止打开）；
+            // 几何快照必须容错，不能因重复 key 或缺失 key 在鼠标手势中抛异常。
+            if (!controls.TryGetValue(name, out var config))
+            {
+                continue;
+            }
+
+            items.Add(new ItemGeometrySnapshot(name, config.Left, config.Top, config.Width, config.Height));
+        }
+
+        return new GeometryHistorySnapshot(items.ToArray(), state);
     }
 
     private IReadOnlyDictionary<string, FrontedControlConfigBase> GetGeometrySnapshotControls(FrontedCanvasBoModeState state)
     {
+        IEnumerable<KeyValuePair<string, FrontedControlConfigBase>> entries;
         if (CurrentDocument!.EditingBoModeState == state)
-            return CurrentDocument.Controls.ToDictionary(item => item.Name, item => item.Config, StringComparer.Ordinal);
-        var config = _designConverter.ToConfig(CurrentDocument);
-        return state == FrontedCanvasBoModeState.Bo3
-            ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls : config.Controls;
+        {
+            entries = CurrentDocument.Controls.Select(item => new KeyValuePair<string, FrontedControlConfigBase>(item.Name, item.Config));
+        }
+        else
+        {
+            var config = _designConverter.ToConfig(CurrentDocument);
+            var controls = state == FrontedCanvasBoModeState.Bo3
+                ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls
+                : config.Controls;
+            entries = controls.Select(entry => new KeyValuePair<string, FrontedControlConfigBase>(entry.Key, entry.Value));
+        }
+
+        return entries
+            .GroupBy(entry => entry.Key, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First().Value, StringComparer.Ordinal);
     }
 
     private void RestoreControlsPresenceSnapshot(ControlsPresenceHistorySnapshot snapshot)

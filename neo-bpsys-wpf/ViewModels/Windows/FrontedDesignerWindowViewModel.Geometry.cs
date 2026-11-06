@@ -209,6 +209,43 @@ public partial class FrontedDesignerWindowViewModel
         OnDesignItemGeometryChanged(renderPreview);
     }
 
+    private string? _nudgeSnapshotKey;
+    private long _nudgeSnapshotTick;
+
+    /// <summary>
+    /// 为连续键盘微调合并撤销快照：同一次按键连发只记录一次起始位置，
+    /// 避免一次移动几十像素产生几十个撤销步骤。鼠标拖动由 BeginInteraction 重置。
+    /// </summary>
+    /// <summary>
+    /// 结束连续键盘微调的撤销合并窗口。鼠标拖动等新的交互开始时调用，
+    /// 避免上一次方向键移动仍被合并到同一次撤销步骤。
+    /// </summary>
+    public void ResetNudgeUndoSnapshotCoalescing()
+    {
+        _nudgeSnapshotKey = null;
+        _nudgeSnapshotTick = 0;
+    }
+
+    private void CaptureNudgeUndoSnapshot()
+    {
+        var key = string.Join(
+            "\u001f",
+            SelectedDesignItems
+                .Append(SelectedDesignItem!)
+                .Where(item => item is not null)
+                .Select(item => item!.Name));
+        var now = Environment.TickCount64;
+        if (string.Equals(key, _nudgeSnapshotKey, StringComparison.Ordinal)
+            && now - _nudgeSnapshotTick <= 700)
+        {
+            return;
+        }
+
+        CaptureGeometryUndoSnapshot();
+        _nudgeSnapshotKey = key;
+        _nudgeSnapshotTick = now;
+    }
+
     /// <summary>
     /// 按增量移动当前选择，通常用于键盘微调。
     /// </summary>
@@ -221,7 +258,7 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        CaptureGeometryUndoSnapshot();
+        CaptureNudgeUndoSnapshot();
         ClearActiveSnapGuides();
 
         // 子控件选中时，键盘微调通过 GeometryTarget 执行。

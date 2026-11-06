@@ -370,9 +370,15 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        DependencyPropertyDescriptor
-            .FromName("SelectedColor", picker.GetType(), picker.GetType())
-            ?.AddValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
+        var descriptor = DependencyPropertyDescriptor.FromName("SelectedColor", picker.GetType(), picker.GetType());
+        if (descriptor is null)
+        {
+            return;
+        }
+
+        // Loaded 可能因父级重挂载而重复触发；先移除再订阅，避免重复提交/订阅泄漏。
+        descriptor.RemoveValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
+        descriptor.AddValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
     }
 
     private void PropertyColorPicker_OnUnloaded(object sender, RoutedEventArgs e)
@@ -458,12 +464,41 @@ public partial class FrontedDesignerWindow
         // 500ms 内没有新的颜色变化视为本次拖动结束，下一次拖动重新捕获撤销快照。
         _colorEditSessionTimer.Stop();
         _colorEditSessionTimer.Start();
+
+        if (!_colorEditInputHooked)
+        {
+            InputManager.Current.PreProcessInput += ColorEditInputManager_OnPreProcessInput;
+            _colorEditInputHooked = true;
+        }
+    }
+
+    private void ColorEditInputManager_OnPreProcessInput(object sender, PreProcessInputEventArgs e)
+    {
+        // Popup 内的颜色条不会把 MouseUp 冒泡到主窗口，用全局输入预处理捕获拖动结束。
+        if (e.StagingItem.Input is MouseButtonEventArgs
+            {
+                ChangedButton: MouseButton.Left,
+                ButtonState: MouseButtonState.Released
+            })
+        {
+            EndColorEditSession();
+        }
     }
 
     private void ColorEditSessionTimer_OnTick(object? sender, EventArgs e)
     {
+        EndColorEditSession();
+    }
+
+    private void EndColorEditSession()
+    {
         _colorEditSessionTimer?.Stop();
         _activeColorEditItem = null;
+        if (_colorEditInputHooked)
+        {
+            InputManager.Current.PreProcessInput -= ColorEditInputManager_OnPreProcessInput;
+            _colorEditInputHooked = false;
+        }
     }
 
     private async Task<bool> ApplyPropertyEditorValueAsync(object sender)

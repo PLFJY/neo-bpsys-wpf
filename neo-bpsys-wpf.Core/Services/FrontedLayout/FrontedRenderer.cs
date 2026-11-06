@@ -60,7 +60,7 @@ public class FrontedRenderer(
 
         canvas.Width = runtimeState.CanvasWidth;
         canvas.Height = runtimeState.CanvasHeight;
-        canvas.Background = CreateBackground(runtimeState.BackgroundImage);
+        canvas.Background = CreateBackground(runtimeState.BackgroundImage, runtimeState.CanvasWidth, runtimeState.CanvasHeight);
 
         var buildContext = CreateBuildContext(runtimeState, context);
         foreach (var (name, controlConfig) in runtimeState.Controls.OrderBy(x => x.Value.ZIndex))
@@ -675,7 +675,7 @@ public class FrontedRenderer(
         }
     }
 
-    private ImageBrush? CreateBackground(string? backgroundImage)
+    private ImageBrush? CreateBackground(string? backgroundImage, double canvasWidth, double canvasHeight)
     {
         var imageSource = resourceResolver.ResolveImage(backgroundImage, FrontedImagePurpose.Background);
         if (imageSource is null)
@@ -683,7 +683,14 @@ public class FrontedRenderer(
             return null;
         }
 
-        var brush = new ImageBrush(imageSource) { Stretch = Stretch.Fill };
+        // 背景只覆盖画布本身。设计器为了显示画布外控件会扩展 Canvas，不能用 Stretch=Fill
+        // 让背景跟随整个扩展区域，否则背景会被异常拉伸。
+        var brush = new ImageBrush(imageSource)
+        {
+            Stretch = Stretch.Fill,
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0D, 0D, Math.Max(1D, canvasWidth), Math.Max(1D, canvasHeight))
+        };
         RenderOptions.SetBitmapScalingMode(brush, BitmapScalingMode.HighQuality);
         if (brush.CanFreeze)
         {
