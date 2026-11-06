@@ -54,7 +54,9 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        BeginPendingHitboxClick(item, e.GetPosition(InteractionLayer), hitbox);
+        // 捕获 InteractionLayer 而不是可能被选择刷新重建的 hitbox。
+        // 选择延迟到实际超过拖动阈值时执行，避免按下瞬间重建属性网格/装饰器造成拖动卡顿。
+        BeginPendingHitboxClick(item, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
@@ -199,12 +201,37 @@ public partial class FrontedDesignerWindow
 
     private void HandlePendingHitboxMove(double deltaX, double deltaY)
     {
-        if (_viewModel?.SelectedDesignItem is null || _pendingHitCandidate is null)
+        if (_viewModel is null || _pendingHitCandidate is null)
         {
             return;
         }
 
         _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
+
+        // 未选中控件在第一次真正拖动时才切换选择：按下即选择会重建属性网格、
+        // 装饰器和预览元素，拖动过程中持续触发会造成明显卡顿。
+        if (_hasExceededClickThreshold
+            && !ReferenceEquals(_pendingHitCandidate, _viewModel.SelectedDesignItem))
+        {
+            if (_viewModel.SelectedDesignItems.Any(item => ReferenceEquals(item, _pendingHitCandidate)))
+            {
+                // 已处于多选集合中的控件直接作为主选中项参与整体拖动，不能退化为单选。
+                var selectedItems = _viewModel.SelectedDesignItems.ToList();
+                RunUserSelection(() => _viewModel.SelectDesignItems(selectedItems, _pendingHitCandidate));
+            }
+            else
+            {
+                RunUserSelection(() => _viewModel.SelectDesignItem(_pendingHitCandidate));
+            }
+
+            CaptureOriginalSelectedBounds();
+        }
+
+        if (_viewModel.SelectedDesignItem is null)
+        {
+            return;
+        }
+
         var action = FrontedDesignerInteractionHelper.ResolvePointerAction(
             _hasExceededClickThreshold,
             ReferenceEquals(_pendingHitCandidate, _viewModel.SelectedDesignItem),
@@ -372,30 +399,49 @@ public partial class FrontedDesignerWindow
 
     private void PreviewScrollViewer_OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        UpdatePreviewWorkspaceSize();
-        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
-        ResetPreviewScrollOffsetForFitMode();
+        ScheduleFitRefresh();
     }
 
     /// <summary>
     /// Ensures Fit zoom is recalculated when the window is maximized or restored.
     /// StateChanged fires before layout updates, so the recalculation is deferred
-    /// to after the layout pass via Dispatcher.Background.
+    /// to after the layout pass. SizeChanged and StateChanged can both fire during
+    /// the initial maximize; coalescing them avoids duplicate fit/layout passes.
     /// </summary>
     private void OnWindowStateChanged(object? sender, EventArgs e)
     {
         if (WindowState == WindowState.Maximized || WindowState == WindowState.Normal)
         {
-            Dispatcher.BeginInvoke(
-                System.Windows.Threading.DispatcherPriority.Background,
-                () =>
-                {
-                    _viewModel?.UpdateFitZoom(
-                        PreviewScrollViewer.ViewportWidth,
-                        PreviewScrollViewer.ViewportHeight);
-                    ResetPreviewScrollOffsetForFitMode();
-                });
+            ScheduleFitRefresh();
         }
+    }
+
+    private void ScheduleFitRefresh()
+    {
+        if (!_isLoaded)
+        {
+            return;
+        }
+
+        if (_fitRefreshOperation is { Status: DispatcherOperationStatus.Pending })
+        {
+            return;
+        }
+
+        _fitRefreshOperation = Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.Background,
+            new Action(() =>
+            {
+                _fitRefreshOperation = null;
+                if (!_isLoaded)
+                {
+                    return;
+                }
+
+                UpdatePreviewWorkspaceSize();
+                _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
+                ResetPreviewScrollOffsetForFitMode();
+            }));
     }
 
     private void DesignSurface_OnKeyDown(object sender, KeyEventArgs e)

@@ -155,6 +155,8 @@ public partial class FrontedDesignerWindow
             PreviewCanvasOffsetTransform.Y = 0D;
             InteractionLayerOffsetTransform.X = 0D;
             InteractionLayerOffsetTransform.Y = 0D;
+            CanvasFrameOffsetTransform.X = 0D;
+            CanvasFrameOffsetTransform.Y = 0D;
             _viewModel?.UpdateDesignSurfaceContentSize(width, height);
             _viewModel?.UpdateDesignSurfaceFitSize(width, height);
             UpdatePreviewWorkspaceSize();
@@ -225,6 +227,8 @@ public partial class FrontedDesignerWindow
         PreviewCanvasOffsetTransform.Y = _designSurfaceOffsetY;
         InteractionLayerOffsetTransform.X = _designSurfaceOffsetX;
         InteractionLayerOffsetTransform.Y = _designSurfaceOffsetY;
+        CanvasFrameOffsetTransform.X = _designSurfaceOffsetX;
+        CanvasFrameOffsetTransform.Y = _designSurfaceOffsetY;
 
         // 适应模式依赖设计表面内容范围；内容变化后立即重算，避免新增画布外控件后仍按旧范围缩放。
         _viewModel?.UpdateDesignSurfaceContentSize(contentWidth, contentHeight);
@@ -435,12 +439,7 @@ public partial class FrontedDesignerWindow
             Background = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
             Padding = new Thickness(4, 1, 4, 1),
             CornerRadius = new CornerRadius(2),
-            Child = new System.Windows.Controls.TextBlock
-            {
-                Text = item.Name,
-                FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
-                Foreground = Brushes.White
-            },
+            Child = CreateSelectionLabelText(item.Name),
             IsHitTestVisible = false
         };
         Panel.SetZIndex(_selectionLabel, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex + 1);
@@ -517,12 +516,8 @@ public partial class FrontedDesignerWindow
             Background = Brushes.Orange,
             Padding = new Thickness(4, 1, 4, 1),
             CornerRadius = new CornerRadius(2),
-            Child = new System.Windows.Controls.TextBlock
-            {
-                Text = target.IsCollectionItem ? $"{target.Id} [{target.ItemKey}]" : target.Id,
-                FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
-                Foreground = Brushes.White
-            },
+            Child = CreateSelectionLabelText(
+                target.IsCollectionItem ? $"{target.Id} [{target.ItemKey}]" : target.Id),
             IsHitTestVisible = false
         };
         Panel.SetZIndex(_childSelectionLabel, ChildSelectionOutlineZIndex + 1);
@@ -606,6 +601,7 @@ public partial class FrontedDesignerWindow
         {
             _childSelectionOutline.Width = bounds.Width;
             _childSelectionOutline.Height = bounds.Height;
+            ApplySelectionOutlineZoomMetrics(_childSelectionOutline);
             Canvas.SetLeft(_childSelectionOutline, bounds.Left);
             Canvas.SetTop(_childSelectionOutline, bounds.Top);
         }
@@ -618,9 +614,13 @@ public partial class FrontedDesignerWindow
                 textBlock.FontSize = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale);
             }
 
-            var topOffset = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale);
+            var normalizedZoom = FrontedDesignerEditorVisualHelper.NormalizeZoomScale(zoomScale);
+            ApplySelectionLabelChromeZoomMetrics(_childSelectionLabel, normalizedZoom);
+            _childSelectionLabel.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             Canvas.SetLeft(_childSelectionLabel, bounds.Left);
-            Canvas.SetTop(_childSelectionLabel, Math.Max(0, bounds.Top - topOffset));
+            Canvas.SetTop(
+                _childSelectionLabel,
+                bounds.Top - _childSelectionLabel.DesiredSize.Height - 4D / normalizedZoom);
         }
 
         if (currentTarget.CanResize)
@@ -760,6 +760,7 @@ public partial class FrontedDesignerWindow
             var parentBounds = ResolveItemBounds(item);
             _parentSelectionOutline.Width = parentBounds.Width;
             _parentSelectionOutline.Height = parentBounds.Height;
+            ApplySelectionOutlineZoomMetrics(_parentSelectionOutline);
             Canvas.SetLeft(_parentSelectionOutline, parentBounds.Left);
             Canvas.SetTop(_parentSelectionOutline, parentBounds.Top);
         }
@@ -777,6 +778,7 @@ public partial class FrontedDesignerWindow
         {
             _selectionOutline.Width = bounds.Width;
             _selectionOutline.Height = bounds.Height;
+            ApplySelectionOutlineZoomMetrics(_selectionOutline);
             Canvas.SetLeft(_selectionOutline, bounds.Left);
             Canvas.SetTop(_selectionOutline, bounds.Top);
         }
@@ -832,6 +834,7 @@ public partial class FrontedDesignerWindow
             var outline = _multiSelectionOutlines[outlineIndex];
             outline.Width = bounds.Width;
             outline.Height = bounds.Height;
+            ApplySelectionOutlineZoomMetrics(outline);
             Canvas.SetLeft(outline, bounds.Left);
             Canvas.SetTop(outline, bounds.Top);
 
@@ -905,6 +908,18 @@ public partial class FrontedDesignerWindow
         _snapGuideLines.Clear();
     }
 
+    private static System.Windows.Controls.TextBlock CreateSelectionLabelText(string text)
+    {
+        var textBlock = new System.Windows.Controls.TextBlock
+        {
+            Text = text,
+            FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize
+        };
+        // 使用主题前景色：亮色主题下黑字、暗色主题下白字，避免白字叠在浅色标签上看不清。
+        textBlock.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
+        return textBlock;
+    }
+
     private void ApplySelectionLabelZoomMetrics(FrontedDesignerResolvedBounds bounds)
     {
         if (_selectionLabel is null)
@@ -912,16 +927,35 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        var zoomScale = _viewModel?.ZoomScale ?? 1D;
+        var zoomScale = FrontedDesignerEditorVisualHelper.NormalizeZoomScale(_viewModel?.ZoomScale ?? 1D);
         if (_selectionLabel.Child is System.Windows.Controls.TextBlock textBlock)
         {
             textBlock.FontSize = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale);
         }
 
-        var topOffset = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale);
+        ApplySelectionLabelChromeZoomMetrics(_selectionLabel, zoomScale);
+        _selectionLabel.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         Canvas.SetLeft(_selectionLabel, bounds.Left);
-        // 画布外控件可能位于负坐标，不能把标签钳到 0，否则标签会与控件框分离。
-        Canvas.SetTop(_selectionLabel, bounds.Top - topOffset);
+        // 标签底边始终位于控件上边框之外，避免高缩放下遮住顶部三个手柄。
+        Canvas.SetTop(
+            _selectionLabel,
+            bounds.Top - _selectionLabel.DesiredSize.Height - 4D / zoomScale);
+    }
+
+    private void ApplySelectionLabelChromeZoomMetrics(Border label, double zoomScale)
+    {
+        label.Padding = new Thickness(4D / zoomScale, 1D / zoomScale, 4D / zoomScale, 1D / zoomScale);
+        label.CornerRadius = new CornerRadius(2D / zoomScale);
+    }
+
+    private void ApplySelectionOutlineZoomMetrics(Border outline)
+    {
+        var zoomScale = FrontedDesignerEditorVisualHelper.NormalizeZoomScale(_viewModel?.ZoomScale ?? 1D);
+        // 高缩放下 BorderThickness 小于 1 个屏幕像素会被 WPF 抗锯齿“吃掉”；
+        // 限制最小画布线宽，保证任何缩放下至少约 1 个屏幕像素可见。
+        var thickness = Math.Max(1D / zoomScale, 0.1D);
+        outline.BorderThickness = new Thickness(thickness);
+        outline.SnapsToDevicePixels = true;
     }
 
     private void SetHandlePosition(FrontedDesignerResizeHandleKind handle, double x, double y)

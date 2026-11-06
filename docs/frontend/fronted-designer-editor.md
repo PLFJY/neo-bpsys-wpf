@@ -20,11 +20,11 @@ JSON key / 控件名与 BehaviorGuid 的规则统一见[运行时契约](fronted
 
 ## 预览坐标、选择和几何
 
-结构为 ScrollViewer → PreviewWorkspace → PreviewZoomHost → DesignSurfaceGrid，后者叠放 PreviewCanvas 与 InteractionLayer。两层尺寸来自 CanvasSettings；缩放用 LayoutTransform。鼠标 GetPosition(InteractionLayer) 得到逻辑设计坐标，无需再乘除 ZoomScale；真实窗口外框、标题栏、ActualHeight 不参与计算。控件被拖出画布后，DesignSurfaceGrid 按画布与控件实际占用范围的并集动态扩展，两层画布整体平移到正坐标区域，逻辑坐标不变；平移边界、滚动工作区尺寸和 Fit 缩放/居中都以该扩展范围为基准，避免扩展内容在负坐标或高缩放下被视口裁掉。工具窗口不默认设置主窗口 Owner 或最大化，避免 owned maximized window 的任务栏联动。
+结构为 ScrollViewer → PreviewWorkspace → PreviewZoomHost → DesignSurfaceGrid，后者叠放 PreviewCanvas 与 InteractionLayer。两层尺寸来自 CanvasSettings；缩放用 LayoutTransform。鼠标 GetPosition(InteractionLayer) 得到逻辑设计坐标，无需再乘除 ZoomScale；真实窗口外框、标题栏、ActualHeight 不参与计算。控件被拖出画布后，DesignSurfaceGrid 按画布与控件实际占用范围的并集动态扩展，两层画布整体平移到正坐标区域，逻辑坐标不变；可视画布边框始终固定为 CanvasSettings 的宽高，不随并集扩展。平移边界、滚动工作区尺寸和 Fit 缩放/居中都以该扩展范围为基准，避免扩展内容在负坐标或高缩放下被视口裁掉。工具窗口不默认设置主窗口 Owner 或最大化，避免 owned maximized window 的任务栏联动。
 
 透明 hitbox 独立于可见像素，空文本、无图片、Hidden/Collapsed 和缺失插件控件仍可选择。空尺寸优先用预览实际尺寸，仍不可用时使用最小 hitbox。命中提升只影响 InteractionLayer，不更改 JSON ZIndex。
 
-- 单击 hitbox 或图层列表选择；在未选中项上按下拖动不抢选中控件焦点。图层列表支持 Ctrl+单击追加/取消选择，单击层级标题选择该层级全部可编辑控件，双击控件进入内联重命名，层级右键菜单提供删除层级；选中层级/控件使用主题强调色边框。
+- 单击 hitbox 或图层列表选择；未选中控件按下时即切换选择并以该次按下为起点直接拖动，无需先单击选中。图层列表支持 Ctrl+单击追加/取消选择，单击层级标题选择该层级全部可编辑控件，双击控件进入内联重命名，层级右键菜单提供删除层级；选中层级/控件使用主题强调色边框。
 - 拖动/八方向 resize 修改当前内存配置；左/上缩放同时调整 Left/Top。多选时每个选中控件都显示自己的八方向手柄，任一 Corner/Edge 手柄都按完整选择集合整体缩放。Shift、Ctrl、Alt 微调步长分别为 10、1、0.1，普通方向键为 0.5；最终坐标按 0.5 精度规范化。控件可拖到画布外（含负坐标和超出画布右/下边界），提交后按并集动态扩展可滚动/可平移范围。
 - Ctrl+Wheel 手动缩放 25%–400%，Fit 可低于 25%；右键或 Space+左键平移只改变 viewport offset，并至少保留 48 px 画布可见，避免画布完全丢失。Fit 同时重置平移并将扩展内容范围中心滚动到视口中央。缩放下拉框可直接输入正的 `float` 百分比（100 表示 100%，也可带 `%` 或 `x`），适应模式也仅显示百分比；超出滑杆 25%–400% 时保留输入值、滑杆停在端点；百分比始终带 `%`，整数完整显示，带小数的值最多显示 3 位有效数字。拖动或点击滑杆时按渲染帧合并更新，点击位置立即生效，释放后补齐精确值。
 - 图片 lock/picking overlay 是内部视觉，不是独立图层或 hitbox。BorderedImage 可在根框与内部 ImageWidth/ImageHeight 之间切换 resize target；Part/PartCollection 通过统一几何目标适配。

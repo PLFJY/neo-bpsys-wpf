@@ -9,6 +9,7 @@
     xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
     xmlns:frontedDesignerViews="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner"
     xmlns:frontedLayout="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout;assembly=neo-bpsys-wpf.Core"
+    xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -367,7 +368,7 @@
             ResizeBorderThickness="5"
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
-    <Grid>
+    <Grid helpers:ThemeTransitionBehavior.IsEnabled="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -527,14 +528,23 @@
         </Border>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280" />
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition
+                    x:Name="LayerPanelColumn"
+                    Width="280"
+                    MinWidth="220"
+                    MaxWidth="520" />
                 <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="1.5*" MinWidth="300" />
+                <ColumnDefinition Width="3*" MinWidth="360" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition
+                    x:Name="PropertyPanelColumn"
+                    Width="380"
+                    MinWidth="300"
+                    MaxWidth="620" />
             </Grid.ColumnDefinitions>
             <Border
                 Grid.Column="0"
-                Margin="12"
+                Margin="12,12,0,12"
                 Padding="12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
@@ -616,7 +626,7 @@
                                 Drop="LayerPanel_OnDrop"
                                 HorizontalScrollBarVisibility="Disabled"
                                 VerticalScrollBarVisibility="Auto">
-                                <StackPanel x:Name="LayerPanelContent">
+                                <StackPanel x:Name="LayerPanelContent" Margin="0,0,8,0">
                                     <ItemsControl x:Name="LayerGroupsItemsControl" ItemsSource="{Binding LayerGroups}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate DataType="{x:Type designer:FrontedLayerGroup}">
@@ -910,9 +920,20 @@
                 </Grid>
             </Border>
 
-            <Border
+            <!-- 画布列表与预览区之间的宽度分隔条。 -->
+            <GridSplitter
                 Grid.Column="1"
-                Margin="0,12,8,12"
+                Width="5"
+                Margin="0,12,0,12"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Background="Transparent"
+                ResizeBehavior="PreviousAndNext"
+                ResizeDirection="Columns" />
+
+            <Border
+                Grid.Column="2"
+                Margin="0,12,0,12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 BorderThickness="1"
@@ -937,8 +958,8 @@
                             x:Name="PreviewZoomHost"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
-                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                            BorderThickness="1">
+                            BorderBrush="Transparent"
+                            BorderThickness="0">
                             <Border.RenderTransform>
                                 <TranslateTransform x:Name="PreviewPanTransform" />
                             </Border.RenderTransform>
@@ -964,6 +985,22 @@
                                         <TranslateTransform x:Name="PreviewCanvasOffsetTransform" />
                                     </Canvas.RenderTransform>
                                 </Canvas>
+                                <!-- 画布边框固定在真实画布尺寸上，不随画布外控件扩展。 -->
+                                <Border
+                                    x:Name="CanvasFrameBorder"
+                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
+                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=810}"
+                                    BorderBrush="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    HorizontalAlignment="Left"
+                                    IsHitTestVisible="False"
+                                    Panel.ZIndex="1"
+                                    SnapsToDevicePixels="True"
+                                    VerticalAlignment="Top">
+                                    <Border.RenderTransform>
+                                        <TranslateTransform x:Name="CanvasFrameOffsetTransform" />
+                                    </Border.RenderTransform>
+                                </Border>
                                 <Canvas
                                     x:Name="InteractionLayer"
                                     Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=1440}"
@@ -989,18 +1026,18 @@
             </Border>
 
             <GridSplitter
-                Grid.Column="2"
+                Grid.Column="3"
                 Width="5"
                 Margin="0,12,0,12"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
-                Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                Background="Transparent"
                 ResizeBehavior="PreviousAndNext"
                 ResizeDirection="Columns" />
 
             <Border
                 x:Name="PropertyPanelHost"
-                Grid.Column="3"
+                Grid.Column="4"
                 Margin="0,12,12,12"
                 Padding="12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"

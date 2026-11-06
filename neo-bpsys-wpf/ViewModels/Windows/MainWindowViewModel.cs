@@ -74,6 +74,11 @@ public partial class MainWindowViewModel :
     [ObservableProperty]
     public partial ApplicationTheme ApplicationTheme { get; set; } = ApplicationTheme.Dark;
 
+    partial void OnApplicationThemeChanged(ApplicationTheme value)
+    {
+        ThemeTransitionBus.NotifyStarted();
+    }
+
     private bool _isGuidanceStarted;
 
     public bool IsGuidanceStarted

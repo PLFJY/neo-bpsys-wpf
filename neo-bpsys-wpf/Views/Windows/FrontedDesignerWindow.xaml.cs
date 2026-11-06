@@ -57,6 +57,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private DispatcherOperation? _selectionVisualRefreshOperation;
     private DispatcherOperation? _fitScrollResetOperation;
     private bool _fitScrollResetRequested;
+    private DispatcherOperation? _fitRefreshOperation;
     private FrontedDesignerWindowViewModel? _viewModel;
     private ValidationDetailsWindow? _validationDetailsWindow;
     private FrontedDesignerHelpWindow? _helpWindow;
@@ -325,6 +326,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         _fitScrollResetOperation?.Abort();
         _fitScrollResetOperation = null;
         _fitScrollResetRequested = false;
+        _fitRefreshOperation?.Abort();
+        _fitRefreshOperation = null;
         _selectorReloadOperation?.Abort();
         _selectorReloadOperation = null;
         _selectorReloadRequested = false;
