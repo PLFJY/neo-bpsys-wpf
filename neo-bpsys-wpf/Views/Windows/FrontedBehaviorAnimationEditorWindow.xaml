@@ -15,6 +15,7 @@
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Designer"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    WindowBackdropType="None"
     WindowStartupLocation="CenterOwner">
     <ui:FluentWindow.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

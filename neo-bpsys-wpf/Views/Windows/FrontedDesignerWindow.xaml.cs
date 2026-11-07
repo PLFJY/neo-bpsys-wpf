@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Helpers;
@@ -136,6 +136,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
         InitializePropertyAutoCommitTimer();
         InitializePreviewRenderDebounceTimer();
+        WindowBackdropThemeHelper.Attach(this);
     }
 
     public FrontedDesignerWindow(
@@ -165,6 +166,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
         InitializePropertyAutoCommitTimer();
         InitializePreviewRenderDebounceTimer();
+        WindowBackdropThemeHelper.Attach(this);
         DataContext = viewModel;
         Loaded += OnLoaded;
         Closed += OnClosed;

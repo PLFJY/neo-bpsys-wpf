@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -36,6 +36,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     {
         _tutorialRunner = tutorialRunner;
         InitializeComponent();
+        WindowBackdropThemeHelper.Attach(this);
         DataContext = viewModel;
         Title = viewModel.Title;
 

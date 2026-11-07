@@ -80,7 +80,7 @@
         <Border
             Grid.Row="1"
             Padding="10"
-            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            Background="Transparent"
             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
             CornerRadius="8">
@@ -223,7 +223,7 @@
             Grid.Column="1"
             Margin="10,0,0,0"
             Padding="12"
-            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            Background="Transparent"
             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
             CornerRadius="8">

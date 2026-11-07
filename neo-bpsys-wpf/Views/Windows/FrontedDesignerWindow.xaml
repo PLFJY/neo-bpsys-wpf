@@ -29,6 +29,7 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    WindowBackdropType="None"
     PreviewKeyDown="Window_OnPreviewKeyDown"
     PreviewKeyUp="Window_OnPreviewKeyUp"
     PreviewMouseDown="Window_OnPreviewMouseDown"

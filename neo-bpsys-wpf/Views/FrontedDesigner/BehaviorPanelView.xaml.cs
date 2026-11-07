@@ -1,4 +1,4 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
@@ -66,11 +66,18 @@ public partial class BehaviorPanelView : UserControl
                 TutorialOwnerLifetime.GetToken(this));
         try
         {
-            window.ShowDialog();
+            if (childSession is not null)
+            {
+                window.Closed += (_, _) => childSession.Complete();
+            }
+
+            // 动画编辑器与后台设计器需要同时操作，使用非模态窗口。
+            window.Show();
         }
-        finally
+        catch
         {
             childSession?.Complete();
+            throw;
         }
     }
 
