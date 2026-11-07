@@ -70,7 +70,9 @@ public partial class FrontedDesignerWindow
 
         FocusDesignSurface();
         _activeResizeHandle = handle;
-        BeginInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), element);
+        // 捕获 InteractionLayer 而不是手柄自身：拖动过程中手柄会随尺寸/缩放重新布局，
+        // 捕获手柄容易触发 LostMouseCapture，导致宽度拖动中途失效。
+        BeginInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
@@ -85,7 +87,7 @@ public partial class FrontedDesignerWindow
         FocusDesignSurface();
         _viewModel.SelectPolygonVertex(index);
         _activePolygonVertexIndex = index;
-        BeginInteraction(InteractionMode.PolygonVertex, e.GetPosition(InteractionLayer), element);
+        BeginInteraction(InteractionMode.PolygonVertex, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
@@ -279,7 +281,9 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        _isReleasingPointerCapture = true;
         _capturedElement.ReleaseMouseCapture();
+        _isReleasingPointerCapture = false;
 
         if (_pendingHitCandidate is not null)
         {
@@ -314,6 +318,16 @@ public partial class FrontedDesignerWindow
         else if (_interactionMode == InteractionMode.PolygonVertex)
         {
             _viewModel?.CommitDesignItemGeometryEdit();
+        }
+
+        // 几何编辑提交会改变内容范围并触发 ScrollViewer extent 变化；
+        // 这次变化来自用户刚完成的拖动，不应立刻把画布重新居中。
+        if (_interactionMode is InteractionMode.Resize or InteractionMode.SubControlMove or InteractionMode.PolygonVertex)
+        {
+            _suppressFitScrollCentering = true;
+            Dispatcher.BeginInvoke(
+                DispatcherPriority.ContextIdle,
+                new Action(() => _suppressFitScrollCentering = false));
         }
 
         ResetPointerInteraction();
@@ -882,6 +896,24 @@ public partial class FrontedDesignerWindow
         {
             _originalSelectedBounds[item] = ResolveItemBounds(item);
         }
+    }
+
+    private void InteractionLayer_OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (_isReleasingPointerCapture || _capturedElement is null)
+        {
+            return;
+        }
+
+        // 鼠标在窗口外释放或被系统抢走捕获时，必须清理拖动状态，否则下一次点击会被残留的
+        // InteractionLayer 捕获吞掉，表现为“第一次能调整宽度，之后完全拖不动”。
+        if (_interactionMode is InteractionMode.Resize or InteractionMode.SubControlMove or InteractionMode.PolygonVertex)
+        {
+            _viewModel?.CommitDesignItemGeometryEdit();
+        }
+
+        ResetPointerInteraction();
+        UpdateDesignSurfaceExtent();
     }
 
     private void ResetPointerInteraction()

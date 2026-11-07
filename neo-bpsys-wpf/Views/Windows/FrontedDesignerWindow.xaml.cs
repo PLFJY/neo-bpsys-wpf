@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -57,6 +58,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private DispatcherOperation? _selectionVisualRefreshOperation;
     private DispatcherOperation? _fitScrollResetOperation;
     private bool _fitScrollResetRequested;
+    private bool _suppressFitScrollCentering;
+    private bool _isReleasingPointerCapture;
     private DispatcherOperation? _fitRefreshOperation;
     private FrontedDesignerWindowViewModel? _viewModel;
     private ValidationDetailsWindow? _validationDetailsWindow;
@@ -180,6 +183,26 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void DesignerDiagnostic(LogLevel level, string message, Exception? exception = null)
         => FileLoggerProvider.WriteDiagnostic(typeof(FrontedDesignerWindow).FullName!, level,
             $"WindowInstance={_diagnosticWindowId} {message}", exception);
+
+    private void LayerPanelSplitter_OnDragDelta(object sender, DragDeltaEventArgs e)
+    {
+        var width = Math.Clamp(
+            LayerPanelColumn.ActualWidth + e.HorizontalChange,
+            LayerPanelColumn.MinWidth,
+            LayerPanelColumn.MaxWidth);
+        LayerPanelColumn.Width = new GridLength(width);
+        e.Handled = true;
+    }
+
+    private void PropertyPanelSplitter_OnDragDelta(object sender, DragDeltaEventArgs e)
+    {
+        var width = Math.Clamp(
+            PropertyPanelColumn.ActualWidth - e.HorizontalChange,
+            PropertyPanelColumn.MinWidth,
+            PropertyPanelColumn.MaxWidth);
+        PropertyPanelColumn.Width = new GridLength(width);
+        e.Handled = true;
+    }
 
     private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)
     {

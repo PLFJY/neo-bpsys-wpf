@@ -251,7 +251,7 @@ public partial class FrontedDesignerWindow
         {
             // 完整渲染会替换控件；旧动画 session 的 BaseValues/overlay 仍引用旧视觉对象。
             _viewModel?.ClearBehaviorPreviewAnimationScope();
-            ConfigureDesignSurface(e.Config.CanvasWidth, e.Config.CanvasHeight);
+            ConfigureDesignSurface(e.Config.CanvasWidth, e.Config.CanvasHeight, updateFit: isInitialPreview);
             LogDesignerPerf("PreviewRender", "configure surface", Elapsed(total));
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
             if (e.BehaviorDocument is not null)
@@ -635,6 +635,13 @@ public partial class FrontedDesignerWindow
     private void PreviewScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
     {
         if (_viewModel?.IsFitMode != true)
+        {
+            return;
+        }
+
+        // 拖动控件/缩放手柄期间，内容宽高会连续变化；此时若跟着滚动居中，
+        // 画布会在指针下移动，表现为宽度调整跟不上鼠标。等交互结束后再居中。
+        if (_capturedElement is not null || _isPanningViewport || _suppressFitScrollCentering)
         {
             return;
         }

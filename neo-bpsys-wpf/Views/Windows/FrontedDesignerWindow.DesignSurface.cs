@@ -39,7 +39,7 @@ public partial class FrontedDesignerWindow
     private double _designSurfaceFitWidth;
     private double _designSurfaceFitHeight;
 
-    private void ConfigureDesignSurface(double width, double height)
+    private void ConfigureDesignSurface(double width, double height, bool updateFit = false)
     {
         DesignSurfaceGrid.Width = width;
         DesignSurfaceGrid.Height = height;
@@ -50,7 +50,12 @@ public partial class FrontedDesignerWindow
         _viewModel?.UpdateDesignSurfaceContentSize(width, height);
         UpdateDesignSurfaceExtent();
         UpdatePreviewWorkspaceSize();
-        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
+        // 只有首次加载/显式切换文档时才重新计算适应比例。
+        // 几何提交后的预览重建若再次 Fit，会把用户刚拖动的组件宽度/位置重新缩放，造成跳变。
+        if (updateFit)
+        {
+            _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
+        }
     }
 
     private void RebuildInteractionLayer()
@@ -203,12 +208,8 @@ public partial class FrontedDesignerWindow
         var contentWidth = Math.Max(1D, maxX + padding - contentLeft);
         var contentHeight = Math.Max(1D, maxY + padding - contentTop);
 
-        var contentSizeChanged = !contentWidth.Equals(_designSurfaceContentWidth)
-            || !contentHeight.Equals(_designSurfaceContentHeight);
         var fitWidth = Math.Max(1D, maxX - minX);
         var fitHeight = Math.Max(1D, maxY - minY);
-        var fitSizeChanged = !fitWidth.Equals(_designSurfaceFitWidth)
-            || !fitHeight.Equals(_designSurfaceFitHeight);
         _designSurfaceOffsetX = -contentLeft;
         _designSurfaceOffsetY = -contentTop;
         _designSurfaceContentWidth = contentWidth;
@@ -230,14 +231,13 @@ public partial class FrontedDesignerWindow
         CanvasFrameOffsetTransform.X = _designSurfaceOffsetX;
         CanvasFrameOffsetTransform.Y = _designSurfaceOffsetY;
 
-        // 适应模式依赖设计表面内容范围；内容变化后立即重算，避免新增画布外控件后仍按旧范围缩放。
+        // 适应模式依赖设计表面内容范围，但这里只同步 metrics，不自动重算缩放。
+        // 几何编辑（尤其是拖动手柄调宽）会连续改变内容范围；若每个变化都重算 Fit，
+        // 缩放与滚动位置会在拖动过程中反复跳变，表现为控件宽度跟不上指针。
+        // Fit 仅在点击“适应”按钮、切换文档或显式缩放操作时重新计算。
         _viewModel?.UpdateDesignSurfaceContentSize(contentWidth, contentHeight);
         _viewModel?.UpdateDesignSurfaceFitSize(fitWidth, fitHeight);
         UpdatePreviewWorkspaceSize();
-        if ((contentSizeChanged || fitSizeChanged) && _viewModel?.IsFitMode == true)
-        {
-            _viewModel.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
-        }
     }
 
     private void AddSelectionAdorners()
@@ -671,7 +671,7 @@ public partial class FrontedDesignerWindow
         _originalTop = target.Top;
         _originalWidth = target.Width;
         _originalHeight = target.Height;
-        BeginSubControlInteraction(InteractionMode.SubControlMove, e.GetPosition(InteractionLayer), outline);
+        BeginSubControlInteraction(InteractionMode.SubControlMove, e.GetPosition(InteractionLayer), InteractionLayer);
     }
 
     /// <summary>
@@ -692,7 +692,8 @@ public partial class FrontedDesignerWindow
         _originalTop = target.Top;
         _originalWidth = target.Width;
         _originalHeight = target.Height;
-        BeginSubControlInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), element);
+        // 同根级手柄：捕获稳定的 InteractionLayer，避免手柄重新布局导致捕获丢失。
+        BeginSubControlInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
