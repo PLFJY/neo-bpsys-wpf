@@ -109,11 +109,14 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     [RelayCommand]
     public void DeleteConnection(FrontedNodeConnectionViewModel? connection)
     {
-        if (connection is null || !Graph.Connections.Remove(connection.Model))
+        if (connection is null || !Graph.Connections.Contains(connection.Model))
         {
             return;
         }
+
+        // 先记录删除前状态，否则撤销栈拿到的是删除后的图，无法恢复连接。
         CreateSnapshot();
+        Graph.Connections.Remove(connection.Model);
         Connections.Remove(connection);
         RefreshPortConnectionStates();
         Changed();

@@ -23,6 +23,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
     private readonly IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> _conditionFieldOptions;
     private readonly Func<string, string, string> _localize;
     private readonly Func<FrontedNode, string, bool> _hasIncomingConnection;
+    private readonly Action? _captureUndoSnapshot;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _localizedOptions;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _booleanOptions;
     private readonly IReadOnlyList<FrontedNodePropertyOptionViewModel> _visibilityOptions;
@@ -39,7 +40,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         Func<string, string, string> localize,
         IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions,
         IReadOnlyList<FrontedGraphConditionFieldOptionViewModel>? conditionFieldOptions = null,
-        Func<FrontedNode, string, bool>? hasIncomingConnection = null)
+        Func<FrontedNode, string, bool>? hasIncomingConnection = null,
+        Action? captureUndoSnapshot = null)
     {
         _node = node;
         Descriptor = descriptor;
@@ -49,6 +51,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
         _conditionFieldOptions = conditionFieldOptions ?? [];
         _localize = localize;
         _hasIncomingConnection = hasIncomingConnection ?? ((_, _) => false);
+        _captureUndoSnapshot = captureUndoSnapshot;
         DisplayName = localize(descriptor.DisplayNameKey, descriptor.Name);
         Description = localize($"{descriptor.DisplayNameKey}.Description", descriptor.Name);
         _localizedOptions = descriptor.Options
@@ -381,6 +384,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableValid
             return;
         }
 
+        // 属性编辑同样属于图变更；在写入前捕获快照，并按 600ms 会话合并连续输入。
+        _captureUndoSnapshot?.Invoke();
         _node.Properties[Descriptor.Name] = value;
         _markDirty();
         _validate();

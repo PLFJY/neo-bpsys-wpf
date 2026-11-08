@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -487,6 +487,16 @@ public partial class FrontedNodeGraphEditorView : UserControl
             return;
         }
 
+        // 文本编辑时 Ctrl+S 也要能保存；其余单键/复制粘贴快捷键继续让文本框处理。
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
+        {
+            FocusManager.SetFocusedElement(FocusManager.GetFocusScope(this), null);
+            Keyboard.ClearFocus();
+            editor.SaveCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
         if (IsTextEditingFocus())
         {
             return;
@@ -525,15 +535,6 @@ public partial class FrontedNodeGraphEditorView : UserControl
             editor.RedoCommand.Execute(null);
             e.Handled = true;
             return;
-        }
-
-        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
-        {
-            // 强制焦点移走，触发 LostFocus 绑定将待编辑的文本值提交到 model，然后再保存
-            FocusManager.SetFocusedElement(FocusManager.GetFocusScope(this), null);
-            Keyboard.ClearFocus();
-            editor.SaveCommand.Execute(null);
-            e.Handled = true;
         }
     }
 
@@ -579,7 +580,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
         _dragSourcePort = null;
         ConnectionPreviewPath.Data = null;
         ConnectionPreviewPath.Visibility = Visibility.Collapsed;
-        ConnectionPreviewPath.Stroke = FindResource("SystemAccentColorPrimaryBrush") as Brush
+        ConnectionPreviewPath.Stroke = TryFindResource("SystemAccentColorPrimaryBrush") as Brush
                                        ?? new SolidColorBrush(Colors.Gray);
         if (DataContext is FrontedNodeGraphEditorViewModel editor)
         {
@@ -765,6 +766,14 @@ public partial class FrontedNodeGraphEditorView : UserControl
         }
     }
 
+    private void PreviewBorder_OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (_previewIsPanning)
+        {
+            EndPreviewPan();
+        }
+    }
+
     private void EndPreviewPan()
     {
         _previewIsPanning = false;
@@ -782,10 +791,10 @@ public partial class FrontedNodeGraphEditorView : UserControl
         combo.Items.Add(0.50);
         combo.Items.Add(0.75);
         combo.Items.Add(1.00);
-        if (max > 1.25) combo.Items.Add(1.25);
-        if (max > 1.50) combo.Items.Add(1.50);
-        if (max > 1.50) combo.Items.Add(2.00);
-        if (max > 2.50) combo.Items.Add(3.00);
+        if (max >= 1.25) combo.Items.Add(1.25);
+        if (max >= 1.50) combo.Items.Add(1.50);
+        if (max >= 2.00) combo.Items.Add(2.00);
+        if (max >= 3.00) combo.Items.Add(3.00);
     }
 
     private void ApplyEditorZoom(double zoom)
@@ -890,9 +899,22 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
     private void Minimap_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        _isMinimapDragging = false;
-        Minimap.ReleaseMouseCapture();
+        EndMinimapDrag();
         e.Handled = true;
+    }
+
+    private void Minimap_OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        _isMinimapDragging = false;
+    }
+
+    private void EndMinimapDrag()
+    {
+        _isMinimapDragging = false;
+        if (Minimap.IsMouseCaptured)
+        {
+            Minimap.ReleaseMouseCapture();
+        }
     }
 
     /// <summary>根据总览图中的鼠标位置更新 ScrollViewer 视野</summary>

@@ -139,11 +139,14 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     /// <param name="node">要删除的节点视图模型。</param>
     public void DeleteNode(FrontedNodeEditorViewModel? node)
     {
-        if (node is null || !Graph.RemoveNode(node.Model.NodeId))
+        if (node is null || !Graph.Nodes.Any(item => item.NodeId == node.Model.NodeId))
         {
             return;
         }
 
+        // 单节点删除与批量删除共用撤销语义，必须先记录删除前图。
+        CreateSnapshot();
+        Graph.RemoveNode(node.Model.NodeId);
         Nodes.Remove(node);
         SelectedNodes.Remove(node);
         if (SelectedNode == node)

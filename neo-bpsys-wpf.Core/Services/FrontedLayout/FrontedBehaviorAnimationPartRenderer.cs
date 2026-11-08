@@ -1,4 +1,4 @@
-using neo_bpsys_wpf.Core.Abstractions.Services;
+﻿using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
@@ -56,6 +56,11 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             }
 
             var host = EnsureHost(parent, set.DisplayName);
+            if (host is null)
+            {
+                continue;
+            }
+
             ApplyParts(root, host, set);
         }
     }
@@ -136,8 +141,11 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             element.Height = ResolveLength(config.HeightText, config.Height, parent.ActualHeight, element.Height);
         }
 
-        parent.Loaded += (_, _) => UpdateSize();
-        parent.SizeChanged += (_, _) => UpdateSize();
+        // 使用弱事件避免每次预览重建都为 parent 累积持有旧 part 的闭包。
+        WeakEventManager<FrameworkElement, SizeChangedEventArgs>.AddHandler(
+            parent,
+            nameof(FrameworkElement.SizeChanged),
+            (_, _) => UpdateSize());
         UpdateSize();
     }
 
@@ -241,7 +249,7 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
         FrontedRendererProperties.SetRegisteredName(element, $"{parentName}__{partName}");
     }
 
-    private static Grid EnsureHost(FrameworkElement parent, string displayName)
+    private static Grid? EnsureHost(FrameworkElement parent, string displayName)
     {
         // V3 controls are hosted directly in Canvas via FrontedV3ControlHost, which is
         // the layout carrier. Legacy/plugin placeholders still use FrontedEffectHost.
@@ -258,13 +266,13 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
         if (VisualTreeHelper.GetParent(carrier) is not Panel owner)
         {
-            return new Grid();
+            return null;
         }
 
         var index = owner.Children.IndexOf(carrier);
         if (index < 0)
         {
-            return new Grid();
+            return null;
         }
 
         var host = new Grid

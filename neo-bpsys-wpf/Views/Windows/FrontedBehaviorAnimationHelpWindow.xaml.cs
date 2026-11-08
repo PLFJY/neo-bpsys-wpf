@@ -1,30 +1,52 @@
-using neo_bpsys_wpf.Helpers;
+﻿using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
 using System.Windows;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
+/// <summary>
+/// 动画编辑器帮助窗口中的一个分组。
+/// </summary>
 public sealed class AnimationHelpSection
 {
+    /// <summary>分组标题。</summary>
     public string Title { get; set; } = string.Empty;
+
+    /// <summary>分组条目。</summary>
     public ObservableCollection<string> Items { get; } = [];
 }
 
+/// <summary>
+/// 动画编辑器帮助窗口中的快捷键条目。
+/// </summary>
 public sealed class AnimationHelpShortcut
 {
+    /// <summary>快捷键文本。</summary>
     public string Shortcut { get; set; } = string.Empty;
+
+    /// <summary>快捷键说明。</summary>
     public string Description { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// 动画编辑器帮助窗口。
+/// </summary>
 public partial class FrontedBehaviorAnimationHelpWindow : FluentWindow
 {
+    /// <summary>帮助分组集合。</summary>
     public ObservableCollection<AnimationHelpSection> Sections { get; } = [];
+
+    /// <summary>快捷键说明集合。</summary>
     public ObservableCollection<AnimationHelpShortcut> Shortcuts { get; } = [];
 
+    /// <summary>
+    /// 初始化帮助窗口。
+    /// </summary>
     public FrontedBehaviorAnimationHelpWindow()
     {
         InitializeComponent();
+        WindowBackdropThemeHelper.Attach(this);
         LoadHelpContent();
         DataContext = this;
     }

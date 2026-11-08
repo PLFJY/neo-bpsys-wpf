@@ -55,7 +55,8 @@ public class FrontedResourceResolver : IFrontedResourceResolver
             return null;
         }
 
-        var expandedPath = Environment.ExpandEnvironmentVariables(path);
+        // 不展开环境变量：包/布局中的相对路径不应借 %VAR% 逃逸到任意目录。
+        var expandedPath = path;
         if (TryResolveBpuiPath(expandedPath, out var bpuiPath))
         {
             return bpuiPath;
@@ -83,7 +84,15 @@ public class FrontedResourceResolver : IFrontedResourceResolver
                 normalized.Replace('/', Path.DirectorySeparatorChar));
         }
 
-        return File.Exists(resolvedPath) ? resolvedPath : null;
+        var root = Path.GetFullPath(Path.Combine(AppConstants.ResourcesPath, "bpui"));
+        var rootWithSeparator = EnsureTrailingSeparator(root);
+        var candidate = Path.GetFullPath(resolvedPath);
+        if (!candidate.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return File.Exists(candidate) ? candidate : null;
     }
 
     private static bool TryResolveBpuiPath(string value, out string? resolvedPath)

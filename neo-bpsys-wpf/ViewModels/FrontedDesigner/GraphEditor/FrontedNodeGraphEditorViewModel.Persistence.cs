@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,6 +25,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     /// </summary>
     private void Reload()
     {
+        // 结构重建后旧的待连接端口不再有效，避免把连接挂到已删除节点。
+        _pendingPort = null;
+        IsConnecting = false;
         Nodes.Clear();
         foreach (var node in Graph.Nodes)
         {
@@ -40,7 +44,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     /// <returns>节点编辑器视图模型。</returns>
     private FrontedNodeEditorViewModel CreateNode(FrontedNode node) =>
         new(node, _catalog.Find(node.NodeType), MarkDirtyAndSetIsDirty, ValidateGraph, RefreshParallelNode, _localize, _targetOptions, _conditionFieldOptions,
-            (targetNode, port) => Graph.Connections.Any(connection => connection.TargetNodeId == targetNode.NodeId && connection.TargetPort == port));
+            (targetNode, port) => Graph.Connections.Any(connection => connection.TargetNodeId == targetNode.NodeId && connection.TargetPort == port),
+            CapturePropertyEditSnapshot);
 
     /// <summary>
     /// 并行节点分支数变化后重建该节点，并移除指向已删除分支端口的连接。
@@ -118,6 +123,22 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         CanvasHeight = Math.Max(1400, Nodes.Select(node => node.Y + node.CardHeight).DefaultIfEmpty(0).Max() + 160);
     }
 
+    /// <summary>
+    /// 为一次属性编辑会话捕获撤销快照；连续输入在 600ms 内只记录一次。
+    /// </summary>
+    private void CapturePropertyEditSnapshot()
+    {
+        if (_isRestoring || _isDragging || _propertySnapshotCaptured)
+        {
+            return;
+        }
+
+        CreateSnapshot();
+        _propertySnapshotCaptured = true;
+        _propertySnapshotTimer.Stop();
+        _propertySnapshotTimer.Start();
+    }
+
     /// <summary>创建当前图快照（用于撤销）</summary>
     private void CreateSnapshot()
     {
@@ -159,7 +180,17 @@ public sealed partial class FrontedNodeGraphEditorViewModel
             return;
         }
         PushGraphSnapshot(_redoStack, JsonSerializer.SerializeToUtf8Bytes(Graph));
-        var snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_undoStack.Pop());
+        FrontedNodeGraph? snapshot;
+        try
+        {
+            snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_undoStack.Pop());
+        }
+        catch (JsonException ex)
+        {
+            Debug.WriteLine($"[GraphEditor] 撤销快照损坏，已丢弃: {ex.Message}");
+            CanUndo = _undoStack.Count > 0;
+            return;
+        }
         _isRestoring = true;
         try { RestoreGraph(snapshot); }
         finally { _isRestoring = false; }
@@ -176,7 +207,17 @@ public sealed partial class FrontedNodeGraphEditorViewModel
             return;
         }
         PushGraphSnapshot(_undoStack, JsonSerializer.SerializeToUtf8Bytes(Graph));
-        var snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_redoStack.Pop());
+        FrontedNodeGraph? snapshot;
+        try
+        {
+            snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_redoStack.Pop());
+        }
+        catch (JsonException ex)
+        {
+            Debug.WriteLine($"[GraphEditor] 重做快照损坏，已丢弃: {ex.Message}");
+            CanRedo = _redoStack.Count > 0;
+            return;
+        }
         _isRestoring = true;
         try { RestoreGraph(snapshot); }
         finally { _isRestoring = false; }
@@ -190,7 +231,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     {
         if (_saveAsync is null)
         {
-            IsDirty = false;
+            // 没有接入保存回调时不能清脏，否则用户会误以为已落盘。
             return;
         }
 

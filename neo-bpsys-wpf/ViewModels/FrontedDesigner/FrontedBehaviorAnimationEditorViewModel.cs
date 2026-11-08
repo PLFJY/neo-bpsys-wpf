@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
@@ -85,6 +86,8 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     }
 
     public string Title { get; }
+    /// <summary>获取当前编辑器的行为标识，用于防止同一行为打开多个编辑窗口。</summary>
+    public Guid BehaviorGuid => _behavior.BehaviorId;
     public bool IsLoop { get; }
     public bool IsTransition { get; }
     public IReadOnlyList<FrontedBehaviorAnimationStageViewModel> Stages { get; }
@@ -103,21 +106,25 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     /// <returns>如果保存成功返回 <c>true</c>，否则返回 <c>false</c>。</returns>
     public async Task<bool> SaveAllAsync()
     {
-        if (_saveAsync is not null)
+        if (_saveAsync is null)
         {
-            try
+            // 没有接入保存回调时不能假装保存成功并清脏。
+            return false;
+        }
+
+        try
+        {
+            var saved = await _saveAsync().ConfigureAwait(false);
+            if (!saved)
             {
-                var saved = await _saveAsync().ConfigureAwait(false);
-                if (!saved)
-                {
-                    return false;
-                }
-            }
-            catch (Exception)
-            {
-                // 保存失败，保留已修改状态。
                 return false;
             }
+        }
+        catch (Exception ex)
+        {
+            // 保存失败，保留已修改状态。
+            Debug.WriteLine($"[AnimationEditor] 保存行为失败: {ex.Message}");
+            return false;
         }
 
         // 保存成功后清除所有阶段的已修改状态。

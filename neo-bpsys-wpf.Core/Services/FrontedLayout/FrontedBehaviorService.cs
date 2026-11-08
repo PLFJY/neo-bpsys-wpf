@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -25,6 +26,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
     };
 
     private FrontedBehaviorDocument? _currentDocument;
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
 
     public FrontedBehaviorService()
         : this(new FrontedUserLayoutStore(), new FrontedLayoutPackageManager(), NullLogger<FrontedBehaviorService>.Instance)
@@ -97,6 +99,17 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
                 canonicalWindowId,
                 FrontedLayoutConstants.BaseCanvasName,
                 path);
+            // 保留损坏文件的恢复副本，避免后续保存把唯一数据静默覆盖为空文档。
+            try
+            {
+                var backupPath = $"{path}.corrupt-{DateTime.UtcNow:yyyyMMddHHmmss}";
+                File.Copy(path, backupPath, overwrite: false);
+                _logger.LogWarning("Corrupt behavior document backed up to {BackupPath}", backupPath);
+            }
+            catch (Exception backupException)
+            {
+                _logger.LogWarning(backupException, "Failed to back up corrupt behavior document: {Path}", path);
+            }
             return CreateEmptyDocument(canonicalWindowId);
         }
     }
@@ -116,8 +129,24 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         var path = await ResolveSavePathAsync(document.WindowType, cancellationToken);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var json = JsonSerializer.Serialize(document, _jsonSerializerOptions);
-        await File.WriteAllTextAsync(path, json, cancellationToken);
-        _currentDocument = document;
+        var temporaryPath = path + ".tmp";
+        await _saveLock.WaitAsync(cancellationToken);
+        try
+        {
+            // 先写同目录临时文件再原子替换，避免并发/中断留下截断 JSON。
+            await File.WriteAllTextAsync(temporaryPath, json, cancellationToken);
+            File.Move(temporaryPath, path, overwrite: true);
+            _currentDocument = document;
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+            {
+                try { File.Delete(temporaryPath); }
+                catch (IOException) { }
+            }
+            _saveLock.Release();
+        }
     }
 
     /// <inheritdoc />

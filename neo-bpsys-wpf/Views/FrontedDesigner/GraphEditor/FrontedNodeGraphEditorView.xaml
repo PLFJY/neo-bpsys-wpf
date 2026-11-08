@@ -645,7 +645,8 @@
                             Cursor="Hand"
                             MouseLeftButtonDown="Minimap_OnMouseLeftButtonDown"
                             MouseLeftButtonUp="Minimap_OnMouseLeftButtonUp"
-                            MouseMove="Minimap_OnMouseMove">
+                            MouseMove="Minimap_OnMouseMove"
+                            LostMouseCapture="Minimap_OnLostMouseCapture">
                             <Rectangle
                                 Width="180"
                                 Height="120"
@@ -896,6 +897,7 @@
                 CornerRadius="6"
                 MouseDown="PreviewContent_OnMouseDown"
                 MouseLeave="PreviewContent_OnMouseLeave"
+                LostMouseCapture="PreviewBorder_OnLostMouseCapture"
                 PreviewMouseLeftButtonUp="PreviewContent_OnPreviewMouseLeftButtonUp"
                 PreviewMouseMove="PreviewContent_OnPreviewMouseMove"
                 PreviewMouseRightButtonUp="PreviewContent_OnPreviewMouseRightButtonUp"

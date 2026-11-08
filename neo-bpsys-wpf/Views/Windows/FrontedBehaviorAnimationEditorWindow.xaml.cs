@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,6 +17,9 @@ using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
+/// <summary>
+/// 动画编辑器窗口，承载行为图编辑、预览与帮助。
+/// </summary>
 public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
 {
     private readonly ITutorialRunner? _tutorialRunner;
@@ -71,6 +75,11 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
+            }
+            catch (Exception ex)
+            {
+                // Loaded 是 async void 的边界，未捕获异常会直接结束进程。
+                Debug.WriteLine($"[AnimationEditor] 教程初始化失败: {ex.Message}");
             }
         };
         Closed += OnClosed;
@@ -170,6 +179,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     private void OnClosed(object? sender, EventArgs e)
     {
         _tutorialLifetime.Cancel();
+        _tutorialLifetime.Dispose();
         if (!_discardedBeforeClose && DataContext is FrontedBehaviorAnimationEditorViewModel vm)
         {
             vm.DiscardAll();
@@ -196,8 +206,15 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     }
 }
 
+/// <summary>
+/// 动画编辑器中承载图编辑器的阶段视图基类。
+/// </summary>
 public abstract class AnimationStageViewBase : UserControl
 {
+    /// <summary>
+    /// 初始化阶段视图。
+    /// </summary>
+    /// <param name="index">阶段索引，对应动画编辑器的阶段集合。</param>
     protected AnimationStageViewBase(int index)
     {
         ModernScroll.SetOwnership(this, ModernScrollOwnership.Self);
@@ -208,6 +225,11 @@ public abstract class AnimationStageViewBase : UserControl
     }
 }
 
+/// <summary>第 1 个动画阶段的视图。</summary>
 public sealed class AnimationStageZeroView() : AnimationStageViewBase(0);
+
+/// <summary>第 2 个动画阶段的视图。</summary>
 public sealed class AnimationStageOneView() : AnimationStageViewBase(1);
+
+/// <summary>第 3 个动画阶段的视图。</summary>
 public sealed class AnimationStageTwoView() : AnimationStageViewBase(2);

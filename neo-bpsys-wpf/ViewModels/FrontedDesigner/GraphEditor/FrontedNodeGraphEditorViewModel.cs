@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Helpers;
@@ -39,6 +40,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private const int UndoStackLimit = 50;
     private const long UndoStackByteLimit = 16L * 1024 * 1024;
     private Func<Task<bool>>? _saveAsync;
+    private readonly DispatcherTimer _propertySnapshotTimer;
+    private bool _propertySnapshotCaptured;
 
     /// <summary>
     /// 为已有图模型初始化新的节点图编辑器。
@@ -89,6 +92,15 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             }));
         _targetOptions = targetOptions ?? [new FrontedNodeTargetOptionViewModel("Self", _localize("Designer.Graph.Target.Self", "Self"))];
         _conditionFieldOptions = conditionFieldOptions ?? [];
+        _propertySnapshotTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(600)
+        };
+        _propertySnapshotTimer.Tick += (_, _) =>
+        {
+            _propertySnapshotTimer.Stop();
+            _propertySnapshotCaptured = false;
+        };
         Catalog = _catalog.Nodes
             .Select(descriptor => new FrontedNodeCatalogItemViewModel(descriptor, _localize))
             .ToArray();
