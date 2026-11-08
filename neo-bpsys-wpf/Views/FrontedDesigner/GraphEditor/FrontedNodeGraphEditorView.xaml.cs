@@ -516,6 +516,13 @@ public partial class FrontedNodeGraphEditorView : UserControl
             return;
         }
 
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.D)
+        {
+            editor.DuplicateSelectedNodeCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key == Key.Delete)
         {
             editor.DeleteSelectedNodeCommand.Execute(null);

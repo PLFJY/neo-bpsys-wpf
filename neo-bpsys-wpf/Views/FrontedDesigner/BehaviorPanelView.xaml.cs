@@ -68,8 +68,17 @@ public partial class BehaviorPanelView : UserControl
             && weakWindow.TryGetTarget(out var existingWindow)
             && existingWindow.IsVisible)
         {
-            existingWindow.Activate();
-            return;
+            if (existingWindow.DataContext is FrontedBehaviorAnimationEditorViewModel existingVm
+                && ReferenceEquals(existingVm.BehaviorModel, viewModel.BehaviorModel))
+            {
+                existingWindow.Activate();
+                return;
+            }
+
+            // 父设计器可能已用新文档实例替换了同一 BehaviorId 的行为；
+            // 旧窗口继续保存只会写入孤立对象，必须关闭后重建。
+            existingWindow.ForceCloseForDocumentReplacement();
+            OpenAnimationEditors.Remove(viewModel.BehaviorGuid);
         }
 
         OpenAnimationEditors.Remove(viewModel.BehaviorGuid);

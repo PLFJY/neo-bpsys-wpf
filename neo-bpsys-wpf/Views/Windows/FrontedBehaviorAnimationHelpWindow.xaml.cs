@@ -71,12 +71,20 @@ public partial class FrontedBehaviorAnimationHelpWindow : FluentWindow
         var content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, contentKey);
         var section = new AnimationHelpSection { Title = title };
 
-        foreach (var line in content.Split(new[] { "\\n" }, StringSplitOptions.None))
+        var normalized = content
+            .Replace("\\r\\n", "\n", StringComparison.Ordinal)
+            .Replace("\\n", "\n", StringComparison.Ordinal);
+        foreach (var line in normalized.Split('\n'))
         {
             var trimmed = line.Trim();
             if (trimmed.Length > 0)
             {
                 section.Items.Add($"• {trimmed}");
+            }
+            else if (section.Items.Count > 0 && section.Items[^1].Length > 0)
+            {
+                // 保留 resx 中的分段空行，避免帮助正文挤成一整段。
+                section.Items.Add(string.Empty);
             }
         }
 

@@ -169,6 +169,16 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
         await errorBox.ShowDialogAsync();
     }
 
+    /// <summary>
+    /// 在父设计器替换当前文档后强制关闭旧窗口，避免其继续保存到孤立的旧行为对象。
+    /// </summary>
+    public void ForceCloseForDocumentReplacement()
+    {
+        _forceClose = true;
+        _isClosePromptOpen = false;
+        Dispatcher.BeginInvoke(new Action(Close), DispatcherPriority.Background);
+    }
+
     private void ForceCloseNow()
     {
         _forceClose = true;
@@ -180,9 +190,14 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     {
         _tutorialLifetime.Cancel();
         _tutorialLifetime.Dispose();
-        if (!_discardedBeforeClose && DataContext is FrontedBehaviorAnimationEditorViewModel vm)
+        if (DataContext is FrontedBehaviorAnimationEditorViewModel vm)
         {
-            vm.DiscardAll();
+            if (!_discardedBeforeClose)
+            {
+                // 正常关闭/保存后只清理预览状态，不能把已保存的内容回滚到打开时。
+                vm.DiscardAll(restoreGraph: false);
+            }
+            vm.Dispose();
         }
 
         _helpWindow?.Close();

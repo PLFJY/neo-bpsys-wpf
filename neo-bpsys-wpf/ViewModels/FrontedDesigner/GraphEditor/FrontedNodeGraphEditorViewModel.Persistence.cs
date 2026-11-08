@@ -155,6 +155,49 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         CanRedo = false;
     }
 
+    /// <summary>
+    /// 丢弃本地修改并把图恢复为指定快照。
+    /// </summary>
+    /// <param name="snapshot">先前序列化的图快照。</param>
+    public void RestoreFromSnapshot(byte[] snapshot)
+    {
+        if (snapshot.Length == 0)
+        {
+            return;
+        }
+
+        FrontedNodeGraph? restored;
+        try
+        {
+            restored = JsonSerializer.Deserialize<FrontedNodeGraph>(snapshot);
+        }
+        catch (JsonException ex)
+        {
+            Debug.WriteLine($"[GraphEditor] 恢复快照失败: {ex.Message}");
+            return;
+        }
+
+        if (restored is null)
+        {
+            return;
+        }
+
+        Graph.Nodes = restored.Nodes;
+        Graph.Connections = restored.Connections;
+        _pendingPort = null;
+        IsConnecting = false;
+        _undoStack.Clear();
+        _redoStack.Clear();
+        CanUndo = false;
+        CanRedo = false;
+        IsDirty = false;
+        Reload();
+        ClearIsSelected();
+        SelectedNodes.Clear();
+        SelectedNode = null;
+        ValidateGraph();
+    }
+
     private static void PushGraphSnapshot(Stack<byte[]> stack, byte[] snapshot)
     {
         stack.Push(snapshot);
