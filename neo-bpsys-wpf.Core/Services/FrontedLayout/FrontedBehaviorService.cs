@@ -15,6 +15,8 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public sealed class FrontedBehaviorService : IFrontedBehaviorService
 {
+    private const int MaxAnimationPartsPerSet = 64;
+    private const int MaxAnimationPartNameLength = 128;
     private readonly IFrontedUserLayoutStore _userLayoutStore;
     private readonly IFrontedLayoutPackageManager _packageManager;
     private readonly ILogger<FrontedBehaviorService> _logger;
@@ -89,6 +91,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
             var document = JsonSerializer.Deserialize<FrontedBehaviorDocument>(json, _jsonSerializerOptions)
                            ?? CreateEmptyDocument(canonicalWindowId);
             NormalizeDocument(document, canonicalWindowId);
+            ValidateDocument(document);
             return document;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
@@ -125,6 +128,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         }
 
         NormalizeDocument(document, document.WindowType);
+        ValidateDocument(document);
         RemoveEmptySets(document);
         var path = await ResolveSavePathAsync(document.WindowType, cancellationToken);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
@@ -230,6 +234,7 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
         foreach (var set in document.ControlBehaviorSets)
         {
             set.Behaviors ??= [];
+            set.AnimationParts ??= [];
             foreach (var behavior in set.Behaviors)
             {
                 behavior.Graph ??= new FrontedNodeGraph();
@@ -239,6 +244,25 @@ public sealed class FrontedBehaviorService : IFrontedBehaviorService
                 behavior.ExitGraph ??= new FrontedNodeGraph();
                 behavior.EnterGraph ??= new FrontedNodeGraph();
                 behavior.LoopPolicy ??= new FrontedLoopPolicy();
+            }
+        }
+    }
+
+    private static void ValidateDocument(FrontedBehaviorDocument document)
+    {
+        foreach (var set in document.ControlBehaviorSets)
+        {
+            if (set.AnimationParts.Count > MaxAnimationPartsPerSet)
+            {
+                throw new InvalidDataException("TooManyAnimationParts");
+            }
+
+            foreach (var part in set.AnimationParts)
+            {
+                if (part.Name.Length > MaxAnimationPartNameLength)
+                {
+                    throw new InvalidDataException("AnimationPartNameTooLong");
+                }
             }
         }
     }

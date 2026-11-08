@@ -42,6 +42,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private Func<Task<bool>>? _saveAsync;
     private readonly DispatcherTimer _propertySnapshotTimer;
     private bool _propertySnapshotCaptured;
+    private byte[] _savedGraphSnapshot = [];
 
     /// <summary>
     /// 为已有图模型初始化新的节点图编辑器。
@@ -111,6 +112,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
         Reload();
         ValidateGraph();
+        _savedGraphSnapshot = JsonSerializer.SerializeToUtf8Bytes(Graph);
     }
 
     /// <summary>

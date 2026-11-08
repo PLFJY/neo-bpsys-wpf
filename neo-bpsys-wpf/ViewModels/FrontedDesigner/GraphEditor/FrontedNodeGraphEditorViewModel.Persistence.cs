@@ -196,6 +196,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         SelectedNodes.Clear();
         SelectedNode = null;
         ValidateGraph();
+        _savedGraphSnapshot = JsonSerializer.SerializeToUtf8Bytes(Graph);
+        UpdateDirtyFromSavedSnapshot();
     }
 
     private static void PushGraphSnapshot(Stack<byte[]> stack, byte[] snapshot)
@@ -239,6 +241,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         finally { _isRestoring = false; }
         CanUndo = _undoStack.Count > 0;
         CanRedo = _redoStack.Count > 0;
+        UpdateDirtyFromSavedSnapshot();
     }
 
     /// <summary>重做</summary>
@@ -266,6 +269,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel
         finally { _isRestoring = false; }
         CanUndo = _undoStack.Count > 0;
         CanRedo = _redoStack.Count > 0;
+        UpdateDirtyFromSavedSnapshot();
     }
 
     /// <summary>保存当前图</summary>
@@ -280,6 +284,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel
 
         if (await _saveAsync())
         {
+            _savedGraphSnapshot = JsonSerializer.SerializeToUtf8Bytes(Graph);
             IsDirty = false;
         }
     }
@@ -299,7 +304,16 @@ public sealed partial class FrontedNodeGraphEditorViewModel
     /// </summary>
     public void DiscardLocalDirtyState()
     {
+        _savedGraphSnapshot = JsonSerializer.SerializeToUtf8Bytes(Graph);
         IsDirty = false;
+    }
+
+    /// <summary>
+    /// 根据当前图与最近一次保存快照的差异更新脏状态。
+    /// </summary>
+    private void UpdateDirtyFromSavedSnapshot()
+    {
+        IsDirty = !_savedGraphSnapshot.AsSpan().SequenceEqual(JsonSerializer.SerializeToUtf8Bytes(Graph));
     }
 
     private bool CanSave() => IsDirty;
