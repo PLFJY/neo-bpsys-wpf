@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using ContentDialogHost = Wpf.Ui.Controls.ContentDialogHost;
+using System.Windows.Input;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -79,6 +80,9 @@ public sealed class DialogueOverlay : Grid
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         Opacity = 0;
+        // 教程遮罩期间阻止滚轮冒泡到页面 ScrollViewer，避免光标停在遮罩上仍滚动后台页面。
+        PreviewMouseWheel += OnPreviewMouseWheelBlocked;
+        TutorialWheelGuard.Attach(this);
 
         _speakerBlock = new TextBlock();
         _speakerBlock.Style = TryFindResource("ProductTourDialogueSpeakerStyle") as Style;
@@ -443,5 +447,10 @@ public sealed class DialogueOverlay : Grid
         }
 
         return new SolidColorBrush(Color.FromRgb(16, 16, 16)) { Opacity = Math.Clamp(opacity, 0, 1) };
+    }
+
+    private static void OnPreviewMouseWheelBlocked(object sender, MouseWheelEventArgs e)
+    {
+        e.Handled = true;
     }
 }

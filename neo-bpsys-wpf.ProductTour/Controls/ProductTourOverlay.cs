@@ -112,6 +112,9 @@ public sealed class ProductTourOverlay : Canvas
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         Opacity = 0;
+        // 教程遮罩期间阻止滚轮冒泡到页面 ScrollViewer，避免光标停在遮罩上仍滚动后台页面。
+        PreviewMouseWheel += OnPreviewMouseWheelBlocked;
+        TutorialWheelGuard.Attach(this);
         Background = null;
 
         _blockAllMask = CreateMask("BlockAllMask");
@@ -633,5 +636,10 @@ public sealed class ProductTourOverlay : Canvas
             TutorialSkipChoice.SkipPermanently => ProductTourStepAction.SkipPermanently,
             _ => ProductTourStepAction.Cancel
         });
+    }
+
+    private static void OnPreviewMouseWheelBlocked(object sender, MouseWheelEventArgs e)
+    {
+        e.Handled = true;
     }
 }

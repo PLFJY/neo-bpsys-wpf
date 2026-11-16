@@ -27,7 +27,7 @@
     <Style x:Key="ProductTourCardStyle" TargetType="{x:Type Border}">
         <Setter Property="Padding" Value="18" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Effect">
@@ -130,7 +130,7 @@
         TargetType="{x:Type Border}">
         <Setter Property="Padding" Value="48,44" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
         <Setter Property="MaxWidth" Value="720" />
     </Style>
 
@@ -263,7 +263,7 @@
     <Style x:Key="ProductTourDialogueBoxStyle" TargetType="{x:Type Border}">
         <Setter Property="Padding" Value="24,18" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="MaxWidth" Value="760" />
