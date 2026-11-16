@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace neo_bpsys_wpf.ProductTour;
 
 /// <summary>
@@ -24,7 +26,7 @@ public interface ITutorialPackageRegistry
 /// </summary>
 public sealed class TutorialPackageRegistry : ITutorialPackageRegistry
 {
-    private readonly Dictionary<string, TutorialPackageDefinition> _packages = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TutorialPackageDefinition> _packages = new(StringComparer.Ordinal);
 
     /// <inheritdoc />
     public void Register(TutorialPackageDefinition definition)
@@ -37,7 +39,7 @@ public sealed class TutorialPackageRegistry : ITutorialPackageRegistry
         _packages.TryGetValue(packageId, out var package) ? package : null;
 
     /// <inheritdoc />
-    public IReadOnlyCollection<TutorialPackageDefinition> GetPackages() => _packages.Values;
+    public IReadOnlyCollection<TutorialPackageDefinition> GetPackages() => _packages.Values.ToArray();
 
 }
 
@@ -67,7 +69,7 @@ public interface ITutorialSequenceRegistry
 /// </summary>
 public sealed class TutorialSequenceRegistry : ITutorialSequenceRegistry
 {
-    private readonly Dictionary<string, TutorialSequenceDefinition> _sequences = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TutorialSequenceDefinition> _sequences = new(StringComparer.Ordinal);
 
     /// <inheritdoc />
     public void RegisterSequence(string pageKey, IEnumerable<string> packageIds) =>
@@ -112,7 +114,7 @@ public interface ITutorialFlowRegistry
 /// </summary>
 public sealed class TutorialFlowRegistry : ITutorialFlowRegistry
 {
-    private readonly Dictionary<string, TutorialFlowDefinition> _flows = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TutorialFlowDefinition> _flows = new(StringComparer.Ordinal);
 
     /// <inheritdoc />
     public void Register(TutorialFlowDefinition definition) => _flows[definition.FlowId] = definition;
@@ -122,5 +124,5 @@ public sealed class TutorialFlowRegistry : ITutorialFlowRegistry
         _flows.TryGetValue(flowId, out var flow) ? flow : null;
 
     /// <inheritdoc />
-    public IReadOnlyCollection<TutorialFlowDefinition> GetFlows() => _flows.Values;
+    public IReadOnlyCollection<TutorialFlowDefinition> GetFlows() => _flows.Values.ToArray();
 }

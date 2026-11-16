@@ -148,7 +148,7 @@ public sealed class DialogueOverlay : Grid
             Margin = new Thickness(0, 20, 24, 0)
         };
         _skipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
-        _skipButton.Click += (_, _) => ShowConfirmDialog();
+        _skipButton.Click += (_, _) => _ = ShowConfirmDialogSafeAsync();
         Panel.SetZIndex(_skipButton, 4);
 
         Children.Add(_avatarImage);
@@ -160,6 +160,9 @@ public sealed class DialogueOverlay : Grid
         Unloaded += (_, _) =>
         {
             StopTypewriter();
+            // 永久闪烁动画会持有窗口时钟；离开可视化树时必须停止，否则每次对话都会累积动画开销。
+            _continueBlock.BeginAnimation(OpacityProperty, null);
+            _dialogueBox.BeginAnimation(OpacityProperty, null);
             _languageService.LanguageChanged -= OnLanguageChanged;
         };
     }
@@ -397,12 +400,25 @@ public sealed class DialogueOverlay : Grid
         return source.Task;
     }
 
-    private async void ShowConfirmDialog()
+    private async Task ShowConfirmDialogSafeAsync()
+    {
+        try
+        {
+            await ShowConfirmDialogAsync();
+        }
+        catch (Exception ex)
+        {
+            // 对话框由 Click 事件直接驱动，异常不能逃逸为 async void 未观察异常。
+            Debug.WriteLine($"[ProductTour] 显示跳过确认失败: {ex}");
+        }
+    }
+
+    private async Task ShowConfirmDialogAsync()
     {
         var choice = await TutorialSkipContentDialog.ShowAsync(
             OverlayHost.GetContentDialogHost(this),
             _textProvider,
-            _textProvider.FirstRunSkipConfirmDescription,
+            _textProvider.SequenceSkipConfirmDescription,
             _sessionSuppression);
         if (choice == TutorialSkipChoice.Continue)
         {

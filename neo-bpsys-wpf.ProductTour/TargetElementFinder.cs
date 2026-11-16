@@ -15,6 +15,13 @@ internal static class TargetElementFinder
         return FindCoreAsync(owner, step, cancellationToken);
     }
 
+    private static async Task<int> WaitForNextPollAsync(int delayMilliseconds, CancellationToken cancellationToken)
+    {
+        await Task.Delay(delayMilliseconds, cancellationToken);
+        // 目标通常在下一次布局后出现；指数退避避免 80ms 全树扫描持续 30 秒。
+        return Math.Min(delayMilliseconds * 2, 400);
+    }
+
     private static async Task<FrameworkElement?> FindCoreAsync(
         FrameworkElement owner,
         ProductTourStep step,
@@ -41,6 +48,7 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -53,7 +61,7 @@ internal static class TargetElementFinder
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;
@@ -66,6 +74,7 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -77,7 +86,7 @@ internal static class TargetElementFinder
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;
@@ -91,6 +100,7 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -112,7 +122,7 @@ internal static class TargetElementFinder
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;
@@ -125,6 +135,7 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -136,7 +147,7 @@ internal static class TargetElementFinder
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;

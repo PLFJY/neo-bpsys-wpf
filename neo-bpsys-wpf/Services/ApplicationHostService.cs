@@ -33,7 +33,15 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
         await Task.CompletedTask;
 
         var settingsHostService = serviceProvider.GetRequiredService<ISettingsHostService>();
-        _ = serviceProvider.GetRequiredService<ProductTourRegistrationMarker>();
+        try
+        {
+            _ = serviceProvider.GetRequiredService<ProductTourRegistrationMarker>();
+        }
+        catch (Exception ex)
+        {
+            // 教程注册属于非关键展示功能；作者笔误不能让整个应用启动失败。
+            serviceProvider.GetService<ILogger<ApplicationHostService>>()?.LogError(ex, "教程注册失败，已跳过 ProductTour 初始化");
+        }
         if (settingsHostService.Settings.IsClassicMode)
         {
             if (!Application.Current.Windows.OfType<ClassicBackendWindow>().Any()

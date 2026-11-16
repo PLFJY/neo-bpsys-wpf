@@ -37,6 +37,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <Reference Include="System.Drawing.Common">
+      <HintPath>$(NuGetPackageRoot)system.drawing.common\10.0.0\lib\net10.0\System.Drawing.Common.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" Private="false" />
     <ProjectReference Include="..\neo-bpsys-wpf.ProductTour\neo-bpsys-wpf.ProductTour.csproj" Private="false" />
   </ItemGroup>

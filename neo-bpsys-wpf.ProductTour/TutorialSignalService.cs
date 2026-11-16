@@ -38,13 +38,20 @@ public sealed class TutorialSignalService : ITutorialSignalService
             new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
+    private static readonly TimeSpan BufferLifetime = TimeSpan.FromSeconds(5);
     private readonly ConcurrentDictionary<string, List<SignalWaiter>> _waiters = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, BufferedSignal> _bufferedSignals = new(StringComparer.Ordinal);
+
+    private sealed record BufferedSignal(object? Payload, DateTimeOffset PublishedAt);
 
     /// <inheritdoc />
     public void Publish(string signalId, object? payload = null)
     {
         if (!_waiters.TryGetValue(signalId, out var waiters))
         {
+            // 信号可能先于 WaitAsync 到达（页面 Loaded/上一 PostStepAction）；保留短暂缓冲避免整步超时。
+            _bufferedSignals[signalId] = new BufferedSignal(payload, DateTimeOffset.UtcNow);
+            TrimBufferedSignals();
             return;
         }
 
@@ -75,6 +82,13 @@ public sealed class TutorialSignalService : ITutorialSignalService
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
+        if (_bufferedSignals.TryRemove(signalId, out var buffered)
+            && DateTimeOffset.UtcNow - buffered.PublishedAt <= BufferLifetime
+            && (predicate?.Invoke(buffered.Payload) ?? true))
+        {
+            return buffered.Payload;
+        }
+
         var waiter = new SignalWaiter { Predicate = predicate };
         var waiters = _waiters.GetOrAdd(signalId, _ => []);
         lock (waiters)
@@ -103,6 +117,23 @@ public sealed class TutorialSignalService : ITutorialSignalService
     /// </summary>
     /// <param name="signalId">信号标识。</param>
     /// <param name="waiters">该信号对应的等待者列表。</param>
+    private void TrimBufferedSignals()
+    {
+        if (_bufferedSignals.Count <= 256)
+        {
+            return;
+        }
+
+        var cutoff = DateTimeOffset.UtcNow - BufferLifetime;
+        foreach (var pair in _bufferedSignals)
+        {
+            if (pair.Value.PublishedAt < cutoff)
+            {
+                _bufferedSignals.TryRemove(pair.Key, out _);
+            }
+        }
+    }
+
     private void RemoveEmptyWaiterList(string signalId, List<SignalWaiter> waiters)
     {
         if (waiters.Count == 0)
