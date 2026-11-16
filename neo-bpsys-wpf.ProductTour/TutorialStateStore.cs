@@ -87,8 +87,21 @@ public sealed class TutorialStateStore : ITutorialStateStore
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read);
-            return await JsonSerializer.DeserializeAsync<TutorialState>(stream, JsonOptions, cancellationToken)
+            var state = await JsonSerializer.DeserializeAsync<TutorialState>(stream, JsonOptions, cancellationToken)
                 .ConfigureAwait(false) ?? new TutorialState();
+            if (state.SchemaVersion > TutorialState.CurrentSchemaVersion)
+            {
+                // 未知的新版本可能是更高版本程序写入的；保留文件，不冒险覆盖。
+                _logger?.LogWarning(
+                    "教程状态文件版本高于当前支持版本，已忽略：{Version} > {CurrentVersion}",
+                    state.SchemaVersion,
+                    TutorialState.CurrentSchemaVersion);
+                return new TutorialState();
+            }
+
+            // 目前只有版本 0（无字段）到版本 1 的隐式迁移：补齐版本号即可继续读取。
+            state.SchemaVersion = TutorialState.CurrentSchemaVersion;
+            return state;
         }
         catch (OperationCanceledException)
         {
@@ -115,6 +128,7 @@ public sealed class TutorialStateStore : ITutorialStateStore
     /// <inheritdoc />
     public async Task SaveAsync(TutorialState state, CancellationToken cancellationToken = default)
     {
+        state.SchemaVersion = TutorialState.CurrentSchemaVersion;
         var directory = Path.GetDirectoryName(_statePath);
         if (!string.IsNullOrEmpty(directory))
         {

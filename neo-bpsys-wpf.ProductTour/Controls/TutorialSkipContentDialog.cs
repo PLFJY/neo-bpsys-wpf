@@ -38,16 +38,19 @@ public static class TutorialSkipContentDialog
             DefaultButton = ContentDialogButton.Close
         };
         var result = await dialog.ShowAsync(cancellationToken);
-        if (suppressCheckBox.IsChecked == true)
-        {
-            sessionSuppression.SuppressUntilNextStartup();
-        }
-
-        return result switch
+        var choice = result switch
         {
             ContentDialogResult.Primary => TutorialSkipChoice.SkipForCurrentSession,
             ContentDialogResult.Secondary => TutorialSkipChoice.SkipPermanently,
             _ => TutorialSkipChoice.Continue
         };
+        // “直到下次启动前不再显示”只在用户选择跳过时生效；选择继续教程不应被误抑制。
+        if (suppressCheckBox.IsChecked == true
+            && choice != TutorialSkipChoice.Continue)
+        {
+            sessionSuppression.SuppressUntilNextStartup();
+        }
+
+        return choice;
     }
 }

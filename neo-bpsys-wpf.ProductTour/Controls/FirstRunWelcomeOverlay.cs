@@ -11,6 +11,7 @@ namespace neo_bpsys_wpf.ProductTour.Controls;
 /// </summary>
 public sealed class FirstRunWelcomeOverlay : Grid
 {
+    private bool _startRequested;
     private readonly Border _card;
     private readonly TextBlock _title;
     private readonly TextBlock _description;
@@ -158,8 +159,24 @@ public sealed class FirstRunWelcomeOverlay : Grid
         _startButton.Style = TryFindResource("ProductTourPrimaryButtonStyle") as Style;
         _startButton.Click += async (_, _) =>
         {
-            await FadeOutAsync();
-            StartRequested?.Invoke(this, _selectedLanguageOptionId);
+            if (_startRequested)
+            {
+                return;
+            }
+
+            _startRequested = true;
+            _startButton.IsEnabled = false;
+            try
+            {
+                await FadeOutAsync();
+                StartRequested?.Invoke(this, _selectedLanguageOptionId);
+            }
+            catch (Exception ex)
+            {
+                _startRequested = false;
+                _startButton.IsEnabled = true;
+                System.Diagnostics.Debug.WriteLine($"[Tutorial] 启动欢迎教程失败: {ex.Message}");
+            }
         };
 
         _footnote = new TextBlock
