@@ -64,7 +64,17 @@ public partial class PluginPageViewModel
     /// 插件市场列表是否正在加载。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInitialMarketLoading))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshMarketCommand))]
     public partial bool IsMarketLoading { get; set; }
+
+    /// <summary>当前源、语言与镜像上下文是否已有完整快照，包含有效的空目录。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInitialMarketLoading))]
+    public partial bool HasMarketSnapshot { get; set; }
+
+    /// <summary>仅在没有可呈现快照时显示页面中央加载状态。</summary>
+    public bool IsInitialMarketLoading => IsMarketLoading && !HasMarketSnapshot;
 
     /// <summary>
     /// 插件市场加载失败时显示的错误消息。
@@ -275,7 +285,7 @@ public partial class PluginPageViewModel
 
     internal void EnsureMarketLoaded()
     {
-        if (_hasRequestedMarket) return;
+        if (!_isPluginMarketInitialized || _hasRequestedMarket) return;
         _hasRequestedMarket = true;
         if (!IsMarketLoading) _ = RefreshMarketAsync();
     }
@@ -301,6 +311,7 @@ public partial class PluginPageViewModel
             _observedSettings = settings;
             settings.PropertyChanged += Settings_PropertyChanged;
             SyncPluginMarketSettingsFromSettings();
+            RefreshMarketIfContextChanged();
         }
 
         if (System.Windows.Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
@@ -314,14 +325,14 @@ public partial class PluginPageViewModel
     /// </summary>
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (App.Current.Dispatcher.CheckAccess())
+        void Synchronize()
         {
             SyncPluginMarketSettingsFromSettings();
+            RefreshMarketIfContextChanged();
         }
-        else
-        {
-            App.Current.Dispatcher.Invoke(SyncPluginMarketSettingsFromSettings);
-        }
+        if (System.Windows.Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+            dispatcher.Invoke(Synchronize);
+        else Synchronize();
     }
 
     /// <summary>
@@ -365,15 +376,50 @@ public partial class PluginPageViewModel
     }
 
     private bool _marketRefreshRequested;
-    private string? _loadingMarketSource;
+    private PluginMarketCatalogContext? _loadingMarketContext;
+    private PluginMarketCatalogContext? _displayedMarketContext;
+    private CancellationTokenSource? _marketRefreshCancellation;
+
+    private PluginMarketCatalogContext CaptureMarketContext()
+    {
+        var settings = _settingsHostService.Settings;
+        var source = string.IsNullOrWhiteSpace(settings.PluginMarketSource)
+            ? Services.PluginMarketService.DefaultMarketIndexUrl : settings.PluginMarketSource;
+        return new PluginMarketCatalogContext(source, settings.CultureInfo.Name, settings.GhProxyMirror);
+    }
+
+    private void RefreshMarketIfContextChanged()
+    {
+        if (_hasRequestedMarket && CaptureMarketContext() != (_loadingMarketContext ?? _displayedMarketContext))
+            _ = RefreshMarketAsync();
+    }
+
+    private bool CanRefreshMarket() => !IsMarketLoading;
+
+    private void ApplyMarketCatalog(IReadOnlyList<PluginMarketItem> items, PluginMarketCatalogContext context)
+    {
+        var selectedId = SelectedMarketPlugin?.Id;
+        PresentationCollection.Reconcile(MarketPluginsCollection, items, item => item.Id,
+            (previous, current) => previous.HasSameCatalogData(current));
+        RefreshMarketPluginStates();
+        SelectedMarketPlugin = string.IsNullOrWhiteSpace(selectedId)
+            ? null : MarketPluginsCollection.FirstOrDefault(item => item.Id == selectedId);
+        _displayedMarketContext = context;
+        HasMarketSnapshot = true;
+    }
 
     /// <summary>重新加载插件市场列表，同源请求防重入，切源请求串行追赶最新意图。</summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRefreshMarket))]
     private async Task RefreshMarketAsync()
     {
+        _hasRequestedMarket = true;
         if (IsMarketLoading)
         {
-            _marketRefreshRequested |= _loadingMarketSource != SelectedPluginMarketSource;
+            if (_loadingMarketContext != CaptureMarketContext())
+            {
+                _marketRefreshRequested = true;
+                _marketRefreshCancellation?.Cancel();
+            }
             return;
         }
         IsMarketLoading = true;
@@ -382,37 +428,55 @@ public partial class PluginPageViewModel
             do
             {
                 _marketRefreshRequested = false;
-                _loadingMarketSource = SelectedPluginMarketSource;
+                var context = _loadingMarketContext = CaptureMarketContext();
+                using var cancellation = new CancellationTokenSource();
+                _marketRefreshCancellation = cancellation;
                 MarketErrorMessage = string.Empty;
                 try
                 {
-                    var items = await _pluginMarketService.GetMarketPluginsAsync();
-                    // 源在请求期间变化时保留旧列表，串行请求最新源，避免迟到响应覆盖新意图。
-                    if (_loadingMarketSource != SelectedPluginMarketSource)
+                    if (_displayedMarketContext != context || !HasMarketSnapshot)
+                    {
+                        SelectedMarketPlugin = null;
+                        PresentationCollection.Reconcile(MarketPluginsCollection, Array.Empty<PluginMarketItem>(), item => item.Id,
+                            (previous, current) => previous.HasSameCatalogData(current));
+                        _displayedMarketContext = context;
+                        HasMarketSnapshot = false;
+                        var cached = await _marketCatalogCache.ReadAsync(context, cancellation.Token);
+                        if (context != CaptureMarketContext()) { _marketRefreshRequested = true; continue; }
+                        if (cached is not null)
+                        {
+                            ApplyMarketCatalog(cached, context);
+                            if (System.Windows.Application.Current?.Dispatcher is { } dispatcher && dispatcher.CheckAccess())
+                                await dispatcher.InvokeAsync(static () => { }, System.Windows.Threading.DispatcherPriority.Background, cancellation.Token);
+                        }
+                    }
+                    var items = await _pluginMarketService.GetMarketPluginsAsync(cancellation.Token);
+                    // 上下文变化后串行请求最新目录，避免迟到响应覆盖新意图。
+                    if (context != CaptureMarketContext())
                     {
                         _marketRefreshRequested = true;
                         continue;
                     }
-                    var selectedId = SelectedMarketPlugin?.Id;
-                    PresentationCollection.Reconcile(MarketPluginsCollection, items, item => item.Id,
-                        (previous, current) => previous.HasSameCatalogData(current));
-                    RefreshMarketPluginStates();
-                    SelectedMarketPlugin = string.IsNullOrWhiteSpace(selectedId)
-                        ? null
-                        : MarketPluginsCollection.FirstOrDefault(x => x.Id == selectedId);
+                    ApplyMarketCatalog(items, context);
+                    await _marketCatalogCache.WriteAsync(context, items, cancellation.Token);
+                }
+                catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+                {
+                    _marketRefreshRequested = true;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error when loading plugin market");
-                    if (_loadingMarketSource == SelectedPluginMarketSource) MarketErrorMessage = ex.Message;
+                    if (context == CaptureMarketContext()) MarketErrorMessage = ex.Message;
                     else _marketRefreshRequested = true;
                 }
+                finally { _marketRefreshCancellation = null; }
             } while (_marketRefreshRequested);
         }
         finally
         {
             IsMarketLoading = false;
-            _loadingMarketSource = null;
+            _loadingMarketContext = null;
         }
     }
 

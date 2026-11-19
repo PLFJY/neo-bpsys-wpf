@@ -234,6 +234,7 @@ public partial class App
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
         services.AddSingleton<IPluginMarketService, PluginMarketService>();
+        services.AddSingleton<IPluginMarketCatalogCache, PluginMarketCatalogCache>();
         services.AddSingleton<IPluginInstallService, PluginInstallService>();
         services.AddSingleton<IBpuiFileAssociationService, BpuiFileAssociationService>();
         services.AddSingleton<BpuiPackageImportState>();

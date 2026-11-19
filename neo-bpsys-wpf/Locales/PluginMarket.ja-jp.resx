@@ -200,4 +200,7 @@
     <value>接続をテスト中…</value>
   </data>
   <data name="MarketOpenDetailsHint" xml:space="preserve"><value>Enter キーでプラグインの詳細を表示</value></data>
+  <data name="MarketRefreshFailed" xml:space="preserve">
+    <value>更新できませんでした。前回取得した一覧を表示しています。</value>
+  </data>
 </root>

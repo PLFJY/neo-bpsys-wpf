@@ -48,6 +48,9 @@ public static class AppConstants
     /// </summary>
     public static readonly string ConfigFilePath = Path.Combine(AppDataPath, "Config.json");
 
+    /// <summary>按源、语言与镜像隔离的插件市场目录缓存。</summary>
+    public static readonly string PluginMarketCachePath = Path.Combine(AppDataPath, "Cache", "PluginMarket");
+
     /// <summary>远程公告运行数据目录。</summary>
     public static readonly string RemoteAnnouncementsPath = Path.Combine(AppDataPath, "RemoteAnnouncements");
 

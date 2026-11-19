@@ -23,7 +23,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class PluginMarketService : IPluginMarketService
 {
-    private const string DefaultMarketIndexUrl =
+    internal const string DefaultMarketIndexUrl =
         "https://bpsys-plugin-index.plfjy.top/";
 
     private readonly HttpClient _httpClient;
@@ -108,10 +108,10 @@ public class PluginMarketService : IPluginMarketService
     public async Task<IReadOnlyList<PluginMarketItem>> GetMarketPluginsAsync(CancellationToken cancellationToken = default)
     {
         var marketIndexUrl = GetCurrentMarketIndexUrl();
-        var response = await _httpClient.GetAsync(await ResolveGitHubUrlAsync(marketIndexUrl, cancellationToken),
-            cancellationToken);
+        var resolvedIndexUrl = await ResolveGitHubUrlAsync(marketIndexUrl, cancellationToken).ConfigureAwait(false);
+        using var response = await _httpClient.GetAsync(resolvedIndexUrl, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -129,9 +129,9 @@ public class PluginMarketService : IPluginMarketService
             value.Url ??= string.Empty;
             value.DownloadUrl ??= string.Empty;
             value.Sha256 ??= string.Empty;
-            value.ResolvedIconUrl = await ResolveGitHubUrlAsync(value.Icon, cancellationToken);
-            value.ResolvedReadmeUrl = await ResolveGitHubUrlAsync(value.Readme, cancellationToken);
-            value.ResolvedDownloadUrl = await ResolveGitHubUrlAsync(value.DownloadUrl, cancellationToken);
+            value.ResolvedIconUrl = await ResolveGitHubUrlAsync(value.Icon, cancellationToken).ConfigureAwait(false);
+            value.ResolvedReadmeUrl = await ResolveGitHubUrlAsync(value.Readme, cancellationToken).ConfigureAwait(false);
+            value.ResolvedDownloadUrl = await ResolveGitHubUrlAsync(value.DownloadUrl, cancellationToken).ConfigureAwait(false);
             items.Add(value);
         }
 

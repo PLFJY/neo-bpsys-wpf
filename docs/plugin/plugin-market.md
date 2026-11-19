@@ -22,6 +22,16 @@ README 的正文、加载、失败和空内容分开呈现，失败原因保存�
 
 设计与动效参考微软的 [Windows motion](https://learn.microsoft.com/en-us/windows/apps/design/motion/) 和[响应式布局](https://learn.microsoft.com/en-us/windows/apps/design/layout/responsive-design)指南，保持 WPF-UI 原有主题、控件状态与业务命令。
 
+## 目录本地缓存与刷新
+
+页面首次请求目录时先读取 `IPluginMarketCatalogCache`，呈现完整本地快照后，再通过 `IPluginMarketService` 异步获取最新目录。手动刷新沿用当前列表，不清空内容；网络失败时保留快照并显示刷新失败提示，没有快照时才显示页面中央加载状态。请求期间刷新按钮的图标切换为 `ProgressRing`，同时禁止重复刷新，完成或失败后恢复。
+
+缓存存放于 `%APPDATA%\neo-bpsys-wpf\Cache\PluginMarket\{contextHash}.json`，按实际索引源、语言和配置镜像隔离。切换这些设置会取消旧上下文请求并加载匹配的缓存；迟到的旧响应不能覆盖新上下文。缓存没有过期淘汰，每次首次加载及手动刷新仍请求网络，因此离线时可继续查看上次成功获取的目录。
+
+缓存格式版本为 `1`，保存获取时间、上下文和明确列出的目录元数据（包含已解析的资源 URL），不缓存图片文件、README 正文、安装状态、下载状态或错误。安装与兼容状态每次根据当前宿主重新计算；读取缓存不触发镜像探测。缓存缺失、损坏、版本不支持或超过 8 MiB 时视为不可用，继续网络加载，不修补旧数据。有效的空目录也是完整快照。
+
+磁盘读写及 JSON 处理在后台执行，写入通过同目录临时文件原子替换；保存失败不影响已取得的目录。网络成功后按插件 ID 对集合增删、移动和替换，未变化的条目保留对象引用及选中状态，不执行整表 Reset。`PluginMarketService.GetMarketPluginsAsync` 仍直接请求网络，布局包依赖检查等其他调用方不改为读取页面缓存。
+
 ## 市场条目
 
 市场索引反序列化为 `Dictionary<string, PluginMarketItem>`。服务会补齐空字段，并解析：

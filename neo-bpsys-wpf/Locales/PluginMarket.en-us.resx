@@ -200,4 +200,7 @@
     <value>Testing connections…</value>
   </data>
   <data name="MarketOpenDetailsHint" xml:space="preserve"><value>Press Enter to view plugin details</value></data>
+  <data name="MarketRefreshFailed" xml:space="preserve">
+    <value>Could not refresh. Showing the last available plugin list.</value>
+  </data>
 </root>

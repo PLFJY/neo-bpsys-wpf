@@ -22,6 +22,7 @@
 | `PluginPath` | `%APPDATA%\neo-bpsys-wpf\Plugins` |
 | `BuiltInPluginPath` | `{AppBaseDirectory}\Plugins` |
 | `PluginConfigsPath` | `%APPDATA%\neo-bpsys-wpf\PluginConfigs` |
+| `PluginMarketCachePath` | `%APPDATA%\neo-bpsys-wpf\Cache\PluginMarket`（[目录缓存](../plugin/plugin-market.md#目录本地缓存与刷新)） |
 
 用户可修改或运行时生成的状态主要在 AppData、Documents 输出目录和 Temp 中。安装目录下的 `Resources` 和内置插件通常来自构建/发布产物。
 

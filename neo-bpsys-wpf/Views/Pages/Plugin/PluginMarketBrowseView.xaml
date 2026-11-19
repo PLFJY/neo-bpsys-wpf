@@ -5,11 +5,13 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     scrolling:ModernScroll.Ownership="Self">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -18,9 +20,19 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <DockPanel Margin="0,0,0,12">
-            <ui:Button DockPanel.Dock="Right" Margin="12,0,0,0" Icon="{ui:SymbolIcon ArrowSync24}"
+            <ui:Button x:Name="RefreshButton" DockPanel.Dock="Right" Margin="12,0,0,0"
                 lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
-                Content="{lex:Loc Refresh}" Command="{Binding RefreshMarketCommand}" />
+                AutomationProperties.Name="{lex:Loc Refresh}" Command="{Binding RefreshMarketCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <Grid Width="16" Height="16" Margin="0,0,8,0">
+                        <ui:SymbolIcon Symbol="ArrowSync24"
+                            Visibility="{Binding IsMarketLoading, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <ui:ProgressRing Width="16" Height="16" IsIndeterminate="{Binding IsMarketLoading}"
+                            Visibility="{Binding IsMarketLoading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </Grid>
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc Refresh}" />
+                </StackPanel>
+            </ui:Button>
             <TextBlock Text="{lex:Loc PluginsThirdPartyWarning}" TextWrapping="Wrap" VerticalAlignment="Center"
                 Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
         </DockPanel>
@@ -30,7 +42,10 @@
             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
             Visibility="{Binding HasMarketError, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel>
-                <TextBlock Text="{lex:Loc MarketLoadFailed}" FontWeight="SemiBold" />
+                <TextBlock Text="{lex:Loc MarketLoadFailed}" FontWeight="SemiBold"
+                    Visibility="{Binding HasMarketSnapshot, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                <TextBlock Text="{lex:Loc MarketRefreshFailed}" FontWeight="SemiBold"
+                    Visibility="{Binding HasMarketSnapshot, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <TextBlock Margin="0,4,0,0" Text="{Binding MarketErrorMessage}" TextWrapping="Wrap"
                     Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
             </StackPanel>
@@ -100,7 +115,7 @@
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
                                     <Condition Binding="{Binding HasItems, ElementName=Catalog}" Value="False" />
-                                    <Condition Binding="{Binding IsMarketLoading}" Value="False" />
+                                    <Condition Binding="{Binding HasMarketSnapshot}" Value="True" />
                                     <Condition Binding="{Binding HasMarketError}" Value="False" />
                                 </MultiDataTrigger.Conditions>
                                 <Setter Property="Visibility" Value="Visible" />
@@ -114,8 +129,8 @@
             </StackPanel>
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
                 motion:ContentEntrance.IsEnabled="True"
-                Visibility="{Binding IsMarketLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <ui:ProgressRing Width="32" Height="32" IsIndeterminate="True" />
+                Visibility="{Binding IsInitialMarketLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ui:ProgressRing Width="32" Height="32" IsIndeterminate="{Binding IsInitialMarketLoading}" />
                 <TextBlock Text="{lex:Loc MarketLoading}" Margin="0,12,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
             </StackPanel>
         </Grid>

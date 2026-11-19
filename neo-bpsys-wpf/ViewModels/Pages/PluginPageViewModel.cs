@@ -25,6 +25,7 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly ILogger<PluginPageViewModel> _logger;
     private readonly ISettingsHostService _settingsHostService;
     private readonly IPluginMarketService _pluginMarketService;
+    private readonly IPluginMarketCatalogCache _marketCatalogCache;
     private readonly IInfoBarService _infoBarService;
     private readonly IPluginInstallService _pluginInstallService;
     private readonly IGlobalRestartService _globalRestartService;
@@ -51,17 +52,20 @@ public partial class PluginPageViewModel : ViewModelBase
     /// <param name="infoBarService">信息栏服务</param>
     /// <param name="pluginInstallService">插件安装服务</param>
     /// <param name="globalRestartService">全局重启状态服务</param>
+    /// <param name="marketCatalogCache">插件目录本地缓存。</param>
     public PluginPageViewModel(IPluginService pluginService, IFilePickerService filePickerService,
         ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService,
         IInfoBarService infoBarService,
         IPluginInstallService pluginInstallService,
-        IGlobalRestartService globalRestartService)
+        IGlobalRestartService globalRestartService,
+        IPluginMarketCatalogCache marketCatalogCache)
     {
         _pluginService = pluginService;
         _filePickerService = filePickerService;
         _logger = logger;
         _settingsHostService = settingsHostService;
         _pluginMarketService = pluginMarketService;
+        _marketCatalogCache = marketCatalogCache;
         _infoBarService = infoBarService;
         _pluginInstallService = pluginInstallService;
         _globalRestartService = globalRestartService;

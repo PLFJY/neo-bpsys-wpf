@@ -200,4 +200,7 @@
     <value>正在测试连接…</value>
   </data>
   <data name="MarketOpenDetailsHint" xml:space="preserve"><value>按 Enter 查看插件详情</value></data>
+  <data name="MarketRefreshFailed" xml:space="preserve">
+    <value>后台刷新失败，已保留上次的插件列表。</value>
+  </data>
 </root>
