@@ -91,12 +91,12 @@ Top 模式用于局部标签导航：
 
 `ModernNavigationView` 会按 `NavigationBehavior` 集中配置内部 `PART_Frame.ContentScrollHostMode`：
 
-- `PageNavigation` 使用 `Enabled`，保持 `MainWindow.RootNavigation` 的后台页面外层滚动宿主，`GameGuidanceService` 仍能通过 frame 的 `ModernScrollViewer` 做引导滚动。
+- `PageNavigation` 使用 `PageContentScrollHostMode`，默认 `Enabled` 保持原行为。`MainWindow.RootNavigation` 显式选择 `Auto`，仅声明 Self 的页面绕过外层滚动；普通页面及引导仍使用 frame 的 `ModernScrollViewer`。
 - `LocalTabs` 使用 `Auto`，默认保留 frame/page 级滚动；只有 tab 内容根显式声明 `ModernScroll.Ownership="Self"` 时才走直接 presenter。
 
 共享 `PART_Frame` 默认会在新导航后立即把 frame 级滚动宿主置顶。因此 `MainWindow.RootNavigation` 页面切换、`PluginPage` 标签切换和 `FrontManagePage` 标签切换都会回到页面顶部。该行为不递归重置子视图内部的 self-scroll 区域；使用直接 presenter 的局部页面继续拥有自己的滚动状态。置顶发生在 frame `Navigated` 之前，`GameGuidance` 后续的目标自动滚动仍可以覆盖它。
 
-`LocalTabs` 的 `Auto` 模式不按 `ListView` / `ListBox` / `DynamicScrollViewer` 类型推断滚动归属。`PluginInstalledView`、`PluginMarketView` 这类非约束列表页默认仍由 frame 级 `ModernScrollViewer` 滚动；`FrontedLayoutPackagesView` 这类独立分栏页面可以在根上显式声明 self ownership，并在具体列表/详情滚动区域启用 `NestedSmoothScrollBehavior`。
+`LocalTabs` 的 `Auto` 模式不按控件类型推断滚动归属。插件管理和前台管理 Page 以及插件子视图显式声明 Self，使有界列表能够虚拟化；普通页面保留 frame 滚动。Classic 的 PageHost 同样显式选择 Auto。具体列表和详情的输入归属见[平滑滚动](modern-smooth-scrolling.md)。
 
 菜单项前景色跟随 WPF-UI 动态主题资源。按钮默认、悬停、按下和选中状态使用 NavigationView item 前景色资源；禁用状态使用 WPF-UI 文本禁用色资源。文本和图标都从按钮 `Foreground` 继承，不硬编码黑白颜色，因此主题切换时可以随资源更新。
 
@@ -122,6 +122,8 @@ pane toggle 使用项目本地 `ModernPaneToggleButtonStyle`，参考 iNKORE/Win
 点击菜单或 footer entry 会导航到 `TargetPageType`。外部 `Navigate(Type)` 会优先按 `TargetPageType` 选中匹配 entry；没有匹配 entry 时仍会导航到目标页。`Navigate(string)` 优先匹配 tag / id，不用本地化后的显示文本做身份判断。
 
 用户点击当前已选中的 entry 会被视为无操作，不会重复触发 `ItemInvoked` / `Navigating` / `Navigated`，也不会重复启动 `ModernFrame` 转场或压入返回栈。外部 `INavigationService.Navigate(...)` 调用仍保持原兼容行为。
+
+首次及再次访问页面均使用指定转场，不再以访问历史自动替换为 Suppress。默认 `TransitionDuration` 为 450 ms，局部标签使用同一默认时间线；pane 展开/收起保留 180 ms 动画。控件透传独立的 `NavigationCompleted` 事件，不改变既有 `Navigated` 时序。转场和取消规则以 [ModernFrame](modern-frame.md) 为准。
 
 `GoBack()` 和 `ClearJournal()` 委托给内部 `ModernFrame`。`NavigateWithHierarchy(...)` 当前按普通 `Navigate(...)` 处理，保留兼容入口，后续如确实引入层级菜单再扩展。
 

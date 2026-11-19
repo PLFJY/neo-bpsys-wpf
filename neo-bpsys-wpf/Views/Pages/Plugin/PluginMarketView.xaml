@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
     xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     x:Name="Root"
@@ -19,6 +20,7 @@
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    scrolling:ModernScroll.Ownership="Self"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -115,16 +117,24 @@
                             Background="Transparent"
                             BorderThickness="0"
                             ItemsSource="{Binding MarketPluginsCollection}"
+                            scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
+                            scrolling:ModernScroll.Ownership="Self"
+                            motion:ListTransitions.IsEnabled="True"
+                            VirtualizingPanel.IsVirtualizing="True"
+                            VirtualizingPanel.VirtualizationMode="Recycling"
+                            VirtualizingPanel.ScrollUnit="Pixel"
+                            ScrollViewer.CanContentScroll="True"
                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                             ScrollViewer.VerticalScrollBarVisibility="Auto"
                             SelectedItem="{Binding SelectedMarketPlugin, Mode=TwoWay}">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <WrapPanel />
+                                    <VirtualizingStackPanel />
                                 </ItemsPanelTemplate>
                             </ListBox.ItemsPanel>
                             <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem">
+                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                                     <Setter Property="Margin" Value="0,0,12,12" />
                                     <Setter Property="Padding" Value="0" />
                                     <Setter Property="Background" Value="Transparent" />
@@ -138,7 +148,6 @@
                                 <DataTemplate>
                                     <Border
                                         x:Name="MarketCardBorder"
-                                        Width="240"
                                         Height="180"
                                         Padding="12"
                                         Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"

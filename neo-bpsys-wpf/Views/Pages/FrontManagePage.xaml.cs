@@ -38,6 +38,10 @@ public partial class FrontManagePage : Page, IRecipient<FrontManageTabNavigation
         _tutorialRunner = tutorialRunner;
         _navigationService = navigationService;
         InitializeComponent();
+        Helpers.BackendPresentation.Attach(this, () =>
+        {
+            if (DataContext is ViewModels.Pages.FrontManagePageViewModel viewModel) viewModel.EnsurePackagesLoaded();
+        });
 
         FrontManageTabs.MenuItems.Add(new NavigationViewItem(
             "FrontendWindows",

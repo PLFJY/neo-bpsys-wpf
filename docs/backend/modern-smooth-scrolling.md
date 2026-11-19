@@ -29,6 +29,10 @@
 
 `NestedSmoothScrollBehavior` 在控件本地查找并缓存内部 `ScrollViewer`，模板变更后重新解析；内部实际偏移已经到达顶部或底部时，外层可处理同一个事件，不重放或复制滚轮事件。继承到内部宿主的 `Self` 不会阻止该宿主处理输入。启用此行为的 `ListBox`、`ListView`、`DataGrid` 在未显式配置滚动单位时使用虚拟化面板的像素滚动，保留虚拟化，不全局设置 `CanContentScroll=False`。不要把该行为全局套到所有列表上。
 
+插件市场采用纵向卡片列表，已安装插件和布局包列表同样使用有界视口、Recycling 与 Pixel 滚动，并保持 `CanContentScroll=True`。市场与布局包刷新按稳定身份协调集合，复用未变化行。`ListTransitions` 仅为视口内已生成的容器播放 180 ms 新增/位移和 140 ms 删除快照动画；首次加载、Reset 或同一布局批次超过 32 项变化直接呈现。快照受数量和像素上限约束，不保存业务对象；回收容器清除旧行动画，卸载解绑事件并释放动画和快照。行为不覆盖模板自有 transform。
+
+公告层外部滚动宿主使用 `ModernScrollViewer`；Markdown 的滚轮转交同一滚动动画辅助器，不再直接逐事件跳转偏移。
+
 ## 三类输入
 
 触摸屏使用 WPF 原生 manipulation/panning，不转换成滚轮事件。`ModernScrollViewer` 通过依赖属性元数据将 `PanningMode` 默认设为 `VerticalOnly`，允许 XAML 覆盖。现有宿主启用上述附加滚动行为后，在未配置 panning 的位置补上纵向平移；显式样式或局部设置优先。沿用 WPF 默认惯性与减速，不自定义 `TouchMove`，不标记触摸 manipulation 已处理。开始触摸平移会取消旧滚轮动画，避免两种输入争夺偏移。

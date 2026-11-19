@@ -5,6 +5,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
@@ -12,26 +13,6 @@
     Visibility="Collapsed">
     <UserControl.Resources>
         <cv:ApplicationThemeToBooleanConverter x:Key="AnnouncementThemeConverter" />
-        <Storyboard x:Key="AnnouncementOpenAnimation">
-            <DoubleAnimation Storyboard.TargetName="BackdropScrim" Storyboard.TargetProperty="Opacity"
-                             From="0" To="1" Duration="0:0:0.18" />
-            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
-                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
-                             From="0.98" To="1" Duration="0:0:0.18" />
-            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
-                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
-                             From="0.98" To="1" Duration="0:0:0.18" />
-            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
-                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)"
-                             From="10" To="0" Duration="0:0:0.18" />
-        </Storyboard>
-        <Storyboard x:Key="AnnouncementCloseAnimation">
-            <DoubleAnimation Storyboard.TargetName="BackdropScrim" Storyboard.TargetProperty="Opacity"
-                             To="0" Duration="0:0:0.15" />
-            <DoubleAnimation Storyboard.TargetName="AnnouncementCard"
-                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)"
-                             To="7" Duration="0:0:0.15" />
-        </Storyboard>
     </UserControl.Resources>
     <Grid x:Name="OverlayRoot" Background="Transparent">
         <Border x:Name="BackdropScrim" Background="#99000000" />
@@ -88,7 +69,7 @@
                     <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
                                Text="{lex:Loc NoAnnouncements}"
                                Visibility="{Binding HasAnnouncements, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                    <ScrollViewer x:Name="AnnouncementsScrollViewer"
+                    <scrolling:ModernScrollViewer x:Name="AnnouncementsScrollViewer"
                                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding Announcements}">
                             <ItemsControl.ItemTemplate>
@@ -138,7 +119,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </ScrollViewer>
+                    </scrolling:ModernScrollViewer>
                 </Grid>
                 <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal">
                     <ui:Button Margin="0,0,10,0"

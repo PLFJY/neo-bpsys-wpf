@@ -110,7 +110,6 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             _settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;
         }
 
-        _ = RefreshPackagesAsync();
     }
 
     /// <summary>

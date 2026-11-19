@@ -15,9 +15,14 @@ namespace neo_bpsys_wpf.Views.Pages.Plugin;
 /// </summary>
 public partial class PluginMarketView : UserControl
 {
+    /// <summary>创建插件市场视图，在导航呈现完成后请求首次列表。</summary>
     public PluginMarketView()
     {
         InitializeComponent();
+        Helpers.BackendPresentation.Attach(this, () =>
+        {
+            if (DataContext is PluginPageViewModel viewModel) viewModel.EnsureMarketLoaded();
+        });
         PluginReadmeMarkdownViewer.AddHandler(
             Hyperlink.RequestNavigateEvent,
             new RequestNavigateEventHandler(PluginReadmeMarkdownViewer_OnRequestNavigate));

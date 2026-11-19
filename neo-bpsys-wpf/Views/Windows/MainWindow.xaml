@@ -5,11 +5,13 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:modernNavigation="clr-namespace:neo_bpsys_wpf.Controls.Modern.Navigation"
+    xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc Backend}"
@@ -38,13 +40,6 @@
                     From="White"
                     To="#202020"
                     Duration="00:00:0.5" />
-                <DoubleAnimationUsingKeyFrames
-                    Storyboard.TargetName="ApplicationContentRoot"
-                    Storyboard.TargetProperty="Opacity">
-                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
-                    <LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="0.72" />
-                    <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1" />
-                </DoubleAnimationUsingKeyFrames>
             </Storyboard>
             <Storyboard x:Key="DarkToLight">
                 <ColorAnimation
@@ -53,13 +48,6 @@
                     From="#202020"
                     To="White"
                     Duration="00:00:0.5" />
-                <DoubleAnimationUsingKeyFrames
-                    Storyboard.TargetName="ApplicationContentRoot"
-                    Storyboard.TargetProperty="Opacity">
-                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
-                    <LinearDoubleKeyFrame KeyTime="0:0:0.25" Value="0.72" />
-                    <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="1" />
-                </DoubleAnimationUsingKeyFrames>
             </Storyboard>
             <Storyboard x:Key="StartupLoading">
                 <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loading" Storyboard.TargetProperty="(UIElement.Visibility)">
@@ -82,14 +70,7 @@
             </Storyboard>
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
-    <i:Interaction.Triggers>
-        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="true">
-            <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
-        </i:DataTrigger>
-        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="false">
-            <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
-        </i:DataTrigger>
-    </i:Interaction.Triggers>
+
     <WindowChrome.WindowChrome>
         <WindowChrome
             CaptionHeight="35"
@@ -111,7 +92,7 @@
             VerticalAlignment="Bottom"
             Panel.ZIndex="2" />
         <ui:ContentDialogHost x:Name="ContentDialogHost" Panel.ZIndex="3" />
-        <Grid x:Name="ApplicationContentRoot">
+        <Grid x:Name="ApplicationContentRoot" helpers:ThemeTransitionBehavior.IsEnabled="True">
             <Grid.Style>
                 <Style TargetType="Grid">
                     <Style.Triggers>
@@ -352,13 +333,22 @@
 
             <!--  navigation  -->
             <Grid Grid.Row="2">
-                <ui:InfoBar
-                    Name="InfoBar"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Panel.ZIndex="1" />
+                <Canvas Panel.ZIndex="1">
+                    <motion:BannerPresenter
+                        Canvas.Top="0"
+                        Canvas.Right="0"
+                        MaxWidth="{Binding ActualWidth, ElementName=RootNavigation}"
+                        IsOpen="{Binding IsOpen, ElementName=InfoBar}">
+                        <ui:InfoBar
+                            Name="InfoBar"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Visibility="Visible" />
+                    </motion:BannerPresenter>
+                </Canvas>
                 <modernNavigation:ModernNavigationView
                     x:Name="RootNavigation"
+                    PageContentScrollHostMode="Auto"
                     FooterMenuItemsSource="{Binding FooterMenuItems}"
                     IsBackButtonVisible="Collapsed"
                     IsPaneOpen="True"

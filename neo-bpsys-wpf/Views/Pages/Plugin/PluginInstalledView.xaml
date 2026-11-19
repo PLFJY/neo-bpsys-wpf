@@ -7,6 +7,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
     x:Name="Root"
     d:DataContext="{d:DesignInstance Type=vm:PluginPageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -16,6 +18,7 @@
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    scrolling:ModernScroll.Ownership="Self"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -31,9 +34,16 @@
             Grid.Row="1"
             Margin="0,10,0,0"
             ItemsSource="{Binding PluginsCollection}"
+            scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
+            scrolling:ModernScroll.Ownership="Self"
+            motion:ListTransitions.IsEnabled="True"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            VirtualizingPanel.ScrollUnit="Pixel"
+            ScrollViewer.CanContentScroll="True"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ui:ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
+                <Style TargetType="ui:ListViewItem" BasedOn="{StaticResource {x:Type ui:ListViewItem}}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="Padding" Value="0" />
                 </Style>

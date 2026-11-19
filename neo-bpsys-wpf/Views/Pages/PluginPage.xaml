@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:modernNavigation="clr-namespace:neo_bpsys_wpf.Controls.Modern.Navigation"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -18,6 +19,7 @@
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    scrolling:ModernScroll.Ownership="Self"
     mc:Ignorable="d">
 
     <Grid Margin="10" helpers:ThemeTransitionBehavior.IsEnabled="True">
@@ -53,6 +55,6 @@
             IsPaneToggleVisible="False"
             NavigationBehavior="LocalTabs"
             PaneDisplayMode="Top"
-            TransitionDuration="220" />
+            TransitionDuration="450" />
     </Grid>
 </Page>

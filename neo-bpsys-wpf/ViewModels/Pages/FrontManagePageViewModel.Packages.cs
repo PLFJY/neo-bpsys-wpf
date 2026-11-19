@@ -33,6 +33,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 /// </summary>
 public sealed partial class FrontManagePageViewModel
 {
+    private int _packageRefreshVersion;
+    private bool _hasRequestedPackages;
+
+    internal void EnsurePackagesLoaded()
+    {
+        if (_hasRequestedPackages) return;
+        _hasRequestedPackages = true;
+        _ = RefreshPackagesAsync();
+    }
     [RelayCommand]
     private async Task RefreshPackagesAsync()
     {
@@ -46,15 +55,14 @@ public sealed partial class FrontManagePageViewModel
             return;
         }
 
+        var version = ++_packageRefreshVersion;
         try
         {
             var previousPackageId = SelectedPackage?.PackageId;
             var packages = await _packageManager.ListPackagesAsync();
-            LayoutPackages.Clear();
-            foreach (var package in packages)
-            {
-                LayoutPackages.Add(package);
-            }
+            if (version != _packageRefreshVersion) return;
+            PresentationCollection.Reconcile(LayoutPackages, packages, package => package.PackageId,
+                HasSamePackagePresentation, StringComparer.OrdinalIgnoreCase);
 
             var active = packages.FirstOrDefault(package => package.IsActivePackage)
                          ?? packages.FirstOrDefault(package => package.IsBuiltin);
@@ -70,6 +78,7 @@ public sealed partial class FrontManagePageViewModel
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to refresh fronted layout packages.");
+            if (version != _packageRefreshVersion) return;
             PackageManagerStatus = ex.Message;
         }
 
@@ -81,6 +90,15 @@ public sealed partial class FrontManagePageViewModel
                     string.Equals(package.PackageId, packageId, StringComparison.OrdinalIgnoreCase));
         }
     }
+
+    private static bool HasSamePackagePresentation(FrontedLayoutPackageInfo left, FrontedLayoutPackageInfo right) =>
+        left.PackageId == right.PackageId && left.Name == right.Name && left.Description == right.Description
+        && left.Author == right.Author && left.CreatedAt == right.CreatedAt && left.CreatedVersion == right.CreatedVersion
+        && left.MinVersion == right.MinVersion && left.InstallPath == right.InstallPath && left.Source == right.Source
+        && left.IsBuiltin == right.IsBuiltin && left.IsLocal == right.IsLocal && left.IsActivePackage == right.IsActivePackage
+        && left.LayoutCount == right.LayoutCount && left.ResourceCount == right.ResourceCount
+        && left.ValidationStatus == right.ValidationStatus && left.ValidationMessage == right.ValidationMessage
+        && left.HasCreatedVersionWarning == right.HasCreatedVersionWarning;
 
     [RelayCommand]
     private async Task ImportPackageAsync()

@@ -40,6 +40,10 @@ MainWindow 的 RootNavigation 使用项目自定义 [ModernNavigationView](moder
 
 不要导航时手动 new Page，页面与 VM 已由 DI 以 singleton 注册。ApplicationHostService 根据 IsClassicMode 选择 ClassicBackendWindow 或 Modern MainWindow；Modern 显示后导航 Home。启动遮罩结束后，ApplicationHostService 在 Dispatcher 空闲优先级从 DI 预取 Pick/Ban 等含 CharacterSelector 的页面实例，仅创建缓存、不切换页面，以降低首次导航的同步控件创建卡顿。Classic 页管理弹窗与共享状态边界见[classic-mode.md](classic-mode.md)。
 
+插件市场首次查询与布局包首次枚举在所属视图及祖先导航完成呈现后启动，不在 ViewModel 构造中发起。离页前未完成呈现的视图不启动查询，返回时可再次等待呈现；既有显式刷新和业务命令不延后。市场同源查询防重入，切源期间串行请求最新源，旧源响应不覆盖当前列表；布局包仅发布最新刷新请求的结果。
+
+主窗口 InfoBar 由 `BannerPresenter` 在现有浮层位置呈现，250 ms 入场、167 ms 退场，不参与主页面布局；关闭立即停止接收输入，退场完成后折叠，快速反向从当前状态继续。公告层同样支持中断与反向，卸载清除动画及订阅。主题透明度过渡由最近启用的祖先统一执行，避免父子层重复叠加。自有动效遵从系统动画设置，WPF-UI 自带按钮、Snackbar 和 ContentDialog 不叠加额外动画。
+
 ## 图标
 
 `BackendPageInfo.Icon` 类型是 WPF-UI 的 `SymbolRegular`，后台代码中需要创建图标对象时，当前安全模式可参考 `MainWindow.xaml.cs`：

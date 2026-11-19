@@ -10,6 +10,15 @@ namespace neo_bpsys_wpf.Models.Plugins;
 /// </summary>
 public partial class PluginMarketItem : ObservableObjectBase
 {
+    // 呈现状态由宿主重算；目录信息未变化时保留行实例、选择及已加载 README。
+    internal bool HasSameCatalogData(PluginMarketItem other) =>
+        Id == other.Id && Name == other.Name && Description == other.Description
+        && Version == other.Version && ApiVersion == other.ApiVersion && Author == other.Author
+        && Icon == other.Icon && Readme == other.Readme && Url == other.Url
+        && DownloadUrl == other.DownloadUrl && Sha256 == other.Sha256
+        && ResolvedIconUrl == other.ResolvedIconUrl && ResolvedReadmeUrl == other.ResolvedReadmeUrl
+        && ResolvedDownloadUrl == other.ResolvedDownloadUrl;
+
     /// <summary>
     /// 插件唯一标识。
     /// </summary>

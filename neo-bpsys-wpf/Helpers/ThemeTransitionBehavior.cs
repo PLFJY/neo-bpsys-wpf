@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace neo_bpsys_wpf.Helpers;
@@ -30,6 +31,7 @@ internal static class ThemeTransitionBus
 internal static class ThemeTransitionBehavior
 {
     private static readonly ConditionalWeakTable<FrameworkElement, EventHandler> Handlers = new();
+    private static readonly ConditionalWeakTable<FrameworkElement, DoubleAnimationUsingKeyFrames> Animations = new();
 
     /// <summary>
     /// 标识是否启用主题切换过渡的附加属性。
@@ -114,6 +116,8 @@ internal static class ThemeTransitionBehavior
 
     private static void Detach(FrameworkElement element)
     {
+        element.BeginAnimation(UIElement.OpacityProperty, null);
+        Animations.Remove(element);
         if (!Handlers.TryGetValue(element, out var handler))
         {
             return;
@@ -125,19 +129,33 @@ internal static class ThemeTransitionBehavior
 
     private static void Animate(FrameworkElement element)
     {
-        if (!element.IsVisible)
+        if (!element.IsVisible || !SystemParameters.ClientAreaAnimation)
         {
+            element.BeginAnimation(UIElement.OpacityProperty, null);
             return;
         }
+
+        // 由最近启用的祖先统一呈现，避免父子两层透明度相乘。
+        for (var parent = VisualTreeHelper.GetParent(element); parent is not null; parent = VisualTreeHelper.GetParent(parent))
+            if (parent is FrameworkElement ancestor && GetIsEnabled(ancestor)) return;
 
         // 页面级内容在主题切换时轻微淡出再恢复，使不透明卡片/列表也参与过渡。
         var animation = new DoubleAnimationUsingKeyFrames
         {
-            Duration = TimeSpan.FromMilliseconds(500)
+            Duration = TimeSpan.FromMilliseconds(500),
+            FillBehavior = FillBehavior.Stop
         };
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(1D, KeyTime.FromTimeSpan(TimeSpan.Zero)));
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(0.72D, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(250))));
         animation.KeyFrames.Add(new LinearDoubleKeyFrame(1D, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(500))));
+        animation.Completed += (_, _) =>
+        {
+            if (!Animations.TryGetValue(element, out var current) || !ReferenceEquals(current, animation)) return;
+            element.BeginAnimation(UIElement.OpacityProperty, null);
+            Animations.Remove(element);
+        };
+        Animations.Remove(element);
+        Animations.Add(element, animation);
         element.BeginAnimation(UIElement.OpacityProperty, animation, HandoffBehavior.SnapshotAndReplace);
     }
 }

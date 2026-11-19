@@ -43,12 +43,17 @@ WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFra
 本地转场类型包括：
 
 - `EntranceNavigationTransitionInfo`
+- `FadeNavigationTransitionInfo`
 - `SlideNavigationTransitionInfo`
 - `SuppressNavigationTransitionInfo`
 
 `DefaultTransitionInfo` 默认使用 Entrance；单次 `Navigate` 可以传入转场覆盖。`IsAnimationEnabled`、`TransitionDuration`、`SystemParameters.ClientAreaAnimation` 会共同决定是否播放动画。快速连续导航会先停止当前转场并释放旧内容引用，再进入下一次导航。
 
-切换已有内容时，`ModernFrame` 按 iNKORE/WinUI 风格先播放旧内容退出动画，退出完成后清理旧 presenter，再播放新内容进入动画。这样避免旧页面和新页面在内容区同时可见；`SuppressNavigationTransitionInfo` 仍立即交换内容。进入动画完成后，活动宿主会恢复到可见、可命中、透明度 1 的状态，并保留 identity `RenderTransform`，避免清理 transform 时产生结束抖动。
+切换已有内容时，等待目标内容 Loaded 后，在 Loaded dispatcher 阶段同时启动退场和入场 Storyboard，由关键帧表达先退场再入场；不等待 ApplicationIdle。默认 Entrance 总时长为 450 ms（150 ms 退场、300 ms 入场），位移 140 DIP；Fade 使用相同分段，横向 Slide 使用 150/300 ms、退出 150 DIP/进入 200 DIP。纵向 Slide 按参考时间线使用 250 ms 等待、350 ms 入场、200 DIP 和指数缓动，其时间随入口时长同比缩放。软件渲染不主动取消导航动画。
+
+动画期间新旧内容不可命中，导航本身仍可打断。每次导航以代次隔离待执行调度和完成回调；取消、卸载及模板重建解绑 Loaded/Completed，释放旧 PageHost，并移除其待执行导航。完成后恢复活动宿主的可见性、命中及 identity transform。`SuppressNavigationTransitionInfo` 和关闭动画仍立即交换内容。
+
+`Navigated` 保持原有同步时序；新增 `NavigationCompleted` 仅在内容 Loaded 且转场完成后引发，首次及无动画导航同样等待内容就绪。被后续导航或卸载取消的导航不发布完成事件。非关键首次加载可以通过 `BackendPresentation` 等待嵌套宿主均完成；它核对实际视觉树和当前内容归属，避免 WPF 延后的 Unloaded 通知使已离页视图启动查询。导航调试 Trace 输出包含内容就绪至转场开始的阶段耗时。
 
 ## 默认滚动宿主
 

@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
@@ -34,6 +35,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     private readonly ITutorialRunner _tutorialRunner;
     private readonly ISettingsHostService _settingsHostService;
     private bool _firstRunWelcomeAttempted;
+    private Storyboard? _themeStoryboard;
 
     internal bool ForceCloseForTest { get; set; }
 
@@ -53,6 +55,19 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         _tutorialRunner = tutorialRunner;
         _settingsHostService = settingsHostService;
         InitializeComponent();
+        Loaded += (_, _) =>
+        {
+            ThemeTransitionBus.Started += OnThemeTransition;
+            SystemParameters.StaticPropertyChanged += OnAnimationPreferenceChanged;
+            SetThemeMask(animate: false);
+        };
+        Unloaded += (_, _) =>
+        {
+            ThemeTransitionBus.Started -= OnThemeTransition;
+            SystemParameters.StaticPropertyChanged -= OnAnimationPreferenceChanged;
+            _themeStoryboard?.Remove(this);
+            _themeStoryboard = null;
+        };
         navigationService.SetNavigationControl(RootNavigation);
         if (navigationService is neo_bpsys_wpf.Services.NavigationService neoNavigationService)
         {
@@ -95,6 +110,43 @@ public partial class MainWindow : FluentWindow, INavigationWindow
                     viewModel.AnnouncementCenter.NotifyShellReady();
             };
         }
+    }
+
+    private void OnThemeTransition(object? sender, EventArgs e) => SetThemeMask(SystemParameters.ClientAreaAnimation);
+
+    private void OnAnimationPreferenceChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(SystemParameters.ClientAreaAnimation)) return;
+        void Finish()
+        {
+            if (!IsLoaded) return;
+            SetThemeMask(animate: false);
+            if (!SystemParameters.ClientAreaAnimation) ApplicationContentRoot.BeginAnimation(OpacityProperty, null);
+        }
+        if (Dispatcher.CheckAccess()) Finish();
+        else _ = Dispatcher.BeginInvoke(Finish);
+    }
+
+    private void SetThemeMask(bool animate)
+    {
+        var dark = DataContext is MainWindowViewModel { ApplicationTheme: Wpf.Ui.Appearance.ApplicationTheme.Dark };
+        var target = dark ? Color.FromRgb(32, 32, 32) : Colors.White;
+        var from = (themeMask.Background as SolidColorBrush)?.Color ?? target;
+        _themeStoryboard?.Remove(this);
+        _themeStoryboard = null;
+        themeMask.Background = new SolidColorBrush(target);
+        if (!animate || from == target) return;
+        var storyboard = ((Storyboard)Resources[dark ? "LightToDark" : "DarkToLight"]).Clone();
+        ((ColorAnimation)storyboard.Children[0]).From = from;
+        storyboard.FillBehavior = FillBehavior.Stop;
+        storyboard.Completed += (_, _) =>
+        {
+            if (!ReferenceEquals(_themeStoryboard, storyboard)) return;
+            storyboard.Remove(this);
+            _themeStoryboard = null;
+        };
+        _themeStoryboard = storyboard;
+        storyboard.Begin(this, true);
     }
 
     private async Task TryShowFirstRunWelcomeAsync()

@@ -258,7 +258,15 @@ public partial class PluginPageViewModel
         IsPluginMarketMirrorSettingVisible = IsChineseCultureForPluginMarketMirror();
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
         _isPluginMarketInitialized = true;
-        _ = RefreshMarketAsync();
+    }
+
+    private bool _hasRequestedMarket;
+
+    internal void EnsureMarketLoaded()
+    {
+        if (_hasRequestedMarket) return;
+        _hasRequestedMarket = true;
+        if (!IsMarketLoading) _ = RefreshMarketAsync();
     }
 
     /// <summary>
@@ -345,32 +353,55 @@ public partial class PluginPageViewModel
         OnPropertyChanged(nameof(IsPluginDownloadVisible));
     }
 
-    /// <summary>
-    /// 重新加载插件市场列表。
-    /// </summary>
+    private bool _marketRefreshRequested;
+    private string? _loadingMarketSource;
+
+    /// <summary>重新加载插件市场列表，同源请求防重入，切源请求串行追赶最新意图。</summary>
     [RelayCommand]
     private async Task RefreshMarketAsync()
     {
-        var selectedId = SelectedMarketPlugin?.Id;
+        if (IsMarketLoading)
+        {
+            _marketRefreshRequested |= _loadingMarketSource != SelectedPluginMarketSource;
+            return;
+        }
+        IsMarketLoading = true;
         try
         {
-            IsMarketLoading = true;
-            MarketErrorMessage = string.Empty;
-            var items = await _pluginMarketService.GetMarketPluginsAsync();
-            MarketPluginsCollection = new ObservableCollection<PluginMarketItem>(items);
-            RefreshMarketPluginStates();
-            SelectedMarketPlugin = string.IsNullOrWhiteSpace(selectedId)
-                ? null
-                : MarketPluginsCollection.FirstOrDefault(x => x.Id == selectedId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error when loading plugin market");
-            MarketErrorMessage = ex.Message;
+            do
+            {
+                _marketRefreshRequested = false;
+                _loadingMarketSource = SelectedPluginMarketSource;
+                MarketErrorMessage = string.Empty;
+                try
+                {
+                    var items = await _pluginMarketService.GetMarketPluginsAsync();
+                    // 源在请求期间变化时保留旧列表，串行请求最新源，避免迟到响应覆盖新意图。
+                    if (_loadingMarketSource != SelectedPluginMarketSource)
+                    {
+                        _marketRefreshRequested = true;
+                        continue;
+                    }
+                    var selectedId = SelectedMarketPlugin?.Id;
+                    PresentationCollection.Reconcile(MarketPluginsCollection, items, item => item.Id,
+                        (previous, current) => previous.HasSameCatalogData(current));
+                    RefreshMarketPluginStates();
+                    SelectedMarketPlugin = string.IsNullOrWhiteSpace(selectedId)
+                        ? null
+                        : MarketPluginsCollection.FirstOrDefault(x => x.Id == selectedId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error when loading plugin market");
+                    if (_loadingMarketSource == SelectedPluginMarketSource) MarketErrorMessage = ex.Message;
+                    else _marketRefreshRequested = true;
+                }
+            } while (_marketRefreshRequested);
         }
         finally
         {
             IsMarketLoading = false;
+            _loadingMarketSource = null;
         }
     }
 
