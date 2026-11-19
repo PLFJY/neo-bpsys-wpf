@@ -15,19 +15,6 @@ public sealed class ModernNavigationEntry : INotifyPropertyChanged
 {
     private string _displayText = string.Empty;
     private bool _isSelected;
-    private bool _hasNotification;
-
-    /// <summary>获取或设置导航条目是否显示通知角标。</summary>
-    public bool HasNotification
-    {
-        get => _hasNotification;
-        set
-        {
-            if (_hasNotification == value) return;
-            _hasNotification = value;
-            OnPropertyChanged();
-        }
-    }
 
     /// <summary>
     /// 初始化 <see cref="ModernNavigationEntry"/> 的新实例。

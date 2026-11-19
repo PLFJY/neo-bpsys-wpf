@@ -75,6 +75,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ContentControl
                     Grid.Column="0"
@@ -91,6 +92,9 @@
                     Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                     Text="{Binding DisplayText}"
                     TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Margin="0,0,8,0" VerticalAlignment="Center" Text="➊"
+                    Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                    Visibility="{Binding SourceNavigationViewItem.(navigation:ModernNavigationView.HasNotification), Converter={StaticResource BooleanToVisibilityConverter}}" />
             </Grid>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsPaneOpen, RelativeSource={RelativeSource AncestorType={x:Type navigation:ModernNavigationView}}}" Value="False">
@@ -107,7 +111,6 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ContentControl
                     Grid.Column="0"
@@ -124,9 +127,6 @@
                     Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}"
                     Text="{Binding DisplayText}"
                     TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="2" Margin="0,0,10,0" VerticalAlignment="Center"
-                    Text="➊" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
-                    Visibility="{Binding HasNotification, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </Grid>
         </DataTemplate>
 

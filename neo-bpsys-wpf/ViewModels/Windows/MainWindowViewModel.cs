@@ -34,6 +34,9 @@ public partial class MainWindowViewModel :
     IRecipient<PropertyChangedMessage<bool>>,
     IRecipient<HighlightMessage>
 {
+    /// <summary>主导航插件入口是否显示可更新通知。</summary>
+    [ObservableProperty]
+    public partial bool HasPluginUpdates { get; set; }
 #pragma warning disable CS8618
     public MainWindowViewModel()
 #pragma warning restore CS8618
@@ -222,7 +225,11 @@ public partial class MainWindowViewModel :
                     MenuItems.Add(new NavigationViewItem(info.Name, info.Icon, info.PageType));
                     break;
                 case BackendPageCategory.External:
-                    FooterMenuItems.Insert(0, new NavigationViewItem(info.Name, info.Icon, info.PageType));
+                    var item = new NavigationViewItem(info.Name, info.Icon, info.PageType);
+                    if (info.PageType == typeof(PluginPage))
+                        item.SetBinding(Controls.Modern.Navigation.ModernNavigationView.HasNotificationProperty,
+                            new System.Windows.Data.Binding(nameof(HasPluginUpdates)) { Source = this });
+                    FooterMenuItems.Insert(0, item);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -511,6 +518,10 @@ public partial class MainWindowViewModel :
     {
         switch (message.PropertyName)
         {
+            case nameof(Pages.PluginPageViewModel.HasInstalledPluginUpdates)
+                when message.Sender is Pages.PluginPageViewModel:
+                HasPluginUpdates = message.NewValue;
+                break;
             case nameof(IGameGuidanceService.IsGuidanceStarted)
                 when message.NewValue != IsGuidanceStarted:
                 IsGuidanceStarted = message.NewValue;

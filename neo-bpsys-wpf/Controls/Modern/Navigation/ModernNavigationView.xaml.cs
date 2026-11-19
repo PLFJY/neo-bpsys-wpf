@@ -23,6 +23,19 @@ namespace neo_bpsys_wpf.Controls.Modern.Navigation;
 /// </summary>
 public partial class ModernNavigationView : UserControl, INavigationView
 {
+    /// <summary>标识源导航项是否显示通知角标的附加属性。</summary>
+    public static readonly DependencyProperty HasNotificationProperty = DependencyProperty.RegisterAttached(
+        "HasNotification", typeof(bool), typeof(ModernNavigationView), new PropertyMetadata(false));
+
+    /// <summary>读取源导航项的通知状态。</summary>
+    /// <param name="item">源导航项。</param>
+    /// <returns>是否显示通知角标。</returns>
+    public static bool GetHasNotification(DependencyObject item) => (bool)item.GetValue(HasNotificationProperty);
+
+    /// <summary>设置源导航项的通知状态。</summary>
+    /// <param name="item">源导航项。</param>
+    /// <param name="value">是否显示通知角标。</param>
+    public static void SetHasNotification(DependencyObject item, bool value) => item.SetValue(HasNotificationProperty, value);
     /// <summary>
     /// <see cref="Header"/> 依赖属性的标识符。
     /// </summary>

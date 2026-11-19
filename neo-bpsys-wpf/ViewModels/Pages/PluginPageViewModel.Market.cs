@@ -758,6 +758,7 @@ public partial class PluginPageViewModel
     /// </summary>
     private void RefreshMarketPluginStates()
     {
+        var hadUpdates = HasInstalledPluginUpdates;
         foreach (var plugin in PluginsCollection)
         {
             var item = MarketPluginsCollection.FirstOrDefault(item => item.Id == plugin.Manifest.Id);
@@ -772,6 +773,8 @@ public partial class PluginPageViewModel
 
         ExecutePrimaryMarketActionCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(HasInstalledPluginUpdates));
+        if (hadUpdates != HasInstalledPluginUpdates)
+            Broadcast(hadUpdates, HasInstalledPluginUpdates, nameof(HasInstalledPluginUpdates));
     }
 
     /// <summary>

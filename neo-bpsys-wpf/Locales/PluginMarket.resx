@@ -26,7 +26,7 @@
     <value>点击重启</value>
   </data>
   <data name="ProjectUrl">
-    <value>项目URL：</value>
+    <value>项目 URL：</value>
   </data>
   <data name="InstallPluginFromFile">
     <value>从文件安装插件</value>

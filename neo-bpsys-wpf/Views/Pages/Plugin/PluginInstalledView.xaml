@@ -16,20 +16,18 @@
    <TextBlock Margin="0,8,0,0" Text="{lex:Loc PluginMarketUpdateAvailable}" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
     Visibility="{Binding HasInstalledPluginUpdates, Converter={StaticResource BoolVisibility}}"/>
   </StackPanel>
-  <ListBox x:Name="InstalledCatalog" Grid.Row="1" ItemsSource="{Binding PluginsCollection}"
+  <ItemsControl x:Name="InstalledCatalog" Grid.Row="1" ItemsSource="{Binding PluginsCollection}"
    AutomationProperties.Name="{lex:Loc Installed}" Background="Transparent" BorderThickness="0" Padding="0,4,0,0"
    scrolling:ModernScroll.Ownership="Self" scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
    VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-   VirtualizingPanel.ScrollUnit="Pixel" ScrollViewer.CanContentScroll="True"
-   ScrollViewer.HorizontalScrollBarVisibility="Disabled" motion:ListTransitions.IsEnabled="True">
-   <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel/></ItemsPanelTemplate></ListBox.ItemsPanel>
-   <ListBox.ItemContainerStyle><Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-    <Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="Margin" Value="0,0,0,8"/>
-    <Setter Property="Padding" Value="0"/><Setter Property="Background" Value="Transparent"/>
-    <Setter Property="AutomationProperties.Name" Value="{Binding Manifest.Name}"/>
-   </Style></ListBox.ItemContainerStyle>
-   <ListBox.ItemTemplate><DataTemplate>
-    <Border Padding="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+   VirtualizingPanel.ScrollUnit="Pixel" ScrollViewer.CanContentScroll="True" motion:ListTransitions.IsEnabled="True">
+   <ItemsControl.Template><ControlTemplate TargetType="ItemsControl">
+    <ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+     Padding="{TemplateBinding Padding}"><ItemsPresenter/></ScrollViewer>
+   </ControlTemplate></ItemsControl.Template>
+   <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+   <ItemsControl.ItemTemplate><DataTemplate>
+    <Border Margin="0,0,0,8" Padding="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
      Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
      <StackPanel>
       <Grid>
@@ -48,23 +46,33 @@
        </StackPanel>
       </Grid>
       <TextBlock Margin="0,12,0,0" Text="{Binding Manifest.Description}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-      <WrapPanel Margin="0,12,0,0">
+      <DockPanel Margin="0,12,0,0">
+       <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="{lex:Loc ProjectUrl}"
+        Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+       <ui:HyperlinkButton Padding="0" HorizontalAlignment="Left" HorizontalContentAlignment="Left"
+        NavigateUri="{Binding Manifest.Url}" ToolTip="{Binding Manifest.Url}">
+        <TextBlock Text="{Binding Manifest.Url}" TextWrapping="Wrap"/>
+       </ui:HyperlinkButton>
+      </DockPanel>
+      <Grid Margin="0,12,0,0">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <WrapPanel Grid.Column="0">
        <ui:Button Margin="0,0,8,8" Content="{lex:Loc MarketUpdate}" Icon="{ui:SymbolIcon ArrowSync24}" Appearance="Primary"
         Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolVisibility}}"
-        Command="{Binding DataContext.OpenInstalledPluginUpdateCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
+        Command="{Binding DataContext.OpenInstalledPluginUpdateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
        <ui:ToggleSwitch Margin="0,0,16,8" VerticalAlignment="Center" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
         Content="{lex:Loc Enable}" AutomationProperties.Name="{lex:Loc Enable}" IsChecked="{Binding IsEnabled, Mode=OneWay}"
-        Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/>
-       <ui:HyperlinkButton Margin="0,0,8,8" Content="{lex:Loc ProjectUrl}" NavigateUri="{Binding Manifest.Url}" ToolTip="{Binding Manifest.Url}"/>
-       <ui:Button Margin="0,0,0,8" Icon="{ui:SymbolIcon Delete24}"
-        Command="{Binding DataContext.ToggleUninstallCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}">
+        Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
+       </WrapPanel>
+       <ui:Button Grid.Column="1" Margin="12,0,0,8" VerticalAlignment="Top" HorizontalAlignment="Right" Icon="{ui:SymbolIcon Delete24}"
+        Command="{Binding DataContext.ToggleUninstallCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
         <TextBlock><TextBlock.Style><Style TargetType="TextBlock">
          <Setter Property="Text" Value="{lex:Loc Uninstall}"/>
          <Style.Triggers><DataTrigger Binding="{Binding IsUninstalling}" Value="True"><Setter Property="Text" Value="{lex:Loc CancelUninstall}"/></DataTrigger>
           <DataTrigger Binding="{Binding IsBuiltIn}" Value="True"><Setter Property="Text" Value="{lex:Loc PluginNotRemovable}"/></DataTrigger></Style.Triggers>
         </Style></TextBlock.Style></TextBlock>
        </ui:Button>
-      </WrapPanel>
+      </Grid>
       <TextBlock Text="{lex:Loc PluginMarketUpdateAvailable}" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
        Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolVisibility}}" motion:ContentEntrance.IsEnabled="True"/>
       <TextBlock Text="{lex:Loc RestartToApplyChanges}" TextWrapping="Wrap" Foreground="{DynamicResource SystemFillColorCautionBrush}"
@@ -74,7 +82,7 @@
       </TextBlock>
      </StackPanel>
     </Border>
-   </DataTemplate></ListBox.ItemTemplate>
-  </ListBox>
+   </DataTemplate></ItemsControl.ItemTemplate>
+  </ItemsControl>
  </Grid>
 </UserControl>
