@@ -396,6 +396,16 @@ public partial class PluginPageViewModel
 
     private bool CanRefreshMarket() => !IsMarketLoading;
 
+    /// <summary>是否有已安装插件可从当前市场更新。</summary>
+    public bool HasInstalledPluginUpdates => PluginsCollection.Any(plugin => plugin.IsUpdateAvailable);
+
+    [RelayCommand]
+    private void OpenInstalledPluginUpdate(PluginInfo? plugin)
+    {
+        var item = MarketPluginsCollection.FirstOrDefault(item => item.Id == plugin?.Manifest.Id);
+        if (item is not null) SelectedMarketPlugin = item;
+    }
+
     private void ApplyMarketCatalog(IReadOnlyList<PluginMarketItem> items, PluginMarketCatalogContext context)
     {
         var selectedId = SelectedMarketPlugin?.Id;
@@ -441,6 +451,7 @@ public partial class PluginPageViewModel
                             (previous, current) => previous.HasSameCatalogData(current));
                         _displayedMarketContext = context;
                         HasMarketSnapshot = false;
+                        RefreshMarketPluginStates();
                         var cached = await _marketCatalogCache.ReadAsync(context, cancellation.Token);
                         if (context != CaptureMarketContext()) { _marketRefreshRequested = true; continue; }
                         if (cached is not null)
@@ -747,12 +758,20 @@ public partial class PluginPageViewModel
     /// </summary>
     private void RefreshMarketPluginStates()
     {
+        foreach (var plugin in PluginsCollection)
+        {
+            var item = MarketPluginsCollection.FirstOrDefault(item => item.Id == plugin.Manifest.Id);
+            plugin.IsUpdateAvailable = item is not null && !plugin.IsUninstalling
+                && PluginApiVersionHelper.Evaluate(item.ApiVersion).IsCompatible
+                && CompareVersion(item.Version, GetDisplayedLocalPluginVersion(plugin)) > 0;
+        }
         foreach (var item in MarketPluginsCollection)
         {
             ApplyMarketPluginState(item);
         }
 
         ExecutePrimaryMarketActionCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(HasInstalledPluginUpdates));
     }
 
     /// <summary>

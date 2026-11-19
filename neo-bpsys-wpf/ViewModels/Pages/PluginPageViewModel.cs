@@ -86,6 +86,7 @@ public partial class PluginPageViewModel : ViewModelBase
         try
         {
             plugin.IsEnabled = !plugin.IsEnabled;
+            RefreshMarketPluginStates();
             _globalRestartService.IsRestartRequired = true;
         }
         catch (Exception ex)
@@ -100,6 +101,7 @@ public partial class PluginPageViewModel : ViewModelBase
         try
         {
             plugin.IsUninstalling = !plugin.IsUninstalling;
+            RefreshMarketPluginStates();
             if (plugin.IsRestartRequired)
             {
                 _globalRestartService.IsRestartRequired = true;

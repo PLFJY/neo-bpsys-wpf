@@ -203,4 +203,5 @@
   <data name="MarketRefreshFailed" xml:space="preserve">
     <value>后台刷新失败，已保留上次的插件列表。</value>
   </data>
+  <data name="InstalledPluginsHint" xml:space="preserve"><value>管理已安装插件，启用、停用及卸载操作将在重启后生效。</value></data>
 </root>
