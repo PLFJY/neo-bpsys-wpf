@@ -6,11 +6,11 @@
 public interface IInfoBarService
 {
     /// <summary>
-    /// 关闭 InfoBar
+    /// 请求关闭当前 InfoBar；可见展示不足五秒时延后关闭，用户手动关闭不受限制。
     /// </summary>
     void CloseInfoBar();
     /// <summary>
-    /// 设置 InfoBar 控件
+    /// 设置 InfoBar 控件，并呈现控件就绪前排队的消息。
     /// </summary>
     /// <param name="infoBar">InfoBar 控件实例</param>
     void SetInfoBarControl(object infoBar);
