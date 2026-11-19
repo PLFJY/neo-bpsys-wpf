@@ -98,7 +98,9 @@
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding AnnouncementCenter.IsOpen}" Value="True">
                             <Setter Property="Effect">
-                                <Setter.Value><BlurEffect Radius="5" /></Setter.Value>
+                                <Setter.Value>
+                                    <BlurEffect Radius="5" />
+                                </Setter.Value>
                             </Setter>
                         </DataTrigger>
                     </Style.Triggers>
@@ -348,17 +350,16 @@
                 </Canvas>
                 <modernNavigation:ModernNavigationView
                     x:Name="RootNavigation"
-                    PageContentScrollHostMode="Auto"
                     FooterMenuItemsSource="{Binding FooterMenuItems}"
                     IsBackButtonVisible="Collapsed"
                     IsPaneOpen="True"
                     IsPaneToggleVisible="True"
                     MenuItemsSource="{Binding MenuItems}"
-                    OpenPaneLength="200" />
+                    OpenPaneLength="200"
+                    PageContentScrollHostMode="Auto" />
             </Grid>
         </Grid>
-        <controls:AnnouncementOverlay Panel.ZIndex="4"
-                                      DataContext="{Binding AnnouncementCenter}" />
+        <controls:AnnouncementOverlay Panel.ZIndex="4" DataContext="{Binding AnnouncementCenter}" />
         <!--  主题切换相关的东西  -->
         <Border
             x:Name="themeMask"

@@ -40,8 +40,8 @@
             IsThemeChangeVisible="False" />
         <modernFrame:ModernFrame
             x:Name="PageHost"
-            ContentScrollHostMode="Auto"
             Grid.Row="1"
+            ContentScrollHostMode="Auto"
             IsAnimationEnabled="False" />
     </Grid>
 </ui:FluentWindow>

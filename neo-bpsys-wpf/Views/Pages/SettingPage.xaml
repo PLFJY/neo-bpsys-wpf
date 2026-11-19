@@ -196,15 +196,22 @@
                                 Margin="0,0,10,10"
                                 Command="{Binding UpdateCheckCommand}"
                                 Icon="{ui:SymbolIcon ArrowSync24}">
-                                <StackPanel Orientation="Horizontal"
+                                <StackPanel
                                     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings">
-                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc CheckForUpdates}"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings"
+                                    Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Text="{lex:Loc CheckForUpdates}"
                                         Visibility="{Binding HasAppUpdate, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc UpdatePending}"
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Text="{lex:Loc UpdatePending}"
                                         Visibility="{Binding HasAppUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                    <ui:InfoBadge Margin="8,0,0,0" Value="{Binding AppUpdateCount}"
-                                        Visibility="{Binding HasAppUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <ui:InfoBadge
+                                        Margin="8,0,0,0"
+                                        Visibility="{Binding HasAppUpdate, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                        Value="{Binding AppUpdateCount}" />
                                 </StackPanel>
                             </ui:Button>
                             <ui:Button

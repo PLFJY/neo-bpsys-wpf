@@ -15,8 +15,8 @@
                             x:Name="PART_TriggerButton"
                             Background="DarkRed"
                             Content="{TemplateBinding ButtonText}"
-                            IsEnabled="{Binding CanConfirm, RelativeSource={RelativeSource TemplatedParent}}"
-                            Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                            Icon="{ui:SymbolIcon Symbol=Delete24}"
+                            IsEnabled="{Binding CanConfirm, RelativeSource={RelativeSource TemplatedParent}}" />
                         <ui:Flyout
                             Margin="0,0,0,10"
                             IsOpen="{Binding IsConfirmationOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
@@ -45,8 +45,8 @@
                                         Command="{TemplateBinding Command}"
                                         CommandParameter="{TemplateBinding CommandParameter}"
                                         Content="{lex:Loc Delete}"
-                                        IsEnabled="{Binding CanConfirm, RelativeSource={RelativeSource TemplatedParent}}"
-                                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                                        Icon="{ui:SymbolIcon Symbol=Delete24}"
+                                        IsEnabled="{Binding CanConfirm, RelativeSource={RelativeSource TemplatedParent}}" />
                                 </StackPanel>
                             </StackPanel>
                         </ui:Flyout>

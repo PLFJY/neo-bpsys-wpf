@@ -8,12 +8,12 @@
     Title="{lex:Loc EditInGameScores}"
     Width="1120"
     Height="540"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     ResizeMode="CanResize"
-    WindowStartupLocation="CenterOwner"
-    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score">
+    WindowStartupLocation="CenterOwner">
     <WindowChrome.WindowChrome>
         <WindowChrome
             CaptionHeight="35"
@@ -48,7 +48,10 @@
                     </Grid>
                 </Viewbox>
             </Border>
-            <Border Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource Card}">
+            <Border
+                Grid.Column="1"
+                Margin="8,0,0,0"
+                Style="{StaticResource Card}">
                 <Viewbox Stretch="Uniform">
                     <Grid>
                         <Canvas x:Name="HunPreviewCanvas" />
@@ -57,11 +60,25 @@
                 </Viewbox>
             </Border>
         </Grid>
-        <Border Grid.Row="2" Margin="16" Style="{StaticResource Card}">
+        <Border
+            Grid.Row="2"
+            Margin="16"
+            Style="{StaticResource Card}">
             <StackPanel>
-                <TextBlock x:Name="SelectionText" Style="{StaticResource Title}" Text="{lex:Loc SelectEditableScore}" />
-                <StackPanel x:Name="EditorPanel" Margin="0,10,0,0" IsEnabled="False" Orientation="Horizontal" Visibility="Collapsed">
-                    <TextBlock x:Name="PrimaryLabel" Width="120" VerticalAlignment="Center" />
+                <TextBlock
+                    x:Name="SelectionText"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc SelectEditableScore}" />
+                <StackPanel
+                    x:Name="EditorPanel"
+                    Margin="0,10,0,0"
+                    IsEnabled="False"
+                    Orientation="Horizontal"
+                    Visibility="Collapsed">
+                    <TextBlock
+                        x:Name="PrimaryLabel"
+                        Width="120"
+                        VerticalAlignment="Center" />
                     <ui:NumberBox
                         x:Name="PrimaryValueBox"
                         Width="180"
@@ -69,7 +86,11 @@
                         MaxDecimalPlaces="0"
                         SmallChange="1"
                         SpinButtonPlacementMode="Compact" />
-                    <TextBlock x:Name="SecondaryLabel" Width="100" Margin="24,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock
+                        x:Name="SecondaryLabel"
+                        Width="100"
+                        Margin="24,0,0,0"
+                        VerticalAlignment="Center" />
                     <ui:NumberBox
                         x:Name="SecondaryValueBox"
                         Width="180"

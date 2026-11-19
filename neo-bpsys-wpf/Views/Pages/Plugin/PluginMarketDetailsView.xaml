@@ -1,117 +1,214 @@
-<UserControl x:Class="neo_bpsys_wpf.Views.Pages.Plugin.PluginMarketDetailsView" x:Name="DetailsRoot"
+<UserControl
+    x:Class="neo_bpsys_wpf.Views.Pages.Plugin.PluginMarketDetailsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
-    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
-    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    x:Name="DetailsRoot"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
     scrolling:ModernScroll.Ownership="Self">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </UserControl.Resources>
-    <scrolling:ModernScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <scrolling:ModernScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <StackPanel x:Name="PluginContent" Margin="0,0,4,16">
-            <Border Padding="24" CornerRadius="8" BorderThickness="1"
+            <Border
+                Padding="24"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
                 <StackPanel>
                     <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="64" Height="64" Margin="0,0,16,0" CornerRadius="12" VerticalAlignment="Top"
-                            Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border
+                            Width="64"
+                            Height="64"
+                            Margin="0,0,16,0"
+                            VerticalAlignment="Top"
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                            CornerRadius="12">
                             <Grid>
-                                <ui:SymbolIcon Symbol="AppsAddIn24" FontSize="28" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                <ui:Image Source="{Binding ResolvedIconUrl}" CornerRadius="12" Stretch="UniformToFill" />
+                                <ui:SymbolIcon
+                                    FontSize="28"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Symbol="AppsAddIn24" />
+                                <ui:Image
+                                    CornerRadius="12"
+                                    Source="{Binding ResolvedIconUrl}"
+                                    Stretch="UniformToFill" />
                             </Grid>
                         </Border>
                         <StackPanel Grid.Column="1">
-                            <TextBlock Text="{Binding Name}" FontSize="28" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock
+                                FontSize="28"
+                                FontWeight="SemiBold"
+                                Text="{Binding Name}"
+                                TextWrapping="Wrap" />
                             <WrapPanel Margin="0,8,0,0">
-                                <TextBlock Text="{Binding Version, StringFormat=v{0}}" Margin="0,0,16,4"
-                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                <TextBlock Text="{Binding Author}" Margin="0,0,0,4" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <TextBlock
+                                    Margin="0,0,16,4"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{Binding Version, StringFormat=v{0}}" />
+                                <TextBlock
+                                    Margin="0,0,0,4"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{Binding Author}" />
                             </WrapPanel>
                         </StackPanel>
                     </Grid>
-                    <TextBlock Margin="0,16,0,0" Text="{Binding Description}" TextWrapping="Wrap"
-                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    <TextBlock
+                        Margin="0,16,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{Binding Description}"
+                        TextWrapping="Wrap" />
                     <WrapPanel Margin="0,20,0,0">
-                        <ui:Button Margin="0,0,8,8" MinWidth="120" Appearance="Primary" Icon="{ui:SymbolIcon ArrowDownload24}"
-                            Content="{lex:Loc {Binding PrimaryActionKey}, FallbackBehavior=Key}"
-                            Command="{Binding DataContext.ExecutePrimaryMarketActionCommand, ElementName=DetailsRoot}" />
-                        <ui:Button Margin="0,0,8,8" Icon="{ui:SymbolIcon Delete24}"
-                            Content="{lex:Loc {Binding UninstallActionKey}, FallbackBehavior=Key}"
-                            Command="{Binding DataContext.ToggleSelectedMarketPluginUninstallCommand, ElementName=DetailsRoot}">
+                        <ui:Button
+                            MinWidth="120"
+                            Margin="0,0,8,8"
+                            Appearance="Primary"
+                            Command="{Binding DataContext.ExecutePrimaryMarketActionCommand, ElementName=DetailsRoot}"
+                            Content="{lex:Loc {Binding PrimaryActionKey},
+                                              FallbackBehavior=Key}"
+                            Icon="{ui:SymbolIcon ArrowDownload24}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding DataContext.ToggleSelectedMarketPluginUninstallCommand, ElementName=DetailsRoot}"
+                            Content="{lex:Loc {Binding UninstallActionKey},
+                                              FallbackBehavior=Key}"
+                            Icon="{ui:SymbolIcon Delete24}">
                             <ui:Button.Style>
-                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
                                     <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers><DataTrigger Binding="{Binding CanUninstall}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CanUninstall}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
                                 </Style>
                             </ui:Button.Style>
                         </ui:Button>
-                        <ui:HyperlinkButton Margin="0,0,0,8" NavigateUri="{Binding Url}" Content="{lex:Loc MarketProjectWebsite}"
-                            Icon="{ui:SymbolIcon Link24}">
+                        <ui:HyperlinkButton
+                            Margin="0,0,0,8"
+                            Content="{lex:Loc MarketProjectWebsite}"
+                            Icon="{ui:SymbolIcon Link24}"
+                            NavigateUri="{Binding Url}">
                             <ui:HyperlinkButton.Style>
-                                <Style TargetType="ui:HyperlinkButton" BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}">
+                                <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
                                     <Setter Property="Visibility" Value="Visible" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Url}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
-                                        <DataTrigger Binding="{Binding Url}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                        <DataTrigger Binding="{Binding Url}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Url}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </ui:HyperlinkButton.Style>
                         </ui:HyperlinkButton>
                     </WrapPanel>
-                    <Border Margin="0,8,0,0" Padding="12" CornerRadius="6"
+                    <Border
+                        Margin="0,8,0,0"
+                        Padding="12"
                         Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                        CornerRadius="6"
                         Visibility="{Binding IsStatusVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="{lex:Loc {Binding MarketStatusKey}, FallbackBehavior=Key}" TextWrapping="Wrap"
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <TextBlock
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{lex:Loc {Binding MarketStatusKey},
+                                           FallbackBehavior=Key}"
+                            TextWrapping="Wrap" />
                     </Border>
-                    <StackPanel Margin="0,16,0,0" motion:ContentEntrance.IsEnabled="True"
+                    <StackPanel
+                        Margin="0,16,0,0"
+                        motion:ContentEntrance.IsEnabled="True"
                         Visibility="{Binding DataContext.IsPluginDownloadVisible, ElementName=DetailsRoot, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ProgressBar Height="4" Minimum="0" Maximum="100"
+                        <ProgressBar
+                            Height="4"
+                            Maximum="100"
+                            Minimum="0"
                             Value="{Binding DataContext.PluginDownloadProgress, ElementName=DetailsRoot}" />
                         <WrapPanel Margin="0,8,0,0">
-                            <TextBlock Margin="0,0,12,8" VerticalAlignment="Center"
+                            <TextBlock
+                                Margin="0,0,12,8"
+                                VerticalAlignment="Center"
                                 Text="{Binding DataContext.PluginDownloadProgressText, ElementName=DetailsRoot}" />
-                            <TextBlock Margin="0,0,12,8" VerticalAlignment="Center"
-                                Text="{Binding DataContext.PluginDownloadSpeedText, ElementName=DetailsRoot}"
-                                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                            <ui:Button Margin="0,0,0,8" Appearance="Transparent" Icon="{ui:SymbolIcon ArrowDownload24}"
+                            <TextBlock
+                                Margin="0,0,12,8"
+                                VerticalAlignment="Center"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                Text="{Binding DataContext.PluginDownloadSpeedText, ElementName=DetailsRoot}" />
+                            <ui:Button
+                                Margin="0,0,0,8"
+                                Appearance="Transparent"
+                                Command="{Binding DataContext.ToggleDownloadQueueCommand, ElementName=DetailsRoot}"
                                 Content="{lex:Loc PluginMarketDownloadQueue}"
-                                Command="{Binding DataContext.ToggleDownloadQueueCommand, ElementName=DetailsRoot}" />
+                                Icon="{ui:SymbolIcon ArrowDownload24}" />
                         </WrapPanel>
                     </StackPanel>
                 </StackPanel>
             </Border>
-            <Border Margin="0,16,0,0" Padding="24" CornerRadius="8" BorderThickness="1"
+            <Border
+                Margin="0,16,0,0"
+                Padding="24"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
                 <StackPanel>
-                    <TextBlock Text="{lex:Loc MarketAboutPlugin}" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,16" />
-                    <StackPanel Orientation="Horizontal" motion:ContentEntrance.IsEnabled="True"
+                    <TextBlock
+                        Margin="0,0,0,16"
+                        FontSize="20"
+                        FontWeight="SemiBold"
+                        Text="{lex:Loc MarketAboutPlugin}" />
+                    <StackPanel
+                        motion:ContentEntrance.IsEnabled="True"
+                        Orientation="Horizontal"
                         Visibility="{Binding IsReadmeLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <ui:ProgressRing Width="24" Height="24" IsIndeterminate="True" />
-                        <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="{lex:Loc MarketReadmeLoading}"
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <ui:ProgressRing
+                            Width="24"
+                            Height="24"
+                            IsIndeterminate="True" />
+                        <TextBlock
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{lex:Loc MarketReadmeLoading}" />
                     </StackPanel>
-                    <StackPanel motion:ContentEntrance.IsEnabled="True"
-                        Visibility="{Binding HasReadmeError, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="{lex:Loc MarketReadmeFailed}" FontWeight="SemiBold" />
-                        <TextBlock Text="{Binding ReadmeErrorMessage}" TextWrapping="Wrap" Margin="0,8,0,0"
-                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                        <ui:Button Content="{lex:Loc MarketRetry}" Icon="{ui:SymbolIcon ArrowSync24}" Margin="0,12,0,0"
-                            HorizontalAlignment="Left" Command="{Binding DataContext.RetryMarketReadmeCommand, ElementName=DetailsRoot}" />
+                    <StackPanel motion:ContentEntrance.IsEnabled="True" Visibility="{Binding HasReadmeError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock FontWeight="SemiBold" Text="{lex:Loc MarketReadmeFailed}" />
+                        <TextBlock
+                            Margin="0,8,0,0"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{Binding ReadmeErrorMessage}"
+                            TextWrapping="Wrap" />
+                        <ui:Button
+                            Margin="0,12,0,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding DataContext.RetryMarketReadmeCommand, ElementName=DetailsRoot}"
+                            Content="{lex:Loc MarketRetry}"
+                            Icon="{ui:SymbolIcon ArrowSync24}" />
                     </StackPanel>
-                    <TextBlock Text="{lex:Loc MarketReadmeEmpty}" TextWrapping="Wrap" motion:ContentEntrance.IsEnabled="True"
+                    <TextBlock
+                        motion:ContentEntrance.IsEnabled="True"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc MarketReadmeEmpty}"
+                        TextWrapping="Wrap"
                         Visibility="{Binding IsReadmeEmpty, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <md:MarkdownViewer x:Name="Readme" Markdown="{Binding ReadmeMarkdown}" FontFamily="{DynamicResource NotoSans}"
-                        HorizontalContentAlignment="Stretch" motion:ContentEntrance.IsEnabled="True"
+                    <md:MarkdownViewer
+                        x:Name="Readme"
+                        HorizontalContentAlignment="Stretch"
+                        motion:ContentEntrance.IsEnabled="True"
+                        FontFamily="{DynamicResource NotoSans}"
+                        Markdown="{Binding ReadmeMarkdown}"
                         Visibility="{Binding HasReadmeContent, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
             </Border>

@@ -27,7 +27,10 @@
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     </Page.Resources>
     <StackPanel>
-        <Border Margin="0,0,10,10" HorizontalAlignment="Left" Style="{StaticResource Card}">
+        <Border
+            Margin="0,0,10,10"
+            HorizontalAlignment="Left"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

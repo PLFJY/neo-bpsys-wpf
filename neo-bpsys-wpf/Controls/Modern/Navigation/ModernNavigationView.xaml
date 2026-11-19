@@ -92,7 +92,10 @@
                     Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                     Text="{Binding DisplayText}"
                     TextTrimming="CharacterEllipsis" />
-                <ContentPresenter Grid.Column="2" Margin="0,0,8,0" VerticalAlignment="Center"
+                <ContentPresenter
+                    Grid.Column="2"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
                     Content="{Binding SourceNavigationViewItem.InfoBadge}" />
             </Grid>
             <DataTemplate.Triggers>

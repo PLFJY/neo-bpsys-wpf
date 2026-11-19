@@ -10,12 +10,12 @@
     Title="{lex:Loc EditGlobalScores}"
     Width="1260"
     Height="680"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     ResizeMode="CanResize"
-    WindowStartupLocation="CenterOwner"
-    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
-    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score">
+    WindowStartupLocation="CenterOwner">
     <WindowChrome.WindowChrome>
         <WindowChrome
             CaptionHeight="35"
@@ -46,7 +46,10 @@
             IsMinimizeVisible="False"
             IsThemeChangeVisible="False"
             IsTopMostVisible="False" />
-        <Border Grid.Row="1" Margin="16,8,16,0" Style="{StaticResource Card}">
+        <Border
+            Grid.Row="1"
+            Margin="16,8,16,0"
+            Style="{StaticResource Card}">
             <Viewbox Stretch="Uniform">
                 <Grid>
                     <Canvas x:Name="PreviewCanvas" />
@@ -54,20 +57,31 @@
                 </Grid>
             </Viewbox>
         </Border>
-        <Border Grid.Row="2" Margin="16" Style="{StaticResource Card}">
+        <Border
+            Grid.Row="2"
+            Margin="16"
+            Style="{StaticResource Card}">
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock x:Name="SelectionText" VerticalAlignment="Center" Style="{StaticResource Title}" Text="{lex:Loc SelectGlobalHalf}" />
+                    <TextBlock
+                        x:Name="SelectionText"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource Title}"
+                        Text="{lex:Loc SelectGlobalHalf}" />
                     <CheckBox
                         x:Name="CompletedCheckBox"
                         Margin="20,0,0,0"
                         VerticalAlignment="Center"
-                        Visibility="Collapsed"
                         Checked="CompletedCheckBox_Checked"
                         Content="{lex:Loc IsGameCompleted}"
-                        IsChecked="{Binding IsCompleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        IsChecked="{Binding IsCompleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Visibility="Collapsed" />
                 </StackPanel>
-                <Grid x:Name="EditorPanel" Margin="0,10,0,0" IsEnabled="False" Visibility="Collapsed">
+                <Grid
+                    x:Name="EditorPanel"
+                    Margin="0,10,0,0"
+                    IsEnabled="False"
+                    Visibility="Collapsed">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -79,16 +93,59 @@
                         FontWeight="SemiBold"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         Text="{lex:Loc PresetSectionTitle}" />
-                    <StackPanel Grid.Row="1" Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock Width="130" VerticalAlignment="Center" Text="{lex:Loc PresetCamp}" />
-                        <controls:ToggleStyledRadioButton x:Name="HomeSurvivorPresetRadio" Click="HomeSurvivorPreset_Click" GroupName="PresetSurvivorTeam" TagName="{lex:Loc HomeIsSurvivor}" />
-                        <controls:ToggleStyledRadioButton x:Name="AwaySurvivorPresetRadio" Click="AwaySurvivorPreset_Click" GroupName="PresetSurvivorTeam" TagName="{lex:Loc AwayIsSurvivor}" />
-                        <TextBlock Width="90" Margin="24,0,0,0" VerticalAlignment="Center" Text="{lex:Loc ResultPreset}" />
-                        <controls:ToggleStyledRadioButton x:Name="Escape4PresetRadio" Click="ResultPreset_Click" GroupName="FreeGlobalResult" Tag="{x:Static enums:GameResult.Escape4}" TagName="{lex:Loc FourEscape}" />
-                        <controls:ToggleStyledRadioButton x:Name="Escape3PresetRadio" Click="ResultPreset_Click" GroupName="FreeGlobalResult" Tag="{x:Static enums:GameResult.Escape3}" TagName="{lex:Loc ThreeEscape}" />
-                        <controls:ToggleStyledRadioButton x:Name="TiePresetRadio" Click="ResultPreset_Click" GroupName="FreeGlobalResult" Tag="{x:Static enums:GameResult.Tie}" TagName="{lex:Loc Tie}" />
-                        <controls:ToggleStyledRadioButton x:Name="Out3PresetRadio" Click="ResultPreset_Click" GroupName="FreeGlobalResult" Tag="{x:Static enums:GameResult.Out3}" TagName="{lex:Loc ThreeEliminate}" />
-                        <controls:ToggleStyledRadioButton x:Name="Out4PresetRadio" Click="ResultPreset_Click" GroupName="FreeGlobalResult" Tag="{x:Static enums:GameResult.Out4}" TagName="{lex:Loc FourEliminate}" />
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,6,0,0"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Width="130"
+                            VerticalAlignment="Center"
+                            Text="{lex:Loc PresetCamp}" />
+                        <controls:ToggleStyledRadioButton
+                            x:Name="HomeSurvivorPresetRadio"
+                            Click="HomeSurvivorPreset_Click"
+                            GroupName="PresetSurvivorTeam"
+                            TagName="{lex:Loc HomeIsSurvivor}" />
+                        <controls:ToggleStyledRadioButton
+                            x:Name="AwaySurvivorPresetRadio"
+                            Click="AwaySurvivorPreset_Click"
+                            GroupName="PresetSurvivorTeam"
+                            TagName="{lex:Loc AwayIsSurvivor}" />
+                        <TextBlock
+                            Width="90"
+                            Margin="24,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{lex:Loc ResultPreset}" />
+                        <controls:ToggleStyledRadioButton
+                            x:Name="Escape4PresetRadio"
+                            Click="ResultPreset_Click"
+                            GroupName="FreeGlobalResult"
+                            Tag="{x:Static enums:GameResult.Escape4}"
+                            TagName="{lex:Loc FourEscape}" />
+                        <controls:ToggleStyledRadioButton
+                            x:Name="Escape3PresetRadio"
+                            Click="ResultPreset_Click"
+                            GroupName="FreeGlobalResult"
+                            Tag="{x:Static enums:GameResult.Escape3}"
+                            TagName="{lex:Loc ThreeEscape}" />
+                        <controls:ToggleStyledRadioButton
+                            x:Name="TiePresetRadio"
+                            Click="ResultPreset_Click"
+                            GroupName="FreeGlobalResult"
+                            Tag="{x:Static enums:GameResult.Tie}"
+                            TagName="{lex:Loc Tie}" />
+                        <controls:ToggleStyledRadioButton
+                            x:Name="Out3PresetRadio"
+                            Click="ResultPreset_Click"
+                            GroupName="FreeGlobalResult"
+                            Tag="{x:Static enums:GameResult.Out3}"
+                            TagName="{lex:Loc ThreeEliminate}" />
+                        <controls:ToggleStyledRadioButton
+                            x:Name="Out4PresetRadio"
+                            Click="ResultPreset_Click"
+                            GroupName="FreeGlobalResult"
+                            Tag="{x:Static enums:GameResult.Out4}"
+                            TagName="{lex:Loc FourEliminate}" />
                     </StackPanel>
                     <Border
                         Grid.Row="2"
@@ -108,27 +165,61 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Width="90" VerticalAlignment="Center" Text="{lex:Loc HomeTeamScore}" />
-                            <ui:NumberBox Width="150" MaxDecimalPlaces="0" SmallChange="1" SpinButtonPlacementMode="Compact" Value="{Binding HomeMinorScore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <controls:ToggleStyledRadioButton GroupName="HomeCampIcon" IsChecked="{Binding HomeCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Sur}, Mode=TwoWay}" TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Survivor}" />
-                            <controls:ToggleStyledRadioButton GroupName="HomeCampIcon" IsChecked="{Binding HomeCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Hun}, Mode=TwoWay}" TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Hunter}" />
+                            <TextBlock
+                                Width="90"
+                                VerticalAlignment="Center"
+                                Text="{lex:Loc HomeTeamScore}" />
+                            <ui:NumberBox
+                                Width="150"
+                                MaxDecimalPlaces="0"
+                                SmallChange="1"
+                                SpinButtonPlacementMode="Compact"
+                                Value="{Binding HomeMinorScore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <controls:ToggleStyledRadioButton
+                                GroupName="HomeCampIcon"
+                                IsChecked="{Binding HomeCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Sur}, Mode=TwoWay}"
+                                TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Survivor}" />
+                            <controls:ToggleStyledRadioButton
+                                GroupName="HomeCampIcon"
+                                IsChecked="{Binding HomeCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Hun}, Mode=TwoWay}"
+                                TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Hunter}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <TextBlock Width="90" VerticalAlignment="Center" Text="{lex:Loc AwayTeamScore}" />
-                            <ui:NumberBox Width="150" MaxDecimalPlaces="0" SmallChange="1" SpinButtonPlacementMode="Compact" Value="{Binding AwayMinorScore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <controls:ToggleStyledRadioButton GroupName="AwayCampIcon" IsChecked="{Binding AwayCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Sur}, Mode=TwoWay}" TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Survivor}" />
-                            <controls:ToggleStyledRadioButton GroupName="AwayCampIcon" IsChecked="{Binding AwayCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Hun}, Mode=TwoWay}" TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Hunter}" />
+                            <TextBlock
+                                Width="90"
+                                VerticalAlignment="Center"
+                                Text="{lex:Loc AwayTeamScore}" />
+                            <ui:NumberBox
+                                Width="150"
+                                MaxDecimalPlaces="0"
+                                SmallChange="1"
+                                SpinButtonPlacementMode="Compact"
+                                Value="{Binding AwayMinorScore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <controls:ToggleStyledRadioButton
+                                GroupName="AwayCampIcon"
+                                IsChecked="{Binding AwayCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Sur}, Mode=TwoWay}"
+                                TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Survivor}" />
+                            <controls:ToggleStyledRadioButton
+                                GroupName="AwayCampIcon"
+                                IsChecked="{Binding AwayCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Camp.Hun}, Mode=TwoWay}"
+                                TagName="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.Common:Hunter}" />
                         </StackPanel>
                     </Grid>
                 </Grid>
-                <StackPanel x:Name="TotalEditorPanel" Margin="0,10,0,0" Visibility="Collapsed">
+                <StackPanel
+                    x:Name="TotalEditorPanel"
+                    Margin="0,10,0,0"
+                    Visibility="Collapsed">
                     <TextBlock
                         FontSize="14"
                         FontWeight="SemiBold"
                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         Text="{lex:Loc ManualEditSectionTitle}" />
                     <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
-                        <TextBlock x:Name="TotalLabel" Width="130" VerticalAlignment="Center" />
+                        <TextBlock
+                            x:Name="TotalLabel"
+                            Width="130"
+                            VerticalAlignment="Center" />
                         <ui:NumberBox
                             x:Name="TotalValueBox"
                             Width="150"

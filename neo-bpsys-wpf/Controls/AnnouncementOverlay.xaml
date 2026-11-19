@@ -33,8 +33,7 @@
                 <Style TargetType="Border">
                     <Setter Property="Background" Value="#202020" />
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding DataContext.ApplicationTheme, RelativeSource={RelativeSource AncestorType={x:Type ui:FluentWindow}}, Converter={StaticResource AnnouncementThemeConverter}}"
-                                     Value="False">
+                        <DataTrigger Binding="{Binding DataContext.ApplicationTheme, RelativeSource={RelativeSource AncestorType={x:Type ui:FluentWindow}}, Converter={StaticResource AnnouncementThemeConverter}}" Value="False">
                             <Setter Property="Background" Value="#FFFFFF" />
                         </DataTrigger>
                     </Style.Triggers>
@@ -54,29 +53,39 @@
                 </Grid.RowDefinitions>
                 <Grid>
                     <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Alert24" FontSize="24" />
-                        <TextBlock Margin="12,0,0,0" FontSize="22" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                   Text="{lex:Loc Announcements}" />
+                        <ui:SymbolIcon FontSize="24" Symbol="Alert24" />
+                        <TextBlock
+                            Margin="12,0,0,0"
+                            FontSize="22"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            Text="{lex:Loc Announcements}" />
                     </StackPanel>
-                    <ui:Button HorizontalAlignment="Right" VerticalAlignment="Center"
-                               lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
-                               Command="{Binding RefreshAnnouncementsCommand}"
-                               Content="{lex:Loc Refresh}"
-                               Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    <ui:Button
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                        Command="{Binding RefreshAnnouncementsCommand}"
+                        Content="{lex:Loc Refresh}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                 </Grid>
                 <Grid Grid.Row="1" Margin="0,18,0,18">
-                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Text="{lex:Loc NoAnnouncements}"
-                               Visibility="{Binding HasAnnouncements, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                    <scrolling:ModernScrollViewer x:Name="AnnouncementsScrollViewer"
-                                  VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Text="{lex:Loc NoAnnouncements}"
+                        Visibility="{Binding HasAnnouncements, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                    <scrolling:ModernScrollViewer
+                        x:Name="AnnouncementsScrollViewer"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Announcements}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <ui:CardExpander Margin="0,0,0,12"
-                                                     HorizontalAlignment="Stretch"
-                                                     IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+                                    <ui:CardExpander
+                                        Margin="0,0,0,12"
+                                        HorizontalAlignment="Stretch"
+                                        IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
                                         <ui:CardExpander.Header>
                                             <Grid Margin="0,0,12,0">
                                                 <Grid.ColumnDefinitions>
@@ -84,52 +93,68 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0">
-                                                    <TextBlock FontSize="13" FontWeight="SemiBold"
-                                                               Foreground="{Binding LevelBrush}"
-                                                               Text="{Binding LevelLabel}" />
+                                                    <TextBlock
+                                                        FontSize="13"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{Binding LevelBrush}"
+                                                        Text="{Binding LevelLabel}" />
                                                     <Grid Margin="0,7,0,0">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="Auto" />
                                                             <ColumnDefinition Width="*" />
                                                         </Grid.ColumnDefinitions>
-                                                        <Ellipse Width="9" Height="9" Margin="0,0,8,0"
-                                                                 VerticalAlignment="Center"
-                                                                 Fill="{DynamicResource AccentFillColorDefaultBrush}"
-                                                                 Visibility="{Binding IsUnseen, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                                        <TextBlock Grid.Column="1"
-                                                                   FontSize="18" FontWeight="SemiBold"
-                                                                   TextWrapping="Wrap"
-                                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                   Text="{Binding Title}" />
+                                                        <Ellipse
+                                                            Width="9"
+                                                            Height="9"
+                                                            Margin="0,0,8,0"
+                                                            VerticalAlignment="Center"
+                                                            Fill="{DynamicResource AccentFillColorDefaultBrush}"
+                                                            Visibility="{Binding IsUnseen, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                        <TextBlock
+                                                            Grid.Column="1"
+                                                            FontSize="18"
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                            Text="{Binding Title}"
+                                                            TextWrapping="Wrap" />
                                                     </Grid>
                                                 </StackPanel>
-                                                <StackPanel Grid.Column="1" Margin="16,0,0,0"
-                                                            HorizontalAlignment="Right">
-                                                    <TextBlock Margin="0,7,0,0"
-                                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                               Text="{Binding PublishedDate}" />
+                                                <StackPanel
+                                                    Grid.Column="1"
+                                                    Margin="16,0,0,0"
+                                                    HorizontalAlignment="Right">
+                                                    <TextBlock
+                                                        Margin="0,7,0,0"
+                                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                        Text="{Binding PublishedDate}" />
                                                 </StackPanel>
                                             </Grid>
                                         </ui:CardExpander.Header>
-                                        <md:MarkdownViewer Margin="0,8,0,0"
-                                                           FontFamily="{StaticResource NotoSans}"
-                                                           Markdown="{Binding Content}"
-                                                           PreviewMouseWheel="MarkdownViewer_OnPreviewMouseWheel" />
+                                        <md:MarkdownViewer
+                                            Margin="0,8,0,0"
+                                            FontFamily="{StaticResource NotoSans}"
+                                            Markdown="{Binding Content}"
+                                            PreviewMouseWheel="MarkdownViewer_OnPreviewMouseWheel" />
                                     </ui:CardExpander>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </scrolling:ModernScrollViewer>
                 </Grid>
-                <StackPanel Grid.Row="2" HorizontalAlignment="Right" Orientation="Horizontal">
-                    <ui:Button Margin="0,0,10,0"
-                               Command="{Binding ReadLaterCommand}"
-                               Content="{lex:Loc ReadAnnouncementsLater}"
-                               Icon="{ui:SymbolIcon Symbol=Clock24}" />
-                    <ui:Button Appearance="Primary"
-                               Command="{Binding MarkAsReadAndCloseCommand}"
-                               Content="{lex:Loc MarkAnnouncementsRead}"
-                               Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                <StackPanel
+                    Grid.Row="2"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Margin="0,0,10,0"
+                        Command="{Binding ReadLaterCommand}"
+                        Content="{lex:Loc ReadAnnouncementsLater}"
+                        Icon="{ui:SymbolIcon Symbol=Clock24}" />
+                    <ui:Button
+                        Appearance="Primary"
+                        Command="{Binding MarkAsReadAndCloseCommand}"
+                        Content="{lex:Loc MarkAnnouncementsRead}"
+                        Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
             </Grid>
         </Border>

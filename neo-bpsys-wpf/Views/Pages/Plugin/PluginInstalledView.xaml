@@ -1,88 +1,194 @@
-<UserControl x:Class="neo_bpsys_wpf.Views.Pages.Plugin.PluginInstalledView"
- xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
- xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- xmlns:lex="http://wpflocalizeextension.codeplex.com"
- xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
- xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
- xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
- lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
- lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
- Foreground="{DynamicResource TextFillColorPrimaryBrush}" scrolling:ModernScroll.Ownership="Self">
- <UserControl.Resources><BooleanToVisibilityConverter x:Key="BoolVisibility" /></UserControl.Resources>
- <Grid>
-  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <StackPanel Margin="0,0,0,12" motion:ContentEntrance.IsEnabled="True">
-   <TextBlock Text="{lex:Loc InstalledPluginsHint}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-   <TextBlock Margin="0,8,0,0" Text="{lex:Loc PluginMarketUpdateAvailable}" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
-    Visibility="{Binding HasInstalledPluginUpdates, Converter={StaticResource BoolVisibility}}"/>
-  </StackPanel>
-  <ItemsControl x:Name="InstalledCatalog" Grid.Row="1" ItemsSource="{Binding PluginsCollection}"
-   AutomationProperties.Name="{lex:Loc Installed}" Background="Transparent" BorderThickness="0" Padding="0,4,0,0"
-   scrolling:ModernScroll.Ownership="Self" scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
-   VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
-   VirtualizingPanel.ScrollUnit="Pixel" ScrollViewer.CanContentScroll="True" motion:ListTransitions.IsEnabled="True">
-   <ItemsControl.Template><ControlTemplate TargetType="ItemsControl">
-    <ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-     Padding="{TemplateBinding Padding}"><ItemsPresenter/></ScrollViewer>
-   </ControlTemplate></ItemsControl.Template>
-   <ItemsControl.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-   <ItemsControl.ItemTemplate><DataTemplate>
-    <Border Margin="0,0,0,8" Padding="16" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-     Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
-     <StackPanel>
-      <Grid>
-       <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-       <Border Width="48" Height="48" CornerRadius="8" Margin="0,0,16,0" VerticalAlignment="Top" Background="{DynamicResource ControlFillColorSecondaryBrush}">
-        <Grid><ui:SymbolIcon Symbol="AppsAddIn24"/><ui:Image Source="{Binding RealIconPath}" CornerRadius="8" Stretch="UniformToFill"/></Grid>
-       </Border>
-       <StackPanel Grid.Column="1">
-        <TextBlock Text="{Binding Manifest.Name}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
-        <WrapPanel Margin="0,6,0,0">
-         <TextBlock Text="{Binding Manifest.Version, StringFormat=v{0}}" Margin="0,0,12,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
-         <TextBlock Text="{Binding Manifest.Author}" Foreground="{DynamicResource TextFillColorTertiaryBrush}"/>
-         <TextBlock Margin="12,0,0,0" Text="{Binding NewVersion, StringFormat=→ v{0}}" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
-          Visibility="{Binding IsNewVersionInstalled, Converter={StaticResource BoolVisibility}}"/>
-        </WrapPanel>
-       </StackPanel>
-      </Grid>
-      <TextBlock Margin="0,12,0,0" Text="{Binding Manifest.Description}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-      <DockPanel Margin="0,12,0,0">
-       <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="{lex:Loc ProjectUrl}"
-        Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-       <ui:HyperlinkButton Padding="0" HorizontalAlignment="Left" HorizontalContentAlignment="Left"
-        NavigateUri="{Binding Manifest.Url}" ToolTip="{Binding Manifest.Url}">
-        <TextBlock Text="{Binding Manifest.Url}" TextWrapping="Wrap"/>
-       </ui:HyperlinkButton>
-      </DockPanel>
-      <Grid Margin="0,12,0,0">
-       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-       <WrapPanel Grid.Column="0">
-       <ui:Button Margin="0,0,8,8" Content="{lex:Loc MarketUpdate}" Icon="{ui:SymbolIcon ArrowSync24}" Appearance="Primary"
-        Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolVisibility}}"
-        Command="{Binding DataContext.OpenInstalledPluginUpdateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
-       <ui:ToggleSwitch Margin="0,0,16,8" VerticalAlignment="Center" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
-        Content="{lex:Loc Enable}" AutomationProperties.Name="{lex:Loc Enable}" IsChecked="{Binding IsEnabled, Mode=OneWay}"
-        Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}"/>
-       </WrapPanel>
-       <ui:Button Grid.Column="1" Margin="12,0,0,8" VerticalAlignment="Top" HorizontalAlignment="Right" Icon="{ui:SymbolIcon Delete24}"
-        Command="{Binding DataContext.ToggleUninstallCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
-        <TextBlock><TextBlock.Style><Style TargetType="TextBlock">
-         <Setter Property="Text" Value="{lex:Loc Uninstall}"/>
-         <Style.Triggers><DataTrigger Binding="{Binding IsUninstalling}" Value="True"><Setter Property="Text" Value="{lex:Loc CancelUninstall}"/></DataTrigger>
-          <DataTrigger Binding="{Binding IsBuiltIn}" Value="True"><Setter Property="Text" Value="{lex:Loc PluginNotRemovable}"/></DataTrigger></Style.Triggers>
-        </Style></TextBlock.Style></TextBlock>
-       </ui:Button>
-      </Grid>
-      <TextBlock Text="{lex:Loc PluginMarketUpdateAvailable}" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
-       Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolVisibility}}" motion:ContentEntrance.IsEnabled="True"/>
-      <TextBlock Text="{lex:Loc RestartToApplyChanges}" TextWrapping="Wrap" Foreground="{DynamicResource SystemFillColorCautionBrush}"
-       Visibility="{Binding IsRestartRequired, Converter={StaticResource BoolVisibility}}" motion:ContentEntrance.IsEnabled="True"/>
-      <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
-       <Run Text="{lex:Loc PluginStatus}"/><Run Text="{lex:Loc {Binding ExceptionText}, FallbackBehavior=Key}"/>
-      </TextBlock>
-     </StackPanel>
-    </Border>
-   </DataTemplate></ItemsControl.ItemTemplate>
-  </ItemsControl>
- </Grid>
+<UserControl
+    x:Class="neo_bpsys_wpf.Views.Pages.Plugin.PluginInstalledView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
+    scrolling:ModernScroll.Ownership="Self"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVisibility" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ItemsControl
+            x:Name="InstalledCatalog"
+            Grid.Row="1"
+            Padding="0,4,0,0"
+            motion:ListTransitions.IsEnabled="True"
+            scrolling:ModernScroll.Ownership="Self"
+            scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
+            AutomationProperties.Name="{lex:Loc Installed}"
+            Background="Transparent"
+            BorderThickness="0"
+            ItemsSource="{Binding PluginsCollection}"
+            ScrollViewer.CanContentScroll="True"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.ScrollUnit="Pixel"
+            VirtualizingPanel.VirtualizationMode="Recycling">
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <ScrollViewer
+                        Padding="{TemplateBinding Padding}"
+                        CanContentScroll="True"
+                        HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        Margin="0,0,0,8"
+                        Padding="16"
+                        Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8">
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border
+                                    Width="48"
+                                    Height="48"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Top"
+                                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                    CornerRadius="8">
+                                    <Grid>
+                                        <ui:SymbolIcon Symbol="AppsAddIn24" />
+                                        <ui:Image
+                                            CornerRadius="8"
+                                            Source="{Binding RealIconPath}"
+                                            Stretch="UniformToFill" />
+                                    </Grid>
+                                </Border>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{Binding Manifest.Name}"
+                                        TextWrapping="Wrap" />
+                                    <WrapPanel Margin="0,6,0,0">
+                                        <TextBlock
+                                            Margin="0,0,12,0"
+                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                            Text="{Binding Manifest.Version, StringFormat=v{0}}" />
+                                        <TextBlock Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{Binding Manifest.Author}" />
+                                        <TextBlock
+                                            Margin="12,0,0,0"
+                                            Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                            Text="{Binding NewVersion, StringFormat=→ v{0}}"
+                                            Visibility="{Binding IsNewVersionInstalled, Converter={StaticResource BoolVisibility}}" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock
+                                Margin="0,12,0,0"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                Text="{Binding Manifest.Description}"
+                                TextWrapping="Wrap" />
+                            <DockPanel Margin="0,12,0,0">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    DockPanel.Dock="Left"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{lex:Loc ProjectUrl}" />
+                                <ui:HyperlinkButton
+                                    Padding="0"
+                                    HorizontalAlignment="Left"
+                                    HorizontalContentAlignment="Left"
+                                    NavigateUri="{Binding Manifest.Url}"
+                                    ToolTip="{Binding Manifest.Url}">
+                                    <TextBlock Text="{Binding Manifest.Url}" TextWrapping="Wrap" />
+                                </ui:HyperlinkButton>
+                            </DockPanel>
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <WrapPanel Grid.Column="0">
+                                    <ui:Button
+                                        Margin="0,0,8,8"
+                                        Appearance="Primary"
+                                        Command="{Binding DataContext.OpenInstalledPluginUpdateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Content="{lex:Loc MarketUpdate}"
+                                        Icon="{ui:SymbolIcon ArrowSync24}"
+                                        Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolVisibility}}" />
+                                    <ui:ToggleSwitch
+                                        Margin="0,0,16,8"
+                                        VerticalAlignment="Center"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                        AutomationProperties.Name="{lex:Loc Enable}"
+                                        Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Content="{lex:Loc Enable}"
+                                        IsChecked="{Binding IsEnabled, Mode=OneWay}" />
+                                </WrapPanel>
+                                <ui:Button
+                                    Grid.Column="1"
+                                    Margin="12,0,0,8"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Command="{Binding DataContext.ToggleUninstallCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Icon="{ui:SymbolIcon Delete24}">
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{lex:Loc Uninstall}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsUninstalling}" Value="True">
+                                                        <Setter Property="Text" Value="{lex:Loc CancelUninstall}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
+                                                        <Setter Property="Text" Value="{lex:Loc PluginNotRemovable}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </ui:Button>
+                            </Grid>
+                            <TextBlock
+                                motion:ContentEntrance.IsEnabled="True"
+                                Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                Text="{lex:Loc PluginMarketUpdateAvailable}"
+                                Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolVisibility}}" />
+                            <TextBlock
+                                motion:ContentEntrance.IsEnabled="True"
+                                Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                Text="{lex:Loc RestartToApplyChanges}"
+                                TextWrapping="Wrap"
+                                Visibility="{Binding IsRestartRequired, Converter={StaticResource BoolVisibility}}" />
+                            <TextBlock
+                                Margin="0,6,0,0"
+                                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap">
+                                <Run Text="{lex:Loc PluginStatus}" /><Run Text="{lex:Loc {Binding ExceptionText}, FallbackBehavior=Key}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
 </UserControl>

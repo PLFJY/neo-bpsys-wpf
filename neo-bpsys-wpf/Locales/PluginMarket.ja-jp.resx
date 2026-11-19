@@ -203,5 +203,4 @@
   <data name="MarketRefreshFailed" xml:space="preserve">
     <value>更新できませんでした。前回取得した一覧を表示しています。</value>
   </data>
-  <data name="InstalledPluginsHint" xml:space="preserve"><value>インストール済みプラグインを管理します。有効化、無効化、削除は再起動後に反映されます。</value></data>
 </root>

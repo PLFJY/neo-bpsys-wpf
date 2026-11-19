@@ -756,9 +756,9 @@
                                     <TextBlock
                                         Margin="10,0,0,0"
                                         VerticalAlignment="Center"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
                                         FontWeight="SemiBold"
                                         Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Score"
                                         Text="{lex:Loc FreeModeNotice}"
                                         TextWrapping="Wrap"
                                         Visibility="{Binding IsFreeMode, Converter={StaticResource BoolToVisibilityConverter}}" />
@@ -875,7 +875,11 @@
                                         <Button Command="{Binding Out4Command}" Content="{lex:Loc FourEliminate}" />
                                         <Button Command="{Binding Out3Command}" Content="{lex:Loc ThreeEliminate}" />
                                     </StackPanel>
-                                    <WrapPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,10,0,0" HorizontalAlignment="Center">
+                                    <WrapPanel
+                                        Grid.Row="1"
+                                        Grid.ColumnSpan="3"
+                                        Margin="0,10,0,0"
+                                        HorizontalAlignment="Center">
                                         <Button Command="{Binding SettleFreeMajorScoreCommand}" Content="{lex:Loc ScoreSettlement}" />
                                         <Button Command="{Binding ClearCurrentHalfScoreCommand}" Content="{lex:Loc ClearFreeCurrentMinorScore}" />
                                         <Button Command="{Binding ResetCommand}" Content="{lex:Loc ResetAllScores}" />

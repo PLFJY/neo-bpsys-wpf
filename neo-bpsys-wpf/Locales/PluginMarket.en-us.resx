@@ -203,5 +203,4 @@
   <data name="MarketRefreshFailed" xml:space="preserve">
     <value>Could not refresh. Showing the last available plugin list.</value>
   </data>
-  <data name="InstalledPluginsHint" xml:space="preserve"><value>Manage installed plugins. Enabling, disabling and uninstalling take effect after restarting.</value></data>
 </root>

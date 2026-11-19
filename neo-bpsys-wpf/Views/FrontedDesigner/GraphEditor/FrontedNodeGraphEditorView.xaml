@@ -643,10 +643,10 @@
                             Background="Transparent"
                             ClipToBounds="True"
                             Cursor="Hand"
+                            LostMouseCapture="Minimap_OnLostMouseCapture"
                             MouseLeftButtonDown="Minimap_OnMouseLeftButtonDown"
                             MouseLeftButtonUp="Minimap_OnMouseLeftButtonUp"
-                            MouseMove="Minimap_OnMouseMove"
-                            LostMouseCapture="Minimap_OnLostMouseCapture">
+                            MouseMove="Minimap_OnMouseMove">
                             <Rectangle
                                 Width="180"
                                 Height="120"
@@ -895,9 +895,9 @@
                 BorderThickness="1"
                 ClipToBounds="True"
                 CornerRadius="6"
+                LostMouseCapture="PreviewBorder_OnLostMouseCapture"
                 MouseDown="PreviewContent_OnMouseDown"
                 MouseLeave="PreviewContent_OnMouseLeave"
-                LostMouseCapture="PreviewBorder_OnLostMouseCapture"
                 PreviewMouseLeftButtonUp="PreviewContent_OnPreviewMouseLeftButtonUp"
                 PreviewMouseMove="PreviewContent_OnPreviewMouseMove"
                 PreviewMouseRightButtonUp="PreviewContent_OnPreviewMouseRightButtonUp"

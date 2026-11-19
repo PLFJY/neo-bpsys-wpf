@@ -5,9 +5,9 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:helpers="clr-namespace:neo_bpsys_wpf.Helpers"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
-    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:modernNavigation="clr-namespace:neo_bpsys_wpf.Controls.Modern.Navigation"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="PluginPage"
@@ -17,9 +17,9 @@
     d:DesignWidth="685"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
+    scrolling:ModernScroll.Ownership="Self"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    scrolling:ModernScroll.Ownership="Self"
     mc:Ignorable="d">
 
     <Grid Margin="10" helpers:ThemeTransitionBehavior.IsEnabled="True">
