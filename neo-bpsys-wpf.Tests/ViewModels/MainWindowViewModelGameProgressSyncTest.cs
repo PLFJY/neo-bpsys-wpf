@@ -87,7 +87,8 @@ public sealed class MainWindowViewModelGameProgressSyncTest
             CreateSmartBpAutoRecognitionGlobalControl().Object,
             new Mock<IGlobalRestartService>().Object,
             CreateAnnouncementCenter(),
-            NullLogger<MainWindowViewModel>.Instance);
+            NullLogger<MainWindowViewModel>.Instance,
+            Mock.Of<IUpdaterService>());
 
     private static AnnouncementCenterViewModel CreateAnnouncementCenter()
     {

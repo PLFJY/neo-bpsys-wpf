@@ -504,4 +504,5 @@
   <data name="ForceSmartBpSyncGameState" xml:space="preserve">
     <value>Force Smart BP sync game state</value>
   </data>
+  <data name="UpdatePending" xml:space="preserve"><value>Update available</value></data>
 </root>

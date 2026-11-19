@@ -28,7 +28,7 @@ csproj 中 Preview 配置定义 `PREVIEW` 编译常量，因此 Debug 和 Previe
 await UpdaterService.UpdateCheck(false, Mirror);
 ```
 
-启动检查发现新版本时使用 InfoBar 提示；手动检查发现新版本时弹确认框，确认后下载。
+启动检查发现新版本时使用 InfoBar 提示；手动检查发现新版本时弹确认框，确认后下载。成功检查的结果通过既有 `NewVersionInfoChanged` 事件同步到主窗口和设置页：设置导航入口使用 WPF-UI `NavigationViewItem.InfoBadge` 显示数字 1，检查更新按钮改为“待更新”并使用 `ui:InfoBadge` 显示相同数字。稍后打开设置页时从更新服务的现有结果初始化；成功确认当前版本已是最新时恢复普通按钮并隐藏角标。
 
 ## 下载流程
 

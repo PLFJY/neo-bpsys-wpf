@@ -32,11 +32,24 @@ public partial class MainWindowViewModel :
     ViewModelBase,
     IRecipient<ValueChangedMessage<string>>,
     IRecipient<PropertyChangedMessage<bool>>,
+    IRecipient<PropertyChangedMessage<int>>,
     IRecipient<HighlightMessage>
 {
-    /// <summary>主导航插件入口是否显示可更新通知。</summary>
+    /// <summary>主导航插件入口的待更新数量。</summary>
     [ObservableProperty]
-    public partial bool HasPluginUpdates { get; set; }
+    [NotifyPropertyChangedFor(nameof(HasPluginUpdates))]
+    public partial int PluginUpdateCount { get; set; }
+
+    /// <summary>是否有可更新插件。</summary>
+    public bool HasPluginUpdates => PluginUpdateCount > 0;
+
+    /// <summary>是否发现应用更新。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AppUpdateCount))]
+    public partial bool HasAppUpdate { get; set; }
+
+    /// <summary>应用更新角标数量。</summary>
+    public int AppUpdateCount => HasAppUpdate ? 1 : 0;
 #pragma warning disable CS8618
     public MainWindowViewModel()
 #pragma warning restore CS8618
@@ -132,7 +145,8 @@ public partial class MainWindowViewModel :
         ISmartBpAutoRecognitionGlobalControl smartBpAutoRecognitionGlobalControl,
         IGlobalRestartService globalRestartService,
         AnnouncementCenterViewModel announcementCenter,
-        ILogger<MainWindowViewModel> logger)
+        ILogger<MainWindowViewModel> logger,
+        IUpdaterService updaterService)
     {
         _sharedDataService = sharedDataService;
         _gameGuidanceService = gameGuidanceService;
@@ -154,6 +168,15 @@ public partial class MainWindowViewModel :
         GameList = GameListBo5;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
         BuildNavigationMenuItems();
+        void RefreshAppUpdate()
+        {
+            void Refresh() => HasAppUpdate = !string.IsNullOrEmpty(updaterService.NewVersionInfo?.TagName)
+                && updaterService.NewVersionInfo.TagName != AppConstants.AppVersion;
+            if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess()) dispatcher.Invoke(Refresh);
+            else Refresh();
+        }
+        updaterService.NewVersionInfoChanged += (_, _) => RefreshAppUpdate();
+        RefreshAppUpdate();
         sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
         IsSmartBpAutoRecognitionRunning = smartBpAutoRecognitionGlobalControl.IsRunning;
@@ -227,14 +250,24 @@ public partial class MainWindowViewModel :
                 case BackendPageCategory.External:
                     var item = new NavigationViewItem(info.Name, info.Icon, info.PageType);
                     if (info.PageType == typeof(PluginPage))
-                        item.SetBinding(Controls.Modern.Navigation.ModernNavigationView.HasNotificationProperty,
-                            new System.Windows.Data.Binding(nameof(HasPluginUpdates)) { Source = this });
+                        item.InfoBadge = CreateUpdateBadge(nameof(PluginUpdateCount), nameof(HasPluginUpdates));
+                    if (info.PageType == typeof(SettingPage))
+                        item.InfoBadge = CreateUpdateBadge(nameof(AppUpdateCount), nameof(HasAppUpdate));
                     FooterMenuItems.Insert(0, item);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
+    }
+
+    private InfoBadge CreateUpdateBadge(string countProperty, string visibilityProperty)
+    {
+        var badge = new InfoBadge();
+        badge.SetBinding(InfoBadge.ValueProperty, new System.Windows.Data.Binding(countProperty) { Source = this });
+        badge.SetBinding(UIElement.VisibilityProperty, new System.Windows.Data.Binding(visibilityProperty)
+        { Source = this, Converter = new BooleanToVisibilityConverter() });
+        return badge;
     }
 
     [RelayCommand]
@@ -518,15 +551,20 @@ public partial class MainWindowViewModel :
     {
         switch (message.PropertyName)
         {
-            case nameof(Pages.PluginPageViewModel.HasInstalledPluginUpdates)
-                when message.Sender is Pages.PluginPageViewModel:
-                HasPluginUpdates = message.NewValue;
-                break;
             case nameof(IGameGuidanceService.IsGuidanceStarted)
                 when message.NewValue != IsGuidanceStarted:
                 IsGuidanceStarted = message.NewValue;
                 break;
         }
+    }
+
+    /// <summary>接收插件目录的待更新数量变化。</summary>
+    /// <param name="message">插件更新数量消息。</param>
+    public void Receive(PropertyChangedMessage<int> message)
+    {
+        if (message.Sender is Pages.PluginPageViewModel
+            && message.PropertyName == nameof(Pages.PluginPageViewModel.InstalledPluginUpdateCount))
+            PluginUpdateCount = message.NewValue;
     }
 
     private bool _isBo3Mode;

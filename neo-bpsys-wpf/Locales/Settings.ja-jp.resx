@@ -504,4 +504,5 @@
   <data name="ForceSmartBpSyncGameState" xml:space="preserve">
     <value>スマートBP 対局状態を強制同期</value>
   </data>
+  <data name="UpdatePending" xml:space="preserve"><value>更新待ち</value></data>
 </root>

@@ -399,6 +399,9 @@ public partial class PluginPageViewModel
     /// <summary>是否有已安装插件可从当前市场更新。</summary>
     public bool HasInstalledPluginUpdates => PluginsCollection.Any(plugin => plugin.IsUpdateAvailable);
 
+    /// <summary>当前已安装插件中可更新的数量。</summary>
+    public int InstalledPluginUpdateCount => PluginsCollection.Count(plugin => plugin.IsUpdateAvailable);
+
     [RelayCommand]
     private void OpenInstalledPluginUpdate(PluginInfo? plugin)
     {
@@ -758,7 +761,7 @@ public partial class PluginPageViewModel
     /// </summary>
     private void RefreshMarketPluginStates()
     {
-        var hadUpdates = HasInstalledPluginUpdates;
+        var previousCount = InstalledPluginUpdateCount;
         foreach (var plugin in PluginsCollection)
         {
             var item = MarketPluginsCollection.FirstOrDefault(item => item.Id == plugin.Manifest.Id);
@@ -773,8 +776,9 @@ public partial class PluginPageViewModel
 
         ExecutePrimaryMarketActionCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(HasInstalledPluginUpdates));
-        if (hadUpdates != HasInstalledPluginUpdates)
-            Broadcast(hadUpdates, HasInstalledPluginUpdates, nameof(HasInstalledPluginUpdates));
+        OnPropertyChanged(nameof(InstalledPluginUpdateCount));
+        if (previousCount != InstalledPluginUpdateCount)
+            Broadcast(previousCount, InstalledPluginUpdateCount, nameof(InstalledPluginUpdateCount));
     }
 
     /// <summary>

@@ -92,9 +92,8 @@
                     Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                     Text="{Binding DisplayText}"
                     TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="2" Margin="0,0,8,0" VerticalAlignment="Center" Text="➊"
-                    Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
-                    Visibility="{Binding SourceNavigationViewItem.(navigation:ModernNavigationView.HasNotification), Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <ContentPresenter Grid.Column="2" Margin="0,0,8,0" VerticalAlignment="Center"
+                    Content="{Binding SourceNavigationViewItem.InfoBadge}" />
             </Grid>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsPaneOpen, RelativeSource={RelativeSource AncestorType={x:Type navigation:ModernNavigationView}}}" Value="False">

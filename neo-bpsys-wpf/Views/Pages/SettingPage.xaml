@@ -192,10 +192,21 @@
                         </WrapPanel>
                         <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
                             <ui:Button
+                                x:Name="UpdateCheckButton"
                                 Margin="0,0,10,10"
                                 Command="{Binding UpdateCheckCommand}"
-                                Content="{lex:Loc CheckForUpdates}"
-                                Icon="{ui:SymbolIcon ArrowSync24}" />
+                                Icon="{ui:SymbolIcon ArrowSync24}">
+                                <StackPanel Orientation="Horizontal"
+                                    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+                                    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Settings">
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc CheckForUpdates}"
+                                        Visibility="{Binding HasAppUpdate, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc UpdatePending}"
+                                        Visibility="{Binding HasAppUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <ui:InfoBadge Margin="8,0,0,0" Value="{Binding AppUpdateCount}"
+                                        Visibility="{Binding HasAppUpdate, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </StackPanel>
+                            </ui:Button>
                             <ui:Button
                                 Margin="0,0,10,10"
                                 Command="{Binding InstallUpdateCommand}"
