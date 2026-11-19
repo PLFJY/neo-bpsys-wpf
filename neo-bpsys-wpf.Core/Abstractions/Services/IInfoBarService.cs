@@ -10,7 +10,7 @@ public interface IInfoBarService
     /// </summary>
     void CloseInfoBar();
     /// <summary>
-    /// 设置 InfoBar 控件，并呈现控件就绪前排队的消息。
+    /// 设置 InfoBar 控件，并呈现控件就绪前收到的最新消息。
     /// </summary>
     /// <param name="infoBar">InfoBar 控件实例</param>
     void SetInfoBarControl(object infoBar);

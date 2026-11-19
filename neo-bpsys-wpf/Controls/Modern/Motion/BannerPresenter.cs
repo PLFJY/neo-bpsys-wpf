@@ -20,6 +20,8 @@ public sealed class BannerPresenter : Decorator
     private double _naturalHeight;
     private int _version;
 
+    internal event EventHandler? Closed;
+
     /// <summary>初始化横幅呈现器。</summary>
     public BannerPresenter()
     {
@@ -34,10 +36,11 @@ public sealed class BannerPresenter : Decorator
         {
             SystemParameters.StaticPropertyChanged -= OnSystemParametersChanged;
             StopAnimations();
-            SetCurrentValue(RevealProperty, 0d);
+            SetValue(RevealProperty, 0d);
             SetCurrentValue(OpacityProperty, 0d);
             Visibility = Visibility.Collapsed;
             IsHitTestVisible = false;
+            Closed?.Invoke(this, EventArgs.Empty);
         };
     }
 
@@ -97,11 +100,14 @@ public sealed class BannerPresenter : Decorator
         var version = _version;
         var target = open ? 1d : 0d;
         IsHitTestVisible = open;
-        SetCurrentValue(RevealProperty, target);
+        // Reveal 是内部动画属性，使用持久的基值；SetCurrentValue 的当前值
+        // 会在动画时钟移除后失效，使打开状态退回默认的零高度。
+        SetValue(RevealProperty, target);
         SetCurrentValue(OpacityProperty, target);
         if (!SystemParameters.ClientAreaAnimation || Math.Abs(from - target) < 0.001)
         {
             Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+            if (!open) Closed?.Invoke(this, EventArgs.Empty);
             return;
         }
 
@@ -120,7 +126,10 @@ public sealed class BannerPresenter : Decorator
         {
             if (version != _version || !IsLoaded) return;
             StopAnimations();
+            SetValue(RevealProperty, target);
+            SetCurrentValue(OpacityProperty, target);
             Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+            if (!open) Closed?.Invoke(this, EventArgs.Empty);
         };
         BeginAnimation(RevealProperty, motion, HandoffBehavior.SnapshotAndReplace);
         BeginAnimation(OpacityProperty, fade, HandoffBehavior.SnapshotAndReplace);
