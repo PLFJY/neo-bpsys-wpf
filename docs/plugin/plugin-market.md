@@ -12,6 +12,16 @@ https://bpsys-plugin-index.plfjy.top/
 
 插件市场页当前定义两个预设源：默认站点和 GitHub raw `PluginIndex.json`。页面把选中的值保存到 `Settings.PluginMarketSource`；服务层读取该设置，若为空则回退到内置默认源。服务层本身不关心来源是否来自预设列表，只把它当作插件市场索引 URL 使用。
 
+## 页面与交互
+
+`PluginMarketView` 在单一 `ModernFrame` 中承载目录、详情、下载队列和设置四个 `UserControl` 子视图，不嵌入 WPF Page。现有 `SelectedMarketPlugin`、`IsDownloadQueueOpen` 和 `IsPluginMarketSettingsOpen` 控制互斥的子视图；返回市场、Escape 和 Alt+Left 回到目录，已打开的 ComboBox 下拉优先处理 Escape。目录中的选择供键盘浏览，点击条目或按 Enter 才打开详情；返回保留目录滚动位置。
+
+子视图使用有界视口并显式声明 Self 滚动归属：目录和下载列表启用 Recycling/Pixel 虚拟化，详情与设置各由一个 `ModernScrollViewer` 滚动，README 内容随详情页整体滚动，不单独声明 self-scroll。工具栏在窄窗口收起文字并保留图标、提示与无障碍名称；详情操作可换行，设置和下载操作不依赖固定宽度浮层。转场使用 333 ms 的方向滑动，异步内容与状态采用 83 ms 淡入，均遵从系统动画设置；宿主行为以 [ModernFrame](../backend/modern-frame.md) 为准。
+
+README 的正文、加载、失败和空内容分开呈现，失败原因保存在非持久化的 `ReadmeErrorMessage`，不写入作者的 `ReadmeMarkdown`；失败后可重试。离开详情不取消下载，退场期间保留说明内容，转场完成或视图卸载后释放呈现引用。说明中的绝对 HTTP/HTTPS 链接可由用户点击打开浏览器；其他协议不交给系统启动。新增界面文案归属 PluginMarket 的中、英、日三份资源。
+
+设计与动效参考微软的 [Windows motion](https://learn.microsoft.com/en-us/windows/apps/design/motion/) 和[响应式布局](https://learn.microsoft.com/en-us/windows/apps/design/layout/responsive-design)指南，保持 WPF-UI 原有主题、控件状态与业务命令。
+
 ## 市场条目
 
 市场索引反序列化为 `Dictionary<string, PluginMarketItem>`。服务会补齐空字段，并解析：

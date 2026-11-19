@@ -193,6 +193,7 @@ public static class ListTransitions
         private static string? Key(object item) => item switch
         {
             PluginMarketItem row => row.Id,
+            PluginDownloadQueueItem row => row.QueueId,
             PluginInfo row => row.Manifest.Id,
             FrontedLayoutPackageInfo row => row.PackageId,
             _ => null

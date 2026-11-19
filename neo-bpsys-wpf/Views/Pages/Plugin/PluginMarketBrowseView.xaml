@@ -1,0 +1,123 @@
+<UserControl x:Class="neo_bpsys_wpf.Views.Pages.Plugin.PluginMarketBrowseView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
+    scrolling:ModernScroll.Ownership="Self">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,12">
+            <ui:Button DockPanel.Dock="Right" Margin="12,0,0,0" Icon="{ui:SymbolIcon ArrowSync24}"
+                lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                Content="{lex:Loc Refresh}" Command="{Binding RefreshMarketCommand}" />
+            <TextBlock Text="{lex:Loc PluginsThirdPartyWarning}" TextWrapping="Wrap" VerticalAlignment="Center"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        </DockPanel>
+        <Border Grid.Row="1" Margin="0,0,0,12" Padding="12" CornerRadius="8"
+            motion:ContentEntrance.IsEnabled="True"
+            BorderBrush="{DynamicResource SystemFillColorCriticalBrush}" BorderThickness="1"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            Visibility="{Binding HasMarketError, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel>
+                <TextBlock Text="{lex:Loc MarketLoadFailed}" FontWeight="SemiBold" />
+                <TextBlock Margin="0,4,0,0" Text="{Binding MarketErrorMessage}" TextWrapping="Wrap"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Border>
+        <Grid Grid.Row="2">
+            <ListBox x:Name="Catalog" ItemsSource="{Binding MarketPluginsCollection}"
+                PreviewMouseLeftButtonUp="OnCatalogMouseUp" PreviewKeyDown="OnCatalogKeyDown"
+                AutomationProperties.Name="{lex:Loc PluginMarket}"
+                Background="Transparent" BorderThickness="0" Padding="0,4,0,0"
+                scrolling:ModernScroll.Ownership="Self" scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
+                VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                VirtualizingPanel.ScrollUnit="Pixel" ScrollViewer.CanContentScroll="True"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled" motion:ListTransitions.IsEnabled="True">
+                <ListBox.ItemsPanel><ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate></ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Margin" Value="0,0,0,8" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                        <Setter Property="AutomationProperties.HelpText" Value="{lex:Loc MarketOpenDetailsHint}" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="16" CornerRadius="8" BorderThickness="1"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" Margin="0,0,16,0" CornerRadius="8"
+                                    VerticalAlignment="Top" Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                                    <Grid>
+                                        <ui:SymbolIcon Symbol="AppsAddIn24" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <ui:Image Source="{Binding ResolvedIconUrl}" CornerRadius="8" Stretch="UniformToFill" />
+                                    </Grid>
+                                </Border>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Margin="0,4,0,0" Text="{Binding Description}" TextWrapping="Wrap"
+                                        MaxHeight="40" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <WrapPanel Margin="0,8,0,0">
+                                        <TextBlock Text="{Binding Version, StringFormat=v{0}}" Margin="0,0,12,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        <TextBlock Text="{Binding Author}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                    </WrapPanel>
+                                    <TextBlock Margin="0,6,0,0" Text="{lex:Loc {Binding MarketStatusKey}, FallbackBehavior=Key}"
+                                        TextWrapping="Wrap" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                        Visibility="{Binding IsStatusVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </StackPanel>
+                                <ui:SymbolIcon Grid.Column="2" Margin="12,0,0,0" Symbol="ChevronRight24"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" IsHitTestVisible="False"
+                motion:ContentEntrance.IsEnabled="True">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding HasItems, ElementName=Catalog}" Value="False" />
+                                    <Condition Binding="{Binding IsMarketLoading}" Value="False" />
+                                    <Condition Binding="{Binding HasMarketError}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible" />
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <ui:SymbolIcon Symbol="AppsAddIn24" FontSize="36" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                <TextBlock Text="{lex:Loc MarketEmpty}" Margin="0,12,0,0" TextAlignment="Center" TextWrapping="Wrap"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                motion:ContentEntrance.IsEnabled="True"
+                Visibility="{Binding IsMarketLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ui:ProgressRing Width="32" Height="32" IsIndeterminate="True" />
+                <TextBlock Text="{lex:Loc MarketLoading}" Margin="0,12,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

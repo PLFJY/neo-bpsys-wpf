@@ -49,6 +49,8 @@ WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFra
 
 `DefaultTransitionInfo` 默认使用 Entrance；单次 `Navigate` 可以传入转场覆盖。`IsAnimationEnabled`、`TransitionDuration`、`SystemParameters.ClientAreaAnimation` 会共同决定是否播放动画。快速连续导航会先停止当前转场并释放旧内容引用，再进入下一次导航。
 
+`ModernFrame.TransitionDuration` 的类型是 `TimeSpan`，XAML 需使用 `0:0:0.333` 这样的明确时长格式；纯数字会被解析为天数。它不同于以毫秒整数表示的 `ModernNavigationView.TransitionDuration`。
+
 切换已有内容时，等待目标内容 Loaded 后，在 Loaded dispatcher 阶段同时启动退场和入场 Storyboard，由关键帧表达先退场再入场；不等待 ApplicationIdle。默认 Entrance 总时长为 450 ms（150 ms 退场、300 ms 入场），位移 140 DIP；Fade 使用相同分段，横向 Slide 使用 150/300 ms、退出 150 DIP/进入 200 DIP。纵向 Slide 按参考时间线使用 250 ms 等待、350 ms 入场、200 DIP 和指数缓动，其时间随入口时长同比缩放。软件渲染不主动取消导航动画。
 
 动画期间新旧内容不可命中，导航本身仍可打断。每次导航以代次隔离待执行调度和完成回调；取消、卸载及模板重建解绑 Loaded/Completed，释放旧 PageHost，并移除其待执行导航。完成后恢复活动宿主的可见性、命中及 identity transform。`SuppressNavigationTransitionInfo` 和关闭动画仍立即交换内容。

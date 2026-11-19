@@ -160,4 +160,44 @@
   <data name="MarketInstalled">
     <value>已安装</value>
   </data>
+  <data name="MarketBackToBrowse" xml:space="preserve">
+    <value>返回市场</value>
+  </data>
+  <data name="MarketProjectWebsite" xml:space="preserve">
+    <value>项目主页</value>
+  </data>
+  <data name="MarketAboutPlugin" xml:space="preserve">
+    <value>关于此插件</value>
+  </data>
+  <data name="MarketReadmeLoading" xml:space="preserve">
+    <value>正在加载插件说明…</value>
+  </data>
+  <data name="MarketReadmeFailed" xml:space="preserve">
+    <value>无法加载插件说明</value>
+  </data>
+  <data name="MarketRetry" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="MarketReadmeEmpty" xml:space="preserve">
+    <value>作者尚未提供插件说明。</value>
+  </data>
+  <data name="MarketLoadFailed" xml:space="preserve">
+    <value>无法加载插件市场，可刷新后重试。</value>
+  </data>
+  <data name="MarketEmpty" xml:space="preserve">
+    <value>此插件源暂时没有可用的插件。</value>
+  </data>
+  <data name="MarketLoading" xml:space="preserve">
+    <value>正在加载插件…</value>
+  </data>
+  <data name="MarketDownloadsHint" xml:space="preserve">
+    <value>下载会在后台继续，离开此页面不会中断任务。</value>
+  </data>
+  <data name="MarketSourceHint" xml:space="preserve">
+    <value>选择插件目录来源，更改后会自动刷新插件列表。</value>
+  </data>
+  <data name="MarketTestingMirrors" xml:space="preserve">
+    <value>正在测试连接…</value>
+  </data>
+  <data name="MarketOpenDetailsHint" xml:space="preserve"><value>按 Enter 查看插件详情</value></data>
 </root>

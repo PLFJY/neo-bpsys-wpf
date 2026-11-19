@@ -182,7 +182,7 @@ public partial class PluginPageViewModel
     public bool IsMarketPluginSelected => SelectedMarketPlugin != null;
 
     /// <summary>
-    /// 插件市场中的任一浮层是否处于打开状态。
+    /// 插件市场是否正在显示详情、下载或设置子视图；保留既有绑定名称。
     /// </summary>
     public bool HasPluginMarketOverlay => IsPluginMarketSettingsOpen || IsDownloadQueueOpen || IsMarketPluginSelected;
 
@@ -211,8 +211,19 @@ public partial class PluginPageViewModel
 
     partial void OnSelectedMarketPluginChanged(PluginMarketItem? value)
     {
+        if (value is not null)
+        {
+            IsDownloadQueueOpen = false;
+            IsPluginMarketSettingsOpen = false;
+        }
         RefreshDownloadState();
         _ = LoadSelectedPluginReadmeAsync(value);
+    }
+
+    [RelayCommand]
+    private void OpenMarketPluginDetails(PluginMarketItem? item)
+    {
+        if (item is not null) SelectedMarketPlugin = item;
     }
 
     /// <summary>
@@ -648,20 +659,24 @@ public partial class PluginPageViewModel
         }
 
         item.IsReadmeLoading = true;
-        item.ReadmeMarkdown = "README 加载中...";
+        item.ReadmeErrorMessage = string.Empty;
         try
         {
             item.ReadmeMarkdown = await _pluginMarketService.GetReadmeMarkdownAsync(item);
         }
         catch (Exception ex)
         {
-            item.ReadmeMarkdown = $"# README 加载失败\n\n{ex.Message}";
+            _logger.LogWarning(ex, "Failed to load plugin README for {PluginId}.", item.Id);
+            item.ReadmeErrorMessage = ex.Message;
         }
         finally
         {
             item.IsReadmeLoading = false;
         }
     }
+
+    [RelayCommand]
+    private async Task RetryMarketReadmeAsync() => await LoadSelectedPluginReadmeAsync(SelectedMarketPlugin);
 
     /// <summary>
     /// 刷新插件市场中每个插件的显示状态。

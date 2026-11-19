@@ -114,13 +114,37 @@ public partial class PluginMarketItem : ObservableObjectBase
     /// 已加载到页面中的 README Markdown 内容。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasReadmeContent))]
+    [NotifyPropertyChangedFor(nameof(IsReadmeEmpty))]
     public partial string ReadmeMarkdown { get; set; } = string.Empty;
 
     /// <summary>
     /// README 是否正在加载中。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasReadmeContent))]
+    [NotifyPropertyChangedFor(nameof(IsReadmeEmpty))]
     public partial bool IsReadmeLoading { get; set; }
+
+    /// <summary>README 请求失败的原因，不混入作者提供的 Markdown。</summary>
+    [JsonIgnore]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasReadmeError))]
+    [NotifyPropertyChangedFor(nameof(HasReadmeContent))]
+    [NotifyPropertyChangedFor(nameof(IsReadmeEmpty))]
+    public partial string ReadmeErrorMessage { get; set; } = string.Empty;
+
+    /// <summary>README 是否加载失败。</summary>
+    [JsonIgnore]
+    public bool HasReadmeError => !string.IsNullOrWhiteSpace(ReadmeErrorMessage);
+
+    /// <summary>是否有已就绪的作者说明。</summary>
+    [JsonIgnore]
+    public bool HasReadmeContent => !IsReadmeLoading && !HasReadmeError && !string.IsNullOrWhiteSpace(ReadmeMarkdown);
+
+    /// <summary>作者说明是否为空且当前没有加载或错误。</summary>
+    [JsonIgnore]
+    public bool IsReadmeEmpty => !IsReadmeLoading && !HasReadmeError && string.IsNullOrWhiteSpace(ReadmeMarkdown);
 
     /// <summary>
     /// 当前插件是否已安装。

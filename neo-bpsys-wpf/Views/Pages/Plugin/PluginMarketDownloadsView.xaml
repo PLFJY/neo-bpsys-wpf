@@ -1,0 +1,98 @@
+<UserControl x:Class="neo_bpsys_wpf.Views.Pages.Plugin.PluginMarketDownloadsView" x:Name="DownloadsRoot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.PluginMarket"
+    scrolling:ModernScroll.Ownership="Self">
+    <UserControl.Resources><BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" /></UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,16">
+            <TextBlock Text="{lex:Loc PluginMarketDownloadQueueTitle}" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock Text="{lex:Loc MarketDownloadsHint}" Margin="0,8,0,0" TextWrapping="Wrap"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <ListBox x:Name="Queue" ItemsSource="{Binding PluginDownloadQueue}" Background="Transparent" BorderThickness="0"
+                AutomationProperties.Name="{lex:Loc PluginMarketDownloadQueueTitle}"
+                scrolling:ModernScroll.Ownership="Self" scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
+                VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                VirtualizingPanel.ScrollUnit="Pixel" ScrollViewer.CanContentScroll="True"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled" motion:ListTransitions.IsEnabled="True">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Margin" Value="0,0,0,8" /><Setter Property="Padding" Value="0" />
+                        <Setter Property="AutomationProperties.Name" Value="{Binding PluginName}" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="20" CornerRadius="8" BorderThickness="1"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                            <StackPanel>
+                                <WrapPanel>
+                                    <TextBlock Text="{Binding PluginName}" FontSize="18" FontWeight="SemiBold" Margin="0,0,12,4" />
+                                    <TextBlock Text="{Binding PluginVersion, StringFormat=v{0}}" VerticalAlignment="Center"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </WrapPanel>
+                                <TextBlock Margin="0,4,0,0" lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Shell"
+                                    Text="{lex:Loc {Binding StatusKey}, FallbackBehavior=Key}" TextWrapping="Wrap"
+                                    Foreground="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                <ProgressBar Height="4" Margin="0,12,0,0" Minimum="0" Maximum="100"
+                                    Value="{Binding Progress}" IsIndeterminate="{Binding IsProgressIndeterminate}" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <TextBlock Text="{Binding ProgressText}" Margin="0,0,16,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="{Binding SpeedText}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </WrapPanel>
+                                <WrapPanel Margin="0,12,0,0">
+                                    <ui:Button Margin="0,0,8,8" Appearance="Secondary" Icon="{ui:SymbolIcon Pause24}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                        Content="{lex:Loc PauseDownload}"
+                                        Command="{Binding DataContext.PausePluginMarketQueueItemCommand, ElementName=DownloadsRoot}" CommandParameter="{Binding}"
+                                        Visibility="{Binding CanPause, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <ui:Button Margin="0,0,8,8" Appearance="Secondary" Icon="{ui:SymbolIcon Play24}"
+                                        lex:ResxLocalizationProvider.DefaultDictionary="neo_bpsys_wpf.Locales.Common"
+                                        Content="{lex:Loc ResumeDownload}"
+                                        Command="{Binding DataContext.ResumePluginMarketQueueItemCommand, ElementName=DownloadsRoot}" CommandParameter="{Binding}"
+                                        Visibility="{Binding CanResume, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <ui:Button Margin="0,0,0,8" Appearance="Transparent" Icon="{ui:SymbolIcon Dismiss24}"
+                                        Content="{lex:Loc PluginMarketCancelDownload}"
+                                        Command="{Binding DataContext.CancelPluginMarketQueueItemCommand, ElementName=DownloadsRoot}" CommandParameter="{Binding}"
+                                        Visibility="{Binding CanCancel, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </WrapPanel>
+                                <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" motion:ContentEntrance.IsEnabled="True"
+                                    Foreground="{DynamicResource SystemFillColorCriticalBrush}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ErrorMessage}" Value=""><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                                <DataTrigger Binding="{Binding ErrorMessage}" Value="{x:Null}"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" motion:ContentEntrance.IsEnabled="True">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel"><Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers><DataTrigger Binding="{Binding HasItems, ElementName=Queue}" Value="False"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <ui:SymbolIcon Symbol="ArrowDownload24" FontSize="36" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                <TextBlock Text="{lex:Loc PluginMarketDownloadQueueEmpty}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,12,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

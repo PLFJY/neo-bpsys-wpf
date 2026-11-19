@@ -1,165 +1,115 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Media3D;
-using System.Windows.Navigation;
+using System.Windows.Threading;
+using neo_bpsys_wpf.Controls.Modern.Frame;
 using neo_bpsys_wpf.ViewModels.Pages;
 
 namespace neo_bpsys_wpf.Views.Pages.Plugin;
 
-/// <summary>
-/// PluginMarketView.xaml 的交互逻辑
-/// </summary>
+/// <summary>在单一内容宿主中呈现市场目录、详情、下载和设置。</summary>
 public partial class PluginMarketView : UserControl
 {
-    /// <summary>创建插件市场视图，在导航呈现完成后请求首次列表。</summary>
+    private PluginPageViewModel? _viewModel;
+    private PluginMarketBrowseView? _browse;
+    private PluginMarketDetailsView? _details;
+    private PluginMarketDownloadsView? _downloads;
+    private PluginMarketSettingsView? _settings;
+    private DispatcherOperation? _pendingNavigation;
+    private bool _focusAfterNavigation;
+
+    /// <summary>创建市场视图，保留原有命令和页面加载契约。</summary>
     public PluginMarketView()
     {
         InitializeComponent();
-        Helpers.BackendPresentation.Attach(this, () =>
+        Loaded += (_, _) => ObserveViewModel();
+        Unloaded += (_, _) =>
         {
-            if (DataContext is PluginPageViewModel viewModel) viewModel.EnsureMarketLoaded();
-        });
-        PluginReadmeMarkdownViewer.AddHandler(
-            Hyperlink.RequestNavigateEvent,
-            new RequestNavigateEventHandler(PluginReadmeMarkdownViewer_OnRequestNavigate));
+            _pendingNavigation?.Abort();
+            _pendingNavigation = null;
+            if (_viewModel is not null) _viewModel.PropertyChanged -= OnViewModelChanged;
+            _viewModel = null;
+            _details?.Present(null);
+        };
+        DataContextChanged += (_, _) => { if (IsLoaded) ObserveViewModel(); };
+        MarketFrame.NavigationCompleted += (_, _) =>
+        {
+            if (!ReferenceEquals(MarketFrame.CurrentContent, _details)) _details?.Present(null);
+            if (_focusAfterNavigation)
+            {
+                _focusAfterNavigation = false;
+                if (_viewModel?.HasPluginMarketOverlay == true) BackButton.Focus();
+                else _browse?.FocusCatalog();
+            }
+        };
+        Helpers.BackendPresentation.Attach(this, () => _viewModel?.EnsureMarketLoaded());
     }
 
-    private static void PluginReadmeMarkdownViewer_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+    private void ObserveViewModel()
     {
-        if (e.Uri == null)
+        if (_viewModel is not null) _viewModel.PropertyChanged -= OnViewModelChanged;
+        _viewModel = DataContext as PluginPageViewModel;
+        if (_viewModel is not null) _viewModel.PropertyChanged += OnViewModelChanged;
+        QueueNavigation();
+    }
+
+    private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(PluginPageViewModel.SelectedMarketPlugin)
+            or nameof(PluginPageViewModel.IsDownloadQueueOpen) or nameof(PluginPageViewModel.IsPluginMarketSettingsOpen))
+            QueueNavigation();
+    }
+
+    private void QueueNavigation()
+    {
+        if (!Dispatcher.CheckAccess())
         {
+            _ = Dispatcher.BeginInvoke(() => { if (IsLoaded) QueueNavigation(); });
             return;
         }
+        if (_pendingNavigation is { Status: DispatcherOperationStatus.Pending }) return;
+        _pendingNavigation = Dispatcher.BeginInvoke(() =>
+        {
+            _pendingNavigation = null;
+            if (!IsLoaded || _viewModel is null) return;
+            FrameworkElement target;
+            if (_viewModel.IsDownloadQueueOpen) target = _downloads ??= new PluginMarketDownloadsView();
+            else if (_viewModel.IsPluginMarketSettingsOpen) target = _settings ??= new PluginMarketSettingsView();
+            else if (_viewModel.SelectedMarketPlugin is { } plugin)
+            {
+                _details ??= new PluginMarketDetailsView();
+                _details.Present(plugin);
+                target = _details;
+            }
+            else target = _browse ??= new PluginMarketBrowseView();
+            if (ReferenceEquals(target, MarketFrame.CurrentContent)) return;
+            _focusAfterNavigation = MarketFrame.CurrentContent is not null;
+            // 退出方向与进入方向对应；每个子视图自己拥有滚动，不进入主导航返回栈。
+            MarketFrame.Navigate(target, new SlideNavigationTransitionInfo
+            {
+                Effect = ReferenceEquals(target, _browse)
+                    ? SlideNavigationTransitionEffect.FromLeft : SlideNavigationTransitionEffect.FromRight
+            });
+            MarketFrame.ClearJournal();
+        }, DispatcherPriority.Loaded);
+    }
 
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (_viewModel?.HasPluginMarketOverlay != true) return;
+        if (e.Key == Key.Escape && (e.OriginalSource is ComboBox { IsDropDownOpen: true }
+            || e.OriginalSource is ComboBoxItem item && ItemsControl.ItemsControlFromItemContainer(item) is ComboBox { IsDropDownOpen: true })) return;
+        if (e.Key != Key.Escape && !(e.SystemKey == Key.Left && Keyboard.Modifiers == ModifierKeys.Alt)) return;
+        _viewModel.ClosePluginMarketOverlaysCommand.Execute(null);
         e.Handled = true;
     }
 
-    private void RootGrid_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (DataContext is not PluginPageViewModel viewModel || !viewModel.HasPluginMarketOverlay)
-        {
-            return;
-        }
-
-        if (e.OriginalSource is not DependencyObject source)
-        {
-            return;
-        }
-
-        if (IsWithinOverlay(source))
-        {
-            return;
-        }
-
-        if (viewModel.ClosePluginMarketOverlaysCommand.CanExecute(null))
-        {
-            viewModel.ClosePluginMarketOverlaysCommand.Execute(null);
-        }
-    }
-
-    /// <summary>
-    /// 判断点击位置是否仍属于任一浮层的交互区域。
-    /// 这里除了普通面板本身，还会把 ComboBox 的下拉项弹层算作浮层内部，
-    /// 避免用户在切换插件源或 Ghproxy 时因为点中了弹出的列表项而被误判为“点击外部关闭”。
-    /// </summary>
-    private bool IsWithinOverlay(DependencyObject source)
-    {
-        return IsWithinPanel(source, DownloadQueuePanel)
-               || IsWithinPanel(source, PluginDetailsPanel)
-               || IsWithinPanel(source, PluginMarketSettingsPanel)
-               || IsWithinOverlayPopup(source);
-    }
-
-    /// <summary>
-    /// 判断点击位置是否位于指定浮层内部。
-    /// </summary>
-    private static bool IsWithinPanel(DependencyObject source, FrameworkElement? panel)
-    {
-        if (panel == null || panel.Visibility != Visibility.Visible)
-        {
-            return false;
-        }
-
-        var current = source;
-        while (current != null)
-        {
-            if (ReferenceEquals(current, panel))
-            {
-                return true;
-            }
-
-            current = current switch
-            {
-                Visual visual => VisualTreeHelper.GetParent(visual),
-                Visual3D visual3D => VisualTreeHelper.GetParent(visual3D),
-                _ => LogicalTreeHelper.GetParent(current)
-            };
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// 判断点击位置是否来自浮层内部控件弹出的 Popup。
-    /// 主要用于识别插件市场设置面板中的 ComboBox 下拉项。
-    /// </summary>
-    private bool IsWithinOverlayPopup(DependencyObject source)
-    {
-        var current = source;
-        while (current != null)
-        {
-            if (current is Popup popup
-                && popup.PlacementTarget is DependencyObject placementTarget
-                && IsWithinOverlayPlacementTarget(placementTarget))
-            {
-                return true;
-            }
-
-            if (current is ComboBoxItem comboBoxItem)
-            {
-                var owner = ItemsControl.ItemsControlFromItemContainer(comboBoxItem);
-                if (owner != null && IsWithinOverlayPlacementTarget(owner))
-                {
-                    return true;
-                }
-            }
-
-            if (current is FrameworkElement frameworkElement)
-            {
-                if (frameworkElement.TemplatedParent is DependencyObject templatedParent
-                    && IsWithinOverlayPlacementTarget(templatedParent))
-                {
-                    return true;
-                }
-
-                current = frameworkElement.Parent
-                          ?? frameworkElement.TemplatedParent
-                          ?? LogicalTreeHelper.GetParent(frameworkElement);
-                continue;
-            }
-
-            current = current switch
-            {
-                Visual visual => VisualTreeHelper.GetParent(visual),
-                Visual3D visual3D => VisualTreeHelper.GetParent(visual3D),
-                _ => LogicalTreeHelper.GetParent(current)
-            };
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// 判断某个 Popup 的归属控件是否位于插件市场浮层内部。
-    /// </summary>
-    private bool IsWithinOverlayPlacementTarget(DependencyObject placementTarget)
-    {
-        return IsWithinPanel(placementTarget, DownloadQueuePanel)
-               || IsWithinPanel(placementTarget, PluginDetailsPanel)
-               || IsWithinPanel(placementTarget, PluginMarketSettingsPanel);
+        var visibility = ActualWidth < 600 ? Visibility.Collapsed : Visibility.Visible;
+        BackLabel.Visibility = visibility;
+        DownloadsLabel.Visibility = visibility;
+        SettingsLabel.Visibility = visibility;
     }
 }

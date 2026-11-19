@@ -160,4 +160,44 @@
   <data name="MarketInstalled">
     <value>Installed</value>
   </data>
+  <data name="MarketBackToBrowse" xml:space="preserve">
+    <value>Back to market</value>
+  </data>
+  <data name="MarketProjectWebsite" xml:space="preserve">
+    <value>Project website</value>
+  </data>
+  <data name="MarketAboutPlugin" xml:space="preserve">
+    <value>About this plugin</value>
+  </data>
+  <data name="MarketReadmeLoading" xml:space="preserve">
+    <value>Loading plugin documentation…</value>
+  </data>
+  <data name="MarketReadmeFailed" xml:space="preserve">
+    <value>Could not load plugin documentation</value>
+  </data>
+  <data name="MarketRetry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="MarketReadmeEmpty" xml:space="preserve">
+    <value>The author has not provided documentation.</value>
+  </data>
+  <data name="MarketLoadFailed" xml:space="preserve">
+    <value>Could not load the market. Refresh to try again.</value>
+  </data>
+  <data name="MarketEmpty" xml:space="preserve">
+    <value>No plugins are available from this source.</value>
+  </data>
+  <data name="MarketLoading" xml:space="preserve">
+    <value>Loading plugins…</value>
+  </data>
+  <data name="MarketDownloadsHint" xml:space="preserve">
+    <value>Downloads continue in the background when you leave this page.</value>
+  </data>
+  <data name="MarketSourceHint" xml:space="preserve">
+    <value>Choose the plugin catalog source. The list refreshes when you change it.</value>
+  </data>
+  <data name="MarketTestingMirrors" xml:space="preserve">
+    <value>Testing connections…</value>
+  </data>
+  <data name="MarketOpenDetailsHint" xml:space="preserve"><value>Press Enter to view plugin details</value></data>
 </root>

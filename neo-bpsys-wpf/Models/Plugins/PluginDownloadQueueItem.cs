@@ -34,12 +34,16 @@ public partial class PluginDownloadQueueItem : ObservableObjectBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(StatusKey))]
     [NotifyPropertyChangedFor(nameof(IsInProgress))]
+    [NotifyPropertyChangedFor(nameof(IsProgressIndeterminate))]
     public partial PluginDownloadQueueStatus Status { get; set; } = PluginDownloadQueueStatus.QueuePending;
 
     /// <summary>
     /// 当前下载状态对应的本地化 Key。
     /// </summary>
     public string StatusKey => Status.ToString();
+
+    /// <summary>等待传输或解压时使用不定进度，避免显示虚假的百分比。</summary>
+    public bool IsProgressIndeterminate => Status is PluginDownloadQueueStatus.QueuePending or PluginDownloadQueueStatus.QueueExtracting;
 
     /// <summary>
     /// 当前任务是否仍处于进行中。

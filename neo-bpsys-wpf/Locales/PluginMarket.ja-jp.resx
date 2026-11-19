@@ -160,4 +160,44 @@
   <data name="MarketInstalled">
     <value>インストール済み</value>
   </data>
+  <data name="MarketBackToBrowse" xml:space="preserve">
+    <value>マーケットに戻る</value>
+  </data>
+  <data name="MarketProjectWebsite" xml:space="preserve">
+    <value>プロジェクトのサイト</value>
+  </data>
+  <data name="MarketAboutPlugin" xml:space="preserve">
+    <value>このプラグインについて</value>
+  </data>
+  <data name="MarketReadmeLoading" xml:space="preserve">
+    <value>プラグインの説明を読み込み中…</value>
+  </data>
+  <data name="MarketReadmeFailed" xml:space="preserve">
+    <value>プラグインの説明を読み込めませんでした</value>
+  </data>
+  <data name="MarketRetry" xml:space="preserve">
+    <value>再試行</value>
+  </data>
+  <data name="MarketReadmeEmpty" xml:space="preserve">
+    <value>作者による説明はまだありません。</value>
+  </data>
+  <data name="MarketLoadFailed" xml:space="preserve">
+    <value>マーケットを読み込めませんでした。更新して再試行してください。</value>
+  </data>
+  <data name="MarketEmpty" xml:space="preserve">
+    <value>この配信元には利用可能なプラグインがありません。</value>
+  </data>
+  <data name="MarketLoading" xml:space="preserve">
+    <value>プラグインを読み込み中…</value>
+  </data>
+  <data name="MarketDownloadsHint" xml:space="preserve">
+    <value>このページを離れてもダウンロードはバックグラウンドで継続します。</value>
+  </data>
+  <data name="MarketSourceHint" xml:space="preserve">
+    <value>プラグインの配信元を選択します。変更すると一覧が自動的に更新されます。</value>
+  </data>
+  <data name="MarketTestingMirrors" xml:space="preserve">
+    <value>接続をテスト中…</value>
+  </data>
+  <data name="MarketOpenDetailsHint" xml:space="preserve"><value>Enter キーでプラグインの詳細を表示</value></data>
 </root>
