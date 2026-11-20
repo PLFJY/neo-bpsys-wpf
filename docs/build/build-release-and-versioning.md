@@ -20,7 +20,7 @@ README 中的基础构建命令：
 dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo-bpsys-wpf"
 ```
 
-主项目 csproj 会在 Build/Publish 后构建并复制内置插件到输出目录的 `Plugins\...`。
+主项目 csproj 会在 Build/Publish 后构建并复制内置插件到输出目录的 `Plugins\...`。发布目录不保留 PDB 和 XML 文档，避免调试符号与 API 文档进入安装包；本地 Build 输出仍保留这些文件。SmartBP 模块发布时同时移除仅用于 32 位 Tesseract 的 `x86` 目录与 PDB，模块仍只支持 x64。
 
 ## WebRenderer 前端构建
 

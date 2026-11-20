@@ -347,4 +347,20 @@
         <EmbeddedResource Update="Locales\TourContent.ja-jp.resx"><DependentUpon>TourContent.resx</DependentUpon></EmbeddedResource>
     </ItemGroup>
 
+    <!--
+      发布产物不携带调试符号与 API 文档；安装在终端用户机器上不会读取这些文件。
+      构建目录仍保留 PDB/XML，便于本地调试与文档生成。放在插件复制之后执行，
+      以覆盖主程序、顶层依赖和 Plugins 目录中的同名文件。
+    -->
+    <Target Name="TrimPublishSymbolsAndDocs" AfterTargets="CopyBuiltinPluginsToOutput_Publish">
+        <ItemGroup>
+            <_PublishSymbols Remove="@(_PublishSymbols)" />
+            <_PublishDocs Remove="@(_PublishDocs)" />
+            <_PublishSymbols Include="$(PublishDir)**\*.pdb" />
+            <_PublishDocs Include="$(PublishDir)*.xml" />
+            <_PublishDocs Include="$(PublishDir)Plugins\**\*.xml" />
+        </ItemGroup>
+        <Delete Files="@(_PublishSymbols);@(_PublishDocs)" />
+    </Target>
+
 </Project>

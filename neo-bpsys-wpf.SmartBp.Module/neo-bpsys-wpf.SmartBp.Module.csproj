@@ -62,4 +62,17 @@
   <ItemGroup>
     <Content Include="$(PkgSdcb_PaddleInference_runtime_win64_mkl)\runtimes\win-x64\native\**\*.*" Link="Runtime\Paddle\cpu\$(PaddleInferenceRuntimeVersion)\native\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!--
+    SmartBP 发布模块只支持 x64。Tesseract 包会同时带入 x86 原生库，
+    应用不会加载 32 位进程；发布时移除 x86 与调试符号，避免进入模块压缩包。
+  -->
+  <Target Name="TrimUnsupportedPublishAssets" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)x86" />
+    <ItemGroup>
+      <_SmartBpPublishSymbols Remove="@(_SmartBpPublishSymbols)" />
+      <_SmartBpPublishSymbols Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(_SmartBpPublishSymbols)" />
+  </Target>
 </Project>
