@@ -67,14 +67,21 @@ public sealed class BackgroundTintAnimatablePropertyAdapter : IAnimatablePropert
     private static async Task AnimateStrengthAsync(BackgroundTintControlHost host, string propertyName, double from, double to, int durationMs, CancellationToken cancellationToken)
     {
         if (durationMs <= 0) { SetStrength(host, propertyName, to); return; }
-        var started = Environment.TickCount64;
-        while (true)
+
+        // 染色强度每次变化都会触发 CPU 像素处理，不能按 60fps 逐帧重算。
+        // 这里按约 50ms 一个关键帧量化，最终值仍精确落到目标值；运行中的宿主会在后台合并计算，
+        // Designer/测试宿主保持同步，视觉变化由“平滑”变为“分步”，但不会冻结 UI 线程。
+        var steps = Math.Clamp((int)Math.Ceiling(durationMs / 50D), 1, 12);
+        var stepDelay = Math.Max(1, durationMs / steps);
+        for (var step = 1; step <= steps; step++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var progress = Math.Clamp((Environment.TickCount64 - started) / (double)durationMs, 0D, 1D);
+            var progress = step / (double)steps;
             SetStrength(host, propertyName, from + ((to - from) * progress));
-            if (progress >= 1D) return;
-            await Task.Delay(16, cancellationToken);
+            if (step < steps)
+            {
+                await Task.Delay(stepDelay, cancellationToken);
+            }
         }
     }
 

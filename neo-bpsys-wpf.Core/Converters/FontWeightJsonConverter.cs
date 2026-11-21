@@ -36,6 +36,12 @@ public sealed class FontWeightJsonConverter : JsonConverter<FontWeight>
     };
 
     /// <summary>
+    /// 反向查找表，避免写入时对字典做线性 FirstOrDefault 扫描。
+    /// </summary>
+    private static readonly Dictionary<FontWeight, string> NameMap =
+        StringMap.ToDictionary(item => item.Value, item => item.Key);
+
+    /// <summary>
     /// 从 JSON 读取 <see cref="FontWeight"/> 值，支持数字和字符串两种格式。
     /// </summary>
     /// <param name="reader">JSON 读取器</param>
@@ -57,8 +63,7 @@ public sealed class FontWeightJsonConverter : JsonConverter<FontWeight>
     /// <inheritdoc/>
     public override void Write(Utf8JsonWriter writer, FontWeight value, JsonSerializerOptions options)
     {
-        var name = StringMap.FirstOrDefault(item => item.Value == value).Key;
-        if (string.IsNullOrWhiteSpace(name))
+        if (!NameMap.TryGetValue(value, out var name))
         {
             throw new JsonException($"Unsupported FontWeight value: {value}");
         }

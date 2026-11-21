@@ -24,6 +24,9 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
     private readonly object _gate = new();
     private bool _disposed;
 
+    /// <summary>运行时窗口宿主分离后发布其窗口类型。</summary>
+    public event Action<string>? HostDetached;
+
     /// <summary>
     /// 初始化 <see cref="FrontedBehaviorRuntimeHostManager" /> 的新实例。
     /// </summary>
@@ -174,6 +177,7 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
             return;
         }
         if (!_windowGates.TryGetValue(key, out var windowGate)) return;
+        string? detachedWindowType = null;
         lock (windowGate)
         {
             FrontedBehaviorRuntimeHost? host;
@@ -183,7 +187,10 @@ public sealed class FrontedBehaviorRuntimeHostManager : IDisposable
                 _hosts.Remove(key, out host);
             }
             host?.Dispose();
+            if (host is { Context.IsDesignerPreview: false })
+                detachedWindowType = host.Context.WindowType;
         }
+        if (detachedWindowType is not null) HostDetached?.Invoke(detachedWindowType);
         _logger.LogInformation("Behavior host detached: {Key}", key);
     }
 

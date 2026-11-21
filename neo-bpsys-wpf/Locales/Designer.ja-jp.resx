@@ -88,6 +88,9 @@
   <data name="Designer.LayerPanel.CollectionItem">
     <value>コレクション項目</value>
   </data>
+  <data name="Designer.LayerPanel.DeleteLayer">
+    <value>レイヤーを削除</value>
+  </data>
   <data name="Properties">
     <value>プロパティ</value>
   </data>

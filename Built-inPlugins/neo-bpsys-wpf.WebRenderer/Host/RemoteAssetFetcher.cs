@@ -16,16 +16,63 @@ internal sealed class RemoteAssetAddressPolicy : IRemoteAssetAddressPolicy
     public async Task ValidateAsync(Uri uri, CancellationToken cancellationToken)
     {
         ValidateUri(uri);
-        var addresses = await Dns.GetHostAddressesAsync(uri.DnsSafeHost, cancellationToken);
+        await ResolvePublicAddressesAsync(uri.DnsSafeHost, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 解析主机名并校验所有解析结果都是公网地址；任一解析结果不是公网地址时拒绝。
+    /// </summary>
+    internal static async Task<IPAddress[]> ResolvePublicAddressesAsync(string host, CancellationToken cancellationToken)
+    {
+        var addresses = await Dns.GetHostAddressesAsync(host, cancellationToken).ConfigureAwait(false);
         if (addresses.Length == 0 || addresses.Any(address => !IsPublicAddress(address)))
             throw new RemoteAssetException("RemoteAssetAddressRejected");
+        return addresses;
+    }
+
+    /// <summary>
+    /// 连接级域名固定回调：在真正建立 TCP 连接前解析并校验地址，随后只连接本次校验通过的 IP，
+    /// 避免「校验」与「连接」之间发生 DNS 重绑定。
+    /// </summary>
+    internal static async ValueTask<Stream> ConnectPinnedAsync(SocketsHttpConnectionContext context,
+        CancellationToken cancellationToken)
+    {
+        var addresses = await ResolvePublicAddressesAsync(context.DnsEndPoint.Host, cancellationToken).ConfigureAwait(false);
+        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+        try
+        {
+            await socket.ConnectAsync(addresses, context.DnsEndPoint.Port, cancellationToken).ConfigureAwait(false);
+            return new NetworkStream(socket, ownsSocket: true);
+        }
+        catch
+        {
+            socket.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 检测系统是否配置了代理。代理模式下连接目标是代理而不是源主机，DNS 解析由代理完成，
+    /// 客户端无法固定源站 IP；此时仍保留每次请求的地址预校验。
+    /// </summary>
+    internal static bool IsSystemProxyConfigured()
+    {
+        try
+        {
+            return HttpClient.DefaultProxy.GetProxy(new Uri("https://remote-asset.invalid/")) is not null;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     internal static void ValidateUri(Uri uri)
     {
         if (!uri.IsAbsoluteUri || uri.Scheme is not ("http" or "https")
             || !string.IsNullOrEmpty(uri.UserInfo) || string.IsNullOrWhiteSpace(uri.Host)
-            || string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase))
+            || uri.DnsSafeHost.Contains('%')
+            || string.Equals(uri.Host.TrimEnd('.'), "localhost", StringComparison.OrdinalIgnoreCase))
             throw new RemoteAssetException("RemoteAssetUriRejected");
     }
 
@@ -233,6 +280,7 @@ internal sealed class RemoteAssetFetcher
     private async Task<RemoteAssetCacheEntry?> TryReadDiskAsync(string revision,
         CancellationToken cancellationToken)
     {
+        if (!IsToken(revision)) return null;
         var metadataPath = Path.Combine(_cacheRoot, revision + ".json");
         var dataPath = Path.Combine(_cacheRoot, revision + ".bin");
         if (!File.Exists(metadataPath) || !File.Exists(dataPath)) return null;
@@ -261,6 +309,7 @@ internal sealed class RemoteAssetFetcher
 
     private async Task WriteDiskAsync(RemoteAssetCacheEntry entry, CancellationToken cancellationToken)
     {
+        if (!IsToken(entry.Revision)) throw new RemoteAssetException("RemoteAssetStaleGeneration");
         var id = Guid.NewGuid().ToString("N");
         var dataPath = Path.Combine(_cacheRoot, entry.Revision + ".bin");
         var metadataPath = Path.Combine(_cacheRoot, entry.Revision + ".json");

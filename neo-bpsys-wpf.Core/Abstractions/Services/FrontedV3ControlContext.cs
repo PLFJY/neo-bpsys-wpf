@@ -32,6 +32,9 @@ public sealed class FrontedV3ControlContext
     /// </summary>
     public required ISharedDataService SharedDataService { get; init; }
 
+    /// <summary>BP 窗口可选的按动画进度更新的角色展示源。</summary>
+    public IFrontedCharacterPresentationService? CharacterPresentation { get; init; }
+
     /// <summary>
     /// 前台资源解析器。
     /// </summary>
@@ -91,12 +94,17 @@ public sealed class FrontedV3ControlContext
     /// 基于当前 v3 上下文构建一个 <see cref="FrontedControlBuildContext"/>，用于传递给尚未迁移签名的内置控件工厂辅助方法。
     /// </summary>
     /// <returns>携带相同服务与画布信息的构建上下文。</returns>
+    /// <remarks>
+    /// 该转换有意不携带 <see cref="Config"/>、<see cref="Options"/> 与 <see cref="ControlName"/>：
+    /// 目标类型是旧工厂辅助方法的服务/画布上下文，不包含这些 v3 控件专属字段；需要它们时应继续使用当前 v3 上下文。
+    /// </remarks>
     public FrontedControlBuildContext ToBuildContext()
     {
         return new FrontedControlBuildContext
         {
             Services = Services,
             SharedDataService = SharedDataService,
+            CharacterPresentation = CharacterPresentation,
             ResourceResolver = ResourceResolver,
             WindowId = WindowId,
             CanvasName = CanvasName,

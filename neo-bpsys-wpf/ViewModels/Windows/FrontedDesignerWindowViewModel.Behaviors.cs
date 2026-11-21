@@ -158,6 +158,7 @@ public partial class FrontedDesignerWindowViewModel
         _scheduledValidationAndPreviewPending = false;
         _scheduledValidationRequested = false;
         _scheduledPreviewRequested = false;
+        _scheduledValidationRefreshPropertyGrid = false;
         _clearRestoreVisualsAfterScheduledPreview = false;
         try
         {

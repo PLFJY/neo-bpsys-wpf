@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -46,7 +47,7 @@ public class ModernFrame : Control
             nameof(TransitionDuration),
             typeof(TimeSpan),
             typeof(ModernFrame),
-            new PropertyMetadata(TimeSpan.FromMilliseconds(240)));
+            new PropertyMetadata(TimeSpan.FromMilliseconds(450)));
 
     /// <summary>
     /// <see cref="IsAnimationEnabled"/> 依赖属性的标识符。
@@ -120,6 +121,15 @@ public class ModernFrame : Control
     private ModernScrollViewer? _contentScrollHost;
     private FrameworkElement? _activeHostedContent;
     private bool _isUsingContentScrollHostForActiveContent = true;
+    private int _navigationVersion;
+    private FrameworkElement? _waitingContent;
+    private RoutedEventHandler? _contentLoaded;
+    private EventHandler? _exitCompleted;
+    private EventHandler? _enterCompleted;
+    private ModernFrameNavigationEventArgs? _pendingNavigation;
+    private long _navigationStartedAt;
+
+    internal bool IsNavigationPending => _pendingNavigation is not null;
 
     /// <summary>
     /// 初始化 <see cref="ModernFrame"/> 的新实例。
@@ -131,6 +141,7 @@ public class ModernFrame : Control
         ClipToBounds = true;
         SetCurrentValue(DefaultTransitionInfoProperty, new EntranceNavigationTransitionInfo());
         Template = CreateDefaultTemplate();
+        Unloaded += (_, _) => StopTransition();
     }
 
     /// <summary>
@@ -231,6 +242,9 @@ public class ModernFrame : Control
     /// 在导航完成后引发。
     /// </summary>
     public event EventHandler<ModernFrameNavigationEventArgs>? Navigated;
+
+    /// <summary>在目标内容加载且转场完成后引发；被新导航或卸载取消的导航不引发此事件。</summary>
+    public event EventHandler<ModernFrameNavigationEventArgs>? NavigationCompleted;
 
     /// <summary>
     /// 导航到指定页面类型。
@@ -460,6 +474,8 @@ public class ModernFrame : Control
 
         _activeContent = newContent;
         CurrentContent = newContent;
+        _pendingNavigation = new ModernFrameNavigationEventArgs(newContent, parameter, navigationMode, effectiveTransitionInfo);
+        _navigationStartedAt = Stopwatch.GetTimestamp();
 
         BeginContentSwap(
             oldContent,
@@ -522,7 +538,7 @@ public class ModernFrame : Control
     {
         DetachFromActiveHost();
 
-        if (oldContent is null || !ShouldAnimate(transitionInfo))
+        if (oldContent is null || ReferenceEquals(oldContent, newContent) || !ShouldAnimate(transitionInfo))
         {
             ReleaseHostedContent(oldHostedContent);
             _oldContentPresenter.Content = null;
@@ -537,6 +553,7 @@ public class ModernFrame : Control
 
             ClearAnimatedState(newContent);
             RestoreActiveHostState();
+            WhenContentReady(_navigationVersion, () => CompleteTransition(newContent));
             return;
         }
 
@@ -557,88 +574,81 @@ public class ModernFrame : Control
         _activeExitStoryboard = transitionInfo?.CreateExitStoryboard(_oldContentPresenter, movingBackwards, TransitionDuration);
         _activeEnterStoryboard = transitionInfo?.CreateEnterStoryboard(activeHost, movingBackwards, TransitionDuration);
 
-        if (_activeExitStoryboard is null)
+        var version = _navigationVersion;
+        WhenContentReady(version, () =>
         {
-            ClearOldTransitionPresenter();
-            BeginEnterTransition();
-            return;
-        }
+            Trace.WriteLine($"NavigationTransitionStarted: {newContent.GetType().Name}, ready={Stopwatch.GetElapsedTime(_navigationStartedAt).TotalMilliseconds:F1}ms");
+            var remaining = (_activeExitStoryboard is null ? 0 : 1) + (_activeEnterStoryboard is null ? 0 : 1);
+            if (remaining == 0)
+            {
+                CompleteTransition(newContent);
+                return;
+            }
 
-        _activeExitStoryboard.Completed += OnExitStoryboardCompleted;
+            void Finished()
+            {
+                if (version == _navigationVersion && --remaining == 0)
+                    CompleteTransition(newContent);
+            }
 
-        _pendingTransitionOperation = Dispatcher.BeginInvoke(() =>
-        {
-            _pendingTransitionOperation = null;
+            if (_activeExitStoryboard is not null)
+            {
+                _exitCompleted = (_, _) => Finished();
+                _activeExitStoryboard.Completed += _exitCompleted;
+            }
+            if (_activeEnterStoryboard is not null)
+            {
+                _enterCompleted = (_, _) => Finished();
+                _activeEnterStoryboard.Completed += _enterCompleted;
+            }
             try
             {
+                Panel.SetZIndex(activeHost, 2);
+                RestoreActiveHostVisibilityForEnter(activeHost);
                 _activeExitStoryboard?.Begin(_oldContentPresenter, true);
+                _activeEnterStoryboard?.Begin(activeHost, true);
             }
-            catch (Exception)
+            catch (InvalidOperationException ex)
             {
-                _activeExitStoryboard = null;
-                ClearOldTransitionPresenter();
-                BeginEnterTransition();
+                Trace.WriteLine($"Navigation transition failed: {ex}");
+                CompleteTransition(newContent);
             }
-        }, DispatcherPriority.ApplicationIdle);
+        });
     }
 
     private bool ShouldAnimate(ModernNavigationTransitionInfo? transitionInfo)
     {
         return IsAnimationEnabled
             && SystemParameters.ClientAreaAnimation
-            && RenderCapability.Tier > 0
             && TransitionDuration > TimeSpan.Zero
             && transitionInfo is not null
             && transitionInfo is not SuppressNavigationTransitionInfo;
     }
 
-    private void OnExitStoryboardCompleted(object? sender, EventArgs e)
+    private void WhenContentReady(int version, Action action)
     {
-        if (!HasTemplateParts)
+        void Queue()
         {
-            return;
-        }
-
-        _activeExitStoryboard?.Remove(_oldContentPresenter);
-        _activeExitStoryboard = null;
-        ClearOldTransitionPresenter();
-        BeginEnterTransition();
-    }
-
-    private void BeginEnterTransition()
-    {
-        if (!HasTemplateParts)
-        {
-            return;
-        }
-
-        var activeHost = GetActiveTransitionElement();
-
-        if (_activeEnterStoryboard is null)
-        {
-            CompleteTransition(_activeContent);
-            return;
-        }
-
-        _activeEnterStoryboard.Completed += OnEnterStoryboardCompleted;
-        _pendingTransitionOperation = Dispatcher.BeginInvoke(() =>
-        {
-            _pendingTransitionOperation = null;
-            try
+            _pendingTransitionOperation = Dispatcher.BeginInvoke(() =>
             {
-                RestoreActiveHostVisibilityForEnter(activeHost);
-                _activeEnterStoryboard?.Begin(activeHost, true);
-            }
-            catch (Exception)
-            {
-                CompleteTransition(_activeContent);
-            }
-        }, DispatcherPriority.ApplicationIdle);
-    }
-
-    private void OnEnterStoryboardCompleted(object? sender, EventArgs e)
-    {
-        CompleteTransition(_activeContent);
+                _pendingTransitionOperation = null;
+                if (version == _navigationVersion) action();
+            }, DispatcherPriority.Loaded);
+        }
+        if (_activeContent is not { IsLoaded: false } content)
+        {
+            Queue();
+            return;
+        }
+        _waitingContent = content;
+        _contentLoaded = (_, _) =>
+        {
+            content.Loaded -= _contentLoaded;
+            _contentLoaded = null;
+            _waitingContent = null;
+            if (version == _navigationVersion) Queue();
+        };
+        content.Loaded += _contentLoaded;
     }
 
     private void CompleteTransition(FrameworkElement? activeContent)
@@ -648,12 +658,7 @@ public class ModernFrame : Control
             return;
         }
 
-        var activeHost = GetActiveTransitionElement();
-
-        _activeExitStoryboard?.Remove(_oldContentPresenter);
-        _activeEnterStoryboard?.Remove(activeHost);
-        _activeExitStoryboard = null;
-        _activeEnterStoryboard = null;
+        RemoveStoryboards();
 
         ClearOldTransitionPresenter();
 
@@ -668,25 +673,27 @@ public class ModernFrame : Control
         {
             ClearAnimatedState(activeContent);
         }
+        var completed = _pendingNavigation;
+        _pendingNavigation = null;
+        if (completed is not null) NavigationCompleted?.Invoke(this, completed);
     }
 
     private void StopTransition()
     {
+        _navigationVersion++;
+        _pendingNavigation = null;
+        if (_waitingContent is not null && _contentLoaded is not null)
+            _waitingContent.Loaded -= _contentLoaded;
+        _waitingContent = null;
+        _contentLoaded = null;
+        _pendingTransitionOperation?.Abort();
+        _pendingTransitionOperation = null;
         if (!HasTemplateParts)
         {
             return;
         }
 
-        if (_pendingTransitionOperation is not null)
-        {
-            _pendingTransitionOperation.Abort();
-            _pendingTransitionOperation = null;
-        }
-
-        _activeExitStoryboard?.Remove(_oldContentPresenter);
-        _activeEnterStoryboard?.Remove(GetActiveTransitionElement());
-        _activeExitStoryboard = null;
-        _activeEnterStoryboard = null;
+        RemoveStoryboards();
 
         ClearOldTransitionPresenter();
 
@@ -698,6 +705,24 @@ public class ModernFrame : Control
         _directContentPresenter.ClearValue(OpacityProperty);
         _directContentPresenter.ClearValue(RenderTransformProperty);
         RestoreActiveHostState();
+    }
+
+    private void RemoveStoryboards()
+    {
+        if (_activeExitStoryboard is not null)
+        {
+            _activeExitStoryboard.Completed -= _exitCompleted;
+            _activeExitStoryboard.Remove(_oldContentPresenter!);
+        }
+        if (_activeEnterStoryboard is not null)
+        {
+            _activeEnterStoryboard.Completed -= _enterCompleted;
+            _activeEnterStoryboard.Remove(GetActiveTransitionElement());
+        }
+        _exitCompleted = null;
+        _enterCompleted = null;
+        _activeExitStoryboard = null;
+        _activeEnterStoryboard = null;
     }
 
     private void ClearOldTransitionPresenter()
@@ -730,7 +755,10 @@ public class ModernFrame : Control
             return;
         }
 
+        StopTransition();
+        var oldHostedContent = _activeHostedContent;
         DetachFromActiveHost();
+        ReleaseHostedContent(oldHostedContent);
         AttachToActiveHost(_activeContent);
     }
 
@@ -895,6 +923,7 @@ public class ModernFrame : Control
     private static void NormalizeActiveTransitionElement(FrameworkElement element)
     {
         element.Opacity = 1;
+        element.ClearValue(Panel.ZIndexProperty);
 
         if (element.RenderTransform is TranslateTransform translateTransform)
         {
@@ -935,6 +964,7 @@ public class ModernFrame : Control
         private readonly Page _page;
         private bool _isPageNavigated;
         private bool _isCleared;
+        private DispatcherOperation? _pendingPageNavigation;
 
         public ModernFramePageHost(Page page)
         {
@@ -953,11 +983,12 @@ public class ModernFrame : Control
                 return;
             }
 
-            Dispatcher.BeginInvoke(NavigateToPage, DispatcherPriority.Loaded);
+            _pendingPageNavigation ??= Dispatcher.BeginInvoke(NavigateToPage, DispatcherPriority.Loaded);
         }
 
         private void NavigateToPage()
         {
+            _pendingPageNavigation = null;
             if (_isCleared || _isPageNavigated)
             {
                 return;
@@ -969,6 +1000,8 @@ public class ModernFrame : Control
 
         public void ClearPage()
         {
+            _pendingPageNavigation?.Abort();
+            _pendingPageNavigation = null;
             Loaded -= OnLoaded;
             _isCleared = true;
             _isPageNavigated = false;

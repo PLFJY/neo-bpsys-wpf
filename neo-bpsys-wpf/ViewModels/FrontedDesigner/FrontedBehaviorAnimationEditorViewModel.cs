@@ -9,13 +9,14 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.FrontedDesigner;
 
-public sealed partial class FrontedBehaviorAnimationEditorViewModel : ObservableObject
+public sealed partial class FrontedBehaviorAnimationEditorViewModel : ObservableObject, IDisposable
 {
     private const int MaxPreviewLogItems = 300;
     private const int MinimumLoopPreviewIntervalMs = 16;
@@ -26,8 +27,11 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     private readonly Func<string, string, string> _localize;
     private readonly Func<Task<bool>>? _saveAsync;
     private CancellationTokenSource? _loopPreviewCancellation;
+    private CancellationTokenSource? _previewCancellation;
     private readonly HashSet<CancellationTokenSource> _graphPreviewCancellations = [];
     private TaskCompletionSource? _loopPreviewStopped;
+    private readonly byte[][] _initialStageSnapshots;
+    private bool _disposed;
 
     public FrontedBehaviorAnimationEditorViewModel(
         FrontedBehavior behavior,
@@ -69,6 +73,15 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             _ => [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions, BuildEventFields(eventCatalog, behavior.Trigger?.EventType, "Event.", localize), captureUndoSnapshot)]
         };
 
+        _initialStageSnapshots = Stages
+            .Select(stage => JsonSerializer.SerializeToUtf8Bytes(stage.GraphEditor.Graph))
+            .ToArray();
+
+        if (previewAnimationScope is not null)
+        {
+            previewAnimationScope.RootChanged += PreviewAnimationScopeOnRootChanged;
+        }
+
         // 将每个阶段图编辑器的保存动作接到当前动画编辑器的 SaveAllAsync。
         foreach (var stage in Stages)
         {
@@ -85,6 +98,11 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     }
 
     public string Title { get; }
+    /// <summary>获取当前编辑器的行为标识，用于防止同一行为打开多个编辑窗口。</summary>
+    public Guid BehaviorGuid => _behavior.BehaviorId;
+
+    /// <summary>获取当前编辑器持有的行为模型，用于判断窗口是否仍绑定到最新文档实例。</summary>
+    internal FrontedBehavior BehaviorModel => _behavior;
     public bool IsLoop { get; }
     public bool IsTransition { get; }
     public IReadOnlyList<FrontedBehaviorAnimationStageViewModel> Stages { get; }
@@ -103,21 +121,25 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     /// <returns>如果保存成功返回 <c>true</c>，否则返回 <c>false</c>。</returns>
     public async Task<bool> SaveAllAsync()
     {
-        if (_saveAsync is not null)
+        if (_saveAsync is null)
         {
-            try
+            // 没有接入保存回调时不能假装保存成功并清脏。
+            return false;
+        }
+
+        try
+        {
+            var saved = await _saveAsync().ConfigureAwait(false);
+            if (!saved)
             {
-                var saved = await _saveAsync().ConfigureAwait(false);
-                if (!saved)
-                {
-                    return false;
-                }
-            }
-            catch (Exception)
-            {
-                // 保存失败，保留已修改状态。
                 return false;
             }
+        }
+        catch (Exception ex)
+        {
+            // 保存失败，保留已修改状态。
+            Debug.WriteLine($"[AnimationEditor] 保存行为失败: {ex.Message}");
+            return false;
         }
 
         // 保存成功后清除所有阶段的已修改状态。
@@ -157,19 +179,62 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     /// <summary>
     /// 停止预览活动、重置预览动画状态，并丢弃编辑器本地的已修改状态。
     /// </summary>
-    public void DiscardAll()
+    /// <summary>
+    /// 停止预览并丢弃编辑器中的修改。
+    /// </summary>
+    /// <param name="restoreGraph">为 <see langword="true"/> 时把图恢复为打开编辑器时的快照；仅清理本地脏状态时传 <see langword="false"/>。</param>
+    public void DiscardAll(bool restoreGraph = true)
     {
         StopPreviewWithoutRunningStopGraph();
         ResetPreviewIfSafe();
 
-        foreach (var stage in Stages)
+        for (var index = 0; index < Stages.Count; index++)
         {
+            var stage = Stages[index];
             stage.GraphEditor.StopPreview();
             stage.GraphEditor.PreviewRoot = null;
-            stage.GraphEditor.DiscardLocalDirtyState();
+            if (restoreGraph && index < _initialStageSnapshots.Length)
+            {
+                stage.GraphEditor.RestoreFromSnapshot(_initialStageSnapshots[index]);
+            }
+            else
+            {
+                stage.GraphEditor.DiscardLocalDirtyState();
+            }
         }
 
         OnPropertyChanged(nameof(HasUnsavedChanges));
+    }
+
+    /// <summary>
+    /// 释放预览作用域订阅与预览取消源。
+    /// </summary>
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        if (_previewAnimationScope is not null)
+        {
+            _previewAnimationScope.RootChanged -= PreviewAnimationScopeOnRootChanged;
+        }
+
+        _previewCancellation?.Cancel();
+        _previewCancellation?.Dispose();
+        _previewCancellation = null;
+        _loopPreviewCancellation?.Cancel();
+    }
+
+    private void PreviewAnimationScopeOnRootChanged(object? sender, EventArgs e)
+    {
+        var root = _previewAnimationScope?.Root;
+        foreach (var stage in Stages)
+        {
+            stage.GraphEditor.PreviewRoot = root;
+        }
     }
 
     [ObservableProperty]
@@ -263,23 +328,77 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             localizedDisplayName);
     }
 
-    private Task PreviewStartAsync() =>
-        ExecuteGraphAsync(_behavior.StartGraph, TestContextCancellationToken());
+    private async Task PreviewStartAsync()
+    {
+        var cancellation = BeginPreviewCancellation();
+        try
+        {
+            await ExecuteGraphAsync(_behavior.StartGraph, cancellation.Token);
+        }
+        finally
+        {
+            EndPreviewCancellation(cancellation);
+        }
+    }
 
-    private Task PreviewLoopOnceAsync() =>
-        ExecuteGraphAsync(_behavior.LoopGraph, TestContextCancellationToken());
+    private async Task PreviewLoopOnceAsync()
+    {
+        var cancellation = BeginPreviewCancellation();
+        try
+        {
+            await ExecuteGraphAsync(_behavior.LoopGraph, cancellation.Token);
+        }
+        finally
+        {
+            EndPreviewCancellation(cancellation);
+        }
+    }
+
+    private CancellationTokenSource BeginPreviewCancellation()
+    {
+        _previewCancellation?.Cancel();
+        _previewCancellation?.Dispose();
+        _previewCancellation = new CancellationTokenSource();
+        return _previewCancellation;
+    }
+
+    private void EndPreviewCancellation(CancellationTokenSource cancellation)
+    {
+        if (!ReferenceEquals(_previewCancellation, cancellation))
+        {
+            return;
+        }
+
+        _previewCancellation = null;
+        cancellation.Dispose();
+    }
 
     private async Task StartLoopPreviewAsync()
     {
         if (IsLoopPreviewRunning)
         {
-            if (_behavior.LoopPolicy?.ReentryPolicy == FrontedReentryPolicy.InterruptPrevious)
-            {
-                _loopPreviewCancellation?.Cancel();
-            }
-            else
+            if (_behavior.LoopPolicy?.ReentryPolicy != FrontedReentryPolicy.InterruptPrevious)
             {
                 return;
+            }
+
+            _loopPreviewCancellation?.Cancel();
+            var runningLoop = _loopPreviewStopped;
+            if (runningLoop is not null)
+            {
+                try
+                {
+                    await runningLoop.Task.WaitAsync(TimeSpan.FromSeconds(5));
+                }
+                catch (TimeoutException)
+                {
+                    AddExecutionLog(Stages.FirstOrDefault()?.GraphEditor, new FrontedGraphExecutionLogItem
+                    {
+                        Level = FrontedGraphExecutionLogLevel.Warning,
+                        Message = _localize("Designer.Graph.Preview.PreviousLoopStopTimeout", "The previous loop preview did not stop in time; the new preview was not started.")
+                    });
+                    return;
+                }
             }
         }
 
@@ -339,7 +458,19 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         _loopPreviewCancellation?.Cancel();
         if (_loopPreviewStopped is not null)
         {
-            await _loopPreviewStopped.Task;
+            try
+            {
+                await _loopPreviewStopped.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            }
+            catch (TimeoutException)
+            {
+                AddExecutionLog(Stages.FirstOrDefault()?.GraphEditor, new FrontedGraphExecutionLogItem
+                {
+                    Level = FrontedGraphExecutionLogLevel.Warning,
+                    Message = _localize("Designer.Graph.Preview.StopLoopTimeout", "The loop preview did not stop in time.")
+                });
+                return;
+            }
         }
         var policy = _behavior.LoopPolicy ?? new FrontedLoopPolicy();
         var suppressReset = policy.StopMode == FrontedLoopStopMode.HoldCurrentState;
@@ -355,8 +486,11 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         }
     }
 
-    private Task PreviewStopAsync() =>
-        ExecuteGraphAsync(_behavior.StopGraph, TestContextCancellationToken());
+    private async Task PreviewStopAsync()
+    {
+        _previewCancellation?.Cancel();
+        await ExecuteGraphAsync(_behavior.StopGraph, CancellationToken.None);
+    }
 
     private void Reset()
     {
@@ -372,6 +506,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         var cancellation = _loopPreviewCancellation;
         _loopPreviewCancellation = null;
         cancellation?.Cancel();
+        _previewCancellation?.Cancel();
         // The running loop owns disposal in its finally block.
         foreach (var graphCancellation in _graphPreviewCancellations.ToArray())
             graphCancellation.Cancel();

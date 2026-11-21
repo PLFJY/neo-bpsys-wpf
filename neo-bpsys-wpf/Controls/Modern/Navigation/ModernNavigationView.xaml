@@ -75,6 +75,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ContentControl
                     Grid.Column="0"
@@ -91,6 +92,11 @@
                     Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                     Text="{Binding DisplayText}"
                     TextTrimming="CharacterEllipsis" />
+                <ContentPresenter
+                    Grid.Column="2"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    Content="{Binding SourceNavigationViewItem.InfoBadge}" />
             </Grid>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsPaneOpen, RelativeSource={RelativeSource AncestorType={x:Type navigation:ModernNavigationView}}}" Value="False">
@@ -129,7 +135,8 @@
         <Style x:Key="ModernNavigationTopListBoxStyle" TargetType="{x:Type ListBox}">
             <Setter Property="Height" Value="48" />
             <Setter Property="Padding" Value="6,4" />
-            <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
+            <!--  透明背景让主题切换遮罩透过顶部 Tab，避免该区域颜色瞬变  -->
+            <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
             <Setter Property="BorderThickness" Value="0,0,0,1" />
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
@@ -392,7 +399,7 @@
             Grid.Row="1"
             Grid.Column="0"
             Width="{Binding ActualPaneLength, ElementName=Root}"
-            Background="{DynamicResource ApplicationBackgroundBrush}"
+            Background="Transparent"
             BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
             BorderThickness="0,0,1,0"
             ClipToBounds="True">

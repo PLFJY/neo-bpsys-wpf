@@ -1,4 +1,4 @@
-using neo_bpsys_wpf.Core.Abstractions.Services;
+﻿using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Services.FrontedLayout.V3;
@@ -16,17 +16,32 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// 行为拥有的生成动画部件的默认渲染器。
 /// </summary>
 public sealed class FrontedBehaviorAnimationPartRenderer(
-    IFrontedResourceResolver resourceResolver) : IFrontedBehaviorAnimationPartRenderer
+    IFrontedResourceResolver resourceResolver)
+    : IFrontedBehaviorAnimationPartRenderer, IFrontedFilteredBehaviorAnimationPartRenderer
 {
     /// <inheritdoc />
-    public void ApplyAnimationParts(FrameworkElement root, FrontedBehaviorDocument behaviorDocument)
+    public void ApplyAnimationParts(FrameworkElement root, FrontedBehaviorDocument behaviorDocument) =>
+        ApplyAnimationParts(root, behaviorDocument, behaviorGuids: null);
+
+    /// <summary>
+    /// 只应用指定行为 GUID 的动画部件；未提供集合时应用全部行为。
+    /// </summary>
+    /// <param name="root">已渲染的前台根元素。</param>
+    /// <param name="behaviorDocument">行为文档。</param>
+    /// <param name="behaviorGuids">需要应用的行为 GUID 集合；为 <see langword="null"/> 时应用全部。</param>
+    public void ApplyAnimationParts(
+        FrameworkElement root,
+        FrontedBehaviorDocument behaviorDocument,
+        IReadOnlySet<Guid>? behaviorGuids)
     {
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(behaviorDocument);
 
         foreach (var set in behaviorDocument.ControlBehaviorSets)
         {
-            if (set.BehaviorGuid == Guid.Empty || set.AnimationParts.Count == 0)
+            if (set.BehaviorGuid == Guid.Empty
+                || set.AnimationParts.Count == 0
+                || (behaviorGuids is not null && !behaviorGuids.Contains(set.BehaviorGuid)))
             {
                 continue;
             }
@@ -41,6 +56,11 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             }
 
             var host = EnsureHost(parent, set.DisplayName);
+            if (host is null)
+            {
+                continue;
+            }
+
             ApplyParts(root, host, set);
         }
     }
@@ -121,8 +141,11 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             element.Height = ResolveLength(config.HeightText, config.Height, parent.ActualHeight, element.Height);
         }
 
-        parent.Loaded += (_, _) => UpdateSize();
-        parent.SizeChanged += (_, _) => UpdateSize();
+        // 使用弱事件避免每次预览重建都为 parent 累积持有旧 part 的闭包。
+        WeakEventManager<FrameworkElement, SizeChangedEventArgs>.AddHandler(
+            parent,
+            nameof(FrameworkElement.SizeChanged),
+            (_, _) => UpdateSize());
         UpdateSize();
     }
 
@@ -203,7 +226,8 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
             Opacity = Math.Clamp(config.Opacity, 0D, 1D),
             BlurRadius = NormalizeRadius(config.BlurRadius),
             ShadowDepth = config.Kind == FrontedVisualEffectKind.Glow ? 0D : Math.Max(0D, config.ShadowDepth),
-            Direction = config.Direction
+            Direction = config.Direction,
+            RenderingBias = RenderingBias.Performance
         };
     }
 
@@ -225,7 +249,7 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
         FrontedRendererProperties.SetRegisteredName(element, $"{parentName}__{partName}");
     }
 
-    private static Grid EnsureHost(FrameworkElement parent, string displayName)
+    private static Grid? EnsureHost(FrameworkElement parent, string displayName)
     {
         // V3 controls are hosted directly in Canvas via FrontedV3ControlHost, which is
         // the layout carrier. Legacy/plugin placeholders still use FrontedEffectHost.
@@ -242,13 +266,13 @@ public sealed class FrontedBehaviorAnimationPartRenderer(
 
         if (VisualTreeHelper.GetParent(carrier) is not Panel owner)
         {
-            return new Grid();
+            return null;
         }
 
         var index = owner.Children.IndexOf(carrier);
         if (index < 0)
         {
-            return new Grid();
+            return null;
         }
 
         var host = new Grid

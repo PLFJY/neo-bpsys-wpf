@@ -1243,7 +1243,7 @@ public partial class SmartBpModuleContentViewModel
     {
         if (string.IsNullOrWhiteSpace(RapidOcrModelDirectory)) return;
         Directory.CreateDirectory(RapidOcrModelDirectory);
-        Process.Start(new ProcessStartInfo("explorer.exe", RapidOcrModelDirectory) { UseShellExecute = true });
+        OpenFolderInExplorer(RapidOcrModelDirectory);
     }
     private async Task RecognizeCurrentFrameCoreAsync()
     {
@@ -1992,7 +1992,35 @@ public partial class SmartBpModuleContentViewModel
         var path = status.DataPath;
         if (string.IsNullOrWhiteSpace(path)) return;
         Directory.CreateDirectory(path);
-        Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+        OpenFolderInExplorer(path);
+    }
+
+    /// <summary>
+    /// 使用 explorer.exe 打开指定目录。目录路径作为单个 <see cref="ProcessStartInfo.ArgumentList"/>
+    /// 参数传递，由运行时按 Windows 命令行规则转义，避免路径中的空格或特殊字符被拆分。
+    /// </summary>
+    /// <param name="path">要打开的目录路径。</param>
+    private static void OpenFolderInExplorer(string path)
+    {
+        if (!Path.IsPathFullyQualified(path))
+        {
+            return;
+        }
+
+        var fullPath = Path.GetFullPath(path);
+        // explorer.exe 会把以 / 或 - 开头的首个参数解析为开关，路径必须是绝对路径。
+        if (fullPath.StartsWith('/') || fullPath.StartsWith('-'))
+        {
+            return;
+        }
+
+        var startInfo = new ProcessStartInfo("explorer.exe")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add(fullPath);
+        Process.Start(startInfo);
     }
 
     private void RefreshOcrProviderStatuses()

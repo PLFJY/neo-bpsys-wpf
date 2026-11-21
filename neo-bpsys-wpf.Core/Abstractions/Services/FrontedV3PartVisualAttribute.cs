@@ -36,7 +36,12 @@ public sealed class FrontedV3PartVisualAttribute : Attribute
     /// <param name="partId">Part 标识，必须与 <c>FrontedV3Part.Register&lt;TControl&gt;</c> 中的 id 一致。</param>
     public FrontedV3PartVisualAttribute(string partId)
     {
-        PartId = partId ?? throw new ArgumentNullException(nameof(partId));
+        if (string.IsNullOrWhiteSpace(partId))
+        {
+            throw new ArgumentException("Part identifier cannot be null, empty, or whitespace.", nameof(partId));
+        }
+
+        PartId = partId;
     }
 
     /// <summary>

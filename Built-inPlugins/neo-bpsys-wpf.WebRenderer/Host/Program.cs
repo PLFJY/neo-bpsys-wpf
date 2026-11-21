@@ -21,13 +21,22 @@ try
     builder.WebHost.ConfigureKestrel(options => options.Listen(settings.Address, settings.Port));
     builder.Services.AddSingleton<RemoteAssetAddressPolicy>();
     builder.Services.AddHttpClient("RemoteAssets", client => client.Timeout = Timeout.InfiniteTimeSpan)
-        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        .ConfigurePrimaryHttpMessageHandler(() =>
         {
-            AllowAutoRedirect = false,
-            ConnectTimeout = TimeSpan.FromSeconds(5),
-            // Respect the OS proxy and routing table. This is required for Clash TUN/Fake-IP
-            // and keeps sidecar traffic consistent with browser/WPF networking.
-            UseProxy = true
+            var handler = new SocketsHttpHandler
+            {
+                AllowAutoRedirect = false,
+                ConnectTimeout = TimeSpan.FromSeconds(5),
+                // Respect the OS proxy and routing table. This is required for Clash TUN/Fake-IP
+                // and keeps sidecar traffic consistent with browser/WPF networking.
+                UseProxy = true
+            };
+            // 无系统代理时，把 DNS 解析与 TCP 连接合并到同一次解析结果，防止 DNS 重绑定绕过地址校验。
+            // 配置系统代理时连接目标是代理，源站解析由代理完成，客户端无法固定源站 IP，
+            // 此时仍保留每次请求（含重定向）的地址预校验。
+            if (!RemoteAssetAddressPolicy.IsSystemProxyConfigured())
+                handler.ConnectCallback = RemoteAssetAddressPolicy.ConnectPinnedAsync;
+            return handler;
         });
     builder.Services.AddSingleton<RemoteAssetFetcher>();
     var app = builder.Build();
@@ -37,6 +46,15 @@ try
     state.ShutdownRequested += (_, _) => app.Lifetime.StopApplication();
     app.Use(async (context, next) =>
     {
+        // 本地页面只加载自身资源：禁止外部脚本、插件对象与被嵌入，降低布局文本被注入后的影响面。
+        context.Response.Headers["Content-Security-Policy"] =
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+            "img-src 'self' data: blob:; font-src 'self' data:; worker-src 'self'; " +
+            "connect-src 'self' ws: wss:; object-src 'none'; base-uri 'none'; " +
+            "form-action 'none'; frame-ancestors 'none'";
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["Referrer-Policy"] = "no-referrer";
         if (context.Request.Path == "/" || context.Request.Path == "/index.html" || context.Request.Path.StartsWithSegments("/render"))
             context.Response.Headers.CacheControl = "no-store";
         else if (context.Request.Path.StartsWithSegments("/assets") &&
@@ -57,6 +75,12 @@ try
     app.Map("/ws", async context =>
     {
         if (!context.WebSockets.IsWebSocketRequest) { context.Response.StatusCode = StatusCodes.Status400BadRequest; return; }
+        // WebSocket 不受同源策略保护，必须校验握手 Origin，拒绝被恶意网页跨站读取实时数据。
+        if (!WebSocketOriginPolicy.IsAllowed(context.Request.Headers.Origin, settings.Address, settings.Port))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
+        }
         using var socket = await context.WebSockets.AcceptWebSocketAsync();
         await state.AttachAsync(socket, context.RequestAborted);
         await state.WaitForCloseAsync(socket, context.RequestAborted);
@@ -97,6 +121,37 @@ internal sealed record SidecarSettings(string PipeName, int ParentProcessId, lon
         }
         if (string.IsNullOrWhiteSpace(pipe) || parentProcessId <= 0 || parentProcessStartTicks <= 0 || !IPAddress.TryParse(address, out var parsedAddress) || parsedAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork || port is < 1 or > 65535) throw new ArgumentException("Invalid Web Renderer sidecar arguments.");
         return new(pipe, parentProcessId, parentProcessStartTicks, parsedAddress, port, pluginVersion);
+    }
+}
+
+/// <summary>
+/// 校验 WebSocket 握手 Origin，阻止任意网页跨站连接本地 sidecar 读取实时数据。
+/// 非浏览器客户端不发送 Origin，保持放行；浏览器 Origin 必须与 sidecar 监听地址和端口一致。
+/// </summary>
+internal static class WebSocketOriginPolicy
+{
+    /// <summary>
+    /// 判断指定 Origin 是否允许连接。
+    /// </summary>
+    /// <param name="origin">握手请求的 Origin 头；缺失或空白时视为非浏览器客户端。</param>
+    /// <param name="listenAddress">sidecar 监听地址。</param>
+    /// <param name="port">sidecar 监听端口。</param>
+    /// <returns>允许连接时返回 <see langword="true"/>。</returns>
+    public static bool IsAllowed(string? origin, IPAddress listenAddress, int port)
+    {
+        if (string.IsNullOrWhiteSpace(origin)) return true;
+        if (!Uri.TryCreate(origin, UriKind.Absolute, out var parsed)) return false;
+        if (parsed.Scheme is not ("http" or "https") || parsed.Port != port) return false;
+
+        // 通配绑定（局域网模式）下页面可能通过任意本机地址访问；仍要求端口一致。
+        if (listenAddress.Equals(IPAddress.Any) || listenAddress.Equals(IPAddress.IPv6Any)) return true;
+
+        var host = parsed.DnsSafeHost;
+        if (string.Equals(host, listenAddress.ToString(), StringComparison.OrdinalIgnoreCase)) return true;
+        if (!IPAddress.IsLoopback(listenAddress)) return false;
+
+        return string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)
+               || IPAddress.TryParse(host, out var parsedHost) && IPAddress.IsLoopback(parsedHost);
     }
 }
 

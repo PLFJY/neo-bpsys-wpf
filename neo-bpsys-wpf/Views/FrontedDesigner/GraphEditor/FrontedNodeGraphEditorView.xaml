@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor.FrontedNodeGraphEditorView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -210,12 +210,12 @@
                                         ViewportUnits="Absolute">
                                         <DrawingBrush.Drawing>
                                             <DrawingGroup>
-                                                <GeometryDrawing Brush="#FF2A2A2A">
+                                                <GeometryDrawing Brush="{DynamicResource CardBackgroundFillColorDefaultBrush}">
                                                     <GeometryDrawing.Geometry>
                                                         <RectangleGeometry Rect="0,0,24,24" />
                                                     </GeometryDrawing.Geometry>
                                                 </GeometryDrawing>
-                                                <GeometryDrawing Brush="#28FFFFFF">
+                                                <GeometryDrawing Brush="{DynamicResource ControlStrokeColorDefaultBrush}">
                                                     <GeometryDrawing.Geometry>
                                                         <EllipseGeometry
                                                             Center="12,12"
@@ -643,6 +643,7 @@
                             Background="Transparent"
                             ClipToBounds="True"
                             Cursor="Hand"
+                            LostMouseCapture="Minimap_OnLostMouseCapture"
                             MouseLeftButtonDown="Minimap_OnMouseLeftButtonDown"
                             MouseLeftButtonUp="Minimap_OnMouseLeftButtonUp"
                             MouseMove="Minimap_OnMouseMove">
@@ -894,6 +895,7 @@
                 BorderThickness="1"
                 ClipToBounds="True"
                 CornerRadius="6"
+                LostMouseCapture="PreviewBorder_OnLostMouseCapture"
                 MouseDown="PreviewContent_OnMouseDown"
                 MouseLeave="PreviewContent_OnMouseLeave"
                 PreviewMouseLeftButtonUp="PreviewContent_OnPreviewMouseLeftButtonUp"

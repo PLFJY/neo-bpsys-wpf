@@ -5,6 +5,10 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 /// <summary>
 /// 处理由前台窗口标识拥有的前台行为数据。
 /// </summary>
+/// <remarks>
+/// <c>windowType</c> 必须是可安全映射到布局根目录的 Canonical 标识；实现应复用布局路径助手，
+/// 拒绝绝对路径、目录分隔符、<c>..</c> 和 Windows 保留名。当前默认实现已按此约定校验。
+/// </remarks>
 public interface IFrontedBehaviorService
 {
     /// <summary>

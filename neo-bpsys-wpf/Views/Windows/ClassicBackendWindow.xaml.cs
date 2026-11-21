@@ -251,31 +251,56 @@ public partial class ClassicBackendWindow : FluentWindow
         return false;
     }
 
+    private bool _isConfirmingExit;
+    private bool _exitConfirmed;
+
     protected override void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
+        if (_exitConfirmed)
+        {
+            // 用户已确认退出，允许窗口随应用关闭。
+            return;
+        }
+
+        if (_isConfirmingExit)
+        {
+            // 确认对话框已打开时继续阻止关闭，避免重复弹窗。
+            e.Cancel = true;
+            return;
+        }
+
         e.Cancel = true;
+        _isConfirmingExit = true;
         _ = ConfirmToExitAsync();
     }
 
     private async Task ConfirmToExitAsync()
     {
-        var messageBox = new MessageBox()
+        try
         {
-            Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Warning"),
-            Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AreYouSureYouWantToExit"),
-            PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
-            PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
-            CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-            CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
-            Owner = this,
-        };
-        var result = await messageBox.ShowDialogAsync();
+            var messageBox = new MessageBox()
+            {
+                Title = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Warning"),
+                Content = I18nHelper.GetLocalizedString(AppI18nDictionaries.Shell, "AreYouSureYouWantToExit"),
+                PrimaryButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Confirm"),
+                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
+                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
+                CloseButtonText = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "Cancel"),
+                Owner = this,
+            };
+            var result = await messageBox.ShowDialogAsync();
 
-        if (result == MessageBoxResult.Primary)
+            if (result == MessageBoxResult.Primary)
+            {
+                _logger?.LogInformation("Application Closing from classic backend shell");
+                _exitConfirmed = true;
+                Application.Current.Shutdown();
+            }
+        }
+        finally
         {
-            _logger?.LogInformation("Application Closing from classic backend shell");
-            Application.Current.Shutdown();
+            _isConfirmingExit = false;
         }
     }
 }

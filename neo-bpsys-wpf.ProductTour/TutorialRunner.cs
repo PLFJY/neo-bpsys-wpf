@@ -91,11 +91,24 @@ public sealed class TutorialRunner : ITutorialRunner
         string tutorialKey,
         CancellationToken cancellationToken = default)
     {
-        return await _playbackCoordinator.RunSequenceAsync(
-            owner,
-            tutorialKey,
-            token => RunSequenceCoreAsync(owner, tutorialKey, token),
-            cancellationToken);
+        try
+        {
+            return await _playbackCoordinator.RunSequenceAsync(
+                owner,
+                tutorialKey,
+                token => RunSequenceCoreAsync(owner, tutorialKey, token),
+                cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return TutorialRunResult.Canceled;
+        }
+        catch (Exception ex)
+        {
+            // 页面 Loaded/async void 直接调用此入口；未预期异常必须在此转为失败结果，不能逃逸到 Dispatcher。
+            _logger.LogError(ex, "Tutorial sequence failed. TutorialKey={TutorialKey}", tutorialKey);
+            return TutorialRunResult.Failed;
+        }
     }
 
     /// <inheritdoc />

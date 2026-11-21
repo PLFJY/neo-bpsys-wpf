@@ -1,93 +1,82 @@
-#nullable enable
-
-using System;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
 namespace neo_bpsys_wpf.Controls.Modern.Frame;
 
-// Inspired by iNKORE.UI.WPF.Modern EntranceNavigationTransitionInfo.
-/// <summary>
-/// 进入式导航过渡信息。新内容从底部滑入，后退时使用淡入过渡。
-/// </summary>
+/// <summary>进入式导航过渡，在同一时间线内先退场再从底部进入。</summary>
 public sealed class EntranceNavigationTransitionInfo : ModernNavigationTransitionInfo
 {
+    // WinUI ThemeTransitions.cpp, EntranceNavigationTransitionInfo::CreateStoryboards:
+    // https://github.com/microsoft/microsoft-ui-xaml/blob/main/dxaml/phone/lib/ThemeTransitions.cpp#L2861
+    // 140 DIP, 150 ms exit followed by 300 ms entrance, with the original cubic curves.
     internal override Storyboard CreateEnterStoryboard(FrameworkElement element, bool movingBackwards, TimeSpan duration)
     {
+        var exit = TimeSpan.FromTicks(duration.Ticks / 3);
         var storyboard = new Storyboard();
-
         if (movingBackwards)
-        {
-            storyboard.Children.Add(CreateOpacityAnimation(0, 1, duration, DecelerateKeySpline));
-        }
+            storyboard.Children.Add(StagedSpline(OpacityPath, 0, 1, exit, duration, DecelerateKeySpline));
         else
         {
-            EnsureTranslateTransform(element);
-            storyboard.Children.Add(CreateTranslateAnimation(TranslateYPath, 48, 0, duration, DecelerateKeySpline));
-            storyboard.Children.Add(CreateImmediateOpacityAnimation(1));
+            element.RenderTransform = new TranslateTransform();
+            storyboard.Children.Add(StagedSpline(TranslateYPath, 140, 0, exit, duration, DecelerateKeySpline));
+            storyboard.Children.Add(StepOpacity(0, 1, exit));
         }
-
         return storyboard;
     }
 
     internal override Storyboard CreateExitStoryboard(FrameworkElement element, bool movingBackwards, TimeSpan duration)
     {
+        var exit = TimeSpan.FromTicks(duration.Ticks / 3);
         var storyboard = new Storyboard();
-
         if (movingBackwards)
         {
-            EnsureTranslateTransform(element);
-            storyboard.Children.Add(CreateTranslateAnimation(TranslateYPath, 0, 48, duration, AccelerateKeySpline));
-            storyboard.Children.Add(CreateOpacityAnimation(1, 0, duration, AccelerateKeySpline));
+            element.RenderTransform = new TranslateTransform();
+            storyboard.Children.Add(Translate(TranslateYPath, 0, 140, exit, AccelerateKeySpline));
+            storyboard.Children.Add(StepOpacity(1, 0, exit));
         }
-        else
-        {
-            storyboard.Children.Add(CreateOpacityAnimation(1, 0, TimeSpan.FromMilliseconds(Math.Min(150, duration.TotalMilliseconds)), AccelerateKeySpline));
-        }
-
+        else storyboard.Children.Add(Opacity(1, 0, exit, AccelerateKeySpline));
         return storyboard;
     }
 
-    private static void EnsureTranslateTransform(FrameworkElement element)
-    {
-        element.RenderTransform = new TranslateTransform();
-    }
-
-    private static DoubleAnimationUsingKeyFrames CreateTranslateAnimation(PropertyPath path, double from, double to, TimeSpan duration, KeySpline keySpline)
+    internal static DoubleAnimationUsingKeyFrames StagedSpline(PropertyPath path, double from, double to,
+        TimeSpan start, TimeSpan end, KeySpline spline)
     {
         var animation = new DoubleAnimationUsingKeyFrames
         {
-            KeyFrames =
-            {
-                new DiscreteDoubleKeyFrame(from, TimeSpan.Zero),
-                new SplineDoubleKeyFrame(to, duration, keySpline)
-            }
+            KeyFrames = { new DiscreteDoubleKeyFrame(from, TimeSpan.Zero), new DiscreteDoubleKeyFrame(from, start),
+                new SplineDoubleKeyFrame(to, end, spline) }
         };
-
         Storyboard.SetTargetProperty(animation, path);
         return animation;
     }
 
-    private static DoubleAnimationUsingKeyFrames CreateOpacityAnimation(double from, double to, TimeSpan duration, KeySpline keySpline)
+    internal static DoubleAnimationUsingKeyFrames StepOpacity(double from, double to, TimeSpan at)
+    {
+        var animation = new DoubleAnimationUsingKeyFrames
+        { KeyFrames = { new DiscreteDoubleKeyFrame(from, TimeSpan.Zero), new DiscreteDoubleKeyFrame(to, at) } };
+        Storyboard.SetTargetProperty(animation, OpacityPath);
+        return animation;
+    }
+
+    internal static DoubleAnimationUsingKeyFrames Translate(PropertyPath path, double from, double to, TimeSpan duration, KeySpline spline)
     {
         var animation = new DoubleAnimationUsingKeyFrames
         {
-            KeyFrames =
-            {
-                new DiscreteDoubleKeyFrame(from, TimeSpan.Zero),
-                new SplineDoubleKeyFrame(to, duration, keySpline)
-            }
+            KeyFrames = { new DiscreteDoubleKeyFrame(from, TimeSpan.Zero), new SplineDoubleKeyFrame(to, duration, spline) }
         };
-
-        Storyboard.SetTargetProperty(animation, OpacityPath);
+        Storyboard.SetTargetProperty(animation, path);
         return animation;
     }
 
-    private static DoubleAnimation CreateImmediateOpacityAnimation(double value)
+    internal static DoubleAnimationUsingKeyFrames Opacity(double from, double to, TimeSpan duration, KeySpline spline)
     {
-        var animation = new DoubleAnimation(value, TimeSpan.Zero);
+        var animation = new DoubleAnimationUsingKeyFrames
+        {
+            KeyFrames = { new DiscreteDoubleKeyFrame(from, TimeSpan.Zero), new SplineDoubleKeyFrame(to, duration, spline) }
+        };
         Storyboard.SetTargetProperty(animation, OpacityPath);
         return animation;
     }
+
 }

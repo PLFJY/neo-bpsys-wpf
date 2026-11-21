@@ -6,15 +6,15 @@ Web Renderer 是独立内置插件 `top.plfjy.bpsys.WebRenderer`。它会把当�
 
 当 runtime 缺失时，管理页顶部会显示引导区域，支持一键下载并安装官方 ASP.NET Core Runtime 10 x64 installer：
 
-- **版本发现**：`WebRendererRuntimeReleaseFeed` 在线查询 Microsoft 官方 release metadata（`https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json`），解析最新 10.0.x 版本号、win-x64 installer 直链与 SHA-512。网络失败时回退到插件内置常量 `WebRendererRuntimeReleaseFeed.KnownFallbackVersion`（当前 `10.0.10`）与稳定 CDN URL pattern `https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/{version}/aspnetcore-runtime-{version}-win-x64.exe`。发布新版本后应同步更新该常量。
+- **版本发现**：`WebRendererRuntimeReleaseFeed` 在线查询 Microsoft 官方 release metadata（`https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json`），解析最新 10.0.x 版本号、win-x64 installer 直链与 SHA-512。网络失败时回退到插件内置常量 `WebRendererRuntimeReleaseFeed.KnownFallbackVersion`（当前 `10.0.10`）与稳定 CDN URL pattern `https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/{version}/aspnetcore-runtime-{version}-win-x64.exe`，并同时使用内置的官方 SHA-512（`KnownFallbackSha512`）。发布新版本后应同步更新上述常量。版本号只接受 ASCII 字母、数字、`.`、`-`、`+`，下载地址只接受官方 HTTPS 主机；任一校验失败都会取消安装。
 - **下载**：`WebRendererRuntimeSetupService` 通过宿主 `IFileDownloadService` 下载 installer 到 `%TEMP%\neo-bpsys-wpf_WebRenderer\`，支持暂停、继续和取消后续传，并实时回传进度。
-- **校验**：若 release metadata 提供 SHA-512，下载后用 `SHA512.HashDataAsync` 校验；hash 缺失则跳过校验并记录 warning。
+- **校验**：installer 必须通过 release metadata（或 fallback 常量）提供的 SHA-512 校验；官方元数据缺少校验值时拒绝自动安装并提示手动安装，不执行未校验文件。
 - **安装**：以 `/quiet /norestart` 参数、`Verb=runas`（UAC 提升）唤起 installer 静默安装；用户拒绝 UAC 或 installer 退出码非 0 时回退为"打开官方下载页"手动安装引导。
 - **重启**：安装完成并重新检测通过后，设置 `IGlobalRestartService.IsRestartRequired = true`，应用标题栏出现"需要重启"按钮，用户点击后 `App.Current.Restart()` 重启主程序；重启后 sidecar 重新检测 runtime 并正常启动。安装完成与重启之间不自动关闭应用，避免丢失用户未保存的后台状态。
 
 安装流程状态机：`Idle` → `FetchingRelease` → `Downloading`（可进入 `Paused` 并恢复）→ `Verifying` → `Installing` → `AwaitingRestart`（或 `Failed`）。任何阶段的错误都会回写到管理页引导区域，不会中止主 WPF 应用。
 
-启动参数、运行依赖安装与部署命令见[插件构建运行指南](../../Built-inPlugins/neo-bpsys-wpf.WebRenderer/README.md)。默认仅 localhost；LAN 模式无访问认证，同网设备可读取实时展示数据，须由部署者限制网络访问。
+启动参数、运行依赖安装与部署命令见[插件构建运行指南](../../Built-inPlugins/neo-bpsys-wpf.WebRenderer/README.md)。默认仅 localhost；LAN 模式无访问认证，同网设备可读取实时展示数据，须由部署者限制网络访问。sidecar 对 `/ws` 握手校验 `Origin`：只接受同源页面（监听地址或回环地址 + 相同端口）和不发送 `Origin` 的非浏览器客户端，其他来源返回 403；HTTP 响应统一携带 CSP（`default-src 'self'`、`script-src 'self'`、`object-src 'none'`、`frame-ancestors 'none'` 等）与 `nosniff`、`X-Frame-Options`、`Referrer-Policy` 安全头。
 
 资源 URL 是每次 bootstrap 创建的随机 token；浏览器不会获得物理路径。插件只授权当前活动包、`local`、内置 `Resources/...` 和已知应用字体，拒绝绝对路径、跨包引用及编码路径穿越。切换包或 Designer 保存布局时会重新发送 bootstrap，页面通过 WebSocket 刷新。未知内置控件与没有 Web adapter 的 `plugin:*` 控件会显示诊断占位；纯 Binding 文本显示绑定路径占位。
 
@@ -45,7 +45,7 @@ Image 与 BorderedImage 按 WPF 的语义树分离外层布局、内容 viewport
 
 sidecar 独立异步下载在线图片，并只允许 HTTP/HTTPS 的 PNG、JPEG、WebP 和 GIF。下载使用操作系统默认代理和路由设置，因此浏览器、WPF 与 Clash TUN/Fake-IP 模式共用同一网络路径；sidecar 不强制直连，也不要求额外的受信任主机配置。每次下载最多跟随 5 次重定向，连接超时 5 秒、总请求超时 20 秒、单项上限 10 MiB；相同资源的并发请求合并。成功结果进入 64 MiB 内存 LRU 与 512 MiB、最长 7 天的磁盘缓存，完整写入后才通过 `/remote-assets/{token}` 提供。失败不会持久缓存，绑定仍存在时会退避重试；URL 或 generation 改变时旧任务结果会被丢弃。
 
-每次请求和重定向都会重新执行基本地址校验：拒绝 userinfo、非 HTTP/HTTPS、localhost、环回、链路本地、组播、未指定和 RFC1918 私有地址。Clash TUN 常用的 `198.18.0.0/15` 仅作为 Fake-IP 路由地址，允许交由操作系统代理/路由处理，不将其当作用户可访问的局域网图片服务器。日志只记录稳定诊断码、generation 和截短 token，不记录源 URL、查询参数或完整缓存路径。
+每次请求和重定向都会重新执行基本地址校验：拒绝 userinfo、非 HTTP/HTTPS、localhost、环回、链路本地、组播、未指定和 RFC1918 私有地址。在未配置系统代理时，TCP 连接通过 `SocketsHttpHandler.ConnectCallback` 只连接本次校验解析出的 IP，避免 DNS 重绑定在「校验」与「连接」之间替换解析结果；配置系统代理时连接目标是代理，源站解析由代理完成。Clash TUN 常用的 `198.18.0.0/15` 仅作为 Fake-IP 路由地址，允许交由操作系统代理/路由处理，不将其当作用户可访问的局域网图片服务器。日志只记录稳定诊断码、generation 和截短 token，不记录源 URL、查询参数或完整缓存路径。
 
 ## 字体分类
 

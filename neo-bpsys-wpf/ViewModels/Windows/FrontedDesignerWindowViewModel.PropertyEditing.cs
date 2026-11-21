@@ -128,7 +128,19 @@ public partial class FrontedDesignerWindowViewModel
         RequestPreviewRenderCurrentDocument();
     }
 
-    public bool ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue, bool refreshPropertyGrid = true)
+    /// <summary>
+    /// 应用属性网格中的一次编辑。
+    /// </summary>
+    /// <param name="item">要编辑的属性行。</param>
+    /// <param name="newValue">待应用的属性值。</param>
+    /// <param name="refreshPropertyGrid">是否在提交后重建属性网格；自动提交场景应传 <see langword="false"/> 以避免输入框失焦。</param>
+    /// <param name="captureUndoSnapshot">是否在写入前捕获撤销快照；连续拖动色盘时只在首个变化捕获一次，避免每次鼠标移动都序列化整份文档。</param>
+    /// <returns>属性已更新时返回 <see langword="true"/>。</returns>
+    public bool ApplyPropertyEdit(
+        FrontedPropertyEditorItem item,
+        object? newValue,
+        bool refreshPropertyGrid = true,
+        bool captureUndoSnapshot = true)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
@@ -165,7 +177,7 @@ public partial class FrontedDesignerWindowViewModel
         if (_schemaPropertiesByPath.TryGetValue(item.PropertyName, out var schemaProperty)
             && _selectedTarget is not null)
         {
-            return ApplySchemaPropertyEdit(item, schemaProperty, newValue, refreshPropertyGrid);
+            return ApplySchemaPropertyEdit(item, schemaProperty, newValue, refreshPropertyGrid, captureUndoSnapshot);
         }
 
         if (item.PropertyName == nameof(FrontedControlDesignItem.Name))
@@ -209,7 +221,10 @@ public partial class FrontedDesignerWindowViewModel
             return true;
         }
 
-        CaptureUndoSnapshot();
+        if (captureUndoSnapshot)
+        {
+            CaptureUndoSnapshot();
+        }
         foreach (var target in changedTargets)
         {
             var targetProperty = target.Config.GetType().GetProperty(
@@ -286,12 +301,15 @@ public partial class FrontedDesignerWindowViewModel
     /// <param name="item">属性行。</param>
     /// <param name="schemaProperty">属性定义。</param>
     /// <param name="newValue">用户输入的新值。</param>
+    /// <param name="refreshPropertyGrid">是否在提交后重建属性网格。</param>
+    /// <param name="captureUndoSnapshot">是否在写入前捕获撤销快照；连续拖动色盘时只在首个变化捕获一次。</param>
     /// <returns>是否成功提交。</returns>
     private bool ApplySchemaPropertyEdit(
         FrontedPropertyEditorItem item,
         FrontedV3PropertyDefinition schemaProperty,
         object? newValue,
-        bool refreshPropertyGrid = true)
+        bool refreshPropertyGrid = true,
+        bool captureUndoSnapshot = true)
     {
         if (_selectedTarget is null || _selectedTarget.DesignItem is not { } designItem)
         {
@@ -300,6 +318,7 @@ public partial class FrontedDesignerWindowViewModel
 
         var config = designItem.Config;
         object? convertedValue;
+        var wasClamped = false;
         if (schemaProperty.PropertyType == typeof(double)
             || schemaProperty.PropertyType == typeof(double?))
         {
@@ -333,6 +352,13 @@ public partial class FrontedDesignerWindowViewModel
             }
         }
 
+        // Schema 文本属性同样受控件文本长度限制，避免绕过普通属性路径写入超长内容。
+        convertedValue = ClampEditorPropertyValue(
+            item.PropertyName,
+            config.ControlType,
+            convertedValue,
+            out wasClamped);
+
         // 共有属性使用各目标自己的 Schema Storage，避免跨控件类型时写入主选中项的存储路径。
         var editTargets = _batchPropertyTargets.TryGetValue(item.PropertyName, out var batchTargets)
             ? batchTargets
@@ -350,10 +376,13 @@ public partial class FrontedDesignerWindowViewModel
             return true;
         }
 
-        if (IsGeometryProperty(item.PropertyName) && _selectedTarget.Kind == FrontedV3DesignSelectionKind.Root)
-            CaptureGeometryUndoSnapshot();
-        else
-            CaptureUndoSnapshot();
+        if (captureUndoSnapshot)
+        {
+            if (IsGeometryProperty(item.PropertyName) && _selectedTarget.Kind == FrontedV3DesignSelectionKind.Root)
+                CaptureGeometryUndoSnapshot();
+            else
+                CaptureUndoSnapshot();
+        }
         foreach (var target in changedTargets)
         {
             target.Property.SetValue(target.Item.Config, convertedValue);
@@ -376,6 +405,11 @@ public partial class FrontedDesignerWindowViewModel
         }
 
         FinishPropertyEdit(item.PropertyName, refreshPropertyGrid);
+        if (wasClamped)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Common, "InputTruncated");
+        }
+
         return true;
     }
 
@@ -524,6 +558,7 @@ public partial class FrontedDesignerWindowViewModel
 
         CaptureUndoSnapshot();
         SelectedDesignItem.Name = newName;
+        RefreshLayerNodeDisplayName(SelectedDesignItem);
         item.Value = newName;
         item.EditText = newName;
         CurrentDocument.IsDirty = true;
@@ -563,7 +598,8 @@ public partial class FrontedDesignerWindowViewModel
             // SelectedTarget 为 null 时（Missing Plugin：Registry 中未注册）同样走 BuildFromSchema，
             // 由 AddMissingPluginRows 显示诊断行，不再回退到旧反射路径扫描 Config 公共属性。
             IEnumerable<FrontedPropertyEditorItem> rows;
-            validationMessages ??= _validator.Validate(CurrentDocument);
+            // 选择/局部编辑不重新执行整份文档校验；使用最近一次校验结果，随后由调度校验刷新。
+            validationMessages ??= _lastValidationMessages;
             if (_selectedTarget is { Kind: FrontedV3DesignSelectionKind.Root } rootTarget)
             {
                 rows = _propertyGridBuilder.BuildFromSchema(
@@ -1158,12 +1194,35 @@ public partial class FrontedDesignerWindowViewModel
             return;
         }
 
-        if (propertyName is nameof(FrontedControlDesignItem.Name) or nameof(FrontedControlConfigBase.ZIndex))
+        var refreshTargets = _batchPropertyTargets.TryGetValue(propertyName, out var batchTargets)
+            ? batchTargets.Select(target => target.Item).Distinct().ToArray()
+            : SelectedDesignItem is { } selectedItem ? [selectedItem] : Array.Empty<FrontedControlDesignItem>();
+        var requiresFullPreview = propertyName is nameof(FrontedControlDesignItem.Name) or nameof(FrontedControlConfigBase.ZIndex);
+        if (requiresFullPreview)
             RebuildFilteredDesignItems();
         else
             RefreshEditedLayerNodes();
-        ValidateCurrentDocument(refreshPropertyGrid);
-        RequestPreviewRenderCurrentDocument();
+        // 非几何属性提交不再同步执行整份文档校验；属性面板使用最近一次校验结果，校验随后合并调度。
+        if (refreshPropertyGrid)
+        {
+            RebuildPropertyEditorItems();
+        }
+
+        ScheduleValidationOnly("PropertyEdit", refreshPropertyGrid);
+        if (requiresFullPreview)
+        {
+            RequestPreviewRenderCurrentDocument();
+        }
+        else if (refreshTargets.Length == 0)
+        {
+            RequestPreviewRenderCurrentDocument();
+        }
+        else
+        {
+            // 非几何属性只重建受影响控件的视觉，避免每次编辑都清空并重建整个预览画布。
+            RequestControlRefresh(refreshTargets);
+        }
+
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
     }
 

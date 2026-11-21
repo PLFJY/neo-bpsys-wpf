@@ -108,8 +108,9 @@ public interface IGameGuidanceService
     /// <summary>通过常规引导过渡路径移动到已校验的工作流步骤。</summary>
     /// <param name="stepIndex">目标工作流步骤索引。</param>
     /// <param name="isNavigatePageEnable">是否启用页面切换。</param>
-    /// <returns>遵循现有引导命令约定的错误/显示文本。</returns>
-    Task<string?> MoveToStepAsync(int stepIndex, bool isNavigatePageEnable = true) => Task.FromResult<string?>(null);
+    /// <returns>遵循现有引导命令约定的错误/显示文本；未实现该能力的旧实现返回明确的未支持错误。</returns>
+    Task<string?> MoveToStepAsync(int stepIndex, bool isNavigatePageEnable = true) =>
+        Task.FromResult<string?>("Game guidance implementation does not support MoveToStepAsync.");
 
     /// <summary>
     /// 停止对局引导

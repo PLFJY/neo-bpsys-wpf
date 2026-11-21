@@ -370,9 +370,15 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        DependencyPropertyDescriptor
-            .FromName("SelectedColor", picker.GetType(), picker.GetType())
-            ?.AddValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
+        var descriptor = DependencyPropertyDescriptor.FromName("SelectedColor", picker.GetType(), picker.GetType());
+        if (descriptor is null)
+        {
+            return;
+        }
+
+        // Loaded 可能因父级重挂载而重复触发；先移除再订阅，避免重复提交/订阅泄漏。
+        descriptor.RemoveValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
+        descriptor.AddValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
     }
 
     private void PropertyColorPicker_OnUnloaded(object sender, RoutedEventArgs e)
@@ -409,12 +415,23 @@ public partial class FrontedDesignerWindow
             item.EditText = FrontedPropertyColorHelper.ToArgbString(item.ColorValue);
             if (!item.RequiresExplicitCommit)
             {
-                ApplyPropertyEditorValue(picker);
+                // 色盘拖动会在每个像素触发一次变化：只在本次拖动开始时捕获一次撤销快照，
+                // 且不重建属性网格，避免序列化整份文档和重建属性行拖慢拖动响应。
+                var isFirstChangeInSession = !ReferenceEquals(_activeColorEditItem, item);
+                ApplyPropertyEditorValue(
+                    picker,
+                    refreshPropertyGrid: false,
+                    captureUndoSnapshot: isFirstChangeInSession);
+                _activeColorEditItem = item;
+                RestartColorEditSessionTimer();
             }
         }
     }
 
-    private bool ApplyPropertyEditorValue(object sender, bool refreshPropertyGrid = true)
+    private bool ApplyPropertyEditorValue(
+        object sender,
+        bool refreshPropertyGrid = true,
+        bool captureUndoSnapshot = true)
     {
         if (IsPropertyEditorCommitSuppressed()
             || _viewModel is null
@@ -430,7 +447,58 @@ public partial class FrontedDesignerWindow
                 ? item.EditText
                 : item.Value;
 
-        return _viewModel.ApplyPropertyEdit(item, value, refreshPropertyGrid);
+        return _viewModel.ApplyPropertyEdit(item, value, refreshPropertyGrid, captureUndoSnapshot);
+    }
+
+    private void RestartColorEditSessionTimer()
+    {
+        if (_colorEditSessionTimer is null)
+        {
+            _colorEditSessionTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(500)
+            };
+            _colorEditSessionTimer.Tick += ColorEditSessionTimer_OnTick;
+        }
+
+        // 500ms 内没有新的颜色变化视为本次拖动结束，下一次拖动重新捕获撤销快照。
+        _colorEditSessionTimer.Stop();
+        _colorEditSessionTimer.Start();
+
+        if (!_colorEditInputHooked)
+        {
+            InputManager.Current.PreProcessInput += ColorEditInputManager_OnPreProcessInput;
+            _colorEditInputHooked = true;
+        }
+    }
+
+    private void ColorEditInputManager_OnPreProcessInput(object sender, PreProcessInputEventArgs e)
+    {
+        // Popup 内的颜色条不会把 MouseUp 冒泡到主窗口，用全局输入预处理捕获拖动结束。
+        if (e.StagingItem.Input is MouseButtonEventArgs
+            {
+                ChangedButton: MouseButton.Left,
+                ButtonState: MouseButtonState.Released
+            })
+        {
+            EndColorEditSession();
+        }
+    }
+
+    private void ColorEditSessionTimer_OnTick(object? sender, EventArgs e)
+    {
+        EndColorEditSession();
+    }
+
+    private void EndColorEditSession()
+    {
+        _colorEditSessionTimer?.Stop();
+        _activeColorEditItem = null;
+        if (_colorEditInputHooked)
+        {
+            InputManager.Current.PreProcessInput -= ColorEditInputManager_OnPreProcessInput;
+            _colorEditInputHooked = false;
+        }
     }
 
     private async Task<bool> ApplyPropertyEditorValueAsync(object sender)

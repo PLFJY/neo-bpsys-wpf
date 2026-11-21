@@ -6,9 +6,6 @@
     <SolidColorBrush x:Key="ProductTourFallbackSecondaryBrush" Color="#33FFFFFF" />
     <SolidColorBrush x:Key="ProductTourFallbackMaskBrush" Color="#FF101010" />
     <SolidColorBrush x:Key="ProductTourFallbackErrorBrush" Color="#FFFFB4A8" />
-    <SolidColorBrush x:Key="ProductTourSurfaceBrush" Color="#F2292929" />
-    <SolidColorBrush x:Key="ProductTourElevatedSurfaceBrush" Color="#F5272727" />
-    <SolidColorBrush x:Key="ProductTourOpaqueSurfaceBrush" Color="#FF272727" />
 
     <Style x:Key="ProductTourOverlayStyle" TargetType="{x:Type Canvas}" />
 
@@ -30,7 +27,7 @@
     <Style x:Key="ProductTourCardStyle" TargetType="{x:Type Border}">
         <Setter Property="Padding" Value="18" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource ProductTourElevatedSurfaceBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Effect">
@@ -133,7 +130,7 @@
         TargetType="{x:Type Border}">
         <Setter Property="Padding" Value="48,44" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource ProductTourSurfaceBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
         <Setter Property="MaxWidth" Value="720" />
     </Style>
 
@@ -266,7 +263,7 @@
     <Style x:Key="ProductTourDialogueBoxStyle" TargetType="{x:Type Border}">
         <Setter Property="Padding" Value="24,18" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource ProductTourSurfaceBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="MaxWidth" Value="760" />
@@ -311,7 +308,7 @@
         TargetType="{x:Type Border}">
         <Setter Property="Padding" Value="28" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Background" Value="{DynamicResource ProductTourOpaqueSurfaceBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
         <Setter Property="Opacity" Value="1" />
         <Setter Property="MaxWidth" Value="520" />
     </Style>

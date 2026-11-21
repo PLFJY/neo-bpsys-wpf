@@ -77,10 +77,8 @@ public class CutSceneBusinessDisplayHelperTest
     [Fact]
     public void GetParts_Game1FirstHalf_ReturnsGameNumber1AndFirstHalf()
     {
-        UseEnglishCulture();
-
         var parts = GameProgressDisplayHelper.GetParts(
-            GameProgress.Game1FirstHalf, isBo3Mode: false);
+            GameProgress.Game1FirstHalf, isBo3Mode: false, CultureInfo.GetCultureInfo("en-US"));
 
         Assert.Equal(1, parts.GameNumber);
         Assert.False(parts.IsOvertime);
@@ -94,10 +92,8 @@ public class CutSceneBusinessDisplayHelperTest
     [Fact]
     public void GetParts_Bo3Overtime_UsesGame3Overtime()
     {
-        UseEnglishCulture();
-
         var parts = GameProgressDisplayHelper.GetParts(
-            GameProgress.Game4FirstHalf, isBo3Mode: true);
+            GameProgress.Game4FirstHalf, isBo3Mode: true, CultureInfo.GetCultureInfo("en-US"));
 
         Assert.Equal(3, parts.GameNumber);
         Assert.True(parts.IsOvertime);
@@ -108,10 +104,8 @@ public class CutSceneBusinessDisplayHelperTest
     [Fact]
     public void GetParts_Bo5Game4_WhenNotBo3()
     {
-        UseEnglishCulture();
-
         var parts = GameProgressDisplayHelper.GetParts(
-            GameProgress.Game4FirstHalf, isBo3Mode: false);
+            GameProgress.Game4FirstHalf, isBo3Mode: false, CultureInfo.GetCultureInfo("en-US"));
 
         Assert.Equal(4, parts.GameNumber);
         Assert.False(parts.IsOvertime);
@@ -122,10 +116,8 @@ public class CutSceneBusinessDisplayHelperTest
     [Fact]
     public void GetParts_Free_ReturnsFree()
     {
-        UseEnglishCulture();
-
         var parts = GameProgressDisplayHelper.GetParts(
-            GameProgress.Free, isBo3Mode: false);
+            GameProgress.Free, isBo3Mode: false, CultureInfo.GetCultureInfo("en-US"));
 
         Assert.True(parts.IsFree);
         Assert.Equal("FREE GAME", parts.FullText);

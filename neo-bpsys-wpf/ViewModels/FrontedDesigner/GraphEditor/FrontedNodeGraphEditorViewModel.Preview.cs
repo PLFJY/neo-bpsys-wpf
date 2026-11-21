@@ -81,6 +81,18 @@ public sealed partial class FrontedNodeGraphEditorViewModel
                 ExecutionLog.Add(item);
             }
         }
+        catch (OperationCanceledException)
+        {
+            // 用户停止预览属于正常流程。
+        }
+        catch (Exception ex)
+        {
+            ExecutionLog.Add(new FrontedGraphExecutionLogItem
+            {
+                Level = FrontedGraphExecutionLogLevel.Error,
+                Message = _localize("Designer.Graph.Preview.Failed", "Preview failed.") + " " + ex.Message
+            });
+        }
         finally
         {
             IsPreviewRunning = false;

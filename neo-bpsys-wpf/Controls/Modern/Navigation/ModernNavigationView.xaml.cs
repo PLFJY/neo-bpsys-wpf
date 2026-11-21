@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -184,7 +185,12 @@ public partial class ModernNavigationView : UserControl, INavigationView
     /// <see cref="TransitionDuration"/> 依赖属性的标识符。
     /// </summary>
     public static readonly DependencyProperty TransitionDurationProperty =
-        DependencyProperty.Register(nameof(TransitionDuration), typeof(int), typeof(ModernNavigationView), new PropertyMetadata(240, OnTransitionDurationChanged));
+        DependencyProperty.Register(nameof(TransitionDuration), typeof(int), typeof(ModernNavigationView), new PropertyMetadata(450, OnTransitionDurationChanged));
+
+    /// <summary>标识全局页面导航的内容滚动宿主策略。</summary>
+    public static readonly DependencyProperty PageContentScrollHostModeProperty = DependencyProperty.Register(
+        nameof(PageContentScrollHostMode), typeof(ModernFrameContentScrollHostMode), typeof(ModernNavigationView),
+        new PropertyMetadata(ModernFrameContentScrollHostMode.Enabled, OnNavigationBehaviorChanged));
 
     /// <summary>
     /// <see cref="IsAnimationEnabled"/> 依赖属性的标识符。
@@ -236,6 +242,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
         {
             SetValue(IsBackEnabledPropertyKey, PART_Frame.CanGoBack);
         };
+        PART_Frame.NavigationCompleted += (_, args) => NavigationCompleted?.Invoke(this, args);
 
         SetCurrentValue(ActualPaneLengthProperty, GetTargetPaneLength());
         PART_Frame.TransitionDuration = TimeSpan.FromMilliseconds(Math.Max(0, TransitionDuration));
@@ -522,6 +529,13 @@ public partial class ModernNavigationView : UserControl, INavigationView
         set => SetValue(TransitionDurationProperty, value);
     }
 
+    /// <summary>获取或设置全局页面滚动策略；默认保持外层宿主，Auto 仅尊重显式 Self 声明。</summary>
+    public ModernFrameContentScrollHostMode PageContentScrollHostMode
+    {
+        get => (ModernFrameContentScrollHostMode)GetValue(PageContentScrollHostModeProperty);
+        set => SetValue(PageContentScrollHostModeProperty, value);
+    }
+
     /// <summary>
     /// 获取或设置一个值，指示是否启用页面切换过渡动画。关闭后页面切换将立即完成。
     /// </summary>
@@ -598,6 +612,9 @@ public partial class ModernNavigationView : UserControl, INavigationView
     /// 在导航完成后引发。
     /// </summary>
     public event TypedEventHandler<NavigationView, NavigatedEventArgs>? Navigated;
+
+    /// <summary>在目标内容加载并完成转场后引发，不改变原有 Navigated 时序。</summary>
+    public event EventHandler<ModernFrameNavigationEventArgs>? NavigationCompleted;
 
     /// <summary>
     /// 导航到指定页面类型，可传递数据上下文。
@@ -857,6 +874,9 @@ public partial class ModernNavigationView : UserControl, INavigationView
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         LocalizeDictionary.Instance.PropertyChanged -= OnLocalizeDictionaryPropertyChanged;
+        var length = ActualPaneLength;
+        BeginAnimation(ActualPaneLengthProperty, null);
+        SetCurrentValue(ActualPaneLengthProperty, length);
     }
 
     private void OnLocalizeDictionaryPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -877,8 +897,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
         }
 
         PART_Frame.ContentScrollHostMode = NavigationBehavior == ModernNavigationBehavior.LocalTabs
-            ? ModernFrameContentScrollHostMode.Auto
-            : ModernFrameContentScrollHostMode.Enabled;
+            ? ModernFrameContentScrollHostMode.Auto : PageContentScrollHostMode;
     }
 
     private void SetItemsSource(object? oldSource, object? newSource, bool isFooter)
@@ -1009,7 +1028,9 @@ public partial class ModernNavigationView : UserControl, INavigationView
 
     private bool NavigatePageType(Type pageType, object? dataContext, ModernNavigationEntry? entry)
     {
+        var startedAt = Stopwatch.GetTimestamp();
         var page = CreateNavigationElement(pageType, dataContext);
+        Trace.WriteLine($"NavigationPageCreated: {pageType.Name}, elapsed={Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds:F1}ms");
         var navigatingArgs = new NavigatingCancelEventArgs(System.Windows.Controls.Button.ClickEvent, this)
         {
             Page = page
@@ -1239,15 +1260,19 @@ public partial class ModernNavigationView : UserControl, INavigationView
 
         if (!IsLoaded || !SystemParameters.ClientAreaAnimation)
         {
+            BeginAnimation(ActualPaneLengthProperty, null);
             SetCurrentValue(ActualPaneLengthProperty, targetLength);
             return;
         }
 
+        var from = ActualPaneLength;
+        SetCurrentValue(ActualPaneLengthProperty, targetLength);
         BeginAnimation(
             ActualPaneLengthProperty,
-            new DoubleAnimation(targetLength, duration)
+            new DoubleAnimation(from, targetLength, duration)
             {
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                FillBehavior = FillBehavior.Stop
             });
     }
 

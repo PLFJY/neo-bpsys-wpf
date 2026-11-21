@@ -161,8 +161,11 @@ public partial class SmartBpModuleContentViewModel : ViewModelBase, IDisposable
         SyncDownloadStateFromService();
         IsOcrModelLoading = _ocrService.IsModelLoading;
 
-        // 初始化 CUDA 硬件加速设置卡片状态、检测设备并订阅运行时与下载事件。
-        InitializeCuda();
+        // CUDA 设备枚举和运行时状态检查可能触发昂贵的驱动/文件查询；延后到 UI 空闲阶段，
+        // 避免首次打开 SmartBP 页面时阻塞页面构造和首帧渲染。
+        Application.Current?.Dispatcher?.BeginInvoke(
+            new Action(() => { if (Volatile.Read(ref _disposed) == 0) InitializeCuda(); }),
+            DispatcherPriority.ApplicationIdle);
 
         // 在 UI 空闲后触发后台模型加载，避免与 View 渲染竞争 loader lock。
         Application.Current?.Dispatcher?.BeginInvoke(

@@ -96,7 +96,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : ITutorialOwner<Front
             .Package(Tours.PreviewBasic)
                 .StepKey("Step.DesignerV3AnimationEditorPreviewBasic.0.Title")
                     .TextKey("Step.DesignerV3AnimationEditorPreviewBasic.0.Description")
-                    .TargetName(nameof(PreviewButtonsPanel))
+                    .TargetName(nameof(AnimationTabs))
                     .Interaction(ProductTourInteractionMode.AllowTargetOnly)
                 .StepKey("Step.DesignerV3AnimationEditorPreviewBasic.1.Title")
                     .TextKey("Step.DesignerV3AnimationEditorPreviewBasic.1.Description")

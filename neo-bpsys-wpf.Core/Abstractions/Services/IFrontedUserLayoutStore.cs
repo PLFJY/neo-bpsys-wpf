@@ -5,12 +5,17 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <summary>
 /// 在应用数据目录下存储设计器 v3 用户布局文件。
 /// </summary>
+/// <remarks>
+/// 所有 <c>windowTypeName</c>/Canonical ID 参数必须是布局层可安全映射的文件系统片段；
+/// 实现必须拒绝绝对路径、<c>..</c>、目录分隔符和 Windows 保留名，不能直接拼接未校验输入。
+/// 当前默认实现通过布局路径助手完成该校验。
+/// </remarks>
 public interface IFrontedUserLayoutStore
 {
     /// <summary>
     /// 返回用户窗口布局是否存在。
     /// </summary>
-    /// <param name="windowTypeName">完整的窗口类型名。</param>
+    /// <param name="windowTypeName">Canonical 窗口标识。</param>
     /// <returns>当用户布局存在时返回 <see langword="true"/>。</returns>
     bool Exists(string windowTypeName);
 

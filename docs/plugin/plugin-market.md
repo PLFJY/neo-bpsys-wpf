@@ -12,6 +12,30 @@ https://bpsys-plugin-index.plfjy.top/
 
 插件市场页当前定义两个预设源：默认站点和 GitHub raw `PluginIndex.json`。页面把选中的值保存到 `Settings.PluginMarketSource`；服务层读取该设置，若为空则回退到内置默认源。服务层本身不关心来源是否来自预设列表，只把它当作插件市场索引 URL 使用。
 
+## 页面与交互
+
+`PluginMarketView` 在单一 `ModernFrame` 中承载目录、详情、下载队列和设置四个 `UserControl` 子视图，不嵌入 WPF Page。现有 `SelectedMarketPlugin`、`IsDownloadQueueOpen` 和 `IsPluginMarketSettingsOpen` 控制互斥的子视图；返回市场、Escape 和 Alt+Left 回到目录，已打开的 ComboBox 下拉优先处理 Escape。目录中的选择供键盘浏览，点击条目或按 Enter 才打开详情；返回保留目录滚动位置。
+
+子视图使用有界视口并显式声明 Self 滚动归属：目录和下载列表启用 Recycling/Pixel 虚拟化，详情与设置各由一个 `ModernScrollViewer` 滚动，README 内容随详情页整体滚动，不单独声明 self-scroll。工具栏在窄窗口收起文字并保留图标、提示与无障碍名称；详情操作可换行，设置和下载操作不依赖固定宽度浮层。转场使用 333 ms 的方向滑动，异步内容与状态采用 83 ms 淡入，均遵从系统动画设置；宿主行为以 [ModernFrame](../backend/modern-frame.md) 为准。
+
+README 的正文、加载、失败和空内容分开呈现，失败原因保存在非持久化的 `ReadmeErrorMessage`，不写入作者的 `ReadmeMarkdown`；失败后可重试。离开详情不取消下载，退场期间保留说明内容，转场完成或视图卸载后释放呈现引用。说明中的绝对 HTTP/HTTPS 链接可由用户点击打开浏览器；其他协议不交给系统启动。新增界面文案归属 PluginMarket 的中、英、日三份资源。
+
+设计与动效参考微软的 [Windows motion](https://learn.microsoft.com/en-us/windows/apps/design/motion/) 和[响应式布局](https://learn.microsoft.com/en-us/windows/apps/design/layout/responsive-design)指南，保持 WPF-UI 原有主题、控件状态与业务命令。
+
+## 目录本地缓存与刷新
+
+进入插件管理页、完成入场转场后即启动一次缓存优先的市场目录检查，无需先切换到市场。已安装页采用 ItemsControl 呈现虚拟化卡片，不提供列表选择状态；其模板内保留单一有界滚动宿主、主题颜色和入场动效，显示清单 Description，不加载 README。项目地址采用普通本地化标签加 `ui:HyperlinkButton`，按钮显示实际 URL，只有 URL 可点击；启停与更新操作可换行，卸载独立靠右。更新按钮打开对应的市场详情，继续复用市场安装流程。
+
+当前目录中存在版本高于本地已安装（或已暂存待重启）版本、API 兼容且未标记卸载的插件时，已安装卡片显示更新提示，主窗口大导航的 PluginPage（插件）入口通过 WPF-UI `NavigationViewItem.InfoBadge` 显示实际待更新数量，插件市场内部标签不显示角标，数量为零时隐藏。通知随目录刷新、切源、卸载标记及下载安装完成重新计算；已暂存相同新版时不再重复提示更新，仍显示重启提示。
+
+页面首次请求目录时先读取 `IPluginMarketCatalogCache`，呈现完整本地快照后，再通过 `IPluginMarketService` 异步获取最新目录。手动刷新沿用当前列表，不清空内容；网络失败时保留快照并显示刷新失败提示，没有快照时才显示页面中央加载状态。请求期间刷新按钮的图标切换为 `ProgressRing`，同时禁止重复刷新，完成或失败后恢复。
+
+缓存存放于 `%APPDATA%\neo-bpsys-wpf\Cache\PluginMarket\{contextHash}.json`，按实际索引源、语言和配置镜像隔离。切换这些设置会取消旧上下文请求并加载匹配的缓存；迟到的旧响应不能覆盖新上下文。缓存没有过期淘汰，每次首次加载及手动刷新仍请求网络，因此离线时可继续查看上次成功获取的目录。
+
+缓存格式版本为 `1`，保存获取时间、上下文和明确列出的目录元数据（包含已解析的资源 URL），不缓存图片文件、README 正文、安装状态、下载状态或错误。安装与兼容状态每次根据当前宿主重新计算；读取缓存不触发镜像探测。缓存缺失、损坏、版本不支持或超过 8 MiB 时视为不可用，继续网络加载，不修补旧数据。有效的空目录也是完整快照。
+
+磁盘读写及 JSON 处理在后台执行，写入通过同目录临时文件原子替换；保存失败不影响已取得的目录。网络成功后按插件 ID 对集合增删、移动和替换，未变化的条目保留对象引用及选中状态，不执行整表 Reset。`PluginMarketService.GetMarketPluginsAsync` 仍直接请求网络，布局包依赖检查等其他调用方不改为读取页面缓存。
+
 ## 市场条目
 
 市场索引反序列化为 `Dictionary<string, PluginMarketItem>`。服务会补齐空字段，并解析：

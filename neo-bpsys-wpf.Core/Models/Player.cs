@@ -83,6 +83,34 @@ public partial class Player : ObservableObjectBase
         SubscribeMember(value);
     }
 
+    partial void OnCharacterChanging(Character? value)
+    {
+        if (Character is { } oldCharacter)
+        {
+            oldCharacter.PropertyChanged -= OnCharacterPropertyChanged;
+        }
+    }
+
+    partial void OnCharacterChanged(Character? value)
+    {
+        if (value is not null)
+        {
+            value.PropertyChanged += OnCharacterPropertyChanged;
+        }
+    }
+
+    private void OnCharacterPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName is nameof(Character.HalfImage) or nameof(Character.BigImage) or nameof(Character.HeaderImage))
+        {
+            // 立绘在后台解码完成后通过 Character 通知刷新 Player.PictureShown 系列绑定。
+            OnPropertyChanged(nameof(PictureShown));
+            OnPropertyChanged(nameof(PictureShownWithFullCharacter));
+            OnPropertyChanged(nameof(PictureShownHeader));
+        }
+    }
+
     private void SubscribeMember(Member? member)
     {
         if (member is not null)

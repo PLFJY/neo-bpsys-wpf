@@ -109,6 +109,9 @@ public partial class FrontedDesignerWindowViewModel
     /// </summary>
     public void CaptureUndoSnapshot()
     {
+        // 非键盘微调的撤销步骤会打断连续微调；否则 700ms 内的文字编辑/其它操作
+        // 会被错误地合并进同一组方向键撤销记录。
+        ResetNudgeUndoSnapshotCoalescing();
         var snapshot = CreateSnapshot();
         if (snapshot is null)
         {
@@ -122,6 +125,49 @@ public partial class FrontedDesignerWindowViewModel
         }
 
         PushUndoSnapshot(snapshot);
+        _redoStack.Clear();
+        NotifyUndoRedoCommands();
+    }
+
+    /// <summary>
+    /// 为批量删除捕获轻量结构快照；仅当被删控件没有行为状态且数量较大时使用，
+    /// 避免删除大量普通控件时同步序列化整份布局与行为文档。
+    /// </summary>
+    /// <param name="items">即将删除的控件。</param>
+    public void CaptureDeleteUndoSnapshot(IReadOnlyList<FrontedControlDesignItem> items)
+    {
+        if (CurrentDocument is null || items.Count < 8)
+        {
+            CaptureUndoSnapshot();
+            return;
+        }
+
+        var behaviorGuids = items
+            .Select(item => item.Config.BehaviorGuid)
+            .Where(guid => guid != Guid.Empty)
+            .ToHashSet();
+        var behaviorDocument = BehaviorPanel.CurrentDocument;
+        if (behaviorGuids.Count > 0
+            && behaviorDocument.ControlBehaviorSets.Any(set => behaviorGuids.Contains(set.BehaviorGuid)))
+        {
+            CaptureUndoSnapshot();
+            return;
+        }
+
+        var indices = new int[items.Count];
+        for (var index = 0; index < items.Count; index++)
+        {
+            var documentIndex = CurrentDocument.Controls.IndexOf(items[index]);
+            if (documentIndex < 0)
+            {
+                CaptureUndoSnapshot();
+                return;
+            }
+
+            indices[index] = documentIndex;
+        }
+
+        PushUndoSnapshot(new ControlsPresenceHistorySnapshot(items.ToArray(), indices, RestoreItems: true));
         _redoStack.Clear();
         NotifyUndoRedoCommands();
     }
@@ -156,6 +202,7 @@ public partial class FrontedDesignerWindowViewModel
     private static long EstimateSnapshotBytes(DesignerHistorySnapshot snapshot) => snapshot switch
     {
         DocumentHistorySnapshot document => document.Json.LongLength,
+        ControlsPresenceHistorySnapshot presence => 8L * presence.Items.Length,
         GeometryHistorySnapshot geometry => 64L * geometry.Items.Length,
         LayerOrderSnapshot order => 16L * order.Order.Length,
         _ => 0
@@ -188,6 +235,14 @@ public partial class FrontedDesignerWindowViewModel
 
     private sealed record DocumentHistorySnapshot(byte[] Json) : DesignerHistorySnapshot;
 
+    /// <summary>
+    /// 仅记录被删除/恢复控件引用和原位置的轻量结构快照，避免大选择删除时序列化整份文档。
+    /// </summary>
+    private sealed record ControlsPresenceHistorySnapshot(
+        FrontedControlDesignItem[] Items,
+        int[] Indices,
+        bool RestoreItems) : DesignerHistorySnapshot;
+
     private readonly record struct ItemGeometrySnapshot(string Name, double Left, double Top, double? Width, double? Height);
 
     private sealed record GeometryHistorySnapshot(ItemGeometrySnapshot[] Items, FrontedCanvasBoModeState EditingState)
@@ -196,6 +251,7 @@ public partial class FrontedDesignerWindowViewModel
     /// <summary>为根控件移动和缩放保存所选项几何；子部件继续保存完整快照。</summary>
     internal void CaptureGeometryUndoSnapshot()
     {
+        ResetNudgeUndoSnapshotCoalescing();
         if (CurrentDocument is null || SelectedDesignItem is null) return;
         if (_selectedTarget is { Kind: not FrontedV3DesignSelectionKind.Root })
         {
@@ -216,20 +272,101 @@ public partial class FrontedDesignerWindowViewModel
     private GeometryHistorySnapshot CreateGeometrySnapshot(IEnumerable<string> names, FrontedCanvasBoModeState state)
     {
         var controls = GetGeometrySnapshotControls(state);
-        return new GeometryHistorySnapshot(names.Select(name =>
+        var items = new List<ItemGeometrySnapshot>();
+        foreach (var name in names)
         {
-            var config = controls[name];
-            return new ItemGeometrySnapshot(name, config.Left, config.Top, config.Width, config.Height);
-        }).ToArray(), state);
+            // 文档允许存在重复控件名（校验层只报告错误，不阻止打开）；
+            // 几何快照必须容错，不能因重复 key 或缺失 key 在鼠标手势中抛异常。
+            if (!controls.TryGetValue(name, out var config))
+            {
+                continue;
+            }
+
+            items.Add(new ItemGeometrySnapshot(name, config.Left, config.Top, config.Width, config.Height));
+        }
+
+        return new GeometryHistorySnapshot(items.ToArray(), state);
     }
 
     private IReadOnlyDictionary<string, FrontedControlConfigBase> GetGeometrySnapshotControls(FrontedCanvasBoModeState state)
     {
+        IEnumerable<KeyValuePair<string, FrontedControlConfigBase>> entries;
         if (CurrentDocument!.EditingBoModeState == state)
-            return CurrentDocument.Controls.ToDictionary(item => item.Name, item => item.Config, StringComparer.Ordinal);
-        var config = _designConverter.ToConfig(CurrentDocument);
-        return state == FrontedCanvasBoModeState.Bo3
-            ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls : config.Controls;
+        {
+            entries = CurrentDocument.Controls.Select(item => new KeyValuePair<string, FrontedControlConfigBase>(item.Name, item.Config));
+        }
+        else
+        {
+            var config = _designConverter.ToConfig(CurrentDocument);
+            var controls = state == FrontedCanvasBoModeState.Bo3
+                ? config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey].Controls
+                : config.Controls;
+            entries = controls.Select(entry => new KeyValuePair<string, FrontedControlConfigBase>(entry.Key, entry.Value));
+        }
+
+        return entries
+            .GroupBy(entry => entry.Key, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First().Value, StringComparer.Ordinal);
+    }
+
+    private void RestoreControlsPresenceSnapshot(ControlsPresenceHistorySnapshot snapshot)
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        if (snapshot.RestoreItems)
+        {
+            var existing = CurrentDocument.Controls.ToHashSet();
+            var restoredItems = new List<FrontedControlDesignItem>(snapshot.Items.Length);
+            foreach (var (item, index) in snapshot.Items
+                         .Select((item, index) => (item, index))
+                         .OrderBy(entry => entry.index))
+            {
+                if (existing.Contains(item))
+                {
+                    continue;
+                }
+
+                CurrentDocument.Controls.Insert(Math.Clamp(index, 0, CurrentDocument.Controls.Count), item);
+                existing.Add(item);
+                restoredItems.Add(item);
+            }
+
+            CurrentDocument.IsDirty = true;
+            RefreshDirtyState();
+            if (restoredItems.Count > 0)
+            {
+                AddFilteredDesignItems(restoredItems);
+                SelectDesignItems(restoredItems, restoredItems[^1]);
+                ScheduleValidationOnly("UndoDelete");
+                RequestControlsChanged(restoredItems, []);
+            }
+        }
+        else
+        {
+            var removedSet = snapshot.Items.ToHashSet();
+            var removedItems = CurrentDocument.Controls.Where(removedSet.Contains).ToArray();
+            if (removedItems.Length > 0)
+            {
+                var remainingItems = CurrentDocument.Controls.Where(item => !removedSet.Contains(item)).ToArray();
+                CurrentDocument.Controls.Clear();
+                foreach (var remainingItem in remainingItems)
+                {
+                    CurrentDocument.Controls.Add(remainingItem);
+                }
+
+                CurrentDocument.IsDirty = true;
+                RefreshDirtyState();
+                SelectDesignItem(null);
+                RemoveFilteredDesignItems(removedItems);
+                ScheduleValidationOnly("RedoDelete");
+                RequestControlsChanged([], removedItems);
+            }
+        }
+
+        NotifyUndoRedoCommands();
     }
 
     private void RestoreGeometrySnapshot(GeometryHistorySnapshot snapshot)
@@ -288,6 +425,11 @@ public partial class FrontedDesignerWindowViewModel
 
     private DesignerHistorySnapshot? CreateInverseSnapshot(DesignerHistorySnapshot snapshot)
     {
+        if (snapshot is ControlsPresenceHistorySnapshot presence)
+        {
+            return presence with { RestoreItems = !presence.RestoreItems };
+        }
+
         if (snapshot is GeometryHistorySnapshot geometry)
             return CreateGeometrySnapshot(geometry.Items.Select(item => item.Name), geometry.EditingState);
         if (snapshot is not LayerOrderSnapshot layerOrder) return CreateSnapshot();
@@ -451,6 +593,12 @@ public partial class FrontedDesignerWindowViewModel
         if (snapshot is LayerOrderSnapshot layerOrder)
         {
             RestoreLayerOrderSnapshot(layerOrder);
+            return;
+        }
+
+        if (snapshot is ControlsPresenceHistorySnapshot presence)
+        {
+            RestoreControlsPresenceSnapshot(presence);
             return;
         }
 

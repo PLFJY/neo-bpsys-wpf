@@ -33,6 +33,9 @@ public sealed class FrontedDesignerPreviewAnimationScope
 
     public FrameworkElement? Root => _root;
 
+    /// <summary>预览根元素替换或清空时触发。</summary>
+    public event EventHandler? RootChanged;
+
     public FrontedAnimationExecutionContext? CreateContext()
     {
         if (_root is null)
@@ -60,6 +63,7 @@ public sealed class FrontedDesignerPreviewAnimationScope
         IEnumerable<FrontedControlDesignItem> controls,
         FrontedBehaviorDocument? behaviorDocument = null)
     {
+        var rootChanged = !ReferenceEquals(_root, root);
         _root = root;
         _selfBehaviorGuid = selectedControl?.Config.BehaviorGuid ?? Guid.Empty;
         _selfDisplayName = selectedControl?.Name;
@@ -68,6 +72,10 @@ public sealed class FrontedDesignerPreviewAnimationScope
         _controls = controls.ToArray();
         _behaviorDocument = behaviorDocument;
         RefreshTargets();
+        if (rootChanged)
+        {
+            RootChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     /// <summary>更新动画 Self 上下文；选择变化不改变已渲染的动画目标目录。</summary>
@@ -137,7 +145,13 @@ public sealed class FrontedDesignerPreviewAnimationScope
         _canvasName = string.Empty;
         _controls = [];
         _behaviorDocument = null;
+        var rootChanged = _root is not null;
+        _root = null;
         _targets = [];
+        if (rootChanged)
+        {
+            RootChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private static IEnumerable<FrameworkElement> EnumerateFrameworkElements(DependencyObject root)

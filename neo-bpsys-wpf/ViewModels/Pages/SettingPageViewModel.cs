@@ -110,6 +110,8 @@ public partial class SettingPageViewModel : ViewModelBase
         _globalRestartService = globalRestartService;
 
         UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
+        UpdaterService.NewVersionInfoChanged += (_, _) => RefreshAvailableAppUpdate();
+        RefreshAvailableAppUpdate();
         RefreshUpdateDownloadState();
         _observedSettings = _settingsHostService.Settings;
         _observedSettings.PropertyChanged += Settings_PropertyChanged;

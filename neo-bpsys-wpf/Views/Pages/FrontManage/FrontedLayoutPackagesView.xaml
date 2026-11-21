@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:motion="clr-namespace:neo_bpsys_wpf.Controls.Modern.Motion"
     xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
@@ -23,7 +24,6 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -81,7 +81,7 @@
         <Border
             Grid.Row="1"
             Padding="10"
-            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            Background="Transparent"
             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
             CornerRadius="8">
@@ -98,6 +98,7 @@
                     x:Name="LayoutPackageList"
                     Grid.Row="1"
                     Margin="0,8,0,0"
+                    motion:ListTransitions.IsEnabled="True"
                     scrolling:ModernScroll.Ownership="Self"
                     scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     Background="Transparent"
@@ -106,9 +107,13 @@
                     MouseDoubleClick="PackageListBox_OnMouseDoubleClick"
                     PreviewMouseRightButtonDown="PackageListBox_OnPreviewMouseRightButtonDown"
                     RequestBringIntoView="PackageListBox_OnRequestBringIntoView"
+                    ScrollViewer.CanContentScroll="True"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">
+                    SelectedItem="{Binding SelectedPackage, Mode=TwoWay}"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.ScrollUnit="Pixel"
+                    VirtualizingPanel.VirtualizationMode="Recycling">
                     <ListBox.ContextMenu>
                         <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                             <MenuItem Command="{Binding ActivatePackageCommand}" Header="{lex:Loc ActivatePackage}" />
@@ -224,7 +229,7 @@
             Grid.Column="1"
             Margin="10,0,0,0"
             Padding="12"
-            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            Background="Transparent"
             BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
             BorderThickness="1"
             CornerRadius="8">
@@ -305,13 +310,11 @@
                         Content="{lex:Loc OpenPackageFolder}" />
                     <controls:DeleteConfirmationButton
                         Margin="0,0,8,8"
-                        Command="{Binding DeletePackageCommand}"
                         ButtonText="{lex:Loc neo-bpsys-wpf:neo_bpsys_wpf.Locales.FrontManage:DeletePackage}"
+                        Command="{Binding DeletePackageCommand}"
                         ConfirmationText="{Binding DeletePackageConfirmationText}">
                         <controls:DeleteConfirmationButton.Style>
-                            <Style
-                                BasedOn="{StaticResource {x:Type controls:DeleteConfirmationButton}}"
-                                TargetType="{x:Type controls:DeleteConfirmationButton}">
+                            <Style BasedOn="{StaticResource {x:Type controls:DeleteConfirmationButton}}" TargetType="{x:Type controls:DeleteConfirmationButton}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding SelectedPackage.IsBuiltin}" Value="True">
                                         <Setter Property="IsEnabled" Value="False" />
@@ -415,12 +418,8 @@
             Grid.ColumnSpan="2"
             Panel.ZIndex="10"
             Visibility="{Binding PackageImportState.IsImporting, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Border
-                Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
-                Opacity="0.82" />
-            <StackPanel
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
+            <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}" Opacity="0.82" />
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <ui:ProgressRing
                     Width="48"
                     Height="48"

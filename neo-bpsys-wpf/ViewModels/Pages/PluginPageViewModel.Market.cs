@@ -64,7 +64,17 @@ public partial class PluginPageViewModel
     /// 插件市场列表是否正在加载。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInitialMarketLoading))]
+    [NotifyCanExecuteChangedFor(nameof(RefreshMarketCommand))]
     public partial bool IsMarketLoading { get; set; }
+
+    /// <summary>当前源、语言与镜像上下文是否已有完整快照，包含有效的空目录。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInitialMarketLoading))]
+    public partial bool HasMarketSnapshot { get; set; }
+
+    /// <summary>仅在没有可呈现快照时显示页面中央加载状态。</summary>
+    public bool IsInitialMarketLoading => IsMarketLoading && !HasMarketSnapshot;
 
     /// <summary>
     /// 插件市场加载失败时显示的错误消息。
@@ -182,7 +192,7 @@ public partial class PluginPageViewModel
     public bool IsMarketPluginSelected => SelectedMarketPlugin != null;
 
     /// <summary>
-    /// 插件市场中的任一浮层是否处于打开状态。
+    /// 插件市场是否正在显示详情、下载或设置子视图；保留既有绑定名称。
     /// </summary>
     public bool HasPluginMarketOverlay => IsPluginMarketSettingsOpen || IsDownloadQueueOpen || IsMarketPluginSelected;
 
@@ -211,8 +221,19 @@ public partial class PluginPageViewModel
 
     partial void OnSelectedMarketPluginChanged(PluginMarketItem? value)
     {
+        if (value is not null)
+        {
+            IsDownloadQueueOpen = false;
+            IsPluginMarketSettingsOpen = false;
+        }
         RefreshDownloadState();
         _ = LoadSelectedPluginReadmeAsync(value);
+    }
+
+    [RelayCommand]
+    private void OpenMarketPluginDetails(PluginMarketItem? item)
+    {
+        if (item is not null) SelectedMarketPlugin = item;
     }
 
     /// <summary>
@@ -258,7 +279,15 @@ public partial class PluginPageViewModel
         IsPluginMarketMirrorSettingVisible = IsChineseCultureForPluginMarketMirror();
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
         _isPluginMarketInitialized = true;
-        _ = RefreshMarketAsync();
+    }
+
+    private bool _hasRequestedMarket;
+
+    internal void EnsureMarketLoaded()
+    {
+        if (!_isPluginMarketInitialized || _hasRequestedMarket) return;
+        _hasRequestedMarket = true;
+        if (!IsMarketLoading) _ = RefreshMarketAsync();
     }
 
     /// <summary>
@@ -282,6 +311,7 @@ public partial class PluginPageViewModel
             _observedSettings = settings;
             settings.PropertyChanged += Settings_PropertyChanged;
             SyncPluginMarketSettingsFromSettings();
+            RefreshMarketIfContextChanged();
         }
 
         if (System.Windows.Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
@@ -295,14 +325,14 @@ public partial class PluginPageViewModel
     /// </summary>
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (App.Current.Dispatcher.CheckAccess())
+        void Synchronize()
         {
             SyncPluginMarketSettingsFromSettings();
+            RefreshMarketIfContextChanged();
         }
-        else
-        {
-            App.Current.Dispatcher.Invoke(SyncPluginMarketSettingsFromSettings);
-        }
+        if (System.Windows.Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess())
+            dispatcher.Invoke(Synchronize);
+        else Synchronize();
     }
 
     /// <summary>
@@ -345,32 +375,122 @@ public partial class PluginPageViewModel
         OnPropertyChanged(nameof(IsPluginDownloadVisible));
     }
 
-    /// <summary>
-    /// 重新加载插件市场列表。
-    /// </summary>
+    private bool _marketRefreshRequested;
+    private PluginMarketCatalogContext? _loadingMarketContext;
+    private PluginMarketCatalogContext? _displayedMarketContext;
+    private CancellationTokenSource? _marketRefreshCancellation;
+
+    private PluginMarketCatalogContext CaptureMarketContext()
+    {
+        var settings = _settingsHostService.Settings;
+        var source = string.IsNullOrWhiteSpace(settings.PluginMarketSource)
+            ? Services.PluginMarketService.DefaultMarketIndexUrl : settings.PluginMarketSource;
+        return new PluginMarketCatalogContext(source, settings.CultureInfo.Name, settings.GhProxyMirror);
+    }
+
+    private void RefreshMarketIfContextChanged()
+    {
+        if (_hasRequestedMarket && CaptureMarketContext() != (_loadingMarketContext ?? _displayedMarketContext))
+            _ = RefreshMarketAsync();
+    }
+
+    private bool CanRefreshMarket() => !IsMarketLoading;
+
+    /// <summary>是否有已安装插件可从当前市场更新。</summary>
+    public bool HasInstalledPluginUpdates => PluginsCollection.Any(plugin => plugin.IsUpdateAvailable);
+
+    /// <summary>当前已安装插件中可更新的数量。</summary>
+    public int InstalledPluginUpdateCount => PluginsCollection.Count(plugin => plugin.IsUpdateAvailable);
+
     [RelayCommand]
-    private async Task RefreshMarketAsync()
+    private void OpenInstalledPluginUpdate(PluginInfo? plugin)
+    {
+        var item = MarketPluginsCollection.FirstOrDefault(item => item.Id == plugin?.Manifest.Id);
+        if (item is not null) SelectedMarketPlugin = item;
+    }
+
+    private void ApplyMarketCatalog(IReadOnlyList<PluginMarketItem> items, PluginMarketCatalogContext context)
     {
         var selectedId = SelectedMarketPlugin?.Id;
+        PresentationCollection.Reconcile(MarketPluginsCollection, items, item => item.Id,
+            (previous, current) => previous.HasSameCatalogData(current));
+        RefreshMarketPluginStates();
+        SelectedMarketPlugin = string.IsNullOrWhiteSpace(selectedId)
+            ? null : MarketPluginsCollection.FirstOrDefault(item => item.Id == selectedId);
+        _displayedMarketContext = context;
+        HasMarketSnapshot = true;
+    }
+
+    /// <summary>重新加载插件市场列表，同源请求防重入，切源请求串行追赶最新意图。</summary>
+    [RelayCommand(CanExecute = nameof(CanRefreshMarket))]
+    private async Task RefreshMarketAsync()
+    {
+        _hasRequestedMarket = true;
+        if (IsMarketLoading)
+        {
+            if (_loadingMarketContext != CaptureMarketContext())
+            {
+                _marketRefreshRequested = true;
+                _marketRefreshCancellation?.Cancel();
+            }
+            return;
+        }
+        IsMarketLoading = true;
         try
         {
-            IsMarketLoading = true;
-            MarketErrorMessage = string.Empty;
-            var items = await _pluginMarketService.GetMarketPluginsAsync();
-            MarketPluginsCollection = new ObservableCollection<PluginMarketItem>(items);
-            RefreshMarketPluginStates();
-            SelectedMarketPlugin = string.IsNullOrWhiteSpace(selectedId)
-                ? null
-                : MarketPluginsCollection.FirstOrDefault(x => x.Id == selectedId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error when loading plugin market");
-            MarketErrorMessage = ex.Message;
+            do
+            {
+                _marketRefreshRequested = false;
+                var context = _loadingMarketContext = CaptureMarketContext();
+                using var cancellation = new CancellationTokenSource();
+                _marketRefreshCancellation = cancellation;
+                MarketErrorMessage = string.Empty;
+                try
+                {
+                    if (_displayedMarketContext != context || !HasMarketSnapshot)
+                    {
+                        SelectedMarketPlugin = null;
+                        PresentationCollection.Reconcile(MarketPluginsCollection, Array.Empty<PluginMarketItem>(), item => item.Id,
+                            (previous, current) => previous.HasSameCatalogData(current));
+                        _displayedMarketContext = context;
+                        HasMarketSnapshot = false;
+                        RefreshMarketPluginStates();
+                        var cached = await _marketCatalogCache.ReadAsync(context, cancellation.Token);
+                        if (context != CaptureMarketContext()) { _marketRefreshRequested = true; continue; }
+                        if (cached is not null)
+                        {
+                            ApplyMarketCatalog(cached, context);
+                            if (System.Windows.Application.Current?.Dispatcher is { } dispatcher && dispatcher.CheckAccess())
+                                await dispatcher.InvokeAsync(static () => { }, System.Windows.Threading.DispatcherPriority.Background, cancellation.Token);
+                        }
+                    }
+                    var items = await _pluginMarketService.GetMarketPluginsAsync(cancellation.Token);
+                    // 上下文变化后串行请求最新目录，避免迟到响应覆盖新意图。
+                    if (context != CaptureMarketContext())
+                    {
+                        _marketRefreshRequested = true;
+                        continue;
+                    }
+                    ApplyMarketCatalog(items, context);
+                    await _marketCatalogCache.WriteAsync(context, items, cancellation.Token);
+                }
+                catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+                {
+                    _marketRefreshRequested = true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error when loading plugin market");
+                    if (context == CaptureMarketContext()) MarketErrorMessage = ex.Message;
+                    else _marketRefreshRequested = true;
+                }
+                finally { _marketRefreshCancellation = null; }
+            } while (_marketRefreshRequested);
         }
         finally
         {
             IsMarketLoading = false;
+            _loadingMarketContext = null;
         }
     }
 
@@ -617,14 +737,15 @@ public partial class PluginPageViewModel
         }
 
         item.IsReadmeLoading = true;
-        item.ReadmeMarkdown = "README 加载中...";
+        item.ReadmeErrorMessage = string.Empty;
         try
         {
             item.ReadmeMarkdown = await _pluginMarketService.GetReadmeMarkdownAsync(item);
         }
         catch (Exception ex)
         {
-            item.ReadmeMarkdown = $"# README 加载失败\n\n{ex.Message}";
+            _logger.LogWarning(ex, "Failed to load plugin README for {PluginId}.", item.Id);
+            item.ReadmeErrorMessage = ex.Message;
         }
         finally
         {
@@ -632,17 +753,32 @@ public partial class PluginPageViewModel
         }
     }
 
+    [RelayCommand]
+    private async Task RetryMarketReadmeAsync() => await LoadSelectedPluginReadmeAsync(SelectedMarketPlugin);
+
     /// <summary>
     /// 刷新插件市场中每个插件的显示状态。
     /// </summary>
     private void RefreshMarketPluginStates()
     {
+        var previousCount = InstalledPluginUpdateCount;
+        foreach (var plugin in PluginsCollection)
+        {
+            var item = MarketPluginsCollection.FirstOrDefault(item => item.Id == plugin.Manifest.Id);
+            plugin.IsUpdateAvailable = item is not null && !plugin.IsUninstalling
+                && PluginApiVersionHelper.Evaluate(item.ApiVersion).IsCompatible
+                && CompareVersion(item.Version, GetDisplayedLocalPluginVersion(plugin)) > 0;
+        }
         foreach (var item in MarketPluginsCollection)
         {
             ApplyMarketPluginState(item);
         }
 
         ExecutePrimaryMarketActionCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(HasInstalledPluginUpdates));
+        OnPropertyChanged(nameof(InstalledPluginUpdateCount));
+        if (previousCount != InstalledPluginUpdateCount)
+            Broadcast(previousCount, InstalledPluginUpdateCount, nameof(InstalledPluginUpdateCount));
     }
 
     /// <summary>
@@ -760,7 +896,7 @@ public partial class PluginPageViewModel
                 Manifest = manifest,
                 IsLocal = true,
                 PluginFolderPath = pluginFolderPath,
-                RealIconPath = Path.Combine(Path.GetFullPath(pluginFolderPath), manifest.Icon),
+                RealIconPath = PluginIconPathResolver.Resolve(pluginFolderPath, manifest.Icon),
                 IsRestartRequired = true
             });
         }

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.ProductTour;
 
@@ -29,22 +30,30 @@ public interface ITutorialStateStore
 /// </summary>
 public sealed class TutorialStateStore : ITutorialStateStore
 {
-    private readonly string _statePath;
-    private readonly JsonSerializerOptions _jsonOptions = new()
+    private const long MaxStateFileBytes = 1024 * 1024;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
+        MaxDepth = 32,
         Converters = { new JsonStringEnumConverter() }
     };
+
+    private readonly string _statePath;
+    private readonly ILogger<TutorialStateStore>? _logger;
+    private readonly SemaphoreSlim _writeGate = new(1, 1);
 
     /// <summary>
     /// 初始化 <see cref="TutorialStateStore"/> 类的新实例。
     /// </summary>
-    public TutorialStateStore()
+    /// <param name="logger">可选的日志记录器。</param>
+    public TutorialStateStore(ILogger<TutorialStateStore>? logger = null)
     {
         var appData = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "neo-bpsys-wpf");
         _statePath = Path.Combine(appData, "TutorialState.json");
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -57,36 +66,140 @@ public sealed class TutorialStateStore : ITutorialStateStore
 
         try
         {
-            await using var stream = File.OpenRead(_statePath);
-            return await JsonSerializer.DeserializeAsync<TutorialState>(stream, _jsonOptions, cancellationToken)
-                .ConfigureAwait(false) ?? new TutorialState();
+            await _writeGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch
+        catch (OperationCanceledException)
         {
-            // 文件损坏或格式不兼容时删除并返回空状态，避免阻塞教程流程。
-            TryDeleteStateFile();
+            throw;
+        }
+
+        try
+        {
+            var fileInfo = new FileInfo(_statePath);
+            if (fileInfo.Length > MaxStateFileBytes)
+            {
+                _logger?.LogWarning("教程状态文件过大，已保留原文件并忽略：{Path}", _statePath);
+                return new TutorialState();
+            }
+
+            await using var stream = new FileStream(
+                _statePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read);
+            var state = await JsonSerializer.DeserializeAsync<TutorialState>(stream, JsonOptions, cancellationToken)
+                .ConfigureAwait(false) ?? new TutorialState();
+            if (state.SchemaVersion > TutorialState.CurrentSchemaVersion)
+            {
+                // 未知的新版本可能是更高版本程序写入的；保留文件，不冒险覆盖。
+                _logger?.LogWarning(
+                    "教程状态文件版本高于当前支持版本，已忽略：{Version} > {CurrentVersion}",
+                    state.SchemaVersion,
+                    TutorialState.CurrentSchemaVersion);
+                return new TutorialState();
+            }
+
+            // 目前只有版本 0（无字段）到版本 1 的隐式迁移：补齐版本号即可继续读取。
+            state.SchemaVersion = TutorialState.CurrentSchemaVersion;
+            return state;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (JsonException ex)
+        {
+            // 只有格式损坏才备份并忽略；取消和文件占用绝不能删除用户进度。
+            _logger?.LogWarning(ex, "教程状态文件损坏，已备份并忽略：{Path}", _statePath);
+            TryBackupCorruptStateFile();
             return new TutorialState();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            _logger?.LogWarning(ex, "读取教程状态失败，本次使用空状态但不修改原文件：{Path}", _statePath);
+            return new TutorialState();
+        }
+        finally
+        {
+            _writeGate.Release();
         }
     }
 
     /// <inheritdoc />
     public async Task SaveAsync(TutorialState state, CancellationToken cancellationToken = default)
     {
+        state.SchemaVersion = TutorialState.CurrentSchemaVersion;
         var directory = Path.GetDirectoryName(_statePath);
         if (!string.IsNullOrEmpty(directory))
         {
             Directory.CreateDirectory(directory);
         }
 
-        await using var stream = File.Create(_statePath);
-        await JsonSerializer.SerializeAsync(stream, state, _jsonOptions, cancellationToken).ConfigureAwait(false);
+        await _writeGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        // 并发保存时使用唯一临时文件，避免两个写入者互相覆盖/争用同一个 .tmp。
+        var temporaryPath = _statePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await using (var stream = new FileStream(
+                temporaryPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, state, JsonOptions, cancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            File.Move(temporaryPath, _statePath, overwrite: true);
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(temporaryPath))
+                {
+                    File.Delete(temporaryPath);
+                }
+            }
+            catch
+            {
+                // 临时文件清理失败不影响已完成的保存结果。
+            }
+
+            _writeGate.Release();
+        }
     }
 
     /// <inheritdoc />
-    public Task ResetAsync(CancellationToken cancellationToken = default)
+    public async Task ResetAsync(CancellationToken cancellationToken = default)
     {
-        TryDeleteStateFile();
-        return Task.CompletedTask;
+        await _writeGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            TryDeleteStateFile();
+        }
+        finally
+        {
+            _writeGate.Release();
+        }
+    }
+
+    private void TryBackupCorruptStateFile()
+    {
+        try
+        {
+            if (!File.Exists(_statePath))
+            {
+                return;
+            }
+
+            var backupPath = _statePath + ".corrupt-" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            File.Move(_statePath, backupPath, overwrite: true);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "备份损坏的教程状态文件失败：{Path}", _statePath);
+        }
     }
 
     private void TryDeleteStateFile()
@@ -98,9 +211,9 @@ public sealed class TutorialStateStore : ITutorialStateStore
                 File.Delete(_statePath);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 删除失败不影响后续流程，下次保存会覆盖。
+            _logger?.LogWarning(ex, "删除教程状态文件失败：{Path}", _statePath);
         }
     }
 }

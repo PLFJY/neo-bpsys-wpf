@@ -6,6 +6,10 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <summary>
 /// 提供运行时包文件的归档格式探测和安全解压。
 /// </summary>
+/// <remarks>
+/// 解压实现必须对每个条目做规范化与目标目录前缀校验，拒绝绝对路径、<c>..</c>、
+/// 驱动器/UNC 路径以及逃逸目标目录的符号链接或 junction；当前默认实现已在解压前后执行该检查。
+/// </remarks>
 public interface IArchiveService
 {
     /// <summary>

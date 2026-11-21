@@ -48,9 +48,16 @@ public sealed record WebRendererLaunchOptions(string Address, int Port, bool NoS
             return new(DefaultAddress, DefaultPort, noStart, settings.LogProtocol, "--web-host 必须是 IPv4 地址。");
 
         var port = settings.Port;
-        if (!string.IsNullOrWhiteSpace(portText)
-            && (!int.TryParse(portText, out port) || port is < 1 or > 65535))
-            return new(address, DefaultPort, noStart, settings.LogProtocol, "--web-port 必须是 1 到 65535 之间的端口号。");
+        if (!string.IsNullOrWhiteSpace(portText))
+        {
+            if (!int.TryParse(portText, out port) || port is < 1 or > 65535)
+                return new(address, DefaultPort, noStart, settings.LogProtocol, "--web-port 必须是 1 到 65535 之间的端口号。");
+        }
+        else if (port is < 1 or > 65535)
+        {
+            // 持久化设置也可能被手工修改；无效端口回退默认值，避免 sidecar 绑定随机端口或启动失败。
+            return new(address, DefaultPort, noStart, settings.LogProtocol, "插件设置中的端口号无效，已回退默认端口。");
+        }
 
         return new(address, port, noStart, settings.LogProtocol || HasSwitch(configuration, "web-log-protocol"), null)
         {

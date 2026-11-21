@@ -30,6 +30,9 @@ public enum DesignerLayerNodeKind
 public class DesignerLayerNode : ObservableObject
 {
     private bool _isSelected;
+    private bool _isRenaming;
+    private string _displayName = string.Empty;
+    private string _editingName = string.Empty;
 
     /// <summary>
     /// 节点类型。
@@ -54,7 +57,29 @@ public class DesignerLayerNode : ObservableObject
     /// <summary>
     /// 显示名称。
     /// </summary>
-    public string DisplayName { get; init; } = string.Empty;
+    public string DisplayName
+    {
+        get => _displayName;
+        set => SetProperty(ref _displayName, value);
+    }
+
+    /// <summary>
+    /// 是否正在重命名。仅控件节点使用。
+    /// </summary>
+    public bool IsRenaming
+    {
+        get => _isRenaming;
+        set => SetProperty(ref _isRenaming, value);
+    }
+
+    /// <summary>
+    /// 重命名编辑框中的临时文本。
+    /// </summary>
+    public string EditingName
+    {
+        get => _editingName;
+        set => SetProperty(ref _editingName, value);
+    }
 
     /// <summary>
     /// 元数据信息。

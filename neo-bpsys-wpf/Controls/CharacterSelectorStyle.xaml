@@ -131,14 +131,18 @@
                                     Stretch="UniformToFill"
                                     Visibility="{Binding Path=IsSimpleModeEnabled, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                             </StackPanel>
-                            <ui:Button
+                            <Button
                                 Name="button"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Top"
                                 Command="{Binding Command, RelativeSource={RelativeSource TemplatedParent}}"
-                                Content="{lex:Loc Confirm}"
-                                Icon="{ui:SymbolIcon Symbol=Checkmark24}"
-                                Visibility="{Binding Path=IsSimpleModeEnabled, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                Style="{StaticResource {x:Type Button}}"
+                                Visibility="{Binding Path=IsSimpleModeEnabled, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Margin="0,0,8,0" Symbol="Checkmark24" />
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc Confirm}" />
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </StackPanel>
                 </ControlTemplate>

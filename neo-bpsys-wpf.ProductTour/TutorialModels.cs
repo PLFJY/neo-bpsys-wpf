@@ -225,6 +225,12 @@ public sealed class TutorialCompletionRecord
 /// </summary>
 public sealed class TutorialState
 {
+    /// <summary>当前教程状态文件格式版本。</summary>
+    public const int CurrentSchemaVersion = 1;
+
+    /// <summary>获取或设置状态文件格式版本。</summary>
+    public int SchemaVersion { get; set; } = CurrentSchemaVersion;
+
     /// <summary>获取或设置按流程 id 索引的已完成流程记录。</summary>
     public Dictionary<string, TutorialCompletionRecord> CompletedFlows { get; set; } = [];
 

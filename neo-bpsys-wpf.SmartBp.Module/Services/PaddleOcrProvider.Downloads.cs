@@ -43,6 +43,10 @@ public sealed partial class PaddleOcrProvider
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (sourceUri.Scheme != Uri.UriSchemeHttps)
+        {
+            throw new InvalidDataException("OCR model assets must use HTTPS.");
+        }
 
         _currentDownloadStep = stepIndex;
         _totalDownloadSteps = stepCount;
@@ -100,9 +104,16 @@ public sealed partial class PaddleOcrProvider
     /// <param name="targetDirectory">目标目录。</param>
     private static void ExtractModelAsset(string archivePath, string targetDirectory)
     {
+        const long maxArchiveBytes = 512L * 1024 * 1024;
+        if (new FileInfo(archivePath).Length > maxArchiveBytes)
+        {
+            throw new InvalidDataException("OCR model archive exceeds the size limit.");
+        }
+
         var extractDirectory = Path.Combine(Path.GetDirectoryName(archivePath)!, "extract");
         Directory.CreateDirectory(extractDirectory);
 
+        ValidateTarEntries(archivePath, extractDirectory);
         TarFile.ExtractToDirectory(archivePath, extractDirectory, overwriteFiles: true);
 
         var sourceDirectory = ResolveModelSourceDirectory(extractDirectory);
@@ -119,6 +130,52 @@ public sealed partial class PaddleOcrProvider
 
         RecreateDirectory(targetDirectory);
         CopyDirectoryContent(sourceDirectory, targetDirectory);
+    }
+
+    /// <summary>
+    /// 在交给 TarFile 解压前再次校验条目路径和链接类型，避免依赖框架默认行为。
+    /// </summary>
+    /// <param name="archivePath">tar 归档路径。</param>
+    /// <param name="extractDirectory">目标解压目录。</param>
+    private static void ValidateTarEntries(string archivePath, string extractDirectory)
+    {
+        var normalizedRoot = Path.GetFullPath(extractDirectory)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+        using var stream = File.OpenRead(archivePath);
+        using var reader = new TarReader(stream);
+        while (reader.GetNextEntry() is { } entry)
+        {
+            if (entry.EntryType is TarEntryType.SymbolicLink or TarEntryType.HardLink)
+            {
+                throw new InvalidDataException("OCR model archive contains a link entry.");
+            }
+
+            if (string.IsNullOrWhiteSpace(entry.Name))
+            {
+                continue;
+            }
+
+            var normalizedName = entry.Name
+                .Replace('\\', Path.DirectorySeparatorChar)
+                .Replace('/', Path.DirectorySeparatorChar);
+            if (Path.IsPathRooted(normalizedName)
+                || normalizedName.Split(
+                        Path.DirectorySeparatorChar,
+                        StringSplitOptions.RemoveEmptyEntries)
+                    .Any(segment => segment == ".."))
+            {
+                throw new InvalidDataException("OCR model archive contains an unsafe entry path.");
+            }
+
+            var entryPath = Path.GetFullPath(Path.Combine(extractDirectory, normalizedName));
+            if (!entryPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(entryPath, normalizedRoot.TrimEnd(Path.DirectorySeparatorChar),
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("OCR model archive entry escapes the extraction directory.");
+            }
+        }
     }
 
     /// <summary>

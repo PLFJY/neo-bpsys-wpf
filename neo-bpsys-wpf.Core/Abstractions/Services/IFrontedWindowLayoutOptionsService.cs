@@ -5,13 +5,17 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <summary>
 /// 存储窗口级的设计器 v3 布局选项。
 /// </summary>
+/// <remarks>
+/// <c>windowTypeName</c> 必须是可安全映射到布局根目录内的 Canonical 标识；实现应复用布局路径助手，
+/// 拒绝绝对路径、目录分隔符、<c>..</c> 和 Windows 保留名。当前默认实现已按此约定校验。
+/// </remarks>
 public interface IFrontedWindowLayoutOptionsService
 {
     /// <summary>
     /// 加载指定窗口的布局选项。
     /// </summary>
-    /// <param name="windowTypeName">窗口类型名。</param>
-    /// <returns>窗口布局选项。</returns>
+    /// <param name="windowTypeName">Canonical 窗口标识。</param>
+    /// <returns>窗口布局选项；不存在或读取失败时返回默认选项。</returns>
     FrontedWindowLayoutOptions LoadOptions(string windowTypeName);
 
     /// <summary>

@@ -1,3 +1,4 @@
+﻿using System.Diagnostics;
 using System.Windows.Controls;
 using System.Windows;
 using neo_bpsys_wpf.Core;
@@ -13,7 +14,10 @@ namespace neo_bpsys_wpf.Views.FrontedDesigner;
 
 public partial class BehaviorPanelView : UserControl
 {
+    private static readonly Dictionary<Guid, WeakReference<FrontedBehaviorAnimationEditorWindow>> OpenAnimationEditors = [];
     private FrontedBehaviorAnimationHelpWindow? _helpWindow;
+    private FrontedBehaviorAnimationEditorWindow? _animationEditorWindow;
+    private FrontedBehaviorAnimationEditorViewModel? _animationEditorViewModel;
     private BehaviorPanelViewModel? _subscribedViewModel;
 
     public BehaviorPanelView()
@@ -53,24 +57,81 @@ public partial class BehaviorPanelView : UserControl
 
     private async void OpenAnimationEditor(FrontedBehaviorAnimationEditorViewModel viewModel)
     {
-        var window = new FrontedBehaviorAnimationEditorWindow(viewModel)
+        if (_animationEditorWindow is { IsVisible: true } existing
+            && ReferenceEquals(_animationEditorViewModel, viewModel))
         {
-            Owner = System.Windows.Window.GetWindow(this)
-        };
-        var coordinator = IAppHost.Host?.Services.GetService(typeof(ITutorialPlaybackCoordinator))
-            as ITutorialPlaybackCoordinator;
-        var childSession = coordinator == null
-            ? null
-            : await coordinator.BeginChildWindowSessionAsync(
-                window,
-                TutorialOwnerLifetime.GetToken(this));
+            existing.Activate();
+            return;
+        }
+
+        if (OpenAnimationEditors.TryGetValue(viewModel.BehaviorGuid, out var weakWindow)
+            && weakWindow.TryGetTarget(out var existingWindow)
+            && existingWindow.IsVisible)
+        {
+            if (existingWindow.DataContext is FrontedBehaviorAnimationEditorViewModel existingVm
+                && ReferenceEquals(existingVm.BehaviorModel, viewModel.BehaviorModel))
+            {
+                existingWindow.Activate();
+                return;
+            }
+
+            // 父设计器可能已用新文档实例替换了同一 BehaviorId 的行为；
+            // 旧窗口继续保存只会写入孤立对象，必须关闭后重建。
+            existingWindow.ForceCloseForDocumentReplacement();
+            OpenAnimationEditors.Remove(viewModel.BehaviorGuid);
+        }
+
+        OpenAnimationEditors.Remove(viewModel.BehaviorGuid);
+        FrontedBehaviorAnimationEditorWindow? window = null;
+        ITutorialChildWindowSession? childSession = null;
         try
         {
-            window.ShowDialog();
+            window = new FrontedBehaviorAnimationEditorWindow(viewModel)
+            {
+                Owner = System.Windows.Window.GetWindow(this)
+            };
+            var coordinator = IAppHost.Host?.Services.GetService(typeof(ITutorialPlaybackCoordinator))
+                as ITutorialPlaybackCoordinator;
+            childSession = coordinator == null
+                ? null
+                : await coordinator.BeginChildWindowSessionAsync(
+                    window,
+                    TutorialOwnerLifetime.GetToken(this));
+            if (childSession is not null)
+            {
+                window.Closed += (_, _) => childSession.Complete();
+            }
+
+            _animationEditorWindow = window;
+            _animationEditorViewModel = viewModel;
+            OpenAnimationEditors[viewModel.BehaviorGuid] = new WeakReference<FrontedBehaviorAnimationEditorWindow>(window);
+            window.Closed += (_, _) =>
+            {
+                if (OpenAnimationEditors.TryGetValue(viewModel.BehaviorGuid, out var entry)
+                    && entry.TryGetTarget(out var registered)
+                    && ReferenceEquals(registered, window))
+                {
+                    OpenAnimationEditors.Remove(viewModel.BehaviorGuid);
+                }
+                if (ReferenceEquals(_animationEditorWindow, window))
+                {
+                    _animationEditorWindow = null;
+                    _animationEditorViewModel = null;
+                }
+            };
+
+            // 动画编辑器与后台设计器需要同时操作，使用非模态窗口。
+            window.Show();
         }
-        finally
+        catch (Exception ex)
         {
             childSession?.Complete();
+            if (window?.IsVisible == true)
+            {
+                window.Close();
+            }
+            // 这是 async void 事件处理器，不能把异常抛回 UI 线程。
+            Debug.WriteLine($"[AnimationEditor] 打开窗口失败: {ex.Message}");
         }
     }
 

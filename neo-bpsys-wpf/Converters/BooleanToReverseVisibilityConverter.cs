@@ -21,7 +21,8 @@ public class BooleanToReverseVisibilityConverter : IValueConverter
     /// <returns>true 时返回 Collapsed，false 时返回 Visible</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return (bool)value ? Visibility.Collapsed : Visibility.Visible;
+        // 绑定值可能为 null 或非 bool；非 true 一律按 false 处理，避免绑定异常导致界面崩溃。
+        return value is true ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>

@@ -103,12 +103,22 @@ public sealed class OnboardingCoordinator : IOnboardingCoordinator
         host.Children.Add(overlay);
         overlay.SkipConfirmed += async (_, choice) =>
         {
-            if (choice == TutorialSkipChoice.SkipPermanently)
+            try
             {
-                await MarkFirstRunHandledAsync(cancellationToken);
+                if (choice == TutorialSkipChoice.SkipPermanently)
+                {
+                    await MarkFirstRunHandledAsync(cancellationToken);
+                }
             }
-
-            host.Children.Remove(overlay);
+            catch (Exception ex)
+            {
+                // 事件是 async void；保存失败不能把异常抛到 Dispatcher，也不能让遮罩卡住。
+                _logger.LogError(ex, "Failed to persist first-run skip state.");
+            }
+            finally
+            {
+                host.Children.Remove(overlay);
+            }
         };
         overlay.StartRequested += async (_, languageOptionId) =>
         {

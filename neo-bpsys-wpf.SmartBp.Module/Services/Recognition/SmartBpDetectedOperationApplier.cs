@@ -254,7 +254,7 @@ internal sealed class SmartBpDetectedOperationApplier(
     {
         SmartBpDetectedOperationApplyMode.CurrentStep => "Guided catch-up with animation: Applied",
         SmartBpDetectedOperationApplyMode.AutomaticSupplement => "Automatic same-slot supplement with animation: Applied",
-        _ => "Force-synced without animation: Applied"
+        _ => "Force-synced: Applied"
     };
 
     private bool TryGetBanSlot(Camp camp, int slotIndex, out Character? character)

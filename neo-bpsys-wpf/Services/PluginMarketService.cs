@@ -23,7 +23,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class PluginMarketService : IPluginMarketService
 {
-    private const string DefaultMarketIndexUrl =
+    internal const string DefaultMarketIndexUrl =
         "https://bpsys-plugin-index.plfjy.top/";
 
     private readonly HttpClient _httpClient;
@@ -108,10 +108,10 @@ public class PluginMarketService : IPluginMarketService
     public async Task<IReadOnlyList<PluginMarketItem>> GetMarketPluginsAsync(CancellationToken cancellationToken = default)
     {
         var marketIndexUrl = GetCurrentMarketIndexUrl();
-        var response = await _httpClient.GetAsync(await ResolveGitHubUrlAsync(marketIndexUrl, cancellationToken),
-            cancellationToken);
+        var resolvedIndexUrl = await ResolveGitHubUrlAsync(marketIndexUrl, cancellationToken).ConfigureAwait(false);
+        using var response = await _httpClient.GetAsync(resolvedIndexUrl, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -129,9 +129,9 @@ public class PluginMarketService : IPluginMarketService
             value.Url ??= string.Empty;
             value.DownloadUrl ??= string.Empty;
             value.Sha256 ??= string.Empty;
-            value.ResolvedIconUrl = await ResolveGitHubUrlAsync(value.Icon, cancellationToken);
-            value.ResolvedReadmeUrl = await ResolveGitHubUrlAsync(value.Readme, cancellationToken);
-            value.ResolvedDownloadUrl = await ResolveGitHubUrlAsync(value.DownloadUrl, cancellationToken);
+            value.ResolvedIconUrl = await ResolveGitHubUrlAsync(value.Icon, cancellationToken).ConfigureAwait(false);
+            value.ResolvedReadmeUrl = await ResolveGitHubUrlAsync(value.Readme, cancellationToken).ConfigureAwait(false);
+            value.ResolvedDownloadUrl = await ResolveGitHubUrlAsync(value.DownloadUrl, cancellationToken).ConfigureAwait(false);
             items.Add(value);
         }
 
@@ -455,11 +455,12 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     private async Task ProcessQueuedDownloadAsync(QueuedPluginDownloadRequest request)
     {
+        // PluginId 来自远端插件市场索引，属于不可信输入，不能作为路径片段参与拼接；
+        // QueueId 是本进程生成的 Guid，用它隔离每次下载会话，避免目录穿越与递归删除越界。
         var downloadSessionPath = Path.Combine(
             AppConstants.AppTempPath,
             "PluginMarket",
             "Sessions",
-            request.QueueItem.PluginId,
             request.QueueItem.QueueId);
         var downloadCacheKey = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(
             $"{request.Item.Id}\n{request.Item.Version}\n{request.Item.Sha256}\n{request.Item.ResolvedDownloadUrl}")));
@@ -568,6 +569,8 @@ public class PluginMarketService : IPluginMarketService
             lock (_downloadLock)
                 IsDownloadFinished = _completedDownloadResults.Count > 0;
             CleanupDownloadArtifacts(downloadSessionPath);
+            if (File.Exists(tempArchivePath))
+                File.Delete(tempArchivePath);
             UpdateQueueItem(request.QueueItem, queueItem =>
             {
                 queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;

@@ -118,7 +118,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private FrontedDesignerClipboardPayload? _copiedControl;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
-    private bool _suppressZoomEditTextUpdate;
+    private bool _suppressZoomSliderEndpointWriteback;
+    private bool _isZoomSliderInteracting;
+    private bool _hasPendingZoomSliderPercent;
+    private bool _isApplyingZoomSliderUpdate;
+    private double _pendingZoomSliderPercent;
+    private DispatcherTimer? _zoomSliderUpdateTimer;
     private bool _isRebuildingPropertyGrid;
     private bool _isRestoringSnapshot;
     private bool _isLoadingWindowOptions;
@@ -129,6 +134,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private DispatcherOperation? _scheduledDesignerWorkOperation;
     private bool _scheduledValidationRequested;
     private bool _scheduledPreviewRequested;
+    private bool _scheduledValidationRefreshPropertyGrid;
     private bool _clearRestoreVisualsAfterScheduledPreview;
     private bool _isApplyingDesignSelection;
     private bool _isRefreshingWindowOptions;
@@ -140,6 +146,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private int _reloadLayoutVersion;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
+    private double _designSurfaceContentWidth;
+    private double _designSurfaceContentHeight;
+    private double _designSurfaceFitWidth;
+    private double _designSurfaceFitHeight;
     private FrontedWindowSettings _currentWindowSettings = new();
     private Dictionary<string, string> _currentWindowDisplayNames = new(StringComparer.Ordinal);
     private FrontedDesignerLayoutCatalogEntry? _selectedCatalogEntry;
@@ -389,6 +399,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public event EventHandler<FrontedDesignerPreviewRenderRequestedEventArgs>? PreviewRenderRequested;
 
     /// <summary>
+    /// 属性编辑等局部变更请求只刷新指定控件的预览视觉时触发。
+    /// </summary>
+    public event EventHandler<FrontedDesignerControlRefreshRequestedEventArgs>? ControlRefreshRequested;
+
+    /// <summary>
+    /// 新增/删除控件请求增量更新预览视觉时触发。
+    /// </summary>
+    public event EventHandler<FrontedDesignerControlsChangedRequestedEventArgs>? ControlsChangedRequested;
+
+    /// <summary>
     /// 撤销/重做恢复可通过修补现有预览元素完成时触发。
     /// </summary>
     public event EventHandler<FrontedDesignerGeometryPatchRequestedEventArgs>? DesignerGeometryPatchRequested;
@@ -419,20 +439,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// <returns>译名加载和界面刷新完成后结束的任务。</returns>
     public async Task RefreshWindowDisplayNamesAsync()
     {
-        foreach (var entry in _layoutCatalog.GetEntries())
+        // 各窗口配置互相独立，并行读取避免设计器打开时串行等待全部布局 JSON。
+        var loaded = await Task.WhenAll(_layoutCatalog.GetEntries().Select(async entry =>
         {
             try
             {
                 var config = await _layoutService.LoadWindowConfigAsync(entry.CanonicalWindowId);
-                if (config.DisplayNames.Count > 0)
-                {
-                    _displayNamesByWindowId[entry.CanonicalWindowId] =
-                        new Dictionary<string, string>(config.DisplayNames, StringComparer.Ordinal);
-                }
-                else
-                {
-                    _displayNamesByWindowId.Remove(entry.CanonicalWindowId);
-                }
+                return (Entry: entry, DisplayNames: config.DisplayNames.Count > 0
+                    ? new Dictionary<string, string>(config.DisplayNames, StringComparer.Ordinal)
+                    : null);
             }
             catch (Exception ex)
             {
@@ -440,7 +455,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     ex,
                     "Failed to preload display names for designer window {WindowTypeName}.",
                     entry.CanonicalWindowId);
-                _displayNamesByWindowId.Remove(entry.CanonicalWindowId);
+                return (Entry: entry, DisplayNames: null);
+            }
+        }));
+
+        foreach (var item in loaded)
+        {
+            if (item.DisplayNames is null)
+            {
+                _displayNamesByWindowId.Remove(item.Entry.CanonicalWindowId);
+            }
+            else
+            {
+                _displayNamesByWindowId[item.Entry.CanonicalWindowId] = item.DisplayNames;
             }
         }
 
@@ -588,22 +615,187 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private double _zoomScale = 1D;
 
     [ObservableProperty]
-    private string _zoomDisplay = "Fit";
+    private string _zoomDisplay = "100%";
 
     [ObservableProperty]
     private bool _isFitMode = true;
 
     [ObservableProperty]
-    private string _zoomEditText = "Fit";
+    private string _zoomEditText = "100%";
 
     public double ZoomPercent
     {
         get => ZoomScale * 100;
         set
         {
-            var clamped = Math.Clamp(value, 25D, 400D);
-            ApplyManualZoom(clamped / 100D);
+            if (!double.IsFinite(value) || value <= 0D)
+            {
+                return;
+            }
+
+            ApplyManualZoomValue(value / 100D);
         }
+    }
+
+    /// <summary>
+    /// 通知视图模型滑杆即将进入用户鼠标操作，允许应用滑杆端点的回写值。
+    /// </summary>
+    public void BeginZoomSliderInteraction()
+    {
+        _suppressZoomSliderEndpointWriteback = false;
+        _isZoomSliderInteracting = true;
+    }
+
+    /// <summary>
+    /// 获取当前是否正在拖动缩放滑杆。
+    /// </summary>
+    /// <remarks>
+    /// 拖动期间只更新画布缩放，暂缓选择框、吸附线等覆盖层刷新，释放后统一补齐。
+    /// </remarks>
+    public bool IsZoomSliderInteracting => _isZoomSliderInteracting;
+
+    /// <summary>
+    /// 结束缩放滑杆拖动，并立即应用滑杆的最终值。
+    /// </summary>
+    /// <param name="percent">滑杆释放时的百分比；非有限值或非正数时忽略。</param>
+    public void EndZoomSliderInteraction(double percent)
+    {
+        if (!_isZoomSliderInteracting)
+        {
+            return;
+        }
+
+        _isZoomSliderInteracting = false;
+        StopZoomSliderUpdateTimer();
+
+        var previousScale = ZoomScale;
+        if (double.IsFinite(percent) && percent > 0D)
+        {
+            _hasPendingZoomSliderPercent = false;
+            ApplyZoomSliderPercent(percent, updateSelection: true);
+            OnPropertyChanged(nameof(ZoomSliderPercent));
+        }
+        else
+        {
+            OnPropertyChanged(nameof(ZoomSliderPercent));
+        }
+
+        // 拖动期间视图刻意跳过工作区/选择框刷新；若释放值等于最后一个中间值，
+        // ZoomScale 不会再次变化，必须主动通知一次，让视图补齐工作区与滚动范围。
+        if (Math.Abs(previousScale - ZoomScale) < 0.000001D)
+        {
+            OnPropertyChanged(nameof(ZoomScale));
+        }
+    }
+
+    /// <summary>
+    /// 获取或设置滑杆显示用的缩放百分比；滑杆范围固定为 25%–400%，手动输入超出范围时滑杆停在端点。
+    /// </summary>
+    public double ZoomSliderPercent
+    {
+        get => Math.Clamp(ZoomScale * 100D, MinZoomPercent, MaxZoomPercent);
+        set
+        {
+            if (_isApplyingZoomSliderUpdate || !double.IsFinite(value) || value <= 0D)
+            {
+                return;
+            }
+
+            var currentPercent = ZoomScale * 100D;
+
+            // 手动输入超出滑杆范围时，滑杆会因 RangeBase 强制值域而回写端点。
+            // 这种非交互回写应忽略；用户鼠标点击/拖动端点前会先调用 BeginZoomSliderInteraction。
+            if (_suppressZoomSliderEndpointWriteback
+                && ((currentPercent < MinZoomPercent && Math.Abs(value - MinZoomPercent) < 0.001D)
+                    || (currentPercent > MaxZoomPercent && Math.Abs(value - MaxZoomPercent) < 0.001D)))
+            {
+                _suppressZoomSliderEndpointWriteback = false;
+                return;
+            }
+
+            // 拖动期间按渲染帧合并更新，避免高刷新率鼠标把大量中间值逐一触发布局变换。
+            // 首个变化（通常是点击轨道）立即应用，保证指针和缩放同时跳到点击位置；
+            // 后续连续移动再按帧合并。
+            if (_isZoomSliderInteracting)
+            {
+                if (_hasPendingZoomSliderPercent && Math.Abs(_pendingZoomSliderPercent - value) < 0.0001D)
+                {
+                    return;
+                }
+
+                if (!_hasPendingZoomSliderPercent)
+                {
+                    ApplyZoomSliderPercent(value, updateSelection: false);
+                }
+
+                _pendingZoomSliderPercent = value;
+                _hasPendingZoomSliderPercent = true;
+                ScheduleZoomSliderUpdate();
+                return;
+            }
+
+            ApplyManualZoom(value / 100D);
+        }
+    }
+
+    private void ScheduleZoomSliderUpdate()
+    {
+        if (Application.Current is null)
+        {
+            ApplyPendingZoomSliderUpdate();
+            return;
+        }
+
+        _zoomSliderUpdateTimer ??= new DispatcherTimer(DispatcherPriority.Render)
+        {
+            Interval = TimeSpan.FromMilliseconds(16D)
+        };
+        _zoomSliderUpdateTimer.Tick -= ZoomSliderUpdateTimer_OnTick;
+        _zoomSliderUpdateTimer.Tick += ZoomSliderUpdateTimer_OnTick;
+        if (!_zoomSliderUpdateTimer.IsEnabled)
+        {
+            _zoomSliderUpdateTimer.Start();
+        }
+    }
+
+    private void ZoomSliderUpdateTimer_OnTick(object? sender, EventArgs e)
+    {
+        if (!_hasPendingZoomSliderPercent)
+        {
+            StopZoomSliderUpdateTimer();
+            return;
+        }
+
+        ApplyPendingZoomSliderUpdate();
+    }
+
+    private void ApplyPendingZoomSliderUpdate()
+    {
+        if (!_hasPendingZoomSliderPercent)
+        {
+            return;
+        }
+
+        _hasPendingZoomSliderPercent = false;
+        ApplyZoomSliderPercent(_pendingZoomSliderPercent, updateSelection: false);
+    }
+
+    private void ApplyZoomSliderPercent(double percent, bool updateSelection)
+    {
+        _isApplyingZoomSliderUpdate = true;
+        try
+        {
+            ApplyManualZoomValue(percent / 100D, updateSelection);
+        }
+        finally
+        {
+            _isApplyingZoomSliderUpdate = false;
+        }
+    }
+
+    private void StopZoomSliderUpdateTimer()
+    {
+        _zoomSliderUpdateTimer?.Stop();
     }
 
     [ObservableProperty]
@@ -633,6 +825,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
 
             _selectedTarget = value;
+            // 属性错误/输入缓冲以属性名为键；切换 Part/根目标时必须清空，
+            // 否则上一个目标的错误与草稿会泄漏到新目标。
+            _propertyEditErrors.Clear();
+            _propertyEditBuffers.Clear();
             OnPropertyChanged();
             OnPropertyChanged(nameof(HasSelectedTarget));
             OnPropertyChanged(nameof(IsSubControlSelected));
@@ -893,11 +1089,36 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         && SelectedPolygonVertexIndex >= 0
         && SelectedPolygonVertexIndex < polygon.Points.Count;
 
-    public bool CanDeleteSelectedControl =>
-        SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
+    public bool CanDeleteSelectedControl
+    {
+        get
+        {
+            if (CurrentDocument is null)
+            {
+                return false;
+            }
 
-    public bool CanCopySelectedControl =>
-        CanCopyControl(SelectedDesignItem);
+            if (SelectedDesignItems.Count > 0)
+            {
+                return SelectedDesignItems.All(item => item.IsSelectableInEditor && item.IsEditableInEditor);
+            }
+
+            return SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
+        }
+    }
+
+    public bool CanCopySelectedControl
+    {
+        get
+        {
+            if (SelectedDesignItems.Count > 0)
+            {
+                return SelectedDesignItems.Any(CanCopyControl);
+            }
+
+            return CanCopyControl(SelectedDesignItem);
+        }
+    }
 
     public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 
@@ -1079,18 +1300,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     partial void OnZoomScaleChanged(double value)
     {
         OnPropertyChanged(nameof(ZoomPercent));
-        if (!_suppressZoomEditTextUpdate)
+        if (!_isZoomSliderInteracting)
         {
-            UpdateZoomEditTextFromCurrentZoom();
+            // 拖动期间滑杆自身就是值来源，不再把节流后的值反向推回滑杆，避免滑块抖动。
+            OnPropertyChanged(nameof(ZoomSliderPercent));
         }
+
+        UpdateZoomEditTextFromCurrentZoom();
     }
 
     partial void OnIsFitModeChanged(bool value)
     {
-        if (!_suppressZoomEditTextUpdate)
-        {
-            UpdateZoomEditTextFromCurrentZoom();
-        }
+        UpdateZoomEditTextFromCurrentZoom();
     }
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)

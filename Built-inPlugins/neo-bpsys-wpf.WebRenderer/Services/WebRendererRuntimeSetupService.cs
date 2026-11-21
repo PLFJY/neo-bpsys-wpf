@@ -153,15 +153,35 @@ public sealed class WebRendererRuntimeSetupService
             release = _releaseFeed.GetFallback();
         }
 
+        // 远端 feed 的版本号与下载地址属于外部输入：先做版本号字符集与受信任下载地址校验，
+        // 避免把下载内容写到临时目录之外，或以管理员权限执行任意可执行文件。
+        if (!IsSafeVersionComponent(release.Version)
+            || !TryGetTrustedInstallerUri(release.DownloadUrl, out var installerUri))
+        {
+            _logger.LogError(
+                "Rejected ASP.NET Core runtime release metadata. Version={Version}, DownloadUrl={DownloadUrl}",
+                release.Version, release.DownloadUrl);
+            SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Failed, 0, release.Version,
+                "官方运行时版本或下载地址校验失败，已取消安装。请稍后重试或使用“打开官方下载页”手动安装。"));
+            return;
+        }
+
         SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Downloading, 0, release.Version, null));
 
         Directory.CreateDirectory(DownloadDirectory);
         var installerPath = Path.Combine(DownloadDirectory, $"aspnetcore-runtime-{release.Version}-win-x64.exe");
+        if (!IsUnderDirectory(installerPath, DownloadDirectory))
+        {
+            _logger.LogError("Resolved installer path escapes the download directory: {InstallerPath}", installerPath);
+            SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Failed, 0, release.Version,
+                "安装包路径校验失败，已取消安装。请稍后重试或使用“打开官方下载页”手动安装。"));
+            return;
+        }
         CleanupFile(installerPath);
 
         try
         {
-            await DownloadInstallerAsync(release, installerPath, cancellationToken).ConfigureAwait(false);
+            await DownloadInstallerAsync(installerUri, installerPath, release.Version, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
@@ -178,19 +198,22 @@ public sealed class WebRendererRuntimeSetupService
             return;
         }
 
-        if (!string.IsNullOrWhiteSpace(release.Sha512))
+        // 自动安装必须以管理员权限执行下载文件，因此没有官方校验值时拒绝继续，避免执行未校验内容。
+        if (string.IsNullOrWhiteSpace(release.Sha512))
         {
-            SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Verifying, 0, release.Version, null));
-            if (!await VerifySha512Async(installerPath, release.Sha512!, cancellationToken).ConfigureAwait(false))
-            {
-                CleanupFile(installerPath);
-                SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Failed, 0, release.Version, "installer 校验失败，文件可能已损坏。"));
-                return;
-            }
+            CleanupFile(installerPath);
+            _logger.LogError("ASP.NET Core runtime release metadata did not provide SHA-512; refusing to execute an unverified installer.");
+            SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Failed, 0, release.Version,
+                "官方元数据未提供安装包校验值，已取消自动安装。请稍后重试或使用“打开官方下载页”手动安装。"));
+            return;
         }
-        else
+
+        SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Verifying, 0, release.Version, null));
+        if (!await VerifySha512Async(installerPath, release.Sha512, cancellationToken).ConfigureAwait(false))
         {
-            _logger.LogWarning("Skipping installer hash verification because release metadata did not provide SHA-512.");
+            CleanupFile(installerPath);
+            SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Failed, 0, release.Version, "installer 校验失败，文件可能已损坏。"));
+            return;
         }
 
         SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.Installing, 0, release.Version, null));
@@ -232,10 +255,10 @@ public sealed class WebRendererRuntimeSetupService
         SetStatus(new WebRendererRuntimeSetupStatus(WebRendererRuntimeSetupState.AwaitingRestart, 100, release.Version, null));
     }
 
-    private async Task DownloadInstallerAsync(WebRendererRuntimeReleaseInfo release, string installerPath, CancellationToken cancellationToken)
+    private async Task DownloadInstallerAsync(Uri downloadUri, string installerPath, string version, CancellationToken cancellationToken)
     {
         var operation = _fileDownloadService.CreateDownload(new FileDownloadRequest(
-            new Uri(release.DownloadUrl, UriKind.Absolute),
+            downloadUri,
             installerPath)
         {
             UserAgent = "neo-bpsys-wpf"
@@ -261,7 +284,7 @@ public sealed class WebRendererRuntimeSetupService
             SetStatus(new WebRendererRuntimeSetupStatus(
                 state,
                 operation.Progress.Percentage ?? 0,
-                release.Version,
+                version,
                 null));
         }
     }
@@ -305,6 +328,73 @@ public sealed class WebRendererRuntimeSetupService
     {
         _status = status;
         StatusChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// 校验远端返回的版本号可以安全地作为本地安装包文件名的一部分。
+    /// 仅允许 ASCII 字母、数字、<c>.</c>、<c>-</c>、<c>+</c>，并拒绝路径穿越形式。
+    /// </summary>
+    /// <param name="version">远程 release metadata 中的版本号。</param>
+    /// <returns>可安全用于文件名时返回 <see langword="true"/>。</returns>
+    internal static bool IsSafeVersionComponent(string version)
+    {
+        if (string.IsNullOrWhiteSpace(version) || version.Length > 64)
+            return false;
+        if (version[0] == '.' || version[^1] == '.')
+            return false;
+        foreach (var character in version)
+        {
+            if (!char.IsAsciiLetterOrDigit(character) && character is not ('.' or '-' or '+'))
+                return false;
+        }
+
+        return !version.Contains("..", StringComparison.Ordinal);
+    }
+
+    /// <summary>官方 ASP.NET Core Runtime installer 允许的下载主机。</summary>
+    private static readonly string[] TrustedInstallerHosts =
+    [
+        "dotnet.microsoft.com",
+        "dotnetcli.azureedge.net",
+        "dotnetbuilds.azureedge.net",
+        "download.visualstudio.microsoft.com"
+    ];
+
+    /// <summary>
+    /// 校验远端下载地址是官方 HTTPS 地址，避免以管理员权限执行任意来源的可执行文件。
+    /// </summary>
+    /// <param name="downloadUrl">release metadata 中的 win-x64 installer 直链。</param>
+    /// <param name="uri">校验通过后的绝对 URI。</param>
+    /// <returns>地址受信任时返回 <see langword="true"/>。</returns>
+    internal static bool TryGetTrustedInstallerUri(string downloadUrl, out Uri uri)
+    {
+        uri = null!;
+        if (!Uri.TryCreate(downloadUrl, UriKind.Absolute, out var parsed) || parsed.Scheme != Uri.UriSchemeHttps)
+            return false;
+
+        var host = parsed.DnsSafeHost;
+        if (!TrustedInstallerHosts.Any(trusted =>
+                string.Equals(host, trusted, StringComparison.OrdinalIgnoreCase)
+                || host.EndsWith("." + trusted, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        uri = parsed;
+        return true;
+    }
+
+    /// <summary>
+    /// 判断路径是否位于指定目录内（含大小写不敏感比较与目录边界检查）。
+    /// </summary>
+    /// <param name="path">待校验路径。</param>
+    /// <param name="directory">目标目录。</param>
+    /// <returns>路径位于目录内时返回 <see langword="true"/>。</returns>
+    internal static bool IsUnderDirectory(string path, string directory)
+    {
+        var root = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                   + Path.DirectorySeparatorChar;
+        return Path.GetFullPath(path).StartsWith(root, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void CleanupFile(string path)

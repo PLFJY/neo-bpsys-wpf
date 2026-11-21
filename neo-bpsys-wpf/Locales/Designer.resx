@@ -88,6 +88,9 @@
   <data name="Designer.LayerPanel.CollectionItem">
     <value>集合项</value>
   </data>
+  <data name="Designer.LayerPanel.DeleteLayer">
+    <value>删除层级</value>
+  </data>
   <data name="Properties">
     <value>属性</value>
   </data>

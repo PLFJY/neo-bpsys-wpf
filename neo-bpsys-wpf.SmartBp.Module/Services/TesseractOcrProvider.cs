@@ -248,8 +248,14 @@ public sealed class TesseractOcrProvider : IOcrProvider, IDisposable
     private static IReadOnlyList<string> ParseLanguages(string? languages) =>
         (string.IsNullOrWhiteSpace(languages) ? "chi_sim+eng" : languages)
         .Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Where(IsSafeLanguageName)
         .Distinct(StringComparer.OrdinalIgnoreCase)
+        .DefaultIfEmpty("chi_sim+eng")
         .ToArray();
+
+    private static bool IsSafeLanguageName(string language) =>
+        language.Length <= 64
+        && language.All(character => char.IsAsciiLetterOrDigit(character) || character == '_');
 
     private static string NormalizeLanguageExpression(string? languages) => string.Join('+', ParseLanguages(languages));
 

@@ -62,6 +62,13 @@ public sealed partial class FrontedLayoutPackageImporter
                 throw new InvalidDataException($"Unsafe zip entry: {entry.FullName}");
             }
 
+            // Windows 会忽略文件名结尾的点和空格，并保留冒号后的数据流语义；
+            // 含这些段的条目名可能让扩展名/目录黑名单被绕过（如 "evil.dll " 实际落成 "evil.dll"）。
+            if (HasAmbiguousWindowsPathSegment(entryName))
+            {
+                throw new InvalidDataException($"Zip entry name is not portable to Windows: {entry.FullName}");
+            }
+
             var maxEntryBytes = allowImageCompression && IsImageResource(entryName)
                 ? FrontedLayoutLimits.MaxCompressiblePackageImageSourceBytes
                 : FrontedLayoutLimits.MaxPackageSingleEntryBytes;
@@ -98,6 +105,22 @@ public sealed partial class FrontedLayoutPackageImporter
         }
     }
 
+    /// <summary>
+    /// 判断条目名是否包含 Windows 会额外归一化的路径段（结尾点/空格或冒号）。
+    /// </summary>
+    /// <param name="entryName">ZIP 条目名（已统一使用 <c>/</c> 分隔）。</param>
+    /// <returns>包含歧义路径段时返回 <see langword="true"/>。</returns>
+    private static bool HasAmbiguousWindowsPathSegment(string entryName)
+    {
+        foreach (var segment in entryName.Split('/', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (segment.Contains(':') || segment.EndsWith('.') || segment.EndsWith(' '))
+                return true;
+        }
+
+        return false;
+    }
+
     private static bool IsForbiddenPluginPayloadEntry(string entryName)
     {
         var segments = entryName.Split('/', StringSplitOptions.RemoveEmptyEntries);
@@ -131,7 +154,7 @@ public sealed partial class FrontedLayoutPackageImporter
             return false;
         }
 
-        var extension = Path.GetExtension(entryName);
+        var extension = Path.GetExtension(entryName.TrimEnd('.', ' '));
         if (ForbiddenExecutableExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
         {
             return true;
@@ -147,14 +170,20 @@ public sealed partial class FrontedLayoutPackageImporter
     [
         ".dll",
         ".exe",
+        ".com",
+        ".scr",
         ".msi",
+        ".msc",
+        ".cpl",
+        ".hta",
         ".ps1",
         ".bat",
         ".cmd",
         ".sh",
         ".vbs",
         ".js",
-        ".jar"
+        ".jar",
+        ".lnk"
     ];
 
     private static readonly string[] ForbiddenPluginArchiveExtensions =

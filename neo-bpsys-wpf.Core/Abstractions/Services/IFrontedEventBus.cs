@@ -6,6 +6,10 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// 用于前台行为事件的语义化事件总线。
 /// 线程安全。Publish 不应因处理器异常导致应用崩溃。
 /// </summary>
+/// <remarks>
+/// <see cref="Publish"/> 是同步投递入口：同步处理器在调用线程执行，异步处理器返回的任务由总线观察并记录异常，
+/// 不等待其完成。因此它没有返回值；需要确认异步处理完成的调用方应通过订阅/事件自行编排。
+/// </remarks>
 public interface IFrontedEventBus
 {
     /// <summary>

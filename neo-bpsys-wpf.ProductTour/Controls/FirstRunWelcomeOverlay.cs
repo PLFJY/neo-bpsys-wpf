@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
 using ContentDialogHost = Wpf.Ui.Controls.ContentDialogHost;
+using System.Windows.Input;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -11,6 +12,7 @@ namespace neo_bpsys_wpf.ProductTour.Controls;
 /// </summary>
 public sealed class FirstRunWelcomeOverlay : Grid
 {
+    private bool _startRequested;
     private readonly Border _card;
     private readonly TextBlock _title;
     private readonly TextBlock _description;
@@ -77,6 +79,9 @@ public sealed class FirstRunWelcomeOverlay : Grid
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         Opacity = 0;
+        // 教程遮罩期间阻止滚轮冒泡到页面 ScrollViewer，避免光标停在遮罩上仍滚动后台页面。
+        PreviewMouseWheel += OnPreviewMouseWheelBlocked;
+        TutorialWheelGuard.Attach(this);
         Panel.SetZIndex(this, 10000);
 
         _skipButton = new Button
@@ -158,8 +163,24 @@ public sealed class FirstRunWelcomeOverlay : Grid
         _startButton.Style = TryFindResource("ProductTourPrimaryButtonStyle") as Style;
         _startButton.Click += async (_, _) =>
         {
-            await FadeOutAsync();
-            StartRequested?.Invoke(this, _selectedLanguageOptionId);
+            if (_startRequested)
+            {
+                return;
+            }
+
+            _startRequested = true;
+            _startButton.IsEnabled = false;
+            try
+            {
+                await FadeOutAsync();
+                StartRequested?.Invoke(this, _selectedLanguageOptionId);
+            }
+            catch (Exception ex)
+            {
+                _startRequested = false;
+                _startButton.IsEnabled = true;
+                System.Diagnostics.Debug.WriteLine($"[Tutorial] 启动欢迎教程失败: {ex.Message}");
+            }
         };
 
         _footnote = new TextBlock
@@ -313,4 +334,9 @@ public sealed class FirstRunWelcomeOverlay : Grid
         new TutorialLanguageOption { Id = "en_US", DisplayName = "English", NativeName = "English" },
         new TutorialLanguageOption { Id = "ja_JP", DisplayName = "日本語", NativeName = "日本語" }
     ];
+
+    private static void OnPreviewMouseWheelBlocked(object sender, MouseWheelEventArgs e)
+    {
+        e.Handled = true;
+    }
 }

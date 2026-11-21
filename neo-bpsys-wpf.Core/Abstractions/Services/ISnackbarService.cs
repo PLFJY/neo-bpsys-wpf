@@ -21,7 +21,8 @@ public interface ISnackbarService
     /// <summary>
     /// 设置<see cref="SnackbarPresenter"/>控件
     /// </summary>
-    /// <param name="contentPresenter"><see cref="SnackbarPresenter"/>控件</param>
+    /// <param name="contentPresenter"><see cref="SnackbarPresenter"/>控件。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="contentPresenter"/> 为 <see langword="null"/>。</exception>
     void SetSnackbarPresenter(SnackbarPresenter contentPresenter);
 
     /// <summary>
@@ -31,9 +32,10 @@ public interface ISnackbarService
     /// <param name="content">显示内容</param>
     /// <param name="appearance"><see cref="SnackbarPresenter"/>类型</param>
     /// <param name="icon">图标</param>
-    /// <param name="timeout">超时自动隐藏时间</param>
+    /// <param name="timeout">超时自动隐藏时间；<see cref="TimeSpan.Zero"/> 使用 <see cref="DefaultTimeOut"/>。</param>
     /// <param name="isCloseButtonEnabled">关闭按钮是否可用</param>
-    /// <exception cref="InvalidOperationException">未设置SnackbarControl</exception>
+    /// <exception cref="InvalidOperationException">未设置 <see cref="SnackbarPresenter"/>。</exception>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="timeout"/> 为负值。</exception>
     void Show(
         string title,
         DependencyObject content,

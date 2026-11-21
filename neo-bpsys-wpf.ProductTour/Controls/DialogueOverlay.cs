@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using ContentDialogHost = Wpf.Ui.Controls.ContentDialogHost;
+using System.Windows.Input;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
 
@@ -79,6 +80,9 @@ public sealed class DialogueOverlay : Grid
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         Opacity = 0;
+        // 教程遮罩期间阻止滚轮冒泡到页面 ScrollViewer，避免光标停在遮罩上仍滚动后台页面。
+        PreviewMouseWheel += OnPreviewMouseWheelBlocked;
+        TutorialWheelGuard.Attach(this);
 
         _speakerBlock = new TextBlock();
         _speakerBlock.Style = TryFindResource("ProductTourDialogueSpeakerStyle") as Style;
@@ -148,7 +152,7 @@ public sealed class DialogueOverlay : Grid
             Margin = new Thickness(0, 20, 24, 0)
         };
         _skipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
-        _skipButton.Click += (_, _) => ShowConfirmDialog();
+        _skipButton.Click += (_, _) => _ = ShowConfirmDialogSafeAsync();
         Panel.SetZIndex(_skipButton, 4);
 
         Children.Add(_avatarImage);
@@ -160,6 +164,9 @@ public sealed class DialogueOverlay : Grid
         Unloaded += (_, _) =>
         {
             StopTypewriter();
+            // 永久闪烁动画会持有窗口时钟；离开可视化树时必须停止，否则每次对话都会累积动画开销。
+            _continueBlock.BeginAnimation(OpacityProperty, null);
+            _dialogueBox.BeginAnimation(OpacityProperty, null);
             _languageService.LanguageChanged -= OnLanguageChanged;
         };
     }
@@ -397,12 +404,25 @@ public sealed class DialogueOverlay : Grid
         return source.Task;
     }
 
-    private async void ShowConfirmDialog()
+    private async Task ShowConfirmDialogSafeAsync()
+    {
+        try
+        {
+            await ShowConfirmDialogAsync();
+        }
+        catch (Exception ex)
+        {
+            // 对话框由 Click 事件直接驱动，异常不能逃逸为 async void 未观察异常。
+            Debug.WriteLine($"[ProductTour] 显示跳过确认失败: {ex}");
+        }
+    }
+
+    private async Task ShowConfirmDialogAsync()
     {
         var choice = await TutorialSkipContentDialog.ShowAsync(
             OverlayHost.GetContentDialogHost(this),
             _textProvider,
-            _textProvider.FirstRunSkipConfirmDescription,
+            _textProvider.SequenceSkipConfirmDescription,
             _sessionSuppression);
         if (choice == TutorialSkipChoice.Continue)
         {
@@ -427,5 +447,10 @@ public sealed class DialogueOverlay : Grid
         }
 
         return new SolidColorBrush(Color.FromRgb(16, 16, 16)) { Opacity = Math.Clamp(opacity, 0, 1) };
+    }
+
+    private static void OnPreviewMouseWheelBlocked(object sender, MouseWheelEventArgs e)
+    {
+        e.Handled = true;
     }
 }

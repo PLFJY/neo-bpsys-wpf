@@ -17,6 +17,9 @@ public class FrontedControlBuildContext
     /// </summary>
     public required ISharedDataService SharedDataService { get; init; }
 
+    /// <summary>BP 窗口可选的按动画进度更新的角色展示源。</summary>
+    public IFrontedCharacterPresentationService? CharacterPresentation { get; init; }
+
     /// <summary>
     /// 前台资源解析器。
     /// </summary>

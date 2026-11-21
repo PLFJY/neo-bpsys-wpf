@@ -29,7 +29,17 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// </summary>
 public partial class FrontedDesignerWindow
 {
-    private void ConfigureDesignSurface(double width, double height)
+    private const double DesignSurfaceOverflowPadding = 240D;
+    private double _designSurfaceOffsetX;
+    private double _designSurfaceOffsetY;
+    private double _designSurfaceCanvasWidth;
+    private double _designSurfaceCanvasHeight;
+    private double _designSurfaceContentWidth;
+    private double _designSurfaceContentHeight;
+    private double _designSurfaceFitWidth;
+    private double _designSurfaceFitHeight;
+
+    private void ConfigureDesignSurface(double width, double height, bool updateFit = false)
     {
         DesignSurfaceGrid.Width = width;
         DesignSurfaceGrid.Height = height;
@@ -37,8 +47,15 @@ public partial class FrontedDesignerWindow
         PreviewCanvas.Height = height;
         InteractionLayer.Width = width;
         InteractionLayer.Height = height;
+        _viewModel?.UpdateDesignSurfaceContentSize(width, height);
+        UpdateDesignSurfaceExtent();
         UpdatePreviewWorkspaceSize();
-        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight, width, height);
+        // 只有首次加载/显式切换文档时才重新计算适应比例。
+        // 几何提交后的预览重建若再次 Fit，会把用户刚拖动的组件宽度/位置重新缩放，造成跳变。
+        if (updateFit)
+        {
+            _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
+        }
     }
 
     private void RebuildInteractionLayer()
@@ -60,7 +77,9 @@ public partial class FrontedDesignerWindow
         }
         _snapGuideLines.Clear();
         _resizeHandles.Clear();
+        _multiSelectionOutlinePool.AddRange(_multiSelectionOutlines);
         _multiSelectionOutlines.Clear();
+        _multiResizeHandles.Clear();
         _marqueeSelectionPreviewOutlines.Clear();
         _marqueeSelectionEntryOrders.Clear();
         _lastMarqueeEnteredItem = null;
@@ -114,6 +133,111 @@ public partial class FrontedDesignerWindow
         {
             AddSubControlSelectionAdorner();
         }
+
+        UpdateDesignSurfaceExtent();
+    }
+
+    /// <summary>
+    /// 根据画布和控件实际占用范围动态扩展设计表面，使拖到画布外的控件仍可见、可继续操作。
+    /// </summary>
+    private void UpdateDesignSurfaceExtent()
+    {
+        if (_viewModel?.CurrentDocument is null)
+        {
+            // 清空/渲染失败后即使没有文档，也要把上一次文档留下的平移与尺寸重置，
+            // 否则空画布会被旧的 offset/工作区尺寸带偏。
+            var width = DesignSurfaceGrid.Width;
+            var height = DesignSurfaceGrid.Height;
+            if (!double.IsFinite(width) || width <= 0D) width = 1D;
+            if (!double.IsFinite(height) || height <= 0D) height = 1D;
+            _designSurfaceOffsetX = 0D;
+            _designSurfaceOffsetY = 0D;
+            _designSurfaceContentWidth = width;
+            _designSurfaceContentHeight = height;
+            _designSurfaceFitWidth = width;
+            _designSurfaceFitHeight = height;
+            PreviewCanvasOffsetTransform.X = 0D;
+            PreviewCanvasOffsetTransform.Y = 0D;
+            InteractionLayerOffsetTransform.X = 0D;
+            InteractionLayerOffsetTransform.Y = 0D;
+            CanvasFrameOffsetTransform.X = 0D;
+            CanvasFrameOffsetTransform.Y = 0D;
+            _viewModel?.UpdateDesignSurfaceContentSize(width, height);
+            _viewModel?.UpdateDesignSurfaceFitSize(width, height);
+            UpdatePreviewWorkspaceSize();
+            return;
+        }
+
+        var canvasWidth = Math.Max(1D, _viewModel.CurrentDocument.CanvasConfig.CanvasWidth);
+        var canvasHeight = Math.Max(1D, _viewModel.CurrentDocument.CanvasConfig.CanvasHeight);
+        _designSurfaceCanvasWidth = canvasWidth;
+        _designSurfaceCanvasHeight = canvasHeight;
+
+        var minX = 0D;
+        var minY = 0D;
+        var maxX = canvasWidth;
+        var maxY = canvasHeight;
+        foreach (var item in _viewModel.CurrentDocument.Controls)
+        {
+            if (!item.IsSelectableInEditor)
+            {
+                continue;
+            }
+
+            var bounds = ResolveItemBounds(item);
+            if (bounds.Width <= 0D || bounds.Height <= 0D)
+            {
+                continue;
+            }
+
+            minX = Math.Min(minX, bounds.Left);
+            minY = Math.Min(minY, bounds.Top);
+            maxX = Math.Max(maxX, bounds.Left + bounds.Width);
+            maxY = Math.Max(maxY, bounds.Top + bounds.Height);
+        }
+
+        var hasOverflow = minX < 0D || minY < 0D || maxX > canvasWidth || maxY > canvasHeight;
+
+        // 适应模式下不能为拖拽预留空白，否则空白会被计入 ScrollViewer extent，
+        // 导致适应后内容比视口略大、出现滚动条并偏离居中位置。退出适应模式后再恢复预留。
+        var padding = hasOverflow && _viewModel?.IsFitMode != true
+            ? DesignSurfaceOverflowPadding
+            : 0D;
+        var contentLeft = minX - padding;
+        var contentTop = minY - padding;
+        var contentWidth = Math.Max(1D, maxX + padding - contentLeft);
+        var contentHeight = Math.Max(1D, maxY + padding - contentTop);
+
+        var fitWidth = Math.Max(1D, maxX - minX);
+        var fitHeight = Math.Max(1D, maxY - minY);
+        _designSurfaceOffsetX = -contentLeft;
+        _designSurfaceOffsetY = -contentTop;
+        _designSurfaceContentWidth = contentWidth;
+        _designSurfaceContentHeight = contentHeight;
+        _designSurfaceFitWidth = fitWidth;
+        _designSurfaceFitHeight = fitHeight;
+        DesignSurfaceGrid.Width = contentWidth;
+        DesignSurfaceGrid.Height = contentHeight;
+        // 两层画布整体平移到正坐标区域。画布尺寸必须覆盖完整设计表面，不能减去平移量：
+        // Canvas 的背景/子元素会被布局边界裁剪，减去平移量会让画布背景右侧/底部缺一块。
+        PreviewCanvas.Width = Math.Max(1D, contentWidth);
+        PreviewCanvas.Height = Math.Max(1D, contentHeight);
+        InteractionLayer.Width = PreviewCanvas.Width;
+        InteractionLayer.Height = PreviewCanvas.Height;
+        PreviewCanvasOffsetTransform.X = _designSurfaceOffsetX;
+        PreviewCanvasOffsetTransform.Y = _designSurfaceOffsetY;
+        InteractionLayerOffsetTransform.X = _designSurfaceOffsetX;
+        InteractionLayerOffsetTransform.Y = _designSurfaceOffsetY;
+        CanvasFrameOffsetTransform.X = _designSurfaceOffsetX;
+        CanvasFrameOffsetTransform.Y = _designSurfaceOffsetY;
+
+        // 适应模式依赖设计表面内容范围，但这里只同步 metrics，不自动重算缩放。
+        // 几何编辑（尤其是拖动手柄调宽）会连续改变内容范围；若每个变化都重算 Fit，
+        // 缩放与滚动位置会在拖动过程中反复跳变，表现为控件宽度跟不上指针。
+        // Fit 仅在点击“适应”按钮、切换文档或显式缩放操作时重新计算。
+        _viewModel?.UpdateDesignSurfaceContentSize(contentWidth, contentHeight);
+        _viewModel?.UpdateDesignSurfaceFitSize(fitWidth, fitHeight);
+        UpdatePreviewWorkspaceSize();
     }
 
     private void AddSelectionAdorners()
@@ -123,6 +247,7 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        var multiSelectionBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue;
         foreach (var item in _viewModel.SelectedDesignItems)
         {
             if (ReferenceEquals(item, _viewModel.SelectedDesignItem))
@@ -130,7 +255,7 @@ public partial class FrontedDesignerWindow
                 continue;
             }
 
-            AddMultiSelectionOutline(item);
+            AddMultiSelectionOutline(item, multiSelectionBrush);
         }
 
         if (_viewModel.SelectedDesignItem is not null)
@@ -139,23 +264,68 @@ public partial class FrontedDesignerWindow
         }
     }
 
-    private void AddMultiSelectionOutline(FrontedControlDesignItem item)
+    private void AddMultiSelectionOutline(FrontedControlDesignItem item, Brush borderBrush)
     {
         var bounds = ResolveItemBounds(item);
-        var outline = new Border
+        Border outline;
+        if (_multiSelectionOutlinePool.Count > 0)
         {
-            Width = bounds.Width,
-            Height = bounds.Height,
-            BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
-            BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
-            Opacity = 0.65D,
-            IsHitTestVisible = false
-        };
+            outline = _multiSelectionOutlinePool[^1];
+            _multiSelectionOutlinePool.RemoveAt(_multiSelectionOutlinePool.Count - 1);
+            outline.BorderBrush = borderBrush;
+        }
+        else
+        {
+            outline = new Border
+            {
+                BorderBrush = borderBrush,
+                BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
+                Opacity = 0.65D,
+                IsHitTestVisible = false
+            };
+        }
+
+        outline.Width = bounds.Width;
+        outline.Height = bounds.Height;
         Canvas.SetLeft(outline, bounds.Left);
         Canvas.SetTop(outline, bounds.Top);
         Panel.SetZIndex(outline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex - 1);
         _multiSelectionOutlines.Add(outline);
         InteractionLayer.Children.Add(outline);
+
+        // 多选时每个控件都提供独立缩放手柄，点击任意一个手柄都会缩放整个选择集合。
+        var handles = new Dictionary<FrontedDesignerResizeHandleKind, Border>();
+        foreach (var handle in Enum.GetValues<FrontedDesignerResizeHandleKind>())
+        {
+            var handleElement = CreateResizeHandle(handle);
+            handles[handle] = handleElement;
+            InteractionLayer.Children.Add(handleElement);
+        }
+
+        _multiResizeHandles[item] = handles;
+        SetMultiSelectionHandlePositions(bounds, handles);
+    }
+
+    private void SetMultiSelectionHandlePositions(
+        FrontedDesignerResolvedBounds bounds,
+        IReadOnlyDictionary<FrontedDesignerResizeHandleKind, Border> handles)
+    {
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.TopLeft, out var topLeft))
+            SetHandlePosition(topLeft, bounds.Left, bounds.Top);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Top, out var top))
+            SetHandlePosition(top, bounds.Left + bounds.Width / 2D, bounds.Top);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.TopRight, out var topRight))
+            SetHandlePosition(topRight, bounds.Left + bounds.Width, bounds.Top);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Left, out var left))
+            SetHandlePosition(left, bounds.Left, bounds.Top + bounds.Height / 2D);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Right, out var right))
+            SetHandlePosition(right, bounds.Left + bounds.Width, bounds.Top + bounds.Height / 2D);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.BottomLeft, out var bottomLeft))
+            SetHandlePosition(bottomLeft, bounds.Left, bounds.Top + bounds.Height);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.Bottom, out var bottom))
+            SetHandlePosition(bottom, bounds.Left + bounds.Width / 2D, bounds.Top + bounds.Height);
+        if (handles.TryGetValue(FrontedDesignerResizeHandleKind.BottomRight, out var bottomRight))
+            SetHandlePosition(bottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
     }
 
     private Border CreateHitbox(FrontedControlDesignItem item, int layoutOrder)
@@ -269,12 +439,7 @@ public partial class FrontedDesignerWindow
             Background = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
             Padding = new Thickness(4, 1, 4, 1),
             CornerRadius = new CornerRadius(2),
-            Child = new System.Windows.Controls.TextBlock
-            {
-                Text = item.Name,
-                FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
-                Foreground = Brushes.White
-            },
+            Child = CreateSelectionLabelText(item.Name),
             IsHitTestVisible = false
         };
         Panel.SetZIndex(_selectionLabel, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex + 1);
@@ -351,12 +516,8 @@ public partial class FrontedDesignerWindow
             Background = Brushes.Orange,
             Padding = new Thickness(4, 1, 4, 1),
             CornerRadius = new CornerRadius(2),
-            Child = new System.Windows.Controls.TextBlock
-            {
-                Text = target.IsCollectionItem ? $"{target.Id} [{target.ItemKey}]" : target.Id,
-                FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
-                Foreground = Brushes.White
-            },
+            Child = CreateSelectionLabelText(
+                target.IsCollectionItem ? $"{target.Id} [{target.ItemKey}]" : target.Id),
             IsHitTestVisible = false
         };
         Panel.SetZIndex(_childSelectionLabel, ChildSelectionOutlineZIndex + 1);
@@ -440,6 +601,7 @@ public partial class FrontedDesignerWindow
         {
             _childSelectionOutline.Width = bounds.Width;
             _childSelectionOutline.Height = bounds.Height;
+            ApplySelectionOutlineZoomMetrics(_childSelectionOutline);
             Canvas.SetLeft(_childSelectionOutline, bounds.Left);
             Canvas.SetTop(_childSelectionOutline, bounds.Top);
         }
@@ -452,9 +614,13 @@ public partial class FrontedDesignerWindow
                 textBlock.FontSize = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale);
             }
 
-            var topOffset = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale);
+            var normalizedZoom = FrontedDesignerEditorVisualHelper.NormalizeZoomScale(zoomScale);
+            ApplySelectionLabelChromeZoomMetrics(_childSelectionLabel, normalizedZoom);
+            _childSelectionLabel.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             Canvas.SetLeft(_childSelectionLabel, bounds.Left);
-            Canvas.SetTop(_childSelectionLabel, Math.Max(0, bounds.Top - topOffset));
+            Canvas.SetTop(
+                _childSelectionLabel,
+                bounds.Top - _childSelectionLabel.DesiredSize.Height - 4D / normalizedZoom);
         }
 
         if (currentTarget.CanResize)
@@ -505,7 +671,7 @@ public partial class FrontedDesignerWindow
         _originalTop = target.Top;
         _originalWidth = target.Width;
         _originalHeight = target.Height;
-        BeginSubControlInteraction(InteractionMode.SubControlMove, e.GetPosition(InteractionLayer), outline);
+        BeginSubControlInteraction(InteractionMode.SubControlMove, e.GetPosition(InteractionLayer), InteractionLayer);
     }
 
     /// <summary>
@@ -526,7 +692,8 @@ public partial class FrontedDesignerWindow
         _originalTop = target.Top;
         _originalWidth = target.Width;
         _originalHeight = target.Height;
-        BeginSubControlInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), element);
+        // 同根级手柄：捕获稳定的 InteractionLayer，避免手柄重新布局导致捕获丢失。
+        BeginSubControlInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
@@ -594,6 +761,7 @@ public partial class FrontedDesignerWindow
             var parentBounds = ResolveItemBounds(item);
             _parentSelectionOutline.Width = parentBounds.Width;
             _parentSelectionOutline.Height = parentBounds.Height;
+            ApplySelectionOutlineZoomMetrics(_parentSelectionOutline);
             Canvas.SetLeft(_parentSelectionOutline, parentBounds.Left);
             Canvas.SetTop(_parentSelectionOutline, parentBounds.Top);
         }
@@ -611,6 +779,7 @@ public partial class FrontedDesignerWindow
         {
             _selectionOutline.Width = bounds.Width;
             _selectionOutline.Height = bounds.Height;
+            ApplySelectionOutlineZoomMetrics(_selectionOutline);
             Canvas.SetLeft(_selectionOutline, bounds.Left);
             Canvas.SetTop(_selectionOutline, bounds.Top);
         }
@@ -666,6 +835,7 @@ public partial class FrontedDesignerWindow
             var outline = _multiSelectionOutlines[outlineIndex];
             outline.Width = bounds.Width;
             outline.Height = bounds.Height;
+            ApplySelectionOutlineZoomMetrics(outline);
             Canvas.SetLeft(outline, bounds.Left);
             Canvas.SetTop(outline, bounds.Top);
 
@@ -675,6 +845,11 @@ public partial class FrontedDesignerWindow
                 hitbox.Height = bounds.Height;
                 Canvas.SetLeft(hitbox, bounds.Left);
                 Canvas.SetTop(hitbox, bounds.Top);
+            }
+
+            if (_multiResizeHandles.TryGetValue(selectedItem, out var handles))
+            {
+                SetMultiSelectionHandlePositions(bounds, handles);
             }
 
             outlineIndex++;
@@ -734,6 +909,18 @@ public partial class FrontedDesignerWindow
         _snapGuideLines.Clear();
     }
 
+    private static System.Windows.Controls.TextBlock CreateSelectionLabelText(string text)
+    {
+        var textBlock = new System.Windows.Controls.TextBlock
+        {
+            Text = text,
+            FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize
+        };
+        // 使用主题前景色：亮色主题下黑字、暗色主题下白字，避免白字叠在浅色标签上看不清。
+        textBlock.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
+        return textBlock;
+    }
+
     private void ApplySelectionLabelZoomMetrics(FrontedDesignerResolvedBounds bounds)
     {
         if (_selectionLabel is null)
@@ -741,15 +928,35 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        var zoomScale = _viewModel?.ZoomScale ?? 1D;
+        var zoomScale = FrontedDesignerEditorVisualHelper.NormalizeZoomScale(_viewModel?.ZoomScale ?? 1D);
         if (_selectionLabel.Child is System.Windows.Controls.TextBlock textBlock)
         {
             textBlock.FontSize = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale);
         }
 
-        var topOffset = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale);
+        ApplySelectionLabelChromeZoomMetrics(_selectionLabel, zoomScale);
+        _selectionLabel.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         Canvas.SetLeft(_selectionLabel, bounds.Left);
-        Canvas.SetTop(_selectionLabel, Math.Max(0, bounds.Top - topOffset));
+        // 标签底边始终位于控件上边框之外，避免高缩放下遮住顶部三个手柄。
+        Canvas.SetTop(
+            _selectionLabel,
+            bounds.Top - _selectionLabel.DesiredSize.Height - 4D / zoomScale);
+    }
+
+    private void ApplySelectionLabelChromeZoomMetrics(Border label, double zoomScale)
+    {
+        label.Padding = new Thickness(4D / zoomScale, 1D / zoomScale, 4D / zoomScale, 1D / zoomScale);
+        label.CornerRadius = new CornerRadius(2D / zoomScale);
+    }
+
+    private void ApplySelectionOutlineZoomMetrics(Border outline)
+    {
+        var zoomScale = FrontedDesignerEditorVisualHelper.NormalizeZoomScale(_viewModel?.ZoomScale ?? 1D);
+        // 高缩放下 BorderThickness 小于 1 个屏幕像素会被 WPF 抗锯齿“吃掉”；
+        // 限制最小画布线宽，保证任何缩放下至少约 1 个屏幕像素可见。
+        var thickness = Math.Max(1D / zoomScale, 0.1D);
+        outline.BorderThickness = new Thickness(thickness);
+        outline.SnapsToDevicePixels = true;
     }
 
     private void SetHandlePosition(FrontedDesignerResizeHandleKind handle, double x, double y)
@@ -759,8 +966,31 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        SetHandlePosition(element, x, y);
+    }
+
+    private void SetHandlePosition(Border element, double x, double y)
+    {
+        ApplyHandleZoomCompensation(element);
         Canvas.SetLeft(element, x - element.Width / 2);
         Canvas.SetTop(element, y - element.Height / 2);
+    }
+
+    /// <summary>
+    /// 手柄位于缩放宿主内部，布局尺寸会随 ZoomScale 一起缩放；
+    /// 反向补偿以保持屏幕上约 12px 命中区域、6px 可见方块。
+    /// </summary>
+    private void ApplyHandleZoomCompensation(Border handle)
+    {
+        var zoom = Math.Clamp(_viewModel?.ZoomScale ?? 1D, 0.05D, 4D);
+        handle.Width = FrontedDesignerEditorVisualHelper.HandleHitTargetSize / zoom;
+        handle.Height = FrontedDesignerEditorVisualHelper.HandleHitTargetSize / zoom;
+        if (handle.Child is Border visual)
+        {
+            visual.Width = FrontedDesignerEditorVisualHelper.HandleVisualSize / zoom;
+            visual.Height = FrontedDesignerEditorVisualHelper.HandleVisualSize / zoom;
+            visual.BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.HandleBorderThickness / zoom);
+        }
     }
 
 }

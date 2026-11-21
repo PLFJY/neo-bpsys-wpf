@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Input;
+using System.Windows.Threading;
 using ContentDialogHost = Wpf.Ui.Controls.ContentDialogHost;
 
 namespace neo_bpsys_wpf.ProductTour.Controls;
@@ -109,6 +112,9 @@ public sealed class ProductTourOverlay : Canvas
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         Opacity = 0;
+        // 教程遮罩期间阻止滚轮冒泡到页面 ScrollViewer，避免光标停在遮罩上仍滚动后台页面。
+        PreviewMouseWheel += OnPreviewMouseWheelBlocked;
+        TutorialWheelGuard.Attach(this);
         Background = null;
 
         _blockAllMask = CreateMask("BlockAllMask");
@@ -164,7 +170,7 @@ public sealed class ProductTourOverlay : Canvas
             Margin = new Thickness(0, 20, 24, 0)
         };
         _globalSkipButton.Style = TryFindResource("ProductTourSkipButtonStyle") as Style;
-        _globalSkipButton.Click += (_, _) => ShowConfirmDialog();
+        _globalSkipButton.Click += (_, _) => _ = ShowConfirmDialogSafeAsync();
         Panel.SetZIndex(_globalSkipButton, 4);
         Children.Add(_globalSkipButton);
 
@@ -281,6 +287,17 @@ public sealed class ProductTourOverlay : Canvas
 
         LayoutCurrent(context.Owner, target, step.Placement);
         await FadeInAsync();
+        if (step.InteractionMode == ProductTourInteractionMode.BlockAll)
+        {
+            // BlockAll 必须同时阻断键盘；仅靠透明遮罩只能拦住鼠标。
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (IsVisible)
+                {
+                    Keyboard.Focus(this);
+                }
+            }), DispatcherPriority.Input);
+        }
 
         await using var registration = cancellationToken.Register(() => _completion.TrySetResult(ProductTourStepAction.Cancel));
         return await _completion.Task;
@@ -547,7 +564,61 @@ public sealed class ProductTourOverlay : Canvas
         SetTop(_avatarImage, layout.AlicePosition.Y);
     }
 
-    private async void ShowConfirmDialog()
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Escape:
+                e.Handled = true;
+                _completion?.TrySetResult(ProductTourStepAction.SkipForCurrentSession);
+                return;
+            case Key.Enter:
+            case Key.Space:
+                if (_nextButton.IsEnabled)
+                {
+                    e.Handled = true;
+                    _completion?.TrySetResult(ProductTourStepAction.Next);
+                }
+                return;
+            case Key.Tab:
+                e.Handled = true;
+                MoveFocusWithinOverlay(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
+                return;
+        }
+    }
+
+    private void MoveFocusWithinOverlay(bool backwards)
+    {
+        var candidates = new List<Button> { _previousButton, _nextButton, _globalSkipButton }
+            .Where(button => button.IsVisible && button.IsEnabled)
+            .ToArray();
+        if (candidates.Length == 0)
+        {
+            return;
+        }
+
+        var focused = Keyboard.FocusedElement;
+        var index = Array.IndexOf(candidates, focused);
+        var nextIndex = index < 0
+            ? (backwards ? candidates.Length - 1 : 0)
+            : (index + (backwards ? -1 : 1) + candidates.Length) % candidates.Length;
+        candidates[nextIndex].Focus();
+    }
+
+    private async Task ShowConfirmDialogSafeAsync()
+    {
+        try
+        {
+            await ShowConfirmDialogAsync();
+        }
+        catch (Exception ex)
+        {
+            // 确认框关闭过程中的异常不能逃逸到 async void 点击处理器。
+            Debug.WriteLine($"[ProductTour] 显示跳过确认失败: {ex}");
+        }
+    }
+
+    private async Task ShowConfirmDialogAsync()
     {
         var choice = await TutorialSkipContentDialog.ShowAsync(
             OverlayHost.GetContentDialogHost(this),
@@ -565,5 +636,10 @@ public sealed class ProductTourOverlay : Canvas
             TutorialSkipChoice.SkipPermanently => ProductTourStepAction.SkipPermanently,
             _ => ProductTourStepAction.Cancel
         });
+    }
+
+    private static void OnPreviewMouseWheelBlocked(object sender, MouseWheelEventArgs e)
+    {
+        e.Handled = true;
     }
 }

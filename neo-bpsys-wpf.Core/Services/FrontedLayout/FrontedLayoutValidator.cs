@@ -325,6 +325,24 @@ public class FrontedLayoutValidator
                 $"Control '{item.Name}' should have Width and Height for editor interaction.",
                 item.Name));
         }
+
+        if (item.Config.Width is { } width && (!IsFinite(width) || width <= 0D))
+        {
+            messages.Add(Error(
+                "InvalidInteractionSize",
+                $"Control '{item.Name}' Width must be a positive finite number.",
+                item.Name,
+                nameof(FrontedControlConfigBase.Width)));
+        }
+
+        if (item.Config.Height is { } height && (!IsFinite(height) || height <= 0D))
+        {
+            messages.Add(Error(
+                "InvalidInteractionSize",
+                $"Control '{item.Name}' Height must be a positive finite number.",
+                item.Name,
+                nameof(FrontedControlConfigBase.Height)));
+        }
     }
 
     private void ValidateKnownControlConfig(

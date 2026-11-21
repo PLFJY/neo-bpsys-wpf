@@ -1,4 +1,4 @@
-﻿using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Controls;
 using System.Globalization;
 using System.Windows.Data;
 
@@ -19,9 +19,19 @@ public class CharacterChangerCommandParameterConverter : IValueConverter
     /// <returns>返回一个CharacterChangerCommandParameter对象，Source是自身index，Target是点击的按钮所在的Index，但是由于我们无法为按钮直接设置Name，所以通过判断其Content的Converter来判断目标的Index</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is not CharacterChanger characterChanger || parameter is not IndexToButtonContentConverter contentConverter) return Binding.DoNothing;
+        if (value is not CharacterChanger characterChanger
+            || parameter is not IndexToButtonContentConverter contentConverter)
+        {
+            return Binding.DoNothing;
+        }
+
         var index = characterChanger.Index;
-        var buttonContent = (int)contentConverter.Convert(index, typeof(int), parameter, culture);
+        if (contentConverter.Convert(index, typeof(int), parameter, culture) is not int buttonContent
+            || buttonContent <= 0)
+        {
+            return Binding.DoNothing;
+        }
+
         return new CharacterChangerCommandParameter(index, buttonContent - 1);
     }
 

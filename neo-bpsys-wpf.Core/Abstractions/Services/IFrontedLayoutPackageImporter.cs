@@ -5,6 +5,10 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <summary>
 /// 导入设计器 v3 前台布局 .bpui 包。
 /// </summary>
+/// <remarks>
+/// 归档/目录及其内部条目必须经过规范化与目标根目录前缀校验，拒绝绝对路径、<c>..</c> 和逃逸目标目录的条目。
+/// 当前默认实现已复用包管理器与归档服务的安全校验。
+/// </remarks>
 public interface IFrontedLayoutPackageImporter
 {
     /// <summary>

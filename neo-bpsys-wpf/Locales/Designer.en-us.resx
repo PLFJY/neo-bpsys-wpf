@@ -88,6 +88,9 @@
   <data name="Designer.LayerPanel.CollectionItem">
     <value>Collection item</value>
   </data>
+  <data name="Designer.LayerPanel.DeleteLayer">
+    <value>Delete layer</value>
+  </data>
   <data name="Properties">
     <value>Properties</value>
   </data>

@@ -41,6 +41,7 @@
         <modernFrame:ModernFrame
             x:Name="PageHost"
             Grid.Row="1"
+            ContentScrollHostMode="Auto"
             IsAnimationEnabled="False" />
     </Grid>
 </ui:FluentWindow>

@@ -28,6 +28,10 @@ Application.Current.Dispatcher.Invoke(action);
 
 这些 ViewModel 在处理下载状态或设置同步事件时先检查 `Dispatcher.CheckAccess()`，不在 UI 线程时用 `Dispatcher.Invoke(...)`。
 
+### InfoBarService
+
+提示跨线程交给宿主控件的 Dispatcher，控件注册前保留最新消息。新提示不等待旧提示的五秒保底：先收起当前横幅，等待实际退场完成，再更新内容与类型并重新展开；退场期间继续收到提示时只呈现最新一条，Classic 无外层动画时直接关闭后替换。新提示重新累计五秒可见时间，此保底仅约束程序关闭；宿主隐藏时暂停计时，用户手动关闭立即生效。没有后续消息或关闭请求时保留常驻行为。
+
 ### 统一文件下载服务
 
 宿主将 `IFileDownloadService` 注册为单例；应用更新、插件包、SmartBP 模块与 OCR 模型、CUDA 依赖和 WebRenderer Runtime 安装包都通过它创建独立的 `IFileDownloadOperation`。调用方等待 `StartAsync`，并用 `Pause`、`Resume`、`Cancel` 控制当前操作，不再维护各自的 HTTP 下载循环。

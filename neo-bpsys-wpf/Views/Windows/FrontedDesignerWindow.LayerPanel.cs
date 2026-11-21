@@ -88,9 +88,26 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        if (e.ClickCount == 2
+            && node.Kind == DesignerLayerNodeKind.Control
+            && node.ControlItem is not null)
+        {
+            ResetPendingLayerPointer();
+            BeginLayerRename(node);
+            e.Handled = true;
+            return;
+        }
+
         _layerSelectionOperation?.Abort();
         _layerSelectionOperation = null;
         ResetPendingLayerPointer();
+        if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
+        {
+            RunUserSelection(() => _viewModel?.ToggleLayerNodeSelection(node));
+            e.Handled = true;
+            return;
+        }
+
         if (!node.CanReorder)
         {
             RunUserSelection(() => _viewModel?.SelectLayerNode(node));
@@ -142,7 +159,15 @@ public partial class FrontedDesignerWindow
             || !_viewModel.IsLayerReorderable(_pendingLayerDragNode.ControlItem))
         {
             _viewModel.StatusMessage = I18nHelper.GetLocalizedString(AppI18nDictionaries.Designer, "Designer.LayerPanel.ReorderBlocked");
+            var blockedNode = _pendingLayerDragNode;
             ResetPendingLayerPointer();
+            // 拖动阈值内的小抖动被判定为禁止重排时，仍按一次普通点击处理，
+            // 否则用户会看到“点了但没选中”。
+            if (blockedNode is not null)
+            {
+                RunUserSelection(() => _viewModel?.SelectLayerNode(blockedNode));
+            }
+
             return;
         }
 
@@ -173,6 +198,147 @@ public partial class FrontedDesignerWindow
         }
     }
 
+    private void LayerGroupHeader_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (_viewModel is not null
+            && sender is FrameworkElement { DataContext: FrontedLayerGroup group })
+        {
+            _viewModel.SelectLayerGroup(group, (Keyboard.Modifiers & ModifierKeys.Control) != 0);
+            e.Handled = true;
+        }
+    }
+
+    private void LayerGroupDeleteMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        var contextMenu = (sender as System.Windows.Controls.MenuItem)?.Parent as ContextMenu;
+        if (_viewModel is not null
+            && contextMenu?.PlacementTarget is FrameworkElement { DataContext: FrontedLayerGroup group })
+        {
+            _viewModel.DeleteLayerGroup(group);
+        }
+    }
+
+    private void BeginLayerRename(DesignerLayerNode node)
+    {
+        // 切换重命名目标时先提交上一个仍在编辑的草稿，避免其 LostKeyboardFocus
+        // 因为 IsRenaming 已清除而直接丢弃用户输入。
+        foreach (var other in LayerGroupsEnumerable())
+        {
+            if (!ReferenceEquals(other, node) && other.IsRenaming)
+            {
+                CommitLayerRename(other, cancel: false);
+            }
+        }
+
+        if (!node.IsRenaming)
+        {
+            node.EditingName = node.DisplayName;
+            node.IsRenaming = true;
+        }
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, new Action(() =>
+        {
+            var textBox = FindVisualChild<System.Windows.Controls.TextBox>(
+                LayerGroupsItemsControl,
+                candidate => ReferenceEquals(candidate.DataContext, node));
+            if (textBox is not null)
+            {
+                textBox.Focus();
+                textBox.SelectAll();
+            }
+        }));
+    }
+
+    private IEnumerable<DesignerLayerNode> LayerGroupsEnumerable()
+    {
+        if (_viewModel is null)
+        {
+            yield break;
+        }
+
+        foreach (var group in _viewModel.LayerGroups)
+        {
+            foreach (var node in group.Items)
+            {
+                yield return node;
+                foreach (var child in node.Children)
+                {
+                    yield return child;
+                }
+            }
+        }
+    }
+
+    private void LayerRenameTextBox_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: DesignerLayerNode node })
+        {
+            return;
+        }
+
+        if (e.Key == Key.Enter)
+        {
+            CommitLayerRename(node, cancel: false);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape)
+        {
+            CommitLayerRename(node, cancel: true);
+            e.Handled = true;
+        }
+    }
+
+    private void LayerRenameTextBox_OnLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: DesignerLayerNode node } && node.IsRenaming)
+        {
+            CommitLayerRename(node, cancel: false);
+        }
+    }
+
+    private void CommitLayerRename(DesignerLayerNode node, bool cancel)
+    {
+        if (!node.IsRenaming)
+        {
+            return;
+        }
+
+        node.IsRenaming = false;
+        if (cancel || node.ControlItem is not { } item || _viewModel is null)
+        {
+            return;
+        }
+
+        if (_viewModel.TryRenameDesignItem(item, node.EditingName, out var errorMessage))
+        {
+            node.DisplayName = item.Name;
+        }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            _viewModel.StatusMessage = errorMessage;
+        }
+    }
+
+    private static T? FindVisualChild<T>(DependencyObject parent, Func<T, bool> predicate)
+        where T : DependencyObject
+    {
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, index);
+            if (child is T match && predicate(match))
+            {
+                return match;
+            }
+
+            var descendant = FindVisualChild(child, predicate);
+            if (descendant is not null)
+            {
+                return descendant;
+            }
+        }
+
+        return null;
+    }
+
     private void LayerControlDeleteMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         var contextMenu = (sender as System.Windows.Controls.MenuItem)?.Parent as ContextMenu;
@@ -187,15 +353,6 @@ public partial class FrontedDesignerWindow
         {
             RunUserSelection(() => _viewModel?.SelectDesignItem(item));
             _viewModel?.DeleteSelectedControlCommand.Execute(null);
-        }
-    }
-
-    private void LayerNodeChevron_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { Tag: DesignerLayerNode node })
-        {
-            _viewModel?.ToggleLayerNodeExpansion(node);
-            e.Handled = true;
         }
     }
 

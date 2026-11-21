@@ -30,6 +30,21 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SettingPageViewModel : ViewModelBase
 {
     #region 自动更新
+    /// <summary>是否发现尚未安装的应用更新。</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AppUpdateCount))]
+    public partial bool HasAppUpdate { get; set; }
+
+    /// <summary>检查更新按钮的数字角标。</summary>
+    public int AppUpdateCount => HasAppUpdate ? 1 : 0;
+
+    private void RefreshAvailableAppUpdate()
+    {
+        void Refresh() => HasAppUpdate = !string.IsNullOrEmpty(UpdaterService.NewVersionInfo?.TagName)
+            && UpdaterService.NewVersionInfo.TagName != AppConstants.AppVersion;
+        if (Application.Current?.Dispatcher is { } dispatcher && !dispatcher.CheckAccess()) dispatcher.Invoke(Refresh);
+        else Refresh();
+    }
     private bool _isSyncingMirror;
     private bool _isSyncingPreRelease;
 

@@ -30,7 +30,8 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         Func<string, string, string> localize,
         IReadOnlyList<FrontedNodeTargetOptionViewModel> targetOptions,
         IReadOnlyList<FrontedGraphConditionFieldOptionViewModel> conditionFieldOptions,
-        Func<FrontedNode, string, bool> hasIncomingConnection)
+        Func<FrontedNode, string, bool> hasIncomingConnection,
+        Action? capturePropertySnapshot = null)
     {
         Model = model;
         Descriptor = descriptor;
@@ -50,7 +51,7 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         }
         OutputPorts = CreatePorts(outputDescriptors, localize);
         var properties = descriptor?.Properties
-            .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions, conditionFieldOptions, hasIncomingConnection))
+            .Select(property => new FrontedNodePropertyEditorViewModel(model, property, markDirty, validate, localize, targetOptions, conditionFieldOptions, hasIncomingConnection, capturePropertySnapshot))
             .ToArray() ?? [];
         Properties = properties;
         ConditionFieldOptions = conditionFieldOptions;

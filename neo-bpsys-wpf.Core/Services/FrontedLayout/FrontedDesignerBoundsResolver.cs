@@ -15,21 +15,26 @@ public static class FrontedDesignerBoundsResolver
         double? actualWidth = null,
         double? actualHeight = null)
     {
-        var width = config.Width
+        // 手工编辑/导入的布局可能带负尺寸；WPF FrameworkElement 不接受负 Width/Height，
+        // 设计器边界必须回退到实际尺寸或最小命中尺寸，不能让选择/装饰器重建抛异常。
+        var width = GetPositiveConfiguredSize(config.Width)
             ?? GetPositiveActualSize(actualWidth)
             ?? FrontedDesignerGeometryHelper.MinHitWidth;
-        var height = config.Height
+        var height = GetPositiveConfiguredSize(config.Height)
             ?? GetPositiveActualSize(actualHeight)
             ?? FrontedDesignerGeometryHelper.MinHitHeight;
 
         return new FrontedDesignerResolvedBounds(config.Left, config.Top, width, height);
     }
 
+    private static double? GetPositiveConfiguredSize(double? value)
+    {
+        return value is > 0D && double.IsFinite(value.Value) ? value.Value : null;
+    }
+
     private static double? GetPositiveActualSize(double? value)
     {
-        return value is > 0D && !double.IsNaN(value.Value) && !double.IsInfinity(value.Value)
-            ? value.Value
-            : null;
+        return value is > 0D && double.IsFinite(value.Value) ? value.Value : null;
     }
 }
 

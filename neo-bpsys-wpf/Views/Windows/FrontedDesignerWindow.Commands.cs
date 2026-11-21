@@ -85,6 +85,15 @@ public partial class FrontedDesignerWindow
     {
         _viewModel?.UpdateShiftSnapActive(false);
         _viewModel?.ClearActiveSnapGuides();
+
+        // 窗口失焦时释放可能残留的指针捕获，避免下一次点击被旧的 InteractionLayer 捕获吞掉。
+        if (_capturedElement is not null)
+        {
+            _isReleasingPointerCapture = true;
+            _capturedElement.ReleaseMouseCapture();
+            _isReleasingPointerCapture = false;
+            ResetPointerInteraction();
+        }
     }
 
     private void AddControlButton_OnClick(object sender, RoutedEventArgs e)

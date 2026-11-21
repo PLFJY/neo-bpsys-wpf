@@ -62,7 +62,7 @@ public partial class Member : ObservableObjectBase
                     OnPropertyChanged(nameof(Image));
                     OnPropertyChanged(nameof(IsImageValid));
                 })) return _image;
-            _image = new BitmapImage(new Uri(ImageUri));
+            _image = ImageHelper.TryLoadTrustedLocalImage(ImageUri, out var localImage) ? localImage : null;
             return _image;
         }
         set

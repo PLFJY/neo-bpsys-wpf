@@ -284,7 +284,7 @@ public class GameImportCompatibilityTest
     {
         var settingsHostService = new Mock<ISettingsHostService>();
         settingsHostService.SetupProperty(service => service.Settings, new Settings());
-        return new SharedDataService(settingsHostService.Object, NullLogger<SharedDataService>.Instance);
+        return new SharedDataService(settingsHostService.Object, Mock.Of<IInfoBarService>(), NullLogger<SharedDataService>.Instance);
     }
 
     private static string WriteGameJson(Game game) =>

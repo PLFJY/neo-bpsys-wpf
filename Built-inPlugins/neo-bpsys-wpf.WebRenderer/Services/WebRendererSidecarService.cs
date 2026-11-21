@@ -201,7 +201,12 @@ public sealed class WebRendererSidecarService : IHostedService, IDisposable, IRe
     /// <summary>应用已保存的插件设置。</summary>
     public void ApplySettings(WebRendererPluginSettings settings)
     {
-        _options = new WebRendererLaunchOptions(settings.Host, settings.Port, !settings.StartWithApplication, settings.LogProtocol, null)
+        var address = System.Net.IPAddress.TryParse(settings.Host, out var parsedAddress)
+                      && parsedAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+            ? settings.Host
+            : WebRendererLaunchOptions.DefaultAddress;
+        var port = settings.Port is >= 1 and <= 65535 ? settings.Port : WebRendererLaunchOptions.DefaultPort;
+        _options = new WebRendererLaunchOptions(address, port, !settings.StartWithApplication, settings.LogProtocol, null)
         { ExitTimeout = TimeSpan.FromMilliseconds(settings.ExitTimeoutMs is > 0 and <= 30000 ? settings.ExitTimeoutMs : 2000), EnterTimeout = TimeSpan.FromMilliseconds(settings.EnterTimeoutMs is > 0 and <= 30000 ? settings.EnterTimeoutMs : 2000) };
         NotifyStatus();
     }

@@ -14,9 +14,14 @@ public static class FrontedTextBindingHelper
     /// <summary>
     /// 创建 Text 和 LocalizedText 控件使用的 MultiBinding。
     /// </summary>
+    /// <param name="expression">文本绑定表达式。</param>
+    /// <param name="sharedDataService">权威共享数据源。</param>
+    /// <param name="characterPresentation">BP 窗口可选的角色展示源。</param>
+    /// <returns>文本多源绑定。</returns>
     public static MultiBinding CreateMultiBinding(
         FrontedTextBindingExpression expression,
-        ISharedDataService sharedDataService)
+        ISharedDataService sharedDataService,
+        IFrontedCharacterPresentationService? characterPresentation = null)
     {
         var multiBinding = new MultiBinding
         {
@@ -27,7 +32,7 @@ public static class FrontedTextBindingHelper
 
         foreach (var source in expression.GetActiveSources())
         {
-            multiBinding.Bindings.Add(FrontedBindingFactory.Create(source.Path, sharedDataService));
+            multiBinding.Bindings.Add(FrontedBindingFactory.Create(source.Path, sharedDataService, characterPresentation));
         }
 
         return multiBinding;

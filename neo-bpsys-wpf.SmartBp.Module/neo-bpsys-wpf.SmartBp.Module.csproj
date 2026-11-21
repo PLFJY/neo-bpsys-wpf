@@ -18,14 +18,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260627" />
-    <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260627" />
+    <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20261107" />
+    <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20261107" />
     <PackageReference Include="RapidOcrNet" Version="4.2.0" />
     <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="$(PaddleInferenceRuntimeVersion)" ExcludeAssets="native" GeneratePathProperty="true" />
     <PackageReference Include="Sdcb.PaddleOCR" Version="3.3.1" />
     <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.3.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" ExcludeAssets="runtime" />
     <PackageReference Include="Tesseract" Version="5.2.0" />
     <PackageReference Include="WPF-UI" Version="4.3.0" ExcludeAssets="runtime" />
@@ -33,10 +33,15 @@
     <!-- SharpCompress 是 Sdcb.PaddleOCR.Models.Online 的传递依赖,本模块不使用其 API:
          模型下载用宿主统一下载服务,解压用 System.IO.Compression.TarFile(.NET 内置)。
          显式排除以避免 SharpCompress.dll 被打包进 SmartBpModule.7z。 -->
-    <PackageReference Include="SharpCompress" Version="0.50.5" ExcludeAssets="all" />
+    <PackageReference Include="SharpCompress" Version="0.50.10" ExcludeAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="11.0.0" />
+    <Reference Include="System.Drawing.Common">
+      <HintPath>$(NuGetPackageRoot)system.drawing.common\10.0.0\lib\net10.0\System.Drawing.Common.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" Private="false" />
     <ProjectReference Include="..\neo-bpsys-wpf.ProductTour\neo-bpsys-wpf.ProductTour.csproj" Private="false" />
   </ItemGroup>
@@ -57,4 +62,17 @@
   <ItemGroup>
     <Content Include="$(PkgSdcb_PaddleInference_runtime_win64_mkl)\runtimes\win-x64\native\**\*.*" Link="Runtime\Paddle\cpu\$(PaddleInferenceRuntimeVersion)\native\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!--
+    SmartBP 发布模块只支持 x64。Tesseract 包会同时带入 x86 原生库，
+    应用不会加载 32 位进程；发布时移除 x86 与调试符号，避免进入模块压缩包。
+  -->
+  <Target Name="TrimUnsupportedPublishAssets" AfterTargets="Publish">
+    <RemoveDir Directories="$(PublishDir)x86" />
+    <ItemGroup>
+      <_SmartBpPublishSymbols Remove="@(_SmartBpPublishSymbols)" />
+      <_SmartBpPublishSymbols Include="$(PublishDir)**\*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(_SmartBpPublishSymbols)" />
+  </Target>
 </Project>

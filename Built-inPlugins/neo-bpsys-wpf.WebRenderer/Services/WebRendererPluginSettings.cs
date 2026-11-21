@@ -29,17 +29,36 @@ public sealed class WebRendererPluginSettings
 /// <summary>提供插件私有设置的加载和保存。</summary>
 public sealed class WebRendererSettingsStore
 {
+    private const string SettingsFileName = "Settings.json";
     private readonly string _path;
 
     /// <summary>初始化设置存储。</summary>
     /// <param name="plugin">Web Renderer 插件入口。</param>
+    /// <exception cref="ArgumentNullException"><paramref name="plugin"/> 为 <see langword="null"/>。</exception>
+    /// <exception cref="InvalidOperationException">插件配置目录为空或设置文件路径逃逸出该目录。</exception>
     public WebRendererSettingsStore(WebRendererPlugin plugin)
     {
-        _path = Path.Combine(plugin.PluginConfigFolder, "Settings.json");
-        Settings = ConfigureFileHelper.LoadConfig<WebRendererPluginSettings>(_path);
+        ArgumentNullException.ThrowIfNull(plugin);
+        if (string.IsNullOrWhiteSpace(plugin.PluginConfigFolder))
+        {
+            throw new InvalidOperationException("Web Renderer plugin config folder is not initialized.");
+        }
+
+        var configRoot = Path.GetFullPath(plugin.PluginConfigFolder)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var path = Path.GetFullPath(Path.Combine(configRoot, SettingsFileName));
+        if (!path.StartsWith(configRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Web Renderer settings path escapes the plugin config folder.");
+        }
+
+        _path = path;
+        Settings = ConfigureFileHelper.LoadConfig<WebRendererPluginSettings>(_path)
+                   ?? new WebRendererPluginSettings();
     }
 
     /// <summary>获取当前可编辑设置。</summary>
+    /// <remarks>修改后必须调用 <see cref="Save"/> 才会持久化；该可变引用只供插件内部管理页使用。</remarks>
     public WebRendererPluginSettings Settings { get; }
 
     /// <summary>保存当前设置。</summary>

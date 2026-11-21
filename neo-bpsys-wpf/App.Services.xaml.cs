@@ -108,6 +108,9 @@ public partial class App
         services.AddSingleton<IFrontedWindowService, FrontedWindowService>();
 
         // 角色选择服务
+        services.AddSingleton<FrontedCharacterTransitionQueue>();
+        services.AddSingleton<ICharacterTransitionQueue>(sp => sp.GetRequiredService<FrontedCharacterTransitionQueue>());
+        services.AddSingleton<IFrontedCharacterPresentationService>(sp => sp.GetRequiredService<FrontedCharacterTransitionQueue>());
         services.AddSingleton<ICharacterSelectionService, CharacterSelectionService>();
 
         //Tool Services
@@ -207,8 +210,12 @@ public partial class App
         services.AddBuiltInFrontedV3Control<MapV2DisplayFrontedControl, MapV2DisplayControlConfig>(() => new MapV2DisplayControlConfig { MapKey = "ArmsFactory" });
         services.AddSingleton<IFrontedV3ControlRegistry, FrontedV3ControlRegistry>();
         services.AddSingleton<IFrontedLayoutService, FrontedLayoutService>();
-        services.AddSingleton<IFrontedRenderer, FrontedRenderer>();
-        services.AddSingleton<IFrontedBehaviorAnimationPartRenderer, FrontedBehaviorAnimationPartRenderer>();
+        services.AddSingleton<FrontedRenderer>();
+        services.AddSingleton<IFrontedRenderer>(sp => sp.GetRequiredService<FrontedRenderer>());
+        services.AddSingleton<IFrontedIncrementalRenderer>(sp => sp.GetRequiredService<FrontedRenderer>());
+        services.AddSingleton<FrontedBehaviorAnimationPartRenderer>();
+        services.AddSingleton<IFrontedBehaviorAnimationPartRenderer>(sp => sp.GetRequiredService<FrontedBehaviorAnimationPartRenderer>());
+        services.AddSingleton<IFrontedFilteredBehaviorAnimationPartRenderer>(sp => sp.GetRequiredService<FrontedBehaviorAnimationPartRenderer>());
         services.AddSingleton<FrontedLayoutReferenceScanner>();
         services.AddSingleton<FrontedLayoutDesignConverter>();
         services.AddSingleton<FrontedLayoutValidator>();
@@ -227,6 +234,7 @@ public partial class App
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
         services.AddSingleton<IPluginMarketService, PluginMarketService>();
+        services.AddSingleton<IPluginMarketCatalogCache, PluginMarketCatalogCache>();
         services.AddSingleton<IPluginInstallService, PluginInstallService>();
         services.AddSingleton<IBpuiFileAssociationService, BpuiFileAssociationService>();
         services.AddSingleton<BpuiPackageImportState>();

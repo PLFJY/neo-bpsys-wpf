@@ -78,10 +78,7 @@ public sealed class SmartBpReconciliationRegressionTest
 
             Assert.Equal(1, result.CharacterApplyResult.AppliedCount);
             Assert.Equal(BpSlotCommitState.CommittedCharacter, fixture.Game.BpSlotCommitState.SurvivorPicks[0]);
-            fixture.Transition.Verify(service => service.RunTransitionAsync(
-                It.IsAny<FrontedTransitionRequest>(),
-                It.IsAny<Func<Task>>(),
-                It.IsAny<CancellationToken>()), Times.Once);
+            Assert.Equal([(Camp.Sur, 0)], fixture.Queue.Picks);
         });
     }
 
@@ -910,10 +907,7 @@ public sealed class SmartBpReconciliationRegressionTest
             Assert.Equal(3, fixture.Guidance.NextStepCallCount);
             Assert.Equal(0, fixture.Guidance.DirectMoveCallCount);
             Assert.Equal(5, result.CharacterApplyResult.AppliedCount);
-            fixture.Transition.Verify(service => service.RunTransitionAsync(
-                It.IsAny<FrontedTransitionRequest>(),
-                It.IsAny<Func<Task>>(),
-                It.IsAny<CancellationToken>()), Times.Exactly(2));
+            Assert.Equal([(Camp.Sur, 0), (Camp.Sur, 1)], fixture.Queue.Picks);
         });
     }
 
@@ -949,10 +943,7 @@ public sealed class SmartBpReconciliationRegressionTest
             Assert.Equal(0, fixture.Guidance.NextStepCallCount);
             Assert.Equal(1, fixture.Guidance.DirectMoveCallCount);
             Assert.Equal(7, result.CharacterApplyResult.AppliedCount);
-            fixture.Transition.Verify(service => service.RunTransitionAsync(
-                It.IsAny<FrontedTransitionRequest>(),
-                It.IsAny<Func<Task>>(),
-                It.IsAny<CancellationToken>()), Times.Never);
+            Assert.Empty(fixture.Queue.Picks);
         });
     }
 
@@ -1228,6 +1219,7 @@ public sealed class SmartBpReconciliationRegressionTest
             fixture.Guidance,
             builder,
             applier,
+            fixture.Queue,
             fixture.Settings.Object);
     }
 
@@ -1266,11 +1258,12 @@ public sealed class SmartBpReconciliationRegressionTest
                 It.IsAny<Func<Task>>(),
                 It.IsAny<CancellationToken>()))
             .Returns<IReadOnlyList<FrontedTransitionRequest>, Func<Task>, CancellationToken>((_, commitAsync, _) => commitAsync());
-        var selection = new CharacterSelectionService(shared.Object, transition.Object, Mock.Of<IFrontedLayoutService>());
+        var queue = new ImmediateCharacterTransitionQueue();
+        var selection = new CharacterSelectionService(shared.Object, queue);
         var settings = new Mock<ISmartBpRecognitionSettingsService>();
         settings.SetupGet(service => service.Settings).Returns(CreateSettings());
         var guidance = new FakeGuidance(workflow ?? PickWorkflow(), currentStep, guidanceStarted);
-        return new(game, shared, selection, transition, settings, guidance, characters);
+        return new(game, shared, selection, transition, queue, settings, guidance, characters);
     }
 
     private static SmartBpRecognitionSettings CreateSettings(int lookBehindSteps = 2) => new()
@@ -1373,6 +1366,7 @@ public sealed class SmartBpReconciliationRegressionTest
         Mock<ISharedDataService> Shared,
         CharacterSelectionService Selection,
         Mock<IFrontedTransitionOrchestrator> Transition,
+        ImmediateCharacterTransitionQueue Queue,
         Mock<ISmartBpRecognitionSettingsService> Settings,
         FakeGuidance Guidance,
         IReadOnlyDictionary<string, Character> Characters);
@@ -1441,5 +1435,14 @@ public sealed class SmartBpReconciliationRegressionTest
             VisitedSteps.Add(stepIndex);
             return Task.FromResult<string?>(null);
         }
+    }
+    private sealed class ImmediateCharacterTransitionQueue : ICharacterTransitionQueue
+    {
+        public List<(Camp Camp, int Index)> Picks { get; } = [];
+        public void EnsureCurrentGame() { }
+        public void EnqueuePick(Camp camp, int index, Character? oldCharacter, Character? newCharacter) => Picks.Add((camp, index));
+        public void EnqueueSwap(int source, int target, Character? sourceCharacter, Character? targetCharacter) { }
+        public void SynchronizeImmediately() { }
+        public Task<T> RunManualSyncAsync<T>(Func<Task<T>> applyAsync, CancellationToken cancellationToken = default) => applyAsync();
     }
 }

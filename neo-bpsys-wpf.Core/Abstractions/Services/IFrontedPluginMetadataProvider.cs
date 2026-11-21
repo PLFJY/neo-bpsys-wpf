@@ -3,6 +3,10 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// <summary>
 /// 为前台布局依赖同步提供已加载插件的元数据。
 /// </summary>
+/// <remarks>
+/// <c>packageId</c> 必须来自已加载插件的清单；返回的插件目录只能来自受信任的插件安装根目录，
+/// 调用方不得把该目录与未校验的外部相对路径直接拼接。
+/// </remarks>
 public interface IFrontedPluginMetadataProvider
 {
     /// <summary>

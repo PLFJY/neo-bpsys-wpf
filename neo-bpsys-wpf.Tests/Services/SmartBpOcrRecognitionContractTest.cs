@@ -848,8 +848,7 @@ public sealed class SmartBpOcrRecognitionContractTest
         shared.SetupGet(x => x.HunCharaDict).Returns(new SortedDictionary<string, Character>(characters.Where(x => x.Camp == Camp.Hun).ToDictionary(x => x.Name)));
         var service = new CharacterSelectionService(
             shared.Object,
-            Mock.Of<IFrontedTransitionOrchestrator>(),
-            Mock.Of<IFrontedLayoutService>());
+            Mock.Of<ICharacterTransitionQueue>());
         return new SmartBpOcrTextResolver(service);
     }
 
@@ -884,6 +883,9 @@ public sealed class SmartBpOcrRecognitionContractTest
             new(region, frame, 0, 0, frame.PixelWidth, frame.PixelHeight);
 
         public BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region) => frame;
+
+        public System.Windows.Size GetRegionPixelSize(BitmapSource source, SmartBpRecognitionRegion region) =>
+            new(frame.PixelWidth, frame.PixelHeight);
     }
 
     private sealed class FakeProvider(SmartBpOcrProviderKind kind, bool ready) : IOcrProvider

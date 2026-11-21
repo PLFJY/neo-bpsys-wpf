@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
@@ -24,15 +24,15 @@ public class IndexFormatConverter : IMultiValueConverter
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
         // 验证输入
-        if (values.Length < 2)
+        if (values is not { Length: >= 2 })
             return DependencyProperty.UnsetValue;
 
         // 解析 Rank
-        if (!int.TryParse(values[1].ToString(), out var index))
+        if (!int.TryParse(values[1]?.ToString(), out var index))
             return "N/A";
 
         // 获取格式字符串 (来自 I18N)
-        var format = values[0].ToString();
+        var format = values[0]?.ToString();
 
         // 核心逻辑：根据格式字符串是否包含 {1} 决定是否需要后缀，中文直接替换
         if (format == null || !format.Contains("{1}")) return format != null ? string.Format(format, index) : "N/A";

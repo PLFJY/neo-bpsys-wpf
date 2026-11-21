@@ -35,7 +35,8 @@ public static class ImageHelper
     public static ImageSource? GetUiImageSource(string key)
     {
         if (string.IsNullOrEmpty(key)) return null;
-        var fileFullName = Path.Combine(AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui), key + ".png");
+        if (!TryResolveResourcePath(nameof(ImageSourceKey.bpui), key + ".png", out var fileFullName))
+            return null;
         if (!File.Exists(fileFullName)) return null;
         var image = new BitmapImage(new Uri(fileFullName));
         image.Freeze();
@@ -51,8 +52,7 @@ public static class ImageHelper
     public static ImageSource? GetImageSourceFromFileName(ImageSourceKey key, string? fileName)
     {
         if (string.IsNullOrEmpty(fileName)) return null;
-
-        var fileFullName = Path.Combine(AppConstants.ResourcesPath, key.ToString(), fileName);
+        if (!TryResolveResourcePath(key.ToString(), fileName, out var fileFullName)) return null;
         if (!File.Exists(fileFullName)) return null;
         var image = new BitmapImage(new Uri(fileFullName));
         image.Freeze();
@@ -69,8 +69,7 @@ public static class ImageHelper
     public static ImageSource? GetImageSourceFromFileName(string key, string? fileName)
     {
         if (string.IsNullOrEmpty(fileName)) return null;
-
-        var fileFullName = Path.Combine(AppConstants.ResourcesPath, key, fileName);
+        if (!TryResolveResourcePath(key, fileName, out var fileFullName)) return null;
         if(!File.Exists(fileFullName)) return null;
         var image = new BitmapImage(new Uri(fileFullName));
         image.Freeze();
@@ -87,8 +86,7 @@ public static class ImageHelper
     public static ImageSource? GetImageSourceFromName(ImageSourceKey key, string? name)
     {
         if (string.IsNullOrEmpty(name)) return null;
-
-        var fileName = Path.Combine(AppConstants.ResourcesPath, key.ToString(), name + ".png");
+        if (!TryResolveResourcePath(key.ToString(), name + ".png", out var fileName)) return null;
 
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
     }
@@ -104,13 +102,13 @@ public static class ImageHelper
     {
         if (string.IsNullOrEmpty(name)) return null;
 
-        var fileName = Path.Combine(
-            AppConstants.ResourcesPath,
-            nameof(ImageSourceKey.talent),
-            camp.ToString().ToLower(),
-            isBlackVerEnable ? "black" : "white",
-            name + ".png"
-        );
+        if (!TryResolveResourcePath(
+                Path.Combine(nameof(ImageSourceKey.talent), camp.ToString().ToLower(), isBlackVerEnable ? "black" : "white"),
+                name + ".png",
+                out var fileName))
+        {
+            return null;
+        }
 
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
     }
@@ -125,13 +123,156 @@ public static class ImageHelper
     {
         if (trait == null) return null;
 
-        var fileName = Path.Combine(
-            AppConstants.ResourcesPath,
-            nameof(ImageSourceKey.trait),
-            (isBlackTalentAndTraitEnable ? "black" : "white"),
-            trait + ".png"
-        );
+        if (!TryResolveResourcePath(
+                Path.Combine(nameof(ImageSourceKey.trait), isBlackTalentAndTraitEnable ? "black" : "white"),
+                trait + ".png",
+                out var fileName))
+        {
+            return null;
+        }
+
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
+    }
+
+    /// <summary>
+    /// 将 Resources 下的相对根目录与文件名解析为固定资源根目录内的完整路径。
+    /// </summary>
+    /// <param name="relativeRoot">相对资源分类目录，例如 <c>talent/sur/black</c>。</param>
+    /// <param name="relativeFile">相对文件名，不允许绝对路径或 <c>..</c> 段。</param>
+    /// <param name="fullPath">解析成功时的完整路径。</param>
+    /// <returns>路径位于 Resources 根目录内且格式安全时返回 <see langword="true"/>。</returns>
+    internal static bool TryResolveResourcePath(string relativeRoot, string relativeFile, out string fullPath)
+    {
+        fullPath = string.Empty;
+        if (string.IsNullOrWhiteSpace(relativeRoot)
+            || string.IsNullOrWhiteSpace(relativeFile)
+            || Path.IsPathRooted(relativeFile)
+            || relativeFile.IndexOfAny(Path.GetInvalidPathChars()) >= 0
+            || relativeRoot.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+        {
+            return false;
+        }
+
+        var normalizedRoot = relativeRoot
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+        var normalizedFile = relativeFile
+            .Replace('\\', Path.DirectorySeparatorChar)
+            .Replace('/', Path.DirectorySeparatorChar);
+        if (normalizedRoot.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries)
+                .Any(segment => segment == "..")
+            || normalizedFile.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries)
+                .Any(segment => segment == ".." || segment == "."))
+        {
+            return false;
+        }
+
+        try
+        {
+            var resourceRoot = Path.GetFullPath(AppConstants.ResourcesPath);
+            var rootWithSeparator = resourceRoot.TrimEnd(Path.DirectorySeparatorChar)
+                                    + Path.DirectorySeparatorChar;
+            var candidate = Path.GetFullPath(Path.Combine(resourceRoot, normalizedRoot, normalizedFile));
+            if (!candidate.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            fullPath = candidate;
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 尝试加载受信任应用目录内的本地图片。
+    /// </summary>
+    /// <param name="source">file URI 或本地绝对路径。</param>
+    /// <param name="image">成功时的冻结图片源。</param>
+    /// <returns>路径属于受信任应用目录且图片可解码时返回 <see langword="true"/>。</returns>
+    /// <remarks>
+    /// 队伍/选手数据可来自导入文件；禁止其把任意本地路径当作展示图片读取。
+    /// </remarks>
+    internal static bool TryLoadTrustedLocalImage(string? source, out ImageSource? image)
+    {
+        image = null;
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return false;
+        }
+
+        string? localPath = null;
+        if (Uri.TryCreate(source, UriKind.Absolute, out var uri))
+        {
+            if (!string.Equals(uri.Scheme, Uri.UriSchemeFile, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            localPath = uri.LocalPath;
+        }
+        else if (Path.IsPathRooted(source))
+        {
+            localPath = source;
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath) || !IsUnderTrustedImageRoot(localPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            var bitmap = new BitmapImage(new Uri(Path.GetFullPath(localPath)));
+            bitmap.Freeze();
+            image = bitmap;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsUnderTrustedImageRoot(string path)
+    {
+        string fullPath;
+        try
+        {
+            fullPath = Path.GetFullPath(path);
+        }
+        catch
+        {
+            return false;
+        }
+
+        foreach (var root in new[]
+                 {
+                     AppConstants.ResourcesPath,
+                     AppConstants.AppDataPath,
+                     AppConstants.AppOutputPath,
+                     AppContext.BaseDirectory
+                 })
+        {
+            try
+            {
+                var normalizedRoot = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar)
+                                     + Path.DirectorySeparatorChar;
+                if (fullPath.StartsWith(normalizedRoot, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // 忽略无效根路径。
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

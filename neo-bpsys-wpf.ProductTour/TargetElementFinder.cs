@@ -15,6 +15,13 @@ internal static class TargetElementFinder
         return FindCoreAsync(owner, step, cancellationToken);
     }
 
+    private static async Task<int> WaitForNextPollAsync(int delayMilliseconds, CancellationToken cancellationToken)
+    {
+        await Task.Delay(delayMilliseconds, cancellationToken);
+        // 目标通常在下一次布局后出现；指数退避避免 80ms 全树扫描持续 30 秒。
+        return Math.Min(delayMilliseconds * 2, 400);
+    }
+
     private static async Task<FrameworkElement?> FindCoreAsync(
         FrameworkElement owner,
         ProductTourStep step,
@@ -41,19 +48,20 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = owner.FindName(targetName) as FrameworkElement
-                ?? FindVisualChild(owner, targetName);
-            if (result != null && result.IsLoaded)
+            var named = owner.FindName(targetName) as FrameworkElement;
+            var result = IsUsableTarget(named) ? named : FindVisualChild(owner, targetName);
+            if (IsUsableTarget(result))
             {
                 await BringTargetIntoViewAsync(owner, result, cancellationToken);
                 return result;
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;
@@ -66,18 +74,19 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = FindElementByTag(owner, targetTag);
-            if (result != null && result.IsLoaded)
+            if (IsUsableTarget(result))
             {
                 await BringTargetIntoViewAsync(owner, result, cancellationToken);
                 return result;
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;
@@ -91,20 +100,21 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
             FrameworkElement? host = owner;
             if (!string.IsNullOrWhiteSpace(hostTargetName))
             {
-                host = owner.FindName(hostTargetName) as FrameworkElement
-                    ?? FindVisualChild(owner, hostTargetName);
+                var namedHost = owner.FindName(hostTargetName) as FrameworkElement;
+                host = IsUsableTarget(namedHost) ? namedHost : FindVisualChild(owner, hostTargetName);
             }
 
             if (host != null)
             {
                 var result = FindDescendantByType(host, targetTypeFullName);
-                if (result != null && result.IsLoaded)
+                if (IsUsableTarget(result))
                 {
                     await BringTargetIntoViewAsync(owner, result, cancellationToken);
                     return result;
@@ -112,7 +122,7 @@ internal static class TargetElementFinder
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;
@@ -125,18 +135,19 @@ internal static class TargetElementFinder
         CancellationToken cancellationToken)
     {
         var deadline = DateTimeOffset.UtcNow + timeout;
+        var pollDelay = 40;
         while (DateTimeOffset.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = FindNavigationItem(owner, targetKey);
-            if (result != null && result.IsLoaded)
+            if (IsUsableTarget(result))
             {
                 await BringTargetIntoViewAsync(owner, result, cancellationToken);
                 return result;
             }
 
             await owner.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle, cancellationToken);
-            await Task.Delay(80, cancellationToken);
+            pollDelay = await WaitForNextPollAsync(pollDelay, cancellationToken);
         }
 
         return null;
@@ -145,7 +156,8 @@ internal static class TargetElementFinder
     private static FrameworkElement? FindDescendantByType(DependencyObject root, string targetTypeFullName)
     {
         if (root is FrameworkElement element
-            && string.Equals(element.GetType().FullName, targetTypeFullName, StringComparison.Ordinal))
+            && string.Equals(element.GetType().FullName, targetTypeFullName, StringComparison.Ordinal)
+            && IsUsableTarget(element))
         {
             return element;
         }
@@ -183,13 +195,20 @@ internal static class TargetElementFinder
         owner.UpdateLayout();
     }
 
+    private static bool IsUsableTarget(FrameworkElement? element)
+    {
+        return element is { IsLoaded: true, IsVisible: true };
+    }
+
     private static FrameworkElement? FindVisualChild(DependencyObject root, string targetName)
     {
         var childCount = VisualTreeHelper.GetChildrenCount(root);
         for (var i = 0; i < childCount; i++)
         {
             var child = VisualTreeHelper.GetChild(root, i);
-            if (child is FrameworkElement element && element.Name == targetName)
+            if (child is FrameworkElement element
+                && element.Name == targetName
+                && IsUsableTarget(element))
             {
                 return element;
             }
@@ -213,7 +232,8 @@ internal static class TargetElementFinder
     {
         if (root is FrameworkElement element
             && element.Tag is string tag
-            && string.Equals(tag, targetTag, StringComparison.Ordinal))
+            && string.Equals(tag, targetTag, StringComparison.Ordinal)
+            && IsUsableTarget(element))
         {
             return element;
         }
@@ -239,7 +259,9 @@ internal static class TargetElementFinder
 
     private static FrameworkElement? FindNavigationItem(DependencyObject root, string targetKey)
     {
-        if (root is FrameworkElement element && IsNavigationItemMatch(element, targetKey))
+        if (root is FrameworkElement element
+            && IsUsableTarget(element)
+            && IsNavigationItemMatch(element, targetKey))
         {
             return FindClickableDescendant(element) ?? FindClickableAncestor(element) ?? element;
         }

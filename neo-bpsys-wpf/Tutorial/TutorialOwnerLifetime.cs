@@ -8,29 +8,45 @@ internal static class TutorialOwnerLifetime
     private static readonly ConditionalWeakTable<FrameworkElement, Lifetime> Lifetimes = new();
 
     public static CancellationToken GetToken(FrameworkElement owner) =>
-        Lifetimes.GetValue(owner, static element => new Lifetime(element)).Token;
+        Lifetimes.GetValue(owner, static element => new Lifetime(element)).GetToken();
 
     private sealed class Lifetime
     {
+        private readonly object _gate = new();
         private CancellationTokenSource _source = new();
 
         public Lifetime(FrameworkElement owner)
         {
-            owner.Loaded += (_, _) =>
-            {
-                if (_source.IsCancellationRequested)
-                {
-                    _source.Dispose();
-                    _source = new CancellationTokenSource();
-                }
-            };
-            owner.Unloaded += (_, _) => _source.Cancel();
+            owner.Loaded += (_, _) => EnsureToken();
+            owner.Unloaded += (_, _) => Cancel();
             if (owner is Window window)
             {
-                window.Closed += (_, _) => _source.Cancel();
+                window.Closed += (_, _) => Cancel();
             }
         }
 
-        public CancellationToken Token => _source.Token;
+        public CancellationToken GetToken() => EnsureToken();
+
+        private CancellationToken EnsureToken()
+        {
+            lock (_gate)
+            {
+                // 页面可能先注册 Loaded 处理器再调用 GetToken；不能只依赖 Lifetime 自己的 Loaded 事件。
+                if (_source.IsCancellationRequested)
+                {
+                    _source = new CancellationTokenSource();
+                }
+
+                return _source.Token;
+            }
+        }
+
+        private void Cancel()
+        {
+            lock (_gate)
+            {
+                _source.Cancel();
+            }
+        }
     }
 }

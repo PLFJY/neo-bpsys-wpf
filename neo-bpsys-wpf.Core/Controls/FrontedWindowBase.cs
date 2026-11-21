@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using Wpf.Ui.Appearance;
 
 namespace neo_bpsys_wpf.Core.Controls;
@@ -575,18 +576,29 @@ public class FrontedWindowBase : Window
 
     private void ApplyCurrentApplicationTheme()
     {
-        if (Application.Current is null)
+        if (Application.Current is null || !IsVisible)
         {
             return;
         }
 
-        if (Dispatcher.CheckAccess())
+        if (!Dispatcher.CheckAccess())
         {
-            ApplicationThemeManager.Apply(this);
+            _ = Dispatcher.BeginInvoke(new Action(ApplyCurrentApplicationTheme));
             return;
         }
 
-        _ = Dispatcher.BeginInvoke(new Action(ApplyCurrentApplicationTheme));
+        // 多个主题事件（以及多个前台窗口）在同一帧内只应用一次，避免重复扫描资源字典。
+        FrontedRenderScheduler.Schedule(this, ApplyThemeOnDispatcher);
+    }
+
+    private void ApplyThemeOnDispatcher()
+    {
+        if (Application.Current is null || !IsVisible)
+        {
+            return;
+        }
+
+        ApplicationThemeManager.Apply(this);
     }
 
     private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)

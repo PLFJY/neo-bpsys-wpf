@@ -130,6 +130,15 @@ public interface ISmartBpRecognitionFrameCropper
     SmartBpCroppedFrame CropWithInfo(BitmapSource source, SmartBpRecognitionRegion region);
     /// <summary>将画面裁剪到请求的粗粒度区域。</summary>
     BitmapSource Crop(BitmapSource source, SmartBpRecognitionRegion region);
+    /// <summary>获取区域相对于当前画面的像素尺寸，不创建裁剪位图。</summary>
+    /// <param name="source">完整画面。</param>
+    /// <param name="region">识别区域。</param>
+    /// <returns>区域的像素宽高。</returns>
+    System.Windows.Size GetRegionPixelSize(BitmapSource source, SmartBpRecognitionRegion region)
+    {
+        var crop = CropWithInfo(source, region);
+        return new System.Windows.Size(crop.Width, crop.Height);
+    }
 }
 /// <summary>保留最近画面帧，用于转场最终确认。</summary>
 public interface ISmartBpFrameRingBuffer

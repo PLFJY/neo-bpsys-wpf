@@ -223,9 +223,9 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.13" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.13" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="11.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="11.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="11.0.0" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.3" />
         <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
@@ -346,5 +346,21 @@
         <EmbeddedResource Update="Locales\TourContent.en-us.resx"><DependentUpon>TourContent.resx</DependentUpon></EmbeddedResource>
         <EmbeddedResource Update="Locales\TourContent.ja-jp.resx"><DependentUpon>TourContent.resx</DependentUpon></EmbeddedResource>
     </ItemGroup>
+
+    <!--
+      发布产物不携带调试符号与 API 文档；安装在终端用户机器上不会读取这些文件。
+      构建目录仍保留 PDB/XML，便于本地调试与文档生成。放在插件复制之后执行，
+      以覆盖主程序、顶层依赖和 Plugins 目录中的同名文件。
+    -->
+    <Target Name="TrimPublishSymbolsAndDocs" AfterTargets="CopyBuiltinPluginsToOutput_Publish">
+        <ItemGroup>
+            <_PublishSymbols Remove="@(_PublishSymbols)" />
+            <_PublishDocs Remove="@(_PublishDocs)" />
+            <_PublishSymbols Include="$(PublishDir)**\*.pdb" />
+            <_PublishDocs Include="$(PublishDir)*.xml" />
+            <_PublishDocs Include="$(PublishDir)Plugins\**\*.xml" />
+        </ItemGroup>
+        <Delete Files="@(_PublishSymbols);@(_PublishDocs)" />
+    </Target>
 
 </Project>

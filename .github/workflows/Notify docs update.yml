@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+# 工作流只调用外部仓库的 workflow_dispatch；本仓库 GITHUB_TOKEN 不需要任何权限。
+permissions: {}
+
 jobs:
   notify-docs:
     runs-on: ubuntu-latest
@@ -13,19 +16,29 @@ jobs:
       - name: Trigger docs repo workflow
         shell: pwsh
         env:
+          # 建议使用仅限 docs 仓库、仅 Actions:write 的 fine-grained PAT，并定期轮换。
           TOKEN: ${{ secrets.TRIGGER_DOCS_BUILD }}
           OWNER: PLFJY
           REPO: neo-bpsys-docs-next
           WORKFLOW_FILE: deploy-docs.yml
           REF: main
+          # 通过环境变量传递 GitHub 上下文，避免表达式直接内联到 PowerShell 脚本造成注入。
+          SOURCE_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
+          foreach ($name in 'TOKEN', 'OWNER', 'REPO', 'WORKFLOW_FILE', 'REF', 'SOURCE_REPO', 'SOURCE_SHA') {
+            if ([string]::IsNullOrWhiteSpace((Get-Item "env:$name").Value)) {
+              throw "环境变量 $name 未设置"
+            }
+          }
+
           $uri = "https://api.github.com/repos/$env:OWNER/$env:REPO/actions/workflows/$env:WORKFLOW_FILE/dispatches"
 
           $body = @{
             ref    = $env:REF
             inputs = @{
-              source_repo = "${{ github.repository }}"
-              source_sha  = "${{ github.sha }}"
+              source_repo = $env:SOURCE_REPO
+              source_sha  = $env:SOURCE_SHA
             }
           } | ConvertTo-Json -Depth 10
 
@@ -36,6 +49,4 @@ jobs:
           }
 
           Write-Host "Dispatching workflow to: $uri"
-          Write-Host "Body: $body"
-
           Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body -ContentType "application/json"

@@ -35,7 +35,7 @@ public class TextFrontedControl : FrontedV3ControlBase
             BindingOperations.SetBinding(
                 textBlock,
                 TextBlock.TextProperty,
-                FrontedTextBindingHelper.CreateMultiBinding(textConfig.TextBinding, context.SharedDataService));
+                FrontedTextBindingHelper.CreateMultiBinding(textConfig.TextBinding, context.SharedDataService, context.CharacterPresentation));
         }
         else if (textConfig.Text is not null)
         {

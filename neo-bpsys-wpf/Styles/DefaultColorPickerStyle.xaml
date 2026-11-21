@@ -8,6 +8,10 @@
                     <ResourceDictionary Source="/Styles/DarkComboBoxStyle.xaml" />
                     <ResourceDictionary Source="/Styles/RoundedColorDisplayStyle.xaml" />
                 </ResourceDictionary.MergedDictionaries>
+                <!--  颜色条在按下时立即把滑块移动到点击位置并开始拖动，而不是要求先点中滑块再拖。  -->
+                <Style TargetType="Slider">
+                    <Setter Property="IsMoveToPointEnabled" Value="True" />
+                </Style>
                 <Style TargetType="Label">
                     <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
                 </Style>

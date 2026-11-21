@@ -66,18 +66,23 @@ namespace Composition.WindowsRuntimeHelpers
             CharSet = CharSet.Unicode,
             ExactSpelling = true,
             CallingConvention = CallingConvention.StdCall
+            )]
+        static extern UInt32 CreateDirect3D11SurfaceFromDXGISurface(IntPtr dxgiSurface, out IntPtr graphicsSurface);
+
         /// <summary>
         /// 使用默认硬件驱动创建 Direct3D 设备。
         /// </summary>
         /// <returns>创建的 Direct3D 设备。</returns>
-            )]
-        static extern UInt32 CreateDirect3D11SurfaceFromDXGISurface(IntPtr dxgiSurface, out IntPtr graphicsSurface);
-
         public static IDirect3DDevice CreateDevice()
         {
             return CreateDevice(false);
         }
 
+        /// <summary>
+        /// 创建 Direct3D 设备。
+        /// </summary>
+        /// <param name="useWARP">为 <see langword="true"/> 时使用 WARP 软件光栅化器，否则使用硬件驱动。</param>
+        /// <returns>创建的 Direct3D 设备。</returns>
         public static IDirect3DDevice CreateDevice(bool useWARP)
         {
             var d3dDevice = new SharpDX.Direct3D11.Device(

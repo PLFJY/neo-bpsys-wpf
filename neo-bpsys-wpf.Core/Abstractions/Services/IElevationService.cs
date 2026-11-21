@@ -4,10 +4,16 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// 进程权限（UAC 提升级别）检测服务。
 /// </summary>
 /// <remarks>
+/// <para>
+/// Windows 专用：实现通过当前进程/已加载应用程序集的绝对路径启动新进程，不得使用用户可写配置中的
+/// 可执行文件路径；命令行参数必须按 Windows 命令行规则转义，禁止把未经校验的外部输入作为启动参数。
+/// </para>
+/// <para>
 /// 用于判断当前主程序是否以管理员权限运行。
 /// 跨进程 API Hook（如 <c>SetWindowsHookEx</c> 注入到更高权限的进程）
 /// 要求钩子进程与目标进程具有相同的完整性级别，
 /// 若主程序未提权而目标游戏已提权，注入将失败（<c>ERROR_ACCESS_DENIED</c>）。
+/// </para>
 /// </remarks>
 public interface IElevationService
 {

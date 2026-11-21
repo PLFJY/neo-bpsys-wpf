@@ -4,6 +4,8 @@ using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Views.Pages.Plugin;
 using Wpf.Ui.Controls;
+using neo_bpsys_wpf.ViewModels.Pages;
+using System.ComponentModel;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -16,6 +18,9 @@ namespace neo_bpsys_wpf.Views.Pages;
     BackendPageCategory.External)]
 public partial class PluginPage : Page
 {
+    private PluginPageViewModel? _viewModel;
+
+    /// <summary>创建插件管理页与市场导航入口。</summary>
     public PluginPage()
     {
         InitializeComponent();
@@ -30,10 +35,27 @@ public partial class PluginPage : Page
             typeof(PluginMarketView)));
 
         Loaded += OnLoaded;
+        Unloaded += (_, _) => Observe(null);
+        DataContextChanged += (_, _) => { if (IsLoaded) Observe(DataContext as PluginPageViewModel); };
+        Helpers.BackendPresentation.Attach(this, () => (DataContext as PluginPageViewModel)?.EnsureMarketLoaded());
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        Observe(DataContext as PluginPageViewModel);
         PluginTabs.SelectFirstItemIfNoneSelected();
+    }
+
+    private void Observe(PluginPageViewModel? viewModel)
+    {
+        if (_viewModel is not null) _viewModel.PropertyChanged -= OnViewModelChanged;
+        _viewModel = viewModel;
+        if (_viewModel is not null) _viewModel.PropertyChanged += OnViewModelChanged;
+    }
+
+    private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PluginPageViewModel.SelectedMarketPlugin) && _viewModel?.SelectedMarketPlugin is not null)
+            PluginTabs.Navigate(typeof(PluginMarketView));
     }
 }

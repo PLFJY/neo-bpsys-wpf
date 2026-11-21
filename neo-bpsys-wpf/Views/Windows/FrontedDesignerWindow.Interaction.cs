@@ -54,7 +54,9 @@ public partial class FrontedDesignerWindow
             return;
         }
 
-        BeginPendingHitboxClick(item, e.GetPosition(InteractionLayer), hitbox);
+        // 捕获 InteractionLayer 而不是可能被选择刷新重建的 hitbox。
+        // 选择延迟到实际超过拖动阈值时执行，避免按下瞬间重建属性网格/装饰器造成拖动卡顿。
+        BeginPendingHitboxClick(item, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
@@ -68,7 +70,9 @@ public partial class FrontedDesignerWindow
 
         FocusDesignSurface();
         _activeResizeHandle = handle;
-        BeginInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), element);
+        // 捕获 InteractionLayer 而不是手柄自身：拖动过程中手柄会随尺寸/缩放重新布局，
+        // 捕获手柄容易触发 LostMouseCapture，导致宽度拖动中途失效。
+        BeginInteraction(InteractionMode.Resize, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
@@ -83,7 +87,7 @@ public partial class FrontedDesignerWindow
         FocusDesignSurface();
         _viewModel.SelectPolygonVertex(index);
         _activePolygonVertexIndex = index;
-        BeginInteraction(InteractionMode.PolygonVertex, e.GetPosition(InteractionLayer), element);
+        BeginInteraction(InteractionMode.PolygonVertex, e.GetPosition(InteractionLayer), InteractionLayer);
         e.Handled = true;
     }
 
@@ -199,12 +203,37 @@ public partial class FrontedDesignerWindow
 
     private void HandlePendingHitboxMove(double deltaX, double deltaY)
     {
-        if (_viewModel?.SelectedDesignItem is null || _pendingHitCandidate is null)
+        if (_viewModel is null || _pendingHitCandidate is null)
         {
             return;
         }
 
         _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
+
+        // 未选中控件在第一次真正拖动时才切换选择：按下即选择会重建属性网格、
+        // 装饰器和预览元素，拖动过程中持续触发会造成明显卡顿。
+        if (_hasExceededClickThreshold
+            && !ReferenceEquals(_pendingHitCandidate, _viewModel.SelectedDesignItem))
+        {
+            if (_viewModel.SelectedDesignItems.Any(item => ReferenceEquals(item, _pendingHitCandidate)))
+            {
+                // 已处于多选集合中的控件直接作为主选中项参与整体拖动，不能退化为单选。
+                var selectedItems = _viewModel.SelectedDesignItems.ToList();
+                RunUserSelection(() => _viewModel.SelectDesignItems(selectedItems, _pendingHitCandidate));
+            }
+            else
+            {
+                RunUserSelection(() => _viewModel.SelectDesignItem(_pendingHitCandidate));
+            }
+
+            CaptureOriginalSelectedBounds();
+        }
+
+        if (_viewModel.SelectedDesignItem is null)
+        {
+            return;
+        }
+
         var action = FrontedDesignerInteractionHelper.ResolvePointerAction(
             _hasExceededClickThreshold,
             ReferenceEquals(_pendingHitCandidate, _viewModel.SelectedDesignItem),
@@ -252,7 +281,9 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        _isReleasingPointerCapture = true;
         _capturedElement.ReleaseMouseCapture();
+        _isReleasingPointerCapture = false;
 
         if (_pendingHitCandidate is not null)
         {
@@ -289,7 +320,18 @@ public partial class FrontedDesignerWindow
             _viewModel?.CommitDesignItemGeometryEdit();
         }
 
+        // 几何编辑提交会改变内容范围并触发 ScrollViewer extent 变化；
+        // 这次变化来自用户刚完成的拖动，不应立刻把画布重新居中。
+        if (_interactionMode is InteractionMode.Resize or InteractionMode.SubControlMove or InteractionMode.PolygonVertex)
+        {
+            _suppressFitScrollCentering = true;
+            Dispatcher.BeginInvoke(
+                DispatcherPriority.ContextIdle,
+                new Action(() => _suppressFitScrollCentering = false));
+        }
+
         ResetPointerInteraction();
+        UpdateDesignSurfaceExtent();
         ScheduleSelectedInteractionVisualRefresh();
         e.Handled = true;
     }
@@ -371,30 +413,49 @@ public partial class FrontedDesignerWindow
 
     private void PreviewScrollViewer_OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        UpdatePreviewWorkspaceSize();
-        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
-        ResetPreviewScrollOffsetForFitMode();
+        ScheduleFitRefresh();
     }
 
     /// <summary>
     /// Ensures Fit zoom is recalculated when the window is maximized or restored.
     /// StateChanged fires before layout updates, so the recalculation is deferred
-    /// to after the layout pass via Dispatcher.Background.
+    /// to after the layout pass. SizeChanged and StateChanged can both fire during
+    /// the initial maximize; coalescing them avoids duplicate fit/layout passes.
     /// </summary>
     private void OnWindowStateChanged(object? sender, EventArgs e)
     {
         if (WindowState == WindowState.Maximized || WindowState == WindowState.Normal)
         {
-            Dispatcher.BeginInvoke(
-                System.Windows.Threading.DispatcherPriority.Background,
-                () =>
-                {
-                    _viewModel?.UpdateFitZoom(
-                        PreviewScrollViewer.ViewportWidth,
-                        PreviewScrollViewer.ViewportHeight);
-                    ResetPreviewScrollOffsetForFitMode();
-                });
+            ScheduleFitRefresh();
         }
+    }
+
+    private void ScheduleFitRefresh()
+    {
+        if (!_isLoaded)
+        {
+            return;
+        }
+
+        if (_fitRefreshOperation is { Status: DispatcherOperationStatus.Pending })
+        {
+            return;
+        }
+
+        _fitRefreshOperation = Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.Background,
+            new Action(() =>
+            {
+                _fitRefreshOperation = null;
+                if (!_isLoaded)
+                {
+                    return;
+                }
+
+                UpdatePreviewWorkspaceSize();
+                _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
+                ResetPreviewScrollOffsetForFitMode();
+            }));
     }
 
     private void DesignSurface_OnKeyDown(object sender, KeyEventArgs e)
@@ -464,6 +525,7 @@ public partial class FrontedDesignerWindow
             return;
         }
 
+        _viewModel?.ResetNudgeUndoSnapshotCoalescing();
         if (mode == InteractionMode.PolygonVertex) _viewModel?.CaptureUndoSnapshot();
         else _viewModel?.CaptureGeometryUndoSnapshot();
         _interactionMode = mode;
@@ -539,12 +601,59 @@ public partial class FrontedDesignerWindow
         var currentPosition = e.GetPosition(PreviewScrollViewer);
         var deltaX = currentPosition.X - _panStartViewportPosition.X;
         var deltaY = currentPosition.Y - _panStartViewportPosition.Y;
-        PreviewPanTransform.X = _panStartTranslationX + deltaX;
-        PreviewPanTransform.Y = _panStartTranslationY + deltaY;
+        // 以 ScrollViewer 的实际视口计算可平移余量。PreviewWorkspace 会被扩展到
+        // 内容尺寸，不能拿它当视口，否则大缩放时 overflow 恒为 0，只剩 48px 可拖动。
+        // 使用 ScrollViewer 的真实滚动范围，而不是 PreviewZoomHost.ActualWidth：
+        // LayoutTransform 下元素布局尺寸与实际滚动范围可能不一致，大缩放时尤其明显。
+        PreviewPanTransform.X = ClampViewportPan(
+            _panStartTranslationX + deltaX,
+            PreviewScrollViewer.ExtentWidth,
+            PreviewScrollViewer.ViewportWidth,
+            PreviewScrollViewer.HorizontalOffset);
+        PreviewPanTransform.Y = ClampViewportPan(
+            _panStartTranslationY + deltaY,
+            PreviewScrollViewer.ExtentHeight,
+            PreviewScrollViewer.ViewportHeight,
+            PreviewScrollViewer.VerticalOffset);
 
         // RenderTransform 不参与 ScrollViewer 的布局失效范围计算。
         // 显式重绘工作区，避免画布边框在旧位置留下残影。
         PreviewWorkspace.InvalidateVisual();
+    }
+
+    /// <summary>
+    /// 限制画布平移范围，确保无论缩放比例如何，画布始终至少有一部分留在可视区域内。
+    /// </summary>
+    /// <param name="value">目标平移量。</param>
+    /// <param name="contentSize">画布缩放后的尺寸。</param>
+    /// <param name="viewportSize">可视区域尺寸。</param>
+    /// <param name="scrollOffset">ScrollViewer 当前滚动偏移。</param>
+    /// <returns>限制后的平移量。</returns>
+    private static double ClampViewportPan(
+        double value,
+        double contentSize,
+        double viewportSize,
+        double scrollOffset)
+    {
+        const double visibleMargin = 48D;
+        if (!double.IsFinite(contentSize) || !double.IsFinite(viewportSize)
+            || !double.IsFinite(scrollOffset)
+            || contentSize <= 0D || viewportSize <= 0D)
+        {
+            return 0D;
+        }
+
+        // 滚动偏移会改变当前可视内容区间，不能再用“内容中心”的对称范围。
+        // 保证滚动窗口内始终至少能看到 visibleMargin 的内容。
+        var minimum = scrollOffset + visibleMargin - contentSize;
+        var maximum = scrollOffset + viewportSize - visibleMargin;
+        if (minimum > maximum)
+        {
+            var center = (minimum + maximum) / 2D;
+            return center;
+        }
+
+        return Math.Clamp(value, minimum, maximum);
     }
 
     private void EndViewportPan()
@@ -789,6 +898,24 @@ public partial class FrontedDesignerWindow
         }
     }
 
+    private void InteractionLayer_OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (_isReleasingPointerCapture || _capturedElement is null)
+        {
+            return;
+        }
+
+        // 鼠标在窗口外释放或被系统抢走捕获时，必须清理拖动状态，否则下一次点击会被残留的
+        // InteractionLayer 捕获吞掉，表现为“第一次能调整宽度，之后完全拖不动”。
+        if (_interactionMode is InteractionMode.Resize or InteractionMode.SubControlMove or InteractionMode.PolygonVertex)
+        {
+            _viewModel?.CommitDesignItemGeometryEdit();
+        }
+
+        ResetPointerInteraction();
+        UpdateDesignSurfaceExtent();
+    }
+
     private void ResetPointerInteraction()
     {
         _viewModel?.ClearActiveSnapGuides();
@@ -857,11 +984,12 @@ public partial class FrontedDesignerWindow
             return null;
         }
 
-        var value = (PreviewScrollViewer.HorizontalOffset
-                     + PreviewScrollViewer.ViewportWidth / 2D
-                     - PreviewPanTransform.X)
-                    / _viewModel.ZoomScale;
-        return double.IsFinite(value) ? value : null;
+        // 通过视觉树转换，自动包含 ZoomHost 的居中布局、LayoutTransform 与设计表面偏移，
+        // 避免手算漏掉这些偏移导致新控件出现在错误位置。
+        var point = PreviewScrollViewer.TranslatePoint(
+            new Point(PreviewScrollViewer.ViewportWidth / 2D, 0D),
+            InteractionLayer);
+        return double.IsFinite(point.X) ? point.X : null;
     }
 
     private double? GetViewportCenterY()
@@ -871,11 +999,10 @@ public partial class FrontedDesignerWindow
             return null;
         }
 
-        var value = (PreviewScrollViewer.VerticalOffset
-                     + PreviewScrollViewer.ViewportHeight / 2D
-                     - PreviewPanTransform.Y)
-                    / _viewModel.ZoomScale;
-        return double.IsFinite(value) ? value : null;
+        var point = PreviewScrollViewer.TranslatePoint(
+            new Point(0D, PreviewScrollViewer.ViewportHeight / 2D),
+            InteractionLayer);
+        return double.IsFinite(point.Y) ? point.Y : null;
     }
 
     private static Cursor GetCursor(FrontedDesignerResizeHandleKind handle)
